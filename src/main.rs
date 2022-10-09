@@ -3,27 +3,30 @@ use std::error::Error;
 use std::process;
 use std::cmp;
 
-fn read_sandhi_rules() -> Result<MultiMap<String, (String, String)>, Box<dyn Error>> {
+type SandhiMap = MultiMap<String, (String, String)>;
+
+fn read_sandhi_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
     let mut rules = MultiMap::new();
 
-    let mut rdr = csv::ReaderBuilder::new().delimiter(b'\t').from_path("data/sandhi.tsv")?;
+    let mut rdr = csv::ReaderBuilder::new().delimiter(b'\t').from_path(tsv_path)?;
     for maybe_row in rdr.records() {
         let row = maybe_row?;
         let first = String::from(&row[0]);
         let second = String::from(&row[1]);
 
-        let mut result = String::from(&row[2]);
+        let result = String::from(&row[2]);
         rules.insert(result.clone(), (first.clone(), second.clone()));
 
-        result = String::from(&row[2]).replace(" ", "");
-        rules.insert(result.clone(), (first.clone(), second.clone()));
+        let result_no_spaces = String::from(&row[2]).replace(" ", "");
+        if result_no_spaces != result {
+          rules.insert(result_no_spaces, (first.clone(), second.clone()));
+        }
     }
     Ok(rules)
 }
 
-fn split(input: &str, rules: MultiMap<String, (String, String)>) {
+fn split(input: &str, rules: SandhiMap) {
     let len_longest_key = rules.keys().map(|x| x.len()).max().expect("Map is empty");
-
     let len_input = input.len();
     for i in 0..len_input {
         // Default: split as-is, no sandhi.
@@ -46,7 +49,7 @@ fn split(input: &str, rules: MultiMap<String, (String, String)>) {
 }
 
 fn main() {
-    match read_sandhi_rules() {
+    match read_sandhi_rules("data/sandhi.tsv") {
         Ok(data) => split("Darmakzetre", data),
         Err(err) => {
             println!("{}", err);
