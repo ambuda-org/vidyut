@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::process;
+use std::cmp;
 
 fn read_sandhi_rules() -> Result<HashMap<String, (String, String)>, Box<dyn Error>> {
     let mut rules = HashMap::new();
@@ -14,14 +15,39 @@ fn read_sandhi_rules() -> Result<HashMap<String, (String, String)>, Box<dyn Erro
         rules.insert(result.clone(), (first.clone(), second.clone()));
         rules.insert(result.clone().replace(" ", ""), (first.clone(), second.clone()));
     }
-    println!("{:?}", rules);
     Ok(rules)
 }
 
+fn split(input: &str, rules: HashMap<String, (String, String)>) {
+    let len_longest_key = rules.keys().map(|x| x.len()).max().expect("Map is empty");
+
+    let len_input = input.len();
+    for i in 0..len_input {
+        // Default: split as-is, no sandhi.
+        println!("{}, {}", &input[0..i], &input[i..len_input]);
+
+        for j in i..cmp::min(len_input, i + len_longest_key) {
+            let combination = &input[i..j];
+            match rules.get(combination) {
+                Some(split) => {
+                    let (f, s) = split;
+                    let first = String::from(&input[0..i]) + f;
+                    let second = String::from(s) + &input[j..len_input];
+                    println!("{}, {}", first, second);
+                },
+                None => continue
+            }
+        }
+    }
+}
+
 fn main() {
-    if let Err(err) = read_sandhi_rules() {
-        println!("{}", err);
-        process::exit(1);
+    match read_sandhi_rules() {
+        Ok(data) => split("Darmakzetre kurukzetre samavetA yuyutsavaH", data),
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
+        }
     }
 }
 
