@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 csv = "1.1.6"
+env_logger = "0.9.1"
+log = "0.4.17"
 multimap = "0.8.3"
 regex = "1.6.0"

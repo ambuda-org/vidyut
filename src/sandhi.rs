@@ -27,7 +27,7 @@ pub fn read_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
     Ok(rules)
 }
 
-pub fn split(input: &str, rules: SandhiMap) -> Vec<(String, String)> {
+pub fn split(input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
     let mut res = Vec::new();
     let len_longest_key = rules.keys().map(|x| x.len()).max().expect("Map is empty");
     let len_input = input.len();
@@ -74,6 +74,7 @@ fn is_good_second(text: &str) -> bool {
 }
 
 pub fn is_good_split(text: &str, first: &str, second: &str) -> bool {
+    // To avoid recursion, require that `second` is not just a repeat of the inital state.
     let is_recursive = text == second;
     is_good_first(&first) && is_good_second(&second) && !is_recursive
 }
@@ -97,7 +98,7 @@ mod tests {
         .map(|&(f, s)| (f.to_string(), s.to_string()))
         .collect();
 
-        assert_eq!(split("ceti", rules), expected);
+        assert_eq!(split("ceti", &rules), expected);
     }
 
     #[test]
