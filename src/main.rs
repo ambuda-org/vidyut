@@ -2,6 +2,7 @@ use multimap::MultiMap;
 use std::cmp;
 use std::error::Error;
 use std::process;
+use regex::Regex;
 
 type SandhiMap = MultiMap<String, (String, String)>;
 
@@ -60,13 +61,29 @@ fn split(input: &str, rules: SandhiMap) -> Vec<(String, String)> {
     res
 }
 
+fn is_good_split(first: &str, second: &str) -> bool {
+    let is_good_first = match first.chars().last() {
+        Some(c) => "aAiIuUfFxXeEoOHkNwRtpnm".contains(c),
+        None => true,
+    };
+    if !is_good_first {
+        return false;
+    }
+
+    // Initial yrlv must not be followed by sparsha.
+    let r = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
+    return !r.is_match(second)
+}
+
 fn main() {
     let text = std::env::args().nth(1).expect("No text provided.");
 
     match read_sandhi_rules("data/sandhi.tsv") {
         Ok(data) => {
             for (first, second) in split(&text, data) {
-                println!("{} {}", first, second);
+                if is_good_split(&first, &second) {
+                    println!("{} {}", first, second);
+                }
             }
         }
         Err(err) => {
@@ -77,11 +94,11 @@ fn main() {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
-    fn basic_splits_work() {
+    fn test_split() {
         let mut rules = SandhiMap::new();
         rules.insert("e".to_string(), ("a".to_string(), "i".to_string()));
         let expected: Vec<(String, String)> = vec![
@@ -96,5 +113,30 @@ mod test {
         .collect();
 
         assert_eq!(split("ceti", rules), expected);
+    }
+
+    #[test]
+    fn test_is_good_split() {
+        for word in vec![
+            "rAma", "rAjA", "iti", "nadI", "maDu", "gurU", "pitf", "F", "laBate", "vE", "aho",
+            "narO", "naraH", "vAk", "rAw", "prAN", "vit", "narAn", "anuzWup", "naram",
+        ] {
+            assert!(is_good_split(word, ""));
+        }
+        for word in vec!["PalaM", "zaz", "vAc"] {
+            assert!(!is_good_split(word, ""));
+        }
+    }
+
+    #[test]
+    fn test_has_valid_start() {
+        for word in vec![
+"yogena", "rAma", "leKaH", "vE", "kArtsnyam", "vraja", "vyajanam",
+        ] {
+            assert!(is_good_split("a", word));
+        }
+        for word in vec!["rmakzetre"] {
+            assert!(!is_good_split("a", word));
+        }
     }
 }

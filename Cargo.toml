@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 csv = "1.1.6"
 multimap = "0.8.3"
+regex = "1.6.0"
