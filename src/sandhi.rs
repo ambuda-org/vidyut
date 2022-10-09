@@ -5,6 +5,11 @@ use std::error::Error;
 
 type SandhiMap = MultiMap<String, (String, String)>;
 
+/// Creates a map from sandhi combinations to the sounds that created them.
+///
+/// # Arguments
+///
+/// - `tsv_path` - a TSV with columns `first`, `second`, and `result`.
 pub fn read_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
     let mut rules = MultiMap::new();
 
@@ -27,6 +32,7 @@ pub fn read_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
     Ok(rules)
 }
 
+/// Returns all possible splits for the given input.
 pub fn split(input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
     let mut res = Vec::new();
     let len_longest_key = rules.keys().map(|x| x.len()).max().expect("Map is empty");
@@ -59,6 +65,7 @@ pub fn split(input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
     res
 }
 
+/// Returns whether the first item in a sandhi split is OK according to some basic heuristics.
 fn is_good_first(text: &str) -> bool {
     match text.chars().last() {
         // Vowels, standard consonants, and "s" and "r"
@@ -67,12 +74,17 @@ fn is_good_first(text: &str) -> bool {
     }
 }
 
+/// Returns whether the second item in a sandhi split is OK according to some basic heuristics.
 fn is_good_second(text: &str) -> bool {
     // Initial yrlv must not be followed by sparsha.
     let r = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
     return !r.is_match(text);
 }
 
+/// Returns whether a given sandhi split is OK according to some basic heuristics.
+///
+/// Our sandhi splitting logic overgenerates, and some of its outputs are not phonetically valid.
+/// For most use cases, we recommend filtering the results of `split` with this function.
 pub fn is_good_split(text: &str, first: &str, second: &str) -> bool {
     // To avoid recursion, require that `second` is not just a repeat of the inital state.
     let is_recursive = text == second;
