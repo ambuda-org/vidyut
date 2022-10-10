@@ -62,7 +62,9 @@ fn main() {
         ctx
     };
 
-    info!("Beginning parse: \"{}\"", text);
-    let padas = parsing::parse(&text, ctx);
-    println!("{:?}", padas);
+    for phrase in text.split(";") {
+        info!("Beginning parse: \"{}\"", text);
+        let padas = parsing::parse(&phrase, &ctx);
+        println!("{:?}", padas);
+    }
 }

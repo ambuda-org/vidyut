@@ -12,7 +12,7 @@ struct State {
     pub remaining: String,
 }
 
-pub fn parse(text: &str, ctx: io::Context) -> Option<Vec<String>> {
+pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<String>> {
     let mut pq = PriorityQueue::new();
     let mut cache: HashMap<String, bool> = HashMap::new();
 
