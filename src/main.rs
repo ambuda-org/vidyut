@@ -1,56 +1,11 @@
-#![allow(dead_code)]
-
-use log::{debug, info};
-use std::collections::HashMap;
+use log::info;
 use std::path::Path;
 use std::process;
 
 mod io;
 mod padas;
+mod parsing;
 mod sandhi;
-
-struct State {
-    pub items: Vec<String>,
-    pub remaining: String,
-}
-
-fn parse(text: &str, ctx: io::Context) -> Option<Vec<String>> {
-    let mut stack = Vec::new();
-    let mut cache: HashMap<String, bool> = HashMap::new();
-
-    stack.push(State {
-        items: Vec::new(),
-        remaining: text.to_string(),
-    });
-    while !stack.is_empty() {
-        let cur_state = stack.pop().unwrap();
-        debug!("Pop state: {:?} {}", cur_state.items, cur_state.remaining);
-
-        if cur_state.remaining.is_empty() {
-            return Some(cur_state.items);
-        }
-        for (first, second) in sandhi::split(&cur_state.remaining, &ctx.sandhi_rules) {
-            if !sandhi::is_good_split(&cur_state.remaining, &first, &second) {
-                continue;
-            }
-            if padas::is_pada(&first, &ctx, &mut cache) {
-                let mut new_state = State {
-                    items: cur_state.items.clone(),
-                    remaining: second.clone(),
-                };
-                new_state.items.push(first);
-
-                // FIXME: remove this after queue
-                if second.is_empty() {
-                    return Some(new_state.items);
-                }
-                stack.push(new_state);
-            }
-        }
-        debug!("Length of stack: {}", stack.len());
-    }
-    return None;
-}
 
 fn main() {
     env_logger::init();
@@ -108,6 +63,6 @@ fn main() {
     };
 
     info!("Beginning parse: \"{}\"", text);
-    let padas = parse(&text, ctx);
+    let padas = parsing::parse(&text, ctx);
     println!("{:?}", padas);
 }
