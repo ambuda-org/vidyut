@@ -11,8 +11,6 @@ struct State {
 }
 
 fn parse(text: &str, ctx: io::Context) -> Option<Vec<String>> {
-    info!("Beginning parse: \"{}\"", text);
-
     let mut stack = Vec::new();
     stack.push(State {
         items: Vec::new(),
@@ -48,12 +46,24 @@ fn main() {
     let text = std::env::args().nth(1).expect("No text provided.");
 
     let data_paths = io::DataPaths {
-        sandhi_rules: "data/sandhi.tsv".to_string(),
-        shs_verbs: "data/sanskrit-heritage-site/roots.csv".to_string(),
-        shs_adverbs: "data/sanskrit-heritage-site/adverbs.csv".to_string(),
-        shs_final: "data/sanskrit-heritage-site/final.csv".to_string(),
+        indeclinables: "data/indeclinables.csv".to_string(),
+        nominal_endings_compounded: "data/nominal-endings-compounded.csv".to_string(),
+        nominal_endings_inflected: "data/nominal-endings-inflected.csv".to_string(),
+        nominal_stems: "data/nominal-stems.csv".to_string(),
+        participle_stems: "data/participle-stems.csv".to_string(),
+        prefix_groups: "data/prefix-groups.csv".to_string(),
+        prefixed_roots: "data/prefixed-roots.csv".to_string(),
+        pronouns: "data/pronouns.csv".to_string(),
+        sandhi_rules: "data/sandhi-rules.csv".to_string(),
+        unprefixed_roots: "data/unprefixed-roots.csv".to_string(),
+        verb_endings: "data/verb-endings.csv".to_string(),
+        verb_prefixes: "data/verb-prefixes.csv".to_string(),
+        verbal_indeclinables: "data/verbal-indeclinables.csv".to_string(),
+        verbs: "data/verbs.csv".to_string(),
     };
-    let ctx = match io::load_data(&data_paths) {
+
+    info!("Beginning data load from filesystem.");
+    let ctx = match io::read_all_data(&data_paths) {
         Ok(data) => data,
         Err(err) => {
             println!("{}", err);
@@ -61,6 +71,7 @@ fn main() {
         }
     };
 
+    info!("Beginning parse: \"{}\"", text);
     let padas = parse(&text, ctx);
     println!("{:?}", padas);
 }

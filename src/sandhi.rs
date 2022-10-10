@@ -1,36 +1,8 @@
 use multimap::MultiMap;
 use regex::Regex;
 use std::cmp;
-use std::error::Error;
 
 pub type SandhiMap = MultiMap<String, (String, String)>;
-
-/// Creates a map from sandhi combinations to the sounds that created them.
-///
-/// # Arguments
-///
-/// - `tsv_path` - a TSV with columns `first`, `second`, and `result`.
-pub fn read_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
-    let mut rules = MultiMap::new();
-
-    let mut rdr = csv::ReaderBuilder::new()
-        .delimiter(b'\t')
-        .from_path(tsv_path)?;
-    for maybe_row in rdr.records() {
-        let row = maybe_row?;
-        let first = String::from(&row[0]);
-        let second = String::from(&row[1]);
-
-        let result = String::from(&row[2]);
-        rules.insert(result.clone(), (first.clone(), second.clone()));
-
-        let result_no_spaces = String::from(&row[2]).replace(' ', "");
-        if result_no_spaces != result {
-            rules.insert(result_no_spaces, (first.clone(), second.clone()));
-        }
-    }
-    Ok(rules)
-}
 
 /// Returns all possible splits for the given input.
 pub fn split(input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
