@@ -1,4 +1,7 @@
+#![allow(dead_code)]
+
 use log::{debug, info};
+use std::collections::HashMap;
 use std::path::Path;
 use std::process;
 
@@ -13,6 +16,8 @@ struct State {
 
 fn parse(text: &str, ctx: io::Context) -> Option<Vec<String>> {
     let mut stack = Vec::new();
+    let mut cache: HashMap<String, bool> = HashMap::new();
+
     stack.push(State {
         items: Vec::new(),
         remaining: text.to_string(),
@@ -28,15 +33,21 @@ fn parse(text: &str, ctx: io::Context) -> Option<Vec<String>> {
             if !sandhi::is_good_split(&cur_state.remaining, &first, &second) {
                 continue;
             }
-            if padas::is_pada(&first, &ctx.pada_map) {
+            if padas::is_pada(&first, &ctx, &mut cache) {
                 let mut new_state = State {
                     items: cur_state.items.clone(),
-                    remaining: second,
+                    remaining: second.clone(),
                 };
                 new_state.items.push(first);
+
+                // FIXME: remove this after queue
+                if second.is_empty() {
+                    return Some(new_state.items);
+                }
                 stack.push(new_state);
             }
         }
+        debug!("Length of stack: {}", stack.len());
     }
     return None;
 }

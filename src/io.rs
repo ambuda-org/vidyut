@@ -49,8 +49,9 @@ fn add_nominal_endings_compounded(
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
-        let ending = r[0].to_string();
-        endings.insert(ending, String::from("comp"));
+        let stem = r[0].to_string();
+        let ending = r[2].to_string();
+        endings.insert(ending, (stem, String::from("comp")));
     }
     Ok(())
 }
@@ -62,9 +63,11 @@ fn add_nominal_endings_inflected(
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
-        let ending = r[0].to_string();
+
+        let stem = r[0].to_string();
+        let ending = r[2].to_string();
         let lex = format!("{}-{}-{}", &r[3], &r[4], &r[5]);
-        endings.insert(ending, lex);
+        endings.insert(ending, (stem, lex));
     }
     Ok(())
 }
