@@ -1,3 +1,4 @@
+/// Splits Sanskrit expressions according to a list of sandhi rules.
 use multimap::MultiMap;
 use regex::Regex;
 use std::cmp;

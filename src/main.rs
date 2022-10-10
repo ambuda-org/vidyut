@@ -1,3 +1,4 @@
+/// Parse text received on the command line.
 use log::info;
 use std::path::Path;
 use std::process;
@@ -62,9 +63,9 @@ fn main() {
         ctx
     };
 
-    for phrase in text.split(";") {
+    for phrase in text.split(';') {
         info!("Beginning parse: \"{}\"", text);
-        let padas = parsing::parse(&phrase, &ctx);
+        let padas = parsing::parse(phrase, &ctx);
         println!("{:?}", padas);
     }
 }

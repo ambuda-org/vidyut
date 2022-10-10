@@ -1,3 +1,4 @@
+/// Utilities for reading and writing linguistic data.
 use crate::padas::{EndingMap, PadaMap, StemMap};
 use crate::sandhi::SandhiMap;
 use serde::{Deserialize, Serialize};
@@ -78,7 +79,7 @@ fn add_nominal_stems(path: &str, padas: &mut StemMap) -> Result<(), Box<dyn Erro
         let r = maybe_row?;
         let stem = r[0].to_string();
         let lex = r[1].to_string();
-        padas.insert(stem, String::from(lex));
+        padas.insert(stem, lex);
     }
     Ok(())
 }
@@ -89,7 +90,7 @@ fn add_participle_stems(path: &str, padas: &mut StemMap) -> Result<(), Box<dyn E
         let r = maybe_row?;
         let stem = r[0].to_string();
         let lex = format!("{}-{}-{}", &r[3], &r[4], &r[5]);
-        padas.insert(stem, String::from(lex));
+        padas.insert(stem, lex);
     }
     Ok(())
 }
@@ -187,9 +188,9 @@ pub fn read_padas(paths: &DataPaths) -> Result<PadaMap, Box<dyn Error>> {
 pub fn read_all_data(paths: &DataPaths) -> Result<Context, Box<dyn Error>> {
     Ok(Context {
         sandhi_rules: read_sandhi_rules(&paths.sandhi_rules)?,
-        pada_map: read_padas(&paths)?,
-        stem_map: read_stems(&paths)?,
-        ending_map: read_nominal_endings(&paths)?,
+        pada_map: read_padas(paths)?,
+        stem_map: read_stems(paths)?,
+        ending_map: read_nominal_endings(paths)?,
     })
 }
 

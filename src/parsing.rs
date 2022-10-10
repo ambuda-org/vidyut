@@ -1,3 +1,4 @@
+/// Splits Sanskrit sentences into separate words with their semantics.
 use log::debug;
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
@@ -25,26 +26,25 @@ fn analyze_pada(
     cache: &mut HashMap<String, Option<Semantics>>,
 ) -> Option<Semantics> {
     if !cache.contains_key(text) {
-        cache.insert(text.to_string(), padas::analyze(&text, &data));
+        cache.insert(text.to_string(), padas::analyze(text, data));
     }
-    match cache.get(text).unwrap() {
-        Some(s) => Some(s.clone()),
-        None => None,
-    }
+    cache.get(text).unwrap().as_ref().cloned()
+}
+
+fn priority(state: &State) -> i32 {
+    -(state.remaining.len() as i32)
 }
 
 pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
     let mut pq = PriorityQueue::new();
     let mut cache: HashMap<String, Option<Semantics>> = HashMap::new();
 
-    let priority = -1 * (text.len() as i32);
-    pq.push(
-        State {
-            items: Vec::new(),
-            remaining: text.to_string(),
-        },
-        priority,
-    );
+    let initial_state = State {
+        items: Vec::new(),
+        remaining: text.to_string(),
+    };
+    let initial_priority = priority(&initial_state);
+    pq.push(initial_state, initial_priority);
 
     while !pq.is_empty() {
         let (cur_state, _priority) = pq.pop().unwrap();
@@ -57,23 +57,20 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
             if !sandhi::is_good_split(&cur_state.remaining, &first, &second) {
                 continue;
             }
-            match analyze_pada(&first, &ctx, &mut cache) {
-                Some(semantics) => {
-                    let mut new_state = State {
-                        items: cur_state.items.clone(),
-                        remaining: second.clone(),
-                    };
-                    new_state.items.push(ParsedWord {
-                        text: first,
-                        semantics,
-                    });
-                    let priority = -1 * (new_state.remaining.len() as i32);
-                    pq.push(new_state, priority);
-                }
-                None => (),
+            if let Some(semantics) = analyze_pada(&first, ctx, &mut cache) {
+                let mut new_state = State {
+                    items: cur_state.items.clone(),
+                    remaining: second.clone(),
+                };
+                new_state.items.push(ParsedWord {
+                    text: first,
+                    semantics,
+                });
+                let new_priority = priority(&new_state);
+                pq.push(new_state, new_priority);
             }
         }
         debug!("Length of priority queue: {}", pq.len());
     }
-    return None;
+    None
 }
