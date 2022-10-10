@@ -5,8 +5,8 @@ use std::collections::HashMap;
 
 use crate::io;
 use crate::padas;
-use crate::padas::Semantics;
 use crate::sandhi;
+use crate::semantics::Semantics;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParsedWord {

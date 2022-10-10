@@ -1,5 +1,7 @@
 /// Parse text received on the command line.
+use clap::{Arg, ArgAction, Command};
 use log::info;
+use std::error::Error;
 use std::path::Path;
 use std::process;
 
@@ -7,11 +9,46 @@ mod io;
 mod padas;
 mod parsing;
 mod sandhi;
+mod semantics;
+
+fn load_context(data_paths: &io::DataPaths, no_cache: bool) -> Result<io::Context, Box<dyn Error>> {
+    if Path::new(&data_paths.dump).exists() && !no_cache {
+        info!("Loading previous snapshot from \"{}\"", &data_paths.dump);
+        match io::read_snapshot(&data_paths.dump) {
+            Ok(data) => Ok(data),
+            Err(err) => Err(err),
+        }
+    } else {
+        info!("No previous snapshot found. Loading raw data.");
+        let ctx = io::read_all_data(data_paths)?;
+
+        if !no_cache {
+            info!("Creating snapshot for faster loading next time.");
+            io::write_snapshot(&ctx, &data_paths.dump)?;
+            info!("Wrote snapshot data to {}", data_paths.dump);
+        }
+
+        Ok(ctx)
+    }
+}
 
 fn main() {
     env_logger::init();
 
-    let text = std::env::args().nth(1).expect("No text provided.");
+    let matches = Command::new("Vidyut")
+        .version("0.0.1")
+        .author("Arun Prasad")
+        .about("A fast Sanskrit parser")
+        .arg(Arg::new("text"))
+        .arg(
+            Arg::new("no-cache")
+                .long("no-cache")
+                .action(ArgAction::SetTrue),
+        )
+        .get_matches();
+
+    let text = matches.get_one::<String>("text").expect("required");
+    let no_cache: bool = *matches.get_one::<bool>("no-cache").unwrap_or(&false);
 
     let data_paths = io::DataPaths {
         dump: "data/snapshot.bin".to_string(),
@@ -31,36 +68,12 @@ fn main() {
         verbs: "data/verbs.csv".to_string(),
     };
 
-    let ctx = if Path::new(&data_paths.dump).exists() {
-        info!("Loading previous snapshot from \"{}\"", &data_paths.dump);
-        match io::read_snapshot(&data_paths.dump) {
-            Ok(data) => data,
-            Err(err) => {
-                println!("{}", err);
-                process::exit(1);
-            }
+    let ctx = match load_context(&data_paths, no_cache) {
+        Ok(data) => data,
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
         }
-    } else {
-        info!("No previous snapshot found. Loading raw data.");
-        let ctx = match io::read_all_data(&data_paths) {
-            Ok(data) => data,
-            Err(err) => {
-                println!("{}", err);
-                process::exit(1);
-            }
-        };
-
-        info!("Creating snapshot for faster loading next time.");
-        match io::write_snapshot(&ctx, &data_paths.dump) {
-            Ok(data) => data,
-            Err(err) => {
-                println!("{}", err);
-                process::exit(1);
-            }
-        };
-
-        info!("Wrote snapshot data to {}", data_paths.dump);
-        ctx
     };
 
     for phrase in text.split(';') {
