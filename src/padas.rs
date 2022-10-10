@@ -1,11 +1,6 @@
+use crate::io;
 use multimap::MultiMap;
 use std::error::Error;
-
-pub struct DataConfig {
-    pub shs_verbs: String,
-    pub shs_adverbs: String,
-    pub shs_final: String,
-}
 
 pub type PadaMap = MultiMap<String, String>;
 
@@ -42,7 +37,7 @@ fn add_shs_final(csv_path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
-pub fn read_pada_data(paths: &DataConfig) -> Result<PadaMap, Box<dyn Error>> {
+pub fn read_pada_data(paths: &io::DataPaths) -> Result<PadaMap, Box<dyn Error>> {
     let mut padas = PadaMap::new();
     add_shs_verbs(&paths.shs_verbs, &mut padas)?;
     add_shs_adverbs(&paths.shs_adverbs, &mut padas)?;
