@@ -4,17 +4,38 @@ use std::collections::HashMap;
 
 use crate::io;
 use crate::padas;
+use crate::padas::Semantics;
 use crate::sandhi;
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ParsedWord {
+    text: String,
+    semantics: Semantics,
+}
 
 #[derive(PartialEq, Eq, Hash)]
 struct State {
-    pub items: Vec<String>,
+    pub items: Vec<ParsedWord>,
     pub remaining: String,
 }
 
-pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<String>> {
+fn analyze_pada(
+    text: &str,
+    data: &io::Context,
+    cache: &mut HashMap<String, Option<Semantics>>,
+) -> Option<Semantics> {
+    if !cache.contains_key(text) {
+        cache.insert(text.to_string(), padas::analyze(&text, &data));
+    }
+    match cache.get(text).unwrap() {
+        Some(s) => Some(s.clone()),
+        None => None,
+    }
+}
+
+pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
     let mut pq = PriorityQueue::new();
-    let mut cache: HashMap<String, bool> = HashMap::new();
+    let mut cache: HashMap<String, Option<Semantics>> = HashMap::new();
 
     let priority = -1 * (text.len() as i32);
     pq.push(
@@ -36,14 +57,20 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<String>> {
             if !sandhi::is_good_split(&cur_state.remaining, &first, &second) {
                 continue;
             }
-            if padas::is_pada(&first, &ctx, &mut cache) {
-                let mut new_state = State {
-                    items: cur_state.items.clone(),
-                    remaining: second.clone(),
-                };
-                new_state.items.push(first);
-                let priority = -1 * (new_state.remaining.len() as i32);
-                pq.push(new_state, priority);
+            match analyze_pada(&first, &ctx, &mut cache) {
+                Some(semantics) => {
+                    let mut new_state = State {
+                        items: cur_state.items.clone(),
+                        remaining: second.clone(),
+                    };
+                    new_state.items.push(ParsedWord {
+                        text: first,
+                        semantics,
+                    });
+                    let priority = -1 * (new_state.remaining.len() as i32);
+                    pq.push(new_state, priority);
+                }
+                None => (),
             }
         }
         debug!("Length of priority queue: {}", pq.len());

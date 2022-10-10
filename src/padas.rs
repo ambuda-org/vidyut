@@ -1,16 +1,16 @@
 use crate::io;
 use multimap::MultiMap;
-use std::collections::HashMap;
 
-pub type StemMap = MultiMap<String, String>;
-pub type PadaMap = MultiMap<String, String>;
-pub type EndingMap = MultiMap<String, (String, String)>;
+pub type Semantics = String;
+pub type StemMap = MultiMap<String, Semantics>;
+pub type PadaMap = MultiMap<String, Semantics>;
+pub type EndingMap = MultiMap<String, (String, Semantics)>;
 
-fn is_valid_stem(text: &str, data: &io::Context) -> bool {
+fn get_stem_semantics(text: &str, data: &io::Context) -> Option<Semantics> {
     let stems = &data.stem_map;
 
     for ending in data.ending_map.keys() {
-        for (stem_type, _lex) in data.ending_map.get_vec(ending).unwrap() {
+        for (stem_type, lex) in data.ending_map.get_vec(ending).unwrap() {
             let len_text = text.len();
             if !text.ends_with(ending) {
                 continue;
@@ -26,26 +26,16 @@ fn is_valid_stem(text: &str, data: &io::Context) -> bool {
                     print!("{} {} {}", text, ending, stem_type);
                     std::process::exit(1);
                 }
-                return true;
+                return Some(lex.clone());
             }
         }
     }
-    false
+    return None;
 }
 
-fn is_pada_uncached(text: &str, data: &io::Context) -> bool {
+pub fn analyze(text: &str, data: &io::Context) -> Option<Semantics> {
     if data.pada_map.contains_key(text) {
-        return true;
+        return Some(data.pada_map.get(text).unwrap().to_string());
     }
-    if is_valid_stem(text, &data) {
-        return true;
-    }
-    false
-}
-
-pub fn is_pada(text: &str, data: &io::Context, cache: &mut HashMap<String, bool>) -> bool {
-    if !cache.contains_key(text) {
-        cache.insert(text.to_string(), is_pada_uncached(&text, &data));
-    }
-    *cache.get(text).unwrap()
+    return get_stem_semantics(text, &data);
 }
