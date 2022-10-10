@@ -24,7 +24,7 @@ pub fn read_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
         let result = String::from(&row[2]);
         rules.insert(result.clone(), (first.clone(), second.clone()));
 
-        let result_no_spaces = String::from(&row[2]).replace(" ", "");
+        let result_no_spaces = String::from(&row[2]).replace(' ', "");
         if result_no_spaces != result {
             rules.insert(result_no_spaces, (first.clone(), second.clone()));
         }
@@ -78,7 +78,7 @@ fn is_good_first(text: &str) -> bool {
 fn is_good_second(text: &str) -> bool {
     // Initial yrlv must not be followed by sparsha.
     let r = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
-    return !r.is_match(text);
+    !r.is_match(text)
 }
 
 /// Returns whether a given sandhi split is OK according to some basic heuristics.
@@ -88,7 +88,7 @@ fn is_good_second(text: &str) -> bool {
 pub fn is_good_split(text: &str, first: &str, second: &str) -> bool {
     // To avoid recursion, require that `second` is not just a repeat of the inital state.
     let is_recursive = text == second;
-    is_good_first(&first) && is_good_second(&second) && !is_recursive
+    is_good_first(first) && is_good_second(second) && !is_recursive
 }
 
 #[cfg(test)]

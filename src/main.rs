@@ -1,26 +1,8 @@
 use log::info;
-use std::collections::HashSet;
 use std::process;
 
+mod padas;
 mod sandhi;
-
-fn is_word(word: &str) -> bool {
-    let mut words: HashSet<String> = HashSet::new();
-    words.insert("Darma".to_string());
-    words.insert("kzetre".to_string());
-    words.insert("kuru".to_string());
-    words.insert("samavetAs".to_string());
-    words.insert("yuyutsavaH".to_string());
-    words.insert("mAmakAH".to_string());
-    words.insert("pARqavAH".to_string());
-    words.insert("ca".to_string());
-    words.insert("eva".to_string());
-    words.insert("kim".to_string());
-    words.insert("akurvata".to_string());
-    words.insert("saMjaya".to_string());
-
-    words.contains(word)
-}
 
 fn main() {
     env_logger::init();
@@ -34,17 +16,29 @@ fn main() {
             process::exit(1);
         }
     };
+    let pada_paths = padas::DataConfig {
+        shs_verbs: "data/sanskrit-heritage-site/roots.csv".to_string(),
+        shs_adverbs: "data/sanskrit-heritage-site/adverbs.csv".to_string(),
+        shs_final: "data/sanskrit-heritage-site/final.csv".to_string(),
+    };
+    let pada_map = match padas::read_pada_data(&pada_paths) {
+        Ok(padas) => padas,
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
+        }
+    };
 
     let mut state = text.clone();
-    let mut words = Vec::new();
+    let mut padas = Vec::new();
     while !state.is_empty() {
         let mut changed_state = false;
         for (first, second) in sandhi::split(&state, &rules) {
             if !sandhi::is_good_split(&text, &first, &second) {
                 continue;
             }
-            if is_word(&first) {
-                words.push(first);
+            if padas::is_pada(&first, &pada_map) {
+                padas.push(first);
                 state = second;
                 info!("State is: \"{}\"", state);
                 changed_state = true;
@@ -55,5 +49,5 @@ fn main() {
             break;
         }
     }
-    println!("{:?}", words);
+    println!("{:?}", padas);
 }
