@@ -1,4 +1,5 @@
 use log::{debug, info};
+use std::path::Path;
 use std::process;
 
 mod io;
@@ -46,6 +47,7 @@ fn main() {
     let text = std::env::args().nth(1).expect("No text provided.");
 
     let data_paths = io::DataPaths {
+        dump: "data/snapshot.bin".to_string(),
         indeclinables: "data/indeclinables.csv".to_string(),
         nominal_endings_compounded: "data/nominal-endings-compounded.csv".to_string(),
         nominal_endings_inflected: "data/nominal-endings-inflected.csv".to_string(),
@@ -62,13 +64,36 @@ fn main() {
         verbs: "data/verbs.csv".to_string(),
     };
 
-    info!("Beginning data load from filesystem.");
-    let ctx = match io::read_all_data(&data_paths) {
-        Ok(data) => data,
-        Err(err) => {
-            println!("{}", err);
-            process::exit(1);
+    let ctx = if Path::new(&data_paths.dump).exists() {
+        info!("Loading previous snapshot from \"{}\"", &data_paths.dump);
+        match io::read_snapshot(&data_paths.dump) {
+            Ok(data) => data,
+            Err(err) => {
+                println!("{}", err);
+                process::exit(1);
+            }
         }
+    } else {
+        info!("No previous snapshot found. Loading raw data.");
+        let ctx = match io::read_all_data(&data_paths) {
+            Ok(data) => data,
+            Err(err) => {
+                println!("{}", err);
+                process::exit(1);
+            }
+        };
+
+        info!("Creating snapshot for faster loading next time.");
+        match io::write_snapshot(&ctx, &data_paths.dump) {
+            Ok(data) => data,
+            Err(err) => {
+                println!("{}", err);
+                process::exit(1);
+            }
+        };
+
+        info!("Wrote snapshot data to {}", data_paths.dump);
+        ctx
     };
 
     info!("Beginning parse: \"{}\"", text);

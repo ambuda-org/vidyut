@@ -1,9 +1,13 @@
 use crate::padas::{EndingMap, PadaMap, StemMap};
 use crate::sandhi::SandhiMap;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::fs;
+use std::io::{BufReader, BufWriter};
 
 /// Data paths from https://github.com/sanskrit/data
 pub struct DataPaths {
+    pub dump: String,
     pub indeclinables: String,
     pub nominal_endings_compounded: String,
     pub nominal_endings_inflected: String,
@@ -20,6 +24,7 @@ pub struct DataPaths {
     pub verbs: String,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Context {
     pub sandhi_rules: SandhiMap,
     pub pada_map: PadaMap,
@@ -183,4 +188,22 @@ pub fn read_all_data(paths: &DataPaths) -> Result<Context, Box<dyn Error>> {
         stem_map: read_stems(&paths)?,
         ending_map: read_nominal_endings(&paths)?,
     })
+}
+
+/// Read a previous data context to disk.
+///
+/// Reading this snapshot is about twice as fast as building from scratch.
+pub fn read_snapshot(binary_path: &str) -> Result<Context, Box<bincode::ErrorKind>> {
+    // Use BufWriter for better performance.
+    // https://stackoverflow.com/questions/43028653
+    let mut f = BufReader::new(fs::File::open(binary_path)?);
+    bincode::deserialize_from(&mut f)
+}
+
+/// Dump the current data context to disk.
+pub fn write_snapshot(ctx: &Context, binary_path: &str) -> Result<(), Box<bincode::ErrorKind>> {
+    // Use BufWriter for better performance.
+    // https://stackoverflow.com/questions/43028653
+    let mut f = BufWriter::new(fs::File::create(binary_path)?);
+    bincode::serialize_into(&mut f, &ctx)
 }
