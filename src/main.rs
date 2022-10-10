@@ -9,6 +9,7 @@ mod io;
 mod padas;
 mod parsing;
 mod sandhi;
+mod scoring;
 mod semantics;
 
 fn load_context(data_paths: &io::DataPaths, no_cache: bool) -> Result<io::Context, Box<dyn Error>> {

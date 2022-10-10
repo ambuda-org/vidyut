@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use crate::io;
 use crate::padas;
 use crate::sandhi;
+use crate::scoring;
 use crate::semantics::Semantics;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -15,7 +16,7 @@ pub struct ParsedWord {
 }
 
 #[derive(PartialEq, Eq, Hash)]
-struct State {
+pub struct State {
     pub items: Vec<ParsedWord>,
     pub remaining: String,
 }
@@ -31,10 +32,6 @@ fn analyze_pada(
     cache.get(text).unwrap().as_ref().cloned()
 }
 
-fn priority(state: &State) -> i32 {
-    -(state.remaining.len() as i32)
-}
-
 pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
     let mut pq = PriorityQueue::new();
     let mut cache: HashMap<String, Option<Semantics>> = HashMap::new();
@@ -43,31 +40,38 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
         items: Vec::new(),
         remaining: text.to_string(),
     };
-    let initial_priority = priority(&initial_state);
-    pq.push(initial_state, initial_priority);
+    let initial_score = scoring::heuristic_score(&initial_state);
+    pq.push(initial_state, initial_score);
 
     while !pq.is_empty() {
-        let (cur_state, _priority) = pq.pop().unwrap();
-        debug!("Pop state: {:?} {}", cur_state.items, cur_state.remaining);
+        let (cur, _score) = pq.pop().unwrap();
+        debug!("Pop state: {:?} {}", cur.items, cur.remaining);
 
-        if cur_state.remaining.is_empty() {
-            return Some(cur_state.items);
+        // If the state is solved (no remaining text), return it.
+        //
+        // We return at the first solved state we see, and we rank all states in our queue.
+        // Therefore, this is the best solution we'll be able to find.
+        if cur.remaining.is_empty() {
+            return Some(cur.items);
         }
-        for (first, second) in sandhi::split(&cur_state.remaining, &ctx.sandhi_rules) {
-            if !sandhi::is_good_split(&cur_state.remaining, &first, &second) {
+
+        for (first, second) in sandhi::split(&cur.remaining, &ctx.sandhi_rules) {
+            // Skip splits that have obvious problems.
+            if !sandhi::is_good_split(&cur.remaining, &first, &second) {
                 continue;
             }
+
             if let Some(semantics) = analyze_pada(&first, ctx, &mut cache) {
-                let mut new_state = State {
-                    items: cur_state.items.clone(),
+                let mut new = State {
+                    items: cur.items.clone(),
                     remaining: second.clone(),
                 };
-                new_state.items.push(ParsedWord {
+                new.items.push(ParsedWord {
                     text: first,
                     semantics,
                 });
-                let new_priority = priority(&new_state);
-                pq.push(new_state, new_priority);
+                let new_score = scoring::heuristic_score(&new);
+                pq.push(new, new_score);
             }
         }
         debug!("Length of priority queue: {}", pq.len());
