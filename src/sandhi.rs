@@ -3,7 +3,7 @@ use regex::Regex;
 use std::cmp;
 use std::error::Error;
 
-type SandhiMap = MultiMap<String, (String, String)>;
+pub type SandhiMap = MultiMap<String, (String, String)>;
 
 /// Creates a map from sandhi combinations to the sounds that created them.
 ///

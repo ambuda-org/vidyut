@@ -7,7 +7,7 @@ pub struct DataConfig {
     pub shs_final: String,
 }
 
-type PadaMap = MultiMap<String, String>;
+pub type PadaMap = MultiMap<String, String>;
 
 /// Read verb data from the Sanskrit Heritage Site.
 fn add_shs_verbs(csv_path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
