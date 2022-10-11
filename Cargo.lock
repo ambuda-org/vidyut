@@ -262,6 +262,7 @@ dependencies = [
  "clap",
  "csv",
  "env_logger",
+ "lazy_static",
  "log",
  "multimap",
  "priority-queue",

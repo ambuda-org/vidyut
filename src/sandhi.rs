@@ -1,19 +1,33 @@
 /// Splits Sanskrit expressions according to a list of sandhi rules.
 use multimap::MultiMap;
 use regex::Regex;
+use lazy_static::lazy_static;
 use std::cmp;
 
 pub type SandhiMap = MultiMap<String, (String, String)>;
 
 /// Returns all possible splits for the given input.
-pub fn split(input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
+pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
+    lazy_static! {
+        // Matches all non-sonuds at the beginning of the string.
+        static ref RE_NOT_SOUND: Regex = Regex::new(r"^[^a-zA-Z]+").unwrap();
+    }
     let mut res = Vec::new();
     let len_longest_key = rules.keys().map(|x| x.len()).max().expect("Map is empty");
+
+    // Sanitize by removing leading chars that aren't Sanskrit sounds.
+    let input = RE_NOT_SOUND.replace(raw_input, "");
     let len_input = input.len();
 
-    // When iterating, prefer making the first item as long as possible, as longer
-    // items are easier to rule out.
-    for i in (1..=len_input).rev() {
+    // Order is not important here, since downstream logic will reorder the results here based on
+    // each item's score.
+    for i in 1..len_input {
+        // Chunk boundary -- return.
+        let cur_char = &input[i-1..i];
+        if RE_NOT_SOUND.is_match(cur_char) {
+            return res;
+        }
+
         // Default: split as-is, no sandhi.
         res.push((
             String::from(&input[0..i]),
@@ -35,6 +49,10 @@ pub fn split(input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
             }
         }
     }
+
+    // If we reached this line, then the input is one big chunk. So, include that chunk as-is in
+    // case the chunk is a singnle word.
+    res.push((input.to_string(), "".to_string()));
     res
 }
 
@@ -49,9 +67,11 @@ fn is_good_first(text: &str) -> bool {
 
 /// Returns whether the second item in a sandhi split is OK according to some basic heuristics.
 fn is_good_second(text: &str) -> bool {
-    // Initial yrlv must not be followed by sparsha.
-    let r = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
-    !r.is_match(text)
+    lazy_static! {
+        // Initial yrlv must not be followed by sparsha.
+        static ref RE: Regex = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
+    }
+    !RE.is_match(text)
 }
 
 /// Returns whether a given sandhi split is OK according to some basic heuristics.
@@ -69,21 +89,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_split() {
+    fn test_split_single_chunk() {
         let mut rules = SandhiMap::new();
         rules.insert("e".to_string(), ("a".to_string(), "i".to_string()));
         let expected: Vec<(String, String)> = vec![
-            ("ceti", ""),
-            ("cet", "i"),
-            ("ce", "ti"),
             ("c", "eti"),
             ("ca", "iti"),
+            ("ce", "ti"),
+            ("cet", "i"),
+            ("ceti", ""),
         ]
         .iter()
         .map(|&(f, s)| (f.to_string(), s.to_string()))
         .collect();
 
         assert_eq!(split("ceti", &rules), expected);
+    }
+
+    #[test]
+    fn test_split_two_chunks() {
+        let mut dummy = SandhiMap::new();
+        dummy.insert("e".to_string(), ("a".to_string(), "i".to_string()));
+
+        assert!(split("aham iti", &dummy).contains(&("aham".to_string(), " iti".to_string())));
     }
 
     #[test]

@@ -83,6 +83,13 @@ fn main() {
     for phrase in text.split(';') {
         info!("Beginning parse: \"{}\"", text);
         let padas = parsing::parse(phrase, &ctx);
-        println!("{:?}", padas);
+        match padas {
+            Some(padas) => {
+                for pada in padas {
+                    println!("  {:?}", pada);
+                }
+            },
+            None => println!("No solutions found.")
+        }
     }
 }
