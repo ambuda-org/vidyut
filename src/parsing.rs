@@ -45,7 +45,10 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
 
     while !pq.is_empty() {
         let (cur, cur_score) = pq.pop().unwrap();
-        debug!("Pop state: \"{}\" {} {:?}", cur.remaining, cur_score, cur.items);
+        debug!(
+            "Pop state: \"{}\" {} {:?}",
+            cur.remaining, cur_score, cur.items
+        );
 
         // If the state is solved (no remaining text), return it.
         //

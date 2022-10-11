@@ -12,14 +12,17 @@ mod sandhi;
 mod scoring;
 mod semantics;
 
-fn load_context(data_paths: &io::DataPaths, cache_file: Option<&String>) -> Result<io::Context, Box<dyn Error>> {
+fn load_context(
+    data_paths: &io::DataPaths,
+    cache_file: Option<&String>,
+) -> Result<io::Context, Box<dyn Error>> {
     if let Some(path) = cache_file {
         if Path::new(&path).exists() {
             info!("Loading previous snapshot from \"{}\"", &path);
-            return match io::read_snapshot(&path) {
+            return match io::read_snapshot(path) {
                 Ok(data) => Ok(data),
                 Err(err) => Err(err),
-            }
+            };
         } else {
             info!("Loading raw data. (Cache file \"{}\" not found.)", path);
         }
@@ -31,7 +34,7 @@ fn load_context(data_paths: &io::DataPaths, cache_file: Option<&String>) -> Resu
 
     if let Some(path) = cache_file {
         info!("Creating snapshot for faster loading next time.");
-        io::write_snapshot(&ctx, &path)?;
+        io::write_snapshot(&ctx, path)?;
         info!("Wrote snapshot data to \"{}\"", path);
     }
 
@@ -46,10 +49,7 @@ fn main() {
         .author("Arun Prasad")
         .about("A fast Sanskrit parser")
         .arg(Arg::new("text"))
-        .arg(
-            Arg::new("cache-file")
-                .long("cache-file")
-        )
+        .arg(Arg::new("cache-file").long("cache-file"))
         .get_matches();
 
     let text = matches.get_one::<String>("text").expect("required");
@@ -88,8 +88,8 @@ fn main() {
                 for pada in padas {
                     println!("  {:?}", pada);
                 }
-            },
-            None => println!("No solutions found.")
+            }
+            None => println!("No solutions found."),
         }
     }
 }

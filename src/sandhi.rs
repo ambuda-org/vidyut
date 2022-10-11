@@ -1,10 +1,15 @@
+use lazy_static::lazy_static;
 /// Splits Sanskrit expressions according to a list of sandhi rules.
 use multimap::MultiMap;
 use regex::Regex;
-use lazy_static::lazy_static;
 use std::cmp;
 
 pub type SandhiMap = MultiMap<String, (String, String)>;
+
+fn visarga_to_s(s: &str) -> String {
+    let n = s.len();
+    String::from(&s[0..n - 1]) + "s"
+}
 
 /// Returns all possible splits for the given input.
 pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
@@ -23,8 +28,9 @@ pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
     // each item's score.
     for i in 1..len_input {
         // Chunk boundary -- return.
-        let cur_char = &input[i-1..i];
+        let cur_char = &input[i - 1..i];
         if RE_NOT_SOUND.is_match(cur_char) {
+            // HACK for visarga
             return res;
         }
 
@@ -42,6 +48,10 @@ pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
                     for (f, s) in pairs {
                         let first = String::from(&input[0..i]) + f;
                         let second = String::from(s) + &input[j..len_input];
+
+                        if input.ends_with('H') {
+                            res.push((visarga_to_s(&first), second.clone()));
+                        }
                         res.push((first, second))
                     }
                 }
@@ -53,6 +63,10 @@ pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
     // If we reached this line, then the input is one big chunk. So, include that chunk as-is in
     // case the chunk is a singnle word.
     res.push((input.to_string(), "".to_string()));
+    // HACK for visarga
+    if input.ends_with('H') {
+        res.push((visarga_to_s(&input), "".to_string()));
+    }
     res
 }
 
@@ -87,6 +101,11 @@ pub fn is_good_split(text: &str, first: &str, second: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_visarga_to_s() {
+        assert_eq!(visarga_to_s("naraH"), "naras".to_string());
+    }
 
     #[test]
     fn test_split_single_chunk() {

@@ -25,7 +25,6 @@ fn add_stem_semantics(text: &str, data: &io::Context, all_semantics: &mut Vec<Se
                 if text == "m" {
                     print!("{} {} {}", text, ending, stem_type);
                     std::process::exit(1);
-
                 }
                 all_semantics.push(semantics.clone());
             }
