@@ -6,7 +6,7 @@ pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;
 pub type EndingMap = MultiMap<String, (String, Semantics)>;
 
-fn get_stem_semantics(text: &str, data: &io::Context) -> Option<Semantics> {
+fn add_stem_semantics(text: &str, data: &io::Context, all_semantics: &mut Vec<Semantics>) {
     let stems = &data.stem_map;
 
     for ending in data.ending_map.keys() {
@@ -25,19 +25,22 @@ fn get_stem_semantics(text: &str, data: &io::Context) -> Option<Semantics> {
                 if text == "m" {
                     print!("{} {} {}", text, ending, stem_type);
                     std::process::exit(1);
+
                 }
-                return Some(semantics.clone());
+                all_semantics.push(semantics.clone());
             }
         }
     }
-    None
 }
 
-pub fn analyze(text: &str, data: &io::Context) -> Option<Semantics> {
+pub fn analyze(text: &str, data: &io::Context) -> Vec<Semantics> {
+    let mut all_semantics = Vec::new();
+
     if data.pada_map.contains_key(text) {
-        return Some(data.pada_map.get(text).unwrap().clone());
+        all_semantics.push(data.pada_map.get(text).unwrap().clone());
     }
-    get_stem_semantics(text, data)
+    add_stem_semantics(text, data, &mut all_semantics);
+    all_semantics
 }
 
 #[cfg(test)]
@@ -109,13 +112,13 @@ mod tests {
     fn analyze_verb() {
         let ctx = toy_data();
         assert_eq!(
-            analyze("Bavati", &ctx),
-            Some(Semantics::Tinanta(Tinanta {
+            *analyze("Bavati", &ctx).first().unwrap(),
+            Semantics::Tinanta(Tinanta {
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
                 pada: VerbPada::Parasmaipada,
-            }))
+            })
         );
     }
 
@@ -123,13 +126,13 @@ mod tests {
     fn analyze_inflected_nominal() {
         let ctx = toy_data();
         assert_eq!(
-            analyze("narasya", &ctx),
-            Some(Semantics::Subanta(Subanta {
+            *analyze("narasya", &ctx).first().unwrap(),
+            Semantics::Subanta(Subanta {
                 linga: Linga::Pum,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V6,
                 is_compounded: false,
-            }))
+            })
         );
     }
 
@@ -137,13 +140,13 @@ mod tests {
     fn analyze_inflected_krdanta() {
         let ctx = toy_data();
         assert_eq!(
-            analyze("gacCantIm", &ctx),
-            Some(Semantics::Subanta(Subanta {
+            *analyze("gacCantIm", &ctx).first().unwrap(),
+            Semantics::Subanta(Subanta {
                 linga: Linga::Stri,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V2,
                 is_compounded: false,
-            }))
+            })
         );
     }
 }

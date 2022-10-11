@@ -24,17 +24,17 @@ pub struct State {
 fn analyze_pada(
     text: &str,
     data: &io::Context,
-    cache: &mut HashMap<String, Option<Semantics>>,
-) -> Option<Semantics> {
+    cache: &mut HashMap<String, Vec<Semantics>>,
+) -> Vec<Semantics> {
     if !cache.contains_key(text) {
         cache.insert(text.to_string(), padas::analyze(text, data));
     }
-    cache.get(text).unwrap().as_ref().cloned()
+    cache.get(text).unwrap().to_vec()
 }
 
 pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
     let mut pq = PriorityQueue::new();
-    let mut cache: HashMap<String, Option<Semantics>> = HashMap::new();
+    let mut cache: HashMap<String, Vec<Semantics>> = HashMap::new();
 
     let initial_state = State {
         items: Vec::new(),
@@ -45,7 +45,7 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
 
     while !pq.is_empty() {
         let (cur, cur_score) = pq.pop().unwrap();
-        debug!("Pop state: {} {} {:?}", cur.remaining, cur_score, cur.items);
+        debug!("Pop state: \"{}\" {} {:?}", cur.remaining, cur_score, cur.items);
 
         // If the state is solved (no remaining text), return it.
         //
@@ -61,18 +61,18 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
                 continue;
             }
 
-            if let Some(semantics) = analyze_pada(&first, ctx, &mut cache) {
+            for semantics in analyze_pada(&first, ctx, &mut cache) {
                 let mut new = State {
                     items: cur.items.clone(),
                     remaining: second.clone(),
                 };
                 new.items.push(ParsedWord {
-                    text: first,
+                    text: first.clone(),
                     semantics,
                 });
                 let new_score = scoring::heuristic_score(&new);
                 debug!(
-                    "Push state: {} {} {:?}",
+                    "Push state: \"{}\" {} {:?}",
                     new.remaining, new_score, new.items
                 );
                 pq.push(new, new_score);
