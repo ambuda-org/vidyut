@@ -11,8 +11,8 @@ use crate::semantics::Semantics;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParsedWord {
-    text: String,
-    semantics: Semantics,
+    pub text: String,
+    pub semantics: Semantics,
 }
 
 #[derive(PartialEq, Eq, Hash)]
@@ -44,8 +44,8 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
     pq.push(initial_state, initial_score);
 
     while !pq.is_empty() {
-        let (cur, _score) = pq.pop().unwrap();
-        debug!("Pop state: {:?} {}", cur.items, cur.remaining);
+        let (cur, cur_score) = pq.pop().unwrap();
+        debug!("Pop state: {} {} {:?}", cur.remaining, cur_score, cur.items);
 
         // If the state is solved (no remaining text), return it.
         //
@@ -71,6 +71,10 @@ pub fn parse(text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
                     semantics,
                 });
                 let new_score = scoring::heuristic_score(&new);
+                debug!(
+                    "Push state: {} {} {:?}",
+                    new.remaining, new_score, new.items
+                );
                 pq.push(new, new_score);
             }
         }

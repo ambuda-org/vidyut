@@ -49,12 +49,12 @@ mod tests {
         let mut pada_map = PadaMap::new();
         pada_map.insert(
             String::from("Bavati"),
-            Semantics::Tinanta {
+            Semantics::Tinanta(Tinanta {
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
                 pada: VerbPada::Parasmaipada,
-            },
+            }),
         );
 
         let mut stem_map = StemMap::new();
@@ -76,24 +76,24 @@ mod tests {
             String::from("asya"),
             (
                 String::from("a"),
-                Semantics::Subanta {
+                Semantics::Subanta(Subanta {
                     linga: Linga::Pum,
                     vacana: Vacana::Eka,
                     vibhakti: Vibhakti::V6,
                     is_compounded: false,
-                },
+                }),
             ),
         );
         ending_map.insert(
             String::from("antIm"),
             (
                 String::from("at"),
-                Semantics::Subanta {
+                Semantics::Subanta(Subanta {
                     linga: Linga::Stri,
                     vacana: Vacana::Eka,
                     vibhakti: Vibhakti::V2,
                     is_compounded: false,
-                },
+                }),
             ),
         );
 
@@ -110,12 +110,12 @@ mod tests {
         let ctx = toy_data();
         assert_eq!(
             analyze("Bavati", &ctx),
-            Some(Semantics::Tinanta {
+            Some(Semantics::Tinanta(Tinanta {
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
                 pada: VerbPada::Parasmaipada,
-            })
+            }))
         );
     }
 
@@ -124,12 +124,12 @@ mod tests {
         let ctx = toy_data();
         assert_eq!(
             analyze("narasya", &ctx),
-            Some(Semantics::Subanta {
+            Some(Semantics::Subanta(Subanta {
                 linga: Linga::Pum,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V6,
                 is_compounded: false,
-            })
+            }))
         );
     }
 
@@ -138,12 +138,12 @@ mod tests {
         let ctx = toy_data();
         assert_eq!(
             analyze("gacCantIm", &ctx),
-            Some(Semantics::Subanta {
+            Some(Semantics::Subanta(Subanta {
                 linga: Linga::Stri,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V2,
                 is_compounded: false,
-            })
+            }))
         );
     }
 }

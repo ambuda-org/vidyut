@@ -129,12 +129,12 @@ fn add_nominal_endings_compounded(
         let stem = r[0].to_string();
         let ending = r[2].to_string();
 
-        let semantics = Semantics::Subanta {
+        let semantics = Semantics::Subanta(Subanta {
             linga: Linga::None,
             vibhakti: Vibhakti::None,
             vacana: Vacana::None,
             is_compounded: true,
-        };
+        });
         endings.insert(ending, (stem, semantics));
     }
     Ok(())
@@ -150,12 +150,12 @@ fn add_nominal_endings_inflected(
 
         let stem = r[0].to_string();
         let ending = r[2].to_string();
-        let semantics = Semantics::Subanta {
+        let semantics = Semantics::Subanta(Subanta {
             linga: parse_linga(&r[3]),
             vibhakti: parse_vibhakti(&r[4]),
             vacana: parse_vacana(&r[5]),
             is_compounded: false,
-        };
+        });
         endings.insert(ending, (stem, semantics));
     }
     Ok(())
@@ -198,7 +198,6 @@ fn add_prefix_groups(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Erro
     Ok(())
 }
 
-
 fn add_pronouns(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
@@ -206,12 +205,12 @@ fn add_pronouns(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
 
         let _stem = r[0].to_string();
         let text = r[2].to_string();
-        let semantics = Semantics::Subanta {
+        let semantics = Semantics::Subanta(Subanta {
             linga: parse_linga(&r[3]),
             vibhakti: parse_vibhakti(&r[4]),
             vacana: parse_vacana(&r[5]),
             is_compounded: false,
-        };
+        });
         padas.insert(text, semantics);
     }
     Ok(())
@@ -266,12 +265,12 @@ fn add_verbs(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
 
         padas.insert(
             text,
-            Semantics::Tinanta {
+            Semantics::Tinanta(Tinanta {
                 purusha,
                 vacana,
                 lakara,
                 pada,
-            },
+            }),
         );
     }
     Ok(())

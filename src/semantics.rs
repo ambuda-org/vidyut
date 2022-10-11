@@ -88,6 +88,29 @@ pub enum StemSemantics {
     },
 }
 
+/// Struct for Subanta semantics, as part of the Semantics enum.
+///
+/// We use this clumsy syntax because Rust doesn't have great syntax
+/// for enum variant types. For more context, see:
+///
+/// https://github.com/rust-lang/lang-team/issues/122
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Subanta {
+    pub linga: Linga,
+    pub vacana: Vacana,
+    pub vibhakti: Vibhakti,
+    pub is_compounded: bool,
+}
+
+/// See comments on `Subanta` above.
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Tinanta {
+    pub purusha: Purusha,
+    pub vacana: Vacana,
+    pub lakara: Lakara,
+    pub pada: VerbPada,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Semantics {
     None,
@@ -95,16 +118,6 @@ pub enum Semantics {
     Avyaya,
     Ktva,
     Tumun,
-    Subanta {
-        linga: Linga,
-        vacana: Vacana,
-        vibhakti: Vibhakti,
-        is_compounded: bool,
-    },
-    Tinanta {
-        purusha: Purusha,
-        vacana: Vacana,
-        lakara: Lakara,
-        pada: VerbPada,
-    },
+    Subanta(Subanta),
+    Tinanta(Tinanta),
 }
