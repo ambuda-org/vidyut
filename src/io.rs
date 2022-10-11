@@ -180,8 +180,8 @@ fn add_participle_stems(path: &str, padas: &mut StemMap) -> Result<(), Box<dyn E
         padas.insert(
             stem,
             StemSemantics::Krdanta {
-                tense: parse_tense(&r[3]),
-                prayoga: parse_prayoga(&r[4]),
+                tense: parse_tense(&r[4]),
+                prayoga: parse_prayoga(&r[5]),
             },
         );
     }
@@ -220,10 +220,10 @@ fn add_verbal_indeclinables(path: &str, padas: &mut PadaMap) -> Result<(), Box<d
     for maybe_row in rdr.records() {
         let row = maybe_row?;
         let pada = row[0].to_string();
-        let semantics = match &row[2] {
+        let semantics = match &row[3] {
             "gerund" => Semantics::Ktva,
             "infinitive" => Semantics::Tumun,
-            &_ => panic!("Unknown type {}", &row[2]),
+            &_ => panic!("Unknown indeclinable type {}", &row[2]),
         };
         padas.insert(pada, semantics);
     }
@@ -236,16 +236,16 @@ fn add_verbs(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
         let r = maybe_row?;
         let text = r[0].to_string();
 
-        let purusha = match &r[3] {
+        let purusha = match &r[4] {
             "3" => Purusha::Prathama,
             "2" => Purusha::Madhyama,
             "1" => Purusha::Uttama,
             &_ => panic!("Unknown type {}", &r[3]),
         };
 
-        let vacana = parse_vacana(&r[4]);
+        let vacana = parse_vacana(&r[5]);
 
-        let lakara = match &r[5] {
+        let lakara = match &r[6] {
             "pres" => Lakara::Lat,
             "ipft" => Lakara::Lan,
             "sfut" => Lakara::Lrt,
@@ -260,7 +260,7 @@ fn add_verbs(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
             &_ => panic!("Unknown type {}", &r[5]),
         };
 
-        let pada = parse_verb_pada(&r[6]);
+        let pada = parse_verb_pada(&r[7]);
 
         padas.insert(
             text,

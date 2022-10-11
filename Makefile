@@ -1,3 +1,6 @@
+install:
+	./scripts/install.sh
+
 run_sample:
 	RUST_LOG=info cargo run "DarmakzetrekurukzetresamavetAyuyutsavas;mAmakAHpARqavAScEvakimakurvatasaMjaya"
 
