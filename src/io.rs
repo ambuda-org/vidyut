@@ -9,7 +9,6 @@ use std::io::{BufReader, BufWriter};
 
 /// Data paths from https://github.com/sanskrit/data
 pub struct DataPaths {
-    pub dump: String,
     pub indeclinables: String,
     pub nominal_endings_compounded: String,
     pub nominal_endings_inflected: String,
