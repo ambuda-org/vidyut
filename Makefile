@@ -1,8 +1,11 @@
 install:
 	./scripts/install.sh
 
-run_sample:
-	RUST_LOG=info cargo run "DarmakzetrekurukzetresamavetAyuyutsavas;mAmakAHpARqavAScEvakimakurvatasaMjaya"
+check-memory:
+	cargo build --release
+	/usr/bin/time -l cargo run --release -- --input-file bg.txt --cache-file data/snapshot.bin
 
-check_memory:
-	RUST_LOG=info /usr/bin/time -l cargo run "DarmakzetrekurukzetresamavetAyuyutsavas;mAmakAHpARqavAScEvakimakurvatasaMjaya"
+# Using `sudo` because otherwise OSX's `dtrace` is blocked by SIP
+flamegraph-osx:
+	cargo build --release
+	CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph -- --input-file bg.txt --cache-file data/snapshot.bin

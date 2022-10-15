@@ -1,6 +1,7 @@
 use crate::io;
 use crate::semantics::*;
 use multimap::MultiMap;
+use log::debug;
 
 pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;
@@ -39,6 +40,10 @@ pub fn analyze(text: &str, data: &io::Context) -> Vec<Semantics> {
         all_semantics.push(data.pada_map.get(text).unwrap().clone());
     }
     add_stem_semantics(text, data, &mut all_semantics);
+
+    // As a default option, mark this as "none"
+    all_semantics.push(Semantics::None);
+
     all_semantics
 }
 

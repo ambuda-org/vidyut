@@ -2,6 +2,7 @@
 use clap::{Arg, Command};
 use log::info;
 use std::error::Error;
+use std::fs;
 use std::path::Path;
 use std::process;
 
@@ -11,6 +12,7 @@ mod parsing;
 mod sandhi;
 mod scoring;
 mod semantics;
+mod sounds;
 
 fn load_context(
     data_paths: &io::DataPaths,
@@ -41,18 +43,48 @@ fn load_context(
     Ok(ctx)
 }
 
+fn parse_text(text: &str, ctx: &io::Context) {
+    info!("Beginning parse: \"{}\"", text);
+    let padas = parsing::parse(text, ctx);
+    match padas {
+        Some(padas) => {
+            for pada in padas {
+                println!("  {:?}", pada);
+            }
+        }
+        None => println!("No solutions found for: {}.", text),
+    }
+}
+
+fn parse_document(path: &str, ctx: &io::Context) {
+    info!("Beginning parse of document: \"{}\"", path);
+    match fs::read_to_string(path) {
+        Ok(text) => {
+            for block in text.split("\n\n") {
+                parse_text(block, ctx)
+            }
+        }
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
+        }
+    }
+}
+
 fn main() {
     env_logger::init();
 
     let matches = Command::new("Vidyut")
         .version("0.0.1")
-        .author("Arun Prasad")
-        .about("A fast Sanskrit parser")
+        .author("Arun Prasad <ambuda.library@gmail.com>")
+        .about("Vidyut: a lightning fast Sanskrit parser.")
         .arg(Arg::new("text"))
+        .arg(Arg::new("input-file").short('i').long("input-file"))
         .arg(Arg::new("cache-file").long("cache-file"))
         .get_matches();
 
-    let text = matches.get_one::<String>("text").expect("required");
+    let text = matches.get_one::<String>("text");
+    let input_file = matches.get_one::<String>("input-file");
     let cache_file = matches.get_one::<String>("cache-file");
 
     let data_paths = io::DataPaths {
@@ -71,7 +103,6 @@ fn main() {
         verbal_indeclinables: "data/verbal-indeclinables.csv".to_string(),
         verbs: "data/verbs.csv".to_string(),
     };
-
     let ctx = match load_context(&data_paths, cache_file) {
         Ok(data) => data,
         Err(err) => {
@@ -80,16 +111,12 @@ fn main() {
         }
     };
 
-    for phrase in text.split(';') {
-        info!("Beginning parse: \"{}\"", text);
-        let padas = parsing::parse(phrase, &ctx);
-        match padas {
-            Some(padas) => {
-                for pada in padas {
-                    println!("  {:?}", pada);
-                }
-            }
-            None => println!("No solutions found."),
-        }
+    if let Some(path) = input_file {
+        parse_document(path, &ctx);
+    } else if let Some(text) = text {
+        parse_text(text, &ctx);
+    } else {
+        println!("You must supply some input.");
+        process::exit(1);
     }
 }
