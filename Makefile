@@ -9,3 +9,6 @@ check-memory:
 flamegraph-osx:
 	cargo build --release
 	CARGO_PROFILE_RELEASE_DEBUG=true cargo flamegraph -- --input-file bg.txt --cache-file data/snapshot.bin
+
+train:
+	./scripts/train_model.py

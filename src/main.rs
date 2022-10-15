@@ -6,13 +6,8 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-mod io;
-mod padas;
-mod parsing;
-mod sandhi;
-mod scoring;
-mod semantics;
-mod sounds;
+use vidyut::io;
+use vidyut::parsing;
 
 fn load_context(
     data_paths: &io::DataPaths,

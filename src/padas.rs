@@ -1,7 +1,6 @@
 use crate::io;
 use crate::semantics::*;
 use multimap::MultiMap;
-use log::debug;
 
 pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;

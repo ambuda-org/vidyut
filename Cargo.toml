@@ -1,7 +1,10 @@
 [package]
-name = "sanskrit-rs"
+name = "vidyut"
+description = "A lightning-fast Sanskrit parser"
+homepage = "https://ambuda.org"
 version = "0.1.0"
 edition = "2021"
+default-run = "vidyut"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,3 +19,6 @@ multimap = "0.8.3"
 priority-queue = "1.2.3"
 regex = "1.6.0"
 serde = { version = "1.0.145", features = ["derive"] }
+conllu = "0.8.0"
+glob = "0.3.0"
+udgraph = "0.8.0"
