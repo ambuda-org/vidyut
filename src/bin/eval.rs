@@ -41,7 +41,7 @@ fn standardize_dcs_lemma(raw_lemma: &str) -> String {
     if let Some(fragment) = lemma.strip_suffix("ant") {
         return String::from(fragment) + "at";
     }
-    // kIrtay, 
+    // kIrtay,
     if let Some(fragment) = lemma.strip_suffix("ay") {
         return String::from(fragment);
     }
@@ -118,8 +118,14 @@ fn run_eval(patterns: Vec<&String>, cache_file: &str) -> Result<(), Box<dyn Erro
     println!("================================================");
     println!("               Evaluation summary               ");
     println!("================================================");
-    println!("Number of sentences:                    {: >8}", stats.num_sentences);
-    println!("Percentage with exact lemma match:     {: >8.2}%", lemma_pct);
+    println!(
+        "Number of sentences:                    {: >8}",
+        stats.num_sentences
+    );
+    println!(
+        "Percentage with exact lemma match:     {: >8.2}%",
+        lemma_pct
+    );
     println!("================================================");
     println!();
     Ok(())

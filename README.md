@@ -10,11 +10,12 @@ Our current code is a proof of concept that parses most Sanskrit text with
 middling accuracy at a rate of about 4 shlokas a second. Now that we have a
 basic scaffold in place, we can iterate on speed, efficiency, and quality.
 
+[![Build status](https://github.com/ambuda-org/vidyut/workflows/ci/badge.svg)](https://github.com/ambuda-org/vidyut/actions)
 
 Usage
 -----
 
 ```
 $ make install
-$ cargo run "Darmakzetre kurukzetre samavetA yuyutsavaH" --cache-file cache.bin
+$ make eval
 ```
