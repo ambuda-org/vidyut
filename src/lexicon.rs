@@ -1,17 +1,37 @@
 /// Tools to look up a word and its semantics.
-use crate::context::Context;
 use crate::semantics::*;
+use serde::{Deserialize, Serialize};
 use multimap::MultiMap;
 
 pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;
 pub type EndingMap = MultiMap<String, (String, Semantics)>;
 
-fn add_stem_semantics(text: &str, ctx: &Context, all_semantics: &mut Vec<Semantics>) {
-    let stems = &ctx.stem_map;
+#[derive(Serialize, Deserialize)]
+pub struct Lexicon {
+    pub stems: StemMap,
+    pub padas: PadaMap,
+    pub endings: EndingMap,
+}
 
-    for ending in ctx.ending_map.keys() {
-        for (stem_type, semantics) in ctx.ending_map.get_vec(ending).unwrap() {
+impl Lexicon {
+    pub fn find(&self, text: &str) -> Vec<Semantics> {
+        let mut all_semantics = Vec::new();
+
+        if self.padas.contains_key(text) {
+            all_semantics.push(self.padas.get(text).unwrap().clone());
+        }
+        add_stem_semantics(self, text, &mut all_semantics);
+
+        // As a default option, mark this as "none"
+        all_semantics.push(Semantics::None);
+        all_semantics
+    }
+}
+
+fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Semantics>) {
+    for ending in lex.endings.keys() {
+        for (stem_type, semantics) in lex.endings.get_vec(ending).unwrap() {
             let len_text = text.len();
             if !text.ends_with(ending) {
                 continue;
@@ -22,7 +42,7 @@ fn add_stem_semantics(text: &str, ctx: &Context, all_semantics: &mut Vec<Semanti
             stem += &text[0..(len_text - len_ending)];
             stem += stem_type;
 
-            if let Some(stem_semantics) = stems.get(&stem) {
+            if let Some(stem_semantics) = lex.stems.get(&stem) {
                 let root = match &stem_semantics {
                     StemSemantics::Krdanta {
                         root,
@@ -49,28 +69,13 @@ fn add_stem_semantics(text: &str, ctx: &Context, all_semantics: &mut Vec<Semanti
     }
 }
 
-pub fn analyze(text: &str, data: &Context) -> Vec<Semantics> {
-    let mut all_semantics = Vec::new();
-
-    if data.pada_map.contains_key(text) {
-        all_semantics.push(data.pada_map.get(text).unwrap().clone());
-    }
-    add_stem_semantics(text, data, &mut all_semantics);
-
-    // As a default option, mark this as "none"
-    all_semantics.push(Semantics::None);
-
-    all_semantics
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sandhi;
 
-    fn toy_data() -> Context {
-        let mut pada_map = PadaMap::new();
-        pada_map.insert(
+    fn toy_lexicon() -> Lexicon {
+        let mut padas = PadaMap::new();
+        padas.insert(
             String::from("Bavati"),
             Semantics::Tinanta(Tinanta {
                 root: "BU".to_string(),
@@ -81,22 +86,22 @@ mod tests {
             }),
         );
 
-        let mut stem_map = StemMap::new();
-        stem_map.insert(
+        let mut stems = StemMap::new();
+        stems.insert(
             String::from("nara"),
             StemSemantics::Basic {
                 lingas: vec![Linga::Pum],
             },
         );
-        stem_map.insert(
+        stems.insert(
             String::from("gacCat"),
             StemSemantics::Basic {
                 lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
             },
         );
 
-        let mut ending_map = EndingMap::new();
-        ending_map.insert(
+        let mut endings = EndingMap::new();
+        endings.insert(
             String::from("asya"),
             (
                 String::from("a"),
@@ -109,7 +114,7 @@ mod tests {
                 }),
             ),
         );
-        ending_map.insert(
+        endings.insert(
             String::from("antIm"),
             (
                 String::from("at"),
@@ -123,19 +128,18 @@ mod tests {
             ),
         );
 
-        Context {
-            sandhi_rules: sandhi::SandhiMap::new(),
-            pada_map,
-            stem_map,
-            ending_map,
+        Lexicon {
+            padas,
+            stems,
+            endings,
         }
     }
 
     #[test]
     fn analyze_verb() {
-        let ctx = toy_data();
+        let lex = toy_lexicon();
         assert_eq!(
-            *analyze("Bavati", &ctx).first().unwrap(),
+            *lex.find("Bavati").first().unwrap(),
             Semantics::Tinanta(Tinanta {
                 root: "BU".to_string(),
                 purusha: Purusha::Prathama,
@@ -148,9 +152,9 @@ mod tests {
 
     #[test]
     fn analyze_inflected_nominal() {
-        let ctx = toy_data();
+        let lex = toy_lexicon();
         assert_eq!(
-            *analyze("narasya", &ctx).first().unwrap(),
+            *lex.find("narasya").first().unwrap(),
             Semantics::Subanta(Subanta {
                 stem: "nara".to_string(),
                 linga: Linga::Pum,
@@ -163,9 +167,9 @@ mod tests {
 
     #[test]
     fn analyze_inflected_krdanta() {
-        let ctx = toy_data();
+        let lex = toy_lexicon();
         assert_eq!(
-            *analyze("gacCantIm", &ctx).first().unwrap(),
+            *lex.find("gacCantIm").first().unwrap(),
             Semantics::Subanta(Subanta {
                 stem: "gacCat".to_string(),
                 linga: Linga::Stri,

@@ -2,10 +2,56 @@
 use lazy_static::lazy_static;
 use multimap::MultiMap;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::cmp;
+use std::error::Error;
 
 /// Maps a combination to the two strings (first, second) that created it.
 pub type SandhiMap = MultiMap<String, (String, String)>;
+
+#[derive(Serialize, Deserialize)]
+pub struct Sandhi {
+    map: MultiMap<String, (String, String)>,
+}
+
+impl Sandhi {
+    pub fn from_map(map: SandhiMap) -> Sandhi {
+        Sandhi { map }
+    }
+
+    /// Creates a map from sandhi combinations to the sounds that created them.
+    ///
+    /// # Arguments
+    ///
+    /// - `path` - C TSV with columns `first`, `second`, `result`, and `type`.
+    pub fn from_csv(path: &str) -> Result<Self, Box<dyn Error>> {
+        let mut rules = SandhiMap::new();
+
+        let mut rdr = csv::Reader::from_path(path)?;
+        for maybe_row in rdr.records() {
+            let row = maybe_row?;
+            let first = String::from(&row[0]);
+            let second = String::from(&row[1]);
+            let result = String::from(&row[2]);
+            let type_ = &row[3];
+            if type_ == "internal" {
+                continue;
+            }
+
+            rules.insert(result.clone(), (first.clone(), second.clone()));
+
+            let result_no_spaces = String::from(&row[2]).replace(' ', "");
+            if result_no_spaces != result {
+                rules.insert(result_no_spaces, (first.clone(), second.clone()));
+            }
+        }
+        Ok(Sandhi { map: rules })
+    }
+
+    pub fn split(&self, raw_input: &str) -> Vec<(String, String)> {
+        split_sandhi(raw_input, &self.map)
+    }
+}
 
 /// Hackily converts a word ending with a visarga to end with an `s`.
 fn visarga_to_s(s: &str) -> String {
@@ -14,7 +60,8 @@ fn visarga_to_s(s: &str) -> String {
 }
 
 /// Yield all possible splits (a, b) that can be made on `raw_input` with `rules`.
-pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
+fn split_sandhi(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
+
     lazy_static! {
         // Matches all non-sonuds at the beginning of the string.
         static ref RE_NOT_SOUND: Regex = Regex::new(r"^[^a-zA-Z]+").unwrap();
@@ -144,7 +191,7 @@ mod tests {
         .map(|&(f, s)| (f.to_string(), s.to_string()))
         .collect();
 
-        assert_eq!(split("ceti", &rules), expected);
+        assert_eq!(split_sandhi("ceti", &rules), expected);
     }
 
     #[test]
@@ -152,7 +199,7 @@ mod tests {
         let mut dummy = SandhiMap::new();
         dummy.insert("e".to_string(), ("a".to_string(), "i".to_string()));
 
-        assert!(split("aham iti", &dummy).contains(&("aham".to_string(), " iti".to_string())));
+        assert!(split_sandhi("aham iti", &dummy).contains(&("aham".to_string(), " iti".to_string())));
     }
 
     #[test]

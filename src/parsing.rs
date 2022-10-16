@@ -6,7 +6,6 @@ use regex::Regex;
 use std::collections::HashMap;
 
 use crate::context::Context;
-use crate::padas;
 use crate::sandhi;
 use crate::scoring;
 use crate::semantics::Semantics;
@@ -70,7 +69,7 @@ fn analyze_pada(
     cache: &mut HashMap<String, Vec<Semantics>>,
 ) -> Vec<Semantics> {
     if !cache.contains_key(text) {
-        cache.insert(text.to_string(), padas::analyze(text, data));
+        cache.insert(text.to_string(), data.lexicon.find(text));
     }
     cache.get(text).unwrap().to_vec()
 }
@@ -127,7 +126,7 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
 
         let (cur, cur_score) = pq.pop().unwrap();
 
-        for (first, second) in sandhi::split(&cur.remaining, &ctx.sandhi_rules) {
+        for (first, second) in ctx.sandhi.split(&cur.remaining) {
             // Skip splits that have obvious problems.
             if !sandhi::is_good_split(&cur.remaining, &first, &second) {
                 continue;

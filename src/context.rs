@@ -1,6 +1,6 @@
 use crate::io;
-use crate::padas::{EndingMap, PadaMap, StemMap};
-use crate::sandhi::SandhiMap;
+use crate::lexicon::Lexicon;
+use crate::sandhi::Sandhi;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
@@ -8,19 +8,19 @@ use std::io::{BufReader, BufWriter};
 
 #[derive(Serialize, Deserialize)]
 pub struct Context {
-    pub sandhi_rules: SandhiMap,
-    pub pada_map: PadaMap,
-    pub stem_map: StemMap,
-    pub ending_map: EndingMap,
+    pub sandhi: Sandhi,
+    pub lexicon: Lexicon,
 }
 
 impl Context {
     pub fn from_paths(paths: &io::DataPaths) -> Result<Context, Box<dyn Error>> {
         Ok(Context {
-            sandhi_rules: io::read_sandhi_rules(&paths.sandhi_rules)?,
-            pada_map: io::read_padas(paths)?,
-            stem_map: io::read_stems(paths)?,
-            ending_map: io::read_nominal_endings(paths)?,
+            sandhi: Sandhi::from_csv(&paths.sandhi_rules)?,
+            lexicon: Lexicon {
+                padas: io::read_padas(paths)?,
+                stems: io::read_stems(paths)?,
+                endings: io::read_nominal_endings(paths)?,
+            }
         })
     }
 

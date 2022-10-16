@@ -1,6 +1,5 @@
 /// Utilities for reading and writing linguistic data.
-use crate::padas::{EndingMap, PadaMap, StemMap};
-use crate::sandhi::SandhiMap;
+use crate::lexicon::{EndingMap, PadaMap, StemMap};
 use crate::semantics::*;
 use std::error::Error;
 
@@ -271,41 +270,6 @@ fn add_verbs(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-
-// ==> prefix-groups.csv <==
-// ==> prefixed-roots.csv <==
-// ==> verb-endings.csv <==
-// ==> verb-prefixes.csv <==
-
-/// Creates a map from sandhi combinations to the sounds that created them.
-///
-/// # Arguments
-///
-/// - `tsv_path` - a TSV with columns `first`, `second`, and `result`.
-pub fn read_sandhi_rules(tsv_path: &str) -> Result<SandhiMap, Box<dyn Error>> {
-    let mut rules = SandhiMap::new();
-
-    let mut rdr = csv::Reader::from_path(tsv_path)?;
-    for maybe_row in rdr.records() {
-        let row = maybe_row?;
-        let first = String::from(&row[0]);
-        let second = String::from(&row[1]);
-        let result = String::from(&row[2]);
-        let type_ = &row[3];
-        if type_ == "internal" {
-            continue;
-        }
-
-        rules.insert(result.clone(), (first.clone(), second.clone()));
-
-        let result_no_spaces = String::from(&row[2]).replace(' ', "");
-        if result_no_spaces != result {
-            rules.insert(result_no_spaces, (first.clone(), second.clone()));
-        }
-    }
-    Ok(rules)
-}
-
 pub fn read_nominal_endings(paths: &DataPaths) -> Result<EndingMap, Box<dyn Error>> {
     let mut endings = EndingMap::new();
     add_nominal_endings_compounded(&paths.nominal_endings_compounded, &mut endings)?;
