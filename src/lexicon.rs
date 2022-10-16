@@ -30,14 +30,14 @@ impl Lexicon {
 }
 
 fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Semantics>) {
-    for ending in lex.endings.keys() {
-        for (stem_type, semantics) in lex.endings.get_vec(ending).unwrap() {
-            let len_text = text.len();
-            if !text.ends_with(ending) {
-                continue;
-            }
+    for (ending, pairs) in lex.endings.iter_all() {
+        if !text.ends_with(ending) {
+            continue;
+        }
 
+        for (stem_type, semantics) in pairs {
             let mut stem = String::new();
+            let len_text = text.len();
             let len_ending = ending.len();
             stem += &text[0..(len_text - len_ending)];
             stem += stem_type;
