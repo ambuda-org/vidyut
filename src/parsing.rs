@@ -5,7 +5,7 @@ use priority_queue::PriorityQueue;
 use regex::Regex;
 use std::collections::HashMap;
 
-use crate::io;
+use crate::context::Context;
 use crate::padas;
 use crate::sandhi;
 use crate::scoring;
@@ -15,6 +15,16 @@ use crate::semantics::Semantics;
 pub struct ParsedWord {
     pub text: String,
     pub semantics: Semantics,
+}
+
+impl ParsedWord {
+    pub fn lemma(&self) -> String {
+        match &self.semantics {
+            Semantics::Tinanta(s) => s.root.clone(),
+            Semantics::Subanta(s) => s.stem.clone(),
+            _ => self.text.clone(),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -35,7 +45,7 @@ fn normalize(text: &str) -> String {
 
 fn analyze_pada(
     text: &str,
-    data: &io::Context,
+    data: &Context,
     cache: &mut HashMap<String, Vec<Semantics>>,
 ) -> Vec<Semantics> {
     if !cache.contains_key(text) {
@@ -70,7 +80,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, State>>) {
     }
 }
 
-pub fn parse(raw_text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
+pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Semantics>> = HashMap::new();
@@ -132,13 +142,14 @@ pub fn parse(raw_text: &str, ctx: &io::Context) -> Option<Vec<ParsedWord>> {
             }
         }
     }
-    match viterbi_cache.get("") {
-        Some(solutions) => {
-            let best = solutions.values().max_by_key(|s| s.score);
-            best.map(|s| s.items.clone())
+
+    // Return the best result we could find above.
+    if let Some(solutions) = viterbi_cache.get("") {
+        if let Some(best) = solutions.values().max_by_key(|s| s.score) {
+            return best.items.clone();
         }
-        None => None,
     }
+    Vec::new()
 }
 
 #[cfg(test)]

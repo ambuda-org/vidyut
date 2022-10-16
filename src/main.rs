@@ -6,17 +6,18 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
+use vidyut::context::Context;
 use vidyut::io;
 use vidyut::parsing;
 
 fn load_context(
     data_paths: &io::DataPaths,
     cache_file: Option<&String>,
-) -> Result<io::Context, Box<dyn Error>> {
+) -> Result<Context, Box<dyn Error>> {
     if let Some(path) = cache_file {
         if Path::new(&path).exists() {
             info!("Loading previous snapshot from \"{}\"", &path);
-            return match io::read_snapshot(path) {
+            return match Context::from_snapshot(path) {
                 Ok(data) => Ok(data),
                 Err(err) => Err(err),
             };
@@ -27,31 +28,30 @@ fn load_context(
         info!("Loading raw data. (Too slow? Try setting `--cache-file`.)");
     }
 
-    let ctx = io::read_all_data(data_paths)?;
+    let ctx = Context::from_paths(data_paths)?;
 
     if let Some(path) = cache_file {
         info!("Creating snapshot for faster loading next time.");
-        io::write_snapshot(&ctx, path)?;
+        ctx.to_snapshot(path)?;
         info!("Wrote snapshot data to \"{}\"", path);
     }
 
     Ok(ctx)
 }
 
-fn parse_text(text: &str, ctx: &io::Context) {
+fn parse_text(text: &str, ctx: &Context) {
     info!("Beginning parse: \"{}\"", text);
     let padas = parsing::parse(text, ctx);
-    match padas {
-        Some(padas) => {
-            for pada in padas {
-                println!("  {:?}", pada);
-            }
+    if padas.is_empty() {
+        println!("No solutions found for: {}.", text);
+    } else {
+        for pada in padas {
+            println!("  {:?}", pada);
         }
-        None => println!("No solutions found for: {}.", text),
     }
 }
 
-fn parse_document(path: &str, ctx: &io::Context) {
+fn parse_document(path: &str, ctx: &Context) {
     info!("Beginning parse of document: \"{}\"", path);
     match fs::read_to_string(path) {
         Ok(text) => {

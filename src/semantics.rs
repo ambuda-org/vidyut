@@ -1,3 +1,4 @@
+/// Models the semantics of Sanskrit words.
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -96,6 +97,7 @@ pub enum StemSemantics {
 /// https://github.com/rust-lang/lang-team/issues/122
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Subanta {
+    pub stem: String,
     pub linga: Linga,
     pub vacana: Vacana,
     pub vibhakti: Vibhakti,
@@ -105,6 +107,7 @@ pub struct Subanta {
 /// See comments on `Subanta` above.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Tinanta {
+    pub root: String,
     pub purusha: Purusha,
     pub vacana: Vacana,
     pub lakara: Lakara,

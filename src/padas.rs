@@ -1,4 +1,4 @@
-use crate::io;
+use crate::context::Context;
 use crate::semantics::*;
 use multimap::MultiMap;
 
@@ -6,7 +6,7 @@ pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;
 pub type EndingMap = MultiMap<String, (String, Semantics)>;
 
-fn add_stem_semantics(text: &str, data: &io::Context, all_semantics: &mut Vec<Semantics>) {
+fn add_stem_semantics(text: &str, data: &Context, all_semantics: &mut Vec<Semantics>) {
     let stems = &data.stem_map;
 
     for ending in data.ending_map.keys() {
@@ -26,13 +26,17 @@ fn add_stem_semantics(text: &str, data: &io::Context, all_semantics: &mut Vec<Se
                     print!("{} {} {}", text, ending, stem_type);
                     std::process::exit(1);
                 }
-                all_semantics.push(semantics.clone());
+                let mut word_semantics = semantics.clone();
+                if let Semantics::Subanta(ref mut s) = word_semantics {
+                    s.stem = stem;
+                    all_semantics.push(word_semantics);
+                }
             }
         }
     }
 }
 
-pub fn analyze(text: &str, data: &io::Context) -> Vec<Semantics> {
+pub fn analyze(text: &str, data: &Context) -> Vec<Semantics> {
     let mut all_semantics = Vec::new();
 
     if data.pada_map.contains_key(text) {
@@ -51,11 +55,12 @@ mod tests {
     use super::*;
     use crate::sandhi;
 
-    fn toy_data() -> io::Context {
+    fn toy_data() -> Context {
         let mut pada_map = PadaMap::new();
         pada_map.insert(
             String::from("Bavati"),
             Semantics::Tinanta(Tinanta {
+                root: "BU".to_string(),
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
@@ -83,6 +88,7 @@ mod tests {
             (
                 String::from("a"),
                 Semantics::Subanta(Subanta {
+                    stem: "".to_string(),
                     linga: Linga::Pum,
                     vacana: Vacana::Eka,
                     vibhakti: Vibhakti::V6,
@@ -95,6 +101,7 @@ mod tests {
             (
                 String::from("at"),
                 Semantics::Subanta(Subanta {
+                    stem: "".to_string(),
                     linga: Linga::Stri,
                     vacana: Vacana::Eka,
                     vibhakti: Vibhakti::V2,
@@ -103,7 +110,7 @@ mod tests {
             ),
         );
 
-        io::Context {
+        Context {
             sandhi_rules: sandhi::SandhiMap::new(),
             pada_map,
             stem_map,
@@ -117,6 +124,7 @@ mod tests {
         assert_eq!(
             *analyze("Bavati", &ctx).first().unwrap(),
             Semantics::Tinanta(Tinanta {
+                root: "BU".to_string(),
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
@@ -131,6 +139,7 @@ mod tests {
         assert_eq!(
             *analyze("narasya", &ctx).first().unwrap(),
             Semantics::Subanta(Subanta {
+                stem: "nara".to_string(),
                 linga: Linga::Pum,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V6,
@@ -145,6 +154,7 @@ mod tests {
         assert_eq!(
             *analyze("gacCantIm", &ctx).first().unwrap(),
             Semantics::Subanta(Subanta {
+                stem: "gacCat".to_string(),
                 linga: Linga::Stri,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V2,

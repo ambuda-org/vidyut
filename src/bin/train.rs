@@ -1,13 +1,10 @@
-use conllu::io::ReadSentence;
 use glob::glob;
-use std::cmp;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
-use std::io::BufReader;
 use std::path::PathBuf;
-use udgraph::graph::Sentence;
-use udgraph::token::{Features, Token, Tokens};
+
+use vidyut::conllu::{Reader, Sentence, Token, TokenFeatures};
+use vidyut::translit::to_slp1;
 
 /// Freq(`state[n]` | `state[n-1]`).
 ///
@@ -24,79 +21,10 @@ type Emissions = HashMap<String, HashMap<String, u32>>;
 /// Value of state_0 and any other tokens with unclear semantics.
 const INITIAL_STATE: &str = "START";
 
-/// Hackily transliterate from IAST to SLP1.
-fn to_slp1(input: &str) -> String {
-    let chars: Vec<char> = input.chars().collect();
-    let mut ret = String::new();
-    let mut i = 0;
-    while i < chars.len() {
-        let mut next: String = String::new();
-        let mut offset = 0;
-
-        // Search for matches against our mapping. The longest IAST glyph has two characters,
-        // so search up to length 2. Start with 2 first so that we match greedily.
-        for j in [2, 1] {
-            let limit = cmp::min(i + j, chars.len());
-            let cur = String::from_iter(&chars[i..limit]);
-
-            offset = limit - i;
-            next = match cur.as_str() {
-                "ā" => "A",
-                "ī" => "I",
-                "ū" => "U",
-                "ṛ" => "f",
-                "ṝ" => "F",
-                "ḷ" => "x",
-                "ḹ" => "X",
-                "ai" => "E",
-                "au" => "O",
-                "ṃ" => "M",
-                "ḥ" => "H",
-                "ṅ" => "N",
-                "kh" => "K",
-                "gh" => "G",
-                "ch" => "C",
-                "jh" => "J",
-                "ñ" => "Y",
-                "ṭ" => "w",
-                "ṭh" => "W",
-                "ḍ" => "q",
-                "ḍh" => "Q",
-                "th" => "T",
-                "dh" => "D",
-                "ph" => "P",
-                "bh" => "B",
-                "ṇ" => "R",
-                "ś" => "S",
-                "ṣ" => "z",
-                "ḻ" => "L",
-                // It's tedious to use Some/None here, so just use the empty string if not found.
-                &_ => "",
-            }
-            .to_string();
-
-            // Found a match.
-            if !next.is_empty() {
-                break;
-            }
-        }
-
-        // No match found: use the previous character as-is.
-        if next.is_empty() {
-            next = String::from_iter(&chars[i..i + 1]);
-            offset = 1;
-        }
-
-        ret += &next;
-        i += offset;
-    }
-    ret
-}
-
 /// Create a state label for the given nominal (noun, pronoun, adjective, numeral).
 ///
 /// The state describes gender, case, and number, which are sufficient for our current needs.
-fn nominal_state(features: &Features) -> String {
+fn nominal_state(features: &TokenFeatures) -> String {
     let gender = match features.get("Gender") {
         Some(s) => match s.as_str() {
             "Masc" => "m",
@@ -137,7 +65,7 @@ fn nominal_state(features: &Features) -> String {
 /// Create a state label for the given verb.
 ///
 /// The state describes person and number, which are sufficient for our current needs.
-fn tinanta_state(features: &Features) -> String {
+fn tinanta_state(features: &TokenFeatures) -> String {
     let person = match features.get("Person") {
         Some(s) => match s.as_str() {
             "3" => "3",
@@ -172,26 +100,24 @@ fn unknown_state() -> String {
 
 /// Create a state label for the given token.
 fn token_state(token: &Token) -> String {
-    let upos = token.upos();
-    let features = token.features();
-    if let Some(upos) = upos {
-        match upos {
-            "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => nominal_state(features),
-            "CCONJ" | "SCONJ" | "ADV" => avyaya_state(),
-            "VERB" => tinanta_state(features),
-            "MANTRA" => unknown_state(),
-            _ => panic!("Unknown upos `{}`", upos),
-        }
-    } else {
-        unknown_state()
+    let upos = &token.upos;
+    let features = &token.features;
+
+    match upos.as_str() {
+        "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => nominal_state(features),
+        "CCONJ" | "SCONJ" | "ADV" => avyaya_state(),
+        "VERB" => tinanta_state(features),
+        "MANTRA" => unknown_state(),
+        _ => panic!("Unknown upos `{}`", upos),
     }
 }
 
 fn process_sentence(sentence: Sentence, transitions: &mut Transitions, emissions: &mut Emissions) {
     let mut prev_state = INITIAL_STATE.to_string();
-    for token in sentence.tokens() {
-        let cur_state = token_state(token);
-        let lemma = token.lemma().unwrap_or("").to_string();
+    for token in sentence.tokens {
+        let cur_state = token_state(&token);
+        let lemma = token.lemma;
+
         // Freq(cur_state | prev_state )
         let c = transitions
             .entry(prev_state.clone())
@@ -219,9 +145,8 @@ fn process_file(
     transitions: &mut Transitions,
     emissions: &mut Emissions,
 ) -> Result<(), Box<dyn Error>> {
-    let f = BufReader::new(fs::File::open(&path)?);
-    let reader = conllu::io::Reader::new(f);
-    for sentence in reader.sentences().flatten() {
+    let reader = Reader::from_path(&path)?;
+    for sentence in reader {
         process_sentence(sentence, transitions, emissions);
     }
     Ok(())

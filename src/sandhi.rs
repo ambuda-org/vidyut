@@ -49,7 +49,7 @@ pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
                         let first = String::from(&input[0..i]) + f;
                         let second = String::from(s) + &input[j..len_input];
 
-                        if input.ends_with('H') {
+                        if first.ends_with('H') {
                             res.push((visarga_to_s(&first), second.clone()));
                         }
                         res.push((first, second))
@@ -141,14 +141,14 @@ mod tests {
         ] {
             assert!(is_good_first(word));
         }
-        for word in vec!["PalaM", "zaz", "vAc"] {
+        for word in &["PalaM", "zaz", "vAc"] {
             assert!(!is_good_first(word));
         }
     }
 
     #[test]
     fn test_has_valid_start() {
-        for word in vec![
+        for word in &[
             "yogena",
             "rAma",
             "leKaH",
@@ -159,7 +159,7 @@ mod tests {
         ] {
             assert!(is_good_second(word));
         }
-        for word in vec!["rmakzetre"] {
+        for word in &["rmakzetre", "lga"] {
             assert!(!is_good_second(word));
         }
     }
