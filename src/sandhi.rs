@@ -74,10 +74,23 @@ pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
 
 /// Returns whether the first item in a sandhi split is OK according to some basic heuristics.
 fn is_good_first(text: &str) -> bool {
-    match text.chars().last() {
-        // Vowels, standard consonants, and "s" and "r"
-        Some(c) => "aAiIuUfFxXeEoOHkNwRtpnmsr".contains(c),
-        None => true,
+    lazy_static! {
+        // Must not end with a double vowel.
+        static ref RE_DOUBLE_AC: Regex = Regex::new(r"[aAiIuUfFxXeEoO]{2}$").unwrap();
+        // Must not end with a double consonant (exceptions: yrlv).
+        static ref RE_DOUBLE_HAL: Regex = Regex::new(
+            // non-yaN + hal
+            r"[kKgGNcCjJYwWqQRtTdDnpPbBmzSsh][kKgGNcCjJYwWqQRtTdDnpPbBmyrlvzSsh]$").unwrap();
+    }
+
+    if RE_DOUBLE_AC.is_match(text) || RE_DOUBLE_HAL.is_match(text) {
+        false
+    } else {
+        match text.chars().last() {
+            // Vowels, standard consonants, and "s" and "r"
+            Some(c) => "aAiIuUfFxXeEoOHkNwRtpnmsr".contains(c),
+            None => true,
+        }
     }
 }
 
@@ -85,9 +98,16 @@ fn is_good_first(text: &str) -> bool {
 fn is_good_second(text: &str) -> bool {
     lazy_static! {
         // Initial yrlv must not be followed by sparsha.
-        static ref RE: Regex = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
+        static ref RE_YAN: Regex = Regex::new(r"^[yrlv][kKgGNcCjJYwWqQRtTdDnpPbBm]").unwrap();
+        // Must not start with a double vowel.
+        static ref RE_DOUBLE_AC: Regex = Regex::new(r"^[aAiIuUfFxXeEoO]{2}").unwrap();
     }
-    !RE.is_match(text)
+    if RE_DOUBLE_AC.is_match(text) {
+        // "afRin" is acceptable, but skip otherwise.
+        text.starts_with("afR")
+    } else {
+        !RE_YAN.is_match(text)
+    }
 }
 
 /// Returns whether a given sandhi split is OK according to some basic heuristics.
@@ -149,7 +169,7 @@ mod tests {
     }
 
     #[test]
-    fn test_has_valid_start() {
+    fn test_is_good_second() {
         for word in &[
             "yogena",
             "rAma",
@@ -158,11 +178,12 @@ mod tests {
             "kArtsnyam",
             "vraja",
             "vyajanam",
+            "afRin",
         ] {
             assert!(is_good_second(word));
         }
-        for word in &["rmakzetre", "lga"] {
-            assert!(!is_good_second(word));
+        for word in &["rmakzetre", "lga", "aitad", "fasya", "Fasya"] {
+            assert!(!is_good_second(word), "failed: {}", word);
         }
     }
 }

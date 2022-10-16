@@ -40,4 +40,6 @@ profile-target-osx:
 	cargo instruments -t $(target) --release --bin eval -- --cache-file data/snapshot.bin --paths \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
+		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-090*.conllu" \
+		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-091*.conllu" \
+		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-092*.conllu"
