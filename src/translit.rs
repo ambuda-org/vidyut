@@ -1,3 +1,4 @@
+/// Transliteration functions for handling DCS data.
 use std::cmp;
 
 /// Hackily transliterate from IAST to SLP1.

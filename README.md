@@ -12,10 +12,34 @@ basic scaffold in place, we can iterate on speed, efficiency, and quality.
 
 [![Build status](https://github.com/ambuda-org/vidyut/workflows/ci/badge.svg)](https://github.com/ambuda-org/vidyut/actions)
 
+
 Usage
 -----
 
-```
-$ make install
-$ make eval
-```
+Build the code and fetch our linguistic data:
+
+    make install
+
+Run a simple evaluation script:
+
+    make eval
+
+
+Development
+-----------
+
+Run unit tests:
+
+    cargo test
+
+Profile overall runtime and memory usage:
+
+    make profile-general
+
+Profile runtime per function:
+
+    make target=time profile-target-osx
+
+Profile memory allocations:
+
+    make target=alloc profile-target-osx

@@ -1,4 +1,4 @@
-/// Splits Sanskrit sentences into separate words with their semantics.
+/// Splits Sanskrit phrases into separate words with their semantics.
 use lazy_static::lazy_static;
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
@@ -11,6 +11,7 @@ use crate::sandhi;
 use crate::scoring;
 use crate::semantics::Semantics;
 
+/// Represnts a Sanskrit word and its semantics.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParsedWord {
     pub text: String,
@@ -18,6 +19,7 @@ pub struct ParsedWord {
 }
 
 impl ParsedWord {
+    /// Get the word's root/stem.
     pub fn lemma(&self) -> String {
         match &self.semantics {
             Semantics::Tinanta(s) => s.root.clone(),
@@ -30,11 +32,27 @@ impl ParsedWord {
     }
 }
 
+/// Represents an in-progress parse of a phrase.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct State {
-    pub items: Vec<ParsedWord>,
+    /// The words that we've recognized so far.
+    pub words: Vec<ParsedWord>,
+    /// The text we still need to parse.
     pub remaining: String,
+    /// The score associated with this in-progress parse.
     pub score: i32,
+}
+
+impl State {
+    /// Create a new state.
+    fn new(text: String) -> State {
+        State {
+            words: Vec::new(),
+            remaining: text,
+            // log_10(1) = 0
+            score: 0,
+        }
+    }
 }
 
 /// Normalize text by replacing all runs of whitespace with " ".
@@ -62,7 +80,7 @@ fn debug_print_stack(pq: &PriorityQueue<State, i32>) {
     if log_enabled!(Level::Debug) {
         debug!("Stack:");
         for (i, (s, score)) in pq.iter().enumerate() {
-            let words: Vec<String> = s.items.iter().map(|x| x.text.clone()).collect();
+            let words: Vec<String> = s.words.iter().map(|x| x.text.clone()).collect();
             debug!("{}: \"{:?}\" + \"{}\" ({})", i, words, s.remaining, score);
         }
         debug!("-------------------");
@@ -75,7 +93,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, State>>) {
         debug!("Viterbi:");
         for (key1, entries) in v.iter() {
             for (key2, state) in entries.iter() {
-                let words: Vec<String> = state.items.iter().map(|x| x.text.clone()).collect();
+                let words: Vec<String> = state.words.iter().map(|x| x.text.clone()).collect();
                 debug!("(`{}`, {}) -> {:?} : {}", key1, key2, words, state.score);
             }
         }
@@ -83,6 +101,13 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, State>>) {
     }
 }
 
+/// Parse the given text.
+///
+/// # Arguments:
+/// - `raw_text` - a text string in SLP1.
+///
+/// The parser makes a best effort and will make a best effort to understand the input as valid
+/// Sanskrit text, even if it contains typos or any content that is not valid Sanskrit.
 pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
@@ -92,14 +117,9 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
     // text remaining in the parse.
     let mut viterbi_cache: HashMap<String, HashMap<String, State>> = HashMap::new();
 
-    // log_10(1) = 0
-    let initial_score = 0;
-    let initial_state = State {
-        items: Vec::new(),
-        remaining: text,
-        score: initial_score,
-    };
-    pq.push(initial_state, initial_score);
+    let initial_state = State::new(text);
+    let score = initial_state.score;
+    pq.push(initial_state, score);
 
     while !pq.is_empty() {
         debug_print_stack(&pq);
@@ -115,12 +135,12 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
 
             for semantics in analyze_pada(&first, ctx, &mut word_cache) {
                 let mut new = State {
-                    items: cur.items.clone(),
+                    words: cur.words.clone(),
                     remaining: second.clone(),
                     // HACK: this is buggy -- scoring based on cur score set here?
                     score: cur_score,
                 };
-                new.items.push(ParsedWord {
+                new.words.push(ParsedWord {
                     text: first.clone(),
                     semantics,
                 });
@@ -149,7 +169,7 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
     // Return the best result we could find above.
     if let Some(solutions) = viterbi_cache.get("") {
         if let Some(best) = solutions.values().max_by_key(|s| s.score) {
-            return best.items.clone();
+            return best.words.clone();
         }
     }
     Vec::new()

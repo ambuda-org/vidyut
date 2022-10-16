@@ -1,3 +1,4 @@
+/// Train a model by collecting features from our dataset.
 use glob::glob;
 use std::collections::HashMap;
 use std::error::Error;
@@ -10,6 +11,7 @@ use vidyut::translit::to_slp1;
 ///
 /// The first key is `state[n-1]` so that we can normalize more easily.
 type Transitions = HashMap<String, HashMap<String, u32>>;
+
 /// Freq(`lemma[n]` | `state[n]`).
 ///
 /// The first key is `state[n]` so that we can normalize more easily.
@@ -18,6 +20,7 @@ type Transitions = HashMap<String, HashMap<String, u32>>;
 /// realiably expose the inflected word for a given entry. Additionally, using the lemma helps us
 /// work around data sparsity.
 type Emissions = HashMap<String, HashMap<String, u32>>;
+
 /// Value of state_0 and any other tokens with unclear semantics.
 const INITIAL_STATE: &str = "START";
 
@@ -199,25 +202,5 @@ fn main() {
     if let Err(e) = process_files() {
         println!("{}", e);
         std::process::exit(1);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_to_slp1() {
-        assert_eq!(
-            to_slp1("a ā i ī u ū ṛ ṝ ḷ ḹ e ai o au ṃ ḥ"),
-            "a A i I u U f F x X e E o O M H"
-        );
-        assert_eq!(to_slp1("k kh g gh ṅ"), "k K g G N");
-        assert_eq!(to_slp1("c ch j jh ñ"), "c C j J Y");
-        assert_eq!(to_slp1("ṭ ṭh ḍ ḍh ṇ"), "w W q Q R");
-        assert_eq!(to_slp1("t th d dh n"), "t T d D n");
-        assert_eq!(to_slp1("p ph b bh m"), "p P b B m");
-        assert_eq!(to_slp1("y r l v"), "y r l v");
-        assert_eq!(to_slp1("ś ṣ s h ḻ"), "S z s h L");
     }
 }

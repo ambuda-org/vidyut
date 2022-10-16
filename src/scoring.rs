@@ -16,7 +16,7 @@ use crate::semantics::*;
 ///
 /// Unknown tokens, which are extremely rare, are treated as -100.
 pub fn heuristic_score(state: &State) -> i32 {
-    if let Some(last) = state.items.last() {
+    if let Some(last) = state.words.last() {
         let semantics = &last.semantics;
         match semantics {
             Semantics::None => state.score - 100,

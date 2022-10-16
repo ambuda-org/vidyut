@@ -1,3 +1,4 @@
+/// Evaluate our parser against some standard input data.
 use clap::{Arg, Command};
 use glob::glob;
 use std::error::Error;
@@ -12,6 +13,7 @@ use vidyut::translit::to_slp1;
 #[derive(Debug)]
 struct Stats {
     num_sentences: i32,
+    num_equal_length: i32,
     num_lemma_matches: i32,
     num_lemma_and_state_matches: i32,
 }
@@ -20,6 +22,7 @@ impl Stats {
     fn new() -> Stats {
         Stats {
             num_sentences: 0,
+            num_equal_length: 0,
             num_lemma_matches: 0,
             num_lemma_and_state_matches: 0,
         }
@@ -29,6 +32,7 @@ impl Stats {
 impl AddAssign for Stats {
     fn add_assign(&mut self, other: Stats) {
         self.num_sentences += other.num_sentences;
+        self.num_equal_length += other.num_equal_length;
         self.num_lemma_matches += other.num_lemma_matches;
         self.num_lemma_and_state_matches += other.num_lemma_and_state_matches;
     }
@@ -73,7 +77,6 @@ fn eval_path(path: PathBuf, ctx: &Context) -> Result<Stats, Box<dyn Error>> {
         stats.num_sentences += 1;
 
         let slp1_text = to_slp1(&sentence.text);
-
         let vidyut_parse = parse(&slp1_text, ctx);
         let vidyut_lemmas: Vec<_> = vidyut_parse.iter().map(|p| p.lemma()).collect();
         let dcs_lemmas: Vec<_> = sentence
@@ -82,6 +85,9 @@ fn eval_path(path: PathBuf, ctx: &Context) -> Result<Stats, Box<dyn Error>> {
             .map(|t| standardize_dcs_lemma(&t.lemma))
             .collect();
 
+        if vidyut_lemmas.len() == dcs_lemmas.len() {
+            stats.num_equal_length += 1;
+        }
         if is_vec_match(&vidyut_lemmas, &dcs_lemmas) {
             println!("[  OK  ]: {}", &slp1_text);
             stats.num_lemma_matches += 1;
@@ -113,6 +119,7 @@ fn run_eval(patterns: Vec<&String>, cache_file: &str) -> Result<(), Box<dyn Erro
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);
     let lemma_pct = pct(stats.num_lemma_matches, stats.num_sentences);
+    let length_pct = pct(stats.num_equal_length, stats.num_sentences);
 
     println!();
     println!("================================================");
@@ -123,7 +130,11 @@ fn run_eval(patterns: Vec<&String>, cache_file: &str) -> Result<(), Box<dyn Erro
         stats.num_sentences
     );
     println!(
-        "Percentage with exact lemma match:     {: >8.2}%",
+        "% with the same number of tokens:       {: >8.2}",
+        length_pct,
+    );
+    println!(
+        "% with exact lemma match:               {: >8.2}",
         lemma_pct
     );
     println!("================================================");

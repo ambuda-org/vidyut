@@ -1,17 +1,19 @@
-use lazy_static::lazy_static;
 /// Splits Sanskrit expressions according to a list of sandhi rules.
+use lazy_static::lazy_static;
 use multimap::MultiMap;
 use regex::Regex;
 use std::cmp;
 
+/// Maps a combination to the two strings (first, second) that created it.
 pub type SandhiMap = MultiMap<String, (String, String)>;
 
+/// Hackily converts a word ending with a visarga to end with an `s`.
 fn visarga_to_s(s: &str) -> String {
     let n = s.len();
     String::from(&s[0..n - 1]) + "s"
 }
 
-/// Returns all possible splits for the given input.
+/// Yield all possible splits (a, b) that can be made on `raw_input` with `rules`.
 pub fn split(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
     lazy_static! {
         // Matches all non-sonuds at the beginning of the string.

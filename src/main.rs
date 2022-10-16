@@ -1,4 +1,4 @@
-/// Parse text received on the command line.
+/// Parse text strings received on the command line.
 use clap::{Arg, Command};
 use log::info;
 use std::error::Error;

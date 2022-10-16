@@ -1,3 +1,4 @@
+/// Tools to look up a word and its semantics.
 use crate::context::Context;
 use crate::semantics::*;
 use multimap::MultiMap;
