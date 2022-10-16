@@ -6,11 +6,11 @@ pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;
 pub type EndingMap = MultiMap<String, (String, Semantics)>;
 
-fn add_stem_semantics(text: &str, data: &Context, all_semantics: &mut Vec<Semantics>) {
-    let stems = &data.stem_map;
+fn add_stem_semantics(text: &str, ctx: &Context, all_semantics: &mut Vec<Semantics>) {
+    let stems = &ctx.stem_map;
 
-    for ending in data.ending_map.keys() {
-        for (stem_type, semantics) in data.ending_map.get_vec(ending).unwrap() {
+    for ending in ctx.ending_map.keys() {
+        for (stem_type, semantics) in ctx.ending_map.get_vec(ending).unwrap() {
             let len_text = text.len();
             if !text.ends_with(ending) {
                 continue;
@@ -21,15 +21,27 @@ fn add_stem_semantics(text: &str, data: &Context, all_semantics: &mut Vec<Semant
             stem += &text[0..(len_text - len_ending)];
             stem += stem_type;
 
-            if stems.contains_key(&stem) {
-                if text == "m" {
-                    print!("{} {} {}", text, ending, stem_type);
-                    std::process::exit(1);
-                }
+            if let Some(stem_semantics) = stems.get(&stem) {
+                let root = match &stem_semantics {
+                    StemSemantics::Krdanta {
+                        root,
+                        tense: _,
+                        prayoga: _,
+                    } => Some(root),
+                    &_ => None,
+                };
+
                 let mut word_semantics = semantics.clone();
-                if let Semantics::Subanta(ref mut s) = word_semantics {
-                    s.stem = stem;
-                    all_semantics.push(word_semantics);
+                match word_semantics {
+                    Semantics::Subanta(ref mut s) => {
+                        s.stem = stem;
+                        all_semantics.push(word_semantics);
+                    }
+                    Semantics::KrtSubanta(ref mut s) => {
+                        s.root = root.unwrap_or(&stem).to_string();
+                        all_semantics.push(word_semantics);
+                    }
+                    _ => (),
                 }
             }
         }

@@ -84,6 +84,7 @@ pub enum StemSemantics {
         lingas: Vec<Linga>,
     },
     Krdanta {
+        root: String,
         tense: StemTense,
         prayoga: StemPrayoga,
     },
@@ -104,7 +105,6 @@ pub struct Subanta {
     pub is_compounded: bool,
 }
 
-/// See comments on `Subanta` above.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Tinanta {
     pub root: String,
@@ -115,12 +115,27 @@ pub struct Tinanta {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct KrtAvyaya {
+    pub root: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct KrtSubanta {
+    pub root: String,
+    pub linga: Linga,
+    pub vacana: Vacana,
+    pub vibhakti: Vibhakti,
+    pub is_compounded: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Semantics {
     None,
     PrefixGroup,
     Avyaya,
-    Ktva,
-    Tumun,
+    Ktva(KrtAvyaya),
+    Tumun(KrtAvyaya),
     Subanta(Subanta),
+    KrtSubanta(KrtSubanta),
     Tinanta(Tinanta),
 }

@@ -22,6 +22,9 @@ impl ParsedWord {
         match &self.semantics {
             Semantics::Tinanta(s) => s.root.clone(),
             Semantics::Subanta(s) => s.stem.clone(),
+            Semantics::KrtSubanta(s) => s.root.clone(),
+            Semantics::Ktva(s) => s.root.clone(),
+            Semantics::Tumun(s) => s.root.clone(),
             _ => self.text.clone(),
         }
     }

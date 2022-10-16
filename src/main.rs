@@ -19,7 +19,10 @@ fn load_context(
             info!("Loading previous snapshot from \"{}\"", &path);
             return match Context::from_snapshot(path) {
                 Ok(data) => Ok(data),
-                Err(err) => Err(err),
+                Err(err) => {
+                    println!("Encountered an error while trying to load the cache:");
+                    Err(err)
+                }
             };
         } else {
             info!("Loading raw data. (Cache file \"{}\" not found.)", path);
