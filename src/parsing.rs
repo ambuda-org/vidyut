@@ -1,4 +1,4 @@
-/// Splits Sanskrit phrases into separate words with their semantics.
+//! Splits Sanskrit phrases into separate words with their semantics.
 use lazy_static::lazy_static;
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;

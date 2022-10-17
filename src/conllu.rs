@@ -1,7 +1,7 @@
-/// Reader for DCS CoNLL-U data
-///
-/// The `conllu` crate on Rust doesn't support multi-word tokens, which appear constantly in the
-/// DCS data. Therefore, we've rolled our own reader.
+//! Reader for DCS CoNLL-U data
+//!
+//! The `conllu` crate on Rust doesn't support multi-word tokens, which appear constantly in the
+//! DCS data. Therefore, we've rolled our own reader.
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;

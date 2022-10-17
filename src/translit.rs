@@ -1,4 +1,7 @@
-/// Transliteration functions for handling DCS data.
+//! Hacky transliteration functions for handling DCS data.
+//!
+//! DCS data is encoded in IAST, but Vidyut generally prefers SLP1. This module
+//! uses an (unoptimized, untested) transliteration function to convert IAST to SLP1.
 use std::cmp;
 
 /// Hackily transliterate from IAST to SLP1.

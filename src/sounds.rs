@@ -1,4 +1,5 @@
-/// Utility functions for checking Sanskrit sounds.
+//! Utility functions for checking Sanskrit sounds.
+
 use lazy_static::lazy_static;
 use regex::Regex;
 

@@ -1,3 +1,5 @@
+//! Manages all of the data for the application.
+
 use crate::io;
 use crate::lexicon::Lexicon;
 use crate::sandhi::Sandhi;
@@ -20,7 +22,7 @@ impl Context {
                 padas: io::read_padas(paths)?,
                 stems: io::read_stems(paths)?,
                 endings: io::read_nominal_endings(paths)?,
-            }
+            },
         })
     }
 

@@ -1,9 +1,13 @@
-/// Utilities for reading and writing linguistic data.
+//! Utilities for reading linguistic data.
+//!
+//! Most of our data comes from the [sanskrit/data](https://github.com/sanskrit/data) project. In
+//! the future, Vidyut might generate its own linguistic data instead.
+
 use crate::lexicon::{EndingMap, PadaMap, StemMap};
 use crate::semantics::*;
 use std::error::Error;
 
-/// Data paths from https://github.com/sanskrit/data
+/// Defines all of the input data paths we use in Vidyut.
 pub struct DataPaths {
     pub indeclinables: String,
     pub nominal_endings_compounded: String,
@@ -270,6 +274,7 @@ fn add_verbs(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
+
 pub fn read_nominal_endings(paths: &DataPaths) -> Result<EndingMap, Box<dyn Error>> {
     let mut endings = EndingMap::new();
     add_nominal_endings_compounded(&paths.nominal_endings_compounded, &mut endings)?;

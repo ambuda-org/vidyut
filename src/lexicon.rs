@@ -1,7 +1,8 @@
-/// Tools to look up a word and its semantics.
+//! Maps Sanskrit words and stems to their semantics.
+
 use crate::semantics::*;
-use serde::{Deserialize, Serialize};
 use multimap::MultiMap;
+use serde::{Deserialize, Serialize};
 
 pub type StemMap = MultiMap<String, StemSemantics>;
 pub type PadaMap = MultiMap<String, Semantics>;

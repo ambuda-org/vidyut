@@ -1,4 +1,6 @@
-/// Splits Sanskrit expressions according to a list of sandhi rules.
+//! Splits Sanskrit expressions according to a list of sandhi rules. Our splitting algorithm is
+//! naive but exhaustive.
+
 use lazy_static::lazy_static;
 use multimap::MultiMap;
 use regex::Regex;
@@ -61,7 +63,6 @@ fn visarga_to_s(s: &str) -> String {
 
 /// Yield all possible splits (a, b) that can be made on `raw_input` with `rules`.
 fn split_sandhi(raw_input: &str, rules: &SandhiMap) -> Vec<(String, String)> {
-
     lazy_static! {
         // Matches all non-sonuds at the beginning of the string.
         static ref RE_NOT_SOUND: Regex = Regex::new(r"^[^a-zA-Z]+").unwrap();
@@ -199,7 +200,9 @@ mod tests {
         let mut dummy = SandhiMap::new();
         dummy.insert("e".to_string(), ("a".to_string(), "i".to_string()));
 
-        assert!(split_sandhi("aham iti", &dummy).contains(&("aham".to_string(), " iti".to_string())));
+        assert!(
+            split_sandhi("aham iti", &dummy).contains(&("aham".to_string(), " iti".to_string()))
+        );
     }
 
     #[test]

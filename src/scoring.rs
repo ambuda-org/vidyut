@@ -1,4 +1,5 @@
-// Score a parse state (higher scores are better).
+//! Scores a parse state (higher scores are better).
+
 use crate::parsing::State;
 use crate::semantics::*;
 
