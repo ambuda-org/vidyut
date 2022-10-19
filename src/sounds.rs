@@ -12,7 +12,7 @@ use regex::Regex;
 pub fn is_sanskrit(c: char) -> bool {
     lazy_static! {
         static ref RE: Regex =
-            Regex::new(r"[aAiIuUfFxXeEoOkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL']").unwrap();
+            Regex::new(r"[aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL']").unwrap();
     }
     // Avoid `to_string`, which will create a new string on the heap.
     let mut buf = [0u8; 4];
@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_is_sanskrit() {
-        for c in "aAiIuUfFxXeEoOkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'".chars() {
+        for c in "aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'".chars() {
             assert!(is_sanskrit(c));
         }
         for c in "0123456789,.![]|".chars() {

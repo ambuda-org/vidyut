@@ -63,6 +63,7 @@ fn if_not_in_compound_then_linga_match(cur: &State, s: &Subanta) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sandhi::SplitKind;
 
     #[test]
     fn test_is_valid_word() {
@@ -71,6 +72,7 @@ mod tests {
             first: "tatra".to_string(),
             second: "".to_string(),
             is_end_of_chunk: true,
+            kind: SplitKind::Prefix,
         };
         let semantics = Semantics::Avyaya;
 
@@ -84,6 +86,7 @@ mod tests {
             first: "grAme".to_string(),
             second: "sa".to_string(),
             is_end_of_chunk: false,
+            kind: SplitKind::Prefix,
         };
         let semantics = Semantics::Subanta(Subanta {
             stem: Stem::Basic {

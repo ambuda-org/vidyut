@@ -23,9 +23,6 @@ impl Lexicon {
             all_semantics.push(self.padas.get(text).unwrap().clone());
         }
         add_stem_semantics(self, text, &mut all_semantics);
-
-        // As a default option, mark this as "none"
-        all_semantics.push(Semantics::None);
         all_semantics
     }
 }

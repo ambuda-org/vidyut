@@ -20,7 +20,7 @@ pub fn heuristic_score(state: &State) -> i32 {
     if let Some(last) = state.words.last() {
         let semantics = &last.semantics;
         match semantics {
-            Semantics::None => state.score - 100,
+            Semantics::None => state.score - 100 * (last.text.len() as i32),
             &_ => state.score - 1,
         }
     } else {

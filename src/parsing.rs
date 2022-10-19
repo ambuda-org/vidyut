@@ -6,6 +6,7 @@ use regex::Regex;
 use std::collections::HashMap;
 
 use crate::context::Context;
+use crate::sandhi;
 use crate::scoring;
 use crate::semantics::{Semantics, Stem};
 use crate::strict_mode;
@@ -71,11 +72,19 @@ fn normalize(text: &str) -> String {
 
 fn analyze_pada(
     text: &str,
+    split: &sandhi::Split,
     data: &Context,
     cache: &mut HashMap<String, Vec<Semantics>>,
 ) -> Vec<Semantics> {
     if !cache.contains_key(text) {
-        cache.insert(text.to_string(), data.lexicon.find(text));
+        let mut res = data.lexicon.find(text);
+
+        // Add the option to skip an entire chunk. (For typos, junk, etc.)
+        if split.is_end_of_chunk {
+            res.push(Semantics::None);
+        }
+
+        cache.insert(text.to_string(), res);
     }
     cache.get(text).unwrap().to_vec()
 }
@@ -84,7 +93,12 @@ fn analyze_pada(
 fn debug_print_stack(pq: &PriorityQueue<State, i32>) {
     if log_enabled!(Level::Debug) {
         debug!("Stack:");
-        for (i, (s, score)) in pq.iter().enumerate() {
+
+        // The queue isn't sorted by default. So, sort from highest to lowest priotity.
+        let mut words: Vec<(&State, &i32)> = pq.iter().collect();
+        words.sort_by(|x, y| y.1.cmp(x.1));
+
+        for (i, (s, score)) in words.iter().enumerate() {
             let words: Vec<String> = s.words.iter().map(|x| x.text.clone()).collect();
             debug!("{}: \"{:?}\" + \"{}\" ({})", i, words, s.remaining, score);
         }
@@ -132,14 +146,14 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
 
         let (cur, cur_score) = pq.pop().unwrap();
 
-        for split in ctx.sandhi.split(&cur.remaining) {
+        for split in ctx.sandhi.split_all(&cur.remaining) {
             if !split.is_valid() || split.is_recursive(&cur.remaining) {
                 continue;
             }
 
             let first = &split.first;
             let second = &split.second;
-            for semantics in analyze_pada(first, ctx, &mut word_cache) {
+            for semantics in analyze_pada(first, &split, ctx, &mut word_cache) {
                 if !strict_mode::is_valid_word(&cur, &split, &semantics) {
                     continue;
                 }

@@ -12,9 +12,13 @@ use std::error::Error;
 /// Maps a combination to the two strings (first, second) that created it.
 pub type SandhiMap = MultiMap<String, (String, String)>;
 
-#[derive(Serialize, Deserialize)]
-pub struct Sandhi {
-    map: MultiMap<String, (String, String)>,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum SplitKind {
+    /// A split created by slicing the input string, with no sandhi rules applied. As a result,
+    /// `split.first` is a **prefix** of the original string.
+    Prefix,
+    /// A split created by undoing a specific sandhi rule.
+    Standard,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -22,6 +26,7 @@ pub struct Split {
     pub first: String,
     pub second: String,
     pub is_end_of_chunk: bool,
+    pub kind: SplitKind,
 }
 
 impl Split {
@@ -42,9 +47,23 @@ impl Split {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct Sandhi {
+    map: MultiMap<String, (String, String)>,
+    len_longest_key: usize,
+}
+
 impl Sandhi {
     pub fn from_map(map: SandhiMap) -> Sandhi {
-        Sandhi { map }
+        let len_longest_key = map
+            .keys()
+            .map(|x| x.len())
+            .max()
+            .expect("Sandhi map is empty");
+        Sandhi {
+            map,
+            len_longest_key,
+        }
     }
 
     /// Creates a map from sandhi combinations to the sounds that created them.
@@ -73,11 +92,86 @@ impl Sandhi {
                 rules.insert(result_no_spaces, (first.clone(), second.clone()));
             }
         }
-        Ok(Sandhi { map: rules })
+        Ok(Sandhi::from_map(rules))
     }
 
-    pub fn split(&self, raw_input: &str) -> Vec<Split> {
-        split_sandhi(raw_input, &self.map)
+    /// Yield all possible ways to split `input` at the given index `i`.
+    ///
+    /// The `first` field in the split is guaranteed to be non-empty.
+    pub fn split_at(&self, input: &str, i: usize) -> Vec<Split> {
+        let mut res = Vec::new();
+
+        // First, push the default split where no sandhi rule is applied.
+        //
+        // We mark this split separately so that callers can match on it and handle it differently.
+        // For example, if `input[..i]` is not in a prefix tree of Sanskrit words, then for all j >
+        // 1, `input[..j]` will likewise not be in the tree. This principle does not apply for
+        // "normal" sandhi splits.
+        res.push(Split {
+            first: input[..i + 1].to_string(),
+            // Trim leading whitespace on the remainder for consistency later on.
+            second: input[i + 1..].trim_start().to_string(),
+            // We are at the end of a chunk if and only if the next sound is not a Sanskrit sound
+            // (or and avagraha).
+            is_end_of_chunk: !&input[i + 1..].starts_with(sounds::is_sanskrit),
+            kind: SplitKind::Prefix,
+        });
+
+        // Also consider the special case where we are at the end of the input. Here, we want to_string
+        // allow a word-final visarga to be either "s" or "r".
+        // FIXME: this is a hack.
+        if i + 1 == input.len() && input.ends_with('H') {
+            res.push(Split {
+                first: visarga_to_s(input),
+                second: "".to_string(),
+                is_end_of_chunk: true,
+                kind: SplitKind::Standard,
+            });
+            res.push(Split {
+                first: visarga_to_r(input),
+                second: "".to_string(),
+                is_end_of_chunk: true,
+                kind: SplitKind::Standard,
+            });
+        }
+
+        for j in i..cmp::min(input.len(), i + self.len_longest_key + 1) {
+            let combination = &input[i..j];
+            let is_end_of_chunk = combination.contains(' ');
+
+            if let Some(pairs) = self.map.get_vec(combination) {
+                for (f, s) in pairs {
+                    let first = String::from(&input[0..i]) + f;
+                    let mut second = String::from(s) + &input[j..];
+
+                    // Trim leading whitespace since it might still be present in the remaining
+                    // text (e.g. "kaH sa" where the rule is "H" -> ("s", "").
+                    // FIXME: think through this behavior carefully and simplify it.
+                    second = second.trim_start().to_string();
+
+                    res.push(Split {
+                        first,
+                        second,
+                        is_end_of_chunk,
+                        kind: SplitKind::Standard,
+                    });
+                }
+            }
+        }
+        res
+    }
+
+    /// Temporary function until we migrate to split_at everywhere.
+    pub fn split_all(&self, input: &str) -> Vec<Split> {
+        let mut splits = Vec::new();
+        for i in 0..input.len() {
+            // Break on non-sounds so that `first` is a continuous chunk.
+            if !input[i..].starts_with(sounds::is_sanskrit) {
+                break;
+            }
+            splits.extend(self.split_at(input, i));
+        }
+        splits
     }
 }
 
@@ -87,82 +181,10 @@ fn visarga_to_s(s: &str) -> String {
     String::from(&s[0..n - 1]) + "s"
 }
 
-/// Yield all possible splits (a, b) that can be made on `raw_input` with `rules`.
-fn split_sandhi(raw_input: &str, rules: &SandhiMap) -> Vec<Split> {
-    lazy_static! {
-        // Matches all non-sonuds at the beginning of the string.
-        static ref RE_NOT_SOUND: Regex = Regex::new(r"^[^a-zA-Z]+").unwrap();
-    }
-    let mut res = Vec::new();
-    let len_longest_key = rules.keys().map(|x| x.len()).max().expect("Map is empty");
-
-    // Sanitize by removing leading chars that aren't Sanskrit sounds.
-    let input = RE_NOT_SOUND.replace(raw_input, "");
-    let len_input = input.len();
-
-    // Order is not important here, since downstream logic will reorder the results here based on
-    // each item's score.
-    for i in 1..len_input {
-        // Chunk boundary -- return.
-        let cur_char = &input[i - 1..i];
-        if RE_NOT_SOUND.is_match(cur_char) {
-            // HACK for visarga
-            return res;
-        }
-
-        // Default: split as-is, no sandhi.
-        let default_first = &input[0..i];
-        let default_second = &input[i..len_input];
-        res.push(Split {
-            first: default_first.to_string(),
-            second: default_second.to_string(),
-            is_end_of_chunk: !default_second.starts_with(sounds::is_sanskrit),
-        });
-
-        for j in i..cmp::min(len_input, i + len_longest_key + 1) {
-            let combination = &input[i..j];
-            match rules.get_vec(combination) {
-                Some(pairs) => {
-                    let is_end_of_chunk = combination.contains(' ');
-                    for (f, s) in pairs {
-                        let first = String::from(&input[0..i]) + f;
-                        let second = String::from(s) + &input[j..len_input];
-
-                        if first.ends_with('H') {
-                            res.push(Split {
-                                first: visarga_to_s(&first),
-                                second: second.clone(),
-                                is_end_of_chunk,
-                            });
-                        }
-                        res.push(Split {
-                            first,
-                            second: second.clone(),
-                            is_end_of_chunk,
-                        });
-                    }
-                }
-                None => continue,
-            }
-        }
-    }
-
-    // If we reached this line, then the input is one big chunk. So, include that chunk as-is in
-    // case the chunk is a single word.
-    res.push(Split {
-        first: input.to_string(),
-        second: "".to_string(),
-        is_end_of_chunk: true,
-    });
-    // HACK for visarga
-    if input.ends_with('H') {
-        res.push(Split {
-            first: visarga_to_s(&input),
-            second: "".to_string(),
-            is_end_of_chunk: true,
-        });
-    }
-    res
+/// Hackily converts a word ending with a visarga to end with an `r`.
+fn visarga_to_r(s: &str) -> String {
+    let n = s.len();
+    String::from(&s[0..n - 1]) + "r"
 }
 
 /// Returns whether the first item in a sandhi split is OK according to some basic heuristics.
@@ -206,6 +228,19 @@ fn is_good_second(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use multimap::multimap;
+
+    fn splits(items: Vec<(&str, &str, bool, SplitKind)>) -> Vec<Split> {
+        items
+            .iter()
+            .map(|(f, s, c, k)| Split {
+                first: f.to_string(),
+                second: s.to_string(),
+                is_end_of_chunk: *c,
+                kind: k.clone(),
+            })
+            .collect()
+    }
 
     #[test]
     fn test_visarga_to_s() {
@@ -213,37 +248,85 @@ mod tests {
     }
 
     #[test]
-    fn test_split_single_chunk() {
-        let mut rules = SandhiMap::new();
-        rules.insert("e".to_string(), ("a".to_string(), "i".to_string()));
-        let expected: Vec<Split> = vec![
-            ("c", "eti", false),
-            ("ca", "iti", false),
-            ("ce", "ti", false),
-            ("cet", "i", false),
-            ("ceti", "", true),
-        ]
-        .iter()
-        .map(|&(f, s, c)| Split {
-            first: f.to_string(),
-            second: s.to_string(),
-            is_end_of_chunk: c,
-        })
-        .collect();
+    fn test_split_at_start_of_chunk() {
+        let rules = multimap![
+            "ar".to_string() => ("a".to_string(), "f".to_string()),
+            "ar".to_string() => ("a".to_string(), "F".to_string()),
+            "ar".to_string() => ("A".to_string(), "f".to_string()),
+            "ar".to_string() => ("A".to_string(), "F".to_string()),
+        ];
+        let sandhi = Sandhi {
+            map: rules,
+            len_longest_key: 2,
+        };
 
-        assert_eq!(split_sandhi("ceti", &rules), expected);
+        let expected: Vec<Split> = splits(vec![
+            ("a", "rka", false, SplitKind::Prefix),
+            ("a", "fka", false, SplitKind::Standard),
+            ("a", "Fka", false, SplitKind::Standard),
+            ("A", "fka", false, SplitKind::Standard),
+            ("A", "Fka", false, SplitKind::Standard),
+        ]);
+
+        assert_eq!(sandhi.split_at("arka", 0), expected);
     }
 
     #[test]
-    fn test_split_two_chunks() {
-        let mut dummy = SandhiMap::new();
-        dummy.insert("e".to_string(), ("a".to_string(), "i".to_string()));
+    fn test_split_at_middle_of_chunk() {
+        let rules = multimap![
+            "e".to_string() => ("a".to_string(), "i".to_string()),
+            "e".to_string() => ("a".to_string(), "I".to_string()),
+            "e".to_string() => ("A".to_string(), "i".to_string()),
+            "e".to_string() => ("A".to_string(), "I".to_string()),
+        ];
+        let sandhi = Sandhi {
+            map: rules,
+            len_longest_key: 1,
+        };
 
-        assert!(split_sandhi("aham iti", &dummy).contains(&Split {
-            first: "aham".to_string(),
-            second: " iti".to_string(),
-            is_end_of_chunk: true
-        }));
+        let expected: Vec<Split> = splits(vec![
+            ("ce", "ti", false, SplitKind::Prefix),
+            ("ca", "iti", false, SplitKind::Standard),
+            ("ca", "Iti", false, SplitKind::Standard),
+            ("cA", "iti", false, SplitKind::Standard),
+            ("cA", "Iti", false, SplitKind::Standard),
+        ]);
+
+        assert_eq!(sandhi.split_at("ceti", 1), expected);
+    }
+
+    #[test]
+    fn test_split_at_end_of_chunk_trims_whitespace() {
+        let rules = multimap![
+            "o".to_string() => ("a".to_string(), "u".to_string()),
+        ];
+        let sandhi = Sandhi {
+            map: rules,
+            len_longest_key: 1,
+        };
+
+        let expected: Vec<Split> = splits(vec![("nare", "ca", true, SplitKind::Prefix)]);
+
+        assert_eq!(sandhi.split_at("nare ca", 3), expected);
+    }
+
+    #[test]
+    fn test_split_at_end_of_input() {
+        let rules = multimap![
+            "e".to_string() => ("a".to_string(), "i".to_string()),
+        ];
+        let sandhi = Sandhi {
+            map: rules,
+            len_longest_key: 1,
+        };
+
+        let expected: Vec<Split> = splits(vec![
+            ("devaH", "", true, SplitKind::Prefix),
+            ("devas", "", true, SplitKind::Standard),
+            ("devar", "", true, SplitKind::Standard),
+        ]);
+
+        assert_eq!(sandhi.split_at("devaH", 4), expected);
     }
 
     #[test]
