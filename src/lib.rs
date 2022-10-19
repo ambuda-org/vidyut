@@ -12,3 +12,5 @@ pub mod sounds;
 
 pub mod conllu;
 pub mod translit;
+
+mod strict_mode;

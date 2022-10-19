@@ -118,14 +118,19 @@ fn add_nominal_endings_compounded(
     for maybe_row in rdr.records() {
         let r = maybe_row?;
         let stem = r[0].to_string();
+        let stem_lingas = parse_stem_linga(&r[1]);
         let ending = r[2].to_string();
+        let ending_linga = parse_linga(&r[3]);
 
         let semantics = Semantics::Subanta(Subanta {
-            stem: stem.clone(),
-            linga: Linga::None,
+            stem: Stem::Basic {
+                stem: stem.clone(),
+                lingas: stem_lingas,
+            },
+            linga: ending_linga,
             vibhakti: Vibhakti::None,
             vacana: Vacana::None,
-            is_compounded: true,
+            is_purvapada: true,
         });
         endings.insert(ending, (stem, semantics));
     }
@@ -142,12 +147,16 @@ fn add_nominal_endings_inflected(
 
         let stem = r[0].to_string();
         let ending = r[2].to_string();
+        let linga = parse_linga(&r[3]);
         let semantics = Semantics::Subanta(Subanta {
-            stem: stem.clone(),
-            linga: parse_linga(&r[3]),
+            stem: Stem::Basic {
+                stem: stem.clone(),
+                lingas: vec![linga.clone()],
+            },
+            linga,
             vibhakti: parse_vibhakti(&r[4]),
             vacana: parse_vacana(&r[5]),
-            is_compounded: false,
+            is_purvapada: false,
         });
         endings.insert(ending, (stem, semantics));
     }
@@ -160,7 +169,10 @@ fn add_nominal_stems(path: &str, padas: &mut StemMap) -> Result<(), Box<dyn Erro
         let r = maybe_row?;
         let stem = r[0].to_string();
         let lingas = parse_stem_linga(&r[1]);
-        let semantics = StemSemantics::Basic { lingas };
+        let semantics = Stem::Basic {
+            stem: stem.clone(),
+            lingas,
+        };
         padas.insert(stem, semantics);
     }
     Ok(())
@@ -174,7 +186,7 @@ fn add_participle_stems(path: &str, padas: &mut StemMap) -> Result<(), Box<dyn E
         let root = r[1].to_string();
         padas.insert(
             stem,
-            StemSemantics::Krdanta {
+            Stem::Krdanta {
                 root,
                 tense: parse_tense(&r[4]),
                 prayoga: parse_prayoga(&r[5]),
@@ -200,12 +212,16 @@ fn add_pronouns(path: &str, padas: &mut PadaMap) -> Result<(), Box<dyn Error>> {
 
         let stem = r[0].to_string();
         let text = r[2].to_string();
+        let linga = parse_linga(&r[3]);
         let semantics = Semantics::Subanta(Subanta {
-            stem,
-            linga: parse_linga(&r[3]),
+            stem: Stem::Basic {
+                stem: stem.clone(),
+                lingas: vec![linga.clone()],
+            },
+            linga: linga.clone(),
             vibhakti: parse_vibhakti(&r[4]),
             vacana: parse_vacana(&r[5]),
-            is_compounded: false,
+            is_purvapada: false,
         });
         padas.insert(text, semantics);
     }

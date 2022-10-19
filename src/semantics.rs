@@ -141,8 +141,9 @@ pub enum StemPrayoga {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum StemSemantics {
+pub enum Stem {
     Basic {
+        stem: String,
         lingas: Vec<Linga>,
     },
     Krdanta {
@@ -155,11 +156,12 @@ pub enum StemSemantics {
 /// Struct for `Semantics::Subanta`
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Subanta {
-    pub stem: String,
+    pub stem: Stem,
     pub linga: Linga,
     pub vacana: Vacana,
     pub vibhakti: Vibhakti,
-    pub is_compounded: bool,
+    // Whether this *subanta* is part of some compound but not the final member of it.
+    pub is_purvapada: bool,
 }
 
 /// Struct for `Semantics::Tinanta`
@@ -175,15 +177,6 @@ pub struct Tinanta {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct KrtAvyaya {
     pub root: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct KrtSubanta {
-    pub root: String,
-    pub linga: Linga,
-    pub vacana: Vacana,
-    pub vibhakti: Vibhakti,
-    pub is_compounded: bool,
 }
 
 /// The semantics for a Sanskrit word.
@@ -202,8 +195,6 @@ pub enum Semantics {
     Tumun(KrtAvyaya),
     /// A *subanta* (nominal, excluding *avyaya*s)
     Subanta(Subanta),
-    /// A *subanta* formed with a *kṛt* suffix (participles, generally).
-    KrtSubanta(KrtSubanta),
     /// A *tiṅanta* (verb).
     Tinanta(Tinanta),
 }

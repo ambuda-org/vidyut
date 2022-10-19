@@ -6,9 +6,9 @@ use regex::Regex;
 use std::collections::HashMap;
 
 use crate::context::Context;
-use crate::sandhi;
 use crate::scoring;
-use crate::semantics::Semantics;
+use crate::semantics::{Semantics, Stem};
+use crate::strict_mode;
 
 /// Represnts a Sanskrit word and its semantics.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -22,8 +22,14 @@ impl ParsedWord {
     pub fn lemma(&self) -> String {
         match &self.semantics {
             Semantics::Tinanta(s) => s.root.clone(),
-            Semantics::Subanta(s) => s.stem.clone(),
-            Semantics::KrtSubanta(s) => s.root.clone(),
+            Semantics::Subanta(s) => match &s.stem {
+                Stem::Basic { stem, lingas: _ } => stem.clone(),
+                Stem::Krdanta {
+                    root,
+                    tense: _,
+                    prayoga: _,
+                } => root.clone(),
+            },
             Semantics::Ktva(s) => s.root.clone(),
             Semantics::Tumun(s) => s.root.clone(),
             _ => self.text.clone(),
@@ -44,7 +50,7 @@ pub struct State {
 
 impl State {
     /// Create a new state.
-    fn new(text: String) -> State {
+    pub fn new(text: String) -> State {
         State {
             words: Vec::new(),
             remaining: text,
@@ -122,17 +128,22 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
 
     while !pq.is_empty() {
         debug_print_stack(&pq);
-        debug_print_viterbi(&viterbi_cache);
+        // debug_print_viterbi(&viterbi_cache);
 
         let (cur, cur_score) = pq.pop().unwrap();
 
-        for (first, second) in ctx.sandhi.split(&cur.remaining) {
-            // Skip splits that have obvious problems.
-            if !sandhi::is_good_split(&cur.remaining, &first, &second) {
+        for split in ctx.sandhi.split(&cur.remaining) {
+            if !split.is_valid() || split.is_recursive(&cur.remaining) {
                 continue;
             }
 
-            for semantics in analyze_pada(&first, ctx, &mut word_cache) {
+            let first = &split.first;
+            let second = &split.second;
+            for semantics in analyze_pada(first, ctx, &mut word_cache) {
+                if !strict_mode::is_valid_word(&cur, &split, &semantics) {
+                    continue;
+                }
+
                 let mut new = State {
                     words: cur.words.clone(),
                     remaining: second.clone(),

@@ -4,7 +4,7 @@ use crate::semantics::*;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
-pub type StemMap = MultiMap<String, StemSemantics>;
+pub type StemMap = MultiMap<String, Stem>;
 pub type PadaMap = MultiMap<String, Semantics>;
 pub type EndingMap = MultiMap<String, (String, Semantics)>;
 
@@ -36,34 +36,16 @@ fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Semanti
             continue;
         }
 
-        for (stem_type, semantics) in pairs {
-            let mut stem = String::new();
-            let len_text = text.len();
-            let len_ending = ending.len();
-            stem += &text[0..(len_text - len_ending)];
-            stem += stem_type;
+        for (stem_type, ending_semantics) in pairs {
+            let mut stem_text = String::new();
+            stem_text += &text[0..(text.len() - ending.len())];
+            stem_text += stem_type;
 
-            if let Some(stem_semantics) = lex.stems.get(&stem) {
-                let root = match &stem_semantics {
-                    StemSemantics::Krdanta {
-                        root,
-                        tense: _,
-                        prayoga: _,
-                    } => Some(root),
-                    &_ => None,
-                };
-
-                let mut word_semantics = semantics.clone();
-                match word_semantics {
-                    Semantics::Subanta(ref mut s) => {
-                        s.stem = stem;
-                        all_semantics.push(word_semantics);
-                    }
-                    Semantics::KrtSubanta(ref mut s) => {
-                        s.root = root.unwrap_or(&stem).to_string();
-                        all_semantics.push(word_semantics);
-                    }
-                    _ => (),
+            if let Some(stem) = lex.stems.get(&stem_text) {
+                if let Semantics::Subanta(s) = ending_semantics {
+                    let mut s = s.clone();
+                    s.stem = stem.clone();
+                    all_semantics.push(Semantics::Subanta(s));
                 }
             }
         }
@@ -90,14 +72,17 @@ mod tests {
         let mut stems = StemMap::new();
         stems.insert(
             String::from("nara"),
-            StemSemantics::Basic {
+            Stem::Basic {
+                stem: "nara".to_string(),
                 lingas: vec![Linga::Pum],
             },
         );
         stems.insert(
             String::from("gacCat"),
-            StemSemantics::Basic {
-                lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
+            Stem::Krdanta {
+                root: "gam".to_string(),
+                tense: StemTense::Present,
+                prayoga: StemPrayoga::Kartari,
             },
         );
 
@@ -107,11 +92,14 @@ mod tests {
             (
                 String::from("a"),
                 Semantics::Subanta(Subanta {
-                    stem: "".to_string(),
+                    stem: Stem::Basic {
+                        stem: "a".to_string(),
+                        lingas: vec![Linga::Pum],
+                    },
                     linga: Linga::Pum,
                     vacana: Vacana::Eka,
                     vibhakti: Vibhakti::V6,
-                    is_compounded: false,
+                    is_purvapada: false,
                 }),
             ),
         );
@@ -120,11 +108,14 @@ mod tests {
             (
                 String::from("at"),
                 Semantics::Subanta(Subanta {
-                    stem: "".to_string(),
+                    stem: Stem::Basic {
+                        stem: "at".to_string(),
+                        lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
+                    },
                     linga: Linga::Stri,
                     vacana: Vacana::Eka,
                     vibhakti: Vibhakti::V2,
-                    is_compounded: false,
+                    is_purvapada: false,
                 }),
             ),
         );
@@ -157,11 +148,14 @@ mod tests {
         assert_eq!(
             *lex.find("narasya").first().unwrap(),
             Semantics::Subanta(Subanta {
-                stem: "nara".to_string(),
+                stem: Stem::Basic {
+                    stem: "nara".to_string(),
+                    lingas: vec![Linga::Pum,]
+                },
                 linga: Linga::Pum,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V6,
-                is_compounded: false,
+                is_purvapada: false,
             })
         );
     }
@@ -172,11 +166,15 @@ mod tests {
         assert_eq!(
             *lex.find("gacCantIm").first().unwrap(),
             Semantics::Subanta(Subanta {
-                stem: "gacCat".to_string(),
+                stem: Stem::Krdanta {
+                    root: "gam".to_string(),
+                    tense: StemTense::Present,
+                    prayoga: StemPrayoga::Kartari,
+                },
                 linga: Linga::Stri,
                 vacana: Vacana::Eka,
                 vibhakti: Vibhakti::V2,
-                is_compounded: false,
+                is_purvapada: false,
             })
         );
     }
