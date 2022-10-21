@@ -1,6 +1,6 @@
 //! Scores a parse state (higher scores are better).
 
-use crate::parsing::State;
+use crate::parsing::ParsedPhrase;
 use crate::semantics::*;
 
 /// Assign a heuristic score to the given state.
@@ -16,7 +16,7 @@ use crate::semantics::*;
 /// ------------+-------------------
 ///
 /// Unknown tokens, which are extremely rare, are treated as -100.
-pub fn heuristic_score(state: &State) -> i32 {
+pub fn heuristic_score(state: &ParsedPhrase) -> i32 {
     if let Some(last) = state.words.last() {
         let semantics = &last.semantics;
         match semantics {

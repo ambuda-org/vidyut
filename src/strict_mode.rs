@@ -1,17 +1,18 @@
-use crate::parsing::State;
+use crate::parsing::ParsedPhrase;
 /// Simple hand-coded rules to avoid overgenerating.
 use crate::sandhi::Split;
 use crate::semantics::*;
 use crate::sounds;
 
 /// Returns whether the given word semantics are invalid for the current parse.
-pub fn is_valid_word(cur: &State, split: &Split, semantics: &Semantics) -> bool {
+pub fn is_valid_word(cur: &ParsedPhrase, split: &Split, semantics: &Semantics) -> bool {
     if let Semantics::Subanta(s) = &semantics {
         if_purvapada_then_not_chunk_end(split, s)
             && if_ac_pada_then_not_hal(split, s)
             && if_not_in_compound_then_linga_match(cur, s)
     } else {
         true
+        // TODO: extend if_ac_pada... to verbs
     }
 }
 
@@ -40,7 +41,7 @@ fn if_ac_pada_then_not_hal(split: &Split, s: &Subanta) -> bool {
 
 // Require that subantas use the endings that match their declared linga.
 // Exception: words in a compound, since these might be bahuvrihi compounds.
-fn if_not_in_compound_then_linga_match(cur: &State, s: &Subanta) -> bool {
+fn if_not_in_compound_then_linga_match(cur: &ParsedPhrase, s: &Subanta) -> bool {
     let in_compound = match cur.words.last() {
         Some(word) => match &word.semantics {
             Semantics::Subanta(s) => s.is_purvapada,
@@ -67,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_is_valid_word() {
-        let cur = State::new("tatra".to_string());
+        let cur = ParsedPhrase::new("tatra".to_string());
         let split = Split {
             first: "tatra".to_string(),
             second: "".to_string(),
@@ -81,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_is_valid_word_with_invalid() {
-        let cur = State::new("grAmesa".to_string());
+        let cur = ParsedPhrase::new("grAmesa".to_string());
         let split = Split {
             first: "grAme".to_string(),
             second: "sa".to_string(),

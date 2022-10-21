@@ -52,6 +52,7 @@ fn standardize_dcs_lemma(raw_lemma: &str) -> String {
     match lemma.as_str() {
         "mad" => "asmad".to_string(),
         "tvad" => "yuzmad".to_string(),
+        "ka" => "kim".to_string(),
         _ => lemma,
     }
 }

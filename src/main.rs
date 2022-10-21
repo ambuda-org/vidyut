@@ -48,8 +48,8 @@ fn parse_text(text: &str, ctx: &Context) {
     if padas.is_empty() {
         println!("No solutions found for: {}.", text);
     } else {
-        for pada in padas {
-            println!("  {:?}", pada);
+        for (i, pada) in padas.iter().enumerate() {
+            println!("[{}] {} : {}, {:?}", i, pada.text, pada.lemma(), pada.semantics);
         }
     }
 }

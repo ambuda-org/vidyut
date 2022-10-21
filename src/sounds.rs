@@ -3,6 +3,13 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
+fn match_char(c: &char, re: &Regex) -> bool {
+    // Avoid `to_string`, which will create a new string on the heap.
+    let mut buf = [0u8; 4];
+    let s = c.encode_utf8(&mut buf);
+    re.is_match(s)
+}
+
 /// Returns whether the given character is a Sanskrit sound or *avagraha*.
 ///
 /// We use this function to find boundaries between Sanskrit words. Non-Sanskrit sounds include:
@@ -14,10 +21,7 @@ pub fn is_sanskrit(c: char) -> bool {
         static ref RE: Regex =
             Regex::new(r"[aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL']").unwrap();
     }
-    // Avoid `to_string`, which will create a new string on the heap.
-    let mut buf = [0u8; 4];
-    let s = c.encode_utf8(&mut buf);
-    RE.is_match(s)
+    match_char(&c, &RE)
 }
 
 pub fn is_ac(c: char) -> bool {
@@ -25,9 +29,7 @@ pub fn is_ac(c: char) -> bool {
         // Matches all non-sounds at the beginning of the string.
         static ref RE: Regex = Regex::new(r"[aAiIuUfFxXeEoO]").unwrap();
     }
-    let mut buf = [0u8; 4];
-    let s = c.encode_utf8(&mut buf);
-    RE.is_match(s)
+    match_char(&c, &RE)
 }
 
 #[cfg(test)]
@@ -41,6 +43,16 @@ mod tests {
         }
         for c in "0123456789,.![]|".chars() {
             assert!(!is_sanskrit(c));
+        }
+    }
+
+    #[test]
+    fn test_is_ac() {
+        for c in "aAiIuUfFxXeEoO".chars() {
+            assert!(is_ac(c));
+        }
+        for c in "kKgGnSzsh0123456789 '+".chars() {
+            assert!(!is_ac(c));
         }
     }
 }

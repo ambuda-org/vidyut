@@ -40,7 +40,7 @@ impl ParsedWord {
 
 /// Represents an in-progress parse of a phrase.
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct State {
+pub struct ParsedPhrase {
     /// The words that we've recognized so far.
     pub words: Vec<ParsedWord>,
     /// The text we still need to parse.
@@ -49,10 +49,10 @@ pub struct State {
     pub score: i32,
 }
 
-impl State {
+impl ParsedPhrase {
     /// Create a new state.
-    pub fn new(text: String) -> State {
-        State {
+    pub fn new(text: String) -> ParsedPhrase {
+        ParsedPhrase {
             words: Vec::new(),
             remaining: text,
             // log_10(1) = 0
@@ -90,12 +90,12 @@ fn analyze_pada(
 }
 
 #[allow(dead_code)]
-fn debug_print_stack(pq: &PriorityQueue<State, i32>) {
+fn debug_print_stack(pq: &PriorityQueue<ParsedPhrase, i32>) {
     if log_enabled!(Level::Debug) {
         debug!("Stack:");
 
         // The queue isn't sorted by default. So, sort from highest to lowest priotity.
-        let mut words: Vec<(&State, &i32)> = pq.iter().collect();
+        let mut words: Vec<(&ParsedPhrase, &i32)> = pq.iter().collect();
         words.sort_by(|x, y| y.1.cmp(x.1));
 
         for (i, (s, score)) in words.iter().enumerate() {
@@ -107,7 +107,7 @@ fn debug_print_stack(pq: &PriorityQueue<State, i32>) {
 }
 
 #[allow(dead_code)]
-fn debug_print_viterbi(v: &HashMap<String, HashMap<String, State>>) {
+fn debug_print_viterbi(v: &HashMap<String, HashMap<String, ParsedPhrase>>) {
     if log_enabled!(Level::Debug) {
         debug!("Viterbi:");
         for (key1, entries) in v.iter() {
@@ -134,9 +134,9 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
 
     // viterbi_cache[remainder][state] = the best result that ends with $state and has $remainder
     // text remaining in the parse.
-    let mut viterbi_cache: HashMap<String, HashMap<String, State>> = HashMap::new();
+    let mut viterbi_cache: HashMap<String, HashMap<String, ParsedPhrase>> = HashMap::new();
 
-    let initial_state = State::new(text);
+    let initial_state = ParsedPhrase::new(text);
     let score = initial_state.score;
     pq.push(initial_state, score);
 
@@ -158,7 +158,7 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
                     continue;
                 }
 
-                let mut new = State {
+                let mut new = ParsedPhrase {
                     words: cur.words.clone(),
                     remaining: second.clone(),
                     // HACK: this is buggy -- scoring based on cur score set here?

@@ -7,6 +7,9 @@
 install:
 	./scripts/install.sh
 
+test:
+	cargo test --lib
+
 
 # Modeling
 # ========
