@@ -18,6 +18,9 @@ impl TokenFeatures {
     pub fn get(&self, key: &str) -> Option<&String> {
         self.map.get(key)
     }
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.map.contains_key(key)
+    }
 }
 
 /// A token, usually representing a Sanskrit `pada`.

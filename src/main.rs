@@ -49,7 +49,13 @@ fn parse_text(text: &str, ctx: &Context) {
         println!("No solutions found for: {}.", text);
     } else {
         for (i, pada) in padas.iter().enumerate() {
-            println!("[{}] {} : {}, {:?}", i, pada.text, pada.lemma(), pada.semantics);
+            println!(
+                "[{}] {} : {}, {:?}",
+                i,
+                pada.text,
+                pada.lemma(),
+                pada.semantics
+            );
         }
     }
 }

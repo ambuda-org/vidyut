@@ -29,6 +29,17 @@ pub enum Linga {
     Napumsaka,
 }
 
+impl Linga {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            Linga::None => "_",
+            Linga::Pum => "m",
+            Linga::Stri => "f",
+            Linga::Napumsaka => "n",
+        }
+    }
+}
+
 /// The *vacana* (number) of a *subanta* or tiṅanta.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Vacana {
@@ -40,6 +51,17 @@ pub enum Vacana {
     Dvi,
     /// The plural.
     Bahu,
+}
+
+impl Vacana {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            Vacana::None => "_",
+            Vacana::Eka => "s",
+            Vacana::Dvi => "d",
+            Vacana::Bahu => "p",
+        }
+    }
 }
 
 /// The *vibhakti* (case) of a *subanta*.
@@ -68,6 +90,22 @@ pub enum Vibhakti {
     Sambodhana,
 }
 
+impl Vibhakti {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            Vibhakti::V1 => "1",
+            Vibhakti::V2 => "2",
+            Vibhakti::V3 => "3",
+            Vibhakti::V4 => "4",
+            Vibhakti::V5 => "5",
+            Vibhakti::V6 => "6",
+            Vibhakti::V7 => "7",
+            Vibhakti::Sambodhana => "8",
+            Vibhakti::None => "_",
+        }
+    }
+}
+
 /// The *puruṣa* (person) of a tiṅanta.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Purusha {
@@ -79,6 +117,17 @@ pub enum Purusha {
     Madhyama,
     /// The last *puruṣa* (third person).
     Uttama,
+}
+
+impl Purusha {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            Purusha::Prathama => "3",
+            Purusha::Madhyama => "2",
+            Purusha::Uttama => "1",
+            Purusha::None => "_",
+        }
+    }
 }
 
 /// The *lakāra* (tense/mood) of a *tiṅanta*.

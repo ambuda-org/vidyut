@@ -11,6 +11,7 @@ pub mod semantics;
 pub mod sounds;
 
 pub mod conllu;
+pub mod dcs;
 pub mod translit;
 
 mod strict_mode;

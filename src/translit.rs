@@ -66,7 +66,7 @@ pub fn to_slp1(input: &str) -> String {
             Some(s) => {
                 ret += s;
                 i += offset;
-            },
+            }
             None => {
                 // Use the original character as-is.
                 ret += &String::from_iter(&chars[i..i + 1]);
