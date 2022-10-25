@@ -3,6 +3,7 @@
 use crate::io;
 use crate::lexicon::Lexicon;
 use crate::sandhi::Sandhi;
+use crate::scoring::Model;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
@@ -12,6 +13,7 @@ use std::io::{BufReader, BufWriter};
 pub struct Context {
     pub sandhi: Sandhi,
     pub lexicon: Lexicon,
+    pub model: Model,
 }
 
 impl Context {
@@ -23,6 +25,7 @@ impl Context {
                 stems: io::read_stems(paths)?,
                 endings: io::read_nominal_endings(paths)?,
             },
+            model: Model::from_file(&paths.lemma_counts)?,
         })
     }
 

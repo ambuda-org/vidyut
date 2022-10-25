@@ -1,11 +1,17 @@
 /// Train a model by collecting features from our dataset.
+use clap::{Arg, Command};
 use glob::glob;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::path::PathBuf;
 
-use vidyut::conllu::{Reader, Sentence, Token, TokenFeatures};
+use vidyut::conllu::Reader;
+use vidyut::dcs;
+use vidyut::parsing::ParsedWord;
+use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
+
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Freq(`state[n]` | `state[n-1]`).
 ///
@@ -21,74 +27,38 @@ type Transitions = HashMap<String, HashMap<String, u32>>;
 /// work around data sparsity.
 type Emissions = HashMap<String, HashMap<String, u32>>;
 
+/// Freq(`lemma[n]`)
+///
+/// Simple frequency counts on the lemma.
+type Counts = HashMap<String, u32>;
+
+struct Statistics {
+    transitions: Transitions,
+    emissions: Emissions,
+    counts: Counts,
+}
+
 /// Value of state_0 and any other tokens with unclear semantics.
 const INITIAL_STATE: &str = "START";
 
-/// Create a state label for the given nominal (noun, pronoun, adjective, numeral).
+/// Create a state label for the given subanta (noun, pronoun, adjective, numeral).
 ///
-/// The state describes gender, case, and number, which are sufficient for our current needs.
-fn nominal_state(features: &TokenFeatures) -> String {
-    let gender = match features.get("Gender") {
-        Some(s) => match s.as_str() {
-            "Masc" => "m",
-            "Fem" => "f",
-            "Neut" => "n",
-            &_ => panic!("Unknown gender `{}`", s),
-        },
-        None => "_",
-    };
-    let case = match features.get("Case") {
-        Some(s) => match s.as_str() {
-            "Nom" => "1",
-            "Acc" => "2",
-            "Ins" => "3",
-            "Dat" => "4",
-            "Abl" => "5",
-            "Gen" => "6",
-            "Loc" => "7",
-            "Voc" => "8",
-            "Cpd" => "comp",
-            &_ => panic!("Unknown case `{}`", s),
-        },
-        None => "_",
-    };
-    let number = match features.get("Number") {
-        Some(s) => match s.as_str() {
-            "Sing" => "s",
-            "Dual" => "d",
-            "Plur" => "p",
-            &_ => panic!("Unknown number `{}`", s),
-        },
-        None => "_",
-    };
-    // "n" for nominal
-    format!("n-{}-{}-{}", gender, case, number)
+/// The state describes linga, vibhakti, and vacana, which are sufficient for our current needs.
+fn subanta_state(s: &Subanta) -> String {
+    format!(
+        "n-{}-{}-{}",
+        s.linga.to_str(),
+        s.vibhakti.to_str(),
+        s.vacana.to_str()
+    )
 }
 
-/// Create a state label for the given verb.
+/// Create a state label for the given tinanta.
 ///
-/// The state describes person and number, which are sufficient for our current needs.
-fn tinanta_state(features: &TokenFeatures) -> String {
-    let person = match features.get("Person") {
-        Some(s) => match s.as_str() {
-            "3" => "3",
-            "2" => "2",
-            "1" => "1",
-            &_ => panic!("Unknown person `{}`", s),
-        },
-        None => "_",
-    };
-    let number = match features.get("Number") {
-        Some(s) => match s.as_str() {
-            "Sing" => "s",
-            "Dual" => "d",
-            "Plur" => "p",
-            &_ => panic!("Unknown number `{}`", s),
-        },
-        None => "_",
-    };
+/// The state describes purusha and vacana, which are sufficient for our current needs.
+fn tinanta_state(t: &Tinanta) -> String {
     // "v" for verb
-    format!("v-{}-{}", person, number)
+    format!("v-{}-{}", t.purusha.to_str(), t.vacana.to_str())
 }
 
 /// Create a state label for the given avyaya.
@@ -101,28 +71,25 @@ fn unknown_state() -> String {
     INITIAL_STATE.to_string()
 }
 
-/// Create a state label for the given token.
-fn token_state(token: &Token) -> String {
-    let upos = &token.upos;
-    let features = &token.features;
-
-    match upos.as_str() {
-        "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => nominal_state(features),
-        "CCONJ" | "SCONJ" | "ADV" => avyaya_state(),
-        "VERB" => tinanta_state(features),
-        "MANTRA" => unknown_state(),
-        _ => panic!("Unknown upos `{}`", upos),
+/// Create a state label for the given word.
+fn word_state(w: &ParsedWord) -> String {
+    match &w.semantics {
+        Semantics::Subanta(s) => subanta_state(s),
+        Semantics::Tinanta(t) => tinanta_state(t),
+        Semantics::Avyaya => avyaya_state(),
+        _ => unknown_state(),
     }
 }
 
-fn process_sentence(sentence: Sentence, transitions: &mut Transitions, emissions: &mut Emissions) {
+fn process_sentence(sentence: &[ParsedWord], s: &mut Statistics) {
     let mut prev_state = INITIAL_STATE.to_string();
-    for token in sentence.tokens {
-        let cur_state = token_state(&token);
-        let lemma = token.lemma;
+    for word in sentence {
+        let cur_state = word_state(word);
+        let lemma = word.lemma();
 
         // Freq(cur_state | prev_state )
-        let c = transitions
+        let c = s
+            .transitions
             .entry(prev_state.clone())
             .or_insert_with(HashMap::new)
             .entry(cur_state.clone())
@@ -132,31 +99,35 @@ fn process_sentence(sentence: Sentence, transitions: &mut Transitions, emissions
         // Freq(cur_token | cur_state )
         //
         // The DCS data doesn't contain explicit forms, so make do with the lemma.
-        let c = emissions
+        let c = s
+            .emissions
             .entry(cur_state.clone())
             .or_insert_with(HashMap::new)
             .entry(to_slp1(&lemma))
             .or_insert(0);
         *c += 1;
 
+        let c = s.counts.entry(lemma).or_insert(0);
+        *c += 1;
+
         prev_state = cur_state;
     }
 }
 
-fn process_file(
-    path: PathBuf,
-    transitions: &mut Transitions,
-    emissions: &mut Emissions,
-) -> Result<(), Box<dyn Error>> {
+fn process_file(path: PathBuf, s: &mut Statistics) -> Result<()> {
     let reader = Reader::from_path(&path)?;
     for sentence in reader {
-        process_sentence(sentence, transitions, emissions);
+        let words: Result<Vec<_>> = sentence.tokens.iter().map(dcs::standardize).collect();
+        let words = words?;
+        process_sentence(&words, s);
     }
     Ok(())
 }
 
-fn write_transitions(transitions: Transitions, path: &str) -> Result<(), Box<dyn Error>> {
+fn write_transitions(transitions: Transitions, path: &str) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
+    w.write_record(&["prev_state", "cur_state", "probability"])?;
+
     for (prev_state, counts) in transitions {
         let n = counts.values().sum::<u32>();
         for (cur_state, count) in counts {
@@ -168,8 +139,10 @@ fn write_transitions(transitions: Transitions, path: &str) -> Result<(), Box<dyn
     Ok(())
 }
 
-fn write_emissions(emissions: Emissions, path: &str) -> Result<(), Box<dyn Error>> {
+fn write_emissions(emissions: Emissions, path: &str) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
+    w.write_record(&["state", "token", "probability"])?;
+
     for (state, counts) in emissions {
         let n = counts.values().sum::<u32>();
         for (token, count) in counts {
@@ -181,25 +154,73 @@ fn write_emissions(emissions: Emissions, path: &str) -> Result<(), Box<dyn Error
     Ok(())
 }
 
-fn process_files() -> Result<(), Box<dyn Error>> {
-    let paths = glob("dcs-data/dcs/data/conllu/files/**/*.conllu")
-        .expect("Glob pattern is invalid")
-        .flatten();
-    let mut transitions = Transitions::new();
-    let mut emissions = Emissions::new();
-    for path in paths {
-        println!("Processing: {:?}", path.display());
-        process_file(path, &mut transitions, &mut emissions)?;
+/// Writes each observed lemma with its frequency.
+///
+/// We write just the raw frequency so that downstream logic can more easily implement its own
+/// normalization on top.
+fn write_lemma_counts(counts: Counts, path: &str) -> Result<()> {
+    let mut w = csv::Writer::from_path(path)?;
+    w.write_record(&["lemma", "count"])?;
+
+    for (lemma, count) in counts {
+        w.write_record(&[&lemma, &count.to_string()])?;
+        w.flush()?;
+    }
+    Ok(())
+}
+
+fn process_files(include_patterns: &[&String], exclude_patterns: &[&String]) -> Result<()> {
+    let mut stats = Statistics {
+        transitions: Transitions::new(),
+        emissions: Emissions::new(),
+        counts: Counts::new(),
+    };
+
+    let include_paths: Vec<_> = include_patterns
+        .iter()
+        .flat_map(|p| glob(p).expect("Glob pattern is invalid").flatten())
+        .collect();
+
+    let exclude_paths: HashSet<_> = exclude_patterns
+        .iter()
+        .flat_map(|p| glob(p).expect("Glob pattern is invalid").flatten())
+        .collect();
+
+    // TODO: implement include/exclude logic.
+
+    for path in include_paths {
+        if exclude_paths.contains(&path) {
+            println!("Skipping excluded path: {:?}", path.display());
+        } else {
+            println!("Processing: {:?}", path.display());
+            process_file(path, &mut stats)?;
+        }
     }
 
-    write_transitions(transitions, "data/model/transitions.csv")?;
-    write_emissions(emissions, "data/model/emissions.csv")?;
+    write_transitions(stats.transitions, "data/model/transitions.csv")?;
+    write_emissions(stats.emissions, "data/model/emissions.csv")?;
+    write_lemma_counts(stats.counts, "data/model/lemma-counts.csv")?;
     Ok(())
 }
 
 fn main() {
+    let matches = Command::new("Vidyut model training")
+        .arg(Arg::new("include").long("include").num_args(1..))
+        .arg(Arg::new("exclude").long("exclude").num_args(0..))
+        .get_matches();
+
+    let include = matches
+        .get_many::<String>("include")
+        .map(|v| v.collect::<Vec<_>>())
+        .unwrap();
+
+    let exclude = matches
+        .get_many::<String>("exclude")
+        .map(|v| v.collect::<Vec<_>>())
+        .unwrap();
+
     println!("Beginning training.");
-    if let Err(e) = process_files() {
+    if let Err(e) = process_files(&include, &exclude) {
         println!("{}", e);
         std::process::exit(1);
     }

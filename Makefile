@@ -15,8 +15,16 @@ test:
 # ========
 
 # Train a model and save important features to disk.
+# NOTE: when training, exclude the file paths used in `make eval`.
 train:
-	./scripts/train_model.py
+	./scripts/fetch_training_data.py
+	cargo run --release --bin train -- \
+		--include \
+		"dcs-data/dcs/data/conllu/files/**/*.conllu" \
+		--exclude \
+		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
+		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
+		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
 
 # Evaluate our parsing quality on a large sample of text.
 eval:

@@ -106,6 +106,8 @@ fn main() {
         verb_prefixes: "data/verb-prefixes.csv".to_string(),
         verbal_indeclinables: "data/verbal-indeclinables.csv".to_string(),
         verbs: "data/verbs.csv".to_string(),
+
+        lemma_counts: "data/model/lemma-counts.csv".to_string(),
     };
     let ctx = match load_context(&data_paths, cache_file) {
         Ok(data) => data,

@@ -7,7 +7,6 @@ use std::collections::HashMap;
 
 use crate::context::Context;
 use crate::sandhi;
-use crate::scoring;
 use crate::semantics::{Semantics, Stem};
 use crate::strict_mode;
 
@@ -168,7 +167,7 @@ pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
                     text: first.clone(),
                     semantics,
                 });
-                new.score = scoring::heuristic_score(&new);
+                new.score = ctx.model.score(&new);
 
                 // Use state "STATE" for now since we don't have any states implemented.
                 let maybe_rival = viterbi_cache

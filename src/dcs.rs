@@ -32,9 +32,10 @@ pub fn standardize(t: &Token) -> Result<ParsedWord> {
         "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => parse_subanta(t)?,
         "CCONJ" | "SCONJ" | "ADV" => Semantics::Avyaya,
         "VERB" => {
-            if t.features.contains_key("VerbForm") {
+            if t.features.contains_key("VerbForm") || t.features.contains_key("Gender") {
                 parse_participle(t)?
             } else {
+                // println!("{:?}", t);
                 parse_verb(t)?
             }
         }
