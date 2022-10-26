@@ -1,6 +1,6 @@
 //! Evaluate our parser against some standard input data.
 
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 use glob::glob;
 use std::error::Error;
 use std::ops::AddAssign;
@@ -73,13 +73,17 @@ fn as_code(w: &ParsedWord) -> String {
 }
 
 /// Pretty-prints a parsed sentence by displaying its lemmas and parse codes.
-fn pretty_print(parse: &[ParsedWord]) -> String {
+fn pretty_print(parse: &[ParsedWord], show_parses: &bool) -> String {
     let mut s = String::new();
 
     for w in parse {
         let code = as_code(w);
+        if *show_parses {
+            s += &format!("{} ({})", w.lemma(), code);
+        } else {
+            s += &w.lemma();
+        }
         s += " ";
-        s += &format!("{} ({})", w.lemma(), code);
     }
 
     s
@@ -118,7 +122,7 @@ fn eval_sentence(vidyut_parses: &[ParsedWord], dcs_parses: &[ParsedWord]) -> Sta
 }
 
 /// Computes summary statistics for the given file.
-fn eval_input_path(path: PathBuf, ctx: &Context) -> Result<Stats> {
+fn eval_input_path(path: PathBuf, ctx: &Context, show_parses: &bool) -> Result<Stats> {
     let reader = Reader::from_path(&path)?;
     let mut stats = Stats::new();
 
@@ -132,12 +136,18 @@ fn eval_input_path(path: PathBuf, ctx: &Context) -> Result<Stats> {
 
         let sentence_stats = eval_sentence(&vidyut_parse, &dcs_parse);
 
-        if sentence_stats.num_lemma_and_parse_matches == 1 {
+        let ok = if *show_parses {
+            sentence_stats.num_lemma_and_parse_matches == 1
+        } else {
+            sentence_stats.num_lemma_matches == 1
+        };
+
+        if ok {
             println!("[  OK  ]: {}", &slp1_text);
         } else {
             println!("[ FAIL ]: {}", &slp1_text);
-            println!("- {}", pretty_print(&vidyut_parse));
-            println!("- {}", pretty_print(&dcs_parse));
+            println!("- {}", pretty_print(&vidyut_parse, show_parses));
+            println!("- {}", pretty_print(&dcs_parse, show_parses));
         }
         stats += sentence_stats
     }
@@ -146,21 +156,21 @@ fn eval_input_path(path: PathBuf, ctx: &Context) -> Result<Stats> {
 }
 
 /// Computes summary statistics for the given glob patterns.
-fn eval_patterns(patterns: Vec<&String>, ctx: &Context) -> Result<Stats> {
+fn eval_patterns(patterns: Vec<&String>, ctx: &Context, show_parses: &bool) -> Result<Stats> {
     let mut stats = Stats::new();
     for pattern in patterns {
         let paths = glob(pattern).expect("Glob pattern is invalid").flatten();
         for path in paths {
-            stats += eval_input_path(path, ctx)?;
+            stats += eval_input_path(path, ctx, show_parses)?;
         }
     }
     Ok(stats)
 }
 
 /// Runs an end-to-end evaluation over the given glob patterns.
-fn run_eval(patterns: Vec<&String>, cache_file: &str) -> Result<()> {
+fn run_eval(patterns: Vec<&String>, cache_file: &str, show_parses: bool) -> Result<()> {
     let ctx = Context::from_snapshot(cache_file)?;
-    let stats = eval_patterns(patterns, &ctx)?;
+    let stats = eval_patterns(patterns, &ctx, &show_parses)?;
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);
     let lemma_pct = pct(stats.num_lemma_matches, stats.num_sentences);
@@ -195,6 +205,11 @@ fn run_eval(patterns: Vec<&String>, cache_file: &str) -> Result<()> {
 fn main() {
     let matches = Command::new("Vidyut model eval")
         .arg(Arg::new("paths").long("paths").num_args(1..))
+        .arg(
+            Arg::new("show-parses")
+                .long("show-parses")
+                .action(ArgAction::SetTrue),
+        )
         .arg(Arg::new("cache-file").long("cache-file"))
         .get_matches();
 
@@ -203,9 +218,10 @@ fn main() {
         .map(|v| v.collect::<Vec<_>>())
         .unwrap();
 
+    let show_parses = matches.get_flag("show-parses");
     let cache_file = matches.get_one::<String>("cache-file").unwrap();
 
-    if let Err(e) = run_eval(paths, cache_file) {
+    if let Err(e) = run_eval(paths, cache_file, show_parses) {
         println!("{}", e);
         std::process::exit(1);
     }
