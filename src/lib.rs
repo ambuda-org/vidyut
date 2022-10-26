@@ -1,6 +1,5 @@
 //! A lightning-fast Sanskrit toolkit.
 
-pub mod context;
 pub mod io;
 
 pub mod lexicon;

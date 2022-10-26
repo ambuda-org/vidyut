@@ -30,6 +30,29 @@ pub struct DataPaths {
     pub lemma_counts: String,
 }
 
+impl DataPaths {
+    pub fn from_dir() -> Self {
+        DataPaths {
+            indeclinables: "data/indeclinables.csv".to_string(),
+            nominal_endings_compounded: "data/nominal-endings-compounded.csv".to_string(),
+            nominal_endings_inflected: "data/nominal-endings-inflected.csv".to_string(),
+            nominal_stems: "data/nominal-stems.csv".to_string(),
+            participle_stems: "data/participle-stems.csv".to_string(),
+            prefix_groups: "data/prefix-groups.csv".to_string(),
+            prefixed_roots: "data/prefixed-roots.csv".to_string(),
+            pronouns: "data/pronouns.csv".to_string(),
+            sandhi_rules: "data/sandhi-rules.csv".to_string(),
+            unprefixed_roots: "data/unprefixed-roots.csv".to_string(),
+            verb_endings: "data/verb-endings.csv".to_string(),
+            verb_prefixes: "data/verb-prefixes.csv".to_string(),
+            verbal_indeclinables: "data/verbal-indeclinables.csv".to_string(),
+            verbs: "data/verbs.csv".to_string(),
+
+            lemma_counts: "data/model/lemma-counts.csv".to_string(),
+        }
+    }
+}
+
 fn parse_linga(code: &str) -> Linga {
     match code {
         "m" => Linga::Pum,

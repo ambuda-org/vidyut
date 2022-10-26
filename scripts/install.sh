@@ -8,6 +8,6 @@ python data-git/bin/make_data.py --make_prefixed_verbals
 mv data-git/all-data data
 rm -rf data-git
 
-RUST_LOG=info cargo run -- "saMskftam" --cache-file data/snapshot.bin
-
+make train
+RUST_LOG=info cargo run -- "saMskftam"
 echo "Vidyut is ready for use."

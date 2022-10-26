@@ -7,9 +7,9 @@ use std::ops::AddAssign;
 use std::path::PathBuf;
 
 use vidyut::conllu::Reader;
-use vidyut::context::Context;
 use vidyut::dcs;
-use vidyut::parsing::{parse, ParsedWord};
+use vidyut::io;
+use vidyut::parsing::{ParsedWord, Parser};
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
 
@@ -122,13 +122,13 @@ fn eval_sentence(vidyut_parses: &[ParsedWord], dcs_parses: &[ParsedWord]) -> Sta
 }
 
 /// Computes summary statistics for the given file.
-fn eval_input_path(path: PathBuf, ctx: &Context, show_parses: &bool) -> Result<Stats> {
+fn eval_input_path(path: PathBuf, parser: &Parser, show_parses: &bool) -> Result<Stats> {
     let reader = Reader::from_path(&path)?;
     let mut stats = Stats::new();
 
     for sentence in reader {
         let slp1_text = to_slp1(&sentence.text);
-        let vidyut_parse = parse(&slp1_text, ctx);
+        let vidyut_parse = parser.parse(&slp1_text);
 
         let dcs_parse: Result<Vec<ParsedWord>> =
             sentence.tokens.iter().map(dcs::standardize).collect();
@@ -156,20 +156,21 @@ fn eval_input_path(path: PathBuf, ctx: &Context, show_parses: &bool) -> Result<S
 }
 
 /// Computes summary statistics for the given glob patterns.
-fn eval_patterns(patterns: Vec<&String>, ctx: &Context, show_parses: &bool) -> Result<Stats> {
+fn eval_patterns(patterns: Vec<&String>, parser: &Parser, show_parses: &bool) -> Result<Stats> {
     let mut stats = Stats::new();
     for pattern in patterns {
         let paths = glob(pattern).expect("Glob pattern is invalid").flatten();
         for path in paths {
-            stats += eval_input_path(path, ctx, show_parses)?;
+            stats += eval_input_path(path, parser, show_parses)?;
         }
     }
     Ok(stats)
 }
 
 /// Runs an end-to-end evaluation over the given glob patterns.
-fn run_eval(patterns: Vec<&String>, cache_file: &str, show_parses: bool) -> Result<()> {
-    let ctx = Context::from_snapshot(cache_file)?;
+fn run_eval(patterns: Vec<&String>, show_parses: bool) -> Result<()> {
+    let paths = io::DataPaths::from_dir();
+    let ctx = Parser::from_paths(&paths)?;
     let stats = eval_patterns(patterns, &ctx, &show_parses)?;
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);
@@ -210,7 +211,6 @@ fn main() {
                 .long("show-parses")
                 .action(ArgAction::SetTrue),
         )
-        .arg(Arg::new("cache-file").long("cache-file"))
         .get_matches();
 
     let paths = matches
@@ -219,9 +219,8 @@ fn main() {
         .unwrap();
 
     let show_parses = matches.get_flag("show-parses");
-    let cache_file = matches.get_one::<String>("cache-file").unwrap();
 
-    if let Err(e) = run_eval(paths, cache_file, show_parses) {
+    if let Err(e) = run_eval(paths, show_parses) {
         println!("{}", e);
         std::process::exit(1);
     }

@@ -3,10 +3,15 @@ use lazy_static::lazy_static;
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::error::Error;
 
-use crate::context::Context;
+use crate::io;
+use crate::lexicon::Lexicon;
 use crate::sandhi;
+use crate::sandhi::Sandhi;
+use crate::scoring::Model;
 use crate::semantics::{Semantics, Stem};
 use crate::strict_mode;
 
@@ -50,13 +55,45 @@ pub struct ParsedPhrase {
 
 impl ParsedPhrase {
     /// Create a new state.
-    pub fn new(text: String) -> ParsedPhrase {
+    pub fn new(text: String) -> Self {
         ParsedPhrase {
             words: Vec::new(),
             remaining: text,
             // log_10(1) = 0
             score: 0,
         }
+    }
+}
+
+/// A Sanskrit parser.
+#[derive(Serialize, Deserialize)]
+pub struct Parser {
+    /// Sandhi rules. The parser uses these rules to exhaustively split a Sanskrit expression and
+    /// find candidate words.
+    sandhi: Sandhi,
+    /// A lexicon of Sanskrit words. The parser uses this lexicon to examine a Sanskrit substring
+    /// and test whether or not it is a valid Sanskrit word.
+    lexicon: Lexicon,
+    /// A scoring model. The parser uses this model to score candidate solutions and prioritize
+    /// solutions that are the most promising.
+    model: Model,
+}
+
+impl Parser {
+    pub fn from_paths(paths: &io::DataPaths) -> Result<Self, Box<dyn Error>> {
+        Ok(Parser {
+            sandhi: Sandhi::from_csv(&paths.sandhi_rules)?,
+            lexicon: Lexicon {
+                padas: io::read_padas(paths)?,
+                stems: io::read_stems(paths)?,
+                endings: io::read_nominal_endings(paths)?,
+            },
+            model: Model::from_file(&paths.lemma_counts)?,
+        })
+    }
+
+    pub fn parse(&self, raw_text: &str) -> Vec<ParsedWord> {
+        parse(raw_text, self)
     }
 }
 
@@ -72,11 +109,11 @@ fn normalize(text: &str) -> String {
 fn analyze_pada(
     text: &str,
     split: &sandhi::Split,
-    data: &Context,
+    parser: &Parser,
     cache: &mut HashMap<String, Vec<Semantics>>,
 ) -> Vec<Semantics> {
     if !cache.contains_key(text) {
-        let mut res = data.lexicon.find(text);
+        let mut res = parser.lexicon.find(text);
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
         if split.is_end_of_chunk {
@@ -124,9 +161,9 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, ParsedPhrase>>) {
 /// # Arguments:
 /// - `raw_text` - a text string in SLP1.
 ///
-/// The parser makes a best effort and will make a best effort to understand the input as valid
-/// Sanskrit text, even if it contains typos or any content that is not valid Sanskrit.
-pub fn parse(raw_text: &str, ctx: &Context) -> Vec<ParsedWord> {
+/// The parser makes a best effort to understand the input as valid Sanskrit text, even if it
+/// contains typos or other content that is not valid Sanskrit.
+fn parse(raw_text: &str, ctx: &Parser) -> Vec<ParsedWord> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Semantics>> = HashMap::new();

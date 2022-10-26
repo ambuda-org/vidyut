@@ -28,7 +28,7 @@ train:
 
 # Evaluate our parsing quality on a large sample of text.
 eval:
-	cargo run --release --bin eval -- --cache-file data/snapshot.bin --paths \
+	cargo run --release --bin eval -- --paths \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
@@ -48,7 +48,7 @@ profile-general:
 #     $ make target=alloc profile-target-osx
 #
 profile-target-osx:
-	cargo instruments -t $(target) --release --bin eval -- --cache-file data/snapshot.bin --paths \
+	cargo instruments -t $(target) --release --bin eval -- --paths \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
 		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-090*.conllu" \
