@@ -4,7 +4,7 @@ use clap::{Arg, ArgAction, Command};
 use glob::glob;
 use std::error::Error;
 use std::ops::AddAssign;
-use std::path::PathBuf;
+use std::path::Path;
 
 use vidyut::conllu::Reader;
 use vidyut::dcs;
@@ -122,8 +122,8 @@ fn eval_sentence(vidyut_parses: &[ParsedWord], dcs_parses: &[ParsedWord]) -> Sta
 }
 
 /// Computes summary statistics for the given file.
-fn eval_input_path(path: PathBuf, parser: &Parser, show_parses: &bool) -> Result<Stats> {
-    let reader = Reader::from_path(&path)?;
+fn eval_input_path(path: &Path, parser: &Parser, show_parses: &bool) -> Result<Stats> {
+    let reader = Reader::from_path(path)?;
     let mut stats = Stats::new();
 
     for sentence in reader {
@@ -161,7 +161,7 @@ fn eval_patterns(patterns: Vec<&String>, parser: &Parser, show_parses: &bool) ->
     for pattern in patterns {
         let paths = glob(pattern).expect("Glob pattern is invalid").flatten();
         for path in paths {
-            stats += eval_input_path(path, parser, show_parses)?;
+            stats += eval_input_path(&path, parser, show_parses)?;
         }
     }
     Ok(stats)
@@ -169,7 +169,7 @@ fn eval_patterns(patterns: Vec<&String>, parser: &Parser, show_parses: &bool) ->
 
 /// Runs an end-to-end evaluation over the given glob patterns.
 fn run_eval(patterns: Vec<&String>, show_parses: bool) -> Result<()> {
-    let paths = io::DataPaths::from_dir();
+    let paths = io::DataPaths::from_dir(Path::new("data"));
     let ctx = Parser::from_paths(&paths)?;
     let stats = eval_patterns(patterns, &ctx, &show_parses)?;
 

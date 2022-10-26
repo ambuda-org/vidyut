@@ -4,6 +4,7 @@ use crate::parsing::ParsedPhrase;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
+use std::path::Path;
 
 #[derive(Serialize, Deserialize)]
 pub struct Model {
@@ -41,7 +42,7 @@ impl Model {
         }
     }
 
-    pub fn from_file(path: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn from_file(path: &Path) -> Result<Self, Box<dyn Error>> {
         let mut counts = HashMap::new();
 
         let mut rdr = csv::Reader::from_path(&path)?;

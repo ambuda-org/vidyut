@@ -8,6 +8,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::cmp;
 use std::error::Error;
+use std::path::Path;
 
 /// Maps a combination to the two strings (first, second) that created it.
 pub type SandhiMap = MultiMap<String, (String, String)>;
@@ -71,7 +72,7 @@ impl Sandhi {
     /// # Arguments
     ///
     /// - `path` - C TSV with columns `first`, `second`, `result`, and `type`.
-    pub fn from_csv(path: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn from_csv(path: &Path) -> Result<Self, Box<dyn Error>> {
         let mut rules = SandhiMap::new();
 
         let mut rdr = csv::Reader::from_path(path)?;

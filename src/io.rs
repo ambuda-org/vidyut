@@ -7,48 +7,49 @@ use crate::lexicon::{EndingMap, PadaMap, StemMap};
 use crate::semantics::*;
 use std::collections::HashMap;
 use std::error::Error;
+use std::path::{Path, PathBuf};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Defines all of the input data paths we use in Vidyut.
 pub struct DataPaths {
-    pub indeclinables: String,
-    pub nominal_endings_compounded: String,
-    pub nominal_endings_inflected: String,
-    pub nominal_stems: String,
-    pub participle_stems: String,
-    pub prefix_groups: String,
-    pub prefixed_roots: String,
-    pub pronouns: String,
-    pub sandhi_rules: String,
-    pub unprefixed_roots: String,
-    pub verb_endings: String,
-    pub verb_prefixes: String,
-    pub verbal_indeclinables: String,
-    pub verbs: String,
+    pub indeclinables: PathBuf,
+    pub nominal_endings_compounded: PathBuf,
+    pub nominal_endings_inflected: PathBuf,
+    pub nominal_stems: PathBuf,
+    pub participle_stems: PathBuf,
+    pub prefix_groups: PathBuf,
+    pub prefixed_roots: PathBuf,
+    pub pronouns: PathBuf,
+    pub sandhi_rules: PathBuf,
+    pub unprefixed_roots: PathBuf,
+    pub verb_endings: PathBuf,
+    pub verb_prefixes: PathBuf,
+    pub verbal_indeclinables: PathBuf,
+    pub verbs: PathBuf,
 
-    pub lemma_counts: String,
+    pub lemma_counts: PathBuf,
 }
 
 impl DataPaths {
-    pub fn from_dir() -> Self {
+    pub fn from_dir(base: &Path) -> Self {
         DataPaths {
-            indeclinables: "data/indeclinables.csv".to_string(),
-            nominal_endings_compounded: "data/nominal-endings-compounded.csv".to_string(),
-            nominal_endings_inflected: "data/nominal-endings-inflected.csv".to_string(),
-            nominal_stems: "data/nominal-stems.csv".to_string(),
-            participle_stems: "data/participle-stems.csv".to_string(),
-            prefix_groups: "data/prefix-groups.csv".to_string(),
-            prefixed_roots: "data/prefixed-roots.csv".to_string(),
-            pronouns: "data/pronouns.csv".to_string(),
-            sandhi_rules: "data/sandhi-rules.csv".to_string(),
-            unprefixed_roots: "data/unprefixed-roots.csv".to_string(),
-            verb_endings: "data/verb-endings.csv".to_string(),
-            verb_prefixes: "data/verb-prefixes.csv".to_string(),
-            verbal_indeclinables: "data/verbal-indeclinables.csv".to_string(),
-            verbs: "data/verbs.csv".to_string(),
+            indeclinables: base.join("indeclinables.csv"),
+            nominal_endings_compounded: base.join("nominal-endings-compounded.csv"),
+            nominal_endings_inflected: base.join("nominal-endings-inflected.csv"),
+            nominal_stems: base.join("nominal-stems.csv"),
+            participle_stems: base.join("participle-stems.csv"),
+            prefix_groups: base.join("prefix-groups.csv"),
+            prefixed_roots: base.join("prefixed-roots.csv"),
+            pronouns: base.join("pronouns.csv"),
+            sandhi_rules: base.join("sandhi-rules.csv"),
+            unprefixed_roots: base.join("unprefixed-roots.csv"),
+            verb_endings: base.join("verb-endings.csv"),
+            verb_prefixes: base.join("verb-prefixes.csv"),
+            verbal_indeclinables: base.join("verbal-indeclinables.csv"),
+            verbs: base.join("verbs.csv"),
 
-            lemma_counts: "data/model/lemma-counts.csv".to_string(),
+            lemma_counts: base.join("model/lemma-counts.csv"),
         }
     }
 }
@@ -128,7 +129,7 @@ fn parse_tense(code: &str) -> StemTense {
     }
 }
 
-fn add_indeclinables(path: &str, padas: &mut PadaMap) -> Result<()> {
+fn add_indeclinables(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -138,7 +139,7 @@ fn add_indeclinables(path: &str, padas: &mut PadaMap) -> Result<()> {
     Ok(())
 }
 
-fn add_nominal_endings_compounded(path: &str, endings: &mut EndingMap) -> Result<()> {
+fn add_nominal_endings_compounded(path: &Path, endings: &mut EndingMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -162,7 +163,7 @@ fn add_nominal_endings_compounded(path: &str, endings: &mut EndingMap) -> Result
     Ok(())
 }
 
-fn add_nominal_endings_inflected(path: &str, endings: &mut EndingMap) -> Result<()> {
+fn add_nominal_endings_inflected(path: &Path, endings: &mut EndingMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -185,7 +186,7 @@ fn add_nominal_endings_inflected(path: &str, endings: &mut EndingMap) -> Result<
     Ok(())
 }
 
-fn add_nominal_stems(path: &str, padas: &mut StemMap) -> Result<()> {
+fn add_nominal_stems(path: &Path, padas: &mut StemMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -200,7 +201,7 @@ fn add_nominal_stems(path: &str, padas: &mut StemMap) -> Result<()> {
     Ok(())
 }
 
-fn add_participle_stems(path: &str, padas: &mut StemMap) -> Result<()> {
+fn add_participle_stems(path: &Path, padas: &mut StemMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -218,7 +219,7 @@ fn add_participle_stems(path: &str, padas: &mut StemMap) -> Result<()> {
     Ok(())
 }
 
-fn add_prefix_groups(path: &str, padas: &mut PadaMap) -> Result<()> {
+fn add_prefix_groups(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -227,7 +228,7 @@ fn add_prefix_groups(path: &str, padas: &mut PadaMap) -> Result<()> {
     Ok(())
 }
 
-fn add_pronouns(path: &str, padas: &mut PadaMap) -> Result<()> {
+fn add_pronouns(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -250,7 +251,7 @@ fn add_pronouns(path: &str, padas: &mut PadaMap) -> Result<()> {
     Ok(())
 }
 
-fn add_verbal_indeclinables(path: &str, padas: &mut PadaMap) -> Result<()> {
+fn add_verbal_indeclinables(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let row = maybe_row?;
@@ -266,7 +267,7 @@ fn add_verbal_indeclinables(path: &str, padas: &mut PadaMap) -> Result<()> {
     Ok(())
 }
 
-fn add_verbs(path: &str, padas: &mut PadaMap) -> Result<()> {
+fn add_verbs(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;

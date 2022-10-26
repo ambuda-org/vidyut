@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
+use std::path::Path;
 
 /// Features (gender, case, number, ...) for a specific token.
 #[derive(Debug)]
@@ -46,7 +46,7 @@ pub struct Reader {
 
 impl Reader {
     /// Read a CoNLL-U document from the given path.
-    pub fn from_path(path: &PathBuf) -> Result<Reader, Box<dyn Error>> {
+    pub fn from_path(path: &Path) -> Result<Reader, Box<dyn Error>> {
         let rdr = BufReader::new(File::open(&path)?);
         Ok(Reader { rdr })
     }

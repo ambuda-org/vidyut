@@ -2,6 +2,7 @@
 use clap::{Arg, Command};
 use log::info;
 use std::fs;
+use std::path::Path;
 use std::process;
 
 use vidyut::io;
@@ -55,7 +56,7 @@ fn main() {
     let text = matches.get_one::<String>("text");
     let input_file = matches.get_one::<String>("input-file");
 
-    let data_paths = io::DataPaths::from_dir();
+    let data_paths = io::DataPaths::from_dir(Path::new("data"));
 
     info!("Loading raw data from disk.");
     let parser = Parser::from_paths(&data_paths);
