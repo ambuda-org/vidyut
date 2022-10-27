@@ -77,29 +77,6 @@ fn parse_stem_linga(code: &str) -> Vec<Linga> {
     }
 }
 
-fn parse_vibhakti(code: &str) -> Vibhakti {
-    match code {
-        "1" => Vibhakti::V1,
-        "2" => Vibhakti::V2,
-        "3" => Vibhakti::V3,
-        "4" => Vibhakti::V4,
-        "5" => Vibhakti::V5,
-        "6" => Vibhakti::V6,
-        "7" => Vibhakti::V7,
-        "8" => Vibhakti::Sambodhana,
-        &_ => panic!("Unknown type {}", code),
-    }
-}
-
-fn parse_vacana(code: &str) -> Vacana {
-    match code {
-        "s" => Vacana::Eka,
-        "d" => Vacana::Dvi,
-        "p" => Vacana::Bahu,
-        &_ => panic!("Unknown type {}", code),
-    }
-}
-
 fn parse_verb_pada(code: &str) -> VerbPada {
     match code {
         "para" => VerbPada::Parasmaipada,
@@ -170,15 +147,15 @@ fn add_nominal_endings_inflected(path: &Path, endings: &mut EndingMap) -> Result
 
         let stem = r[0].to_string();
         let ending = r[2].to_string();
-        let linga = parse_linga(&r[3]);
+        let linga = r[3].parse()?;
         let semantics = Semantics::Subanta(Subanta {
             stem: Stem::Basic {
                 stem: stem.clone(),
-                lingas: vec![linga.clone()],
+                lingas: vec![linga],
             },
             linga,
-            vibhakti: parse_vibhakti(&r[4]),
-            vacana: parse_vacana(&r[5]),
+            vibhakti: r[4].parse()?,
+            vacana: r[5].parse()?,
             is_purvapada: false,
         });
         endings.insert(ending, (stem, semantics));
@@ -235,15 +212,15 @@ fn add_pronouns(path: &Path, padas: &mut PadaMap) -> Result<()> {
 
         let stem = r[0].to_string();
         let text = r[2].to_string();
-        let linga = parse_linga(&r[3]);
+        let linga = r[3].parse()?;
         let semantics = Semantics::Subanta(Subanta {
             stem: Stem::Basic {
                 stem: stem.clone(),
-                lingas: vec![linga.clone()],
+                lingas: vec![linga],
             },
-            linga: linga.clone(),
-            vibhakti: parse_vibhakti(&r[4]),
-            vacana: parse_vacana(&r[5]),
+            linga,
+            vibhakti: r[4].parse()?,
+            vacana: r[5].parse()?,
             is_purvapada: false,
         });
         padas.insert(text, semantics);
@@ -281,7 +258,7 @@ fn add_verbs(path: &Path, padas: &mut PadaMap) -> Result<()> {
             &_ => panic!("Unknown type `{}`", &r[4]),
         };
 
-        let vacana = parse_vacana(&r[5]);
+        let vacana = r[5].parse()?;
 
         let lakara = match &r[6] {
             "pres" => Lakara::Lat,

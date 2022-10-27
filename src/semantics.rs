@@ -15,9 +15,28 @@
 //! suffix elided.
 
 use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::fmt;
+use std::str::FromStr;
+
+#[derive(Debug, Clone)]
+pub struct ParseError {
+    msg: String,
+}
+impl ParseError {
+    fn new(s: &str) -> Self {
+        ParseError { msg: s.to_owned() }
+    }
+}
+impl Error for ParseError {}
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.msg)
+    }
+}
 
 /// The *liṅga* (gender) of a *subanta*.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Linga {
     /// Unknown or missing gender.
     None,
@@ -32,16 +51,30 @@ pub enum Linga {
 impl Linga {
     pub fn to_str(&self) -> &'static str {
         match self {
-            Linga::None => "_",
             Linga::Pum => "m",
             Linga::Stri => "f",
             Linga::Napumsaka => "n",
+            Linga::None => "none",
         }
     }
 }
 
+impl FromStr for Linga {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "m" => Linga::Pum,
+            "f" => Linga::Stri,
+            "n" => Linga::Napumsaka,
+            "none" => Linga::None,
+            _ => return Err(ParseError::new("could not parse linga")),
+        };
+        Ok(val)
+    }
+}
+
 /// The *vacana* (number) of a *subanta* or tiṅanta.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Vacana {
     /// Unknown or missing vacana.
     None,
@@ -64,11 +97,24 @@ impl Vacana {
     }
 }
 
+impl FromStr for Vacana {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "s" => Vacana::Eka,
+            "d" => Vacana::Dvi,
+            "p" => Vacana::Bahu,
+            _ => return Err(ParseError::new("could not parse vacana")),
+        };
+        Ok(val)
+    }
+}
+
 /// The *vibhakti* (case) of a *subanta*.
 ///
 /// The term *vibhakti* refers generally to any triad of inflectional endings for a *subanta*
 /// (nominal) or tiṅanta (verb). Here, `Vibhakti` refers specifically to the nominal tridas.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Vibhakti {
     /// Unknown or missing vibhakti.
     None,
@@ -106,8 +152,26 @@ impl Vibhakti {
     }
 }
 
+impl FromStr for Vibhakti {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "1" => Vibhakti::V1,
+            "2" => Vibhakti::V2,
+            "3" => Vibhakti::V3,
+            "4" => Vibhakti::V4,
+            "5" => Vibhakti::V5,
+            "6" => Vibhakti::V6,
+            "7" => Vibhakti::V7,
+            "8" => Vibhakti::Sambodhana,
+            _ => return Err(ParseError::new("could not parse vibhakti")),
+        };
+        Ok(val)
+    }
+}
+
 /// The *puruṣa* (person) of a tiṅanta.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Purusha {
     /// Unknown or missing *puruṣa*.
     None,
@@ -130,11 +194,24 @@ impl Purusha {
     }
 }
 
+impl FromStr for Purusha {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "3" => Purusha::Prathama,
+            "2" => Purusha::Madhyama,
+            "1" => Purusha::Uttama,
+            _ => return Err(ParseError::new("could not parse purusha")),
+        };
+        Ok(val)
+    }
+}
+
 /// The *lakāra* (tense/mood) of a *tiṅanta*.
 ///
 /// The *lakāras* are morphological categories that other grammatical rules then map to specific
 /// semantics.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Lakara {
     /// Unknown or missing *lakāra*.
     None,
@@ -164,8 +241,28 @@ pub enum Lakara {
     Lrn,
 }
 
-/// The *pada* of a tiṅanta.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+impl FromStr for Lakara {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "lat" => Lakara::Lat,
+            "lit" => Lakara::Lit,
+            "lut" => Lakara::Lut,
+            "lrt" => Lakara::Lrt,
+            "lot" => Lakara::Lot,
+            "lan" => Lakara::Lan,
+            "lin-vidhi" => Lakara::LinVidhi,
+            "lin-ashih" => Lakara::LinAshih,
+            "lun" => Lakara::Lun,
+            "lun-no-agama" => Lakara::LunNoAgama,
+            "lrn" => Lakara::Lrn,
+            _ => return Err(ParseError::new("could not parse lakara")),
+        };
+        Ok(val)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum VerbPada {
     None,
     Parasmaipada,
