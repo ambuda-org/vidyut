@@ -49,11 +49,11 @@ impl AddAssign for Stats {
 /// Converts a word's semantics into a short human-readable code, which we use for comparisons.
 ///
 /// We use codes for our comparison because the DCS data generally contains a subset of the
-/// information we have in our `Semantics` object. So, this code is a simple way to convert both
+/// information we have in our `Pada` enum. So, this code is a simple way to convert both
 /// Vidyut semantics and DCS semantics into a coarser space.
 fn as_code(w: &ParsedWord) -> String {
     match &w.semantics {
-        Semantics::Subanta(s) => {
+        Pada::Subanta(s) => {
             format!(
                 "n-{}-{}-{}",
                 s.linga.to_str(),
@@ -61,14 +61,22 @@ fn as_code(w: &ParsedWord) -> String {
                 s.vacana.to_str()
             )
         }
-        Semantics::Tinanta(s) => {
+        Pada::Tinanta(s) => {
             format!("v-{}-{}", s.purusha.to_str(), s.vacana.to_str())
         }
-        Semantics::None => "_".to_string(),
-        Semantics::Avyaya => "i".to_string(),
-        Semantics::PrefixGroup => "p".to_string(),
-        Semantics::Ktva(_) => "ktva".to_string(),
-        Semantics::Tumun(_) => "tumun".to_string(),
+        Pada::None => "_".to_string(),
+        Pada::Avyaya(a) => {
+            let val = match &a.pratipadika {
+                Pratipadika::Basic { .. } => "i",
+                Pratipadika::Krdanta { pratyaya, .. } => match pratyaya {
+                    KrtPratyaya::Ktva => "ktva",
+                    KrtPratyaya::Tumun => "tumun",
+                    _ => "_",
+                },
+            };
+            val.to_string()
+        }
+        Pada::PrefixGroup => "p".to_string(),
     }
 }
 

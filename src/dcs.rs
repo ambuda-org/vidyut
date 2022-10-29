@@ -30,7 +30,12 @@ impl Error for ConversionError {
 pub fn standardize(t: &Token) -> Result<ParsedWord> {
     let semantics = match t.upos.as_str() {
         "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => parse_subanta(t)?,
-        "CCONJ" | "SCONJ" | "ADV" => Semantics::Avyaya,
+        "CCONJ" | "SCONJ" | "ADV" => Pada::Avyaya(Avyaya {
+            pratipadika: Pratipadika::Basic {
+                text: t.lemma.clone(),
+                lingas: Vec::new(),
+            },
+        }),
         "VERB" => {
             if t.features.contains_key("VerbForm") || t.features.contains_key("Gender") {
                 parse_participle(t)?
@@ -39,7 +44,7 @@ pub fn standardize(t: &Token) -> Result<ParsedWord> {
                 parse_verb(t)?
             }
         }
-        "MANTRA" => Semantics::None,
+        "MANTRA" => Pada::None,
         _ => panic!("Unknown upos `{}`", t.upos),
     };
 
@@ -71,15 +76,15 @@ fn standardize_lemma(raw_lemma: &str) -> String {
 }
 
 /// Reshapes a DCS nominal into a Vidyut subanta.
-fn parse_subanta(t: &Token) -> Result<Semantics> {
+fn parse_subanta(t: &Token) -> Result<Pada> {
     let stem = parse_stem(t);
     let linga = parse_linga(&t.features)?;
     let vibhakti = parse_vibhakti(&t.features)?;
     let vacana = parse_vacana(&t.features)?;
     let is_purvapada = parse_is_purvapada(&t.features);
 
-    Ok(Semantics::Subanta(Subanta {
-        stem,
+    Ok(Pada::Subanta(Subanta {
+        pratipadika: stem,
         linga,
         vacana,
         vibhakti,
@@ -88,14 +93,14 @@ fn parse_subanta(t: &Token) -> Result<Semantics> {
 }
 
 /// Reshapes a DCS verb into a Vidyut tinanta.
-fn parse_verb(t: &Token) -> Result<Semantics> {
+fn parse_verb(t: &Token) -> Result<Pada> {
     let root = standardize_lemma(&t.lemma);
     let purusha = parse_purusha(&t.features)?;
     let vacana = parse_vacana(&t.features)?;
     let lakara = parse_lakara(&t.features)?;
     let pada = parse_verb_pada(&t.features);
-    Ok(Semantics::Tinanta(Tinanta {
-        root,
+    Ok(Pada::Tinanta(Tinanta {
+        dhatu: Dhatu(root),
         purusha,
         vacana,
         lakara,
@@ -104,19 +109,18 @@ fn parse_verb(t: &Token) -> Result<Semantics> {
 }
 
 /// Reshapes a DCS participle into a Vidyut krdanta.
-fn parse_participle(t: &Token) -> Result<Semantics> {
-    let stem = Stem::Krdanta {
-        root: standardize_lemma(&t.lemma),
-        tense: parse_tense(&t.features)?,
-        prayoga: StemPrayoga::None,
+fn parse_participle(t: &Token) -> Result<Pada> {
+    let stem = Pratipadika::Krdanta {
+        dhatu: Dhatu(standardize_lemma(&t.lemma)),
+        pratyaya: parse_krt_pratyaya(&t.features)?,
     };
     let linga = parse_linga(&t.features)?;
     let vibhakti = parse_vibhakti(&t.features)?;
     let vacana = parse_vacana(&t.features)?;
     let is_purvapada = parse_is_purvapada(&t.features);
 
-    Ok(Semantics::Subanta(Subanta {
-        stem,
+    Ok(Pada::Subanta(Subanta {
+        pratipadika: stem,
         linga,
         vacana,
         vibhakti,
@@ -125,23 +129,24 @@ fn parse_participle(t: &Token) -> Result<Semantics> {
 }
 
 /// Reshapes a DCS stem into a Vidyut stem.
-fn parse_stem(t: &Token) -> Stem {
-    Stem::Basic {
-        stem: standardize_lemma(&t.lemma),
+fn parse_stem(t: &Token) -> Pratipadika {
+    Pratipadika::Basic {
+        text: standardize_lemma(&t.lemma),
         lingas: Vec::new(),
     }
 }
 
 /// Reshapes a DCS tense into a Vidyut tense.
-fn parse_tense(f: &TokenFeatures) -> Result<StemTense> {
+fn parse_krt_pratyaya(f: &TokenFeatures) -> Result<KrtPratyaya> {
     let val = match f.get("Tense") {
         Some(s) => match s.as_str() {
-            "Pres" => StemTense::Present,
-            "Past" => StemTense::Past,
-            "Fut" => StemTense::Future,
+            // FIXME: not enough information to reconstruct.
+            "Pres" => KrtPratyaya::Shatr,
+            "Past" => KrtPratyaya::Kta,
+            "Fut" => KrtPratyaya::SyaShatr,
             &_ => return Err(ConversionError::new(s)),
         },
-        None => StemTense::None,
+        None => KrtPratyaya::None,
     };
     Ok(val)
 }
@@ -250,7 +255,7 @@ fn parse_lakara(f: &TokenFeatures) -> Result<Lakara> {
     Ok(val)
 }
 
-fn parse_verb_pada(_f: &TokenFeatures) -> VerbPada {
+fn parse_verb_pada(_f: &TokenFeatures) -> PadaPrayoga {
     // FIXME: unsupported in DCS?
-    VerbPada::None
+    PadaPrayoga::None
 }

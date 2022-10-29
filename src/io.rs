@@ -77,32 +77,33 @@ fn parse_stem_linga(code: &str) -> Vec<Linga> {
     }
 }
 
-fn parse_verb_pada(code: &str) -> VerbPada {
+fn parse_pada_prayoga(code: &str) -> PadaPrayoga {
     match code {
-        "para" => VerbPada::Parasmaipada,
-        "atma" => VerbPada::Atmanepada,
-        "pass" => VerbPada::AtmanepadaKarmani,
+        "para" => PadaPrayoga::Parasmaipada,
+        "atma" => PadaPrayoga::AtmanepadaKartari,
+        "pass" => PadaPrayoga::AtmanepadaNotKartari,
         &_ => panic!("Unknown type {}", code),
     }
 }
 
-fn parse_prayoga(code: &str) -> StemPrayoga {
-    match code {
-        "para" => StemPrayoga::Kartari,
-        "atma" => StemPrayoga::Kartari,
-        "pass" => StemPrayoga::Bhave,
-        "active" => StemPrayoga::Kartari,
-        &_ => panic!("Unknown type {}", code),
-    }
-}
+fn parse_krt_pratyaya(tense: &str, voice: &str) -> KrtPratyaya {
+    match (tense, voice) {
+        ("past", "active") => KrtPratyaya::Ktavat,
+        ("past", "pass") => KrtPratyaya::Kta,
 
-fn parse_tense(code: &str) -> StemTense {
-    match code {
-        "past" => StemTense::Past,
-        "pres" => StemTense::Present,
-        "fut" => StemTense::Future,
-        "perf" => StemTense::Past,
-        &_ => panic!("Unknown type {}", code),
+        ("pres", "para") => KrtPratyaya::Shatr,
+        ("pres", "atma") => KrtPratyaya::Shanac,
+        ("pres", "pass") => KrtPratyaya::YakShanac,
+
+        ("fut", "para") => KrtPratyaya::SyaShatr,
+        ("fut", "atma") => KrtPratyaya::SyaShanac,
+        ("fut", "pass") => KrtPratyaya::Krtya,
+
+        // FIXME: use the correct pratyayas here.
+        ("perf", "para") => KrtPratyaya::Kvasu,
+        ("perf", "atma") => KrtPratyaya::Kvasu,
+        ("perf", "pass") => KrtPratyaya::Kvasu,
+        (&_, &_) => panic!("Unknown type (`{tense}`, `{voice}`)"),
     }
 }
 
@@ -111,7 +112,15 @@ fn add_indeclinables(path: &Path, padas: &mut PadaMap) -> Result<()> {
     for maybe_row in rdr.records() {
         let r = maybe_row?;
         let pada = r[0].to_string();
-        padas.insert(pada, Semantics::Avyaya);
+        padas.insert(
+            pada.clone(),
+            Pada::Avyaya(Avyaya {
+                pratipadika: Pratipadika::Basic {
+                    text: pada,
+                    lingas: Vec::new(),
+                },
+            }),
+        );
     }
     Ok(())
 }
@@ -125,9 +134,9 @@ fn add_nominal_endings_compounded(path: &Path, endings: &mut EndingMap) -> Resul
         let ending = r[2].to_string();
         let ending_linga = parse_linga(&r[3]);
 
-        let semantics = Semantics::Subanta(Subanta {
-            stem: Stem::Basic {
-                stem: stem.clone(),
+        let semantics = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: stem.clone(),
                 lingas: stem_lingas,
             },
             linga: ending_linga,
@@ -148,9 +157,9 @@ fn add_nominal_endings_inflected(path: &Path, endings: &mut EndingMap) -> Result
         let stem = r[0].to_string();
         let ending = r[2].to_string();
         let linga = r[3].parse()?;
-        let semantics = Semantics::Subanta(Subanta {
-            stem: Stem::Basic {
-                stem: stem.clone(),
+        let semantics = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: stem.clone(),
                 lingas: vec![linga],
             },
             linga,
@@ -169,8 +178,8 @@ fn add_nominal_stems(path: &Path, padas: &mut StemMap) -> Result<()> {
         let r = maybe_row?;
         let stem = r[0].to_string();
         let lingas = parse_stem_linga(&r[1]);
-        let semantics = Stem::Basic {
-            stem: stem.clone(),
+        let semantics = Pratipadika::Basic {
+            text: stem.clone(),
             lingas,
         };
         padas.insert(stem, semantics);
@@ -186,10 +195,9 @@ fn add_participle_stems(path: &Path, padas: &mut StemMap) -> Result<()> {
         let root = r[1].to_string();
         padas.insert(
             stem,
-            Stem::Krdanta {
-                root,
-                tense: parse_tense(&r[4]),
-                prayoga: parse_prayoga(&r[5]),
+            Pratipadika::Krdanta {
+                dhatu: Dhatu(root),
+                pratyaya: parse_krt_pratyaya(&r[4], &r[5]),
             },
         );
     }
@@ -200,7 +208,7 @@ fn add_prefix_groups(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
-        padas.insert(r[0].to_string(), Semantics::PrefixGroup);
+        padas.insert(r[0].to_string(), Pada::PrefixGroup);
     }
     Ok(())
 }
@@ -213,9 +221,9 @@ fn add_pronouns(path: &Path, padas: &mut PadaMap) -> Result<()> {
         let stem = r[0].to_string();
         let text = r[2].to_string();
         let linga = r[3].parse()?;
-        let semantics = Semantics::Subanta(Subanta {
-            stem: Stem::Basic {
-                stem: stem.clone(),
+        let semantics = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: stem.clone(),
                 lingas: vec![linga],
             },
             linga,
@@ -234,11 +242,25 @@ fn add_verbal_indeclinables(path: &Path, padas: &mut PadaMap) -> Result<()> {
         let row = maybe_row?;
         let pada = row[0].to_string();
         let root = row[1].to_string();
-        let semantics = match &row[3] {
-            "gerund" => Semantics::Ktva(KrtAvyaya { root }),
-            "infinitive" => Semantics::Tumun(KrtAvyaya { root }),
+        let pratyaya = match &row[3] {
+            // FIXME: support lyap
+            "gerund" => {
+                if pada.ends_with("ya") {
+                    KrtPratyaya::Lyap
+                } else {
+                    KrtPratyaya::Ktva
+                }
+            }
+            "infinitive" => KrtPratyaya::Tumun,
             &_ => panic!("Unknown indeclinable type `{}`", &row[3]),
         };
+        let semantics = Pada::Avyaya(Avyaya {
+            pratipadika: Pratipadika::Krdanta {
+                dhatu: Dhatu(root),
+                pratyaya,
+            },
+        });
+
         padas.insert(pada, semantics);
     }
     Ok(())
@@ -275,12 +297,12 @@ fn add_verbs(path: &Path, padas: &mut PadaMap) -> Result<()> {
             &_ => panic!("Unknown type {}", &r[6]),
         };
 
-        let pada = parse_verb_pada(&r[7]);
+        let pada = parse_pada_prayoga(&r[7]);
 
         padas.insert(
             text,
-            Semantics::Tinanta(Tinanta {
-                root,
+            Pada::Tinanta(Tinanta {
+                dhatu: Dhatu(root),
                 purusha,
                 vacana,
                 lakara,
@@ -307,11 +329,12 @@ pub fn read_stems(paths: &DataPaths) -> Result<StemMap> {
 
 pub fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
     let mut padas = PadaMap::new();
-    add_indeclinables(&paths.indeclinables, &mut padas)?;
-    add_prefix_groups(&paths.prefix_groups, &mut padas)?;
-    add_pronouns(&paths.pronouns, &mut padas)?;
-    add_verbal_indeclinables(&paths.verbal_indeclinables, &mut padas)?;
-    add_verbs(&paths.verbs, &mut padas)?;
+    add_indeclinables(&paths.indeclinables, &mut padas).expect("Could not find indeclinables");
+    add_prefix_groups(&paths.prefix_groups, &mut padas).expect("Could not find prefix groups");
+    add_pronouns(&paths.pronouns, &mut padas).expect("Could not find pronouns");
+    add_verbal_indeclinables(&paths.verbal_indeclinables, &mut padas)
+        .expect("Could not find verbal indeclinables");
+    add_verbs(&paths.verbs, &mut padas).expect("Could not find verbs");
     Ok(padas)
 }
 

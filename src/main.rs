@@ -47,7 +47,7 @@ fn main() {
     let matches = Command::new("Vidyut")
         .version("0.0.1")
         .author("Arun Prasad <ambuda.library@gmail.com>")
-        .about("Vidyut: a lightning fast Sanskrit parser.")
+        .about("Vidyut: a lightning fast Sanskrit toolkit.")
         .arg(Arg::new("text"))
         .arg(Arg::new("input-file").short('i').long("input-file"))
         .arg(Arg::new("cache-file").long("cache-file"))

@@ -4,6 +4,7 @@ pub mod io;
 
 pub mod lexicon;
 pub mod parsing;
+pub mod packing;
 pub mod sandhi;
 pub mod scoring;
 pub mod semantics;

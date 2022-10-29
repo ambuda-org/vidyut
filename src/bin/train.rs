@@ -74,10 +74,11 @@ fn unknown_state() -> String {
 /// Create a state label for the given word.
 fn word_state(w: &ParsedWord) -> String {
     match &w.semantics {
-        Semantics::Subanta(s) => subanta_state(s),
-        Semantics::Tinanta(t) => tinanta_state(t),
-        Semantics::Avyaya => avyaya_state(),
-        _ => unknown_state(),
+        Pada::Subanta(s) => subanta_state(s),
+        Pada::Tinanta(t) => tinanta_state(t),
+        Pada::Avyaya(_) => avyaya_state(),
+        Pada::PrefixGroup => unknown_state(),
+        Pada::None => unknown_state(),
     }
 }
 
@@ -197,6 +198,7 @@ fn process_files(include_patterns: &[&String], exclude_patterns: &[&String]) -> 
         }
     }
 
+    std::fs::create_dir_all("data/model")?;
     write_transitions(stats.transitions, "data/model/transitions.csv")?;
     write_emissions(stats.emissions, "data/model/emissions.csv")?;
     write_lemma_counts(stats.counts, "data/model/lemma-counts.csv")?;

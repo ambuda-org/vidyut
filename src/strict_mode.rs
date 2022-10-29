@@ -5,8 +5,8 @@ use crate::semantics::*;
 use crate::sounds;
 
 /// Returns whether the given word semantics are invalid for the current parse.
-pub fn is_valid_word(cur: &ParsedPhrase, split: &Split, semantics: &Semantics) -> bool {
-    if let Semantics::Subanta(s) = &semantics {
+pub fn is_valid_word(cur: &ParsedPhrase, split: &Split, semantics: &Pada) -> bool {
+    if let Pada::Subanta(s) = &semantics {
         if_purvapada_then_not_chunk_end(split, s)
             && if_ac_pada_then_not_hal(split, s)
             && if_not_in_compound_then_linga_match(cur, s)
@@ -44,15 +44,15 @@ fn if_ac_pada_then_not_hal(split: &Split, s: &Subanta) -> bool {
 fn if_not_in_compound_then_linga_match(cur: &ParsedPhrase, s: &Subanta) -> bool {
     let in_compound = match cur.words.last() {
         Some(word) => match &word.semantics {
-            Semantics::Subanta(s) => s.is_purvapada,
+            Pada::Subanta(s) => s.is_purvapada,
             _ => false,
         },
         None => false,
     };
 
     if !in_compound {
-        match &s.stem {
-            Stem::Basic { stem: _, lingas } => lingas.contains(&s.linga),
+        match &s.pratipadika {
+            Pratipadika::Basic { text: _, lingas } => lingas.contains(&s.linga),
             // Otherwise, any linga is allowed.
             _ => true,
         }
@@ -75,7 +75,12 @@ mod tests {
             is_end_of_chunk: true,
             kind: SplitKind::Prefix,
         };
-        let semantics = Semantics::Avyaya;
+        let semantics = Pada::Avyaya(Avyaya {
+            pratipadika: Pratipadika::Basic {
+                text: "grAma".to_string(),
+                lingas: Vec::new(),
+            },
+        });
 
         assert!(is_valid_word(&cur, &split, &semantics));
     }
@@ -89,9 +94,9 @@ mod tests {
             is_end_of_chunk: false,
             kind: SplitKind::Prefix,
         };
-        let semantics = Semantics::Subanta(Subanta {
-            stem: Stem::Basic {
-                stem: "grAma".to_string(),
+        let semantics = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: "grAma".to_string(),
                 lingas: vec![Linga::Pum],
             },
             linga: Linga::Pum,

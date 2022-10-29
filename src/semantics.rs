@@ -1,26 +1,29 @@
-//! Models the semantics of Sanskrit words, including their stems and their inflectional endings.
+//! Models the semantics of Sanskrit words, including their stems and endings.
 //!
-//! Traditional grammar has a rich and terse vocabulary for describing the morphology of Sanskrit
-//! words, so that's generally the vocabulary we use in this module. But for readability, we also
-//! use some English terms for less technical concepts like like "root" and "stem."
+//! For details on how we represent semantics, see the `Pada` enum and its comments.
 //!
-//! In traditional Sanskirt grammar, all valid Sanskrit words are of two types:
+//! We designed this module with the following design principles in mind:
 //!
-//! 1. *tiṅanta*s, or verbs, are words ending with one of the nine suffixes in the *tiṅ* list.
+//! 1. Aim for pragmatism. Our goal is to model Sanskrit words with enough detail to be useful but
+//!    not with so much detail that we merely replicate the Ashtadhyayi.
 //!
-//! 2. *subanta*s, or nominals, are words ending with one of the twenty-one suffixes in the *sup*
-//!    list.
+//! 2. Prefer traditional terms. The vocabulary and conceptual schema of traditional Sanskrit
+//!    grammar was designed specifically for Sanskrit and fits Sanskrit like a glove.
 //!
-//! All *avyaya*s (indeclinables) are modeled as a subtype of the *subanta* that has had its *sup*
-//! suffix elided.
+//! 3. Prefer morphological names. For example, we refer to the various senses of the `-tum` suffix
+//!    with the simple label `KrtPratyaya::Tum`. For a counterexample, we explicitly model `Linga`,
+//!    `Vacana`, `Vibhakti`, etc. because using a single `Sup` enum is more trouble than it's
+//!    worth.
 
-use serde::{Deserialize, Serialize};
+use modular_bitfield::prelude::*;
 use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
+/// Indicates a failure to parse a string representation of some `semantics` enum.
 #[derive(Debug, Clone)]
 pub struct ParseError {
+    /// The error message.
     msg: String,
 }
 impl ParseError {
@@ -36,7 +39,8 @@ impl fmt::Display for ParseError {
 }
 
 /// The *liṅga* (gender) of a *subanta*.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 2]
 pub enum Linga {
     /// Unknown or missing gender.
     None,
@@ -73,10 +77,11 @@ impl FromStr for Linga {
     }
 }
 
-/// The *vacana* (number) of a *subanta* or tiṅanta.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// The *vacana* (number) of a *subanta* or *tiṅanta*.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 2]
 pub enum Vacana {
-    /// Unknown or missing vacana.
+    /// Unknown or missing *vacana*.
     None,
     /// The singular.
     Eka,
@@ -113,26 +118,27 @@ impl FromStr for Vacana {
 /// The *vibhakti* (case) of a *subanta*.
 ///
 /// The term *vibhakti* refers generally to any triad of inflectional endings for a *subanta*
-/// (nominal) or tiṅanta (verb). Here, `Vibhakti` refers specifically to the nominal tridas.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// or *tiṅanta*. Here, `Vibhakti` refers specifically to the *subanta* tridas.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 4]
 pub enum Vibhakti {
-    /// Unknown or missing vibhakti.
+    /// Unknown or missing *vibhakti*.
     None,
-    /// The first vibhakti (nominative case).
+    /// The first *vibhakti* (nominative case).
     V1,
-    /// The second vibhakti (accusative case).
+    /// The second *vibhakti* (accusative case).
     V2,
-    /// The third vibhakti (instrumental case).
+    /// The third *vibhakti* (instrumental case).
     V3,
-    /// The fourth vibhakti (dative case).
+    /// The fourth *vibhakti* (dative case).
     V4,
-    /// The fifth vibhakti (ablative case).
+    /// The fifth *vibhakti* (ablative case).
     V5,
-    /// The sixth vibhakti (genitive case).
+    /// The sixth *vibhakti* (genitive case).
     V6,
-    /// The seventh vibhakti (locative case).
+    /// The seventh *vibhakti* (locative case).
     V7,
-    /// The first vibhakti in the condition of *sambodhana* (vocative case).
+    /// The first *vibhakti* in the condition of *sambodhana* (vocative case).
     Sambodhana,
 }
 
@@ -170,8 +176,9 @@ impl FromStr for Vibhakti {
     }
 }
 
-/// The *puruṣa* (person) of a tiṅanta.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// The *puruṣa* (person) of a *tiṅanta*.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 2]
 pub enum Purusha {
     /// Unknown or missing *puruṣa*.
     None,
@@ -179,7 +186,7 @@ pub enum Purusha {
     Prathama,
     /// The middle *puruṣa* (second person).
     Madhyama,
-    /// The last *puruṣa* (third person).
+    /// The last *puruṣa* (first person).
     Uttama,
 }
 
@@ -209,9 +216,10 @@ impl FromStr for Purusha {
 
 /// The *lakāra* (tense/mood) of a *tiṅanta*.
 ///
-/// The *lakāras* are morphological categories that other grammatical rules then map to specific
-/// semantics.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// The *lakāras* are morphological categories, but each typically expresses a specific meaning.
+/// For example, *laṭ-lakāra* almost always expresses an action in the present tense.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 4]
 pub enum Lakara {
     /// Unknown or missing *lakāra*.
     None,
@@ -262,47 +270,112 @@ impl FromStr for Lakara {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum VerbPada {
+/// A *pratyaya* (suffix) that creates a new *dhātu* (verb root)
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 2]
+pub enum DhatuPratyaya {
+    /// No specific *dhātu-pratyaya*.
     None,
+    /// *ṇic-pratyaya* (*i*), which expresses a causal action.
+    Nic,
+    /// *san-pratyaya* (*sa*), which expresses a desiderative action.
+    San,
+    /// *yaṅ-pratyaya* (*ya*), which expresses an intensive or frequentative action.
+    Yan,
+}
+
+/// A *kṛt-pratyaya* (root or primary suffix).
+///
+/// This list is not exhaustive.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum KrtPratyaya {
+    // Unknown or missing *kṛt-pratyaya*.
+    None,
+    // The *-tum* suffix (infinitive)
+    Tumun,
+    // The *-tvā* suffix (unprefixed gerund)
+    Ktva,
+    // The *-ya* suffix (prefixed gerund)
+    Lyap,
+
+    // The *-vas* suffix (perfect participle)
+    Kvasu,
+
+    // The *-ta* suffix (past passive participle)
+    Kta,
+    // The *-tavat* suffix (past active participle)
+    Ktavat,
+
+    // The *-at* suffix (present active participle)
+    Shatr,
+    // The *-āna* suffix (present middle participle)
+    Shanac,
+    // The *-ya vikaraṇa* followed by the *-āna* suffix (present passive participle)
+    YakShanac,
+
+    // The *-sya vikaraṇa* followed by the *-at* suffix (future active participle)
+    SyaShatr,
+    // The *-sya vikaraṇa* followed by the *-āna* suffix (future middle participle)
+    SyaShanac,
+    // The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive)
+    Krtya,
+}
+
+/// The *pada* and *prayoga* of the *tiṅanta*. Roughly, these correspond respectively to the
+/// concepts of "voice" and "thematic relation."
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 2]
+pub enum PadaPrayoga {
+    /// Unknown or missing *prayoga*.
+    None,
+    /// *parasmaipada*, which is always in *kartari prayoga*.
     Parasmaipada,
-    Atmanepada,
-    AtmanepadaKarmani,
+    /// *ātmanepada* in *kartari prayoga*.
+    AtmanepadaKartari,
+    /// *ātmanepada* in *karmaṇi* or *bhāve prayoga*.
+    AtmanepadaNotKartari,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum StemTense {
-    None,
-    Past,
-    Present,
-    Future,
-}
+/// Models the semantics of a *dhātu* (verb root).
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Dhatu(pub String);
 
-/// The *prayoga* of a tiṅanta.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum StemPrayoga {
-    None,
-    Kartari,
-    Bhave,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Stem {
+/// Models the semantics of a *prātipadika*.
+///
+/// An *prātipadika* is generally synonymous with a nominal base.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Pratipadika {
+    /// A basic *prātipadika* that cannot be analyzed further.
     Basic {
-        stem: String,
+        /// The text of the *prātipadika*.
+        text: String,
+        /// The genders this *prātipadika* uses in most contexts.
         lingas: Vec<Linga>,
     },
-    Krdanta {
-        root: String,
-        tense: StemTense,
-        prayoga: StemPrayoga,
-    },
+    /// A *prātipadika* formed by combining a *dhātu* with one or more suffixes.
+    Krdanta { dhatu: Dhatu, pratyaya: KrtPratyaya },
 }
 
-/// Struct for `Semantics::Subanta`
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// Models the semantics of a *subanta* if it is not an *avyaya*.
+///
+/// A *subanta* is any word that ends with one of the twenty-one suffixes in the *sup* list:
+///
+/// | Singular  | Dual      | Plural    |
+/// |-----------|-----------|-----------|
+/// | su        । au        । jas       |
+/// | am        । auṭ       । śas       |
+/// | ṭā        । bhyām     । bhis      |
+/// | ṅe        । bhyām     । bhyas     |
+/// | ṅasi      । bhyām     । bhyas     |
+/// | ṅas       । os        । ām        |
+/// | ṅi        । os        । sup       |
+///
+/// An *avyaya*s (indeclinable) is traditionally modeled as a subtype of the *subanta* that has had
+/// its *sup* suffix elided. But we model the *avyaya* separately because we felt that doing so
+/// would be easier to reason about in downstream code.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Subanta {
-    pub stem: Stem,
+    pub pratipadika: Pratipadika,
     pub linga: Linga,
     pub vacana: Vacana,
     pub vibhakti: Vibhakti,
@@ -310,35 +383,51 @@ pub struct Subanta {
     pub is_purvapada: bool,
 }
 
-/// Struct for `Semantics::Tinanta`
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+/// Models the semantics of a *tiṅanta*.
+///
+/// A *tiṅanta* (verb) is any word that ends with one of the eighteen suffixes in the *tiṅ* list:
+///
+/// | Singular    | Dual        | Plural      |
+/// |-------------|-------------|-------------|
+/// | *tip*       | *tas*       | *jhi (nti)* |
+/// | *sip*       | *tas*       | *tha*       |
+/// | *mip*       | *vas*       | *mas*       |
+///
+/// | Singular    | Dual        | Plural      |
+/// |-------------|-------------|-------------|
+/// | *ta*        | *ātām*      | *jha (nta)* |
+/// | *thās*      | *āthām*     | *dhvam*     |
+/// | *iṭ*        | *vahi*      | *mahiṅ*     |
+///
+/// A *tiṅanta* expresses person, number, tense/mood, and voice in addition to whatever semantics
+/// are conveyed by the *dhātu* and its prefixes.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Tinanta {
-    pub root: String,
+    pub dhatu: Dhatu,
     pub purusha: Purusha,
     pub vacana: Vacana,
     pub lakara: Lakara,
-    pub pada: VerbPada,
+    pub pada: PadaPrayoga,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct KrtAvyaya {
-    pub root: String,
+/// Models the semantics of an *avyaya*.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Avyaya {
+    pub pratipadika: Pratipadika,
 }
 
-/// The semantics for a Sanskrit word.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Semantics {
+/// Models the semantics of a Sanskrit *pada* (word).
+///
+/// This enum can be packed into an unsigned integer via the `vidyut::packing` module.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Pada {
     /// Unknown or missing semantics.
     None,
     /// One or more prefixes.
     /// NOTE: we will likely remove this type in the future.
     PrefixGroup,
     /// A basic *avyaya* (indeclinable).
-    Avyaya,
-    /// An *avyaya* formed with the *ktvā* suffix (indeclinable).
-    Ktva(KrtAvyaya),
-    /// An *avyaya* formed with the *tumun* suffix (infinitive).
-    Tumun(KrtAvyaya),
+    Avyaya(Avyaya),
     /// A *subanta* (nominal, excluding *avyaya*s)
     Subanta(Subanta),
     /// A *tiṅanta* (verb).

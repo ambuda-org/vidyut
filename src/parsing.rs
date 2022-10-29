@@ -3,7 +3,6 @@ use lazy_static::lazy_static;
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -12,32 +11,31 @@ use crate::lexicon::Lexicon;
 use crate::sandhi;
 use crate::sandhi::Sandhi;
 use crate::scoring::Model;
-use crate::semantics::{Semantics, Stem};
+use crate::semantics::{Pada, Pratipadika};
 use crate::strict_mode;
 
 /// Represnts a Sanskrit word and its semantics.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParsedWord {
     pub text: String,
-    pub semantics: Semantics,
+    pub semantics: Pada,
 }
 
 impl ParsedWord {
     /// Get the word's root/stem.
     pub fn lemma(&self) -> String {
         match &self.semantics {
-            Semantics::Tinanta(s) => s.root.clone(),
-            Semantics::Subanta(s) => match &s.stem {
-                Stem::Basic { stem, lingas: _ } => stem.clone(),
-                Stem::Krdanta {
-                    root,
-                    tense: _,
-                    prayoga: _,
-                } => root.clone(),
+            Pada::Tinanta(s) => s.dhatu.0.clone(),
+            Pada::Subanta(s) => match &s.pratipadika {
+                Pratipadika::Basic {
+                    text: stem,
+                    lingas: _,
+                } => stem.clone(),
+                Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
             },
-            Semantics::Ktva(s) => s.root.clone(),
-            Semantics::Tumun(s) => s.root.clone(),
-            _ => self.text.clone(),
+            Pada::Avyaya(_) => self.text.clone(),
+            Pada::PrefixGroup => "".to_string(),
+            Pada::None => self.text.clone(),
         }
     }
 }
@@ -66,7 +64,6 @@ impl ParsedPhrase {
 }
 
 /// A Sanskrit parser.
-#[derive(Serialize, Deserialize)]
 pub struct Parser {
     /// Sandhi rules. The parser uses these rules to exhaustively split a Sanskrit expression and
     /// find candidate words.
@@ -82,13 +79,13 @@ pub struct Parser {
 impl Parser {
     pub fn from_paths(paths: &io::DataPaths) -> Result<Self, Box<dyn Error>> {
         Ok(Parser {
-            sandhi: Sandhi::from_csv(&paths.sandhi_rules)?,
+            sandhi: Sandhi::from_csv(&paths.sandhi_rules).expect("Could not read sandhi rules."),
             lexicon: Lexicon {
-                padas: io::read_padas(paths)?,
-                stems: io::read_stems(paths)?,
-                endings: io::read_nominal_endings(paths)?,
+                padas: io::read_padas(paths).expect("Could not read padas map."),
+                stems: io::read_stems(paths).expect("Could not read stems map."),
+                endings: io::read_nominal_endings(paths).expect("Could not read endings map."),
             },
-            model: Model::from_file(&paths.lemma_counts)?,
+            model: Model::from_file(&paths.lemma_counts).expect("Could not read lemma counts."),
         })
     }
 
@@ -110,19 +107,29 @@ fn analyze_pada(
     text: &str,
     split: &sandhi::Split,
     parser: &Parser,
-    cache: &mut HashMap<String, Vec<Semantics>>,
-) -> Vec<Semantics> {
+    cache: &mut HashMap<String, Vec<Pada>>,
+) -> Vec<Pada> {
     if !cache.contains_key(text) {
         let mut res = parser.lexicon.find(text);
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
         if split.is_end_of_chunk {
-            res.push(Semantics::None);
+            res.push(Pada::None);
         }
 
         cache.insert(text.to_string(), res);
     }
     cache.get(text).unwrap().to_vec()
+}
+
+#[allow(dead_code)]
+fn debug_print_phrase(p: &ParsedPhrase) {
+    if log_enabled!(Level::Debug) {
+        for word in &p.words {
+            debug!("- {} {:?}", word.text, word.semantics);
+        }
+        debug!("score={}", p.score);
+    }
 }
 
 #[allow(dead_code)]
@@ -166,7 +173,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, ParsedPhrase>>) {
 fn parse(raw_text: &str, ctx: &Parser) -> Vec<ParsedWord> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
-    let mut word_cache: HashMap<String, Vec<Semantics>> = HashMap::new();
+    let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();
 
     // viterbi_cache[remainder][state] = the best result that ends with $state and has $remainder
     // text remaining in the parse.

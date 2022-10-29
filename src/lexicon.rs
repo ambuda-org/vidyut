@@ -2,13 +2,11 @@
 
 use crate::semantics::*;
 use multimap::MultiMap;
-use serde::{Deserialize, Serialize};
 
-pub type StemMap = MultiMap<String, Stem>;
-pub type PadaMap = MultiMap<String, Semantics>;
-pub type EndingMap = MultiMap<String, (String, Semantics)>;
+pub type StemMap = MultiMap<String, Pratipadika>;
+pub type PadaMap = MultiMap<String, Pada>;
+pub type EndingMap = MultiMap<String, (String, Pada)>;
 
-#[derive(Serialize, Deserialize)]
 pub struct Lexicon {
     pub stems: StemMap,
     pub padas: PadaMap,
@@ -16,7 +14,7 @@ pub struct Lexicon {
 }
 
 impl Lexicon {
-    pub fn find(&self, text: &str) -> Vec<Semantics> {
+    pub fn find(&self, text: &str) -> Vec<Pada> {
         let mut all_semantics = Vec::new();
 
         if self.padas.contains_key(text) {
@@ -27,7 +25,7 @@ impl Lexicon {
     }
 }
 
-fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Semantics>) {
+fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Pada>) {
     for (ending, pairs) in lex.endings.iter_all() {
         if !text.ends_with(ending) {
             continue;
@@ -39,10 +37,10 @@ fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Semanti
             stem_text += stem_type;
 
             if let Some(stem) = lex.stems.get(&stem_text) {
-                if let Semantics::Subanta(s) = ending_semantics {
+                if let Pada::Subanta(s) = ending_semantics {
                     let mut s = s.clone();
-                    s.stem = stem.clone();
-                    all_semantics.push(Semantics::Subanta(s));
+                    s.pratipadika = stem.clone();
+                    all_semantics.push(Pada::Subanta(s));
                 }
             }
         }
@@ -57,29 +55,28 @@ mod tests {
         let mut padas = PadaMap::new();
         padas.insert(
             String::from("Bavati"),
-            Semantics::Tinanta(Tinanta {
-                root: "BU".to_string(),
+            Pada::Tinanta(Tinanta {
+                dhatu: Dhatu("BU".to_string()),
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
-                pada: VerbPada::Parasmaipada,
+                pada: PadaPrayoga::Parasmaipada,
             }),
         );
 
         let mut stems = StemMap::new();
         stems.insert(
             String::from("nara"),
-            Stem::Basic {
-                stem: "nara".to_string(),
+            Pratipadika::Basic {
+                text: "nara".to_string(),
                 lingas: vec![Linga::Pum],
             },
         );
         stems.insert(
             String::from("gacCat"),
-            Stem::Krdanta {
-                root: "gam".to_string(),
-                tense: StemTense::Present,
-                prayoga: StemPrayoga::Kartari,
+            Pratipadika::Krdanta {
+                dhatu: Dhatu("gam".to_string()),
+                pratyaya: KrtPratyaya::Shatr,
             },
         );
 
@@ -88,9 +85,9 @@ mod tests {
             String::from("asya"),
             (
                 String::from("a"),
-                Semantics::Subanta(Subanta {
-                    stem: Stem::Basic {
-                        stem: "a".to_string(),
+                Pada::Subanta(Subanta {
+                    pratipadika: Pratipadika::Basic {
+                        text: "a".to_string(),
                         lingas: vec![Linga::Pum],
                     },
                     linga: Linga::Pum,
@@ -104,9 +101,9 @@ mod tests {
             String::from("antIm"),
             (
                 String::from("at"),
-                Semantics::Subanta(Subanta {
-                    stem: Stem::Basic {
-                        stem: "at".to_string(),
+                Pada::Subanta(Subanta {
+                    pratipadika: Pratipadika::Basic {
+                        text: "at".to_string(),
                         lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
                     },
                     linga: Linga::Stri,
@@ -129,12 +126,12 @@ mod tests {
         let lex = toy_lexicon();
         assert_eq!(
             *lex.find("Bavati").first().unwrap(),
-            Semantics::Tinanta(Tinanta {
-                root: "BU".to_string(),
+            Pada::Tinanta(Tinanta {
+                dhatu: Dhatu("BU".to_string()),
                 purusha: Purusha::Prathama,
                 vacana: Vacana::Eka,
                 lakara: Lakara::Lat,
-                pada: VerbPada::Parasmaipada,
+                pada: PadaPrayoga::Parasmaipada,
             })
         );
     }
@@ -144,9 +141,9 @@ mod tests {
         let lex = toy_lexicon();
         assert_eq!(
             *lex.find("narasya").first().unwrap(),
-            Semantics::Subanta(Subanta {
-                stem: Stem::Basic {
-                    stem: "nara".to_string(),
+            Pada::Subanta(Subanta {
+                pratipadika: Pratipadika::Basic {
+                    text: "nara".to_string(),
                     lingas: vec![Linga::Pum,]
                 },
                 linga: Linga::Pum,
@@ -162,11 +159,10 @@ mod tests {
         let lex = toy_lexicon();
         assert_eq!(
             *lex.find("gacCantIm").first().unwrap(),
-            Semantics::Subanta(Subanta {
-                stem: Stem::Krdanta {
-                    root: "gam".to_string(),
-                    tense: StemTense::Present,
-                    prayoga: StemPrayoga::Kartari,
+            Pada::Subanta(Subanta {
+                pratipadika: Pratipadika::Krdanta {
+                    dhatu: Dhatu("gam".to_string()),
+                    pratyaya: KrtPratyaya::Shatr,
                 },
                 linga: Linga::Stri,
                 vacana: Vacana::Eka,
