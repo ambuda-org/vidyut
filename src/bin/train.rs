@@ -77,7 +77,7 @@ fn word_state(w: &ParsedWord) -> String {
         Pada::Subanta(s) => subanta_state(s),
         Pada::Tinanta(t) => tinanta_state(t),
         Pada::Avyaya(_) => avyaya_state(),
-        Pada::PrefixGroup => unknown_state(),
+        Pada::PrefixGroup(_) => unknown_state(),
         Pada::None => unknown_state(),
     }
 }

@@ -76,7 +76,7 @@ fn as_code(w: &ParsedWord) -> String {
             };
             val.to_string()
         }
-        Pada::PrefixGroup => "p".to_string(),
+        Pada::PrefixGroup(_) => "p".to_string(),
     }
 }
 

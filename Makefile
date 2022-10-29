@@ -10,6 +10,9 @@ install:
 test:
 	cargo test --lib
 
+coverage:
+	cargo llvm-cov --lib --html
+
 
 # Modeling
 # ========

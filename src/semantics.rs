@@ -20,6 +20,9 @@ use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
+/// Lemma for `None` semantics or any other case where the lemma is unknown.
+pub const NONE_LEMMA: &str = "[none]";
+
 /// Indicates a failure to parse a string representation of some `semantics` enum.
 #[derive(Debug, Clone)]
 pub struct ParseError {
@@ -58,7 +61,7 @@ impl Linga {
             Linga::Pum => "m",
             Linga::Stri => "f",
             Linga::Napumsaka => "n",
-            Linga::None => "none",
+            Linga::None => "_",
         }
     }
 }
@@ -70,6 +73,8 @@ impl FromStr for Linga {
             "m" => Linga::Pum,
             "f" => Linga::Stri,
             "n" => Linga::Napumsaka,
+            "_" => Linga::None,
+            // Legacy format on `github.com/sanskrit/data`
             "none" => Linga::None,
             _ => return Err(ParseError::new("could not parse linga")),
         };
@@ -106,6 +111,7 @@ impl FromStr for Vacana {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let val = match s {
+            "_" => Vacana::None,
             "s" => Vacana::Eka,
             "d" => Vacana::Dvi,
             "p" => Vacana::Bahu,
@@ -162,6 +168,7 @@ impl FromStr for Vibhakti {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let val = match s {
+            "_" => Vibhakti::None,
             "1" => Vibhakti::V1,
             "2" => Vibhakti::V2,
             "3" => Vibhakti::V3,
@@ -193,10 +200,10 @@ pub enum Purusha {
 impl Purusha {
     pub fn to_str(&self) -> &'static str {
         match self {
+            Purusha::None => "_",
             Purusha::Prathama => "3",
             Purusha::Madhyama => "2",
             Purusha::Uttama => "1",
-            Purusha::None => "_",
         }
     }
 }
@@ -205,6 +212,7 @@ impl FromStr for Purusha {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let val = match s {
+            "_" => Purusha::None,
             "3" => Purusha::Prathama,
             "2" => Purusha::Madhyama,
             "1" => Purusha::Uttama,
@@ -253,6 +261,7 @@ impl FromStr for Lakara {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let val = match s {
+            "_" => Lakara::None,
             "lat" => Lakara::Lat,
             "lit" => Lakara::Lit,
             "lut" => Lakara::Lut,
@@ -291,33 +300,36 @@ pub enum DhatuPratyaya {
 pub enum KrtPratyaya {
     // Unknown or missing *kṛt-pratyaya*.
     None,
-    // The *-tum* suffix (infinitive)
+
+    // The *-tum* suffix (infinitive).
     Tumun,
-    // The *-tvā* suffix (unprefixed gerund)
+    // The *-tvā* suffix (unprefixed gerund).
     Ktva,
-    // The *-ya* suffix (prefixed gerund)
+    // The *-ya* suffix (prefixed gerund).
     Lyap,
 
-    // The *-vas* suffix (perfect participle)
+    // The *-vas* suffix (perfect participle).
     Kvasu,
+    // The -*āna* suffix (perfect participle).
+    Kanac,
 
-    // The *-ta* suffix (past passive participle)
+    // The *-ta* suffix (past passive participle).
     Kta,
-    // The *-tavat* suffix (past active participle)
+    // The *-tavat* suffix (past active participle).
     Ktavat,
 
-    // The *-at* suffix (present active participle)
+    // The *-at* suffix (present active participle).
     Shatr,
-    // The *-āna* suffix (present middle participle)
+    // The *-āna* suffix (present middle participle).
     Shanac,
-    // The *-ya vikaraṇa* followed by the *-āna* suffix (present passive participle)
+    // The *-ya vikaraṇa* followed by the *-āna* suffix (present passive participle).
     YakShanac,
 
-    // The *-sya vikaraṇa* followed by the *-at* suffix (future active participle)
+    // The *-sya vikaraṇa* followed by the *-at* suffix (future active participle).
     SyaShatr,
-    // The *-sya vikaraṇa* followed by the *-āna* suffix (future middle participle)
+    // The *-sya vikaraṇa* followed by the *-āna* suffix (future middle participle).
     SyaShanac,
-    // The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive)
+    // The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive).
     Krtya,
 }
 
@@ -340,20 +352,30 @@ pub enum PadaPrayoga {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Dhatu(pub String);
 
-/// Models the semantics of a *prātipadika*.
+/// Models the semantics of a *prātipadika*.
 ///
-/// An *prātipadika* is generally synonymous with a nominal base.
+/// An *prātipadika* is generally synonymous with a nominal base.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Pratipadika {
-    /// A basic *prātipadika* that cannot be analyzed further.
+    /// A basic *prātipadika* that cannot be analyzed further.
     Basic {
-        /// The text of the *prātipadika*.
+        /// The text of the *prātipadika*.
         text: String,
-        /// The genders this *prātipadika* uses in most contexts.
+        /// The lingas this *prātipadika* uses in most contexts.
         lingas: Vec<Linga>,
     },
-    /// A *prātipadika* formed by combining a *dhātu* with one or more suffixes.
+    /// A *prātipadika* formed by combining a *dhātu* with one or more suffixes.
     Krdanta { dhatu: Dhatu, pratyaya: KrtPratyaya },
+}
+
+impl Pratipadika {
+    /// Returns the lemma that the *prātipadika* is based on.
+    pub fn lemma(&self) -> String {
+        match &self {
+            Pratipadika::Basic { text, .. } => text.clone(),
+            Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
+        }
+    }
 }
 
 /// Models the semantics of a *subanta* if it is not an *avyaya*.
@@ -370,9 +392,7 @@ pub enum Pratipadika {
 /// | ṅas       । os        । ām        |
 /// | ṅi        । os        । sup       |
 ///
-/// An *avyaya*s (indeclinable) is traditionally modeled as a subtype of the *subanta* that has had
-/// its *sup* suffix elided. But we model the *avyaya* separately because we felt that doing so
-/// would be easier to reason about in downstream code.
+/// For *avyaya*s (indeclinables), see `Avyaya`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Subanta {
     pub pratipadika: Pratipadika,
@@ -411,6 +431,10 @@ pub struct Tinanta {
 }
 
 /// Models the semantics of an *avyaya*.
+///
+/// An *avyaya*s (indeclinable) is traditionally modeled as a subtype of the *subanta* that has had
+/// its *sup* suffix elided. But we model the *avyaya* separately because we felt that doing so
+/// would be easier to reason about in downstream code.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Avyaya {
     pub pratipadika: Pratipadika,
@@ -425,11 +449,107 @@ pub enum Pada {
     None,
     /// One or more prefixes.
     /// NOTE: we will likely remove this type in the future.
-    PrefixGroup,
+    PrefixGroup(String),
     /// A basic *avyaya* (indeclinable).
     Avyaya(Avyaya),
     /// A *subanta* (nominal, excluding *avyaya*s)
     Subanta(Subanta),
     /// A *tiṅanta* (verb).
     Tinanta(Tinanta),
+}
+
+impl Pada {
+    /// Returns the lemma of the given *pada*.
+    ///
+    /// The *lemma* of a word is a canonical form that represents a set of inflectional variants.
+    /// For example, the word *gacchati*, *gantum*, *gamanam*, and *jagāma* are all inflectional
+    /// variants of the lemma *gam*.
+    ///
+    /// In Vidyut, we use lemma frequencies to score different padaccheda solutions.
+    ///
+    /// In Sanskrit, a lemma is either a *dhātu* or a *prātipadika*.
+    pub fn lemma(&self) -> String {
+        match &self {
+            Pada::Tinanta(t) => t.dhatu.0.clone(),
+            Pada::Subanta(s) => s.pratipadika.lemma(),
+            Pada::Avyaya(a) => a.pratipadika.lemma(),
+            Pada::PrefixGroup(s) => s.clone(),
+            Pada::None => NONE_LEMMA.to_string(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tinanta_lemma() {
+        let p = Pada::Tinanta(Tinanta {
+            dhatu: Dhatu("gam".to_string()),
+            purusha: Purusha::Prathama,
+            vacana: Vacana::Eka,
+            lakara: Lakara::Lat,
+            pada: PadaPrayoga::Parasmaipada,
+        });
+        assert_eq!(p.lemma(), "gam");
+    }
+
+    #[test]
+    fn test_subanta_lemma_with_basic_stem() {
+        let p = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: "agni".to_string(),
+                lingas: vec![Linga::Pum],
+            },
+            linga: Linga::Pum,
+            vacana: Vacana::Eka,
+            vibhakti: Vibhakti::V2,
+            is_purvapada: false,
+        });
+        assert_eq!(p.lemma(), "agni");
+    }
+
+    #[test]
+    fn test_subanta_lemma_with_krdanta_stem() {
+        let p = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Krdanta {
+                dhatu: Dhatu("gam".to_string()),
+                pratyaya: KrtPratyaya::Shatr,
+            },
+            linga: Linga::Pum,
+            vacana: Vacana::Eka,
+            vibhakti: Vibhakti::V2,
+            is_purvapada: false,
+        });
+        assert_eq!(p.lemma(), "gam");
+    }
+
+    #[test]
+    fn test_avyaya_lemma_with_basic_stem() {
+        let p = Pada::Avyaya(Avyaya {
+            pratipadika: Pratipadika::Basic {
+                text: "svar".to_string(),
+                lingas: vec![],
+            },
+        });
+        assert_eq!(p.lemma(), "svar");
+    }
+
+    #[test]
+    fn test_avyaya_lemma_with_krdanta_stem() {
+        let p = Pada::Avyaya(Avyaya {
+            pratipadika: Pratipadika::Krdanta {
+                dhatu: Dhatu("gam".to_string()),
+                pratyaya: KrtPratyaya::Tumun,
+            },
+        });
+        assert_eq!(p.lemma(), "gam");
+    }
+
+    #[test]
+    fn test_none_lemma() {
+        let p = Pada::None;
+        assert_eq!(p.lemma(), NONE_LEMMA);
+    }
 }

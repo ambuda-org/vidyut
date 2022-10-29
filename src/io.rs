@@ -99,10 +99,9 @@ fn parse_krt_pratyaya(tense: &str, voice: &str) -> KrtPratyaya {
         ("fut", "atma") => KrtPratyaya::SyaShanac,
         ("fut", "pass") => KrtPratyaya::Krtya,
 
-        // FIXME: use the correct pratyayas here.
         ("perf", "para") => KrtPratyaya::Kvasu,
-        ("perf", "atma") => KrtPratyaya::Kvasu,
-        ("perf", "pass") => KrtPratyaya::Kvasu,
+        ("perf", "atma") => KrtPratyaya::Kanac,
+        ("perf", "pass") => KrtPratyaya::Kanac,
         (&_, &_) => panic!("Unknown type (`{tense}`, `{voice}`)"),
     }
 }
@@ -208,7 +207,8 @@ fn add_prefix_groups(path: &Path, padas: &mut PadaMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
-        padas.insert(r[0].to_string(), Pada::PrefixGroup);
+        let value = &r[0];
+        padas.insert(value.to_string(), Pada::PrefixGroup(value.to_string()));
     }
     Ok(())
 }

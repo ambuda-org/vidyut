@@ -11,7 +11,7 @@ use crate::lexicon::Lexicon;
 use crate::sandhi;
 use crate::sandhi::Sandhi;
 use crate::scoring::Model;
-use crate::semantics::{Pada, Pratipadika};
+use crate::semantics::Pada;
 use crate::strict_mode;
 
 /// Represnts a Sanskrit word and its semantics.
@@ -24,19 +24,7 @@ pub struct ParsedWord {
 impl ParsedWord {
     /// Get the word's root/stem.
     pub fn lemma(&self) -> String {
-        match &self.semantics {
-            Pada::Tinanta(s) => s.dhatu.0.clone(),
-            Pada::Subanta(s) => match &s.pratipadika {
-                Pratipadika::Basic {
-                    text: stem,
-                    lingas: _,
-                } => stem.clone(),
-                Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
-            },
-            Pada::Avyaya(_) => self.text.clone(),
-            Pada::PrefixGroup => "".to_string(),
-            Pada::None => self.text.clone(),
-        }
+        self.semantics.lemma()
     }
 }
 
