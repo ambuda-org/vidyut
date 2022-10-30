@@ -1,15 +1,19 @@
 //! Benchmark an FST lexicon.
+use bencher::black_box;
 use clap::Parser;
 use fst::Streamer;
 use log::info;
+use multimap::MultiMap;
 use std::error::Error;
 use std::path::Path;
 use std::process;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use vidyut::fst_lexicon::FstLexicon;
+use vidyut::packing::*;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+type NaiveLexicon = MultiMap<String, PackedPada>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -22,7 +26,18 @@ struct Args {
     bench: bool,
 }
 
-fn sample(lex: &FstLexicon, prob: f32) -> Result<Vec<String>> {
+fn create_naive_lexicon(fst_lex: &FstLexicon) -> Result<NaiveLexicon> {
+    let mut ret = MultiMap::new();
+    let mut stream = fst_lex.stream();
+    while let Some((key, value)) = stream.next() {
+        let key = std::str::from_utf8(key)?;
+        let value = PackedPada::from_u32(value as u32);
+        ret.insert(key.to_string(), value);
+    }
+    Ok(ret)
+}
+
+fn sample_from_fst_lexicon(lex: &FstLexicon, prob: f32) -> Result<Vec<String>> {
     info!("Sampling from lexicon (rate = {prob})");
 
     let mut keys = Vec::new();
@@ -36,26 +51,56 @@ fn sample(lex: &FstLexicon, prob: f32) -> Result<Vec<String>> {
     Ok(keys)
 }
 
-fn run(args: Args) -> Result<()> {
-    info!("Loading lexicon");
-    let lex = FstLexicon::load_from(Path::new(&args.data_dir))?;
+fn stats_for_word_sample(dur: &Duration, num_words: usize) {
+    let s_elapsed = dur.as_secs_f32();
+    let ns_elapsed = dur.as_secs() * 1_000_000_000 + (dur.subsec_nanos() as u64);
+    let ns_per_word = ns_elapsed / (num_words as u64);
+    println!("Fetched {num_words} arbitrary words in {s_elapsed} seconds ({ns_per_word} ns/word)");
+}
 
-    let words = sample(&lex, 0.01)?;
-
-    let start = Instant::now();
-    for w in &words {
+fn bench_fst_lexicon_sample_1p(lex: &FstLexicon, words: &[String]) {
+    for w in words {
         for _pada in lex.get_all(w) {
             // println!("{w}: {:?}", lex.unpack(&pada));
         }
     }
+}
+
+fn bench_naive_lexicon_sample_1p(lex: &NaiveLexicon, words: &[String]) {
+    for w in words {
+        if let Some(vec) = lex.get_vec(w) {
+            for _pada in vec {
+                // println!("{w}: {:?}", lex.unpack(&pada));
+            }
+        }
+    }
+}
+
+fn run(args: Args) -> Result<()> {
+    info!("Loading lexicon");
+    let lex = FstLexicon::load_from(Path::new(&args.data_dir))?;
+    let words = sample_from_fst_lexicon(&lex, 0.01)?;
+
+    println!();
+    println!("================================");
+    println!("FST lexicon");
+    println!("================================");
+    let start = Instant::now();
+    black_box(bench_fst_lexicon_sample_1p(&lex, &words));
     let dur = start.elapsed();
+    stats_for_word_sample(&dur, words.len());
 
-    let num_words = words.len();
-    let s_elapsed = dur.as_secs_f32();
-    let ns_elapsed = dur.as_secs() * 1_000_000_000 + (dur.subsec_nanos() as u64);
-    let ns_per_word = ns_elapsed / (num_words as u64);
-
-    println!("Fetched {num_words} arbitrary words in {s_elapsed} seconds ({ns_per_word} ns/word)");
+    println!();
+    println!("================================");
+    println!("Naive lexicon");
+    println!("================================");
+    info!("Initializing ...");
+    let naive_lex = create_naive_lexicon(&lex)?;
+    info!("Begin.");
+    let start = Instant::now();
+    black_box(bench_naive_lexicon_sample_1p(&naive_lex, &words));
+    let dur = start.elapsed();
+    stats_for_word_sample(&dur, words.len());
 
     Ok(())
 }
