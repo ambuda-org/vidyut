@@ -1,8 +1,8 @@
 //! Heuristics for validating segmented candidates.
 
-use crate::segmenting::Phrase;
 /// Simple hand-coded rules to avoid overgenerating.
 use crate::sandhi::Split;
+use crate::segmenting::Phrase;
 use crate::semantics::*;
 use crate::sounds;
 

@@ -9,7 +9,7 @@ use std::path::Path;
 use vidyut::conllu::Reader;
 use vidyut::dcs;
 use vidyut::io;
-use vidyut::segmenting::{Word, Segmenter};
+use vidyut::segmenting::{Segmenter, Word};
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
 
@@ -138,8 +138,7 @@ fn eval_input_path(path: &Path, segmenter: &Segmenter, show_semantics: &bool) ->
         let slp1_text = to_slp1(&sentence.text);
         let vidyut_parse = segmenter.segment(&slp1_text);
 
-        let dcs_parse: Result<Vec<Word>> =
-            sentence.tokens.iter().map(dcs::standardize).collect();
+        let dcs_parse: Result<Vec<Word>> = sentence.tokens.iter().map(dcs::standardize).collect();
         let dcs_parse = dcs_parse?;
 
         let sentence_stats = eval_sentence(&vidyut_parse, &dcs_parse);
@@ -164,7 +163,11 @@ fn eval_input_path(path: &Path, segmenter: &Segmenter, show_semantics: &bool) ->
 }
 
 /// Computes summary statistics for the given glob patterns.
-fn eval_patterns(patterns: Vec<&String>, segmenter: &Segmenter, show_semantics: &bool) -> Result<Stats> {
+fn eval_patterns(
+    patterns: Vec<&String>,
+    segmenter: &Segmenter,
+    show_semantics: &bool,
+) -> Result<Stats> {
     let mut stats = Stats::new();
     for pattern in patterns {
         let paths = glob(pattern).expect("Glob pattern is invalid").flatten();

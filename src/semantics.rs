@@ -598,9 +598,58 @@ impl Pada {
 #[cfg(test)]
 mod tests {
     use super::*;
+    type TestResult = Result<(), Box<dyn Error>>;
 
     #[test]
-    fn test_pratipadika_serde_with_basic() -> Result<(), Box<dyn Error>> {
+    fn test_linga_serde() -> TestResult {
+        use Linga::*;
+        for val in [None, Pum, Stri, Napumsaka] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_vacana_serde() -> TestResult {
+        use Vacana::*;
+        for val in [None, Eka, Dvi, Bahu] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_vibhakti_serde() -> TestResult {
+        use Vibhakti::*;
+        for val in [None, V1, V2, V3, V4, V5, V6, V7, Sambodhana] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_purusha_serde() -> TestResult {
+        use Purusha::*;
+        for val in [None, Prathama, Madhyama, Uttama] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_krt_pratyaya_serde() -> TestResult {
+        use KrtPratyaya::*;
+        for val in [
+            None, Tumun, Ktva, Lyap, Kvasu, Kanac, Kta, Ktavat, Shatr, Shanac, YakShanac, SyaShatr,
+            SyaShanac, Krtya,
+        ] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_pratipadika_serde_with_basic() -> TestResult {
         let p = Pratipadika::Basic {
             text: "agni".to_string(),
             lingas: vec![Linga::Pum],
@@ -610,7 +659,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pratipadika_serde_with_krdanta() -> Result<(), Box<dyn Error>> {
+    fn test_pratipadika_serde_with_krdanta() -> TestResult {
         let p = Pratipadika::Krdanta {
             dhatu: Dhatu("gam".to_string()),
             pratyaya: KrtPratyaya::Shatr,

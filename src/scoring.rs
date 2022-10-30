@@ -77,3 +77,15 @@ impl Model {
         phrase.score + (100_f32 * delta) as i32
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_log_prob() {
+        assert_eq!(log_prob(10.0, 10), 0.0);
+        assert_eq!(log_prob(10.0, 100), -1.0);
+        assert_eq!(log_prob(10.0, 1000), -2.0);
+    }
+}
