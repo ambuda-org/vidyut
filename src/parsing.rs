@@ -68,17 +68,13 @@ impl Parser {
     pub fn from_paths(paths: &io::DataPaths) -> Result<Self, Box<dyn Error>> {
         Ok(Parser {
             sandhi: Sandhi::from_csv(&paths.sandhi_rules).expect("Could not read sandhi rules."),
-            lexicon: Lexicon {
-                padas: io::read_padas(paths).expect("Could not read padas map."),
-                stems: io::read_stems(paths).expect("Could not read stems map."),
-                endings: io::read_nominal_endings(paths).expect("Could not read endings map."),
-            },
+            lexicon: Lexicon::load_from(&paths.fst_lexicon).expect("Could not read lexicon."),
             model: Model::from_file(&paths.lemma_counts).expect("Could not read lemma counts."),
         })
     }
 
     pub fn parse(&self, raw_text: &str) -> Vec<ParsedWord> {
-        parse(raw_text, self)
+        parse(raw_text, self).expect("Is OK")
     }
 }
 
@@ -96,9 +92,15 @@ fn analyze_pada(
     split: &sandhi::Split,
     parser: &Parser,
     cache: &mut HashMap<String, Vec<Pada>>,
-) -> Vec<Pada> {
+) -> Result<Vec<Pada>, Box<dyn Error>> {
     if !cache.contains_key(text) {
-        let mut res = parser.lexicon.find(text);
+        let res: Result<Vec<Pada>, _> = parser
+            .lexicon
+            .get_all(text)
+            .iter()
+            .map(|p| parser.lexicon.unpack(p))
+            .collect();
+        let mut res = res?;
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
         if split.is_end_of_chunk {
@@ -107,7 +109,7 @@ fn analyze_pada(
 
         cache.insert(text.to_string(), res);
     }
-    cache.get(text).unwrap().to_vec()
+    Ok(cache.get(text).unwrap().to_vec())
 }
 
 #[allow(dead_code)]
@@ -158,7 +160,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, ParsedPhrase>>) {
 ///
 /// The parser makes a best effort to understand the input as valid Sanskrit text, even if it
 /// contains typos or other content that is not valid Sanskrit.
-fn parse(raw_text: &str, ctx: &Parser) -> Vec<ParsedWord> {
+fn parse(raw_text: &str, ctx: &Parser) -> Result<Vec<ParsedWord>, Box<dyn Error>> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();
@@ -184,7 +186,7 @@ fn parse(raw_text: &str, ctx: &Parser) -> Vec<ParsedWord> {
 
             let first = &split.first;
             let second = &split.second;
-            for semantics in analyze_pada(first, &split, ctx, &mut word_cache) {
+            for semantics in analyze_pada(first, &split, ctx, &mut word_cache)? {
                 if !strict_mode::is_valid_word(&cur, &split, &semantics) {
                     continue;
                 }
@@ -224,10 +226,10 @@ fn parse(raw_text: &str, ctx: &Parser) -> Vec<ParsedWord> {
     // Return the best result we could find above.
     if let Some(solutions) = viterbi_cache.get("") {
         if let Some(best) = solutions.values().max_by_key(|s| s.score) {
-            return best.words.clone();
+            return Ok(best.words.clone());
         }
     }
-    Vec::new()
+    Ok(Vec::new())
 }
 
 #[cfg(test)]

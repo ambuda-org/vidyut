@@ -2,8 +2,8 @@
 
 pub mod io;
 
-pub mod fst_lexicon;
 pub mod lexicon;
+pub mod old_lexicon;
 pub mod packing;
 pub mod parsing;
 pub mod sandhi;

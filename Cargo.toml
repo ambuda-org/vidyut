@@ -26,7 +26,7 @@ modular-bitfield = "0.11.2"
 rand = "0.8.5"
 
 [[bench]]
-name = "fst"
+name = "lexicon"
 harness = false
 
 [dev-dependencies]

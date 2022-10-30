@@ -1,175 +1,220 @@
-//! Maps Sanskrit words and stems to their semantics.
-
+//! A highly memory-efficient Sanskrit dictionary.
+//!
+//! As of this comment, the FST lexicon stores more than 11 million words in about 20 megabytes.
+use crate::packing::*;
 use crate::semantics::*;
-use multimap::MultiMap;
-
-pub type StemMap = MultiMap<String, Pratipadika>;
-pub type PadaMap = MultiMap<String, Pada>;
-pub type EndingMap = MultiMap<String, (String, Pada)>;
+use fst::map::Stream;
+use fst::raw::Output;
+use fst::{Map, MapBuilder};
+use log::{debug, info};
+use std::collections::HashMap;
+use std::error::Error;
+use std::fs::File;
+use std::io;
+use std::path::{Path, PathBuf};
 
 pub struct Lexicon {
-    pub stems: StemMap,
-    pub padas: PadaMap,
-    pub endings: EndingMap,
+    /// The underlying FST object.
+    fst: Map<Vec<u8>>,
+    /// Maps indices to semantics objects.
+    unpacker: Unpacker,
+}
+
+struct Paths {
+    /// Path to the data dir for this lexicon. If writing, the writer will create the directory if
+    /// it does not exist already.
+    base: PathBuf,
+}
+impl Paths {
+    /// Path to the underlying FST.
+    fn fst(&self) -> PathBuf {
+        self.base.join("padas.fst")
+    }
+    /// Path to the dhatus table, which maps indices to `Dhatu`s.
+    fn dhatus(&self) -> PathBuf {
+        self.base.join("dhatus.csv")
+    }
+    /// Path to the pratipadikas table, which maps indices to `Pratipadika`s.
+    fn pratipadikas(&self) -> PathBuf {
+        self.base.join("pratipadikas.csv")
+    }
 }
 
 impl Lexicon {
-    pub fn find(&self, text: &str) -> Vec<Pada> {
-        let mut all_semantics = Vec::new();
+    pub fn load_from(base_path: &Path) -> Result<Lexicon, Box<dyn Error>> {
+        let paths = Paths {
+            base: base_path.to_path_buf(),
+        };
 
-        if self.padas.contains_key(text) {
-            // FIXME: bug, should use all items in pada
-            all_semantics.push(self.padas.get(text).unwrap().clone());
-        }
-        add_stem_semantics(self, text, &mut all_semantics);
-        all_semantics
+        let fst = Map::new(std::fs::read(paths.fst()).unwrap())?;
+        let unpacker = Unpacker::from_data(
+            PratipadikaTable::read(&paths.pratipadikas())?,
+            DhatuTable::read(&paths.dhatus())?,
+        );
+        Ok(Lexicon { fst, unpacker })
     }
-}
 
-fn add_stem_semantics(lex: &Lexicon, text: &str, all_semantics: &mut Vec<Pada>) {
-    for (ending, pairs) in lex.endings.iter_all() {
-        if !text.ends_with(ending) {
-            continue;
-        }
+    #[inline]
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.fst.contains_key(key)
+    }
 
-        for (stem_type, ending_semantics) in pairs {
-            let mut stem_text = String::new();
-            stem_text += &text[0..(text.len() - ending.len())];
-            stem_text += stem_type;
-
-            if let Some(stem) = lex.stems.get(&stem_text) {
-                if let Pada::Subanta(s) = ending_semantics {
-                    let mut s = s.clone();
-                    s.pratipadika = stem.clone();
-                    all_semantics.push(Pada::Subanta(s));
+    /// Checks whether the lexicon contains *any* words that start with this prefix.
+    ///
+    /// Prefix checks are slightly faster than ordinary key lookups. I also tried implementing this
+    /// with `fst::Stream`, but that approach was much slower than just accessing the FST directly,
+    /// which is what we do here.
+    #[inline]
+    pub fn contains_prefix(&self, key: &str) -> bool {
+        // Adapted from `FstRef::get`
+        let fst = self.fst.as_fst();
+        let mut node = fst.root();
+        for &b in key.as_bytes() {
+            node = match node.find_input(b) {
+                None => return false,
+                Some(i) => {
+                    let t = node.transition(i);
+                    fst.node(t.addr)
                 }
             }
         }
+        true
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    #[inline]
+    pub fn get_first(&self, key: &str) -> Option<PackedPada> {
+        self.fst
+            .get(key)
+            .map(|val| PackedPada::from_u32(val as u32))
+    }
 
-    fn toy_lexicon() -> Lexicon {
-        let mut padas = PadaMap::new();
-        padas.insert(
-            String::from("Bavati"),
-            Pada::Tinanta(Tinanta {
-                dhatu: Dhatu("BU".to_string()),
-                purusha: Purusha::Prathama,
-                vacana: Vacana::Eka,
-                lakara: Lakara::Lat,
-                pada: PadaPrayoga::Parasmaipada,
-            }),
-        );
+    pub fn unpack(&self, p: &PackedPada) -> Result<Pada, Box<dyn Error>> {
+        self.unpacker.unpack(p)
+    }
 
-        let mut stems = StemMap::new();
-        stems.insert(
-            String::from("nara"),
-            Pratipadika::Basic {
-                text: "nara".to_string(),
-                lingas: vec![Linga::Pum],
-            },
-        );
-        stems.insert(
-            String::from("gacCat"),
-            Pratipadika::Krdanta {
-                dhatu: Dhatu("gam".to_string()),
-                pratyaya: KrtPratyaya::Shatr,
-            },
-        );
+    #[inline]
+    pub fn get_all(&self, key: &str) -> Vec<PackedPada> {
+        // Adapted from `FstRef::get`
+        // https://docs.rs/fst/0.4.7/src/fst/raw/mod.rs.html#682
+        let fst = self.fst.as_fst();
+        let mut node = fst.root();
+        let mut out = Output::zero();
+        for &b in key.as_bytes() {
+            node = match node.find_input(b) {
+                None => return Vec::new(),
+                Some(i) => {
+                    let t = node.transition(i);
+                    out = out.cat(t.out);
+                    fst.node(t.addr)
+                }
+            }
+        }
+        if !node.is_final() {
+            Vec::new()
+        } else {
+            let mut ret = vec![out.cat(node.final_output())];
 
-        let mut endings = EndingMap::new();
-        endings.insert(
-            String::from("asya"),
-            (
-                String::from("a"),
-                Pada::Subanta(Subanta {
-                    pratipadika: Pratipadika::Basic {
-                        text: "a".to_string(),
-                        lingas: vec![Linga::Pum],
-                    },
-                    linga: Linga::Pum,
-                    vacana: Vacana::Eka,
-                    vibhakti: Vibhakti::V6,
-                    is_purvapada: false,
-                }),
-            ),
-        );
-        endings.insert(
-            String::from("antIm"),
-            (
-                String::from("at"),
-                Pada::Subanta(Subanta {
-                    pratipadika: Pratipadika::Basic {
-                        text: "at".to_string(),
-                        lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
-                    },
-                    linga: Linga::Stri,
-                    vacana: Vacana::Eka,
-                    vibhakti: Vibhakti::V2,
-                    is_purvapada: false,
-                }),
-            ),
-        );
+            // first ASCII letter is 65 (01000001)
+            for counter in 1..65 {
+                let b = counter as u8;
+                match node.find_input(b) {
+                    None => break,
+                    Some(i) => {
+                        let t = node.transition(i);
+                        let new_out = out.cat(t.out);
+                        let new_node = fst.node(t.addr);
 
-        Lexicon {
-            padas,
-            stems,
-            endings,
+                        // In our current scheme, this node is always final.
+                        if node.is_final() {
+                            ret.push(new_out.cat(new_node.final_output()));
+                        }
+                    }
+                }
+            }
+
+            // FIXME: don't allocate a new vec here.
+            ret.iter()
+                .map(|val| PackedPada::from_u32(val.value() as u32))
+                .collect()
         }
     }
 
-    #[test]
-    fn analyze_verb() {
-        let lex = toy_lexicon();
-        assert_eq!(
-            *lex.find("Bavati").first().unwrap(),
-            Pada::Tinanta(Tinanta {
-                dhatu: Dhatu("BU".to_string()),
-                purusha: Purusha::Prathama,
-                vacana: Vacana::Eka,
-                lakara: Lakara::Lat,
-                pada: PadaPrayoga::Parasmaipada,
-            })
-        );
+    /// Iterate over all keys in the FST.
+    pub fn stream(&self) -> Stream<'_> {
+        self.fst.stream()
+    }
+}
+
+pub struct LexiconBuilder {
+    seen_keys: HashMap<String, usize>,
+    fst_builder: MapBuilder<io::BufWriter<File>>,
+    packer: Packer,
+    paths: Paths,
+}
+
+impl LexiconBuilder {
+    pub fn new(base_path: &Path) -> Result<LexiconBuilder, Box<dyn Error>> {
+        std::fs::create_dir_all(base_path)?;
+        let paths = Paths {
+            base: base_path.to_path_buf(),
+        };
+
+        let writer = io::BufWriter::new(File::create(paths.fst()).unwrap());
+        Ok(LexiconBuilder {
+            seen_keys: HashMap::new(),
+            fst_builder: MapBuilder::new(writer).unwrap(),
+            packer: Packer::new(),
+            paths,
+        })
     }
 
-    #[test]
-    fn analyze_inflected_nominal() {
-        let lex = toy_lexicon();
-        assert_eq!(
-            *lex.find("narasya").first().unwrap(),
-            Pada::Subanta(Subanta {
-                pratipadika: Pratipadika::Basic {
-                    text: "nara".to_string(),
-                    lingas: vec![Linga::Pum,]
-                },
-                linga: Linga::Pum,
-                vacana: Vacana::Eka,
-                vibhakti: Vibhakti::V6,
-                is_purvapada: false,
-            })
-        );
+    /// Inserts the given `key` with the given semantics in `value`.
+    ///
+    /// Keys must be inserted in lexicographic order. If a key is received out of order,
+    /// the build process will fail.
+    pub fn insert(&mut self, key: &str, value: &Pada) -> Result<(), Box<dyn Error>> {
+        let seen_keys = &mut self.seen_keys;
+
+        let num_repeats = match seen_keys.get(key) {
+            Some(c) => *c,
+            None => 0,
+        };
+        seen_keys.insert(key.to_string(), num_repeats + 1);
+
+        // For duplicates, add another u8 to make this key unique.
+        let final_key = if num_repeats > 0 {
+            let tag = num_repeats as u8;
+
+            // FIXME: support more than 64 duplicates.
+            if tag > 64 {
+                info!("Skipping {key} (appears more than 64 times)");
+                return Ok(());
+            }
+
+            let mut extended_key = key.as_bytes().to_vec();
+            extended_key.push(tag);
+            debug!("Inserting duplicate key {key}");
+            std::str::from_utf8(&extended_key)?.to_owned()
+        } else {
+            key.to_string()
+        };
+
+        let value = self.packer.pack(value).to_u32() as u64;
+
+        self.fst_builder.insert(&final_key, value)?;
+        Ok(())
     }
 
-    #[test]
-    fn analyze_inflected_krdanta() {
-        let lex = toy_lexicon();
-        assert_eq!(
-            *lex.find("gacCantIm").first().unwrap(),
-            Pada::Subanta(Subanta {
-                pratipadika: Pratipadika::Krdanta {
-                    dhatu: Dhatu("gam".to_string()),
-                    pratyaya: KrtPratyaya::Shatr,
-                },
-                linga: Linga::Stri,
-                vacana: Vacana::Eka,
-                vibhakti: Vibhakti::V2,
-                is_purvapada: false,
-            })
-        );
+    /// Writes all FST data to disk and returns a complete `FSTLexicon`.
+    pub fn into_lexicon(self) -> Result<Lexicon, Box<dyn Error>> {
+        info!("Writing FST and packer data to `{:?}`.", self.paths.base);
+        self.fst_builder.finish()?;
+        let unpacker = Unpacker::from_packer(&self.packer);
+        unpacker.write(&self.paths.dhatus(), &self.paths.pratipadikas())?;
+
+        info!("Reading new FST from `{:?}`.", self.paths.base);
+        let fst_data = std::fs::read(self.paths.fst())?;
+        let fst = Map::new(fst_data)?;
+        Ok(Lexicon { fst, unpacker })
     }
 }

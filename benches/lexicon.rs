@@ -9,7 +9,7 @@ use std::path::Path;
 use std::process;
 use std::time::{Duration, Instant};
 
-use vidyut::fst_lexicon::FstLexicon;
+use vidyut::lexicon::Lexicon;
 use vidyut::packing::*;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -26,7 +26,7 @@ struct Args {
     bench: bool,
 }
 
-fn create_naive_lexicon(fst_lex: &FstLexicon) -> Result<NaiveLexicon> {
+fn create_naive_lexicon(fst_lex: &Lexicon) -> Result<NaiveLexicon> {
     let mut ret = MultiMap::new();
     let mut stream = fst_lex.stream();
     while let Some((key, value)) = stream.next() {
@@ -37,7 +37,7 @@ fn create_naive_lexicon(fst_lex: &FstLexicon) -> Result<NaiveLexicon> {
     Ok(ret)
 }
 
-fn sample_from_fst_lexicon(lex: &FstLexicon, prob: f32) -> Result<Vec<String>> {
+fn sample_from_fst_lexicon(lex: &Lexicon, prob: f32) -> Result<Vec<String>> {
     info!("Sampling from lexicon (rate = {prob})");
 
     let mut keys = Vec::new();
@@ -58,7 +58,7 @@ fn stats_for_word_sample(dur: &Duration, num_words: usize) {
     println!("Fetched {num_words} arbitrary words in {s_elapsed} seconds ({ns_per_word} ns/word)");
 }
 
-fn bench_fst_lexicon_sample_1p(lex: &FstLexicon, words: &[String]) {
+fn bench_fst_lexicon_sample_1p(lex: &Lexicon, words: &[String]) {
     for w in words {
         for _pada in lex.get_all(w) {
             // println!("{w}: {:?}", lex.unpack(&pada));
@@ -78,7 +78,7 @@ fn bench_naive_lexicon_sample_1p(lex: &NaiveLexicon, words: &[String]) {
 
 fn run(args: Args) -> Result<()> {
     info!("Loading lexicon");
-    let lex = FstLexicon::load_from(Path::new(&args.data_dir))?;
+    let lex = Lexicon::load_from(Path::new(&args.data_dir))?;
     let words = sample_from_fst_lexicon(&lex, 0.01)?;
 
     println!();

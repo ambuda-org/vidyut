@@ -3,7 +3,7 @@
 //! Most of our data comes from the [sanskrit/data](https://github.com/sanskrit/data) project. In
 //! the future, Vidyut might generate its own linguistic data instead.
 
-use crate::lexicon::{EndingMap, PadaMap, StemMap};
+use crate::old_lexicon::{EndingMap, PadaMap, StemMap};
 use crate::semantics::*;
 use std::collections::HashMap;
 use std::error::Error;
@@ -28,6 +28,7 @@ pub struct DataPaths {
     pub verbal_indeclinables: PathBuf,
     pub verbs: PathBuf,
 
+    pub fst_lexicon: PathBuf,
     pub lemma_counts: PathBuf,
 }
 
@@ -49,6 +50,7 @@ impl DataPaths {
             verbal_indeclinables: base.join("verbal-indeclinables.csv"),
             verbs: base.join("verbs.csv"),
 
+            fst_lexicon: base.join("vidyut-0.1.0/lexicon"),
             lemma_counts: base.join("model/lemma-counts.csv"),
         }
     }
