@@ -45,7 +45,7 @@ fn main() {
     env_logger::init();
 
     let matches = Command::new("Vidyut")
-        .version("0.0.1")
+        .version("0.1.0")
         .author("Arun Prasad <ambuda.library@gmail.com>")
         .about("Vidyut: a lightning fast Sanskrit toolkit.")
         .arg(Arg::new("text"))

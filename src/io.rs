@@ -243,7 +243,6 @@ fn add_verbal_indeclinables(path: &Path, padas: &mut PadaMap) -> Result<()> {
         let pada = row[0].to_string();
         let root = row[1].to_string();
         let pratyaya = match &row[3] {
-            // FIXME: support lyap
             "gerund" => {
                 if pada.ends_with("ya") {
                     KrtPratyaya::Lyap

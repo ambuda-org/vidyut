@@ -2,6 +2,7 @@
 
 pub mod io;
 
+pub mod fst_lexicon;
 pub mod lexicon;
 pub mod packing;
 pub mod parsing;

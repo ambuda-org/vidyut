@@ -18,6 +18,7 @@ impl Lexicon {
         let mut all_semantics = Vec::new();
 
         if self.padas.contains_key(text) {
+            // FIXME: bug, should use all items in pada
             all_semantics.push(self.padas.get(text).unwrap().clone());
         }
         add_stem_semantics(self, text, &mut all_semantics);

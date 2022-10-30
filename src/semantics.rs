@@ -16,6 +16,7 @@
 //!    worth.
 
 use modular_bitfield::prelude::*;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
@@ -38,6 +39,27 @@ impl Error for ParseError {}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.msg)
+    }
+}
+
+/// Utility struct for reading complex serialized enums.
+struct FeatureMap(HashMap<String, String>);
+impl FeatureMap {
+    fn from_str(s: &str) -> Self {
+        let map = s
+            .split('|')
+            .flat_map(|x| x.split_once('='))
+            .map(|(x, y)| (x.to_string(), y.to_string()))
+            .collect::<HashMap<_, _>>();
+
+        FeatureMap(map)
+    }
+    fn get(&self, s: &str) -> Result<&String, ParseError> {
+        if let Some(val) = self.0.get(s) {
+            Ok(val)
+        } else {
+            Err(ParseError::new(&format!("Could not parse `{}`", s)))
+        }
     }
 }
 
@@ -76,7 +98,7 @@ impl FromStr for Linga {
             "_" => Linga::None,
             // Legacy format on `github.com/sanskrit/data`
             "none" => Linga::None,
-            _ => return Err(ParseError::new("could not parse linga")),
+            _ => return Err(ParseError::new(&format!("could not parse linga `{}`", s))),
         };
         Ok(val)
     }
@@ -332,6 +354,49 @@ pub enum KrtPratyaya {
     // The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive).
     Krtya,
 }
+impl KrtPratyaya {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            Self::None => "_",
+            Self::Tumun => "tumun",
+            Self::Ktva => "ktvA",
+            Self::Lyap => "lyap",
+            Self::Kvasu => "kvasu",
+            Self::Kanac => "kAnac",
+            Self::Kta => "kta",
+            Self::Ktavat => "ktavat",
+            Self::Shatr => "Satf",
+            Self::Shanac => "SAnac",
+            Self::YakShanac => "yak-SAnac",
+            Self::SyaShatr => "sya-Satf",
+            Self::SyaShanac => "sya-SAnac",
+            Self::Krtya => "kftya",
+        }
+    }
+}
+impl FromStr for KrtPratyaya {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "_" => Self::None,
+            "tumun" => Self::Tumun,
+            "ktvA" => Self::Ktva,
+            "lyap" => Self::Lyap,
+            "kvasu" => Self::Kvasu,
+            "kAnac" => Self::Kanac,
+            "kta" => Self::Kta,
+            "ktavat" => Self::Ktavat,
+            "Satf" => Self::Shatr,
+            "SAnac" => Self::Shanac,
+            "yak-SAnac" => Self::YakShanac,
+            "sya-Satf" => Self::SyaShatr,
+            "sya-SAnac" => Self::SyaShanac,
+            "kftya" => Self::Krtya,
+            _ => return Err(ParseError::new("Could not parse krtpratyaya")),
+        };
+        Ok(val)
+    }
+}
 
 /// The *pada* and *prayoga* of the *tiṅanta*. Roughly, these correspond respectively to the
 /// concepts of "voice" and "thematic relation."
@@ -374,6 +439,57 @@ impl Pratipadika {
         match &self {
             Pratipadika::Basic { text, .. } => text.clone(),
             Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
+        }
+    }
+    pub fn to_str(&self) -> String {
+        match self {
+            Pratipadika::Basic { text, lingas } => {
+                let lingas = lingas
+                    .iter()
+                    .map(Linga::to_str)
+                    .collect::<Vec<_>>()
+                    .join(",");
+                format!("basic:text={text}|lingas={lingas}")
+            }
+            Pratipadika::Krdanta { dhatu, pratyaya } => {
+                format!("krdanta:dhatu={}|pratyaya={}", dhatu.0, pratyaya.to_str())
+            }
+        }
+    }
+}
+
+impl FromStr for Pratipadika {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Some(s) = s.strip_prefix("basic:") {
+            let kv = FeatureMap::from_str(s);
+            let text = kv.get("text")?.clone();
+
+            let linga_str = kv.get("lingas")?;
+            let lingas = if linga_str.is_empty() {
+                Vec::new()
+            } else {
+                linga_str
+                    .split(',')
+                    .map(Linga::from_str)
+                    .collect::<Result<Vec<_>, _>>()?
+            };
+
+            Ok(Pratipadika::Basic { text, lingas })
+        } else if let Some(s) = s.strip_prefix("krdanta:") {
+            let kv = FeatureMap::from_str(s);
+
+            let dhatu = kv.get("dhatu")?.clone();
+            let pratyaya = (kv.get("pratyaya")?).parse()?;
+
+            Ok(Pratipadika::Krdanta {
+                dhatu: Dhatu(dhatu),
+                pratyaya,
+            })
+        } else {
+            Err(ParseError::new(&format!(
+                "Could not parse string as pratipadika: `{s}`"
+            )))
         }
     }
 }
@@ -450,12 +566,12 @@ pub enum Pada {
     /// One or more prefixes.
     /// NOTE: we will likely remove this type in the future.
     PrefixGroup(String),
-    /// A basic *avyaya* (indeclinable).
-    Avyaya(Avyaya),
     /// A *subanta* (nominal, excluding *avyaya*s)
     Subanta(Subanta),
     /// A *tiṅanta* (verb).
     Tinanta(Tinanta),
+    /// A basic *avyaya* (indeclinable).
+    Avyaya(Avyaya),
 }
 
 impl Pada {
@@ -484,15 +600,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_tinanta_lemma() {
-        let p = Pada::Tinanta(Tinanta {
+    fn test_pratipadika_serde_with_basic() -> Result<(), Box<dyn Error>> {
+        let p = Pratipadika::Basic {
+            text: "agni".to_string(),
+            lingas: vec![Linga::Pum],
+        };
+        assert_eq!(p, p.to_str().parse()?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_pratipadika_serde_with_krdanta() -> Result<(), Box<dyn Error>> {
+        let p = Pratipadika::Krdanta {
             dhatu: Dhatu("gam".to_string()),
-            purusha: Purusha::Prathama,
-            vacana: Vacana::Eka,
-            lakara: Lakara::Lat,
-            pada: PadaPrayoga::Parasmaipada,
-        });
-        assert_eq!(p.lemma(), "gam");
+            pratyaya: KrtPratyaya::Shatr,
+        };
+        assert_eq!(p, p.to_str().parse()?);
+        Ok(())
     }
 
     #[test]
@@ -521,6 +645,18 @@ mod tests {
             vacana: Vacana::Eka,
             vibhakti: Vibhakti::V2,
             is_purvapada: false,
+        });
+        assert_eq!(p.lemma(), "gam");
+    }
+
+    #[test]
+    fn test_tinanta_lemma() {
+        let p = Pada::Tinanta(Tinanta {
+            dhatu: Dhatu("gam".to_string()),
+            purusha: Purusha::Prathama,
+            vacana: Vacana::Eka,
+            lakara: Lakara::Lat,
+            pada: PadaPrayoga::Parasmaipada,
         });
         assert_eq!(p.lemma(), "gam");
     }

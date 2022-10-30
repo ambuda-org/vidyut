@@ -40,7 +40,6 @@ pub fn standardize(t: &Token) -> Result<ParsedWord> {
             if t.features.contains_key("VerbForm") || t.features.contains_key("Gender") {
                 parse_participle(t)?
             } else {
-                // println!("{:?}", t);
                 parse_verb(t)?
             }
         }
