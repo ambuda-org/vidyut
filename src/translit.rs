@@ -69,7 +69,7 @@ pub fn to_slp1(input: &str) -> String {
             }
             None => {
                 // Use the original character as-is.
-                ret += &String::from_iter(&chars[i..i + 1]);
+                ret += &String::from_iter(&chars[i..=i]);
                 i += 1;
             }
         }

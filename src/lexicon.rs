@@ -1,8 +1,37 @@
-//! A highly memory-efficient Sanskrit dictionary.
+//! A memory-efficient Sanskrit lexicon with basic support for searching prefixes.
 //!
-//! As of this comment, the FST lexicon stores more than 11 million words in about 20 megabytes.
+//!
+//! Implementation
+//! --------------
+//! We implement our lexicon as a finite state transducer using the `fst` crate. Finite state
+//! transducers are a generalization of tries in that they support both shared prefixes and shared
+//! suffixes.
+//!
+//! The `fst` crate that we use internally has two important restrictions that affect the design of
+//! our lexicon:
+//!
+//! 1. Each key can be stored at most once.
+//! 2. Each value must be an unsigned 64 bit integer.
+//!
+//! To work around (1), we mark synonyms by appending an extra `u8` tag to each duplicated key. For
+//! example, we would encode two instances of `gacCati` with the keys `gacCati` and `gacCati\u{1}`.
+//! To avoid confusion with ASCII strings, we limit the value of this tag to at most 64. Thus we
+//! can store at most 64 duplicates of a given string.
+//!
+//! To work around (2), we pack the semantics of Sanskrit words into integers with our
+//! `vidyut::packing` crate. Since strings are difficult to pack, we instead store them in a lookup
+//! table and pack their integer ID instead. For details, see `packing::Unpacker`.
+//!
+//!
+//! Efficiency
+//! ----------
+//!
+//! According to our benchmarks, an average Sanskrit word can be retrieved in around 500ns and is
+//! roughly 1.5x slower than a default `HashMap`. Our production lexicon stores more than 20
+//! million words in around 31MB of data with an average storage cost of 1.5 bytes per word. Of
+//! course, the specific storage cost will vary depending on the words in the input list.
 use crate::packing::*;
-use crate::semantics::*;
+use crate::semantics::Pada;
 use fst::map::Stream;
 use fst::raw::Output;
 use fst::{Map, MapBuilder};
@@ -13,6 +42,7 @@ use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
 
+/// A highly memory-efficient Sanskrit lexicon.
 pub struct Lexicon {
     /// The underlying FST object.
     fst: Map<Vec<u8>>,
@@ -41,25 +71,27 @@ impl Paths {
 }
 
 impl Lexicon {
-    pub fn load_from(base_path: &Path) -> Result<Lexicon, Box<dyn Error>> {
+    /// Reads the lexicon from the given `base_path`.
+    pub fn load_from(base_path: &Path) -> Result<Self, Box<dyn Error>> {
         let paths = Paths {
             base: base_path.to_path_buf(),
         };
 
-        let fst = Map::new(std::fs::read(paths.fst()).unwrap())?;
+        let fst = Map::new(std::fs::read(paths.fst())?)?;
         let unpacker = Unpacker::from_data(
             PratipadikaTable::read(&paths.pratipadikas())?,
             DhatuTable::read(&paths.dhatus())?,
         );
-        Ok(Lexicon { fst, unpacker })
+        Ok(Self { fst, unpacker })
     }
 
+    /// Returns whether this lexicon contains at least one word with exact value `key`.
     #[inline]
     pub fn contains_key(&self, key: &str) -> bool {
         self.fst.contains_key(key)
     }
 
-    /// Checks whether the lexicon contains *any* words that start with this prefix.
+    /// Returns whether the lexicon contains at least one word that starts with `key`.
     ///
     /// Prefix checks are slightly faster than ordinary key lookups. I also tried implementing this
     /// with `fst::Stream`, but that approach was much slower than just accessing the FST directly,
@@ -81,17 +113,11 @@ impl Lexicon {
         true
     }
 
-    #[inline]
-    pub fn get_first(&self, key: &str) -> Option<PackedPada> {
-        self.fst
-            .get(key)
-            .map(|val| PackedPada::from_u32(val as u32))
-    }
-
     pub fn unpack(&self, p: &PackedPada) -> Result<Pada, Box<dyn Error>> {
         self.unpacker.unpack(p)
     }
 
+    /// Get all resuts for the given `key`.
     #[inline]
     pub fn get_all(&self, key: &str) -> Vec<PackedPada> {
         // Adapted from `FstRef::get`
@@ -109,15 +135,12 @@ impl Lexicon {
                 }
             }
         }
-        if !node.is_final() {
-            Vec::new()
-        } else {
+        if node.is_final() {
             let mut ret = vec![out.cat(node.final_output())];
 
             // first ASCII letter is 65 (01000001)
-            for counter in 1..65 {
-                let b = counter as u8;
-                match node.find_input(b) {
+            for counter in 1_u8..65 {
+                match node.find_input(counter) {
                     None => break,
                     Some(i) => {
                         let t = node.transition(i);
@@ -136,6 +159,8 @@ impl Lexicon {
             ret.iter()
                 .map(|val| PackedPada::from_u32(val.value() as u32))
                 .collect()
+        } else {
+            Vec::new()
         }
     }
 
@@ -145,24 +170,30 @@ impl Lexicon {
     }
 }
 
-pub struct LexiconBuilder {
+/// Builder for a `Lexicon`.
+///
+/// Memory usage is linear in the number of unique lemmas (`Dhatu`s or `Pratipadika`s).
+pub struct Builder {
     seen_keys: HashMap<String, usize>,
     fst_builder: MapBuilder<io::BufWriter<File>>,
     packer: Packer,
     paths: Paths,
 }
 
-impl LexiconBuilder {
-    pub fn new(base_path: &Path) -> Result<LexiconBuilder, Box<dyn Error>> {
+impl Builder {
+    /// Creates a new builder whose output will be written to `base_path`.
+    ///
+    /// If `base_path` does not exist, the builder will create it.
+    pub fn new(base_path: &Path) -> Result<Self, Box<dyn Error>> {
         std::fs::create_dir_all(base_path)?;
         let paths = Paths {
             base: base_path.to_path_buf(),
         };
 
-        let writer = io::BufWriter::new(File::create(paths.fst()).unwrap());
-        Ok(LexiconBuilder {
+        let writer = io::BufWriter::new(File::create(paths.fst())?);
+        Ok(Self {
             seen_keys: HashMap::new(),
-            fst_builder: MapBuilder::new(writer).unwrap(),
+            fst_builder: MapBuilder::new(writer)?,
             packer: Packer::new(),
             paths,
         })
@@ -199,7 +230,7 @@ impl LexiconBuilder {
             key.to_string()
         };
 
-        let value = self.packer.pack(value).to_u32() as u64;
+        let value = u64::from(self.packer.pack(value).to_u32());
 
         self.fst_builder.insert(&final_key, value)?;
         Ok(())

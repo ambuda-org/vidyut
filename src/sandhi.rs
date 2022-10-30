@@ -5,7 +5,6 @@ use crate::sounds;
 use lazy_static::lazy_static;
 use multimap::MultiMap;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 use std::cmp;
 use std::error::Error;
 use std::path::Path;
@@ -48,20 +47,19 @@ impl Split {
     }
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct Sandhi {
     map: MultiMap<String, (String, String)>,
     len_longest_key: usize,
 }
 
 impl Sandhi {
-    pub fn from_map(map: SandhiMap) -> Sandhi {
+    pub fn from_map(map: SandhiMap) -> Self {
         let len_longest_key = map
             .keys()
             .map(|x| x.len())
             .max()
             .expect("Sandhi map is empty");
-        Sandhi {
+        Self {
             map,
             len_longest_key,
         }

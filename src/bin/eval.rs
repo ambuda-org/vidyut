@@ -1,4 +1,4 @@
-//! Evaluate our parser against some standard input data.
+//! Evaluate our segmenter against some standard input data.
 
 use clap::{Arg, ArgAction, Command};
 use glob::glob;
@@ -9,7 +9,7 @@ use std::path::Path;
 use vidyut::conllu::Reader;
 use vidyut::dcs;
 use vidyut::io;
-use vidyut::parsing::{ParsedWord, Parser};
+use vidyut::segmenting::{Word, Segmenter};
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
 
@@ -51,18 +51,18 @@ impl AddAssign for Stats {
 /// We use codes for our comparison because the DCS data generally contains a subset of the
 /// information we have in our `Pada` enum. So, this code is a simple way to convert both
 /// Vidyut semantics and DCS semantics into a coarser space.
-fn as_code(w: &ParsedWord) -> String {
+fn as_code(w: &Word) -> String {
     match &w.semantics {
         Pada::Subanta(s) => {
             format!(
                 "n-{}-{}-{}",
-                s.linga.to_str(),
-                s.vibhakti.to_str(),
-                s.vacana.to_str()
+                s.linga.as_str(),
+                s.vibhakti.as_str(),
+                s.vacana.as_str()
             )
         }
         Pada::Tinanta(s) => {
-            format!("v-{}-{}", s.purusha.to_str(), s.vacana.to_str())
+            format!("v-{}-{}", s.purusha.as_str(), s.vacana.as_str())
         }
         Pada::None => "_".to_string(),
         Pada::Avyaya(a) => {
@@ -81,12 +81,12 @@ fn as_code(w: &ParsedWord) -> String {
 }
 
 /// Pretty-prints a parsed sentence by displaying its lemmas and parse codes.
-fn pretty_print(parse: &[ParsedWord], show_parses: &bool) -> String {
+fn pretty_print(parse: &[Word], show_semantics: &bool) -> String {
     let mut s = String::new();
 
     for w in parse {
         let code = as_code(w);
-        if *show_parses {
+        if *show_semantics {
             s += &format!("{} ({})", w.lemma(), code);
         } else {
             s += &w.lemma();
@@ -98,7 +98,7 @@ fn pretty_print(parse: &[ParsedWord], show_parses: &bool) -> String {
 }
 
 /// Compares two parses and computes summary statistics for the comparison.
-fn eval_sentence(vidyut_parses: &[ParsedWord], dcs_parses: &[ParsedWord]) -> Stats {
+fn eval_sentence(vidyut_parses: &[Word], dcs_parses: &[Word]) -> Stats {
     let mut stats = Stats::new();
     stats.num_sentences = 1;
 
@@ -130,21 +130,21 @@ fn eval_sentence(vidyut_parses: &[ParsedWord], dcs_parses: &[ParsedWord]) -> Sta
 }
 
 /// Computes summary statistics for the given file.
-fn eval_input_path(path: &Path, parser: &Parser, show_parses: &bool) -> Result<Stats> {
+fn eval_input_path(path: &Path, segmenter: &Segmenter, show_semantics: &bool) -> Result<Stats> {
     let reader = Reader::from_path(path)?;
     let mut stats = Stats::new();
 
     for sentence in reader {
         let slp1_text = to_slp1(&sentence.text);
-        let vidyut_parse = parser.parse(&slp1_text);
+        let vidyut_parse = segmenter.segment(&slp1_text);
 
-        let dcs_parse: Result<Vec<ParsedWord>> =
+        let dcs_parse: Result<Vec<Word>> =
             sentence.tokens.iter().map(dcs::standardize).collect();
         let dcs_parse = dcs_parse?;
 
         let sentence_stats = eval_sentence(&vidyut_parse, &dcs_parse);
 
-        let ok = if *show_parses {
+        let ok = if *show_semantics {
             sentence_stats.num_lemma_and_parse_matches == 1
         } else {
             sentence_stats.num_lemma_matches == 1
@@ -154,8 +154,8 @@ fn eval_input_path(path: &Path, parser: &Parser, show_parses: &bool) -> Result<S
             println!("[  OK  ]: {}", &slp1_text);
         } else {
             println!("[ FAIL ]: {}", &slp1_text);
-            println!("- {}", pretty_print(&vidyut_parse, show_parses));
-            println!("- {}", pretty_print(&dcs_parse, show_parses));
+            println!("- {}", pretty_print(&vidyut_parse, show_semantics));
+            println!("- {}", pretty_print(&dcs_parse, show_semantics));
         }
         stats += sentence_stats
     }
@@ -164,22 +164,22 @@ fn eval_input_path(path: &Path, parser: &Parser, show_parses: &bool) -> Result<S
 }
 
 /// Computes summary statistics for the given glob patterns.
-fn eval_patterns(patterns: Vec<&String>, parser: &Parser, show_parses: &bool) -> Result<Stats> {
+fn eval_patterns(patterns: Vec<&String>, segmenter: &Segmenter, show_semantics: &bool) -> Result<Stats> {
     let mut stats = Stats::new();
     for pattern in patterns {
         let paths = glob(pattern).expect("Glob pattern is invalid").flatten();
         for path in paths {
-            stats += eval_input_path(&path, parser, show_parses)?;
+            stats += eval_input_path(&path, segmenter, show_semantics)?;
         }
     }
     Ok(stats)
 }
 
 /// Runs an end-to-end evaluation over the given glob patterns.
-fn run_eval(patterns: Vec<&String>, show_parses: bool) -> Result<()> {
+fn run_eval(patterns: Vec<&String>, show_semantics: bool) -> Result<()> {
     let paths = io::DataPaths::from_dir(Path::new("data"));
-    let ctx = Parser::from_paths(&paths)?;
-    let stats = eval_patterns(patterns, &ctx, &show_parses)?;
+    let ctx = Segmenter::from_paths(&paths)?;
+    let stats = eval_patterns(patterns, &ctx, &show_semantics)?;
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);
     let lemma_pct = pct(stats.num_lemma_matches, stats.num_sentences);
@@ -215,8 +215,8 @@ fn main() {
     let matches = Command::new("Vidyut model eval")
         .arg(Arg::new("paths").long("paths").num_args(1..))
         .arg(
-            Arg::new("show-parses")
-                .long("show-parses")
+            Arg::new("show-semantics")
+                .long("show-semantics")
                 .action(ArgAction::SetTrue),
         )
         .get_matches();
@@ -226,9 +226,9 @@ fn main() {
         .map(|v| v.collect::<Vec<_>>())
         .unwrap();
 
-    let show_parses = matches.get_flag("show-parses");
+    let show_semantics = matches.get_flag("show-semantics");
 
-    if let Err(e) = run_eval(paths, show_parses) {
+    if let Err(e) = run_eval(paths, show_semantics) {
         println!("{}", e);
         std::process::exit(1);
     }

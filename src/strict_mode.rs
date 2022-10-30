@@ -1,11 +1,13 @@
-use crate::parsing::ParsedPhrase;
+//! Heuristics for validating segmented candidates.
+
+use crate::segmenting::Phrase;
 /// Simple hand-coded rules to avoid overgenerating.
 use crate::sandhi::Split;
 use crate::semantics::*;
 use crate::sounds;
 
-/// Returns whether the given word semantics are invalid for the current parse.
-pub fn is_valid_word(cur: &ParsedPhrase, split: &Split, semantics: &Pada) -> bool {
+/// Returns whether the given word semantics are invalid for the current solution.
+pub fn is_valid_word(cur: &Phrase, split: &Split, semantics: &Pada) -> bool {
     if let Pada::Subanta(s) = &semantics {
         if_purvapada_then_not_chunk_end(split, s)
             && if_ac_pada_then_not_hal(split, s)
@@ -41,7 +43,7 @@ fn if_ac_pada_then_not_hal(split: &Split, s: &Subanta) -> bool {
 
 // Require that subantas use the endings that match their declared linga.
 // Exception: words in a compound, since these might be bahuvrihi compounds.
-fn if_not_in_compound_then_linga_match(cur: &ParsedPhrase, s: &Subanta) -> bool {
+fn if_not_in_compound_then_linga_match(cur: &Phrase, s: &Subanta) -> bool {
     let in_compound = match cur.words.last() {
         Some(word) => match &word.semantics {
             Pada::Subanta(s) => s.is_purvapada,
@@ -50,14 +52,14 @@ fn if_not_in_compound_then_linga_match(cur: &ParsedPhrase, s: &Subanta) -> bool 
         None => false,
     };
 
-    if !in_compound {
+    if in_compound {
+        true
+    } else {
         match &s.pratipadika {
             Pratipadika::Basic { text: _, lingas } => lingas.contains(&s.linga),
             // Otherwise, any linga is allowed.
-            _ => true,
+            Pratipadika::Krdanta { .. } => true,
         }
-    } else {
-        true
     }
 }
 
@@ -68,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_is_valid_word() {
-        let cur = ParsedPhrase::new("tatra".to_string());
+        let cur = Phrase::new("tatra".to_string());
         let split = Split {
             first: "tatra".to_string(),
             second: "".to_string(),
@@ -87,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_is_valid_word_with_invalid() {
-        let cur = ParsedPhrase::new("grAmesa".to_string());
+        let cur = Phrase::new("grAmesa".to_string());
         let split = Split {
             first: "grAme".to_string(),
             second: "sa".to_string(),

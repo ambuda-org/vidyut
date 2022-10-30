@@ -1,10 +1,14 @@
 [package]
 name = "vidyut"
-description = "A lightning-fast Sanskrit parser"
-homepage = "https://ambuda.org"
 version = "0.1.0"
+authors = ["Arun Prasad <ambuda.library@gmail.com>"]
+description = "A lightning-fast Sanskrit toolkit"
+homepage = "https://github.com/ambuda-org/vidyut"
+repository = "https://github.com/ambuda-org/vidyut"
+categories = ["text-processing"]
+keywords = ["sanskrit"]
+license = "MIT"
 edition = "2021"
-default-run = "vidyut"
 
 [profile.release]
 # Enable debug symbols so that we can profile release code.
@@ -19,7 +23,6 @@ log = "0.4.17"
 multimap = "0.8.3"
 priority-queue = "1.2.3"
 regex = "1.6.0"
-serde = { version = "1.0.145", features = ["derive"] }
 glob = "0.3.0"
 fst = "0.4.7"
 modular-bitfield = "0.11.2"

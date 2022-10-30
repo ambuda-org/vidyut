@@ -1,4 +1,4 @@
-//! Splits Sanskrit phrases into separate words with their semantics.
+//! Segments Sanskrit phrases into separate words with their morphological analysis.
 use lazy_static::lazy_static;
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
@@ -16,33 +16,33 @@ use crate::strict_mode;
 
 /// Represnts a Sanskrit word and its semantics.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ParsedWord {
+pub struct Word {
     pub text: String,
     pub semantics: Pada,
 }
 
-impl ParsedWord {
+impl Word {
     /// Get the word's root/stem.
     pub fn lemma(&self) -> String {
         self.semantics.lemma()
     }
 }
 
-/// Represents an in-progress parse of a phrase.
+/// Represents an in-progress segment of a phrase.
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct ParsedPhrase {
+pub struct Phrase {
     /// The words that we've recognized so far.
-    pub words: Vec<ParsedWord>,
-    /// The text we still need to parse.
+    pub words: Vec<Word>,
+    /// The text we still need to process.
     pub remaining: String,
-    /// The score associated with this in-progress parse.
+    /// The score associated with this in-progress solution.
     pub score: i32,
 }
 
-impl ParsedPhrase {
+impl Phrase {
     /// Create a new state.
-    pub fn new(text: String) -> Self {
-        ParsedPhrase {
+    pub const fn new(text: String) -> Self {
+        Self {
             words: Vec::new(),
             remaining: text,
             // log_10(1) = 0
@@ -51,30 +51,34 @@ impl ParsedPhrase {
     }
 }
 
-/// A Sanskrit parser.
-pub struct Parser {
-    /// Sandhi rules. The parser uses these rules to exhaustively split a Sanskrit expression and
-    /// find candidate words.
+/// A Sanskrit segmenter.
+pub struct Segmenter {
+    /// Sandhi rules. The segmenter uses these rules to exhaustively split a Sanskrit expression
+    /// and find candidate words.
     sandhi: Sandhi,
-    /// A lexicon of Sanskrit words. The parser uses this lexicon to examine a Sanskrit substring
-    /// and test whether or not it is a valid Sanskrit word.
+    /// A lexicon of Sanskrit words. The segmenter uses this lexicon to examine a Sanskrit
+    /// substring and test whether or not it is a valid Sanskrit word.
     lexicon: Lexicon,
-    /// A scoring model. The parser uses this model to score candidate solutions and prioritize
+    /// A scoring model. The segmenter uses this model to score candidate solutions and prioritize
     /// solutions that are the most promising.
     model: Model,
 }
 
-impl Parser {
+impl Segmenter {
+    /// Creates a segmenter from the given input data.
     pub fn from_paths(paths: &io::DataPaths) -> Result<Self, Box<dyn Error>> {
-        Ok(Parser {
+        Ok(Segmenter {
             sandhi: Sandhi::from_csv(&paths.sandhi_rules).expect("Could not read sandhi rules."),
             lexicon: Lexicon::load_from(&paths.fst_lexicon).expect("Could not read lexicon."),
             model: Model::from_file(&paths.lemma_counts).expect("Could not read lemma counts."),
         })
     }
 
-    pub fn parse(&self, raw_text: &str) -> Vec<ParsedWord> {
-        parse(raw_text, self).expect("Is OK")
+    /// Segments the given text.
+    ///
+    /// `raw_text` should be an SLP1 string.
+    pub fn segment(&self, raw_text: &str) -> Vec<Word> {
+        segment(raw_text, self).expect("Is OK")
     }
 }
 
@@ -90,15 +94,15 @@ fn normalize(text: &str) -> String {
 fn analyze_pada(
     text: &str,
     split: &sandhi::Split,
-    parser: &Parser,
+    segmenter: &Segmenter,
     cache: &mut HashMap<String, Vec<Pada>>,
 ) -> Result<Vec<Pada>, Box<dyn Error>> {
     if !cache.contains_key(text) {
-        let res: Result<Vec<Pada>, _> = parser
+        let res: Result<Vec<Pada>, _> = segmenter
             .lexicon
             .get_all(text)
             .iter()
-            .map(|p| parser.lexicon.unpack(p))
+            .map(|p| segmenter.lexicon.unpack(p))
             .collect();
         let mut res = res?;
 
@@ -109,11 +113,11 @@ fn analyze_pada(
 
         cache.insert(text.to_string(), res);
     }
-    Ok(cache.get(text).unwrap().to_vec())
+    Ok(cache.get(text).unwrap().clone())
 }
 
 #[allow(dead_code)]
-fn debug_print_phrase(p: &ParsedPhrase) {
+fn debug_print_phrase(p: &Phrase) {
     if log_enabled!(Level::Debug) {
         for word in &p.words {
             debug!("- {} {:?}", word.text, word.semantics);
@@ -123,12 +127,12 @@ fn debug_print_phrase(p: &ParsedPhrase) {
 }
 
 #[allow(dead_code)]
-fn debug_print_stack(pq: &PriorityQueue<ParsedPhrase, i32>) {
+fn debug_print_stack(pq: &PriorityQueue<Phrase, i32>) {
     if log_enabled!(Level::Debug) {
         debug!("Stack:");
 
         // The queue isn't sorted by default. So, sort from highest to lowest priotity.
-        let mut words: Vec<(&ParsedPhrase, &i32)> = pq.iter().collect();
+        let mut words: Vec<(&Phrase, &i32)> = pq.iter().collect();
         words.sort_by(|x, y| y.1.cmp(x.1));
 
         for (i, (s, score)) in words.iter().enumerate() {
@@ -140,7 +144,7 @@ fn debug_print_stack(pq: &PriorityQueue<ParsedPhrase, i32>) {
 }
 
 #[allow(dead_code)]
-fn debug_print_viterbi(v: &HashMap<String, HashMap<String, ParsedPhrase>>) {
+fn debug_print_viterbi(v: &HashMap<String, HashMap<String, Phrase>>) {
     if log_enabled!(Level::Debug) {
         debug!("Viterbi:");
         for (key1, entries) in v.iter() {
@@ -153,23 +157,23 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, ParsedPhrase>>) {
     }
 }
 
-/// Parse the given text.
+/// Segments the given text.
 ///
 /// # Arguments:
 /// - `raw_text` - a text string in SLP1.
 ///
-/// The parser makes a best effort to understand the input as valid Sanskrit text, even if it
+/// The segmenter makes a best effort to understand the input as valid Sanskrit text, even if it
 /// contains typos or other content that is not valid Sanskrit.
-fn parse(raw_text: &str, ctx: &Parser) -> Result<Vec<ParsedWord>, Box<dyn Error>> {
+fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();
 
     // viterbi_cache[remainder][state] = the best result that ends with $state and has $remainder
-    // text remaining in the parse.
-    let mut viterbi_cache: HashMap<String, HashMap<String, ParsedPhrase>> = HashMap::new();
+    // text remaining in the input.
+    let mut viterbi_cache: HashMap<String, HashMap<String, Phrase>> = HashMap::new();
 
-    let initial_state = ParsedPhrase::new(text);
+    let initial_state = Phrase::new(text);
     let score = initial_state.score;
     pq.push(initial_state, score);
 
@@ -191,13 +195,13 @@ fn parse(raw_text: &str, ctx: &Parser) -> Result<Vec<ParsedWord>, Box<dyn Error>
                     continue;
                 }
 
-                let mut new = ParsedPhrase {
+                let mut new = Phrase {
                     words: cur.words.clone(),
                     remaining: second.clone(),
                     // HACK: this is buggy -- scoring based on cur score set here?
                     score: cur_score,
                 };
-                new.words.push(ParsedWord {
+                new.words.push(Word {
                     text: first.clone(),
                     semantics,
                 });

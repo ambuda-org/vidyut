@@ -6,11 +6,11 @@ use std::path::Path;
 use std::process;
 
 use vidyut::io;
-use vidyut::parsing::Parser;
+use vidyut::segmenting::Segmenter;
 
-fn parse_text(text: &str, parser: &Parser) {
+fn parse_text(text: &str, segmenter: &Segmenter) {
     info!("Beginning parse: \"{}\"", text);
-    let padas = parser.parse(text);
+    let padas = segmenter.segment(text);
     if padas.is_empty() {
         println!("No solutions found for: {}.", text);
     } else {
@@ -26,12 +26,12 @@ fn parse_text(text: &str, parser: &Parser) {
     }
 }
 
-fn parse_document(path: &str, parser: &Parser) {
+fn parse_document(path: &str, segmenter: &Segmenter) {
     info!("Beginning parse of document: \"{}\"", path);
     match fs::read_to_string(path) {
         Ok(text) => {
             for block in text.split("\n\n") {
-                parse_text(block, parser)
+                parse_text(block, segmenter)
             }
         }
         Err(err) => {
@@ -59,8 +59,8 @@ fn main() {
     let data_paths = io::DataPaths::from_dir(Path::new("data"));
 
     info!("Loading raw data from disk.");
-    let parser = Parser::from_paths(&data_paths);
-    let parser = match parser {
+    let segmenter = Segmenter::from_paths(&data_paths);
+    let segmenter = match segmenter {
         Ok(data) => data,
         Err(err) => {
             println!("{}", err);
@@ -69,9 +69,9 @@ fn main() {
     };
 
     if let Some(path) = input_file {
-        parse_document(path, &parser);
+        parse_document(path, &segmenter);
     } else if let Some(text) = text {
-        parse_text(text, &parser);
+        parse_text(text, &segmenter);
     } else {
         println!("You must supply some input.");
         process::exit(1);

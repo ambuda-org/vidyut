@@ -78,7 +78,7 @@ pub enum Linga {
 }
 
 impl Linga {
-    pub fn to_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             Linga::Pum => "m",
             Linga::Stri => "f",
@@ -119,7 +119,7 @@ pub enum Vacana {
 }
 
 impl Vacana {
-    pub fn to_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             Vacana::None => "_",
             Vacana::Eka => "s",
@@ -171,7 +171,7 @@ pub enum Vibhakti {
 }
 
 impl Vibhakti {
-    pub fn to_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             Vibhakti::V1 => "1",
             Vibhakti::V2 => "2",
@@ -220,7 +220,7 @@ pub enum Purusha {
 }
 
 impl Purusha {
-    pub fn to_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             Purusha::None => "_",
             Purusha::Prathama => "3",
@@ -355,7 +355,7 @@ pub enum KrtPratyaya {
     Krtya,
 }
 impl KrtPratyaya {
-    pub fn to_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             Self::None => "_",
             Self::Tumun => "tumun",
@@ -441,18 +441,18 @@ impl Pratipadika {
             Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
         }
     }
-    pub fn to_str(&self) -> String {
+    pub fn as_str(&self) -> String {
         match self {
             Pratipadika::Basic { text, lingas } => {
                 let lingas = lingas
                     .iter()
-                    .map(Linga::to_str)
+                    .map(Linga::as_str)
                     .collect::<Vec<_>>()
                     .join(",");
                 format!("basic:text={text}|lingas={lingas}")
             }
             Pratipadika::Krdanta { dhatu, pratyaya } => {
-                format!("krdanta:dhatu={}|pratyaya={}", dhatu.0, pratyaya.to_str())
+                format!("krdanta:dhatu={}|pratyaya={}", dhatu.0, pratyaya.as_str())
             }
         }
     }
@@ -605,7 +605,7 @@ mod tests {
             text: "agni".to_string(),
             lingas: vec![Linga::Pum],
         };
-        assert_eq!(p, p.to_str().parse()?);
+        assert_eq!(p, p.as_str().parse()?);
         Ok(())
     }
 
@@ -615,7 +615,7 @@ mod tests {
             dhatu: Dhatu("gam".to_string()),
             pratyaya: KrtPratyaya::Shatr,
         };
-        assert_eq!(p, p.to_str().parse()?);
+        assert_eq!(p, p.as_str().parse()?);
         Ok(())
     }
 

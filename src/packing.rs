@@ -111,7 +111,7 @@ impl PratipadikaTable {
         let data: String = self
             .0
             .iter()
-            .map(Pratipadika::to_str)
+            .map(Pratipadika::as_str)
             .fold(String::new(), |x, y| x + &y + "\n");
 
         std::fs::write(out, data)?;
@@ -128,6 +128,21 @@ enum PartOfSpeech {
     Subanta,
     Tinanta,
     Avyaya,
+}
+
+/// Semantics for an unknown term.
+#[bitfield(bits = 30)]
+pub struct PackedNone {
+    #[skip]
+    unused: B30,
+}
+impl PackedNone {
+    pub fn pack() -> Self {
+        Self::new()
+    }
+    pub fn unpack(&self) -> Pada {
+        Pada::None
+    }
 }
 
 /// Semantics for a *subanta*.

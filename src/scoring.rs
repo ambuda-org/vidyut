@@ -1,12 +1,10 @@
 //! Scores a parse state (higher scores are better).
 
-use crate::parsing::ParsedPhrase;
-use serde::{Deserialize, Serialize};
+use crate::segmenting::Phrase;
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::Path;
 
-#[derive(Serialize, Deserialize)]
 pub struct Model {
     log_probs: HashMap<String, f32>,
     /// The log probability of a token not seen anywhere in the training data.
@@ -15,7 +13,7 @@ pub struct Model {
 
 /// Calculates the log probability given some numerator and denominator.
 fn log_prob(num: f64, denom: i32) -> f32 {
-    let prob = num / (denom as f64);
+    let prob = num / f64::from(denom);
     prob.log10() as f32
 }
 
@@ -30,7 +28,7 @@ impl Model {
         let log_probs: HashMap<_, f32> = counts
             .iter()
             .map(|(k, c)| {
-                let smoothed_v = log_prob(*c as f64 + eps, n + num_keys);
+                let smoothed_v = log_prob(f64::from(*c) + eps, n + num_keys);
                 (k.clone(), smoothed_v)
             })
             .collect();
@@ -61,7 +59,7 @@ impl Model {
     /// We return our float score as an i32 because floats aren't hashed by default in Rust. To
     /// represent "floatness," multiply the float score by 100 so that the ones and tens places
     /// represent the tenths and hundredths places, respectively.
-    pub fn score(&self, phrase: &ParsedPhrase) -> i32 {
+    pub fn score(&self, phrase: &Phrase) -> i32 {
         let delta = match phrase.words.last() {
             Some(last) => {
                 let lemma = last.lemma();

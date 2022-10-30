@@ -1,6 +1,6 @@
 //! Utility functions for reading DCS data.
 use crate::conllu::{Token, TokenFeatures};
-use crate::parsing::ParsedWord;
+use crate::segmenting::Word;
 use crate::semantics::*;
 use crate::translit::to_slp1;
 use std::error::Error;
@@ -27,7 +27,7 @@ impl Error for ConversionError {
 }
 
 /// Convert DCS semantics to Vidyut semantics.
-pub fn standardize(t: &Token) -> Result<ParsedWord> {
+pub fn standardize(t: &Token) -> Result<Word> {
     let semantics = match t.upos.as_str() {
         "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => parse_subanta(t)?,
         "CCONJ" | "SCONJ" | "ADV" => Pada::Avyaya(Avyaya {
@@ -47,7 +47,7 @@ pub fn standardize(t: &Token) -> Result<ParsedWord> {
         _ => panic!("Unknown upos `{}`", t.upos),
     };
 
-    Ok(ParsedWord {
+    Ok(Word {
         // The original form is not consistently present in the DCS data, so just use the lemma.
         text: standardize_lemma(&t.lemma),
         semantics,

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use vidyut::conllu::Reader;
 use vidyut::dcs;
-use vidyut::parsing::ParsedWord;
+use vidyut::segmenting::Word;
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
 
@@ -47,9 +47,9 @@ const INITIAL_STATE: &str = "START";
 fn subanta_state(s: &Subanta) -> String {
     format!(
         "n-{}-{}-{}",
-        s.linga.to_str(),
-        s.vibhakti.to_str(),
-        s.vacana.to_str()
+        s.linga.as_str(),
+        s.vibhakti.as_str(),
+        s.vacana.as_str()
     )
 }
 
@@ -58,7 +58,7 @@ fn subanta_state(s: &Subanta) -> String {
 /// The state describes purusha and vacana, which are sufficient for our current needs.
 fn tinanta_state(t: &Tinanta) -> String {
     // "v" for verb
-    format!("v-{}-{}", t.purusha.to_str(), t.vacana.to_str())
+    format!("v-{}-{}", t.purusha.as_str(), t.vacana.as_str())
 }
 
 /// Create a state label for the given avyaya.
@@ -72,7 +72,7 @@ fn unknown_state() -> String {
 }
 
 /// Create a state label for the given word.
-fn word_state(w: &ParsedWord) -> String {
+fn word_state(w: &Word) -> String {
     match &w.semantics {
         Pada::Subanta(s) => subanta_state(s),
         Pada::Tinanta(t) => tinanta_state(t),
@@ -82,7 +82,7 @@ fn word_state(w: &ParsedWord) -> String {
     }
 }
 
-fn process_sentence(sentence: &[ParsedWord], s: &mut Statistics) {
+fn process_sentence(sentence: &[Word], s: &mut Statistics) {
     let mut prev_state = INITIAL_STATE.to_string();
     for word in sentence {
         let cur_state = word_state(word);

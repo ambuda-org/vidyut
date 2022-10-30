@@ -10,7 +10,7 @@ use std::path::Path;
 use std::process;
 
 use vidyut::io;
-use vidyut::lexicon::LexiconBuilder;
+use vidyut::lexicon::Builder;
 use vidyut::old_lexicon::PadaMap;
 use vidyut::semantics::*;
 
@@ -84,7 +84,7 @@ fn run(args: Args) -> Result<()> {
     padas.sort_by(|x, y| x.0.cmp(&y.0));
 
     info!("Adding terms to FST builder.");
-    let mut builder = LexiconBuilder::new(Path::new(&args.output_dir))?;
+    let mut builder = Builder::new(Path::new(&args.output_dir))?;
     for (key, pada_vec) in padas {
         // FIXME:
         // - support prefix groups

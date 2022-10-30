@@ -5,9 +5,9 @@ pub mod io;
 pub mod lexicon;
 pub mod old_lexicon;
 pub mod packing;
-pub mod parsing;
 pub mod sandhi;
 pub mod scoring;
+pub mod segmenting;
 pub mod semantics;
 pub mod sounds;
 
