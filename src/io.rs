@@ -5,7 +5,6 @@
 
 use crate::old_lexicon::{EndingMap, PadaMap, StemMap};
 use crate::semantics::*;
-use std::collections::HashMap;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 
@@ -27,9 +26,6 @@ pub struct DataPaths {
     pub verb_prefixes: PathBuf,
     pub verbal_indeclinables: PathBuf,
     pub verbs: PathBuf,
-
-    pub fst_lexicon: PathBuf,
-    pub lemma_counts: PathBuf,
 }
 
 impl DataPaths {
@@ -49,9 +45,6 @@ impl DataPaths {
             verb_prefixes: base.join("verb-prefixes.csv"),
             verbal_indeclinables: base.join("verbal-indeclinables.csv"),
             verbs: base.join("verbs.csv"),
-
-            fst_lexicon: base.join("vidyut-0.1.0/lexicon"),
-            lemma_counts: base.join("model/lemma-counts.csv"),
         }
     }
 }
@@ -337,17 +330,4 @@ pub fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
         .expect("Could not find verbal indeclinables");
     add_verbs(&paths.verbs, &mut padas).expect("Could not find verbs");
     Ok(padas)
-}
-
-pub fn read_lemma_probabilities(paths: &DataPaths) -> Result<HashMap<String, f32>> {
-    let mut ret = HashMap::new();
-
-    let mut rdr = csv::Reader::from_path(&paths.lemma_counts)?;
-    for maybe_row in rdr.records() {
-        let r = maybe_row?;
-        let lemma = &r[0];
-        let prob = r[1].parse::<f32>()?;
-        ret.insert(lemma.to_string(), prob.log10());
-    }
-    Ok(ret)
 }

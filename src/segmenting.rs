@@ -6,7 +6,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 
-use crate::io;
+use crate::config::Config;
 use crate::lexicon::Lexicon;
 use crate::sandhi;
 use crate::sandhi::Sandhi;
@@ -66,11 +66,12 @@ pub struct Segmenter {
 
 impl Segmenter {
     /// Creates a segmenter from the given input data.
-    pub fn from_paths(paths: &io::DataPaths) -> Result<Self, Box<dyn Error>> {
+    pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
         Ok(Segmenter {
-            sandhi: Sandhi::from_csv(&paths.sandhi_rules).expect("Could not read sandhi rules."),
-            lexicon: Lexicon::load_from(&paths.fst_lexicon).expect("Could not read lexicon."),
-            model: Model::from_file(&paths.lemma_counts).expect("Could not read lemma counts."),
+            sandhi: Sandhi::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
+            lexicon: Lexicon::new(config.lexicon()).expect("Could not read lexicon."),
+            model: Model::from_file(&config.model_lemma_counts())
+                .expect("Could not read lemma counts."),
         })
     }
 

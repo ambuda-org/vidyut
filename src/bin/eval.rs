@@ -1,17 +1,32 @@
 //! Evaluate our segmenter against some standard input data.
 
-use clap::{Arg, ArgAction, Command};
+use clap::Parser;
 use glob::glob;
 use std::error::Error;
 use std::ops::AddAssign;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use vidyut::config::Config;
 use vidyut::conllu::Reader;
 use vidyut::dcs;
-use vidyut::io;
 use vidyut::segmenting::{Segmenter, Word};
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct Args {
+    // The base directory from which we read our model.
+    #[arg(long)]
+    vidyut_dir: PathBuf,
+
+    /// Paths to use for the eval.
+    #[arg(short, long, num_args=1..)]
+    paths: Vec<String>,
+
+    #[arg(short, long, default_value_t = false)]
+    show_semantics: bool,
+}
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -164,13 +179,13 @@ fn eval_input_path(path: &Path, segmenter: &Segmenter, show_semantics: &bool) ->
 
 /// Computes summary statistics for the given glob patterns.
 fn eval_patterns(
-    patterns: Vec<&String>,
+    patterns: Vec<String>,
     segmenter: &Segmenter,
     show_semantics: &bool,
 ) -> Result<Stats> {
     let mut stats = Stats::new();
     for pattern in patterns {
-        let paths = glob(pattern).expect("Glob pattern is invalid").flatten();
+        let paths = glob(&pattern).expect("Glob pattern is invalid").flatten();
         for path in paths {
             stats += eval_input_path(&path, segmenter, show_semantics)?;
         }
@@ -179,10 +194,10 @@ fn eval_patterns(
 }
 
 /// Runs an end-to-end evaluation over the given glob patterns.
-fn run_eval(patterns: Vec<&String>, show_semantics: bool) -> Result<()> {
-    let paths = io::DataPaths::from_dir(Path::new("data"));
-    let ctx = Segmenter::from_paths(&paths)?;
-    let stats = eval_patterns(patterns, &ctx, &show_semantics)?;
+fn run_eval(args: Args) -> Result<()> {
+    let config = Config::new(&args.vidyut_dir);
+    let segmenter = Segmenter::new(config)?;
+    let stats = eval_patterns(args.paths, &segmenter, &args.show_semantics)?;
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);
     let lemma_pct = pct(stats.num_lemma_matches, stats.num_sentences);
@@ -215,23 +230,9 @@ fn run_eval(patterns: Vec<&String>, show_semantics: bool) -> Result<()> {
 }
 
 fn main() {
-    let matches = Command::new("Vidyut model eval")
-        .arg(Arg::new("paths").long("paths").num_args(1..))
-        .arg(
-            Arg::new("show-semantics")
-                .long("show-semantics")
-                .action(ArgAction::SetTrue),
-        )
-        .get_matches();
+    let args = Args::parse();
 
-    let paths = matches
-        .get_many::<String>("paths")
-        .map(|v| v.collect::<Vec<_>>())
-        .unwrap();
-
-    let show_semantics = matches.get_flag("show-semantics");
-
-    if let Err(e) = run_eval(paths, show_semantics) {
+    if let Err(e) = run_eval(args) {
         println!("{}", e);
         std::process::exit(1);
     }

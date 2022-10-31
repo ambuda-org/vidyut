@@ -6,9 +6,10 @@ use clap::Parser;
 use log::info;
 use multimap::MultiMap;
 use std::error::Error;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process;
 
+use vidyut::config::Config;
 use vidyut::io;
 use vidyut::lexicon::Builder;
 use vidyut::old_lexicon::PadaMap;
@@ -19,13 +20,11 @@ use vidyut::semantics::*;
 struct Args {
     /// Path to the underlying raw data.
     #[arg(short, long)]
-    input_dir: String,
+    input_dir: PathBuf,
 
-    /// Path to the output directory.
-    ///
-    /// If this directory does not exist, the program will create it.
+    /// Path to the Vidyut output directory.
     #[arg(short, long)]
-    output_dir: String,
+    output_dir: PathBuf,
 }
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -84,7 +83,8 @@ fn run(args: Args) -> Result<()> {
     padas.sort_by(|x, y| x.0.cmp(&y.0));
 
     info!("Adding terms to FST builder.");
-    let mut builder = Builder::new(Path::new(&args.output_dir))?;
+    let config = Config::new(&args.output_dir);
+    let mut builder = Builder::new(config.lexicon())?;
     for (key, pada_vec) in padas {
         // FIXME:
         // - support prefix groups

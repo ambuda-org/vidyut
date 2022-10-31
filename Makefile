@@ -19,10 +19,11 @@ coverage:
 
 # Create an FST lexicon and write it to disk.
 create_lexicon:
-	RUST_LOG=info cargo run --release --bin create_lexicon -- --input-dir data --output-dir data/vidyut-0.1.0/lexicon
+	RUST_LOG=info cargo run --release --bin create_lexicon -- --input-dir data --output-dir data/vidyut-0.1.0
 
 bench_lexicon:
-	RUST_LOG=info cargo bench --bench lexicon -- --data-dir data/vidyut-0.1.0/lexicon
+	RUST_LOG=info cargo bench --bench lexicon -- --data-dir data/vidyut-0.1.0
+
 
 # Modeling
 # ========
@@ -32,19 +33,19 @@ bench_lexicon:
 train:
 	./scripts/fetch_training_data.py
 	cargo run --release --bin train -- \
-		--include \
-		"dcs-data/dcs/data/conllu/files/**/*.conllu" \
-		--exclude \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
+		--vidyut-dir "data/vidyut-0.1.0" \
+		--include "dcs-data/dcs/data/conllu/files/**/*.conllu" \
+		--exclude "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
+		--exclude "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
+		--exclude "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
 
 # Evaluate our parsing quality on a large sample of text.
 eval:
-	cargo run --release --bin eval -- --paths \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
+	cargo run --release --bin eval -- \
+		--vidyut-dir "data/vidyut-0.1.0" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-0900-MBh, 6, BhaGī 18-7707.conllu"
 
 
 # Performance

@@ -2,6 +2,7 @@
 
 pub mod io;
 
+pub mod config;
 pub mod lexicon;
 pub mod old_lexicon;
 pub mod packing;

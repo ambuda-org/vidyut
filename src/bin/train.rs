@@ -1,15 +1,34 @@
 /// Train a model by collecting features from our dataset.
-use clap::{Arg, Command};
+use clap::Parser;
 use glob::glob;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::Path;
 
+use vidyut::config::Config;
 use vidyut::conllu::Reader;
 use vidyut::dcs;
 use vidyut::segmenting::Word;
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct Args {
+    // The base directory to which we will write our training data.
+    #[arg(long)]
+    vidyut_dir: String,
+
+    /// Files to use as training data.
+    #[arg(short, long, num_args=1..)]
+    include: Vec<String>,
+
+    /// Files to exclude from the training data.
+    ///
+    /// It's best to exclude any files that you will use to evaluate the model.
+    #[arg(short, long)]
+    exclude: Vec<String>,
+}
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -35,7 +54,7 @@ type Counts = HashMap<String, u32>;
 struct Statistics {
     transitions: Transitions,
     emissions: Emissions,
-    counts: Counts,
+    lemma_counts: Counts,
 }
 
 /// Value of state_0 and any other tokens with unclear semantics.
@@ -108,15 +127,15 @@ fn process_sentence(sentence: &[Word], s: &mut Statistics) {
             .or_insert(0);
         *c += 1;
 
-        let c = s.counts.entry(lemma).or_insert(0);
+        let c = s.lemma_counts.entry(lemma).or_insert(0);
         *c += 1;
 
         prev_state = cur_state;
     }
 }
 
-fn process_file(path: PathBuf, s: &mut Statistics) -> Result<()> {
-    let reader = Reader::from_path(&path)?;
+fn process_file(path: &Path, s: &mut Statistics) -> Result<()> {
+    let reader = Reader::from_path(path)?;
     for sentence in reader {
         let words: Result<Vec<_>> = sentence.tokens.iter().map(dcs::standardize).collect();
         let words = words?;
@@ -125,7 +144,7 @@ fn process_file(path: PathBuf, s: &mut Statistics) -> Result<()> {
     Ok(())
 }
 
-fn write_transitions(transitions: Transitions, path: &str) -> Result<()> {
+fn write_transitions(transitions: Transitions, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
     w.write_record(&["prev_state", "cur_state", "probability"])?;
 
@@ -140,7 +159,7 @@ fn write_transitions(transitions: Transitions, path: &str) -> Result<()> {
     Ok(())
 }
 
-fn write_emissions(emissions: Emissions, path: &str) -> Result<()> {
+fn write_emissions(emissions: Emissions, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
     w.write_record(&["state", "token", "probability"])?;
 
@@ -159,7 +178,7 @@ fn write_emissions(emissions: Emissions, path: &str) -> Result<()> {
 ///
 /// We write just the raw frequency so that downstream logic can more easily implement its own
 /// normalization on top.
-fn write_lemma_counts(counts: Counts, path: &str) -> Result<()> {
+fn write_lemma_counts(counts: Counts, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
     w.write_record(&["lemma", "count"])?;
 
@@ -170,59 +189,47 @@ fn write_lemma_counts(counts: Counts, path: &str) -> Result<()> {
     Ok(())
 }
 
-fn process_files(include_patterns: &[&String], exclude_patterns: &[&String]) -> Result<()> {
+fn process_files(args: Args) -> Result<()> {
     let mut stats = Statistics {
         transitions: Transitions::new(),
         emissions: Emissions::new(),
-        counts: Counts::new(),
+        lemma_counts: Counts::new(),
     };
 
-    let include_paths: Vec<_> = include_patterns
+    let include_paths: Vec<_> = args
+        .include
         .iter()
         .flat_map(|p| glob(p).expect("Glob pattern is invalid").flatten())
         .collect();
 
-    let exclude_paths: HashSet<_> = exclude_patterns
+    let exclude_paths: HashSet<_> = args
+        .exclude
         .iter()
         .flat_map(|p| glob(p).expect("Glob pattern is invalid").flatten())
         .collect();
-
-    // TODO: implement include/exclude logic.
 
     for path in include_paths {
         if exclude_paths.contains(&path) {
             println!("Skipping excluded path: {:?}", path.display());
         } else {
             println!("Processing: {:?}", path.display());
-            process_file(path, &mut stats)?;
+            process_file(&path, &mut stats)?;
         }
     }
 
-    std::fs::create_dir_all("data/model")?;
-    write_transitions(stats.transitions, "data/model/transitions.csv")?;
-    write_emissions(stats.emissions, "data/model/emissions.csv")?;
-    write_lemma_counts(stats.counts, "data/model/lemma-counts.csv")?;
+    let config = Config::new(Path::new(&args.vidyut_dir));
+    config.create_dirs()?;
+    write_transitions(stats.transitions, &config.model_transitions())?;
+    write_emissions(stats.emissions, &config.model_emissions())?;
+    write_lemma_counts(stats.lemma_counts, &config.model_lemma_counts())?;
     Ok(())
 }
 
 fn main() {
-    let matches = Command::new("Vidyut model training")
-        .arg(Arg::new("include").long("include").num_args(1..))
-        .arg(Arg::new("exclude").long("exclude").num_args(0..))
-        .get_matches();
-
-    let include = matches
-        .get_many::<String>("include")
-        .map(|v| v.collect::<Vec<_>>())
-        .unwrap();
-
-    let exclude = matches
-        .get_many::<String>("exclude")
-        .map(|v| v.collect::<Vec<_>>())
-        .unwrap();
+    let args = Args::parse();
 
     println!("Beginning training.");
-    if let Err(e) = process_files(&include, &exclude) {
+    if let Err(e) = process_files(args) {
         println!("{}", e);
         std::process::exit(1);
     }

@@ -5,10 +5,11 @@ use fst::Streamer;
 use log::info;
 use multimap::MultiMap;
 use std::error::Error;
-use std::path::Path;
+use std::path::PathBuf;
 use std::process;
 use std::time::{Duration, Instant};
 
+use vidyut::config::Config;
 use vidyut::lexicon::Lexicon;
 use vidyut::packing::*;
 
@@ -20,7 +21,7 @@ type NaiveLexicon = MultiMap<String, PackedPada>;
 struct Args {
     /// Path to the Vidyut data directory
     #[arg(short, long)]
-    data_dir: String,
+    data_dir: PathBuf,
     /// Ignored
     #[arg(short, long)]
     bench: bool,
@@ -78,7 +79,8 @@ fn bench_naive_lexicon_sample_1p(lex: &NaiveLexicon, words: &[String]) {
 
 fn run(args: Args) -> Result<()> {
     info!("Loading lexicon");
-    let lex = Lexicon::load_from(Path::new(&args.data_dir))?;
+    let config = Config::new(&args.data_dir);
+    let lex = Lexicon::new(config.lexicon())?;
     let words = sample_from_fst_lexicon(&lex, 0.01)?;
 
     println!();

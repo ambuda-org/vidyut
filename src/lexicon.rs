@@ -55,6 +55,7 @@ struct Paths {
     /// it does not exist already.
     base: PathBuf,
 }
+
 impl Paths {
     /// Path to the underlying FST.
     fn fst(&self) -> PathBuf {
@@ -72,7 +73,7 @@ impl Paths {
 
 impl Lexicon {
     /// Reads the lexicon from the given `base_path`.
-    pub fn load_from(base_path: &Path) -> Result<Self, Box<dyn Error>> {
+    pub fn new(base_path: &Path) -> Result<Self, Box<dyn Error>> {
         let paths = Paths {
             base: base_path.to_path_buf(),
         };

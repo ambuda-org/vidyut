@@ -5,7 +5,7 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-use vidyut::io;
+use vidyut::config::Config;
 use vidyut::segmenting::Segmenter;
 
 fn parse_text(text: &str, segmenter: &Segmenter) {
@@ -50,16 +50,15 @@ fn main() {
         .about("Vidyut: a lightning fast Sanskrit toolkit.")
         .arg(Arg::new("text"))
         .arg(Arg::new("input-file").short('i').long("input-file"))
-        .arg(Arg::new("cache-file").long("cache-file"))
         .get_matches();
 
     let text = matches.get_one::<String>("text");
     let input_file = matches.get_one::<String>("input-file");
 
-    let data_paths = io::DataPaths::from_dir(Path::new("data"));
-
     info!("Loading raw data from disk.");
-    let segmenter = Segmenter::from_paths(&data_paths);
+    let config = Config::new(Path::new("data/vidyut-0.1.0"));
+    let segmenter = Segmenter::new(config);
+
     let segmenter = match segmenter {
         Ok(data) => data,
         Err(err) => {
