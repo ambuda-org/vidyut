@@ -28,11 +28,13 @@ impl Error for ConversionError {
 
 /// Convert DCS semantics to Vidyut semantics.
 pub fn standardize(t: &Token) -> Result<Word> {
+    let slp1_lemma = standardize_lemma(&t.lemma);
+
     let semantics = match t.upos.as_str() {
-        "NOUN" | "PRON" | "ADJ" | "PART" | "NUM" => parse_subanta(t)?,
-        "CCONJ" | "SCONJ" | "ADV" => Pada::Avyaya(Avyaya {
+        "NOUN" | "PRON" | "ADJ" | "NUM" => parse_subanta(t)?,
+        "CCONJ" | "SCONJ" | "ADV" | "PART" => Pada::Avyaya(Avyaya {
             pratipadika: Pratipadika::Basic {
-                text: t.lemma.clone(),
+                text: slp1_lemma.clone(),
                 lingas: Vec::new(),
             },
         }),
@@ -49,7 +51,7 @@ pub fn standardize(t: &Token) -> Result<Word> {
 
     Ok(Word {
         // The original form is not consistently present in the DCS data, so just use the lemma.
-        text: standardize_lemma(&t.lemma),
+        text: slp1_lemma,
         semantics,
     })
 }

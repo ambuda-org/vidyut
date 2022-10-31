@@ -1,12 +1,14 @@
 //! Scores a parse state (higher scores are better).
 
-use crate::segmenting::Phrase;
+use crate::segmenting::{Phrase, Word};
+use crate::semantics::POSTag;
+use log::debug;
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::Path;
 
 pub struct Model {
-    log_probs: HashMap<String, f32>,
+    log_probs: HashMap<(String, POSTag), f32>,
     /// The log probability of a token not seen anywhere in the training data.
     log_p_epsilon: f32,
 }
@@ -18,7 +20,7 @@ fn log_prob(num: f64, denom: i32) -> f32 {
 }
 
 impl Model {
-    pub fn from_counts(counts: HashMap<String, i32>) -> Model {
+    pub fn from_counts(counts: HashMap<(String, POSTag), i32>) -> Model {
         // Use a very small smoothing factor because most out-of-vocabulary tokens are errors.
         let eps: f64 = 1e-100;
 
@@ -47,8 +49,9 @@ impl Model {
         for maybe_row in rdr.records() {
             let r = maybe_row?;
             let lemma = &r[0];
-            let count = r[1].parse::<i32>()?;
-            counts.insert(lemma.to_string(), count);
+            let pos_tag = r[1].parse()?;
+            let count = r[2].parse::<i32>()?;
+            counts.insert((lemma.to_string(), pos_tag), count);
         }
 
         Ok(Model::from_counts(counts))
@@ -61,12 +64,15 @@ impl Model {
     /// represent the tenths and hundredths places, respectively.
     pub fn score(&self, phrase: &Phrase) -> i32 {
         let delta = match phrase.words.last() {
-            Some(last) => {
-                let lemma = last.lemma();
-                match self.log_probs.get(&lemma) {
+            Some(Word { semantics, .. }) => {
+                let key = (semantics.lemma(), semantics.part_of_speech_tag());
+                let res = match self.log_probs.get(&key) {
                     Some(log_prob) => *log_prob,
                     None => self.log_p_epsilon,
-                }
+                };
+                debug!("Pada: {:?}", semantics);
+                debug!("Prob: {res}");
+                res
             }
             None => self.log_p_epsilon,
         };

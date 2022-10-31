@@ -48,8 +48,8 @@ type Emissions = HashMap<String, HashMap<String, u32>>;
 
 /// Freq(`lemma[n]`)
 ///
-/// Simple frequency counts on the lemma and PartOfSpeech.
-type Counts = HashMap<String, u32>;
+/// Simple frequency counts on the lemma and part of speech.
+type Counts = HashMap<(String, POSTag), u32>;
 
 struct Statistics {
     transitions: Transitions,
@@ -126,7 +126,8 @@ fn process_sentence(sentence: &[Word], s: &mut Statistics) {
             .or_insert(0);
         *c += 1;
 
-        let c = s.lemma_counts.entry(lemma).or_insert(0);
+        let tag = word.semantics.part_of_speech_tag();
+        let c = s.lemma_counts.entry((lemma, tag)).or_insert(0);
         *c += 1;
 
         prev_state = cur_state;
@@ -179,10 +180,10 @@ fn write_emissions(emissions: Emissions, path: &Path) -> Result<()> {
 /// normalization on top.
 fn write_lemma_counts(counts: Counts, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
-    w.write_record(&["lemma", "count"])?;
+    w.write_record(&["lemma", "tag", "count"])?;
 
-    for (lemma, count) in counts {
-        w.write_record(&[&lemma, &count.to_string()])?;
+    for ((lemma, tag), count) in counts {
+        w.write_record(&[&lemma, &tag.to_string(), &count.to_string()])?;
         w.flush()?;
     }
     Ok(())

@@ -590,6 +590,51 @@ impl FromStr for Pratipadika {
     }
 }
 
+/// A short part-of-speech tag for some `Pada`.
+///
+/// We use this tag when calculating lemma counts. For example, *eva* is a common *avyaya* but
+/// not a common *subanta*, and our statistics should reflect that distinction. Coarser
+/// distinctions that include linga, vacana, etc. are interesting but less useful given our
+/// limited training data.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum POSTag {
+    None,
+    Subanta,
+    Tinanta,
+    Avyaya,
+}
+
+impl FromStr for POSTag {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "_" => Self::None,
+            "s" => Self::Subanta,
+            "t" => Self::Tinanta,
+            "a" => Self::Avyaya,
+            _ => return Err(ParseError::err_from_str("POSTag", s)),
+        };
+        Ok(val)
+    }
+}
+
+impl POSTag {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::None => "_",
+            Self::Subanta => "s",
+            Self::Tinanta => "t",
+            Self::Avyaya => "a",
+        }
+    }
+}
+
+impl Display for POSTag {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 /// Models the semantics of a *subanta* if it is not an *avyaya*.
 ///
 /// A *subanta* is any word that ends with one of the twenty-one suffixes in the *sup* list:
@@ -683,6 +728,15 @@ impl Pada {
             Pada::Subanta(s) => s.pratipadika.lemma(),
             Pada::Avyaya(a) => a.pratipadika.lemma(),
             Pada::None => NONE_LEMMA.to_string(),
+        }
+    }
+
+    pub fn part_of_speech_tag(&self) -> POSTag {
+        match self {
+            Pada::Tinanta(_) => POSTag::Tinanta,
+            Pada::Subanta(_) => POSTag::Subanta,
+            Pada::Avyaya(_) => POSTag::Avyaya,
+            Pada::None => POSTag::None,
         }
     }
 }
