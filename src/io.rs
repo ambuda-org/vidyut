@@ -203,7 +203,14 @@ fn add_prefix_groups(path: &Path, padas: &mut PadaMap) -> Result<()> {
     for maybe_row in rdr.records() {
         let r = maybe_row?;
         let value = &r[0];
-        padas.insert(value.to_string(), Pada::PrefixGroup(value.to_string()));
+        // FIXME: consider deleting this logic.
+        let semantics = Pada::Avyaya(Avyaya {
+            pratipadika: Pratipadika::Basic {
+                text: value.to_string(),
+                lingas: Vec::new(),
+            },
+        });
+        padas.insert(value.to_string(), semantics);
     }
     Ok(())
 }

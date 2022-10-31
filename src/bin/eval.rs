@@ -91,7 +91,6 @@ fn as_code(w: &Word) -> String {
             };
             val.to_string()
         }
-        Pada::PrefixGroup(_) => "p".to_string(),
     }
 }
 

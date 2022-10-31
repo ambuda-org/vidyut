@@ -659,9 +659,6 @@ pub struct Avyaya {
 pub enum Pada {
     /// Unknown or missing semantics.
     None,
-    /// One or more prefixes.
-    /// NOTE: we will likely remove this type in the future.
-    PrefixGroup(String),
     /// A *subanta* (nominal, excluding *avyaya*s)
     Subanta(Subanta),
     /// A *tiṅanta* (verb).
@@ -685,7 +682,6 @@ impl Pada {
             Pada::Tinanta(t) => t.dhatu.0.clone(),
             Pada::Subanta(s) => s.pratipadika.lemma(),
             Pada::Avyaya(a) => a.pratipadika.lemma(),
-            Pada::PrefixGroup(s) => s.clone(),
             Pada::None => NONE_LEMMA.to_string(),
         }
     }

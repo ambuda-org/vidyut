@@ -48,7 +48,7 @@ type Emissions = HashMap<String, HashMap<String, u32>>;
 
 /// Freq(`lemma[n]`)
 ///
-/// Simple frequency counts on the lemma.
+/// Simple frequency counts on the lemma and PartOfSpeech.
 type Counts = HashMap<String, u32>;
 
 struct Statistics {
@@ -96,7 +96,6 @@ fn word_state(w: &Word) -> String {
         Pada::Subanta(s) => subanta_state(s),
         Pada::Tinanta(t) => tinanta_state(t),
         Pada::Avyaya(_) => avyaya_state(),
-        Pada::PrefixGroup(_) => unknown_state(),
         Pada::None => unknown_state(),
     }
 }

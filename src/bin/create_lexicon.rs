@@ -86,14 +86,9 @@ fn run(args: Args) -> Result<()> {
     let config = Config::new(&args.output_dir);
     let mut builder = Builder::new(config.lexicon())?;
     for (key, pada_vec) in padas {
-        // FIXME:
-        // - support prefix groups
         for pada in pada_vec {
-            if let Pada::PrefixGroup(_) = pada {
-            } else {
-                // debug!("Inserting {} {:?}", key, pada);
-                builder.insert(&key, &pada)?;
-            }
+            // debug!("Inserting {} {:?}", key, pada);
+            builder.insert(&key, &pada)?;
         }
     }
 

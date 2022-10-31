@@ -331,7 +331,6 @@ impl Packer {
                     .with_payload(to_u32(payload))
             }
             Pada::None => PackedPada::new().with_pos(PartOfSpeech::None),
-            _ => panic!("Unknown semantics"),
         }
     }
 
