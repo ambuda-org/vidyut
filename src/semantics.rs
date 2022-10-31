@@ -18,7 +18,7 @@
 use modular_bitfield::prelude::*;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
 /// Lemma for `None` semantics or any other case where the lemma is unknown.
@@ -30,20 +30,28 @@ pub struct ParseError {
     /// The error message.
     msg: String,
 }
+
 impl ParseError {
     fn new(s: &str) -> Self {
         ParseError { msg: s.to_owned() }
     }
+
+    fn err_from_str(name: &str, value: &str) -> ParseError {
+        Self::new(&format!("Could not parse value `{}` as {}", value, name))
+    }
 }
+
 impl Error for ParseError {}
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.msg)
     }
 }
 
 /// Utility struct for reading complex serialized enums.
 struct FeatureMap(HashMap<String, String>);
+
 impl FeatureMap {
     fn from_str(s: &str) -> Self {
         let map = s
@@ -98,9 +106,15 @@ impl FromStr for Linga {
             "_" => Linga::None,
             // Legacy format on `github.com/sanskrit/data`
             "none" => Linga::None,
-            _ => return Err(ParseError::new(&format!("could not parse linga `{}`", s))),
+            _ => return Err(ParseError::err_from_str("Linga", s)),
         };
         Ok(val)
+    }
+}
+
+impl Display for Linga {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -137,9 +151,15 @@ impl FromStr for Vacana {
             "s" => Vacana::Eka,
             "d" => Vacana::Dvi,
             "p" => Vacana::Bahu,
-            _ => return Err(ParseError::new("could not parse vacana")),
+            _ => return Err(ParseError::err_from_str("Vacana", s)),
         };
         Ok(val)
+    }
+}
+
+impl Display for Vacana {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -199,9 +219,15 @@ impl FromStr for Vibhakti {
             "6" => Vibhakti::V6,
             "7" => Vibhakti::V7,
             "8" => Vibhakti::Sambodhana,
-            _ => return Err(ParseError::new("could not parse vibhakti")),
+            _ => return Err(ParseError::err_from_str("Vibhakti", s)),
         };
         Ok(val)
+    }
+}
+
+impl Display for Vibhakti {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -238,9 +264,15 @@ impl FromStr for Purusha {
             "3" => Purusha::Prathama,
             "2" => Purusha::Madhyama,
             "1" => Purusha::Uttama,
-            _ => return Err(ParseError::new("could not parse purusha")),
+            _ => return Err(ParseError::err_from_str("Purusha", s)),
         };
         Ok(val)
+    }
+}
+
+impl Display for Purusha {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -279,6 +311,26 @@ pub enum Lakara {
     Lrn,
 }
 
+impl Lakara {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Lakara::None => "_",
+            Lakara::Lat => "lat",
+            Lakara::Lit => "lit",
+            Lakara::Lut => "lut",
+            Lakara::Lrt => "lrt",
+            Lakara::Let => "let",
+            Lakara::Lot => "lot",
+            Lakara::Lan => "lan",
+            Lakara::LinVidhi => "lin-vidhi",
+            Lakara::LinAshih => "lin-ashih",
+            Lakara::Lun => "lun",
+            Lakara::LunNoAgama => "lun-no-agama",
+            Lakara::Lrn => "lrn",
+        }
+    }
+}
+
 impl FromStr for Lakara {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -288,6 +340,7 @@ impl FromStr for Lakara {
             "lit" => Lakara::Lit,
             "lut" => Lakara::Lut,
             "lrt" => Lakara::Lrt,
+            "let" => Lakara::Let,
             "lot" => Lakara::Lot,
             "lan" => Lakara::Lan,
             "lin-vidhi" => Lakara::LinVidhi,
@@ -295,9 +348,15 @@ impl FromStr for Lakara {
             "lun" => Lakara::Lun,
             "lun-no-agama" => Lakara::LunNoAgama,
             "lrn" => Lakara::Lrn,
-            _ => return Err(ParseError::new("could not parse lakara")),
+            _ => return Err(ParseError::err_from_str("Lakara", s)),
         };
         Ok(val)
+    }
+}
+
+impl Display for Lakara {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -354,6 +413,7 @@ pub enum KrtPratyaya {
     // The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive).
     Krtya,
 }
+
 impl KrtPratyaya {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -374,6 +434,7 @@ impl KrtPratyaya {
         }
     }
 }
+
 impl FromStr for KrtPratyaya {
     type Err = ParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -392,9 +453,15 @@ impl FromStr for KrtPratyaya {
             "sya-Satf" => Self::SyaShatr,
             "sya-SAnac" => Self::SyaShanac,
             "kftya" => Self::Krtya,
-            _ => return Err(ParseError::new("Could not parse krtpratyaya")),
+            _ => return Err(ParseError::err_from_str("KrtPratyaya", s)),
         };
         Ok(val)
+    }
+}
+
+impl Display for KrtPratyaya {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -409,8 +476,39 @@ pub enum PadaPrayoga {
     Parasmaipada,
     /// *ātmanepada* in *kartari prayoga*.
     AtmanepadaKartari,
-    /// *ātmanepada* in *karmaṇi* or *bhāve prayoga*.
+    /// *ātmanepada* in *bhāve* or *karmaṇi prayoga*.
     AtmanepadaNotKartari,
+}
+
+impl PadaPrayoga {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::None => "_",
+            Self::Parasmaipada => "para",
+            Self::AtmanepadaKartari => "atma-kartari",
+            Self::AtmanepadaNotKartari => "atma-not-kartari",
+        }
+    }
+}
+
+impl FromStr for PadaPrayoga {
+    type Err = ParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = match s {
+            "_" => Self::None,
+            "para" => Self::Parasmaipada,
+            "atma-kartari" => Self::AtmanepadaKartari,
+            "atma-not-kartari" => Self::AtmanepadaNotKartari,
+            _ => return Err(ParseError::err_from_str("PadaPrayoga", s)),
+        };
+        Ok(val)
+    }
+}
+
+impl Display for PadaPrayoga {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 /// Models the semantics of a *dhātu* (verb root).
@@ -487,9 +585,7 @@ impl FromStr for Pratipadika {
                 pratyaya,
             })
         } else {
-            Err(ParseError::new(&format!(
-                "Could not parse string as pratipadika: `{s}`"
-            )))
+            Err(ParseError::err_from_str("Pratipadika", s))
         }
     }
 }
@@ -637,12 +733,32 @@ mod tests {
     }
 
     #[test]
+    fn test_lakara_serde() -> TestResult {
+        use Lakara::*;
+        for val in [
+            Lat, Lit, Lut, Lrt, Let, Lot, Lan, LinVidhi, LinAshih, Lun, Lrn,
+        ] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
     fn test_krt_pratyaya_serde() -> TestResult {
         use KrtPratyaya::*;
         for val in [
             None, Tumun, Ktva, Lyap, Kvasu, Kanac, Kta, Ktavat, Shatr, Shanac, YakShanac, SyaShatr,
             SyaShanac, Krtya,
         ] {
+            assert_eq!(val, val.as_str().parse()?);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_pada_prayoga() -> TestResult {
+        use PadaPrayoga::*;
+        for val in [None, Parasmaipada, AtmanepadaKartari, AtmanepadaNotKartari] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
