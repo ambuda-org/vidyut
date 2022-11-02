@@ -27,8 +27,8 @@
 //! ----------
 //!
 //! According to our benchmarks, an average Sanskrit word can be retrieved in around 500ns and is
-//! roughly 1.5x slower than a default `HashMap`. Our production lexicon stores more than 20
-//! million words in around 31MB of data with an average storage cost of 1.5 bytes per word. Of
+//! roughly 1.5x slower than a default `HashMap`. Our production lexicon stores more than 29
+//! million words in around 31MB of data with an average storage cost of 1 byte per word. Of
 //! course, the specific storage cost will vary depending on the words in the input list.
 use crate::packing::*;
 use crate::semantics::Pada;
