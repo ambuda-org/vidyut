@@ -11,9 +11,9 @@ mv data-git/all-data data
 rm -rf data-git
 
 mkdir -p "data/vidyut-0.1.0"
-cp data/sandhi-rules.csv "data/vidyut-0.1.0"
 
 make train
 make create_lexicon
+make generate_sandhi_rules
 RUST_LOG=info cargo run --release --bin vidyut -- "saMskftam"
 echo "Vidyut is ready for use."

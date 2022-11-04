@@ -17,6 +17,10 @@ coverage:
 # Data
 # ====
 
+generate_sandhi_rules:
+	RUST_LOG=info cargo run --release --bin generate_sandhi_rules -- \
+			 --data-dir data/vidyut-0.1.0
+
 # Create an FST lexicon and write it to disk.
 create_lexicon:
 	RUST_LOG=info cargo run --release --bin create_lexicon -- --input-dir data --output-dir data/vidyut-0.1.0

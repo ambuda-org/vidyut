@@ -48,6 +48,6 @@ impl Config {
     }
 
     pub fn model_lemma_counts(&self) -> PathBuf {
-        self.model.join("lemma-counts-with-pos.csv")
+        self.model.join("lemma-counts.csv")
     }
 }
