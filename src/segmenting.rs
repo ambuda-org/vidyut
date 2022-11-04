@@ -91,12 +91,14 @@ fn normalize(text: &str) -> String {
     RE.replace(text, " ").to_string()
 }
 
+// FIXME: better as an iterator, but hard to implement. For now, update statefully then iterate in
+// caller.
 fn analyze_pada(
     text: &str,
     split: &sandhi::Split,
     segmenter: &Segmenter,
     cache: &mut HashMap<String, Vec<Pada>>,
-) -> Result<Vec<Pada>, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     if !cache.contains_key(text) {
         let res: Result<Vec<Pada>, _> = segmenter
             .lexicon
@@ -112,8 +114,8 @@ fn analyze_pada(
         }
 
         cache.insert(text.to_string(), res);
-    }
-    Ok(cache.get(text).unwrap().clone())
+    };
+    Ok(())
 }
 
 #[allow(dead_code)]
@@ -206,6 +208,9 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
             break;
         }
 
+        // A clumsy workaround because I'm not sure how to set up the iterator types here.
+        let no_results = Vec::new();
+
         for split in ctx.sandhi.split_all(&cur.remaining) {
             if !split.is_valid() || split.is_recursive(&cur.remaining) {
                 continue;
@@ -213,8 +218,10 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
 
             let first = &split.first;
             let second = &split.second;
-            for semantics in analyze_pada(first, &split, ctx, &mut word_cache)? {
-                if !strict_mode::is_valid_word(&cur, &split, &semantics) {
+            analyze_pada(first, &split, ctx, &mut word_cache)?;
+
+            for semantics in word_cache.get(first).unwrap_or(&no_results) {
+                if !strict_mode::is_valid_word(&cur, &split, semantics) {
                     continue;
                 }
 
@@ -226,7 +233,7 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
                 };
                 new.words.push(Word {
                     text: first.clone(),
-                    semantics,
+                    semantics: semantics.clone(),
                 });
                 new.score = ctx.model.score(&new);
 
