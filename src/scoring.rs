@@ -253,7 +253,7 @@ impl Model {
                 .lemmas
                 .log_prob(pada.lemma(), pada.part_of_speech_tag());
             let transition_log_prob = self.transitions.log_prob(&prev_state, &cur_state);
-            debug!("Pada: {:?}", pada);
+            debug!("Pada: {:?}/{}", pada, pada.lemma());
             debug!("Prob: {lemma_log_prob}");
             lemma_log_prob + transition_log_prob
         } else {

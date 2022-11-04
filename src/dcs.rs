@@ -39,8 +39,10 @@ pub fn standardize(t: &Token) -> Result<Word> {
             },
         }),
         "VERB" => {
-            if t.features.contains_key("VerbForm") || t.features.contains_key("Gender") {
-                parse_participle(t)?
+            if t.features.contains_key("VerbForm") {
+                parse_krdanta(t)?
+            } else if t.features.contains_key("Gender") {
+                parse_krdanta_subanta(t)?
             } else {
                 parse_verb(t)?
             }
@@ -110,8 +112,21 @@ fn parse_verb(t: &Token) -> Result<Pada> {
     }))
 }
 
-/// Reshapes a DCS participle into a Vidyut krdanta.
-fn parse_participle(t: &Token) -> Result<Pada> {
+/// Reshapes a DCS krdanta.
+fn parse_krdanta(t: &Token) -> Result<Pada> {
+    match t
+        .features
+        .get("VerbForm")
+        .expect("Should call with VerbForm")
+        .as_str()
+    {
+        "Inf" | "Conv" => parse_krdanta_avyaya(t),
+        _ => parse_krdanta_subanta(t),
+    }
+}
+
+/// Reshapes a DCS krdanta subanta.
+fn parse_krdanta_subanta(t: &Token) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
         dhatu: Dhatu(standardize_lemma(&t.lemma)),
         pratyaya: parse_krt_pratyaya(&t.features)?,
@@ -128,6 +143,16 @@ fn parse_participle(t: &Token) -> Result<Pada> {
         vibhakti,
         is_purvapada,
     }))
+}
+
+/// Reshapes a DCS krdanta avyaya.
+fn parse_krdanta_avyaya(t: &Token) -> Result<Pada> {
+    let stem = Pratipadika::Krdanta {
+        dhatu: Dhatu(standardize_lemma(&t.lemma)),
+        pratyaya: parse_krt_pratyaya(&t.features)?,
+    };
+
+    Ok(Pada::Avyaya(Avyaya { pratipadika: stem }))
 }
 
 /// Reshapes a DCS stem into a Vidyut stem.
