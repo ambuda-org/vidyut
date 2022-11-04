@@ -596,7 +596,8 @@ impl FromStr for Pratipadika {
 /// not a common *subanta*, and our statistics should reflect that distinction. Coarser
 /// distinctions that include linga, vacana, etc. are interesting but less useful given our
 /// limited training data.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[bits = 2]
 pub enum POSTag {
     None,
     Subanta,

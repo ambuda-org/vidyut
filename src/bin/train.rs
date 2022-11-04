@@ -8,6 +8,7 @@ use std::path::Path;
 use vidyut::config::Config;
 use vidyut::conllu::Reader;
 use vidyut::dcs;
+use vidyut::scoring::*;
 use vidyut::segmenting::Word;
 use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
@@ -35,7 +36,7 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 /// Freq(`state[n]` | `state[n-1]`).
 ///
 /// The first key is `state[n-1]` so that we can normalize more easily.
-type Transitions = HashMap<String, HashMap<String, u32>>;
+type Transitions = HashMap<State, HashMap<State, u32>>;
 
 /// Freq(`lemma[n]` | `state[n]`).
 ///
@@ -44,7 +45,7 @@ type Transitions = HashMap<String, HashMap<String, u32>>;
 /// Ideally, we should use `token[n]` instead of `lemma[n]`. However, the DCS data doesn't
 /// realiably expose the inflected word for a given entry. Additionally, using the lemma helps us
 /// work around data sparsity.
-type Emissions = HashMap<String, HashMap<String, u32>>;
+type Emissions = HashMap<State, HashMap<String, u32>>;
 
 /// Freq(`lemma[n]`)
 ///
@@ -57,61 +58,18 @@ struct Statistics {
     lemma_counts: Counts,
 }
 
-/// Value of state_0 and any other tokens with unclear semantics.
-const INITIAL_STATE: &str = "START";
-
-/// Create a state label for the given subanta (noun, pronoun, adjective, numeral).
-///
-/// The state describes linga, vibhakti, and vacana, which are sufficient for our current needs.
-fn subanta_state(s: &Subanta) -> String {
-    format!(
-        "n-{}-{}-{}",
-        s.linga.as_str(),
-        s.vibhakti.as_str(),
-        s.vacana.as_str()
-    )
-}
-
-/// Create a state label for the given tinanta.
-///
-/// The state describes purusha and vacana, which are sufficient for our current needs.
-fn tinanta_state(t: &Tinanta) -> String {
-    // "v" for verb
-    format!("v-{}-{}", t.purusha.as_str(), t.vacana.as_str())
-}
-
-/// Create a state label for the given avyaya.
-fn avyaya_state() -> String {
-    // "i" for indeclinable
-    "i".to_string()
-}
-
-fn unknown_state() -> String {
-    INITIAL_STATE.to_string()
-}
-
-/// Create a state label for the given word.
-fn word_state(w: &Word) -> String {
-    match &w.semantics {
-        Pada::Subanta(s) => subanta_state(s),
-        Pada::Tinanta(t) => tinanta_state(t),
-        Pada::Avyaya(_) => avyaya_state(),
-        Pada::None => unknown_state(),
-    }
-}
-
 fn process_sentence(sentence: &[Word], s: &mut Statistics) {
-    let mut prev_state = INITIAL_STATE.to_string();
+    let mut prev_state = State::initial();
     for word in sentence {
-        let cur_state = word_state(word);
+        let cur_state = State::from_pada(&word.semantics);
         let lemma = word.lemma();
 
         // Freq(cur_state | prev_state )
         let c = s
             .transitions
-            .entry(prev_state.clone())
+            .entry(prev_state)
             .or_insert_with(HashMap::new)
-            .entry(cur_state.clone())
+            .entry(cur_state)
             .or_insert(0);
         *c += 1;
 
@@ -120,7 +78,7 @@ fn process_sentence(sentence: &[Word], s: &mut Statistics) {
         // The DCS data doesn't contain explicit forms, so make do with the lemma.
         let c = s
             .emissions
-            .entry(cur_state.clone())
+            .entry(cur_state)
             .or_insert_with(HashMap::new)
             .entry(to_slp1(&lemma))
             .or_insert(0);
@@ -152,7 +110,11 @@ fn write_transitions(transitions: Transitions, path: &Path) -> Result<()> {
         let n = counts.values().sum::<u32>();
         for (cur_state, count) in counts {
             let prob = (count as f64) / (n as f64);
-            w.write_record(&[&prev_state, &cur_state, &prob.to_string()])?;
+            w.write_record(&[
+                &prev_state.to_string(),
+                &cur_state.to_string(),
+                &prob.to_string(),
+            ])?;
         }
         w.flush()?;
     }
@@ -167,7 +129,7 @@ fn write_emissions(emissions: Emissions, path: &Path) -> Result<()> {
         let n = counts.values().sum::<u32>();
         for (token, count) in counts {
             let prob = (count as f64) / (n as f64);
-            w.write_record(&[&state, &token, &prob.to_string()])?;
+            w.write_record(&[&state.to_string(), &token, &prob.to_string()])?;
         }
         w.flush()?;
     }

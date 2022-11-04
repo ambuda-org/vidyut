@@ -70,8 +70,7 @@ impl Segmenter {
         Ok(Segmenter {
             sandhi: Sandhi::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
             lexicon: Lexicon::new(config.lexicon()).expect("Could not read lexicon."),
-            model: Model::from_file(&config.model_lemma_counts())
-                .expect("Could not read lemma counts."),
+            model: Model::new(&config.model_lemma_counts(), &config.model_transitions())?,
         })
     }
 

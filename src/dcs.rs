@@ -32,7 +32,7 @@ pub fn standardize(t: &Token) -> Result<Word> {
 
     let semantics = match t.upos.as_str() {
         "NOUN" | "PRON" | "ADJ" | "NUM" => parse_subanta(t)?,
-        "CCONJ" | "SCONJ" | "ADV" | "PART" => Pada::Avyaya(Avyaya {
+        "CONJ" | "CCONJ" | "SCONJ" | "ADV" | "PART" | "INTJ" | "ADP" => Pada::Avyaya(Avyaya {
             pratipadika: Pratipadika::Basic {
                 text: slp1_lemma.clone(),
                 lingas: Vec::new(),
