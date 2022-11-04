@@ -66,9 +66,10 @@ profile-general:
 #     $ make target=alloc profile-target-osx
 #
 profile-target-osx:
-	cargo instruments -t $(target) --release --bin eval -- --paths \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-090*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-091*.conllu" \
-		"dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-092*.conllu"
+	cargo instruments -t $(target) --release --bin eval -- \
+		--vidyut-dir "data/vidyut-0.1.0" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-088*.conllu" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-089*.conllu" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-090*.conllu" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-091*.conllu" \
+		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-092*.conllu"

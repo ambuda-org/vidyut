@@ -181,7 +181,30 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
         debug_print_stack(&pq);
         // debug_print_viterbi(&viterbi_cache);
 
+        // Pop the best solution remaining.
         let (cur, cur_score) = pq.pop().unwrap();
+
+        // The best solution remaining is complete, so we can stop here.
+        //
+        // Our current scoring model is a probabilistic model that adjusts the probability of a
+        // solution by multiplying it by other probabilities. Since a probability is at most 1, a
+        // partial score in a probabilistic model can never increase; in practice, it will only
+        // decrease as more and more terms are added.
+        //
+        // In other words, a solution's score can only decrease as we add more words to it.
+        //
+        // If we see a complete solution in our priority queue with score C, we thus know that all
+        // solutions following it both (a) have a score equal or lower to C due to the nature of
+        // priority queues and (b) cannot possibly produce a result better than C per our result
+        // above.
+        //
+        // So once we find a finished solution in our priority queue, we can suspend execution.
+        //
+        // NOTE: this doesn't hold if using an actual Viterbi algorithm as we can suspend only once
+        // we've seen each of our N possible states.
+        if cur.remaining.is_empty() {
+            break;
+        }
 
         for split in ctx.sandhi.split_all(&cur.remaining) {
             if !split.is_valid() || split.is_recursive(&cur.remaining) {
