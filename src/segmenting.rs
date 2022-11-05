@@ -1,17 +1,17 @@
 //! Segments Sanskrit phrases into separate words with their morphological analysis.
-use lazy_static::lazy_static;
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
-use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 
 use crate::config::Config;
 use crate::lexicon::Lexicon;
+use crate::normalize_text::normalize;
 use crate::sandhi;
 use crate::sandhi::Sandhi;
 use crate::scoring::Model;
 use crate::semantics::Pada;
+use crate::sounds;
 use crate::strict_mode;
 
 /// Represnts a Sanskrit word and its semantics.
@@ -82,15 +82,6 @@ impl Segmenter {
     }
 }
 
-/// Normalize text by replacing all runs of whitespace with " ".
-/// TODO: also split Sanskrit symbols from non-Sanskrit symbols (numbers, punct, etc.)
-fn normalize(text: &str) -> String {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"\s+").unwrap();
-    }
-    RE.replace(text, " ").to_string()
-}
-
 // FIXME: better as an iterator, but hard to implement. For now, update statefully then iterate in
 // caller.
 fn analyze_pada(
@@ -109,7 +100,7 @@ fn analyze_pada(
         let mut res = res?;
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
-        if split.is_end_of_chunk {
+        if split.is_end_of_chunk || text.starts_with(|c| !sounds::is_sanskrit(c)) {
             res.push(Pada::None);
         }
 
@@ -208,6 +199,48 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
             break;
         }
 
+        // Non-Sanskrit token: emit and continue.
+        if cur.remaining.starts_with(|c| !sounds::is_sanskrit(c)) {
+            let mut new = match cur.remaining.split_once(' ') {
+                Some((first, second)) => {
+                    let mut new = Phrase {
+                        words: cur.words.clone(),
+                        remaining: second.to_string(),
+                        // HACK: this is buggy -- scoring based on cur score set here?
+                        score: cur_score,
+                    };
+                    new.words.push(Word {
+                        text: first.to_string(),
+                        semantics: Pada::None,
+                    });
+                    new
+                }
+                None => {
+                    let mut new = Phrase {
+                        words: cur.words.clone(),
+                        remaining: "".to_string(),
+                        // HACK: this is buggy -- scoring based on cur score set here?
+                        score: cur_score,
+                    };
+                    new.words.push(Word {
+                        text: cur.remaining.to_string(),
+                        semantics: Pada::None,
+                    });
+                    new
+                }
+            };
+
+            new.score = ctx.model.score(&new);
+            viterbi_cache
+                .entry(new.remaining.clone())
+                .or_insert_with(HashMap::new)
+                .insert("STATE".to_string(), new.clone());
+
+            let new_score = new.score;
+            pq.push(new, new_score);
+            continue;
+        }
+
         // A clumsy workaround because I'm not sure how to set up the iterator types here.
         let no_results = Vec::new();
 
@@ -227,7 +260,7 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
 
                 let mut new = Phrase {
                     words: cur.words.clone(),
-                    remaining: second.clone(),
+                    remaining: second.to_string(),
                     // HACK: this is buggy -- scoring based on cur score set here?
                     score: cur_score,
                 };
@@ -239,7 +272,7 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
 
                 // Use state "STATE" for now since we don't have any states implemented.
                 let maybe_rival = viterbi_cache
-                    .entry(second.clone())
+                    .entry(new.remaining.clone())
                     .or_insert_with(HashMap::new)
                     .get("STATE");
                 let new_score = new.score;
@@ -249,7 +282,7 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
                     }
                 };
                 viterbi_cache
-                    .entry(second.clone())
+                    .entry(new.remaining.clone())
                     .or_insert_with(HashMap::new)
                     .insert("STATE".to_string(), new.clone());
                 pq.push(new, new_score);
@@ -264,15 +297,4 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
         }
     }
     Ok(Vec::new())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_normalize() {
-        let before = "some   whitespace";
-        assert_eq!(normalize(before), "some whitespace".to_string());
-    }
 }

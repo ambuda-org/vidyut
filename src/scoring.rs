@@ -4,7 +4,6 @@ use crate::segmenting::Phrase;
 use crate::semantics::POSTag;
 use crate::semantics::*;
 use core::str::FromStr;
-use log::debug;
 use modular_bitfield::prelude::*;
 use std::collections::HashMap;
 use std::error::Error;
@@ -242,10 +241,12 @@ impl Model {
     pub fn score(&self, phrase: &Phrase) -> i32 {
         let n = phrase.words.len();
         let delta = if let Some(last) = phrase.words.last() {
-            let prev_state = match phrase.words.get(n - 2) {
-                Some(w) => State::from_pada(&w.semantics),
-                None => State::initial(),
+            let prev_state = if n >= 2 {
+                State::from_pada(&phrase.words[n - 2].semantics)
+            } else {
+                State::initial()
             };
+
             let cur_state = State::from_pada(&last.semantics);
 
             let pada = &last.semantics;
@@ -253,8 +254,6 @@ impl Model {
                 .lemmas
                 .log_prob(pada.lemma(), pada.part_of_speech_tag());
             let transition_log_prob = self.transitions.log_prob(&prev_state, &cur_state);
-            debug!("Pada: {:?}/{}", pada, pada.lemma());
-            debug!("Prob: {lemma_log_prob}");
             lemma_log_prob + transition_log_prob
         } else {
             0.0

@@ -12,7 +12,7 @@ fn parse_text(text: &str, segmenter: &Segmenter) {
     info!("Beginning parse: \"{}\"", text);
     let padas = segmenter.segment(text);
     if padas.is_empty() {
-        println!("No solutions found for: {}.", text);
+        println!("No solutions found for \"{}\".", text);
     } else {
         for (i, pada) in padas.iter().enumerate() {
             println!(

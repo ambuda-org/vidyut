@@ -16,4 +16,5 @@ pub mod conllu;
 pub mod dcs;
 pub mod translit;
 
+mod normalize_text;
 mod strict_mode;
