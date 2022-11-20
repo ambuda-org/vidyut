@@ -5,6 +5,7 @@
 
 use crate::old_lexicon::{EndingMap, PadaMap, StemMap};
 use crate::semantics::*;
+use lazy_static::lazy_static;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 
@@ -321,10 +322,46 @@ pub fn read_nominal_endings(paths: &DataPaths) -> Result<EndingMap> {
     Ok(endings)
 }
 
+/// Create spelling variants for the given stems.
+fn get_variants(text: &str) -> Vec<String> {
+    lazy_static! {
+        static ref PREFIXES: Vec<(String, String)> = vec![
+            ("saMp".to_string(), "samp".to_string()),
+            ("saMb".to_string(), "samb".to_string()),
+            ("saMB".to_string(), "samB".to_string()),
+            ("samp".to_string(), "saMp".to_string()),
+            ("samb".to_string(), "saMb".to_string()),
+            ("samB".to_string(), "saMB".to_string()),
+        ];
+    }
+
+    let mut variants = vec![];
+    for (old, new) in PREFIXES.iter() {
+        if text.starts_with(old) {
+            variants.push(text.replace(old, new));
+        }
+    }
+
+    if text.contains("ttr") {
+        variants.push(text.replace("ttr", "tr"));
+    }
+    variants
+}
+
 pub fn read_stems(paths: &DataPaths) -> Result<StemMap> {
     let mut stems = StemMap::new();
     add_nominal_stems(&paths.nominal_stems, &mut stems)?;
     add_participle_stems(&paths.participle_stems, &mut stems)?;
+
+    // Add simple support for variants.
+    let mut variants = StemMap::new();
+    for (k, v) in stems.iter() {
+        for k_variant in get_variants(k) {
+            variants.insert(k_variant, v.clone());
+        }
+    }
+    stems.extend(variants);
+
     Ok(stems)
 }
 
@@ -336,5 +373,14 @@ pub fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
     add_verbal_indeclinables(&paths.verbal_indeclinables, &mut padas)
         .expect("Could not find verbal indeclinables");
     add_verbs(&paths.verbs, &mut padas).expect("Could not find verbs");
+
+    let mut variants = PadaMap::new();
+    for (k, v) in padas.iter() {
+        for k_variant in get_variants(k) {
+            variants.insert(k_variant, v.clone());
+        }
+    }
+    padas.extend(variants);
+
     Ok(padas)
 }

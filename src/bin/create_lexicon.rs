@@ -5,6 +5,7 @@
 use clap::Parser;
 use log::info;
 use multimap::MultiMap;
+use regex::Regex;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process;
@@ -42,8 +43,12 @@ fn add_nominals(paths: &io::DataPaths, padas: &mut PadaMap) -> Result<()> {
         })
         .collect::<MultiMap<String, (String, Pada)>>();
 
+    let re_halanta = Regex::new(r".*[kKgGNcCjJYwWqQRtTdDnpPbBmSzsh]$").unwrap();
+
     // For all stems, ...
     for (stem_text, all_stem_semantics) in stems.iter_all() {
+        let mut has_match = false;
+
         // And all stem endings ...
         for (stem_ending, sup_pratyayas) in stem_to_endings.iter_all() {
             // If the stem ends in this ending ...
@@ -51,6 +56,30 @@ fn add_nominals(paths: &io::DataPaths, padas: &mut PadaMap) -> Result<()> {
                 // Then for all pratyayas that the ending allows, ...
                 for (sup_text, sup_semantics) in sup_pratyayas {
                     let pada_text = prefix.to_string() + sup_text;
+
+                    if let Pada::Subanta(sup_semantics) = sup_semantics {
+                        for stem_semantics in all_stem_semantics {
+                            // Create and insert the corresponding pada.
+                            let pada_semantics = Pada::Subanta(Subanta {
+                                pratipadika: stem_semantics.clone(),
+                                ..sup_semantics.clone()
+                            });
+                            padas.insert(pada_text.clone(), pada_semantics);
+                        }
+                    }
+                }
+                has_match = true;
+            }
+        }
+
+        if !has_match {
+            // If the stem is a special consonant ending ...
+            if re_halanta.is_match(stem_text) {
+                let pratyayas = stem_to_endings.get_vec("_").expect("`_` ending should be defined");
+                for (sup_text, sup_semantics) in pratyayas {
+                    // This is imperfect but works reasonably well.
+                    // FIXME: add consonant reduction (vAc -> vAk).
+                    let pada_text = stem_text.to_string() + sup_text;
 
                     if let Pada::Subanta(sup_semantics) = sup_semantics {
                         for stem_semantics in all_stem_semantics {

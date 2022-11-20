@@ -25,6 +25,9 @@ generate_sandhi_rules:
 create_lexicon:
 	RUST_LOG=info cargo run --release --bin create_lexicon -- --input-dir data --output-dir data/vidyut-0.1.0
 
+test_lexicon:
+	RUST_LOG=info cargo run --release --bin test -- --data-dir data/vidyut-0.1.0/
+
 bench_lexicon:
 	RUST_LOG=info cargo bench --bench lexicon -- --data-dir data/vidyut-0.1.0
 

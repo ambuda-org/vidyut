@@ -68,12 +68,34 @@ fn standardize_lemma(raw_lemma: &str) -> String {
     }
     // kIrtay, etc.
     if let Some(fragment) = lemma.strip_suffix("ay") {
-        return String::from(fragment);
+        return match fragment {
+            "BAv" => "BU".to_string(),
+            "niyoj" => "niyuj".to_string(),
+            "moh" => "muh".to_string(),
+            "vimoh" => "vimuh".to_string(),
+            "vart" => "vft".to_string(),
+            "udvart" => "udvft".to_string(),
+            "pravart" => "pravft".to_string(),
+            "anuvart" => "anuvft".to_string(),
+            "kAr" => "kf".to_string(),
+            "DAr" => "Df".to_string(),
+            "upaDAr" => "upaDf".to_string(),
+            "vidAr" => "vidF".to_string(),
+            "boD" => "buD".to_string(),
+            "kled" => "klid".to_string(),
+            "samBAv" => "samBU".to_string(),
+            _ => String::from(fragment),
+        };
     }
     match lemma.as_str() {
+        "paS" => "dfS".to_string(),
+        "tf" => "tF".to_string(),
+        "pf" => "pF".to_string(),
+        "trA" => "trE".to_string(),
         "mad" => "asmad".to_string(),
-        "uB" => "uBa".to_string(),
+        "enad" => "idam".to_string(),
         "tvad" => "yuzmad".to_string(),
+        "uB" => "uBa".to_string(),
         "ka" => "kim".to_string(),
         _ => lemma,
     }
