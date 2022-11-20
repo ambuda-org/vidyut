@@ -74,6 +74,10 @@ impl Segmenter {
         })
     }
 
+    pub fn lexicon(&self) -> &Lexicon {
+        &self.lexicon
+    }
+
     /// Segments the given text.
     ///
     /// `raw_text` should be an SLP1 string.

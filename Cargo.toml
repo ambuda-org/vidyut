@@ -34,3 +34,4 @@ harness = false
 
 [dev-dependencies]
 bencher = "0.1.5"
+tempfile = "3.3.0"

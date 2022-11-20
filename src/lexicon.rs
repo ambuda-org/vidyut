@@ -13,10 +13,12 @@
 //! 1. Each key can be stored at most once.
 //! 2. Each value must be an unsigned 64 bit integer.
 //!
-//! To work around (1), we mark synonyms by appending an extra `u8` tag to each duplicated key. For
-//! example, we would encode two instances of `gacCati` with the keys `gacCati` and `gacCati\u{1}`.
-//! To avoid confusion with ASCII strings, we limit the value of this tag to at most 64. Thus we
-//! can store at most 64 duplicates of a given string.
+//! To work around (1), we mark synonyms by appending additional bytes to the key. Although this
+//! approach is hacky, it generally works well, as duplicate keys generally follow systematic
+//! patterns that the FST can exploit during construction.
+//!
+//! (Our current implementation supports up to 4226 instances of a key. For implementation
+//! details, see `create_extended_key` and its tests.)
 //!
 //! To work around (2), we pack the semantics of Sanskrit words into integers with our
 //! `vidyut::packing` crate. Since strings are difficult to pack, we instead store them in a lookup
@@ -33,22 +35,19 @@
 use crate::packing::*;
 use crate::semantics::Pada;
 use fst::map::Stream;
-use fst::raw::Output;
+use fst::raw::{Fst, Node, Output};
 use fst::{Map, MapBuilder};
-use log::{debug, info};
+use log::info;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// A highly memory-efficient Sanskrit lexicon.
-pub struct Lexicon {
-    /// The underlying FST object.
-    fst: Map<Vec<u8>>,
-    /// Maps indices to semantics objects.
-    unpacker: Unpacker,
-}
+// Use the range [0, 64] to avoid confusion with the ASCII range, which starts at 65 (01000001,
+// i.e. uppercase `A`).
+const DUPES_PER_BYTE: u8 = 65;
+const MAX_DUPLICATES: usize = (DUPES_PER_BYTE as usize) * (DUPES_PER_BYTE as usize);
 
 struct Paths {
     /// Path to the data dir for this lexicon. If writing, the writer will create the directory if
@@ -69,6 +68,18 @@ impl Paths {
     fn pratipadikas(&self) -> PathBuf {
         self.base.join("pratipadikas.csv")
     }
+}
+
+fn to_packed_pada(output: Output) -> PackedPada {
+    PackedPada::from_u32(output.value() as u32)
+}
+
+/// A highly memory-efficient Sanskrit lexicon.
+pub struct Lexicon {
+    /// The underlying FST object.
+    fst: Map<Vec<u8>>,
+    /// Maps indices to semantics objects.
+    unpacker: Unpacker,
 }
 
 impl Lexicon {
@@ -114,11 +125,12 @@ impl Lexicon {
         true
     }
 
+    /// Unpacks the given word via this lexicon's `Unpacker` instance.
     pub fn unpack(&self, p: &PackedPada) -> Result<Pada, Box<dyn Error>> {
         self.unpacker.unpack(p)
     }
 
-    /// Get all resuts for the given `key`.
+    /// Gets all results for the given `key`, including duplicates.
     #[inline]
     pub fn get_all(&self, key: &str) -> Vec<PackedPada> {
         // Adapted from `FstRef::get`
@@ -136,38 +148,55 @@ impl Lexicon {
                 }
             }
         }
+
         if node.is_final() {
-            let mut ret = vec![out.cat(node.final_output())];
+            let mut ret = vec![to_packed_pada(out.cat(node.final_output()))];
+            add_duplicates(node, out, fst, &mut ret);
 
-            // first ASCII letter is 65 (01000001)
-            for counter in 1_u8..65 {
-                match node.find_input(counter) {
-                    None => break,
-                    Some(i) => {
-                        let t = node.transition(i);
-                        let new_out = out.cat(t.out);
-                        let new_node = fst.node(t.addr);
-
-                        // In our current scheme, this node is always final.
-                        if node.is_final() {
-                            ret.push(new_out.cat(new_node.final_output()));
-                        }
-                    }
-                }
-            }
-
-            // FIXME: don't allocate a new vec here.
-            ret.iter()
-                .map(|val| PackedPada::from_u32(val.value() as u32))
-                .collect()
+            ret
         } else {
             Vec::new()
         }
     }
 
-    /// Iterate over all keys in the FST.
+    /// Iterates over all keys in the FST.
     pub fn stream(&self) -> Stream<'_> {
         self.fst.stream()
+    }
+}
+
+/// Appends all available duplicates to our list of results.
+///
+/// Args:
+/// - `node`: the node corresponding to the last ASCII character of the input string.
+/// - `out`: the output corresponding to this state.
+/// - `fst`: the underlying FST.
+/// - `results`: the results list.
+pub fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec<PackedPada>) {
+    for c1 in 0..=DUPES_PER_BYTE {
+        if let Some(i1) = node.find_input(c1) {
+            let t1 = node.transition(i1);
+            let o1 = out.cat(t1.out);
+            let n1 = fst.node(t1.addr);
+
+            for c2 in 0..=DUPES_PER_BYTE {
+                if let Some(i2) = n1.find_input(c2) {
+                    let t2 = n1.transition(i2);
+                    let o2 = o1.cat(t2.out);
+                    let n2 = fst.node(t2.addr);
+
+                    // In our current scheme, this node is always final.
+                    if n2.is_final() {
+                        let result = to_packed_pada(o2.cat(n2.final_output()));
+                        results.push(result);
+                    }
+                } else {
+                    return;
+                }
+            }
+        } else {
+            return;
+        }
     }
 }
 
@@ -179,6 +208,25 @@ pub struct Builder {
     fst_builder: MapBuilder<io::BufWriter<File>>,
     packer: Packer,
     paths: Paths,
+}
+
+/// Create an extended insertion key (for duplicates).
+///
+/// The output of this function must respect the FST's insertion constraint on key orderings. That
+/// is, if a key is extended with indices `m` and `n`, `m < n` iff `extended_m` < `extended_n`.
+///
+/// For this reason, we cannot easily support an arbitrary number of duplicate keys. Instead,
+/// assume a hard cap of at most 4096 duplicated keys, as this is the largest number we can fit in
+/// two bytes. (Our most duplicated forms appear around 100 times, so we need at least 2 bytes to
+/// support them.)
+fn create_extended_key(key: &str, tag: usize) -> Vec<u8> {
+    // FIXME: make this an Error.
+    assert!(tag < MAX_DUPLICATES);
+
+    let mut extended_key = key.as_bytes().to_vec();
+    extended_key.push((tag / (DUPES_PER_BYTE as usize)) as u8);
+    extended_key.push((tag % (DUPES_PER_BYTE as usize)) as u8);
+    extended_key
 }
 
 impl Builder {
@@ -213,27 +261,17 @@ impl Builder {
         };
         seen_keys.insert(key.to_string(), num_repeats + 1);
 
-        // For duplicates, add another u8 to make this key unique.
-        let final_key = if num_repeats > 0 {
-            let tag = num_repeats as u8;
-
-            // FIXME: support more than 64 duplicates.
-            if tag > 64 {
-                info!("Skipping {key} (appears more than 64 times)");
-                return Ok(());
-            }
-
-            let mut extended_key = key.as_bytes().to_vec();
-            extended_key.push(tag);
-            debug!("Inserting duplicate key {key}");
-            std::str::from_utf8(&extended_key)?.to_owned()
-        } else {
-            key.to_string()
-        };
-
         let value = u64::from(self.packer.pack(value).to_u32());
 
-        self.fst_builder.insert(&final_key, value)?;
+        // For duplicates, add another u8 to make this key unique.
+        if num_repeats > 0 {
+            // Subtract 1 so that the duplicate tag always starts at 0.
+            let final_key = create_extended_key(key, num_repeats - 1);
+            self.fst_builder.insert(&final_key, value)?;
+        } else {
+            self.fst_builder.insert(&key, value)?;
+        };
+
         Ok(())
     }
 
@@ -248,5 +286,127 @@ impl Builder {
         let fst_data = std::fs::read(self.paths.fst())?;
         let fst = Map::new(fst_data)?;
         Ok(Lexicon { fst, unpacker })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::semantics::*;
+    use fst::Streamer;
+    use tempfile::tempdir;
+
+    type TestResult = Result<(), Box<dyn Error>>;
+
+    #[test]
+    fn test_paths() {
+        let paths = Paths {
+            base: Path::new("foo").to_path_buf(),
+        };
+        assert!(paths.fst().starts_with("foo/"));
+        assert!(paths.dhatus().starts_with("foo/"));
+        assert!(paths.pratipadikas().starts_with("foo/"));
+    }
+
+    #[test]
+    fn test_lexicon() -> TestResult {
+        let tin = Pada::Tinanta(Tinanta {
+            dhatu: Dhatu("gam".to_string()),
+            purusha: Purusha::Prathama,
+            vacana: Vacana::Eka,
+            lakara: Lakara::Lat,
+            pada: PadaPrayoga::Parasmaipada,
+        });
+        let krdanta = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Krdanta {
+                dhatu: Dhatu("gam".to_string()),
+                pratyaya: KrtPratyaya::Shatr,
+            },
+            linga: Linga::Pum,
+            vacana: Vacana::Eka,
+            vibhakti: Vibhakti::V2,
+            is_purvapada: false,
+        });
+        let sup = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: "agni".to_string(),
+                lingas: vec![Linga::Pum],
+            },
+            linga: Linga::Pum,
+            vacana: Vacana::Eka,
+            vibhakti: Vibhakti::V2,
+            is_purvapada: false,
+        });
+
+        // Builder
+        let dir = tempdir()?;
+        let mut builder = Builder::new(dir.path())?;
+        builder.insert("agnim", &sup)?;
+        builder.insert("gacCati", &tin)?;
+        builder.insert("gacCati", &krdanta)?;
+        builder.into_lexicon()?;
+
+        // Constructor
+        let lex = Lexicon::new(dir.path())?;
+
+        // contains_key
+        assert!(lex.contains_key("agnim"));
+        assert!(lex.contains_key("gacCati"));
+        assert!(!lex.contains_key("gacCat"));
+        assert!(!lex.contains_key("gacCanti"));
+
+        // contains_prefix
+        assert!(lex.contains_prefix("a"));
+        assert!(lex.contains_prefix("agn"));
+        assert!(lex.contains_prefix("agnim"));
+        assert!(lex.contains_prefix("g"));
+        assert!(lex.contains_prefix("gacCat"));
+        assert!(lex.contains_prefix("gacCati"));
+        assert!(!lex.contains_prefix("gacCant"));
+
+        // get_all
+        fn get_all_padas(lex: &Lexicon, key: &str) -> Result<Vec<Pada>, Box<dyn Error>> {
+            lex.get_all(key).iter().map(|p| lex.unpack(p)).collect()
+        }
+
+        assert_eq!(get_all_padas(&lex, "agnim")?, vec![sup]);
+        assert_eq!(get_all_padas(&lex, "gacCati")?, vec![tin, krdanta]);
+        assert_eq!(get_all_padas(&lex, "gacCat")?, vec![]);
+        assert_eq!(get_all_padas(&lex, "123")?, vec![]);
+
+        // stream
+        let mut stream = lex.stream();
+        let mut kvs = vec![];
+        while let Some((k, _v)) = stream.next() {
+            kvs.push(k.to_vec());
+        }
+        // FIXME: yield duplicates identically?
+        assert_eq!(
+            kvs,
+            vec![
+                b"agnim".to_vec(),
+                b"gacCati".to_vec(),
+                b"gacCati\x00\x00".to_vec(),
+            ]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_create_extended_key() -> TestResult {
+        let cases = vec![
+            (("a", 0), [97, 0, 0].to_vec()),
+            (("a", 64), [97, 0, 64].to_vec()),
+            (("a", 65), [97, 1, 0].to_vec()),
+            (("a", 129), [97, 1, 64].to_vec()),
+            (("a", 4224), [97, 64, 64].to_vec()),
+        ];
+        for ((base, num), result) in cases {
+            assert_eq!(create_extended_key(base, num), result);
+        }
+
+        Ok(())
     }
 }

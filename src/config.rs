@@ -51,3 +51,22 @@ impl Config {
         self.model.join("lemma-counts.csv")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic() {
+        // Check that the basic path structure is reasonable.
+        let base = Path::new("/tmp/path/vidyut-0.1.0");
+        let config = Config::new(base);
+        assert!(config.sandhi().starts_with(base));
+        assert!(config.lexicon().starts_with(base));
+
+        let model_path = config.model();
+        assert!(config.model_emissions().starts_with(model_path));
+        assert!(config.model_transitions().starts_with(model_path));
+        assert!(config.model_lemma_counts().starts_with(model_path));
+    }
+}
