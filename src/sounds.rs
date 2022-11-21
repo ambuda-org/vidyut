@@ -32,6 +32,14 @@ pub fn is_ac(c: char) -> bool {
     match_char(&c, &RE)
 }
 
+pub fn is_ghosha(c: char) -> bool {
+    lazy_static! {
+        // Matches all voiced sounds the beginning of the string.
+        static ref RE: Regex = Regex::new(r"[aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh]").unwrap();
+    }
+    match_char(&c, &RE)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,6 +61,16 @@ mod tests {
         }
         for c in "kKgGnSzsh0123456789 '+".chars() {
             assert!(!is_ac(c));
+        }
+    }
+
+    #[test]
+    fn test_is_ghosha() {
+        for c in "aAiIuUfFxXeEoOgGnjJYqQRdDnbBmyrlvh".chars() {
+            assert!(is_ghosha(c));
+        }
+        for c in "kKcCwWtTpPSzs".chars() {
+            assert!(!is_ghosha(c));
         }
     }
 }

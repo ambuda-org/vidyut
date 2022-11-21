@@ -4,17 +4,14 @@
 //! stems with all of the endings they allow.
 use clap::Parser;
 use log::info;
-use multimap::MultiMap;
-use regex::Regex;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process;
 
 use vidyut::config::Config;
+use vidyut::generator;
 use vidyut::io;
 use vidyut::lexicon::Builder;
-use vidyut::old_lexicon::PadaMap;
-use vidyut::semantics::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -30,82 +27,15 @@ struct Args {
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-// Generates all nominal padas and adds them to the pada map.
-fn add_nominals(paths: &io::DataPaths, padas: &mut PadaMap) -> Result<()> {
-    let stems = io::read_stems(paths)?;
-    let endings = io::read_nominal_endings(paths)?;
-
-    let stem_to_endings = endings
-        .iter_all()
-        .flat_map(|(ending, vs)| {
-            vs.iter()
-                .map(|(stem, pada)| (stem.clone(), (ending.clone(), pada.clone())))
-        })
-        .collect::<MultiMap<String, (String, Pada)>>();
-
-    let re_halanta = Regex::new(r".*[kKgGNcCjJYwWqQRtTdDnpPbBmSzsh]$").unwrap();
-
-    // For all stems, ...
-    for (stem_text, all_stem_semantics) in stems.iter_all() {
-        let mut has_match = false;
-
-        // And all stem endings ...
-        for (stem_ending, sup_pratyayas) in stem_to_endings.iter_all() {
-            // If the stem ends in this ending ...
-            if let Some(prefix) = stem_text.strip_suffix(stem_ending) {
-                // Then for all pratyayas that the ending allows, ...
-                for (sup_text, sup_semantics) in sup_pratyayas {
-                    let pada_text = prefix.to_string() + sup_text;
-
-                    if let Pada::Subanta(sup_semantics) = sup_semantics {
-                        for stem_semantics in all_stem_semantics {
-                            // Create and insert the corresponding pada.
-                            let pada_semantics = Pada::Subanta(Subanta {
-                                pratipadika: stem_semantics.clone(),
-                                ..sup_semantics.clone()
-                            });
-                            padas.insert(pada_text.clone(), pada_semantics);
-                        }
-                    }
-                }
-                has_match = true;
-            }
-        }
-
-        if !has_match {
-            // If the stem is a special consonant ending ...
-            if re_halanta.is_match(stem_text) {
-                let pratyayas = stem_to_endings.get_vec("_").expect("`_` ending should be defined");
-                for (sup_text, sup_semantics) in pratyayas {
-                    // This is imperfect but works reasonably well.
-                    // FIXME: add consonant reduction (vAc -> vAk).
-                    let pada_text = stem_text.to_string() + sup_text;
-
-                    if let Pada::Subanta(sup_semantics) = sup_semantics {
-                        for stem_semantics in all_stem_semantics {
-                            // Create and insert the corresponding pada.
-                            let pada_semantics = Pada::Subanta(Subanta {
-                                pratipadika: stem_semantics.clone(),
-                                ..sup_semantics.clone()
-                            });
-                            padas.insert(pada_text.clone(), pada_semantics);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(())
-}
-
 fn run(args: Args) -> Result<()> {
     info!("Reading linguistic data.");
     let data_paths = io::DataPaths::from_dir(Path::new(&args.input_dir));
     let mut padas = io::read_padas(&data_paths)?;
 
     info!("Generating nominals.");
-    add_nominals(&data_paths, &mut padas)?;
+    let stems = io::read_stems(&data_paths)?;
+    let endings = io::read_nominal_endings(&data_paths)?;
+    generator::add_nominals(&stems, &endings, &mut padas);
 
     info!("Sorting linguistic data for FST insertion.");
     let mut padas: Vec<_> = padas.into_iter().collect();

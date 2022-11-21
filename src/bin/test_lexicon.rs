@@ -2,10 +2,11 @@
 
 use clap::Parser;
 use std::error::Error;
+use std::path::PathBuf;
 use vidyut::config::Config;
 use vidyut::lexicon::Lexicon;
 use vidyut::segmenting::Segmenter;
-use std::path::PathBuf;
+use vidyut::semantics::Pada;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -30,34 +31,28 @@ fn test_lexicon_tinantas(lex: &Lexicon) -> Result<()> {
         "nayet",
         "anEzIt",
         // "anezyat",
-
         "nIyate",
         "nIyatAm",
         "anIyata",
         "nIyeta",
-
         // san dhAtus (kartari, karmani/bhAve)
         "ninIzati",
         "ninIzatu",
         "aninIzat",
         "ninIzet",
-
         "ninIzyate",
         "ninIzyatAm",
         "aninIzyata",
         "ninIzyeta",
-
         // Nic dhAtus (kartari, karmani/bhAve)
         "nAyayati",
         "nAyayatu",
         "anAyayat",
         "nAyayet",
-
         "nAyyate",
         "nAyyatAm",
         "anAyyata",
         "nAyyeta",
-
         // TODO: yaG
     ];
 
@@ -69,32 +64,54 @@ fn test_lexicon_tinantas(lex: &Lexicon) -> Result<()> {
 
 fn test_lexicon_subantas(lex: &Lexicon) -> Result<()> {
     let keys = vec![
-        "devas",
-        "senA",
-        "agnis",
-        "devI",
-        "gurus",
-        "vaDUs",
-        "kartA",
-        "rEs",
+        ("devas", "deva"),
+        ("senA", "senA"),
+        ("agnis", "agni"),
+        ("devI", "devI"),
+        ("gurus", "guru"),
+        ("vaDUs", "vaDU"),
+        ("kartA", "kartf"),
+        // ("rEs", "rE"),
         // "dyOs",
-        "nOs",
+        ("nOs", "nO"),
+        ("AtmA", "Atman"),
+        ("manasA", "manas"),
+        ("havizA", "havis"),
+        ("DanurByAm", "Danus"),
+        ("hanumAn", "hanumat"),
+        ("Bagavantam", "Bagavat"),
+        ("jagmivAn", "jagmivas"),
+        // Consonant stems
+        ("vAk", "vAc"),
+        ("vit", "vid"),
+        // ("kakuB", "kakup"),
 
-        "AtmA",
-        "gacCan",
-        "manas",
-        "havis",
-        "Danus",
-        "hanumAn",
-        "BagavAn",
-        "cakfvAn",
+        // Irregular subantas
+        ("mahAn", "mahat"),
+        ("tri", "trayas"),
+        ("zaz", "zaRRAm"),
+        ("sapta", "saptan"),
+        ("daSa", "daSan"),
 
-        "mahAn",
-        "mahAntam",
+        ("pitaras", "pitf"),
+        ("mAtaras", "mAtf"),
+        ("BrAtaras", "BrAtf"),
+        ("panTAnam", "paTin"),
+        ("patyus", "pati"),
+        ("yUnAm", "yuvan"),
     ];
 
-    for key in keys {
-        assert!(lex.contains_key(key), "{key}");
+    for (key, lemma) in keys {
+        let entries: std::result::Result<Vec<Pada>, _> =
+            lex.get_all(key).iter().map(|x| lex.unpack(x)).collect();
+        let entries = entries?;
+
+        assert!(
+            entries.iter().any(|x| x.lemma() == lemma),
+            "{} {}",
+            key,
+            lemma
+        );
     }
     Ok(())
 }

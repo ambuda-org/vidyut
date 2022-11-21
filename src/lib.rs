@@ -3,6 +3,7 @@
 pub mod io;
 
 pub mod config;
+pub mod generator;
 pub mod lexicon;
 pub mod old_lexicon;
 pub mod packing;

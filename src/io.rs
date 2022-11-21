@@ -17,6 +17,7 @@ pub struct DataPaths {
     pub nominal_endings_compounded: PathBuf,
     pub nominal_endings_inflected: PathBuf,
     pub nominal_stems: PathBuf,
+    pub nominal_padas: PathBuf,
     pub participle_stems: PathBuf,
     pub prefix_groups: PathBuf,
     pub prefixed_roots: PathBuf,
@@ -36,6 +37,7 @@ impl DataPaths {
             nominal_endings_compounded: base.join("nominal-endings-compounded.csv"),
             nominal_endings_inflected: base.join("nominal-endings-inflected.csv"),
             nominal_stems: base.join("nominal-stems.csv"),
+            nominal_padas: base.join("nominals-irregular.csv"),
             participle_stems: base.join("participle-stems.csv"),
             prefix_groups: base.join("prefix-groups.csv"),
             prefixed_roots: base.join("prefixed-roots.csv"),
@@ -69,6 +71,7 @@ fn parse_stem_linga(code: &str) -> Vec<Linga> {
         "fn" => vec![Linga::Stri, Linga::Napumsaka],
         "mn" => vec![Linga::Pum, Linga::Napumsaka],
         "mfn" => vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
+        "none" => vec![],
         &_ => panic!("Unknown type {}", code),
     }
 }
@@ -117,6 +120,46 @@ fn add_indeclinables(path: &Path, padas: &mut PadaMap) -> Result<()> {
             }),
         );
     }
+    Ok(())
+}
+
+fn add_nominal_padas(path: &Path, padas: &mut PadaMap) -> Result<()> {
+    let mut rdr = csv::Reader::from_path(path)?;
+    for maybe_row in rdr.records() {
+        let r = maybe_row?;
+        let pratipadika = r[0].to_string();
+        let stem_lingas = parse_stem_linga(&r[1]);
+        let pada = r[2].to_string();
+        let linga = r[3].parse()?;
+        let vibhakti = r[4].parse()?;
+        let vacana = r[5].parse()?;
+
+        let semantics = Pada::Subanta(Subanta {
+            pratipadika: Pratipadika::Basic {
+                text: pratipadika.clone(),
+                lingas: stem_lingas,
+            },
+            linga,
+            vibhakti,
+            vacana,
+            is_purvapada: false,
+        });
+
+        padas.insert(pada.clone(), semantics);
+    }
+
+    let semantics = Pada::Subanta(Subanta {
+        pratipadika: Pratipadika::Basic {
+            text: "mahat".to_string(),
+            lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
+        },
+        linga: Linga::None,
+        vibhakti: Vibhakti::None,
+        vacana: Vacana::None,
+        is_purvapada: true,
+    });
+    padas.insert("mahA".to_string(), semantics);
+
     Ok(())
 }
 
@@ -373,6 +416,7 @@ pub fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
     add_verbal_indeclinables(&paths.verbal_indeclinables, &mut padas)
         .expect("Could not find verbal indeclinables");
     add_verbs(&paths.verbs, &mut padas).expect("Could not find verbs");
+    add_nominal_padas(&paths.nominal_padas, &mut padas).expect("Could not find irregular nominals");
 
     let mut variants = PadaMap::new();
     for (k, v) in padas.iter() {

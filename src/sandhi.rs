@@ -116,6 +116,18 @@ impl Sandhi {
             kind: SplitKind::Prefix,
         });
 
+        // Special case for `sa` and `eza`.
+        let first = &input[..i + 1];
+        if first == "sa" || first == "eza" {
+            let second = input[i + 1..].trim_start().to_string();
+            res.push(Split {
+                first: first.to_string() + "s",
+                second,
+                is_end_of_chunk: true,
+                kind: SplitKind::Standard,
+            });
+        }
+
         // Also consider the special case where we are at the end of the input. Here, we want to_string
         // allow a word-final visarga to be either "s" or "r".
         // FIXME: this is a hack.

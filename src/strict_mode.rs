@@ -10,8 +10,10 @@ use crate::sounds;
 pub fn is_valid_word(cur: &Phrase, split: &Split, semantics: &Pada) -> bool {
     if let Pada::Subanta(s) = &semantics {
         if_purvapada_then_not_chunk_end(split, s)
-            && if_ac_pada_then_not_hal(split, s)
+            && if_ac_pada_then_not_hal(split, s.is_purvapada)
             && if_not_in_compound_then_linga_match(cur, s)
+    } else if let Pada::Tinanta(_) = &semantics {
+        if_ac_pada_then_not_hal(split, false)
     } else {
         true
         // TODO: extend if_ac_pada... to verbs
@@ -30,8 +32,8 @@ fn if_purvapada_then_not_chunk_end(split: &Split, s: &Subanta) -> bool {
 
 // Require that vowel-final words are not immediately followed by consonants.
 // (`iti ca` vs. `itica`)
-fn if_ac_pada_then_not_hal(split: &Split, s: &Subanta) -> bool {
-    if split.first.ends_with(sounds::is_ac) && !s.is_purvapada {
+fn if_ac_pada_then_not_hal(split: &Split, is_purvapada: bool) -> bool {
+    if split.first.ends_with(sounds::is_ac) && !is_purvapada {
         // iti ca
         split.is_end_of_chunk
         // sEva (sA eva)

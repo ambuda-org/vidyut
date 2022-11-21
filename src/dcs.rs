@@ -96,6 +96,8 @@ fn standardize_lemma(raw_lemma: &str) -> String {
         "enad" => "idam".to_string(),
         "tvad" => "yuzmad".to_string(),
         "uB" => "uBa".to_string(),
+        // In DCS, usually should be "uBa"
+        "uBaya" => "uBa".to_string(),
         "ka" => "kim".to_string(),
         _ => lemma,
     }
