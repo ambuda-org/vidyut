@@ -1,105 +1,222 @@
-Vidyut
-======
+<div align="center">
+<h1>विद्युत्</h1>
+</div>
 
-> मा भूदेवं क्षणमपि च ते विद्युता विप्रयोगः ॥ 
+Vidyut provides best-in-class infrastructure for Sanskrit software. Our main
+focus is on building libraries for natural language processing.
 
-Vidyut is a lightning-fast toolkit for processing Sanskrit text. Vidyut aims to
-provide standard components that are fast, memory-efficient, and competitive
-with the state of the art.
+Vidyut compiles to fast, safe, and memory-efficient native code, and it can be
+bound to other programming languages with minimal work. We commit to providing
+first-class support for Python bindings through [vidyut-py][vidyut-py], and we
+are eager to help you create bindings for your language of choice.
 
-Vidyut compiles to native code and can be bound to your language of choice. As
-part of our work on [Ambuda][ambuda], we provide first-class support for Python
-bindings through [vidyut-py][vidyut-py].
+Vidyut is an ambitious and transformative project, and *you* can help us make
+it a success. If you simply want to join our community of Sanskrit enthusiasts,
+see the [Community](#community) section -- we are very friendly and welcome
+members of all backgrounds. For specific details on how you can contribute, see
+the [Contributing](#contributing) section instead.
 
-Vidyut is currently **experimental** code, and its API is not stable. If you
-wish to use Vidyut for your production use case, please [file an issue][issues]
-first.
+Vidyut is under active development as part of the [Ambuda][ambuda] project and
+is published under the MIT license.
 
 [![Build status](https://github.com/ambuda-org/vidyut/workflows/ci/badge.svg)](https://github.com/ambuda-org/vidyut/actions)
 
+
 [ambuda]: https://ambuda.org
 [vidyut-py]: https://github.com/ambuda-org/vidyut-py
+
+
+[discord]: https://discord.gg/7rGdTyWY7Z
 [issues]: https://github.com/ambuda-org/vidyut/issues
+
+
+Contents
+--------
+
+- [Installation](#installation)
+- [Components](#components)
+- [Contributing](#contributing)
+- [Community](#community)
+
+
+Installation
+------------
+
+*Vidyut is meant for programmers who are building Sanskrit software. If you are
+not comfortable writing software or using tools like a command line interface,
+we recommend that you [use the tools on Ambuda][ambuda-tools] instead.*
+
+[ambuda-tools]: https://ambuda.org/tools/dictionaries
+
+We currently offer two ways to use Vidyut:
+
+### Through Python
+
+*(Note [2022-12-26]: these bindings are currently stale, and we are in the
+process of updating them.)*
+
+We provide first-class support for Python through the [vidyut][vidyut-pypi]
+Python package, which we define in the [vidyut-py][vidyut-py] repo. If you have
+Python installed on your machine, you can install Vidyut as follows.
+
+```shell
+$ pip install vidyut
+```
+
+[vidyut-pypi]: https://pypi.org/project/vidyut/
+
+
+### Through Rust
+
+Vidyut is implemented in [Rust][rust], which combines low-level performance
+with high-level ergonomics. You can install Rust on your computer by following
+the instructions [here][install-rust].
+
+[rust]: https://www.rust-lang.org/
+[install-rust]: https://www.rust-lang.org/tools/install
+
+Once you've installed Rust, you can try cloning the Vidyut repo and running our
+tests:
+
+```shell
+$ git clone https://github.com/ambuda-org/vidyut.git
+$ cd vidyut
+$ cargo test
+```
+
+Your first build will likely take a few minutes, but future builds will
+be much faster.
+
+To learn how to navigate this repo, see the [Components](#components) section.
+For details on how to get involved, see the [Contributing](#contributing)
+section.
 
 
 Components
 ----------
 
-Vidyut currently contains two major components.
+Vidyut's components are designed to be independent so that you can include only
+the components you need. At the same time, these components are designed to
+work well together.
+
+In Rust, components of this kind are called *crates*.
 
 
-### Lexicon
+### [`vidyut-kosha`][vidyut-kosha]
 
-`Lexicon` maps Sanskrit words to their semantics with high performance and
-minimal memory usage. In one recent test, we were able to store 29.5 million
-inflected Sanskrit words in 31 megabytes of disk space for a total cost of
-around 1 byte per word, and we were able to retrieve these words at around
-820 ns/word, as compared to 530 ns/word for a standard in-memory hash map.
+`vidyut-kosha` defines a key-value store that can compactly map tens of
+millions of Sanskrit words to their inflectional data. Depending on the
+application, storage costs can be as low as 1 byte per word. This storage
+efficiency comes at the cost of increased lookup time, but in practice, we have
+found that this increase is negligible and well worth the efficiency gains
+elsewhere.
 
-`Lexicon`'s underlying data structure is a [finite-state transducer][fst-wiki],
-as implemented in the [fst][fst-crate] crate. The one downside to an FST is
-that we must construct it ahead of time and cannot add new keys to it once it
-has been created. But since the Sanskrit word list is largely stable, this is a
-minor concern.
-
-[fst-wiki]: https://en.wikipedia.org/wiki/Finite-state_transducer
-[fst-crate]: https://docs.rs/fst/latest/fst/index.html
+For details, see the [vidyut-kosha README][vidyut-kosha].
 
 
-### Segmenter
+### [`vidyut-prakriya`][vidyut-prakriya]
 
-`Segmenter` performs a *padaccheda* on a Sanskrit phrase and annotates each
-*pada* with its basic morphological information.
+*(coming soon)*
 
-`Segmenter` is not yet competitive with other options, but we are optimistic
-that we can improve it over time. What is quite special, however, is its sheer
-speed: `Segmenter` can process a shloka in under 10 milliseconds, and we expect
-it to become even faster in the future.
+`vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)
+according to the rules of Paninian grammar. Our long-term goal is to provide a
+complete implementation of the Ashtadhyayi.
 
-
-Usage
------
-
-As mentioned above, Vidyut is currently **experimental** code, and its API is
-not stable. If you wish to use Vidyut for your production use case, please
-[file an issue][issues] first.
-
-In addition, we encourage you to join the `#nlp` channel on [Ambuda's Discord
-server][discord], where you can chat directly with the development team and get
-fast answers to your questions.
-
-Occasional discussion related to Vidyut might also appear on
-[ambuda-discuss][ambuda-discuss] or on standard mailing lists like
-[sanskrit-programmers][sanskrit-programmers].
-
-[discord]: https://discord.gg/7rGdTyWY7Z
-[ambuda-discuss]: https://groups.google.com/g/ambuda-discuss
-[sanskrit-programmers]: https://groups.google.com/g/sanskrit-programmers
+For details, see the [vidyut-prakriya README][vidyut-prakriya].
 
 
-Development
------------
+### `vidyut`
 
-Build the code and fetch our linguistic data:
+`vidyut` (in the `src/` directory) is a miscellaneous crate that contains all
+of our other logic. Most of the code here is focused on *padaccheda* and
+part-of-speech tagging. We intend to move this code into its own component
+soon.
+
+As a quickstart, here's how you can build the `vidyut` crate and fetch the
+linguistic data necessary to build it:
 
     make install
 
-Run a simple evaluation script:
+For details on what else you can do, see `Makefile`.
 
-    make eval
+[vidyut-kosha]: vidyut-kosha/README.md
+[vidyut-prakriya]: vidyut-prakriya/README.md
 
-Run unit tests:
 
-    make test
+Contributing
+------------
 
-Profile overall runtime and memory usage:
+Vidyut is an ambitious and tranformative project, and *you* can help us build
+it. Depending on your background and skills, there are different ways you can
+contribute.
 
-    make profile-general
+First, we recommend [joining our community](#community) so that you can follow
+along with progress on Ambuda and Vidyut and participate in discussions around
+them.
 
-Profile runtime per function:
+If you use a tool that depends on Vidyut, please [file GitHub issues][issues]
+when you see errors or surprising behavior. Please also feel free to file
+issues for feature requests. We'll do our best to accommodate them.
 
-    make target=time profile-target-osx
+If you know Sanskrit, please give us detailed feedback on any mistakes you see
+and what you think the correction should be. This kind of work is especially
+valuable for `vidyut-prakriya`.
 
-Profile memory allocations:
+If you can program, we encourage you to [learn some Rust][learn-rust] and get
+involved with the issues in our [issue tracker][issue-tracker]. All of our open
+work items are listed there, and we encourage you to create a PR for any open
+issue. Issues tagged with `sanskrit` require some basic familiarity with
+Sanskrit. Issues tagged with `vyakarana` require a much deeper level of
+Sanskrit grammatical knowledge.
 
-    make target=alloc profile-target-osx
+(In the future, we will also track our highest-priority work items in our
+[project tracker][project-tracker].)
+
+If you are familiar with machine learning as well, we are always eager for
+improvements to our segmenting code in the `vidyut` crate. Our current model
+use simple bigram statistics; there is plenty of room to improve!
+
+If you want to pursue an open-ended research project, here are the components
+we are most excited about:
+
+- dependency parsing and *anvaya* generation
+- search indexing that accounts for sandhi and Sanskrit's complex morphology.
+- transliteration, perhaps through a port of [Aksharamukha][aksharamukha]
+- implementations of non-Paninian grammars
+
+And if there's something else you're excited about, please [let us know about
+it](#community) -- we'll probably be excited about it too!
+
+[learn-rust]: https://doc.rust-lang.org/book/
+[issue-tracker]: https://github.com/ambuda-org/vidyut/issues
+[project-tracker]: https://github.com/orgs/ambuda-org/projects
+[aksharamukha]: https://github.com/virtualvinodh/aksharamukha
+
+
+Community
+---------
+
+If you're excited about our work on Vidyut, we would love to have you join our
+community.
+
+- Most of our conversation occurs on [Ambuda's Discord server][discord] on the
+  `#nlp` channel, where you can chat directly with our team and get fast
+  answers to your questions. We also schedule time to spend time together
+  virtually, usually on a weekly frequency.
+
+- Occasional discussion related to Vidyut might also appear on
+  [ambuda-discuss][ambuda-discuss] or on standard mailing lists like
+  [sanskrit-programmers][sanskrit-programmers].
+
+- You can also follow along with project announcements on
+  [ambuda-announce][ambuda-announce].
+
+[discord]: https://discord.gg/7rGdTyWY7Z
+[ambuda-discuss]: https://groups.google.com/g/ambuda-discuss
+[ambuda-announce]: https://groups.google.com/g/ambuda-announce 
+[sanskrit-programmers]: https://groups.google.com/g/sanskrit-programmers
+
+<div align="center">
+<small>बलमिति विद्युति</small>
+</div>
+

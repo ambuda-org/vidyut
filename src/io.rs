@@ -4,10 +4,10 @@
 //! the future, Vidyut might generate its own linguistic data instead.
 
 use crate::old_lexicon::{EndingMap, PadaMap, StemMap};
-use crate::semantics::*;
 use lazy_static::lazy_static;
 use std::error::Error;
 use std::path::{Path, PathBuf};
+use vidyut_kosha::semantics::*;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 

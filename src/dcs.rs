@@ -1,10 +1,10 @@
 //! Utility functions for reading DCS data.
 use crate::conllu::{Token, TokenFeatures};
 use crate::segmenting::Word;
-use crate::semantics::*;
 use crate::translit::to_slp1;
 use std::error::Error;
 use std::fmt;
+use vidyut_kosha::semantics::*;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 

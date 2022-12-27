@@ -75,14 +75,14 @@ fn to_packed_pada(output: Output) -> PackedPada {
 }
 
 /// A highly memory-efficient Sanskrit lexicon.
-pub struct Lexicon {
+pub struct Kosha {
     /// The underlying FST object.
     fst: Map<Vec<u8>>,
     /// Maps indices to semantics objects.
     unpacker: Unpacker,
 }
 
-impl Lexicon {
+impl Kosha {
     /// Reads the lexicon from the given `base_path`.
     pub fn new(base_path: &Path) -> Result<Self, Box<dyn Error>> {
         let paths = Paths {
@@ -172,7 +172,7 @@ impl Lexicon {
 /// - `out`: the output corresponding to this state.
 /// - `fst`: the underlying FST.
 /// - `results`: the results list.
-pub fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec<PackedPada>) {
+fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec<PackedPada>) {
     for c1 in 0..=DUPES_PER_BYTE {
         if let Some(i1) = node.find_input(c1) {
             let t1 = node.transition(i1);
@@ -233,7 +233,8 @@ impl Builder {
     /// Creates a new builder whose output will be written to `base_path`.
     ///
     /// If `base_path` does not exist, the builder will create it.
-    pub fn new(base_path: &Path) -> Result<Self, Box<dyn Error>> {
+    pub fn new(base_path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>> {
+        let base_path = base_path.as_ref();
         std::fs::create_dir_all(base_path)?;
         let paths = Paths {
             base: base_path.to_path_buf(),
@@ -269,14 +270,14 @@ impl Builder {
             let final_key = create_extended_key(key, num_repeats - 1);
             self.fst_builder.insert(&final_key, value)?;
         } else {
-            self.fst_builder.insert(&key, value)?;
+            self.fst_builder.insert(key, value)?;
         };
 
         Ok(())
     }
 
     /// Writes all FST data to disk and returns a complete `FSTLexicon`.
-    pub fn into_lexicon(self) -> Result<Lexicon, Box<dyn Error>> {
+    pub fn into_lexicon(self) -> Result<Kosha, Box<dyn Error>> {
         info!("Writing FST and packer data to `{:?}`.", self.paths.base);
         self.fst_builder.finish()?;
         let unpacker = Unpacker::from_packer(&self.packer);
@@ -285,7 +286,7 @@ impl Builder {
         info!("Reading new FST from `{:?}`.", self.paths.base);
         let fst_data = std::fs::read(self.paths.fst())?;
         let fst = Map::new(fst_data)?;
-        Ok(Lexicon { fst, unpacker })
+        Ok(Kosha { fst, unpacker })
     }
 }
 
@@ -348,7 +349,7 @@ mod tests {
         builder.into_lexicon()?;
 
         // Constructor
-        let lex = Lexicon::new(dir.path())?;
+        let lex = Kosha::new(dir.path())?;
 
         // contains_key
         assert!(lex.contains_key("agnim"));
@@ -366,7 +367,7 @@ mod tests {
         assert!(!lex.contains_prefix("gacCant"));
 
         // get_all
-        fn get_all_padas(lex: &Lexicon, key: &str) -> Result<Vec<Pada>, Box<dyn Error>> {
+        fn get_all_padas(lex: &Kosha, key: &str) -> Result<Vec<Pada>, Box<dyn Error>> {
             lex.get_all(key).iter().map(|p| lex.unpack(p)).collect()
         }
 

@@ -11,7 +11,7 @@ use std::process;
 use vidyut::config::Config;
 use vidyut::generator;
 use vidyut::io;
-use vidyut::lexicon::Builder;
+use vidyut_kosha::Builder;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]

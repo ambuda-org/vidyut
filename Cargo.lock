@@ -500,6 +500,20 @@ dependencies = [
  "rand",
  "regex",
  "tempfile",
+ "vidyut-kosha",
+]
+
+[[package]]
+name = "vidyut-kosha"
+version = "0.1.0"
+dependencies = [
+ "bencher",
+ "clap",
+ "env_logger",
+ "fst",
+ "log",
+ "modular-bitfield",
+ "tempfile",
 ]
 
 [[package]]

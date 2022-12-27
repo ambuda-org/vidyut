@@ -3,8 +3,8 @@
 /// Simple hand-coded rules to avoid overgenerating.
 use crate::sandhi::Split;
 use crate::segmenting::Phrase;
-use crate::semantics::*;
 use crate::sounds;
+use vidyut_kosha::semantics::*;
 
 /// Returns whether the given word semantics are invalid for the current solution.
 pub fn is_valid_word(cur: &Phrase, split: &Split, semantics: &Pada) -> bool {

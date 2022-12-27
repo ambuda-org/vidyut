@@ -1,14 +1,14 @@
 //! Scores a tagged Sanskrit sentence.
 
 use crate::segmenting::Phrase;
-use crate::semantics::POSTag;
-use crate::semantics::*;
 use core::str::FromStr;
 use modular_bitfield::prelude::*;
 use std::collections::HashMap;
 use std::error::Error;
 use std::num::ParseIntError;
 use std::path::Path;
+use vidyut_kosha::semantics::POSTag;
+use vidyut_kosha::semantics::*;
 
 /// Models a Markov transition state.
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]

@@ -5,14 +5,14 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use crate::config::Config;
-use crate::lexicon::Lexicon;
 use crate::normalize_text::normalize;
 use crate::sandhi;
 use crate::sandhi::Sandhi;
 use crate::scoring::Model;
-use crate::semantics::Pada;
 use crate::sounds;
 use crate::strict_mode;
+use vidyut_kosha::semantics::Pada;
+use vidyut_kosha::Kosha;
 
 /// Represnts a Sanskrit word and its semantics.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -58,7 +58,7 @@ pub struct Segmenter {
     sandhi: Sandhi,
     /// A lexicon of Sanskrit words. The segmenter uses this lexicon to examine a Sanskrit
     /// substring and test whether or not it is a valid Sanskrit word.
-    lexicon: Lexicon,
+    lexicon: Kosha,
     /// A scoring model. The segmenter uses this model to score candidate solutions and prioritize
     /// solutions that are the most promising.
     model: Model,
@@ -69,12 +69,12 @@ impl Segmenter {
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
         Ok(Segmenter {
             sandhi: Sandhi::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
-            lexicon: Lexicon::new(config.lexicon()).expect("Could not read lexicon."),
+            lexicon: Kosha::new(config.lexicon()).expect("Could not read lexicon."),
             model: Model::new(&config.model_lemma_counts(), &config.model_transitions())?,
         })
     }
 
-    pub fn lexicon(&self) -> &Lexicon {
+    pub fn lexicon(&self) -> &Kosha {
         &self.lexicon
     }
 

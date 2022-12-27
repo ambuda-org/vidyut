@@ -10,8 +10,8 @@ use vidyut::conllu::Reader;
 use vidyut::dcs;
 use vidyut::scoring::*;
 use vidyut::segmenting::Word;
-use vidyut::semantics::*;
 use vidyut::translit::to_slp1;
+use vidyut_kosha::semantics::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]

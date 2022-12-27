@@ -76,3 +76,11 @@ profile-target-osx:
 		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-090*.conllu" \
 		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-091*.conllu" \
 		--paths "dcs-data/dcs/data/conllu/files/Mahābhārata/Mahābhārata-092*.conllu"
+
+
+# Other
+# ~~~~~
+
+# Generates project docs and opens them in your default browser.
+docs:
+	cargo doc --no-deps --open

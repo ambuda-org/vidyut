@@ -3,8 +3,8 @@ use multimap::MultiMap;
 use regex::Regex;
 
 use crate::old_lexicon::{EndingMap, PadaMap, StemMap};
-use crate::semantics::*;
 use crate::sounds::{is_ac, is_ghosha};
+use vidyut_kosha::semantics::*;
 
 fn inflect_halanta_stem(stem: &str, sup: &str) -> String {
     if sup.starts_with(is_ac) {

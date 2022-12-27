@@ -4,9 +4,9 @@ use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
 use vidyut::config::Config;
-use vidyut::lexicon::Lexicon;
 use vidyut::segmenting::Segmenter;
-use vidyut::semantics::Pada;
+use vidyut_kosha::semantics::Pada;
+use vidyut_kosha::Kosha;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -18,7 +18,7 @@ struct Args {
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-fn test_lexicon_tinantas(lex: &Lexicon) -> Result<()> {
+fn test_lexicon_tinantas(lex: &Kosha) -> Result<()> {
     let keys = vec![
         // Basic lakaras (kartari, karmani/bhAve)
         "nayati",
@@ -62,7 +62,7 @@ fn test_lexicon_tinantas(lex: &Lexicon) -> Result<()> {
     Ok(())
 }
 
-fn test_lexicon_subantas(lex: &Lexicon) -> Result<()> {
+fn test_lexicon_subantas(lex: &Kosha) -> Result<()> {
     let keys = vec![
         ("devas", "deva"),
         ("senA", "senA"),
@@ -92,7 +92,6 @@ fn test_lexicon_subantas(lex: &Lexicon) -> Result<()> {
         ("zaz", "zaRRAm"),
         ("sapta", "saptan"),
         ("daSa", "daSan"),
-
         ("pitaras", "pitf"),
         ("mAtaras", "mAtf"),
         ("BrAtaras", "BrAtf"),
