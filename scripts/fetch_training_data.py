@@ -13,7 +13,7 @@ training_data = Path("dcs-data")
 if not training_data.exists():
     print(f"Training data folder '{training_data}' does not exist -- fetching.")
     subprocess.check_call(
-        f"git clone git@github.com:OliverHellwig/sanskrit.git {training_data}",
+        f"git clone https://github.com/OliverHellwig/sanskrit.git {training_data}",
         shell=True,
     )
 else:
