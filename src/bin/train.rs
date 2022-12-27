@@ -104,13 +104,13 @@ fn process_file(path: &Path, s: &mut Statistics) -> Result<()> {
 
 fn write_transitions(transitions: Transitions, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
-    w.write_record(&["prev_state", "cur_state", "probability"])?;
+    w.write_record(["prev_state", "cur_state", "probability"])?;
 
     for (prev_state, counts) in transitions {
         let n = counts.values().sum::<u32>();
         for (cur_state, count) in counts {
             let prob = (count as f64) / (n as f64);
-            w.write_record(&[
+            w.write_record([
                 &prev_state.to_string(),
                 &cur_state.to_string(),
                 &prob.to_string(),
@@ -123,13 +123,13 @@ fn write_transitions(transitions: Transitions, path: &Path) -> Result<()> {
 
 fn write_emissions(emissions: Emissions, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
-    w.write_record(&["state", "token", "probability"])?;
+    w.write_record(["state", "token", "probability"])?;
 
     for (state, counts) in emissions {
         let n = counts.values().sum::<u32>();
         for (token, count) in counts {
             let prob = (count as f64) / (n as f64);
-            w.write_record(&[&state.to_string(), &token, &prob.to_string()])?;
+            w.write_record([&state.to_string(), &token, &prob.to_string()])?;
         }
         w.flush()?;
     }
@@ -142,10 +142,10 @@ fn write_emissions(emissions: Emissions, path: &Path) -> Result<()> {
 /// normalization on top.
 fn write_lemma_counts(counts: Counts, path: &Path) -> Result<()> {
     let mut w = csv::Writer::from_path(path)?;
-    w.write_record(&["lemma", "tag", "count"])?;
+    w.write_record(["lemma", "tag", "count"])?;
 
     for ((lemma, tag), count) in counts {
-        w.write_record(&[&lemma, &tag.to_string(), &count.to_string()])?;
+        w.write_record([&lemma, &tag.to_string(), &count.to_string()])?;
         w.flush()?;
     }
     Ok(())

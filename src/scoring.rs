@@ -135,7 +135,7 @@ impl LemmaModel {
     fn new(path: &Path) -> Result<Self, Box<dyn Error>> {
         let mut counts = HashMap::new();
 
-        let mut rdr = csv::Reader::from_path(&path)?;
+        let mut rdr = csv::Reader::from_path(path)?;
         for maybe_row in rdr.records() {
             let r = maybe_row?;
             let lemma = &r[0];

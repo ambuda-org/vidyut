@@ -56,6 +56,11 @@ struct Paths {
 }
 
 impl Paths {
+    fn new(base_path: impl AsRef<Path>) -> Self {
+        Paths {
+            base: base_path.as_ref().to_path_buf(),
+        }
+    }
     /// Path to the underlying FST.
     fn fst(&self) -> PathBuf {
         self.base.join("padas.fst")
@@ -85,15 +90,15 @@ pub struct Kosha {
 impl Kosha {
     /// Reads the lexicon from the given `base_path`.
     pub fn new(base_path: &Path) -> Result<Self, Box<dyn Error>> {
-        let paths = Paths {
-            base: base_path.to_path_buf(),
-        };
+        let paths = Paths::new(base_path);
 
+        info!("Loading fst from `{:?}`", paths.fst());
         let fst = Map::new(std::fs::read(paths.fst())?)?;
         let unpacker = Unpacker::from_data(
             PratipadikaTable::read(&paths.pratipadikas())?,
             DhatuTable::read(&paths.dhatus())?,
         );
+
         Ok(Self { fst, unpacker })
     }
 
@@ -236,9 +241,7 @@ impl Builder {
     pub fn new(base_path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>> {
         let base_path = base_path.as_ref();
         std::fs::create_dir_all(base_path)?;
-        let paths = Paths {
-            base: base_path.to_path_buf(),
-        };
+        let paths = Paths::new(base_path);
 
         let writer = io::BufWriter::new(File::create(paths.fst())?);
         Ok(Self {

@@ -13,7 +13,7 @@ rm -rf data-git
 mkdir -p "data/vidyut-0.1.0"
 
 make train
-make create_lexicon
+make create_kosha
 make generate_sandhi_rules
 RUST_LOG=info cargo run --release --bin vidyut -- "saMskftam" --data-dir "data/vidyut-0.1.0"
 echo "Vidyut is ready for use."

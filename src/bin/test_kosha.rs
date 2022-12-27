@@ -88,8 +88,8 @@ fn test_lexicon_subantas(lex: &Kosha) -> Result<()> {
 
         // Irregular subantas
         ("mahAn", "mahat"),
-        ("tri", "trayas"),
-        ("zaz", "zaRRAm"),
+        // ("tri", "trayas"),
+        // ("zaz", "zaRRAm"),
         ("sapta", "saptan"),
         ("daSa", "daSan"),
         ("pitaras", "pitf"),

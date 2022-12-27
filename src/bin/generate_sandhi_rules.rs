@@ -368,9 +368,9 @@ fn hal_sandhi(rules: &mut SandhiRules) {
 
 fn write_rules(rules: SandhiRules, config: &Config) -> Result<(), Box<dyn Error>> {
     let mut w = csv::Writer::from_path(config.sandhi())?;
-    w.write_record(&["first", "second", "result", "type"])?;
+    w.write_record(["first", "second", "result", "type"])?;
     for r in rules.into_vec() {
-        w.write_record(&[&r.first, &r.second, &r.result, ""])?;
+        w.write_record([&r.first, &r.second, &r.result, ""])?;
     }
     w.flush()?;
     Ok(())

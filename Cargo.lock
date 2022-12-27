@@ -513,6 +513,8 @@ dependencies = [
  "fst",
  "log",
  "modular-bitfield",
+ "multimap",
+ "rand",
  "tempfile",
 ]
 

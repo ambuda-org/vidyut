@@ -47,7 +47,7 @@ pub struct Reader {
 impl Reader {
     /// Read a CoNLL-U document from the given path.
     pub fn from_path(path: &Path) -> Result<Reader, Box<dyn Error>> {
-        let rdr = BufReader::new(File::open(&path)?);
+        let rdr = BufReader::new(File::open(path)?);
         Ok(Reader { rdr })
     }
 }

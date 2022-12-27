@@ -13,6 +13,8 @@ modular-bitfield = "0.11.2"
 [dev-dependencies]
 bencher = "0.1.5"
 tempfile = "3.3.0"
+rand = "0.8.5"
+multimap = "0.8.3"
 
 [[bench]]
 name = "lexicon"

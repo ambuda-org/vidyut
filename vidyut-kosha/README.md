@@ -72,7 +72,7 @@ Usage
 Detailed notes are coming soon. For now, you can run the following in the project directory:
 
 ```shell
-$ make create_lexicon
+$ make create_kosha
 ```
 
 

@@ -21,16 +21,12 @@ generate_sandhi_rules:
 	RUST_LOG=info cargo run --release --bin generate_sandhi_rules -- \
 			 --data-dir data/vidyut-0.1.0
 
-# Create an FST lexicon and write it to disk.
-create_lexicon:
-	RUST_LOG=info cargo run --release --bin create_lexicon -- --input-dir data --output-dir data/vidyut-0.1.0
+# Create a kosha and write it to disk.
+create_kosha:
+	RUST_LOG=info cargo run --release --bin create_kosha -- --input-dir data --output-dir data/vidyut-0.1.0
 
-test_lexicon:
-	RUST_LOG=info cargo run --release --bin test_lexicon -- --data-dir data/vidyut-0.1.0/
-
-bench_lexicon:
-	RUST_LOG=info cargo bench --bench lexicon -- --data-dir data/vidyut-0.1.0
-
+test_kosha:
+	RUST_LOG=info cargo run --release --bin test_kosha -- --data-dir data/vidyut-0.1.0/
 
 # Modeling
 # ========
