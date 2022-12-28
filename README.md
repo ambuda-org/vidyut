@@ -116,8 +116,6 @@ For details, see the [vidyut-kosha README][vidyut-kosha].
 
 ### [`vidyut-prakriya`][vidyut-prakriya]
 
-*(coming soon)*
-
 `vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)
 according to the rules of Paninian grammar. Our long-term goal is to provide a
 complete implementation of the Ashtadhyayi.

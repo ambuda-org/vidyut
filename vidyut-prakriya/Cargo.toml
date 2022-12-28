@@ -1,0 +1,23 @@
+[package]
+name = "vidyut-prakriya"
+version = "0.1.0"
+authors = ["Arun Prasad <ambuda.library@gmail.com>"]
+description = "A Sanskrit word generator"
+homepage = "https://github.com/ambuda-org/vidyut"
+repository = "https://github.com/ambuda-org/vidyut"
+categories = ["text-processing"]
+keywords = ["sanskrit"]
+license = "MIT"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.0.12", features = ["derive"] }
+compact_str = "0.6.1"
+csv = "1.1.6"
+enumset = "1.0.12"
+lazy_static = "1.4.0"
+serde = { version = "1.0.150", features = ["derive"] }
+sha2 = "0.10.6"
+sha256 = "1.1.1"

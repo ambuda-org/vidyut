@@ -2,6 +2,7 @@
 
 members = [
     "vidyut-kosha",
+    "vidyut-prakriya",
 ]
 
 [package]
