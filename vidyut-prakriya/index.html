@@ -21,44 +21,33 @@
   </style>
 
   <script type="module">
-    console.log('Hello');
     import init, { prakriyas } from "./pkg/vidyut_prakriya.js";
-    console.log("Calling init");
     await init();
-    console.log("Done WASM init.");
-
-    const p = prakriyas()[0];
-    function text(p) { return p.terms.map(t => t.text).join(''); }
-    document.getElementById("text").innerText = text(p);
-    for (let step of p.history) {
-      const rule = document.createElement('td');
-      rule.innerText = step.rule;
-
-      const result = document.createElement('td');
-      result.innerText = step.result;
-
-      const tr = document.createElement('tr');
-      tr.appendChild(rule);
-      tr.appendChild(result);
-      document.getElementById('history').appendChild(tr);
-    }
-
+    window.ret = prakriyas();
   </script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body>
-  <p>Text: <span id="text"></span></p>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Rule</th>
-        <th>Result</th>
-      </tr>
-    </thead>
-    <tbody id="history">
-    </tbody>
-  </table>
+<body x-data="ret">
+  <template x-for="p in ret">
+    <table>
+      <caption x-text="p.terms.map(t => t.text).join('')"></caption>
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="step in p.history">
+          <tr>
+            <td x-text="step.rule"></td>
+            <td x-text="step.result"></td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </template>
 </body>
 
 </html>
