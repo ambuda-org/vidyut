@@ -74,6 +74,5 @@ pub fn prakriyas() -> JsValue {
         .unwrap();
 
     let prakriyas = a.derive_tinantas(&dhatu, &args);
-    // JsValue::from_serde(&prakriyas).unwrap()
     serde_wasm_bindgen::to_value(&prakriyas).unwrap()
 }
