@@ -2,7 +2,7 @@
 use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
-use vidyut_prakriya::args::TinantaArgs;
+use vidyut_prakriya::args::{Dhatu, Sanadi, TinantaArgs};
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::private::check_file_hash;
 use vidyut_prakriya::Ashtadhyayi;
@@ -15,6 +15,17 @@ struct Args {
 
     #[arg(long)]
     hash: String,
+}
+
+fn parse_sanadi(val: &str) -> Vec<Sanadi> {
+    let results = val
+        .split('+')
+        .map(|x| x.parse())
+        .collect::<Result<Vec<Sanadi>, _>>();
+    match results {
+        Ok(x) => x,
+        Err(_) => Vec::new(),
+    }
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
@@ -30,14 +41,27 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     for maybe_row in rdr.records() {
         let r = maybe_row?;
         let expected: Vec<_> = r[0].split('|').collect();
+
         let gana = &r[2];
         let number = &r[3];
         let dhatu = dhatupatha::resolve(&r[1], gana, number)?;
 
-        let prayoga = r[4].parse()?;
-        let lakara = r[5].parse()?;
-        let purusha = r[6].parse()?;
-        let vacana = r[7].parse()?;
+        let sanadi = parse_sanadi(&r[4]);
+        let prayoga = r[5].parse()?;
+        let lakara = r[6].parse()?;
+        let purusha = r[7].parse()?;
+        let vacana = r[8].parse()?;
+
+        let mut builder = Dhatu::builder()
+            .upadesha(dhatu.upadesha())
+            .gana(dhatu.gana())
+            .sanadi(&sanadi);
+
+        if let Some(x) = dhatu.antargana() {
+            builder = builder.antargana(x);
+        }
+
+        let dhatu = builder.build()?;
 
         let tinanta_args = TinantaArgs::builder()
             .prayoga(prayoga)
@@ -49,6 +73,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         let prakriyas = a.derive_tinantas(&dhatu, &tinanta_args);
         let mut actual: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         actual.sort();
+        actual.dedup();
 
         n += 1;
         if expected == actual {
@@ -58,7 +83,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             let purusha = &r[6];
             let vacana = &r[7];
             let code = format!("{:0>2}.{:0>4}", gana, number);
-            let upadesha = dhatu.upadesha;
+            let upadesha = dhatu.upadesha();
             println!("[ FAIL ]  {code:<10} {upadesha:<10} {lakara:<10} {purusha:<10} {vacana:<10}");
             println!("          Expected: {:?}", expected);
             println!("          Actual  : {:?}", actual);

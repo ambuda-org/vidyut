@@ -80,7 +80,7 @@ impl<'a> ItPrakriya<'a> {
             let agama = Term::make_agama("iw");
             self.p.insert_before(i, agama);
             self.p.step(rule);
-            it_samjna::run(self.p, i).unwrap();
+            it_samjna::run(self.p, i).ok();
         }
         self.added = true;
     }
@@ -164,6 +164,24 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // skipped: 7.2.18 - 23.
     }
     // TODO: 7.2.18 - 7.2.34
+
+    Some(())
+}
+
+/// Runs rules that add optional it for san.
+fn try_it_rules_for_san(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
+    let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
+    if !wrap.p.has(i_n, |t| t.has_u("san")) {
+        return None;
+    }
+
+    let anga = wrap.p.get(i)?;
+    let rdhu_adi = &[
+        "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap", "san",
+    ];
+    if anga.text.ends_with("iv") || anga.has_text_in(rdhu_adi) {
+        wrap.optional_set("7.2.49", i_n);
+    }
 
     Some(())
 }
@@ -297,14 +315,15 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
                 // Handle this after running Attva. See `run_after_attva` for details.
                 return None;
             }
-        } else if anga.has_u_in(&["zmi\\N", "pUN", "f\\", "anjU~", "asU~\\"]) && n.has_u("san") {
-            wrap.set("7.2.74", i_n);
         }
+    } else if anga.has_u_in(&["zmi\\N", "pUN", "f\\", "anjU~", "asU~\\"]) && n.has_u("san") {
+        wrap.set("7.2.74", i_n);
     } else if anga.has_u_in(&["kF", "gF", "df\\N", "Df\\N", "pra\\Ca~"]) && n.has_u("san") {
         // cikarizati, jigarizati, didarizate, diDarizate, papracCizati
         wrap.set("7.2.75", i_n);
     }
 
+    try_it_rules_for_san(wrap, i);
     try_it_rules_for_ktva_and_nistha(wrap, i);
 
     let anga = wrap.p.get(i)?;
@@ -479,23 +498,30 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-pub fn run_before_attva(p: &mut Prakriya) {
+fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
+    try_lit_it(wrap, i);
+    try_general_anit(wrap, i);
+    try_ardhadhatuke(wrap, i);
+    try_sarvadhatuke(wrap.p, i);
+}
+
+pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
     // The abhyasa might come second, so match on it specifically.
-    let i = match p.find_last_where(f::tag_in(&[T::Dhatu, T::Abhyasa])) {
-        Some(i) => i,
-        None => return,
-    };
-
     let mut wrap = ItPrakriya::new(p);
+    let n = wrap.p.terms().len();
 
-    try_lit_it(&mut wrap, i);
-    try_general_anit(&mut wrap, i);
-    try_ardhadhatuke(&mut wrap, i);
-    try_sarvadhatuke(p, i);
+    for i in (0..n).rev() {
+        let cur = wrap.p.get(i)?;
+        if cur.has_tag_in(&[T::Dhatu, T::Abhyasa]) {
+            run_before_attva_for_term(&mut wrap, i);
+        }
+    }
 
     if let Some(i) = p.find_first_where(f::is_it_agama) {
         try_lengthen_it_agama(p, i);
     }
+
+    Some(())
 }
 
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
@@ -513,7 +539,7 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
             p.op("7.2.23", |p| {
                 p.set(i, |t| t.text.push('s'));
                 op::insert_agama_after(p, i, "iw");
-                it_samjna::run(p, i + 1).unwrap();
+                it_samjna::run(p, i + 1).ok();
             });
         }
     }

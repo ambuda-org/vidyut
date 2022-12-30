@@ -60,20 +60,36 @@ fn try_vrddhi_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 /// Runs rules for vrddhi conditioned on following Nit-Yit.
 ///
 /// (7.2.115 - 7.3.35)
+/// Taddhita rules: 7.2.117 - 7.3.31
 fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
     let n = p.view(i + 1)?;
 
     if !n.has_tag_in(&[T::Yit, T::Rit]) || !can_use_guna_or_vrddhi(anga, &n) {
-        // Allow RiN even though it is Nit and will be excluded by `can_use_guna_or_vrddhi`.
+        // Allow RiN even though it is Nit. Without this check, RiN will be excluded by
+        // `can_use_guna_or_vrddhi`.
         if !n.has_u("RiN") {
             return None;
         }
     }
 
-    if anga.has_text_in(&["jan", "vaD"]) && (n.has_u("ciR") || n.has_tag(T::Krt)) {
-        // Declined for `ajani` etc.
+    let is_cin = n.has_u("ciR") || n.has_tag(T::Cinvat);
+    let is_cin_krt = is_cin || n.has_tag(T::Krt);
+    let has_udatta = !anga.has_tag(T::Anudatta);
+
+    if is_cin_krt && has_udatta && anga.has_antya('m') {
+        // TODO: A-cam
+        p.step("7.3.34");
+    } else if is_cin_krt && anga.has_text_in(&["jan", "vaD"]) {
+        // ajani, avaDi, ...
         p.step("7.3.35");
+    } else if is_cin_krt && anga.has_antya('A') {
+        op::append_agama("7.3.33", p, i, "yu~k");
+    } else if anga.has_u("ha\\na~") && !is_cin && !n.has_u("Ral") {
+        p.op("7.3.32", |p| {
+            p.set(i, op::upadha("A"));
+            p.set(i, op::antya("t"));
+        });
     } else if anga.has_antya(&*AC) {
         // The use of "acaH" in 7.2.115 indicates that we should ignore "iko guNavRddhI" which
         // ordinarily restricts vrddhi to ik vowels only. By ignoring this restriction, we can
@@ -122,7 +138,7 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if anga.has_text("tfnah") && n.has_adi(&*HAL) && piti_sarvadhatuke && !n.has_tag(T::Nit)
     {
         // tfneQi; otherwise, tfRahAni, tfRQaH.
-        // HACK: check for explicit 'p' on first term to prevent tfnhyAt -> tfRihyAt
+        // HACK: check for absence of `Nit` on first term to prevent tfnhyAt -> tfRihyAt
         p.op_term("7.3.92", i, op::mit("i"));
     } else if is_sarva_ardha {
         let anga = p.get(i)?;

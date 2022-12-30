@@ -11,11 +11,12 @@ on which strings are valid arguments in `from_str`, please read the source code 
 */
 mod errors;
 
-// Args are arranged according to the five major vrttis: tin, sup, krt, taddhita (todo), and samasa (todo).
+mod dhatu;
 mod krt;
 mod sup;
 mod tin;
 
+pub use dhatu::*;
 pub use errors::*;
 pub use krt::*;
 pub use sup::*;

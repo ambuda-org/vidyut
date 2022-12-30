@@ -1,4 +1,4 @@
-use crate::args::Antargana;
+use crate::args::{Antargana, Gana};
 use crate::sounds::Pattern;
 use crate::tag::Tag;
 use compact_str::CompactString;
@@ -13,7 +13,7 @@ pub struct Term {
     pub u: Option<CompactString>,
     pub text: CompactString,
     tags: EnumSet<Tag>,
-    gana: Option<u8>,
+    gana: Option<Gana>,
     antargana: Option<Antargana>,
     lakshana: Vec<CompactString>,
 }
@@ -47,7 +47,7 @@ impl Term {
     }
 
     /// Creates a new dhatu.
-    pub fn make_dhatu(s: &str, gana: u8, antargana: Option<Antargana>) -> Self {
+    pub fn make_dhatu(s: &str, gana: Gana, antargana: Option<Antargana>) -> Self {
         let mut t = Term::make_upadesha(s);
         t.gana = Some(gana);
         t.antargana = antargana;
@@ -154,9 +154,9 @@ impl Term {
         terms.iter().any(|t| self.text.starts_with(t))
     }
 
-    /// Returns whether the term has the given root gaNa. If the gaNa is undefined, returns false.
+    /// Returns whether the term has the given root gaNa.
     pub fn has_gana(&self, gana: u8) -> bool {
-        self.gana == Some(gana)
+        self.gana == Some(Gana::from_int(gana).unwrap())
     }
 
     pub fn has_antargana(&self, antargana: Antargana) -> bool {
@@ -211,6 +211,10 @@ impl Term {
         if n >= 2 {
             self.text.replace_range(n - 2..n - 1, s);
         }
+    }
+
+    pub fn set_at(&mut self, i: usize, s: &str) {
+        self.text.replace_range(i..i + 1, s);
     }
 
     /// Sets the term's upadesha to the given value.

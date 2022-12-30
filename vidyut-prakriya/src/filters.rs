@@ -87,11 +87,6 @@ pub fn tag(tag: T) -> impl Fn(&Term) -> bool {
     move |t| t.has_tag(tag)
 }
 
-/// Returns whether the term has the given `tag`.
-pub fn tag_in(tags: &'static [T]) -> impl Fn(&Term) -> bool {
-    move |t| t.has_tag_in(tags)
-}
-
 /// Returns whether the term is a dhatu.
 pub fn dhatu(t: &Term) -> bool {
     t.has_tag(T::Dhatu)

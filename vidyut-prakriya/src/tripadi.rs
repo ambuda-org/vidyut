@@ -626,9 +626,11 @@ fn allows_natva(text: &str, i: usize) -> bool {
 fn try_natva(p: &mut Prakriya) {
     if let Some(i) = p.find_first(T::Dhatu) {
         let dhatu = &p.terms()[i];
-        if dhatu.has_u("kzuBa~") && p.has(i + 1, f::u_in(&["SnA", "SAnac"]))
-            || dhatu.has_u("tfpa~") && p.has(i + 1, f::u("Snu"))
+        if (dhatu.has_u("kzuBa~") && p.has(i + 1, f::u_in(&["SnA", "SAnac"])))
+            || (dhatu.has_u("tfpa~") && p.has(i + 1, f::u("Snu")))
+            || (dhatu.has_text("nft") && p.has(i + 1, f::u("yaN")))
         {
+            p.step("8.4.39");
             return;
         }
     }
@@ -649,25 +651,6 @@ fn try_natva(p: &mut Prakriya) {
             }
         },
     );
-
-    // view = StringView(p.terms)
-    // between = s("aw ku~ pu~ M").regex
-    // match = re.search(f"[rzfF]({between}*)n", view.text)
-
-    // if match:
-    //     // End of pada
-    //     if match.span(0)[1] == len(view.text):
-    //         p.step("8.4.37")
-    //     else:
-    //         view[match.span(0)[1] - 1] = "R"
-    //         if match.group(1):
-    //             p.step("8.4.2")
-    //         else:
-    //             trigger = view[match.span(0)[0]]
-    //             if trigger in "rz":
-    //                 p.step("8.4.1")
-    //             else:
-    //                 p.step("8.4.1-v")
 }
 
 /// Converts "m" and "n" to the anusvara when a consonant follows.
@@ -731,10 +714,11 @@ fn try_murdhanya_for_s(p: &mut Prakriya) -> Option<()> {
         },
         |p, i, _| {
             let x = p.get(i).unwrap();
+            let code = "8.3.60";
             if x.has_text("s") {
-                p.op_term("8.3.60", i, op::text("z"));
+                p.op_term(code, i, op::text("z"));
             } else {
-                p.op_term("8.3.60", i, op::antya("z"));
+                p.op_term(code, i, op::antya("z"));
             }
         },
     );
@@ -885,6 +869,7 @@ fn try_dha_lopa(p: &mut Prakriya) -> Option<()> {
 /// Runs rules that convert sounds to their savarna version.
 fn try_to_savarna(p: &mut Prakriya) {
     char_rule(p, xy(|x, y| x == 'M' && YAY.contains(y)), |p, text, i| {
+        let x = text.as_bytes()[i] as char;
         let y = text.as_bytes()[i + 1] as char;
         let sub = match y {
             'k' | 'K' | 'g' | 'G' | 'N' => "N",
@@ -896,7 +881,10 @@ fn try_to_savarna(p: &mut Prakriya) {
         };
         set_at(p, i, sub);
         p.step("8.4.58");
-        true
+        // "M' is possible per 7.4.86 -- see the comments on that rule.
+        // To prevent an infinite loop, return true only if the original sound wasn't already an
+        // ansuvara.
+        x != 'M'
     });
 
     char_rule(
@@ -910,7 +898,7 @@ fn try_to_savarna(p: &mut Prakriya) {
         xyz(|x, y, z| {
             HAL.contains(x) && JHAR.contains(y) && JHAR.contains(z) && al::is_savarna(y, z)
         }),
-        |p, _, i| p.op_optional("8.4.64", |p| set_at(p, i + 1, "")),
+        |p, _, i| p.op_optional("8.4.65", |p| set_at(p, i + 1, "")),
     );
 }
 
@@ -989,10 +977,10 @@ fn try_jhal_adesha(p: &mut Prakriya) {
             if x != sub {
                 if p.is_allowed(code) {
                     set_at(p, i, &sub.to_string());
-                    p.step("8.4.56");
+                    p.step(code);
                     true
                 } else {
-                    p.decline("8.4.56");
+                    p.decline(code);
                     false
                 }
             } else {

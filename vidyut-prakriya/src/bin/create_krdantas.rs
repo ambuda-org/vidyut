@@ -37,15 +37,16 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
 
         let prakriyas = a.derive_krdantas(&dhatu, &krdanta_args);
 
-        let dhatu_text = &dhatu.upadesha;
+        let dhatu_text = &dhatu.upadesha();
         let mut pratipadikas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         pratipadikas.sort();
+        pratipadikas.dedup();
         let pratipadikas = pratipadikas.join("|");
 
         let row = Row {
             pratipadikas,
             dhatu: dhatu_text,
-            gana: dhatu.gana,
+            gana: dhatu.gana(),
             number,
             krt: krt.as_str(),
         };

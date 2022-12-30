@@ -40,6 +40,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         let prakriyas = a.derive_krdantas(&dhatu, &krdanta_args);
         let mut actual: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         actual.sort();
+        actual.dedup();
 
         n += 1;
         if expected == actual {
@@ -47,7 +48,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         } else {
             let krt = &r[4];
             let code = format!("{:0>2}.{:0>4}", gana, number);
-            let upadesha = dhatu.upadesha;
+            let upadesha = dhatu.upadesha();
             println!("[ FAIL ]  {code:<10} {upadesha:<10} {krt:<10}");
             println!("          Expected: {:?}", expected);
             println!("          Actual  : {:?}", actual);

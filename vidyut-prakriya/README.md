@@ -77,11 +77,11 @@ To generate prakriyas programmatically, you can use the starter code below:
 
 ```rust
 use vidyut_prakriya::Ashtadhyayi;
-use vidyut_prakriya::args::{TinantaArgs, Dhatu, Lakara, Prayoga, Purusha, Vacana};
+use vidyut_prakriya::args::*;
 
 let a = Ashtadhyayi::new();
 
-let dhatu = Dhatu::new("BU", 1);
+let dhatu = Dhatu::new("BU", Gana::Bhvadi);
 let args = TinantaArgs::builder()
     .lakara(Lakara::Lat)
     .prayoga(Prayoga::Kartari)

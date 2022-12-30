@@ -1,5 +1,5 @@
+use crate::args::ArgumentError;
 use enumset::EnumSetType;
-use std::error::Error;
 
 /// An annotation on some `Term`.
 ///
@@ -232,7 +232,7 @@ pub enum Tag {
 
 impl Tag {
     /// Converts a sound representing an it to its corresponding `Tag`.
-    pub fn parse_it(it: char) -> Result<Tag, Box<dyn Error>> {
+    pub fn parse_it(it: char) -> Result<Tag, ArgumentError> {
         let res = match it {
             'a' => Tag::adit,
             'A' => Tag::Adit,
@@ -267,7 +267,11 @@ impl Tag {
             'S' => Tag::Sit,
             'z' => Tag::zit,
             's' => Tag::sit,
-            _ => panic!("Unknown it letter {it}"),
+            _ => {
+                return Err(ArgumentError::new(&format!(
+                    "Could not parse `{it}` as an it-samjna."
+                )))
+            }
         };
         Ok(res)
     }

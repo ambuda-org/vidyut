@@ -5,7 +5,7 @@
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
-use crate::args::{Dhatu, KrdantaArgs, Lakara, SubantaArgs, TinantaArgs};
+use crate::args::{Dhatu, KrdantaArgs, Lakara, Sanadi, SubantaArgs, TinantaArgs};
 use crate::atidesha;
 use crate::atmanepada;
 use crate::dhatu_karya;
@@ -13,7 +13,8 @@ use crate::dvitva;
 use crate::it_agama;
 use crate::krt_pratyaya;
 use crate::la_karya;
-use crate::prakriya::{Prakriya, PrakriyaStack};
+use crate::prakriya::Prakriya;
+use crate::prakriya_stack::PrakriyaStack;
 use crate::pratipadika_karya;
 use crate::samjna;
 use crate::samprasarana;
@@ -24,10 +25,12 @@ use crate::tripadi;
 use crate::vikarana;
 use std::error::Error;
 
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
 /// Adds a dhatu to the prakriya.
-fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<(), Box<dyn Error>> {
+fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<()> {
     dhatu_karya::run(p, dhatu)?;
-    sanadi::run(p, is_ardhadhatuka);
+    sanadi::run(p, is_ardhadhatuka, dhatu.sanadi())?;
 
     Ok(())
 }
@@ -70,11 +73,7 @@ fn finish_prakriya(p: &mut Prakriya) {
     tripadi::run(p);
 }
 
-fn derive_tinanta(
-    p: &mut Prakriya,
-    dhatu: &Dhatu,
-    args: &TinantaArgs,
-) -> Result<(), Box<dyn Error>> {
+fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result<()> {
     let prayoga = args.prayoga();
     let lakara = args.lakara();
     let purusha = args.purusha();
@@ -103,7 +102,7 @@ fn derive_tinanta(
 
     // --- Code below this line needs to be cleaned up. ---
 
-    if !lakara.is_sarvadhatuka() {
+    if !lakara.is_sarvadhatuka() || dhatu.sanadi().contains(&Sanadi::Yan) {
         run_various_dhatu_tasks(p)
     }
 
@@ -130,20 +129,18 @@ fn derive_tinanta(
     Ok(())
 }
 
-fn derive_subanta(p: &mut Prakriya, pratipadika: &str, args: &SubantaArgs) {
+fn derive_subanta(p: &mut Prakriya, pratipadika: &str, args: &SubantaArgs) -> Result<()> {
     pratipadika_karya::run(p, pratipadika, args);
 
     sup_karya::run(p, args);
     samjna::run(p);
 
     finish_prakriya(p);
+
+    Ok(())
 }
 
-fn derive_krdanta(
-    p: &mut Prakriya,
-    dhatu: &Dhatu,
-    args: &KrdantaArgs,
-) -> Result<(), Box<dyn Error>> {
+fn derive_krdanta(p: &mut Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result<()> {
     let krt = args.krt();
 
     add_dhatu(p, dhatu, krt.is_ardhadhatuka())?;
@@ -222,7 +219,7 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::args::*;
     ///
     /// let a = Ashtadhyayi::new();
-    /// let dhatu = Dhatu::new("BU", 1);
+    /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
     /// let args = TinantaArgs::builder()
     ///     .lakara(Lakara::Lat)
     ///     .prayoga(Prayoga::Kartari)
@@ -234,7 +231,8 @@ impl Ashtadhyayi {
     /// ```
     pub fn derive_tinantas(&self, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
-        stack.find_all(|p| derive_tinanta(p, dhatu, args).unwrap(), self.log_steps);
+        // TODO: handle error properly.
+        stack.find_all(|p| derive_tinanta(p, dhatu, args), self.log_steps);
         stack.prakriyas()
     }
 
@@ -274,7 +272,7 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::args::*;
     ///
     /// let a = Ashtadhyayi::new();
-    /// let dhatu = Dhatu::new("BU", 1);
+    /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
     /// let args = KrdantaArgs::builder()
     ///     .krt(Krt::ktvA)
     ///     .build()?;
@@ -283,7 +281,7 @@ impl Ashtadhyayi {
     /// ```
     pub fn derive_krdantas(&self, dhatu: &Dhatu, args: &KrdantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
-        stack.find_all(|p| derive_krdanta(p, dhatu, args).unwrap(), self.log_steps);
+        stack.find_all(|p| derive_krdanta(p, dhatu, args), self.log_steps);
         stack.prakriyas()
     }
 }

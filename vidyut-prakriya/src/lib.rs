@@ -22,6 +22,7 @@ pub mod private {
 // Data structures
 mod char_view;
 mod prakriya;
+mod prakriya_stack;
 mod sounds;
 mod tag;
 mod term;

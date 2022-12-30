@@ -18,6 +18,8 @@ use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
+    static ref AC: SoundSet = s("ac");
+    static ref ANUNASIKA: SoundSet = s("Yam");
     static ref UU: SoundSet = s("u");
     static ref SHAR: SoundSet = s("Sar");
     static ref KHAY: SoundSet = s("Kay");
@@ -57,6 +59,59 @@ fn try_shar_purva(text: &str) -> CompactString {
         }
     }
     ret
+}
+
+/// Runs rules that remove the abhyAsa of a sannanta (laB -> lipsati).
+fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Abhyasta)?;
+    if i == 0 || !p.has(i + 1, |t| t.has_u("san")) {
+        return None;
+    }
+
+    let i_abhyasa = p.find_prev_where(i, |t| t.has_tag(T::Abhyasa))?;
+
+    let mut do_abhyasa_lopa = true;
+    let dhatu = p.get(i)?;
+    if dhatu.has_text_in(&["mI", "mA"])
+        || dhatu.has_tag(T::Ghu)
+        || dhatu.has_text_in(&["raB", "laB", "Sak", "pat", "pad"])
+    {
+        // mitsati, ripsati, lipsati, Sikzati, pitsati, ...
+        let code = "7.4.54";
+        if dhatu.has_upadha(&*AC) {
+            p.op_term(code, i, op::upadha("is"));
+        } else {
+            p.op_term(code, i, op::antya("is"));
+        }
+    } else if dhatu.has_text("rAD") {
+        do_abhyasa_lopa = p.op_optional("7.4.54.v1", op::t(i, op::upadha("is")));
+    } else if dhatu.has_text_in(&["Ap", "jYap", "fD"]) {
+        // Ipsati, jYIpsati, Irsati
+        let code = "7.4.55";
+        if dhatu.has_text("fD") {
+            p.op_term(code, i, op::upadha("Ir"));
+        } else {
+            p.op_term(code, i, op::upadha("I"));
+        }
+    } else if dhatu.has_text("danB") {
+        // Dipsati, DIpsati
+        if !p.op_optional("7.4.56.1", op::t(i, |t| t.set_at(1, "i"))) {
+            p.op_term("7.4.56.2", i, |t| t.set_at(1, "I"));
+        }
+    } else if dhatu.has_text("muc") && p.has_tag(T::Atmanepada) {
+        // mokzate, mumukzate
+        do_abhyasa_lopa = p.op_optional("7.4.57", |p| {
+            p.set(i, op::text("moc"));
+        });
+    } else {
+        do_abhyasa_lopa = false;
+    }
+
+    if do_abhyasa_lopa {
+        p.op_term("7.4.58", i_abhyasa, op::lopa);
+    }
+
+    Some(())
 }
 
 /// `i` is the index of an abhyasa..
@@ -257,7 +312,7 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
 /// Example: `ni + nij + anti` -> `nenijanti
 ///
 /// Args:
-/// - `i_abhyasa`: the index of the abhyasa.
+/// - `i`: the index of the abhyasa.
 ///
 /// Example: bu + BU + va -> baBUva.
 ///
@@ -285,6 +340,54 @@ fn try_rules_for_slu(p: &mut Prakriya, i: usize) -> Option<()> {
     // TODO: 7.4.78 bahulaM chandasi
 }
 
+/// Runs rules that modify the abhyAsa for yaNanta dhAtus.
+fn try_rules_for_yan(p: &mut Prakriya, i: usize) -> Option<()> {
+    p.find_last_where(|t| t.has_u("yaN"))?;
+
+    let i_dhatu = i + 1;
+    let abhyasa = p.get(i)?;
+
+    if !abhyasa.has_antya('a') {
+        // Avaid guna for 'a' because it causes no change to the result.
+        let sub = al::to_guna(abhyasa.antya()?)?;
+        p.op_term("7.4.82", i, op::antya(sub));
+    }
+
+    let add_agama = |rule, p: &mut Prakriya, i_dhatu, agama| {
+        p.op(rule, |p| op::insert_agama_before(p, i_dhatu, agama));
+        it_samjna::run(p, i_dhatu).ok();
+    };
+
+    let abhyasa = p.get(i)?;
+    let dhatu = p.get(i_dhatu)?;
+    let vanc_adi = &[
+        "vanc", "srans", "Dvans", "Brans", "kas", "pat", "pad", "skand",
+    ];
+    if dhatu.has_text_in(vanc_adi) {
+        add_agama("7.4.84", p, i_dhatu, "nIk");
+    } else if abhyasa.has_antya('a') && dhatu.has_antya(&*ANUNASIKA) {
+        // Should treat as anusvAra per commentaries, otherwise we can't derive yaMyamyate.
+        add_agama("7.4.85", p, i_dhatu, "Mu~k");
+    } else if dhatu.has_text_in(&["jap", "jaB", "dah", "daS", "Banj", "paS"]) {
+        add_agama("7.4.86", p, i_dhatu, "nu~k");
+    } else if dhatu.has_text_in(&["car", "Pal"]) {
+        add_agama("7.4.87", p, i_dhatu, "nu~k");
+
+        // Use `i_dhatu + 1` because 7.4.87 above shifted the index.
+        let i_dhatu = i_dhatu + 1;
+        let dhatu = p.get(i_dhatu)?;
+        if dhatu.has_upadha('a') {
+            p.op_term("7.4.88", i_dhatu, op::upadha("u"));
+        }
+    } else if dhatu.has_upadha('f') {
+        add_agama("7.4.90", p, i_dhatu, "rIk");
+    } else if abhyasa.has_antya('a') {
+        p.op_term("7.4.83", i, op::antya("A"));
+    }
+
+    Some(())
+}
+
 fn run_at_index(p: &mut Prakriya, i: usize) {
     // TODO: expand for abhyasa after dhatu.
     let i_dhatu = i + 1;
@@ -295,6 +398,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) {
     try_general_rules(p, i);
     try_rules_for_lit(p, i);
     try_rules_for_slu(p, i);
+    try_rules_for_yan(p, i);
 }
 
 /// Runs the abhyasa rules for all abhyasas in the prakriya.
@@ -303,6 +407,8 @@ fn run_at_index(p: &mut Prakriya, i: usize) {
 /// - biBriyAYcakAra
 /// - jugupsAYcakre
 pub fn run(p: &mut Prakriya) -> Option<()> {
+    try_abhyasa_lopa_and_dhatu_change_before_san(p);
+
     let mut i = p.find_first(T::Abhyasa)?;
     loop {
         run_at_index(p, i);

@@ -922,6 +922,8 @@ fn try_ksa_lopa(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
+/// Runs rules that add various Agamas between the dhatu and the Ric-pratyaya.
+///
 // (7.3.36 - 7.3.43)
 fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
@@ -944,9 +946,9 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
     if dhatu.has_text_in(&["f", "hrI", "vlI", "rI", "knUy", "kzmAy"]) || dhatu.has_antya('A') {
         op::append_agama("7.3.36", p, i, "pu~k");
     } else if dhatu.has_text_in(&["zA", "DA", "sA", "hvA", "vyA", "pA", "pE"])
-        || dhatu.has_u("ve\\Y")
+        || dhatu.has_u("vA\\")
     {
-        let blocked = if dhatu.has_u("ve\\Y") {
+        let blocked = if dhatu.has_u("vA\\") {
             optional_append_agama("7.3.38", p, i, "ju~k")
         } else {
             false

@@ -43,7 +43,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     };
 
     for (dhatu, dhatu_number) in dhatus?.iter() {
-        if !(dhatu.gana == gana && *dhatu_number == number) {
+        if !(dhatu.gana() == gana && *dhatu_number == number) {
             continue;
         }
 

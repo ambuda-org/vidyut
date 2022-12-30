@@ -16,6 +16,7 @@
 // The it-prakarana is applied at the very end, since there might be various
 // substitutions by lopa that block the prakarana.
 
+use crate::args::Gana::*;
 use crate::dhatu_gana::{DYUT_ADI, PUSH_ADI, TAN_ADI};
 use crate::filters as f;
 use crate::it_samjna;
@@ -255,13 +256,53 @@ fn add_lun_vikarana(p: &mut Prakriya) {
 }
 
 fn add_kr_after_am_pratyaya(p: &mut Prakriya) {
-    let mut kf = Term::make_dhatu("qukf\\Y", 8, None);
+    let mut kf = Term::make_dhatu("qukf\\Y", Tanadi, None);
     kf.set_text("kf");
     kf.add_tag(T::Dhatu);
 
     let i_tin = p.terms().len() - 1;
     p.insert_before(i_tin, kf);
     p.step("3.1.40")
+}
+
+/// Adds one of `kf`, `BU`, or `as` after the `Am` pratyaya.
+///
+/// Examples:
+/// - `corayAYcakAra`
+/// - `corayAmbaBUva`
+/// - `corayAmAsa`
+fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
+    let i_tin = p.terms().len() - 1;
+
+    // Run exactly one of the following blocks:
+    let mut ran = false;
+    if !ran {
+        // corayAmbaBUva, corayAmbaBUve, ...
+        ran = p.op_optional("3.1.40:BU", |p| {
+            let mut dhatu = Term::make_dhatu("BU", Bhvadi, None);
+            dhatu.set_text("BU");
+            dhatu.add_tag(T::Dhatu);
+            p.insert_before(i_tin, dhatu);
+        });
+    }
+    if !ran {
+        // corayAmAsa, corayAmAhe, ...
+        ran = p.op_optional("3.1.40:as", |p| {
+            let mut dhatu = Term::make_dhatu("asa~", Adadi, None);
+            dhatu.set_text("as");
+            dhatu.add_tag(T::Dhatu);
+            p.insert_before(i_tin, dhatu);
+        });
+    }
+    if !ran {
+        // corayAYcakAra, corayAYcakre, ...
+        p.op("3.1.40:kf", |p| {
+            let mut dhatu = Term::make_dhatu("qukf\\Y", Tanadi, None);
+            dhatu.set_text("kf");
+            dhatu.add_tag(T::Dhatu);
+            p.insert_before(i_tin, dhatu);
+        });
+    }
 }
 
 fn maybe_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
@@ -304,7 +345,7 @@ fn maybe_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
         return None;
     }
 
-    add_kr_after_am_pratyaya(p);
+    add_kr_bhu_or_as_after_am_pratyaya(p);
 
     Some(())
 }

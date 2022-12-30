@@ -700,11 +700,11 @@ pub fn run(p: &mut Prakriya, krt: Krt) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::args::Dhatu;
+    use crate::args::{Dhatu, Gana};
     use crate::dhatu_karya;
 
     fn make_prakriya(dhatu: &str) -> Prakriya {
-        let dhatu = Dhatu::new(dhatu, 1);
+        let dhatu = Dhatu::new(dhatu, Gana::Bhvadi);
         let mut p = Prakriya::new();
         dhatu_karya::run(&mut p, &dhatu).unwrap();
 

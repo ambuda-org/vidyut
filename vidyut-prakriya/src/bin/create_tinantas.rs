@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::error::Error;
 use std::io;
 use std::path::Path;
-use vidyut_prakriya::args::{Dhatu, Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
+use vidyut_prakriya::args::{Dhatu, Lakara, Prayoga, Purusha, Sanadi, TinantaArgs, Vacana};
 use vidyut_prakriya::dhatupatha as D;
 use vidyut_prakriya::Ashtadhyayi;
 
@@ -16,6 +16,8 @@ use vidyut_prakriya::Ashtadhyayi;
 struct Args {
     #[arg(long)]
     prayoga: Option<Prayoga>,
+    #[arg(long)]
+    sanadi: Option<Sanadi>,
 }
 
 // TODO: reuse with other binaries?
@@ -52,6 +54,7 @@ struct Row<'a> {
     dhatu: &'a str,
     gana: u8,
     number: u16,
+    sanadi: String,
     prayoga: &'static str,
     lakara: &'static str,
     purusha: &'static str,
@@ -62,7 +65,22 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let a = Ashtadhyayi::builder().log_steps(false).build();
 
+    let sanadi = match args.sanadi {
+        Some(x) => vec![x],
+        None => Vec::new(),
+    };
+
     for (dhatu, number) in dhatus {
+        // Add sanadi to the dhatu.
+        let mut builder = Dhatu::builder()
+            .upadesha(dhatu.upadesha())
+            .gana(dhatu.gana())
+            .sanadi(&sanadi);
+        if let Some(x) = dhatu.antargana() {
+            builder = builder.antargana(x);
+        }
+        let dhatu = builder.build()?;
+
         for prayoga in PRAYOGAS {
             // Filter prayoga based on args
             if let Some(p) = args.prayoga {
@@ -81,17 +99,28 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
                         .build()?;
 
                     let prakriyas = a.derive_tinantas(&dhatu, &tinanta_args);
-
-                    let dhatu_text = &dhatu.upadesha;
                     let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
                     padas.sort();
+                    padas.dedup();
                     let padas = padas.join("|");
+                    if padas.is_empty() {
+                        continue;
+                    }
 
+                    let sanadi_str = dhatu
+                        .sanadi()
+                        .iter()
+                        .map(|x| x.as_str())
+                        .fold(String::new(), |b, x| b + x + "+");
+                    let sanadi_str = sanadi_str.trim_end_matches('+');
+
+                    let dhatu_text = &dhatu.upadesha();
                     let row = Row {
                         padas,
                         dhatu: dhatu_text,
-                        gana: dhatu.gana,
+                        gana: dhatu.gana(),
                         number,
+                        sanadi: sanadi_str.to_string(),
                         lakara: lakara.as_str(),
                         purusha: purusha.as_str(),
                         vacana: vacana.as_str(),

@@ -4,7 +4,7 @@ use vidyut_prakriya::Ashtadhyayi;
 
 fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<CompactString> {
     let a = Ashtadhyayi::new();
-    let dhatu = Dhatu::new(dhatu, gana);
+    let dhatu = Dhatu::new(dhatu, Gana::from_int(gana).unwrap());
     let args = KrdantaArgs::builder().krt(krt).build().unwrap();
 
     let prakriyas = a.derive_krdantas(&dhatu, &args);

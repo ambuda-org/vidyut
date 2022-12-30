@@ -4,12 +4,12 @@
 //!
 //! The most "core" prakaraṇa is the it-saṁjñā-prakaraṇa, which identifies remove different `it`
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
+use crate::args::ArgumentError;
 use crate::prakriya::Prakriya;
 use crate::sounds::{s, SoundSet};
 use crate::tag::Tag as T;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
-use std::error::Error;
 
 lazy_static! {
     // FIXME: find a better approach for `s`.
@@ -90,7 +90,7 @@ fn run_1_3_2(p: &mut Prakriya, i_term: usize, before: &mut CompactString) -> Opt
 /// Runs rules that identify and remove it letters from the term at index `i`.
 ///
 /// (1.3.2 - 1.3.9)
-pub fn run(p: &mut Prakriya, i: usize) -> Result<(), Box<dyn Error>> {
+pub fn run(p: &mut Prakriya, i: usize) -> Result<(), ArgumentError> {
     let t = match p.get(i) {
         Some(t) => t,
         None => return Ok(()),
@@ -100,7 +100,12 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<(), Box<dyn Error>> {
     // term unchanged. Instead, mutate a new temporary string and copy it over as part of 1.3.9.
     let mut temp: CompactString = match &t.u {
         Some(s) => s.clone(),
-        None => return Ok(()),
+        None => {
+            return Err(ArgumentError::new(&format!(
+                "Term with text `{}` has empty upadesha.",
+                t.text
+            )))
+        }
     };
 
     // Varttika: `i~r` is its own it.
@@ -123,6 +128,10 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<(), Box<dyn Error>> {
         Some(t) => t,
         None => return Ok(()),
     };
+    if t.is_empty() {
+        return Err(ArgumentError::new("Received empty upadesha"));
+    }
+
     let antya = t.antya().unwrap();
     if let Some(t) = p.get_mut(i) {
         if HAL.contains(antya) && !irit {
@@ -205,9 +214,10 @@ mod tests {
     }
 
     #[test]
-    fn test_no_upadesha() {
-        let t = check(Term::make_text("buD"));
-        assert_eq!(t.text, "buD");
+    fn missing_upadesha() {
+        let mut p = Prakriya::new();
+        p.push(Term::make_text("buD"));
+        assert!(run(&mut p, 0).is_err());
     }
 
     #[test]

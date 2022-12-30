@@ -1,9 +1,17 @@
+use crate::args::{ArgumentError, Sanadi};
 use crate::dhatu_gana as gana;
+use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
+use crate::sounds::{s, SoundSet};
 use crate::tag::Tag as T;
 use crate::term::Term;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref HAL: SoundSet = s("hal");
+}
 
 // These dhatus use their pratyaya optionally if followed by ArdhadhAtuka.
 const AYADAYA: &[&str] = &[
@@ -23,9 +31,12 @@ fn add_sanadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
     it_samjna::run(p, i_pratyaya).ok().unwrap();
 }
 
-// TODO: 3.1.8 - 3.1.24
-// TODO: 3.1.26 - 3.1.27
-pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool) -> Option<()> {
+fn can_use_yan(t: &Term) -> bool {
+    f::is_eka_ac(t) && t.has_adi(&*HAL)
+}
+
+// TODO: 3.1.8 - 3.1.21
+fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let dhatu = p.get(i)?;
 
@@ -39,22 +50,39 @@ pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool) -> Option<()> {
         add_sanadi("3.1.6", p, i, "san");
         // TODO: optional by extension of "vA" from 3.1.7 per Kashika?
         p.set(i + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
+    } else if sanadi.contains(&Sanadi::San) {
+        add_sanadi("3.1.7", p, i, "san");
+    } else if sanadi.contains(&Sanadi::Yan) {
+        if can_use_yan(dhatu) {
+            if dhatu.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
+                add_sanadi("3.1.24", p, i, "yaN");
+            } else {
+                add_sanadi("3.1.22", p, i, "yaN");
+            }
+            // We skip 3.1.23 because it conditions on the dhatu implying a sense of motion, which
+            // we can't easily model.
+        }
     } else if dhatu.has_gana(10) {
         // corayati
         add_sanadi("3.1.25", p, i, "Ric");
+    } else if sanadi.contains(&Sanadi::Nic) {
+        add_sanadi("3.1.26", p, i, "Ric");
+    } else if dhatu.has_u_in(gana::KANDU_ADI) {
+        add_sanadi("3.1.27", p, i, "yak");
     } else if dhatu.has_u_in(AYADAYA) {
         let mut add_pratyaya = true;
 
+        let code = "3.1.31";
         if is_ardhadhatuka {
-            if p.is_allowed("3.1.31") {
+            if p.is_allowed(code) {
                 add_pratyaya = false;
                 // TODO: not sure where to do this.
                 if p.has(i, |t| t.has_u("fti")) {
                     p.set(i, |t| t.set_text("ft"));
                 }
-                p.step("3.1.31");
+                p.step(code);
             } else {
-                p.decline("3.1.31");
+                p.decline(code);
             }
         }
 
@@ -82,58 +110,88 @@ pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool) -> Option<()> {
     Some(())
 }
 
+pub fn run(
+    p: &mut Prakriya,
+    is_ardhadhatuka: bool,
+    sanadi: &[Sanadi],
+) -> Result<(), ArgumentError> {
+    if sanadi.contains(&Sanadi::Yan) {
+        if let Some(i) = p.find_first(T::Dhatu) {
+            if !p.has(i, can_use_yan) {
+                return Err(ArgumentError::new(
+                    "When using yan, dhatu must start with a consonant and have exactly one vowel.",
+                ));
+            }
+        }
+    }
+
+    run_inner(p, is_ardhadhatuka, sanadi);
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::dhatu_karya;
     use crate::dhatupatha;
 
-    fn check(upadesha: &str, code: &str) -> (Term, Term) {
+    fn check_sanadi(upadesha: &str, code: &str, sanadi: &[Sanadi]) -> (Term, Term) {
         let mut p = Prakriya::new();
         let (gana, number) = code.split_once('.').unwrap();
         let dhatu = dhatupatha::resolve(upadesha, gana, number).unwrap();
 
         dhatu_karya::run(&mut p, &dhatu).unwrap();
 
-        run(&mut p, false).unwrap();
+        run(&mut p, false, sanadi).unwrap();
         let dhatu = p.get(0).unwrap();
         let pratyaya = p.get(1).unwrap();
         (dhatu.clone(), pratyaya.clone())
     }
 
+    fn check_basic(upadesha: &str, code: &str) -> (Term, Term) {
+        check_sanadi(upadesha, code, &[])
+    }
+
     #[test]
     fn test_gup() {
-        let (_, p) = check("gupa~\\", "01.1125");
-        assert_eq!(p.text, "sa");
-        assert!(p.all(&[T::Pratyaya, T::FlagNoArdhadhatuka]));
+        let (_, san) = check_basic("gupa~\\", "01.1125");
+        assert_eq!(san.text, "sa");
+        assert!(san.all(&[T::Pratyaya, T::FlagNoArdhadhatuka]));
     }
 
     #[test]
     fn test_man() {
-        let (_, p) = check("mAna~\\", "01.1127");
-        assert_eq!(p.text, "sa");
-        assert!(p.all(&[T::Pratyaya, T::FlagNoArdhadhatuka]));
+        let (_, san) = check_basic("mAna~\\", "01.1127");
+        assert_eq!(san.text, "sa");
+        assert!(san.all(&[T::Pratyaya, T::FlagNoArdhadhatuka]));
     }
 
     #[test]
     fn test_curadi() {
-        let (_, p) = check("cura~", "10.0001");
-        assert_eq!(p.text, "i");
-        assert!(p.has_tag(T::Pratyaya));
+        let (_, nic) = check_basic("cura~", "10.0001");
+        assert_eq!(nic.text, "i");
+        assert!(nic.has_tag(T::Pratyaya));
+    }
+
+    #[test]
+    fn test_hetumati() {
+        let (_, nic) = check_sanadi("BU", "01.0001", &[Sanadi::Nic]);
+        assert_eq!(nic.text, "i");
+        assert!(nic.has_tag(T::Pratyaya));
     }
 
     #[test]
     fn test_ayadaya() {
-        let (_, p) = check("gupU~", "01.0461");
-        assert_eq!(p.text, "Aya");
-        assert!(p.has_tag(T::Pratyaya));
+        let (_, aya) = check_basic("gupU~", "01.0461");
+        assert_eq!(aya.text, "Aya");
+        assert!(aya.has_tag(T::Pratyaya));
 
-        let (_, p) = check("fti", "01.1166");
-        assert_eq!(p.text, "Iya");
-        assert!(p.all(&[T::Pratyaya, T::Nit]));
+        let (_, iiya) = check_basic("fti", "01.1166");
+        assert_eq!(iiya.text, "Iya");
+        assert!(iiya.all(&[T::Pratyaya, T::Nit]));
 
-        let (_, p) = check("kamu~\\", "01.0511");
-        assert_eq!(p.text, "i");
-        assert!(p.all(&[T::Pratyaya, T::Rit, T::Nit]));
+        let (_, nin) = check_basic("kamu~\\", "01.0511");
+        assert_eq!(nin.text, "i");
+        assert!(nin.all(&[T::Pratyaya, T::Rit, T::Nit]));
     }
 }

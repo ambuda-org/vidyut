@@ -30,7 +30,8 @@ impl Step {
     pub fn rule(&self) -> Rule {
         self.rule
     }
-    /// The result of this step.
+    /// The result of this step. This result is a simple string representation and might change in
+    /// the future.
     pub fn result(&self) -> &String {
         &self.result
     }
@@ -39,12 +40,13 @@ impl Step {
 /// Records whether an optional rule was accepted or declined.
 #[derive(Clone, Copy, Debug)]
 pub enum RuleChoice {
-    /// Indicates that a rule was accepted and used during the derivation.
+    /// Indicates that a rule was applied during the derivation.
     Accept(Rule),
-    /// Indicates whether a rule was declined and ignored during the derivation.
+    /// Indicates that a rule was declined during the derivation.
     Decline(Rule),
 }
 
+/// Configuration options that affect how a `Prakriya` behaves during the derivation.
 #[derive(Default, Debug)]
 pub struct Config {
     pub rule_choices: Vec<RuleChoice>,
@@ -67,6 +69,7 @@ pub struct Prakriya {
     rule_decisions: Vec<RuleChoice>,
 }
 
+/// Public API
 impl Prakriya {
     /// Returns the current state of the derivation. If the derivation is complete, `text()` will
     /// thus represent the derivation's final output, which is a complete Sanskrit *pada*.
@@ -90,8 +93,11 @@ impl Prakriya {
     pub fn history(&self) -> &Vec<Step> {
         &self.history
     }
+}
 
-    // Creates an empty prakriya.
+/// Crate-only API
+impl Prakriya {
+    /// Creates an empty prakriya.
     pub(crate) fn new() -> Self {
         Prakriya {
             terms: Vec::new(),
@@ -102,6 +108,7 @@ impl Prakriya {
         }
     }
 
+    /// Creates an empty prakriya with the given config options.
     pub(crate) fn with_config(config: Config) -> Self {
         let mut p = Prakriya::new();
         p.config = config;
@@ -145,6 +152,8 @@ impl Prakriya {
         TermView::new(self.terms(), i)
     }
 
+    /// Returns the index of the first `Term` that matches the predicate function `f` or `None` if
+    /// no such term exists.
     pub(crate) fn find_first_where(&self, f: impl Fn(&Term) -> bool) -> Option<usize> {
         for (i, t) in self.terms.iter().enumerate() {
             if f(t) {
@@ -157,12 +166,7 @@ impl Prakriya {
     /// Returns the index of the first `Term` that has the given tag or `None` if no such term
     /// exists.
     pub(crate) fn find_first(&self, tag: Tag) -> Option<usize> {
-        for (i, t) in self.terms.iter().enumerate() {
-            if t.has_tag(tag) {
-                return Some(i);
-            }
-        }
-        None
+        self.find_first_where(|t| t.has_tag(tag))
     }
 
     pub(crate) fn find_prev_where(
@@ -218,12 +222,6 @@ impl Prakriya {
             }
         }
         None
-    }
-
-    /// Returns all of the terms that have the given tag.
-    #[allow(unused)]
-    pub(crate) fn find_all<'a>(&'a self, tag: &'a Tag) -> impl Iterator<Item = &'a Term> {
-        self.terms.iter().filter(|t| t.has_tag(*tag))
     }
 
     // Filters
@@ -316,7 +314,7 @@ impl Prakriya {
         }
     }
 
-    /// Add a rule to the history.
+    /// Adds a rule to the history.
     pub(crate) fn step(&mut self, rule: Rule) {
         if self.config.log_steps {
             let state = self.terms.iter().fold(String::new(), |a, b| {
@@ -333,12 +331,23 @@ impl Prakriya {
         }
     }
 
+    /// (debug) Writes the given string to the history.
     #[allow(unused)]
     pub(crate) fn debug(&mut self, text: String) {
         self.history.push(Step {
             rule: "debug",
             result: text,
         });
+    }
+
+    /// (debug) Writes the current Prakriya state to the history.
+    #[allow(unused)]
+    pub(crate) fn dump(&mut self) {
+        let n = self.terms().len();
+        self.debug(format!("p: {:?}", self.tags));
+        for i in 0..n {
+            self.debug(format!("{i}: {:?}", self.terms()[i]));
+        }
     }
 
     // Optional rules
@@ -371,98 +380,5 @@ impl Prakriya {
 
     pub(crate) fn decline(&mut self, rule: Rule) {
         self.rule_decisions.push(RuleChoice::Decline(rule));
-    }
-}
-
-/// Explores all optional derivations for some input.
-///
-/// Many of the rules in the Ashtadhyayi are optional, and by accepting or declining these optional
-/// rules, we create different final results. `PrakriyaStack` manages the work required in finding
-/// and exploring the various combinations of optional rules.
-#[derive(Default)]
-pub(crate) struct PrakriyaStack {
-    /// Completed prakriyas.
-    prakriyas: Vec<Prakriya>,
-    /// Combinations of optional rules that we have yet to try.
-    paths: Vec<Vec<RuleChoice>>,
-}
-
-impl PrakriyaStack {
-    /// Creates an empty `PrakriyaStack`.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Creates a new `Prakriya` according to upstream options.
-    fn new_prakriya(rule_choices: Vec<RuleChoice>, log_steps: bool) -> Prakriya {
-        Prakriya::with_config(Config {
-            rule_choices,
-            log_steps,
-        })
-    }
-
-    /// Finds all variants of the given derivation function.
-    ///
-    /// `derive` should accept an empty `Prakriya` and mutate it in-place.
-    pub fn find_all(&mut self, derive: impl Fn(&mut Prakriya), log_steps: bool) {
-        let mut p_init = Self::new_prakriya(vec![], log_steps);
-        derive(&mut p_init);
-        self.add_prakriya(p_init, &[]);
-
-        while let Some(path) = self.pop_path() {
-            let mut p = Self::new_prakriya(path.clone(), log_steps);
-            derive(&mut p);
-            self.add_prakriya(p, &path);
-        }
-    }
-
-    /// Adds a prakriya to the result set and adds new paths to the stack.
-    ///
-    /// We find new paths as follows. Suppose our initial prakriya followed the following path:
-    ///
-    /// > Accept(A), Accept(B), Accept(C)
-    ///
-    /// We then add one candidate path for each alternate choice we could have made:
-    ///
-    /// > Decline(A)
-    /// > Accept(A), Decline(B)
-    /// > Accept(A), Accept(B), Decline(C)
-    ///
-    /// Suppose we then try `Decline(A)` and make the following choices:
-    ///
-    /// > Decline(A), Accept(B), Accept(D)
-    ///
-    /// After this, adding an `Accept(A) path to the stack would be a mistake, as it would cause an
-    /// infinite loop. Instead, we freeze our initial decision to use `Decline(A)` and add only the
-    /// following paths:
-    ///
-    /// > Decline(A), Decline(B)
-    /// > Decline(A), Accept(B), Decline(D)
-    fn add_prakriya(&mut self, p: Prakriya, initial_choices: &[RuleChoice]) {
-        let choices = p.rule_choices();
-        let offset = initial_choices.len();
-        for i in offset..choices.len() {
-            let mut path = choices[..=i].to_vec();
-
-            // Swap the last choice.
-            let i = path.len() - 1;
-            path[i] = match path[i] {
-                RuleChoice::Accept(code) => RuleChoice::Decline(code),
-                RuleChoice::Decline(code) => RuleChoice::Accept(code),
-            };
-
-            self.paths.push(path);
-        }
-        self.prakriyas.push(p);
-    }
-
-    /// Pops an unexplored choice path from the stack.
-    fn pop_path(&mut self) -> Option<Vec<RuleChoice>> {
-        self.paths.pop()
-    }
-
-    /// Returns all of the prakriyas this stack has found. This consumes the stack.
-    pub fn prakriyas(self) -> Vec<Prakriya> {
-        self.prakriyas
     }
 }

@@ -65,7 +65,7 @@ fn run(dhatus: Vec<(Dhatu, u16)>) -> Result<(), Box<dyn Error>> {
 
                 let prakriyas = a.derive_tinantas(&dhatu, &tinanta_args);
 
-                let dhatu_text = &dhatu.upadesha;
+                let dhatu_text = &dhatu.upadesha();
                 let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
                 padas.sort();
                 let padas = padas.join("|");
@@ -73,7 +73,7 @@ fn run(dhatus: Vec<(Dhatu, u16)>) -> Result<(), Box<dyn Error>> {
                 let row = Row {
                     padas,
                     dhatu: dhatu_text,
-                    gana: dhatu.gana,
+                    gana: dhatu.gana(),
                     number,
                     lakara: lakara.as_str(),
                     purusha: purusha.as_str(),

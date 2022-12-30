@@ -30,8 +30,9 @@ coverage:
 create_test_files:
 	cargo build --release
 	../target/release/create_tinantas --prayoga kartari > test-files/tinantas-basic-kartari.csv
-	# ./target/release/create_tinantas --sanadi Ric --prayoga kartari > test-files/tinantas-Ric-kartari.csv
-	# ./target/release/create_tinantas --sanadi san --prayoga kartari > test-files/tinantas-san-kartari.csv
+	../target/release/create_tinantas --sanadi Ric --prayoga kartari > test-files/tinantas-nic-kartari.csv
+	../target/release/create_tinantas --sanadi san --prayoga kartari > test-files/tinantas-san-kartari.csv
+	../target/release/create_tinantas --sanadi yaN --prayoga kartari > test-files/tinantas-yan-kartari.csv
 	../target/release/create_tinantas --prayoga karmani > test-files/tinantas-basic-karmani.csv
 	../target/release/create_krdantas --krt ktvA > test-files/krdantas-ktvA.csv
 	../target/release/create_krdantas --krt kta > test-files/krdantas-kta.csv
@@ -42,20 +43,33 @@ create_test_files:
 #
 # NOTE: test files might contain invalid forms. Our goal with this test is
 # simply to confirm that the system hasn't changed in unexpected ways.
-test_all:
+test_all: test_tinantas test_krdantas
+
+test_tinantas:
 	cargo build --release
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-kartari.csv \
-	    --hash "822562c04e49b544799cc2f884166d697fe5eb9210547315b19a5956edc479e6"
+	    --hash "2cb9791994862818fbfd2438a375f7bbb9f863c493443528ae8459b56d159b9c"
+	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-nic-kartari.csv \
+	    --hash "29d0a240035b8e605c097c856edc1851e101a8f98f8538ec52a033d32a048faa"
+	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-san-kartari.csv \
+	    --hash "02bf2554f11c5f9ce9a95cb295d17ad76088dbefc5178652ae0341795e6807b2"
+	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-yan-kartari.csv \
+	    --hash "a2c59e778a9bbd0228508d1060232c9d84880cae1544b91035302f2acb6335d9"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-karmani.csv \
-	    --hash "1064312982d6eb3c364d52f16c7d71aa4aa1e8bf676aa806de3a71168b8d9fd5"
+	    --hash "37b444217f1f28e564a37224535f47567300d48125685ec890a2d00b8ab1e1fa"
+
+test_krdantas:
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-ktvA.csv \
-	    --hash "7dbbb35b3b93c82fc756030acdae201c522260e606792f101c6c3e06a79adb7a"
+	    --hash "424ce830e8b5c10a114f6640f7ab06e82427d041edd38197ec1754100bded62a"
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-kta.csv \
-	    --hash "b9eaad6c96fdad8bbfb5c2c8ae03f3869936989a6800f9d2dedc00ed0dbbc2e8"
+	    --hash "1b57935f24d134b1d6f552991e34ce486af6f18e7a1a1d5764b37dd3e8fe976e"
 
 test_subantas:
 	# Work-in-progress tests for subantas.

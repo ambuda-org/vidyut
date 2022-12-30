@@ -88,7 +88,7 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
     let n = p.view(j)?;
 
     if dhatu.has_text("ad") {
-        if n.has_lakshana_in(&["lu~N", "san"]) {
+        if n.has_lakshana("lu~N") || n.has_u("san") {
             // aGasat, jiGatsati
             op::adesha("2.4.37", p, i, "Gasx~");
         } else if n.has_u_in(&["GaY", "ap"]) {
@@ -236,8 +236,9 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
         p.op_term("6.1.47", i, op::upadha("A"));
     } else if dhatu.has_u_in(&["qukrI\\Y", "i\\N", "ji\\"]) && n.has_u("Ric") {
         p.op_term("6.1.48", i, op::antya("A"));
+    } else if dhatu.has_u("zi\\Du~") && n.has_u("Ric") {
+        p.op_optional("6.1.49", op::t(i, op::upadha("A")));
     }
-    // TODO: 6.1.49
 
     // 6.1.50 has a circular dependency:
     //
@@ -260,7 +261,7 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
         p.op_optional("6.1.51", op::t(i, op::antya("A")));
     // TODO: 6.1.52 - 6.1.53
     } else if dhatu.has_u_in(&["ciY", "ci\\Y", "sPura~"]) && n.has_u("Ric") {
-        if dhatu.has_text("sPura~") {
+        if dhatu.has_u("sPura~") {
             p.op_optional("6.1.54", op::t(i, op::upadha("A")));
         } else {
             p.op_optional("6.1.54", op::t(i, op::antya("A")));

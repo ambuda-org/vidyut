@@ -9,7 +9,7 @@ use clap::Parser;
 use compact_str::CompactString;
 use std::collections::HashMap;
 use std::error::Error;
-use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
+use vidyut_prakriya::args::{Dhatu, Lakara, Prayoga, Purusha, Sanadi, TinantaArgs, Vacana};
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
@@ -23,6 +23,8 @@ struct Args {
     pada: String,
     #[arg(long)]
     prayoga: Option<Prayoga>,
+    #[arg(long)]
+    sanadi: Option<Sanadi>,
 }
 
 const LAKARA: &[Lakara] = &[
@@ -91,7 +93,18 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     };
 
     for (dhatu, dhatu_number) in dhatus?.iter() {
-        if !(dhatu.gana == gana && *dhatu_number == number) {
+        let mut builder = Dhatu::builder()
+            .upadesha(dhatu.upadesha())
+            .gana(dhatu.gana());
+        if let Some(x) = dhatu.antargana() {
+            builder = builder.antargana(x);
+        }
+        if let Some(x) = args.sanadi {
+            builder = builder.sanadi(&[x]);
+        }
+        let dhatu = builder.build()?;
+
+        if !(dhatu.gana() == gana && *dhatu_number == number) {
             continue;
         }
         for prayoga in PRAYOGAS {
@@ -105,7 +118,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
                         .lakara(*lakara)
                         .build()?;
 
-                    let ps = a.derive_tinantas(dhatu, &tinanta_args);
+                    let ps = a.derive_tinantas(&dhatu, &tinanta_args);
                     for p in ps {
                         words.push(p.text());
                         if p.text() == args.pada {

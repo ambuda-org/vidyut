@@ -1,5 +1,5 @@
 use crate::args::Antargana;
-use crate::args::Dhatu;
+use crate::args::{Dhatu, Gana};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::operators as op;
@@ -9,20 +9,17 @@ use crate::term::Term;
 
 use std::error::Error;
 
-fn init(p: &mut Prakriya, dhatu: &Dhatu) {
+fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
     // The root enters the prakriyA
     p.push(Term::make_dhatu(
-        &dhatu.upadesha,
-        dhatu.gana,
-        dhatu.antargana,
+        dhatu.upadesha(),
+        Gana::from_int(dhatu.gana()).unwrap(),
+        dhatu.antargana(),
     ));
-    p.step("start");
+    p.op_term("1.3.1", 0, op::add_tag(T::Dhatu));
 }
 
 fn add_samjnas(p: &mut Prakriya, i: usize) -> Result<(), Box<dyn Error>> {
-    p.op_term("1.3.1", i, op::add_tag(T::Dhatu));
-    it_samjna::run(p, i)?;
-
     if p.has(i, |t| {
         t.has_text_in(&["dA", "de", "do", "DA", "De"]) && !t.has_u("dA\\p")
     }) {
@@ -32,18 +29,54 @@ fn add_samjnas(p: &mut Prakriya, i: usize) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Dhatu)?;
+    let dhatu = p.get(i)?;
+
+    let has_upasarga = p.find_prev_where(i, |t| t.has_tag(T::Upasarga)).is_some();
+
+    // TODO: ghaTAdi (1.0867 - end of gana.)
+    // TODO: zamo darzane
+    // TODO: yamo 'parivezane
+    let no_mit = if dhatu.has_text_in(&["kam", "am", "cam"]) {
+        p.step("dp.01.0937");
+        true
+    } else if dhatu.has_u("Samo~") {
+        p.op_optional("dp.01.0938", |_| {})
+    } else if dhatu.has_text("yam") && dhatu.has_gana(1) {
+        p.op_optional("dp.01.0939", |_| {})
+    } else {
+        false
+    };
+
+    let dhatu = p.get(i)?;
+    if no_mit {
+        // Do nothing.
+    } else if dhatu.has_text_in(&["jval", "hval", "hmal", "nam"]) && !has_upasarga {
+        p.op_optional("dp.01.0935", op::t(0, op::add_tag(T::mit)));
+    } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
+        p.op_optional("dp.01.0936", op::t(0, op::add_tag(T::mit)));
+    } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]) && dhatu.has_gana(4))
+        || (dhatu.text.ends_with("am") && dhatu.has_gana(1))
+    {
+        p.op_term("dp.01.0934", i, op::add_tag(T::mit));
+    }
+
+    Some(())
+}
+
+fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get_if(i, |t| t.has_gana(10))?;
 
     if dhatu.has_u_in(gana::CUR_MIT) {
-        p.op_term("cur-mit", i, op::add_tag(T::mit));
+        p.op_term("dp.10.0493", i, op::add_tag(T::mit));
     }
 
     let dhatu = p.get(i)?;
     if dhatu.has_antargana(Antargana::Akusmiya) {
-        p.op("AkusmIya", |p| p.add_tag(T::Atmanepada));
+        p.op("dp.10.0496", |p| p.add_tag(T::Atmanepada));
     } else if dhatu.has_u_in(gana::AAGARVIYA) {
-        p.op("AgarvIya", |p| p.add_tag(T::Atmanepada));
+        p.op("dp.10.0497", |p| p.add_tag(T::Atmanepada));
     }
 
     Some(())
@@ -55,7 +88,7 @@ fn satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
         if dhatu.has_text_in(&["zWiv", "zvazk"]) {
             // Varttika -- no change for zWiv or zvask
             p.step("6.1.64.v1");
-        } else if dhatu.has_prefix_in(&["zw", "zW", "zR"]) {
+        } else if dhatu.has_prefix_in(&["zw", "zW", "zR", "zaR"]) {
             // Varttika -- also change the next sound
             p.op_term("6.1.64.v2", i, |t| {
                 match &t.text[..2] {
@@ -64,6 +97,11 @@ fn satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
                     "zR" => t.text.replace_range(..2, "sn"),
                     _ => (),
                 };
+                // Also undo retroflexion of `R`. This occurs only in two roots, as far as I can
+                // tell: zaRa~ and zaRu~. So, just check for `zaR`:
+                if t.text == "zaR" {
+                    t.text.replace_range(.., "san");
+                }
                 t.add_tag(T::FlagAdeshadi);
             });
         } else {
@@ -91,28 +129,28 @@ fn satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
 // moving this rule and running the tests.
 //
 // TODO: why exception for cakz?
-fn maybe_add_num_agama(p: &mut Prakriya, i: usize) {
+fn try_add_num_agama(p: &mut Prakriya, i: usize) {
     if p.has(i, |t| t.has_tag(T::idit) && !t.has_u("ca\\kzi~\\N")) {
         p.op_term("7.1.58", i, op::mit("n"));
     }
 }
 
-fn maybe_add_upasarga(p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_add_upasarga(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
 
     if dhatu.has_u_in(&["i\\N", "i\\k"]) {
         // These two roots are always used with the upasarga `adhi-`:
         let mut upa = Term::make_upadesha("aDi");
         upa.add_tag(T::Upasarga);
-        p.insert_before(0, upa);
+        p.insert_before(i, upa);
         p.step("1.4.80");
     } else if dhatu.has_u("SAsu~\\") {
         // This root is nearly alwayd used with the upasarga `A-`:
         let mut upa = Term::make_upadesha("AN");
         upa.add_tag(T::Upasarga);
-        p.insert_before(0, upa);
+        p.insert_before(i, upa);
         p.step("1.4.80");
-        it_samjna::run(p, 0).ok()?;
+        it_samjna::run(p, i).ok()?;
     }
 
     Some(())
@@ -121,13 +159,18 @@ fn maybe_add_upasarga(p: &mut Prakriya, i: usize) -> Option<()> {
 pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<(), Box<dyn Error>> {
     let i = 0;
 
-    init(p, dhatu);
+    add_dhatu(p, dhatu);
+    it_samjna::run(p, i)?;
     add_samjnas(p, i)?;
-    gana_sutras(p, i);
 
     satva_and_natva(p, i);
-    maybe_add_num_agama(p, i);
-    maybe_add_upasarga(p, i);
+    try_add_num_agama(p, i);
+
+    // TODO: adding upasargas shifts the indices below.
+    try_add_upasarga(p, i);
+
+    try_run_bhvadi_gana_sutras(p);
+    try_run_curadi_gana_sutras(p, i);
 
     Ok(())
 }
