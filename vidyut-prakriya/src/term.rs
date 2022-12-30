@@ -3,12 +3,13 @@ use crate::sounds::Pattern;
 use crate::tag::Tag;
 use compact_str::CompactString;
 use enumset::EnumSet;
+use serde::{Deserialize, Serialize};
 
 /// A term in the prakriya.
 ///
 /// `Term` is a text string with additional metadata. It is a generalized version of an *upadesha*
 /// that also stores abhyAsas and other strings that don't have an upadesha associated with them.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Term {
     pub u: Option<CompactString>,
     pub text: CompactString,

@@ -1,5 +1,6 @@
 use crate::args::errors::*;
 use compact_str::CompactString;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 /// Defines a gaṇa.
@@ -7,7 +8,7 @@ use std::str::FromStr;
 /// The dhatus in the Dhatupatha are organized in ten large *gaṇa*s or classes. These gaṇas
 /// add various properties to the dhatu, most notably the specific *vikaraṇa* (stem suffix) we use
 /// before sarvadhatuka suffixes.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Gana {
     /// The first gaṇa, whose first dhatu is `BU`.
     Bhvadi,
@@ -130,7 +131,7 @@ impl From<Gana> for u8 {
 /// is no canonical version of the Dhatupatha, and we cannot expect that a dhatu's index is
 /// consistent across all of these versions. So we thought it better to avoid hard-coding indices
 /// or requiring callers to follow our specific conventions.)
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Antargana {
     /// Antargana of *tud* gana. Pratyayas that follow dhatus in kut-Adi will generally be marked
     /// Nit per 1.2.1. Required because of duplicates like `juqa~`.
@@ -151,7 +152,7 @@ pub enum Antargana {
 ///
 /// For details on what these pratyayas mean and what kinds of words they produce, see the comments
 /// below.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Sanadi {
     /// `san`, which creates desiderative roots per 3.1.7.
     ///
@@ -203,7 +204,7 @@ impl FromStr for Sanadi {
 }
 
 /// The verb root to use for the derivation.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Dhatu {
     upadesha: CompactString,
     gana: Gana,
@@ -279,7 +280,7 @@ impl Dhatu {
 }
 
 /// Convenience struct for building a `Dhatu` object.
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct DhatuBuilder {
     upadesha: Option<CompactString>,
     gana: Option<Gana>,

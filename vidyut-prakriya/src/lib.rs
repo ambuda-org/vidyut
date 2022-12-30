@@ -54,3 +54,26 @@ mod sup_karya;
 mod tin_pratyaya;
 mod tripadi;
 mod vikarana;
+
+use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
+
+/// Returns each possible *prakriyā* for "bhū" in "laṭ".
+#[wasm_bindgen]
+pub fn prakriyas() -> JsValue {
+    use args::*;
+
+    let a = Ashtadhyayi::new();
+
+    let dhatu = Dhatu::new("BU", Gana::Bhvadi);
+    let args = TinantaArgs::builder()
+        .lakara(Lakara::Lat)
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .build()
+        .unwrap();
+
+    let prakriyas = a.derive_tinantas(&dhatu, &args);
+    // JsValue::from_serde(&prakriyas).unwrap()
+    serde_wasm_bindgen::to_value(&prakriyas).unwrap()
+}

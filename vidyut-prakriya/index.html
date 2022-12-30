@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,"><!-- Avoid favicon requests: https://stackoverflow.com/a/38917888 -->
+  <title>Vidyullekhā</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      border: 2px solid black;
+    }
+
+    td,
+    th {
+      border: 1px solid black;
+      padding: 5px 10px;
+    }
+
+  </style>
+
+  <script type="module">
+    console.log('Hello');
+    import init, { prakriyas } from "./pkg/vidyut_prakriya.js";
+    console.log("Calling init");
+    await init();
+    console.log("Done WASM init.");
+
+    const p = prakriyas()[0];
+    function text(p) { return p.terms.map(t => t.text).join(''); }
+    document.getElementById("text").innerText = text(p);
+    for (let step of p.history) {
+      const rule = document.createElement('td');
+      rule.innerText = step.rule;
+
+      const result = document.createElement('td');
+      result.innerText = step.result;
+
+      const tr = document.createElement('tr');
+      tr.appendChild(rule);
+      tr.appendChild(result);
+      document.getElementById('history').appendChild(tr);
+    }
+
+  </script>
+</head>
+
+<body>
+  <p>Text: <span id="text"></span></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rule</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody id="history">
+    </tbody>
+  </table>
+</body>
+
+</html>
