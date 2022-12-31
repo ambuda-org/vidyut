@@ -22,38 +22,93 @@
   </style>
 
   <script type="module">
-    import init, { demo, Gana } from "./pkg/vidyut_prakriya.js";
+    import init, { demo, Gana, Lakara, Prayoga, Purusha, Vacana } from "./pkg/vidyut_prakriya.js";
     await init();
     window.demo = demo;
-    window.ganas = Gana;
+    window.Gana = Gana;
+    window.Lakara = Lakara;
+    window.Prayoga = Prayoga;
+    window.Purusha = Purusha;
+    window.Vacana = Vacana;
   </script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
-    function runDemo(dhatu, ganaChoice) {
-      console.log(`Calling demo with ${dhatu} and ${ganaChoice}`);
-      const ret = demo(dhatu, ganaChoice);
+    function runDemo(dhatu, refs) {
+      console.log(`Got dhātu: ${dhatu}`);
+      if (refs) {
+        console.log(`refs is ${refs}`);
+        console.log(`gaṇa:${refs.ganaChoice.value}, lakāra:${refs.lakaraChoice.value}, prayoga:${refs.prayogaChoice.value}, purusha:${refs.purushaChoice.value}, vacana:${refs.vacanaChoice.value}`);
+        var gana = Gana[refs.ganaChoice.value];
+        var lakara = Lakara[refs.lakaraChoice.value];
+        var prayoga = Prayoga[refs.prayogaChoice.value];
+        var purusha = Purusha[refs.purushaChoice.value];
+        var vacana = Vacana[refs.vacanaChoice.value];
+      } else {
+        console.log('refs is not defined');
+        dhatu = "qukf\\Y";
+        var gana = Gana.Kryadi;
+        var lakara = Lakara.Lat;
+        var prayoga = Prayoga.Kartari;
+        var purusha = Purusha.Prathama;
+        var vacana = Vacana.Eka;
+      };
+      console.log(`Calling demo with dhātu:${dhatu}, gaṇa:${gana}, lakāra:${lakara}, prayoga:${prayoga}, purusha: ${purusha}, vacana:${vacana}`);
+      const ret = demo(dhatu, gana, lakara, prayoga, purusha, vacana);
       console.log('Got: ');
       console.log(ret);
       Alpine.store('ret', ret);
     }
 
     document.addEventListener('alpine:init', () => {
-      runDemo("qukf\\Y", ganas.Kryadi);
+      runDemo();
     })
   </script>
 </head>
 
 <body>
+  <h1>Vidyullekhā</h1>
+  <h2>Demo of <a href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya">vidyut-prakriya</a></h2>
+  <h3>Tiṅanta</h3>
   <div x-data="{dhatu: 'BU'}">
-    <label>Enter <i>dhātu</i> in <i>aupadeśika</i> form:</label><input x-model="dhatu"><br>
+    <label>Enter <i>dhātu</i> in <i>aupadeśika</i> form:</label>
+    <input x-model="dhatu">
+    <br>
     <label for="ganaChoice">Choose a <i>gaṇa</i>:</label>
     <select name="ganaChoice" id="ganaChoice" x-ref="ganaChoice">
-      <template x-for="g in ganas">
+      <template x-for="g in Gana">
         <option :value="g" x-text="g"></option>
       </template>
     </select>
-
-    <button x-on:click="runDemo(dhatu, $refs.ganaChoice.value)">Generate</button>
+    <br>
+    <label for="lakaraChoice">Choose a <i>lakāra</i>:</label>
+    <select name="lakaraChoice" id="lakaraChoice" x-ref="lakaraChoice">
+      <template x-for="g in Lakara">
+        <option :value="g" x-text="g"></option>
+      </template>
+    </select>
+    <br>
+    <label for="prayogaChoice">Choose a <i>prayoga</i>:</label>
+    <select name="prayogaChoice" id="prayogaChoice" x-ref="prayogaChoice">
+      <template x-for="g in Prayoga">
+        <option :value="g" x-text="g"></option>
+      </template>
+    </select>
+    <br>
+    <label for="purushaChoice">Choose a <i>puruṣa</i>:</label>
+    <select name="purushaChoice" id="purushaChoice" x-ref="purushaChoice">
+      <template x-for="g in Purusha">
+        <option :value="g" x-text="g"></option>
+      </template>
+    </select>
+    <br>
+    <label for="vacanaChoice">Choose a <i>vacana</i>:</label>
+    <select name="vacanaChoice" id="vacanaChoice" x-ref="vacanaChoice">
+      <template x-for="g in Vacana">
+        <option :value="g" x-text="g"></option>
+      </template>
+    </select>
+    <br>
+    <button x-on:click="runDemo(dhatu, $refs)">Generate</button>
 
     <div x-data>
       <template x-for="p in $store.ret">

@@ -236,7 +236,7 @@ impl Ashtadhyayi {
         stack.prakriyas()
     }
 
-    /// Returns all possible tinanta prakriyas that can be derived with the given initial
+    /// Returns all possible subanta prakriyas that can be derived with the given initial
     /// conditions.
     ///
     ///
