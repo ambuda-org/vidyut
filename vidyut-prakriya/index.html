@@ -30,10 +30,19 @@
     window.Prayoga = Prayoga;
     window.Purusha = Purusha;
     window.Vacana = Vacana;
+    if (typeof Alpine === 'undefined') {
+      document.addEventListener('alpine:init', () => { runDemo(); })
+    } else {
+      runDemo();
+    }
   </script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.store('ret', {});
+    });
     function runDemo(dhatu, refs) {
+      Alpine.store('vidyutImported', true);
       console.log(`Got dhātu: ${dhatu}`);
       if (refs) {
         console.log(`refs is ${refs}`);
@@ -58,10 +67,6 @@
       console.log(ret);
       Alpine.store('ret', ret);
     }
-
-    document.addEventListener('alpine:init', () => {
-      runDemo();
-    })
   </script>
 </head>
 
@@ -69,68 +74,83 @@
   <h1>Vidyullekhā</h1>
   <h2>Demo of <a href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya">vidyut-prakriya</a></h2>
   <h3>Tiṅanta</h3>
-  <div x-data="{dhatu: 'BU'}">
-    <label>Enter <i>dhātu</i> in <i>aupadeśika</i> form:</label>
-    <input x-model="dhatu">
-    <br>
-    <label for="ganaChoice">Choose a <i>gaṇa</i>:</label>
-    <select name="ganaChoice" id="ganaChoice" x-ref="ganaChoice">
-      <template x-for="g in Gana">
-        <option :value="g" x-text="g"></option>
-      </template>
-    </select>
-    <br>
-    <label for="lakaraChoice">Choose a <i>lakāra</i>:</label>
-    <select name="lakaraChoice" id="lakaraChoice" x-ref="lakaraChoice">
-      <template x-for="g in Lakara">
-        <option :value="g" x-text="g"></option>
-      </template>
-    </select>
-    <br>
-    <label for="prayogaChoice">Choose a <i>prayoga</i>:</label>
-    <select name="prayogaChoice" id="prayogaChoice" x-ref="prayogaChoice">
-      <template x-for="g in Prayoga">
-        <option :value="g" x-text="g"></option>
-      </template>
-    </select>
-    <br>
-    <label for="purushaChoice">Choose a <i>puruṣa</i>:</label>
-    <select name="purushaChoice" id="purushaChoice" x-ref="purushaChoice">
-      <template x-for="g in Purusha">
-        <option :value="g" x-text="g"></option>
-      </template>
-    </select>
-    <br>
-    <label for="vacanaChoice">Choose a <i>vacana</i>:</label>
-    <select name="vacanaChoice" id="vacanaChoice" x-ref="vacanaChoice">
-      <template x-for="g in Vacana">
-        <option :value="g" x-text="g"></option>
-      </template>
-    </select>
-    <br>
-    <button x-on:click="runDemo(dhatu, $refs)">Generate</button>
-
-    <div x-data>
-      <template x-for="p in $store.ret">
-        <table>
-          <caption x-text="p.terms.map(t => t.text).join('')"></caption>
-          <thead>
-            <tr>
-              <th>Rule</th>
-              <th>Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template x-for="step in p.history">
-              <tr>
-                <td x-text="step.rule"></td>
-                <td x-text="step.result"></td>
-              </tr>
+  <!-- https://github.com/alpinejs/alpine/issues/359 -->
+  <div x-data>
+    <template x-if="!$store.vidyutImported">
+      <div>
+        (Loading...)
+      </div>
+    </template>
+  </div>
+  <div x-data>
+    <template x-if="$store.vidyutImported">
+      <div>
+        <!-- Input to the demo. -->
+        <div x-data="{dhatu: 'BU'}">
+          <label>Enter <i>dhātu</i> in <i>aupadeśika</i> form:</label>
+          <input x-model="dhatu">
+          <br>
+          <label for="ganaChoice">Choose a <i>gaṇa</i>:</label>
+          <select name="ganaChoice" id="ganaChoice" x-ref="ganaChoice">
+            <template x-for="g in Gana">
+              <option :value="g" x-text="g"></option>
             </template>
-          </tbody>
-        </table>
-      </template>
-    </div>
+          </select>
+          <br>
+          <label for="lakaraChoice">Choose a <i>lakāra</i>:</label>
+          <select name="lakaraChoice" id="lakaraChoice" x-ref="lakaraChoice">
+            <template x-for="g in Lakara">
+              <option :value="g" x-text="g"></option>
+            </template>
+          </select>
+          <br>
+          <label for="prayogaChoice">Choose a <i>prayoga</i>:</label>
+          <select name="prayogaChoice" id="prayogaChoice" x-ref="prayogaChoice">
+            <template x-for="g in Prayoga">
+              <option :value="g" x-text="g"></option>
+            </template>
+          </select>
+          <br>
+          <label for="purushaChoice">Choose a <i>puruṣa</i>:</label>
+          <select name="purushaChoice" id="purushaChoice" x-ref="purushaChoice">
+            <template x-for="g in Purusha">
+              <option :value="g" x-text="g"></option>
+            </template>
+          </select>
+          <br>
+          <label for="vacanaChoice">Choose a <i>vacana</i>:</label>
+          <select name="vacanaChoice" id="vacanaChoice" x-ref="vacanaChoice">
+            <template x-for="g in Vacana">
+              <option :value="g" x-text="g"></option>
+            </template>
+          </select>
+          <br>
+          <button x-on:click="runDemo(dhatu, $refs)">Generate</button>
+        </div>
+        <!-- Output from the demo. -->
+        <div>
+          <template x-for="p in $store.ret">
+            <table>
+              <caption x-text="p.terms.map(t => t.text).join('')"></caption>
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="step in p.history">
+                  <tr>
+                    <td x-text="step.rule"></td>
+                    <td x-text="step.result"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </template>
+        </div>
+      </div>
+    </template>
   </div>
 </body>
 
