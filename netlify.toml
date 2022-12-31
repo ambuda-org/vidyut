@@ -1,0 +1,4 @@
+[build]
+base = "vidyut-prakriya/"
+publish = "./"
+command = "make wasm"
