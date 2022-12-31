@@ -55,4 +55,5 @@ mod tin_pratyaya;
 mod tripadi;
 mod vikarana;
 
+#[cfg(feature = "wasm_bindings")]
 pub mod demo;

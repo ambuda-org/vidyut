@@ -1,10 +1,13 @@
 //! WASM-exported demo functions.
+#[cfg(feature = "wasm_bindings")]
 use crate::{args, Ashtadhyayi};
+#[cfg(feature = "wasm_bindings")]
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 /// Returns each possible *prakriyā* for `upadesha` in "laṭ".
 /// See documentation of Dhatu::new etc.
-#[wasm_bindgen]
+#[cfg(feature = "wasm_bindings")]
+#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
 pub fn demo(
     upadesha: &str,
     gana: args::Gana,

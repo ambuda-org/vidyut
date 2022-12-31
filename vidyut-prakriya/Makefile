@@ -94,4 +94,4 @@ docs:
 
 # Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
 wasm:
-	wasm-pack build --target web --release
+	wasm-pack build --target web --release --features wasm_bindings

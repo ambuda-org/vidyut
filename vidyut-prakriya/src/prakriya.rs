@@ -2,6 +2,7 @@ use crate::tag::Tag;
 use crate::term::{Term, TermView};
 use compact_str::CompactString;
 use enumset::EnumSet;
+#[cfg(feature = "wasm_bindings")]
 use serde::Serialize;
 
 /// A simple string label for some rule in the grammar.
@@ -20,7 +21,8 @@ use serde::Serialize;
 pub type Rule = &'static str;
 
 /// Represents a step of the derivation.
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
+#[cfg_attr(feature = "wasm_bindings", derive(Serialize))]
 pub struct Step {
     rule: Rule,
     result: String,
@@ -39,7 +41,8 @@ impl Step {
 }
 
 /// Records whether an optional rule was accepted or declined.
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "wasm_bindings", derive(Serialize))]
 pub enum RuleChoice {
     /// Indicates that a rule was applied during the derivation.
     Accept(Rule),
@@ -48,7 +51,8 @@ pub enum RuleChoice {
 }
 
 /// Configuration options that affect how a `Prakriya` behaves during the derivation.
-#[derive(Default, Debug, Serialize)]
+#[derive(Default, Debug)]
+#[cfg_attr(feature = "wasm_bindings", derive(Serialize))]
 pub struct Config {
     pub rule_choices: Vec<RuleChoice>,
     pub log_steps: bool,
@@ -61,7 +65,8 @@ impl Config {
 }
 
 /// Models a Paninian derivation.
-#[derive(Default, Debug, Serialize)]
+#[derive(Default, Debug)]
+#[cfg_attr(feature = "wasm_bindings", derive(Serialize))]
 pub struct Prakriya {
     terms: Vec<Term>,
     tags: EnumSet<Tag>,
