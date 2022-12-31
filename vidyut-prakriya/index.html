@@ -10,6 +10,7 @@
     table {
       border-collapse: collapse;
       border: 2px solid black;
+      margin: 20px;
     }
 
     td,
@@ -21,33 +22,61 @@
   </style>
 
   <script type="module">
-    import init, { prakriyas } from "./pkg/vidyut_prakriya.js";
+    import init, { demo, Gana } from "./pkg/vidyut_prakriya.js";
     await init();
-    window.ret = prakriyas();
+    window.demo = demo;
+    window.ganas = Gana;
   </script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    function runDemo(dhatu, ganaChoice) {
+      console.log(`Calling demo with ${dhatu} and ${ganaChoice}`);
+      const ret = demo(dhatu, ganaChoice);
+      console.log('Got: ');
+      console.log(ret);
+      Alpine.store('ret', ret);
+    }
+
+    document.addEventListener('alpine:init', () => {
+      runDemo("qukf\\Y", ganas.Kryadi);
+    })
+  </script>
 </head>
 
-<body x-data="ret">
-  <template x-for="p in ret">
-    <table>
-      <caption x-text="p.terms.map(t => t.text).join('')"></caption>
-      <thead>
-        <tr>
-          <th>Rule</th>
-          <th>Result</th>
-        </tr>
-      </thead>
-      <tbody>
-        <template x-for="step in p.history">
-          <tr>
-            <td x-text="step.rule"></td>
-            <td x-text="step.result"></td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
-  </template>
+<body>
+  <div x-data="{dhatu: 'BU'}">
+    <label>Enter <i>dhātu</i> in <i>aupadeśika</i> form:</label><input x-model="dhatu"><br>
+    <label for="ganaChoice">Choose a <i>gaṇa</i>:</label>
+    <select name="ganaChoice" id="ganaChoice" x-ref="ganaChoice">
+      <template x-for="g in ganas">
+        <option :value="g" x-text="g"></option>
+      </template>
+    </select>
+
+    <button x-on:click="runDemo(dhatu, $refs.ganaChoice.value)">Generate</button>
+
+    <div x-data>
+      <template x-for="p in $store.ret">
+        <table>
+          <caption x-text="p.terms.map(t => t.text).join('')"></caption>
+          <thead>
+            <tr>
+              <th>Rule</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="step in p.history">
+              <tr>
+                <td x-text="step.rule"></td>
+                <td x-text="step.result"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </template>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -2,6 +2,7 @@ use crate::args::errors::*;
 use compact_str::CompactString;
 use serde::Serialize;
 use std::str::FromStr;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Defines a gaṇa.
 ///
@@ -9,6 +10,7 @@ use std::str::FromStr;
 /// add various properties to the dhatu, most notably the specific *vikaraṇa* (stem suffix) we use
 /// before sarvadhatuka suffixes.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[wasm_bindgen]
 pub enum Gana {
     /// The first gaṇa, whose first dhatu is `BU`.
     Bhvadi,
