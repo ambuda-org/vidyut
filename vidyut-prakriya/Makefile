@@ -91,3 +91,7 @@ profile-time-osx:
 # Generates project docs and opens them in your default browser.
 docs:
 	cargo doc --no-deps --open
+
+# Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
+wasm:
+	wasm-pack build --target web --release --features wasm_bindings

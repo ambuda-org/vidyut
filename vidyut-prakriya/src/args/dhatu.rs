@@ -1,6 +1,8 @@
 use crate::args::errors::*;
 use compact_str::CompactString;
 use std::str::FromStr;
+#[cfg(feature = "wasm_bindings")]
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Defines a gaṇa.
 ///
@@ -8,6 +10,7 @@ use std::str::FromStr;
 /// add various properties to the dhatu, most notably the specific *vikaraṇa* (stem suffix) we use
 /// before sarvadhatuka suffixes.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "wasm_bindings", wasm_bindgen, derive(serde::Serialize))]
 pub enum Gana {
     /// The first gaṇa, whose first dhatu is `BU`.
     Bhvadi,
@@ -131,6 +134,7 @@ impl From<Gana> for u8 {
 /// consistent across all of these versions. So we thought it better to avoid hard-coding indices
 /// or requiring callers to follow our specific conventions.)
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "wasm_bindings", wasm_bindgen, derive(serde::Serialize))]
 pub enum Antargana {
     /// Antargana of *tud* gana. Pratyayas that follow dhatus in kut-Adi will generally be marked
     /// Nit per 1.2.1. Required because of duplicates like `juqa~`.
@@ -152,6 +156,7 @@ pub enum Antargana {
 /// For details on what these pratyayas mean and what kinds of words they produce, see the comments
 /// below.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "wasm_bindings", wasm_bindgen, derive(serde::Serialize))]
 pub enum Sanadi {
     /// `san`, which creates desiderative roots per 3.1.7.
     ///
@@ -204,6 +209,7 @@ impl FromStr for Sanadi {
 
 /// The verb root to use for the derivation.
 #[derive(Debug)]
+#[cfg_attr(feature = "wasm_bindings", derive(serde::Serialize))]
 pub struct Dhatu {
     upadesha: CompactString,
     gana: Gana,
@@ -280,6 +286,7 @@ impl Dhatu {
 
 /// Convenience struct for building a `Dhatu` object.
 #[derive(Default)]
+#[cfg_attr(feature = "wasm_bindings", derive(serde::Serialize))]
 pub struct DhatuBuilder {
     upadesha: Option<CompactString>,
     gana: Option<Gana>,
