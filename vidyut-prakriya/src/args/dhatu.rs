@@ -208,7 +208,7 @@ impl FromStr for Sanadi {
 }
 
 /// The verb root to use for the derivation.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "wasm_bindings", derive(serde::Serialize))]
 pub struct Dhatu {
     upadesha: CompactString,
@@ -281,6 +281,13 @@ impl Dhatu {
     /// Returns whether the dhatu has the given gana.
     pub fn has_gana(&self, gana: impl Into<Gana>) -> bool {
         self.gana == gana.into()
+    }
+
+    #[allow(unused)]
+    pub(crate) fn with_sanadi(&self, sanadi: Sanadi) -> Self {
+        let mut new = self.clone();
+        new.sanadi = vec![sanadi];
+        new
     }
 }
 

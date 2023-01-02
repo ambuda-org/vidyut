@@ -93,5 +93,14 @@ docs:
 	cargo doc --no-deps --open
 
 # Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
-wasm:
+wasm_release:
 	wasm-pack build --target web --release --features wasm_bindings
+
+# Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
+wasm_dev:
+	wasm-pack build --target web --features wasm_bindings
+
+debugger: wasm_dev
+	cp pkg/* www/static/wasm
+	cp data/* www/static/data
+	cd www && source env/bin/activate && python app.py

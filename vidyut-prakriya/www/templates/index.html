@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,"><!-- Avoid favicon requests: https://stackoverflow.com/a/38917888 -->
+  <title>Vidyullekha</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.2.7/sanscript.min.js"></script>
+  <script type="module" src="/static/app.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style type="text/css">
+    .a-underline a {
+        text-decoration: underline;
+    }
+  </style>
+</head>
+
+{% set project_link = "https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya" %}
+
+{% macro td(name) %}
+<td class="p-1">
+  <template x-for="(pada, i) in {{ name }}">
+    <span>
+      <span x-show="i !== 0">, </span><a
+          href="#"
+          class="hover:underline"
+          @click.prevent="setActivePada(pada)"
+          x-text="deva(pada.text)"
+          >
+    </a></span>
+  </template>
+</td>
+{% endmacro %}
+
+{% macro tabs() %}
+<ul class="flex my-4">
+  <a class="py-2 mr-4" href="#" :class="tab('tin')" @click.prevent="show('tin')">{{ 'tiGantAni'|d }}</a>
+  <a class="py-2 mr-4" href="#" :class="tab('sup')" @click.prevent="show('sup')">{{ 'kRdantAni'|d }}</a>
+  <a class="py-2 mr-4" href="#" :class="tab('krt')" @click.prevent="show('krt')">{{ 'subantAni'|d }}</a>
+  <a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="show('about')">About</a>
+</ul>
+{% endmacro %}
+
+
+{% macro tinanta_prakriya() %}
+<table class="border min-w-xl">
+  <caption class="font-bold text-2xl text-left mb-2" x-text="deva(prakriya.text)"></caption>
+  <thead class="font-bold text-left border-b">
+    <tr>
+      <th class="py-2 px-4">{{ 'sUtram'|d }}</th>
+      <th class="py-2 px-4">Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    <template x-for="step in prakriya.history">
+      <tr>
+        <td class="py-2 px-4">
+          <a class="text-blue-500 underline"
+              x-text="deva(step.rule).replaceAll('।', '.')"
+              target="_blank"
+              :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
+        </td>
+        <td class="py-2 px-4" x-text="devaNoSvara(step.result)"></td>
+      </tr>
+    </template>
+  </tbody>
+</table>
+{% endmacro %}
+
+
+{% macro dhatu_tinantas() %}
+<template x-if="activeDhatu">
+<div>
+  <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
+    &times; <span x-text="devaNoSvara(activeDhatu.upadesha)"></span>
+  </button>
+  <template x-if="activePada">
+    <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
+      &times; <span x-text="deva(activePada.text)"></span>
+    </button>
+  </template>
+  <header class="text-center">
+    <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.upadesha)"></h1>
+    <p x-text="deva(activeDhatu.artha)"></p>
+  </header>
+
+  <template x-if="prakriya">
+    <div>
+      {{ tinanta_prakriya() }}
+    </div>
+  </template>
+
+  <template x-if="!activePada">
+    <div>
+      <div>
+        <label>{{ 'prayogaH'|d }}</label>
+        <select x-model="prayoga" class="p-2 bg-white rounded border">
+          <option :value="Prayoga.Kartari">{{ 'kartari'|d }}</option>
+          <option :value="Prayoga.Karmani">{{ 'karmani'|d }}</option>
+        </select>
+
+        <label>{{ 'sanAdi'|d }}</label>
+        <select x-model="sanadi" class="p-2 bg-white rounded border">
+          <option value="">(none)</option>
+          <option :value="Sanadi.San">{{ 'sannante'|d }}</option>
+          <option :value="Sanadi.Nic">{{ 'Nijante'|d }}</option>
+          <option :value="Sanadi.Yan">{{ 'yaGante'|d }}</option>
+        </select>
+      </div>
+
+      <template x-for="la in Object.entries(createTinantas())">
+        <section>
+          <h1 x-show="la[0] == 'Lat'">{{ "law"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lit'">{{ "liw"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lut'">{{ "luw"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lrt'">{{ "lRw"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lot'">{{ "low"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lan'">{{ "laN"|ds }}</h1>
+          <h1 x-show="la[0] == 'VidhiLin'">{{ "viDiliN"|ds }}</h1>
+          <h1 x-show="la[0] == 'AshirLin'">{{ "ASIrliN"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lun'">{{ "luN"|ds }}</h1>
+          <h1 x-show="la[0] == 'Lrn'">{{ "lfN"|ds }}</h1>
+          <table class="w-full my-4 text-left table-fixed text-xl border">
+            <tr>
+                {{ td("la[1][0]") }}
+                {{ td("la[1][1]") }}
+                {{ td("la[1][2]") }}
+            </tr>
+            <tr>
+                {{ td("la[1][3]") }}
+                {{ td("la[1][4]") }}
+                {{ td("la[1][5]") }}
+            </tr>
+            <tr>
+                {{ td("la[1][6]") }}
+                {{ td("la[1][7]") }}
+                {{ td("la[1][8]") }}
+            </tr>
+          </table>
+        </section>
+      </template>
+    </div>
+  </template>
+</div>
+</template>
+{% endmacro %}
+
+
+{% macro dhatu_list() %}
+<ol x-show="!activeDhatu">
+  <template x-for="d in dhatus">
+    <li class="my-1">
+      <a href="#" @click.prevent="setActiveDhatu(d.code)" class="block hover:bg-slate-50 p-1 text-lg">
+        <span class="bg-slate-100 text-slate-700 rounded p-1" x-text="deva(d.code).replaceAll('।', '.')"></span>
+        <span class="text-red-700" x-text="devaNoSvara(d.upadesha)"></span>
+        <span class="text-slate-600" x-text="deva(d.artha)"></span>
+      </a>
+    </li>
+  </template>
+</ol>
+{% endmacro %}
+
+
+<body>
+<article x-data="app">
+  <header class="py-12 bg-slate-100 text-center">
+    <h1 class="text-4xl font-bold mb-2">{{ 'vidyullekhA'|d }}</h1>
+    <p class="text-slate-800">
+      (A demo of <a class="underline" href="{{ project_link }}">vidyut-prakriya</a>)
+    </p>
+  </header>
+
+  <div class="max-w-3xl mx-auto my-8">
+    {{ tabs() }}
+  
+    <section x-show="dhatus.length === 0">
+      <p>Loading &hellip;</p>
+    </section>
+  
+    <section x-show="activeTab === 'tin'">
+      {{ dhatu_tinantas() }}
+      {{ dhatu_list() }}
+    </section>
+
+    <section x-show="activeTab === 'krt'">
+      <p>Coming soon.</p>
+    </section>
+
+    <section x-show="activeTab === 'sup'">
+      <p>Coming soon.</p>
+    </section>
+
+    {% set gh_issues = "https://github.com/ambuda-org/vidyut/issues" %}
+    {% set contact = "https://ambuda.org/about/contact" %}
+    {% set mailing_list = "https://groups.google.com/g/ambuda-announce" %}
+    <section x-show="activeTab === 'about'">
+      <div class="prose a-underline">
+        <p class="mb-4">This is an online demo of <a class="italic" href="{{ project_link }}">vidyut-prakriya</a>,
+        a Paninian word generator created for the <a href="https://ambuda.org">Ambuda</a> project.</p>
+
+        <p class="mb-4">Please note that this site is <strong>for demonstration
+        purposes only</strong>: we have not polished it much, and it might disappear or
+        break at any time. And although we have done our best to keep our
+        generator's output high quality, many of the words or prakriyas here
+        will have small errors.</p>
+
+        <p class="mb-4">To notify us of any word or prakriya errors, please <a
+            href="{{ gh_issues }}">create an issue</a> on our project's GitHub
+        Issues page. Doing so will require a free GitHub account. For general
+        comments, please <a href="{{ contact }}">contact us</a> on the Ambuda
+        contact page.</p>
+
+        <p>Finally, you can follow along with our work by <a href="{{ mailing_list }}">
+        subscribing to our <i>ambuda-announce</i> newsletter</a>. We post
+        updates roughly once a month about our project and ongoing work.</p>
+      </div>
+    </section>
+  </div>
+
+</article>
+</body>
+
+</html>

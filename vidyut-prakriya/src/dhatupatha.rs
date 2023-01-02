@@ -3,8 +3,52 @@ Utility functions for working with the Dhatupatha file included in this crate.
 */
 
 use crate::args::{Antargana, ArgumentError, Dhatu};
+use std::collections::HashMap;
 use std::error::Error;
 use std::path::Path;
+
+/// The Dhatupatha.
+pub struct Dhatupatha {
+    dhatus: HashMap<String, Dhatu>,
+}
+
+impl Dhatupatha {
+    /// Loads a dhatupatha from the input text string.
+    pub fn from_text(csv: &str) -> Result<Self, ArgumentError> {
+        let mut dhatus = HashMap::new();
+
+        for (i, line) in csv.split('\n').enumerate() {
+            // Skip header.
+            if i == 0 || line.is_empty() {
+                continue;
+            }
+
+            let mut fields = line.split('\t');
+            let code = match fields.next() {
+                Some(x) => x,
+                None => return Err(ArgumentError::new("Could not parse code field.")),
+            };
+            let upadesha = match fields.next() {
+                Some(x) => x,
+                None => return Err(ArgumentError::new("Could not parse upadesha field.")),
+            };
+
+            if let Some((gana, number)) = code.split_once('.') {
+                let dhatu = resolve(upadesha, gana, number)?;
+                dhatus.insert(code.to_string(), dhatu);
+            } else {
+                return Err(ArgumentError::new("Could not parse code."));
+            }
+        }
+
+        Ok(Dhatupatha { dhatus })
+    }
+
+    /// Gets the dhatu by the given code.
+    pub fn get(&self, code: &str) -> Option<&Dhatu> {
+        self.dhatus.get(code)
+    }
+}
 
 fn maybe_find_antargana(gana: u8, number: u16) -> Option<Antargana> {
     if gana == 6 && (93..=137).contains(&number) {
