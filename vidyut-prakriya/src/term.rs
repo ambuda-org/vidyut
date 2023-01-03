@@ -8,8 +8,7 @@ use enumset::EnumSet;
 ///
 /// `Term` is a text string with additional metadata. It is a generalized version of an *upadesha*
 /// that also stores abhyAsas and other strings that don't have an upadesha associated with them.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "wasm_bindings", derive(serde::Serialize))]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
 pub struct Term {
     pub u: Option<CompactString>,
     pub text: CompactString,

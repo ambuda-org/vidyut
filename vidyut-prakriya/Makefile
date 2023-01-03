@@ -94,11 +94,11 @@ docs:
 
 # Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
 wasm_release:
-	wasm-pack build --target web --release --features wasm_bindings
+	wasm-pack build --target web --release
 
 # Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
 wasm_dev:
-	wasm-pack build --target web --features wasm_bindings
+	wasm-pack build --target web
 
 debugger: wasm_dev
 	cp pkg/* www/static/wasm
