@@ -5,6 +5,7 @@ use vidyut_lipi::transliterate;
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Args {
+    /// Text to transliterate
     #[arg(long)]
     text: String,
 }
