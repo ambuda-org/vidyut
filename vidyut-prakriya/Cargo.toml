@@ -12,23 +12,15 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.0.12", features = ["derive"] }
-compact_str = "0.6.1"
+compact_str = { version = "0.6.1", features = ["serde"] }
 csv = "1.1.6"
-enumset = "1.0.12"
+enumset = { version = "1.0.12", features = ["serde"] }
 lazy_static = "1.4.0"
 serde = { version = "1.0.150", features = ["derive"] }
 sha2 = "0.10.6"
 sha256 = "1.1.1"
-wasm-bindgen = { version = "0.2", optional = true }
-serde-wasm-bindgen = { version = "0.4", optional = true }
+wasm-bindgen = "0.2"
+serde-wasm-bindgen = "0.4"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-
-[features]
-wasm_bindings = [
-    "dep:wasm-bindgen",
-    "dep:serde-wasm-bindgen",
-    "compact_str/serde",
-    "enumset/serde",
-]

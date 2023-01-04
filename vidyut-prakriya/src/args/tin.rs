@@ -1,12 +1,11 @@
 use crate::errors::Error;
 use crate::tag::Tag;
 use std::str::FromStr;
-#[cfg(feature = "wasm_bindings")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The prayoga of some tinanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
+#[wasm_bindgen]
 pub enum Prayoga {
     /// Usage coreferent with the agent, e.g. "The horse *goes* to the village."
     Kartari,
@@ -51,7 +50,7 @@ impl FromStr for Prayoga {
 
 /// The person of some tinanta.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
+#[wasm_bindgen]
 pub enum Purusha {
     /// The third person.
     Prathama,
@@ -94,7 +93,7 @@ impl FromStr for Purusha {
 
 /// The number of some tinanta or subanta.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
+#[wasm_bindgen]
 pub enum Vacana {
     /// The singular.
     Eka,
@@ -138,7 +137,7 @@ impl FromStr for Vacana {
 
 /// The tense/mood of some tinanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
+#[wasm_bindgen]
 pub enum Lakara {
     /// Describes action in the present tense. Ssometimes called the *present indicative*.
     Lat,
