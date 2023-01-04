@@ -17,7 +17,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         vidyut_lipi::Scheme::Slp1,
     );
 
-    println!("Transliterated text is {}", result);
+    println!("{}", result);
 
     Ok(())
 }
