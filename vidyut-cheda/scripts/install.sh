@@ -15,5 +15,5 @@ mkdir -p "data/vidyut-0.1.0"
 make train
 make create_kosha
 make generate_sandhi_rules
-RUST_LOG=info cargo run --release --bin vidyut -- "saMskftam" --data-dir "data/vidyut-0.1.0"
-echo "Vidyut is ready for use."
+RUST_LOG=info cargo run --release --bin cheda -- "saMskftam" --data-dir "data/vidyut-0.1.0"
+echo "vidyut-cheda has been installed successfully."

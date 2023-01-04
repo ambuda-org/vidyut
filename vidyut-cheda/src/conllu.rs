@@ -8,16 +8,19 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-/// Features (gender, case, number, ...) for a specific token.
+/// Morphological features (gender, case, number, ...) for a specific token.
 #[derive(Debug)]
 pub struct TokenFeatures {
     map: HashMap<String, String>,
 }
 
 impl TokenFeatures {
+    /// Returns a reference to the value corresponding to the key.
     pub fn get(&self, key: &str) -> Option<&String> {
         self.map.get(key)
     }
+
+    /// Returns `true` if the map contains a value for the specified key.
     pub fn contains_key(&self, key: &str) -> bool {
         self.map.contains_key(key)
     }
@@ -26,15 +29,20 @@ impl TokenFeatures {
 /// A token, usually representing a Sanskrit `pada`.
 #[derive(Debug)]
 pub struct Token {
+    /// The lemma for this token.
     pub lemma: String,
+    /// The universal part of speech (upos) tag for this token.
     pub upos: String,
+    /// Any other features associated with this token.
     pub features: TokenFeatures,
 }
 
 /// A complete utterance. In the DCS data, this is usually a half-verse.
 #[derive(Debug)]
 pub struct Sentence {
+    /// The full text of the sentence.
     pub text: String,
+    /// The sentence's tokens.
     pub tokens: Vec<Token>,
 }
 

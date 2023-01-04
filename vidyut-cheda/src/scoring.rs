@@ -242,14 +242,14 @@ impl Model {
         let n = phrase.words.len();
         let delta = if let Some(last) = phrase.words.last() {
             let prev_state = if n >= 2 {
-                State::from_pada(&phrase.words[n - 2].semantics)
+                State::from_pada(&phrase.words[n - 2].info)
             } else {
                 State::initial()
             };
 
-            let cur_state = State::from_pada(&last.semantics);
+            let cur_state = State::from_pada(&last.info);
 
-            let pada = &last.semantics;
+            let pada = &last.info;
             let lemma_log_prob = self
                 .lemmas
                 .log_prob(pada.lemma(), pada.part_of_speech_tag());

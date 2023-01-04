@@ -13,7 +13,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(base_dir: &Path) -> Self {
+    pub fn new(base_dir: impl AsRef<Path>) -> Self {
+        let base_dir = base_dir.as_ref();
         Config {
             sandhi: base_dir.join("sandhi-rules.csv"),
             lexicon: base_dir.join("lexicon"),

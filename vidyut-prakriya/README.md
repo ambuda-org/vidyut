@@ -51,17 +51,6 @@ see our [roadmap](#roadmap).
 Usage
 -----
 
-First, install Rust on your computer. You can find installation instructions
-[here][install-rust].
-
-Second, download `vidyut-prakriya` to your computer and enter the project
-directory:
-
-```shell
-$ git clone https://github.com/ambuda-org/vidyut-pada-snapshot.git
-$ cd vidyut-pada-snapshot
-```
-
 To generate all basic tinantas in kartari prayoga, run:
 
 ```shell
@@ -137,7 +126,6 @@ The right column shows the in-progress prakriya. We use an output convention
 that is common on other Ashtadhyayi websites. The encoding foromat for this
 text is SLP1, which is the encoding format we use throughout the crate.
 
-[install-rust]: https://www.rust-lang.org/tools/install
 [sv]: https://github.com/drdhaval2785/SanskritVerb
 
 

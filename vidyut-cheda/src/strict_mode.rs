@@ -47,7 +47,7 @@ fn if_ac_pada_then_not_hal(split: &Split, is_purvapada: bool) -> bool {
 // Exception: words in a compound, since these might be bahuvrihi compounds.
 fn if_not_in_compound_then_linga_match(cur: &Phrase, s: &Subanta) -> bool {
     let in_compound = match cur.words.last() {
-        Some(word) => match &word.semantics {
+        Some(word) => match &word.info {
             Pada::Subanta(s) => s.is_purvapada,
             _ => false,
         },

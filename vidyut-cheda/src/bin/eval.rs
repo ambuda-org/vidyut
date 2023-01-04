@@ -6,12 +6,11 @@ use std::error::Error;
 use std::ops::AddAssign;
 use std::path::{Path, PathBuf};
 
-use vidyut::config::Config;
-use vidyut::conllu::Reader;
-use vidyut::dcs;
-use vidyut::segmenting::{Segmenter, Word};
-use vidyut::translit::to_slp1;
+use vidyut_cheda::conllu::Reader;
+use vidyut_cheda::dcs;
+use vidyut_cheda::{Chedaka, Config, Token};
 use vidyut_kosha::semantics::*;
+use vidyut_lipi::{transliterate, Scheme};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -61,13 +60,17 @@ impl AddAssign for Stats {
     }
 }
 
+fn to_slp1(text: &str) -> String {
+    transliterate(text, Scheme::Iast, Scheme::Slp1)
+}
+
 /// Converts a word's semantics into a short human-readable code, which we use for comparisons.
 ///
 /// We use codes for our comparison because the DCS data generally contains a subset of the
 /// information we have in our `Pada` enum. So, this code is a simple way to convert both
 /// Vidyut semantics and DCS semantics into a coarser space.
-fn as_code(w: &Word) -> String {
-    match &w.semantics {
+fn as_code(w: &Token) -> String {
+    match &w.info {
         Pada::Subanta(s) => {
             format!(
                 "n-{}-{}-{}",
@@ -95,7 +98,7 @@ fn as_code(w: &Word) -> String {
 }
 
 /// Pretty-prints a parsed sentence by displaying its lemmas and parse codes.
-fn pretty_print(parse: &[Word], show_semantics: &bool) -> String {
+fn pretty_print(parse: &[Token], show_semantics: &bool) -> String {
     let mut s = String::new();
 
     for w in parse {
@@ -112,7 +115,7 @@ fn pretty_print(parse: &[Word], show_semantics: &bool) -> String {
 }
 
 /// Compares two parses and computes summary statistics for the comparison.
-fn eval_sentence(vidyut_parses: &[Word], dcs_parses: &[Word]) -> Stats {
+fn eval_sentence(vidyut_parses: &[Token], dcs_parses: &[Token]) -> Stats {
     let mut stats = Stats::new();
     stats.num_sentences = 1;
 
@@ -144,15 +147,15 @@ fn eval_sentence(vidyut_parses: &[Word], dcs_parses: &[Word]) -> Stats {
 }
 
 /// Computes summary statistics for the given file.
-fn eval_input_path(path: &Path, segmenter: &Segmenter, show_semantics: &bool) -> Result<Stats> {
+fn eval_input_path(path: &Path, segmenter: &Chedaka, show_semantics: &bool) -> Result<Stats> {
     let reader = Reader::from_path(path)?;
     let mut stats = Stats::new();
 
     for sentence in reader {
         let slp1_text = to_slp1(&sentence.text);
-        let vidyut_parse = segmenter.segment(&slp1_text);
+        let vidyut_parse = segmenter.tokenize(&slp1_text);
 
-        let dcs_parse: Result<Vec<Word>> = sentence.tokens.iter().map(dcs::standardize).collect();
+        let dcs_parse: Result<Vec<Token>> = sentence.tokens.iter().map(dcs::standardize).collect();
         let dcs_parse = dcs_parse?;
 
         let sentence_stats = eval_sentence(&vidyut_parse, &dcs_parse);
@@ -179,7 +182,7 @@ fn eval_input_path(path: &Path, segmenter: &Segmenter, show_semantics: &bool) ->
 /// Computes summary statistics for the given glob patterns.
 fn eval_patterns(
     patterns: Vec<String>,
-    segmenter: &Segmenter,
+    segmenter: &Chedaka,
     show_semantics: &bool,
 ) -> Result<Stats> {
     let mut stats = Stats::new();
@@ -195,7 +198,7 @@ fn eval_patterns(
 /// Runs an end-to-end evaluation over the given glob patterns.
 fn run_eval(args: Args) -> Result<()> {
     let config = Config::new(&args.vidyut_dir);
-    let segmenter = Segmenter::new(config)?;
+    let segmenter = Chedaka::new(config)?;
     let stats = eval_patterns(args.paths, &segmenter, &args.show_semantics)?;
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);

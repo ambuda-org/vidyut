@@ -1,12 +1,68 @@
-//! Utilities for converting between `Pada` and u32 bitfields.
-//!
-//! We use these utilities both to save memory and to support storing dictionary keys in a finite
-//! state transducer through the `fst` crate. For details, see `fst_lexicon`.
-//!
-//! For consistency with the crate defaults in `modular_bitfield`, we treat all packed data as
-//! little-endian and hence use `from_le_bytes` and `to_le_bytes`.
-//!
-//! TODO: investigate different packing orders to see if we can reduce the size of the FST.
+/*!
+Code for packing and unpacking Sanskrit morphological data.
+
+**Packing* is the process of converting some data into a dense integer representation. The reverse
+process is accordingly called *unpacking*,
+
+Packed data is useful for two reasons. First, packed data takes up less space in memory with little
+or no performance penalty. Second, our finite-state transducer can store values only if they are
+integers. In other words, packing is a necessary precondition to storing data in an FST.
+
+The downside of packed data is that it cannot easily store string data. To work around this
+problem, we can use a lookup table that maps integer indices to string values. But lookup tables
+are much more cumbersome than simple structs.
+
+Therefore, we recommend using packed data only when the following conditions obtain:
+-
+
+
+Approach
+========
+
+For the use case of an inflectional dictionary, we want to store two kinds of information:
+ *enumerated data* and *text data*.
+
+*Enumerated data* includes categories like person, number, gender, case, and so on. Each category
+can take one of several possible values that we know ahead of time. We can trivially convert such
+data to an integer value. For example, we represent the *vacana* (number) of a word with one of
+four possible values: `eka`, `dvi`, `bahu`, or `none` if the *vacana* is unknown for some reason.
+Thus we can map `eka` to 1, `dvi` to 2, and so on.
+
+*Text data* includes the stem or root of the underlying form, and we cannot feasibly enumerate it
+ahead of time. We encode this data through a lookup table approach: if we append all strings to a
+list, then the index of that string in the list is its integer representation. By using this
+approach, we pay the price of storing these strings the old-fashioned way. But a list of lemmas is
+ *much* smaller than a list of words, so the space requirements are trivial.
+
+Once we have mapped all of our information to integer values, we can treat our 64-bit integer as a
+bitfield and add values together with the appropriate shifts. For example, here's an early version
+of our scheme for *tinantas*, which uses only 32 bits:
+
+```text
+OOLLLLppVVaadddddddddddddddddddd
+
+O: part of speech (2 bits = 4 possible values)
+L: lakara (4 bits = 16 possible values)
+p: purusha (2 bits = 4 possible values)
+V: vacana (2 bits = 4 possible values)
+a: pada + prayoga (2 bits = 4 possible values)
+d: dhatu ID (20 bits = ~1 million possible values)
+```
+
+One real consequence of the encoding constraint is that we can't associate words with completely
+arbitrary data. But if our data is structured carefully, we have plenty of room to associate each
+word with interesting information.
+
+
+Implementation details
+======================
+
+We manage bitfields with the `modular_bitfield` crate. For consistency with that crate's defaults,
+we treat all packed data as little-endian and hence use `from_le_bytes` and `to_le_bytes` whenever
+we need to convert between representations.
+
+TODO: investigate different packing orders to see if we can reduce the size of the FST.
+*/
 
 use crate::semantics::*;
 use modular_bitfield::prelude::*;
@@ -46,13 +102,11 @@ impl fmt::Display for PackingError {
 }
 
 /// A lookup table for `Dhatu`s.
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct DhatuTable(Vec<Dhatu>);
 
 impl DhatuTable {
-    pub fn default() -> Self {
-        DhatuTable(Vec::new())
-    }
+    /// Returns the dhatu at the given index.
     pub fn get(&self, index: usize) -> Option<&Dhatu> {
         self.0.get(index)
     }
@@ -83,13 +137,11 @@ impl DhatuTable {
 }
 
 /// A lookup table for `Pratipadika` data.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct PratipadikaTable(Vec<Pratipadika>);
 
 impl PratipadikaTable {
-    pub fn default() -> Self {
-        PratipadikaTable(Vec::new())
-    }
+    /// Returns the pratipadika at the given index.
     pub fn get(&self, index: usize) -> Option<&Pratipadika> {
         self.0.get(index)
     }
@@ -136,11 +188,15 @@ pub struct PackedNone {
     #[skip]
     unused: B30,
 }
+
 impl PackedNone {
-    pub fn pack() -> Self {
+    #[allow(unused)]
+    fn pack() -> Self {
         Self::new()
     }
-    pub fn unpack(&self) -> Pada {
+
+    #[allow(unused)]
+    fn unpack(&self) -> Pada {
         Pada::None
     }
 }
@@ -219,6 +275,7 @@ impl PackedTinanta {
 pub struct PackedAvyaya {
     pratipadika_id: B30,
 }
+
 impl PackedAvyaya {
     fn pack(_a: &Avyaya, pratipadika_id: usize) -> Self {
         Self::new().with_pratipadika_id(pratipadika_id.try_into().unwrap())
@@ -247,29 +304,38 @@ pub struct PackedPada {
 }
 
 impl PackedPada {
-    // FIXME: this is unsafe -- what if this is called on a tinanta?
+    /// Unsafely interprets this packed pada as an avyaya.
     pub fn unwrap_as_avyaya(&self) -> PackedAvyaya {
         PackedAvyaya::from_bytes(self.payload().to_le_bytes())
     }
+
+    /// Unsafely interprets this packed pada as a subanta.
     pub fn unwrap_as_subanta(&self) -> PackedSubanta {
         PackedSubanta::from_bytes(self.payload().to_le_bytes())
     }
+
+    /// Unsafely interprets this packed pada as a tinanta.
     pub fn unwrap_as_tinanta(&self) -> PackedTinanta {
         PackedTinanta::from_bytes(self.payload().to_le_bytes())
     }
 
+    /// Unwraps the bitfield as an ordinary integer.
     pub fn to_u32(self) -> u32 {
         u32::from_le_bytes(self.into_bytes())
     }
 
+    /// Wraps an integer value as a `PackedPada` bitfield.
     pub fn from_u32(u: u32) -> Self {
         Self::from_bytes(u.to_le_bytes())
     }
 }
 
 /// Packs a `Pada` enum into a u32 code.
+#[derive(Default)]
 pub struct Packer {
+    /// Maps a pratipadika to its numeric ID.
     stem_mapper: HashMap<Pratipadika, usize>,
+    /// Maps a dhatu to its numeric ID.
     dhatu_mapper: HashMap<Dhatu, usize>,
 }
 
@@ -282,6 +348,11 @@ impl Packer {
         }
     }
 
+    /// Creates a mapping from integers to dhatus.
+    ///
+    /// Here, our integers are just the values 0, 1, ..., *n*. So to create a mapping from integers
+    /// to dhatus, we can return a simple vector. Then the dhatu at index i implicitly defines a
+    /// mpping from i to that dhatu.
     pub fn create_dhatu_table(&self) -> DhatuTable {
         let mut unsorted = self.dhatu_mapper.iter().collect::<Vec<_>>();
         unsorted.sort_by_key(|x| x.1);
@@ -293,6 +364,9 @@ impl Packer {
         )
     }
 
+    /// Creates a mapping from integers to pratipadikas.
+    ///
+    /// The construction here is similar to what do we do in `create_dhatu_table`.
     pub fn create_stem_table(&self) -> PratipadikaTable {
         let mut unsorted = self.stem_mapper.iter().collect::<Vec<_>>();
         unsorted.sort_by_key(|x| x.1);
@@ -304,7 +378,7 @@ impl Packer {
         )
     }
 
-    /// Pack the given semantics into a u32
+    /// Packs the given semantics into an integer value.
     pub fn pack(&mut self, semantics: &Pada) -> PackedPada {
         let to_u32 = u32::from_le_bytes;
 
@@ -354,11 +428,6 @@ impl Packer {
         }
     }
 }
-impl Default for Packer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 /// Unpacks a u32 code into a `Pada` enum.
 pub struct Unpacker {
@@ -367,6 +436,7 @@ pub struct Unpacker {
 }
 
 impl Unpacker {
+    /// Creates an unpacker from the given packer.
     pub fn from_packer(p: &Packer) -> Self {
         Unpacker {
             pratipadikas: p.create_stem_table(),
@@ -374,12 +444,7 @@ impl Unpacker {
         }
     }
 
-    pub fn write(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<(), Box<dyn Error>> {
-        self.dhatus.write(dhatu_path)?;
-        self.pratipadikas.write(pratipadika_path)?;
-        Ok(())
-    }
-
+    /// Creates an unpacker from the given data.
     pub fn from_data(pratipadikas: PratipadikaTable, dhatus: DhatuTable) -> Self {
         Unpacker {
             pratipadikas,
@@ -387,6 +452,14 @@ impl Unpacker {
         }
     }
 
+    /// Writes this unpacker's data files to disk.
+    pub fn write(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<(), Box<dyn Error>> {
+        self.dhatus.write(dhatu_path)?;
+        self.pratipadikas.write(pratipadika_path)?;
+        Ok(())
+    }
+
+    /// Unpacks the given packed pada.
     pub fn unpack(&self, pada: &PackedPada) -> Result<Pada, Box<dyn Error>> {
         match pada.pos() {
             PartOfSpeech::Avyaya => pada.unwrap_as_avyaya().unpack(&self.pratipadikas),

@@ -1,8 +1,17 @@
-//! Hacky transliteration functions for handling DCS data.
-//!
-//! DCS data is encoded in IAST, but Vidyut generally prefers SLP1. This module
-//! uses an (unoptimized, untested) transliteration function to convert IAST to SLP1.
+#![doc = include_str!("../README.md")]
+#![deny(missing_docs)]
+
+//! Hacky transliteration functions that other crates might need.
 use std::cmp;
+
+/// Defines the available transliteration schemes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Scheme {
+    /// SlP1 transliteration.
+    Slp1,
+    /// IAST transliteration.
+    Iast,
+}
 
 fn map_char(cur: &str) -> Option<&'static str> {
     let val = match cur {
@@ -41,7 +50,7 @@ fn map_char(cur: &str) -> Option<&'static str> {
 }
 
 /// Hackily transliterate from IAST to SLP1.
-pub fn to_slp1(input: &str) -> String {
+fn iast_to_slp1(input: &str) -> String {
     let chars: Vec<char> = input.chars().collect();
     let mut ret = String::new();
     let mut i = 0;
@@ -77,22 +86,33 @@ pub fn to_slp1(input: &str) -> String {
     ret
 }
 
+/// Transliterates the given input text.
+///
+/// Only the IAST -> SLP1 mapping is defined. All other mappings will panic.
+pub fn transliterate(input: &str, from: Scheme, to: Scheme) -> String {
+    assert!(from == Scheme::Iast);
+    assert!(to == Scheme::Slp1);
+    iast_to_slp1(input)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_to_slp1() {
-        assert_eq!(to_slp1("a ā i ī u ū ṛ ṝ ḷ ḹ"), "a A i I u U f F x X");
-        assert_eq!(to_slp1("e ai o au ṃ ḥ"), "e E o O M H");
-        assert_eq!(to_slp1("k kh g gh ṅ"), "k K g G N");
-        assert_eq!(to_slp1("c ch j jh ñ"), "c C j J Y");
-        assert_eq!(to_slp1("ṭ ṭh ḍ ḍh ṇ"), "w W q Q R");
-        assert_eq!(to_slp1("t th d dh n"), "t T d D n");
-        assert_eq!(to_slp1("p ph b bh m"), "p P b B m");
-        assert_eq!(to_slp1("y r l v"), "y r l v");
-        assert_eq!(to_slp1("ś ṣ s h ḻ"), "S z s h L");
+        let t = |s| transliterate(s, Scheme::Iast, Scheme::Slp1);
 
-        assert_eq!(to_slp1("vāgarthāviva saṃpṛktau"), "vAgarTAviva saMpfktO");
+        assert_eq!(t("a ā i ī u ū ṛ ṝ ḷ ḹ"), "a A i I u U f F x X");
+        assert_eq!(t("e ai o au ṃ ḥ"), "e E o O M H");
+        assert_eq!(t("k kh g gh ṅ"), "k K g G N");
+        assert_eq!(t("c ch j jh ñ"), "c C j J Y");
+        assert_eq!(t("ṭ ṭh ḍ ḍh ṇ"), "w W q Q R");
+        assert_eq!(t("t th d dh n"), "t T d D n");
+        assert_eq!(t("p ph b bh m"), "p P b B m");
+        assert_eq!(t("y r l v"), "y r l v");
+        assert_eq!(t("ś ṣ s h ḻ"), "S z s h L");
+
+        assert_eq!(t("vāgarthāviva saṃpṛktau"), "vAgarTAviva saMpfktO");
     }
 }

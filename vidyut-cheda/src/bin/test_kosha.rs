@@ -3,8 +3,7 @@
 use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
-use vidyut::config::Config;
-use vidyut::segmenting::Segmenter;
+use vidyut_cheda::{Chedaka, Config};
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
 
@@ -18,7 +17,7 @@ struct Args {
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-fn test_lexicon_tinantas(lex: &Kosha) -> Result<()> {
+fn test_kosha_tinantas(lex: &Kosha) -> Result<()> {
     let keys = vec![
         // Basic lakaras (kartari, karmani/bhAve)
         "nayati",
@@ -62,7 +61,7 @@ fn test_lexicon_tinantas(lex: &Kosha) -> Result<()> {
     Ok(())
 }
 
-fn test_lexicon_subantas(lex: &Kosha) -> Result<()> {
+fn test_kosha_subantas(lex: &Kosha) -> Result<()> {
     let keys = vec![
         ("devas", "deva"),
         ("senA", "senA"),
@@ -117,11 +116,11 @@ fn test_lexicon_subantas(lex: &Kosha) -> Result<()> {
 
 fn run_tests(args: Args) -> Result<()> {
     let config = Config::new(&args.data_dir);
-    let segmenter = Segmenter::new(config)?;
-    let lex = segmenter.lexicon();
+    let segmenter = Chedaka::new(config)?;
+    let lex = segmenter.kosha();
 
-    test_lexicon_tinantas(lex)?;
-    test_lexicon_subantas(lex)?;
+    test_kosha_tinantas(lex)?;
+    test_kosha_subantas(lex)?;
     Ok(())
 }
 
@@ -132,4 +131,6 @@ fn main() {
         println!("{}", e);
         std::process::exit(1);
     }
+
+    println!("Complete.");
 }
