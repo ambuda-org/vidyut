@@ -2,6 +2,7 @@
 #![deny(missing_docs)]
 
 pub use crate::ashtadhyayi::{Ashtadhyayi, AshtadhyayiBuilder};
+pub use crate::errors::Error;
 pub use crate::prakriya::{Prakriya, Rule, RuleChoice, Step};
 
 // Public modules.
@@ -11,6 +12,8 @@ pub use crate::prakriya::{Prakriya, Rule, RuleChoice, Step};
 // - `private` contains convenience functions for the code in `src/bin`.
 pub mod args;
 pub mod dhatupatha;
+
+mod errors;
 
 mod binary_only;
 #[doc(hidden)]

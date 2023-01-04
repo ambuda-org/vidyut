@@ -1,13 +1,12 @@
 use crate::args::Antargana;
 use crate::args::{Dhatu, Gana};
 use crate::dhatu_gana as gana;
+use crate::errors::*;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::tag::Tag as T;
 use crate::term::Term;
-
-use std::error::Error;
 
 fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
     // The root enters the prakriyA
@@ -19,14 +18,12 @@ fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
     p.op_term("1.3.1", 0, op::add_tag(T::Dhatu));
 }
 
-fn add_samjnas(p: &mut Prakriya, i: usize) -> Result<(), Box<dyn Error>> {
+fn add_samjnas(p: &mut Prakriya, i: usize) {
     if p.has(i, |t| {
         t.has_text_in(&["dA", "de", "do", "DA", "De"]) && !t.has_u("dA\\p")
     }) {
         p.op_term("1.1.20", i, op::add_tag(T::Ghu));
     };
-
-    Ok(())
 }
 
 fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
@@ -156,12 +153,12 @@ fn try_add_upasarga(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<(), Box<dyn Error>> {
+pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
     let i = 0;
 
     add_dhatu(p, dhatu);
     it_samjna::run(p, i)?;
-    add_samjnas(p, i)?;
+    add_samjnas(p, i);
 
     satva_and_natva(p, i);
     try_add_num_agama(p, i);

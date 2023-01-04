@@ -14,12 +14,12 @@
 //! All of these rules are found at the end of section 3.4 of the Ashtadhyayi.
 
 use crate::args::{Lakara, Purusha, Vacana};
+use crate::errors::*;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
 use crate::tag::Tag as T;
 use crate::term::Term;
-use std::error::Error;
 
 const TIN_PARA: &[&str] = &["tip", "tas", "Ji", "sip", "Tas", "Ta", "mip", "vas", "mas"];
 const NAL_PARA: &[&str] = &["Ral", "atus", "us", "Tal", "aTus", "a", "Ral", "va", "ma"];
@@ -192,7 +192,7 @@ fn maybe_do_lot_only_siddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn maybe_do_lin_siddhi(p: &mut Prakriya, i_tin: usize, la: Lakara) -> Result<(), Box<dyn Error>> {
+fn maybe_do_lin_siddhi(p: &mut Prakriya, i_tin: usize, la: Lakara) -> Result<()> {
     let mut i = i_tin;
 
     if !p.has(i, |t| t.has_lakshana("li~N")) {

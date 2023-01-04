@@ -1,11 +1,11 @@
 use crate::args::Lakara;
+use crate::errors::*;
 use crate::it_samjna;
 use crate::prakriya::{Prakriya, Rule};
 use crate::tag::Tag as T;
 use crate::term::Term;
-use std::error::Error;
 
-fn add_la(rule: Rule, p: &mut Prakriya, i: usize, la: &str) -> Result<(), Box<dyn Error>> {
+fn add_la(rule: Rule, p: &mut Prakriya, i: usize, la: &str) -> Result<()> {
     let mut la = Term::make_upadesha(la);
     la.add_tag(T::Pratyaya);
 
@@ -16,7 +16,7 @@ fn add_la(rule: Rule, p: &mut Prakriya, i: usize, la: &str) -> Result<(), Box<dy
     Ok(())
 }
 
-pub fn run(p: &mut Prakriya, la: Lakara) -> Result<(), Box<dyn Error>> {
+pub fn run(p: &mut Prakriya, la: Lakara) -> Result<()> {
     let i = match p.find_last(T::Dhatu) {
         Some(i) => i,
         None => return Ok(()),

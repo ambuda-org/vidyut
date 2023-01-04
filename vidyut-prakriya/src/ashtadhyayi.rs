@@ -12,6 +12,7 @@ use crate::atidesha;
 use crate::atmanepada;
 use crate::dhatu_karya;
 use crate::dvitva;
+use crate::errors::*;
 use crate::it_agama;
 use crate::krt_pratyaya;
 use crate::la_karya;
@@ -25,11 +26,12 @@ use crate::sup_karya;
 use crate::tin_pratyaya;
 use crate::tripadi;
 use crate::vikarana;
-use std::error::Error;
 
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
-
-/// Adds a dhatu to the prakriya.
+/// Adds a dhatu to the prakriya and runs basic follow-up tasks, such as:
+///
+/// - replacing initial `R` and `z`  with `n` and `s`, respectively.
+/// - recording and removing any it-samjnas
+/// - adding any necessary sanAdi-pratyayas.
 fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<()> {
     dhatu_karya::run(p, dhatu)?;
     sanadi::run(p, is_ardhadhatuka, dhatu.sanadi())?;
@@ -66,7 +68,10 @@ fn run_various_dhatu_tasks(p: &mut Prakriya) {
     angasya::hacky_before_dvitva(p);
 }
 
-/// Runs tasks common to the end of a prakriya.
+/// Runs tasks common to the end of a prakriya. These include:
+/// - sandhi
+/// - various rules within the `angasya` section.
+/// - the tripAdi.
 fn finish_prakriya(p: &mut Prakriya) {
     ac_sandhi::try_sup_sandhi_before_angasya(p);
     angasya::run_remainder(p);
@@ -88,6 +93,14 @@ fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result
     la_karya::run(p, lakara)?;
     ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
     atmanepada::run(p);
+
+    // If the caller specified an explicit pada, abort if the pada doesn't match.
+    if let Some(pada) = args.pada() {
+        if !p.has_tag(pada.as_tag()) {
+            return Err(Error::Generic("The prakriya's pada doesn't match."));
+        }
+    }
+
     tin_pratyaya::adesha(p, purusha, vacana);
     samjna::run(p);
 
@@ -218,6 +231,7 @@ impl Ashtadhyayi {
     ///
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
+    /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
     /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
@@ -228,7 +242,7 @@ impl Ashtadhyayi {
     ///     .vacana(Vacana::Eka)
     ///     .build()?;
     /// let prakriyas = a.derive_tinantas(&dhatu, &args);
-    /// # Ok::<(), ArgumentError>(())
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_tinantas(&self, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
@@ -245,6 +259,7 @@ impl Ashtadhyayi {
     ///
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
+    /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
     /// let args = SubantaArgs::builder()
@@ -253,7 +268,7 @@ impl Ashtadhyayi {
     ///     .vacana(Vacana::Eka)
     ///     .build()?;
     /// let prakriyas = a.derive_subantas("nara", &args);
-    /// # Ok::<(), ArgumentError>(())
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_subantas(&self, pratipadika: &str, args: &SubantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
@@ -269,6 +284,7 @@ impl Ashtadhyayi {
     ///
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
+    /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
     /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
@@ -276,7 +292,7 @@ impl Ashtadhyayi {
     ///     .krt(Krt::ktvA)
     ///     .build()?;
     /// let prakriyas = a.derive_krdantas(&dhatu, &args);
-    /// # Ok::<(), ArgumentError>(())
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_krdantas(&self, dhatu: &Dhatu, args: &KrdantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();

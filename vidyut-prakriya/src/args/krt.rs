@@ -1,4 +1,4 @@
-use crate::args::errors::*;
+use crate::errors::*;
 use std::str::FromStr;
 
 /// The complete list of krt-pratyayas.
@@ -254,8 +254,8 @@ impl Krt {
 }
 
 impl FromStr for Krt {
-    type Err = &'static str;
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(value: &str) -> Result<Self> {
         use Krt as K;
         let res = match value {
             "Aluc" => K::Aluc,
@@ -332,7 +332,7 @@ impl FromStr for Krt {
             "zAkan" => K::zAkan,
             "zvun" => K::zvun,
             "zwran" => K::zwran,
-            _ => return Err("Could not parse krt"),
+            _ => return Err(Error::enum_parse_error(value)),
         };
 
         Ok(res)
@@ -372,11 +372,11 @@ impl KrdantaArgsBuilder {
     /// Converts the arguments in this builder into a `TinantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(&self) -> Result<KrdantaArgs, ArgumentError> {
+    pub fn build(&self) -> Result<KrdantaArgs> {
         Ok(KrdantaArgs {
             krt: match self.krt {
                 Some(x) => x,
-                _ => return Err(ArgumentError::new("krt")),
+                _ => return Err(Error::missing_required_field("krt")),
             },
         })
     }

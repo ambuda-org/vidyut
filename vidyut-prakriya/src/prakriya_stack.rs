@@ -1,5 +1,5 @@
+use crate::errors::*;
 use crate::prakriya::{Config, Prakriya, RuleChoice};
-use std::error::Error;
 
 /// Explores all optional derivations for some input.
 ///
@@ -31,11 +31,7 @@ impl PrakriyaStack {
     /// Finds all variants of the given derivation function.
     ///
     /// `derive` should accept an empty `Prakriya` and mutate it in-place.
-    pub fn find_all(
-        &mut self,
-        derive: impl Fn(&mut Prakriya) -> Result<(), Box<dyn Error>>,
-        log_steps: bool,
-    ) {
+    pub fn find_all(&mut self, derive: impl Fn(&mut Prakriya) -> Result<()>, log_steps: bool) {
         let mut p_init = Self::new_prakriya(vec![], log_steps);
         // TODO: handle errors better.
         if derive(&mut p_init).is_ok() {

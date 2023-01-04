@@ -1,4 +1,4 @@
-use crate::args::errors::*;
+use crate::errors::Error;
 use compact_str::CompactString;
 use std::str::FromStr;
 #[cfg(feature = "wasm_bindings")]
@@ -36,7 +36,7 @@ pub enum Gana {
 
 impl Gana {
     /// Parses the given integer as a `Gana`.
-    pub fn from_int(value: u8) -> Result<Gana, ArgumentError> {
+    pub fn from_int(value: u8) -> Result<Gana, Error> {
         use Gana::*;
         let ret = match value {
             1 => Bhvadi,
@@ -49,11 +49,7 @@ impl Gana {
             8 => Tanadi,
             9 => Kryadi,
             10 => Curadi,
-            _ => {
-                return Err(ArgumentError::new(&format!(
-                    "Could not parse gana value `{value}`"
-                )))
-            }
+            _ => return Err(Error::gana_parse_error(value)),
         };
         Ok(ret)
     }
@@ -77,7 +73,7 @@ impl Gana {
 }
 
 impl FromStr for Gana {
-    type Err = ArgumentError;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Gana::*;
         let res = match s {
@@ -91,7 +87,7 @@ impl FromStr for Gana {
             "8" => Tanadi,
             "9" => Kryadi,
             "10" => Curadi,
-            &_ => return Err(ArgumentError::enum_parse_error("Gana", s)),
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -168,7 +164,7 @@ pub enum Sanadi {
     /// Examples: boBUyate, nenIyate.
     ///
     /// Constraints: can be used only if the dhatu starts with a consonant and has exactly one
-    /// vowel. If this constraint is violated, our APIs will return an `ArgumentError`.
+    /// vowel. If this constraint is violated, our APIs will return an `Error`.
     Yan,
     /// `yaN`, with elision per 2.4.74. This is often listed separately due to its rarity and its
     /// very different form.
@@ -194,14 +190,14 @@ impl Sanadi {
 }
 
 impl FromStr for Sanadi {
-    type Err = ArgumentError;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             "san" => Self::San,
             "yaN" => Self::Yan,
             "yaN-luk" => Self::YanLuk,
             "Ric" => Self::Nic,
-            &_ => return Err(ArgumentError::enum_parse_error("Sanadi", s)),
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -336,21 +332,16 @@ impl DhatuBuilder {
         self
     }
 
-    /// Helper function for creating error messages.
-    fn field_missing(name: &str) -> ArgumentError {
-        ArgumentError::new(&format!("Please define the `{name}` field."))
-    }
-
     /// Converts the arguments in this builder into a `Dhatu` struct.
-    pub fn build(self) -> Result<Dhatu, ArgumentError> {
+    pub fn build(self) -> Result<Dhatu, Error> {
         Ok(Dhatu {
             upadesha: match self.upadesha {
                 Some(x) => x,
-                _ => return Err(Self::field_missing("upadesha")),
+                _ => return Err(Error::missing_required_field("upadesha")),
             },
             gana: match self.gana {
                 Some(x) => x,
-                _ => return Err(Self::field_missing("gana")),
+                _ => return Err(Error::missing_required_field("gana")),
             },
             antargana: self.antargana,
             sanadi: self.sanadi,

@@ -1,5 +1,5 @@
-use crate::args::errors::*;
 use crate::args::tin::Vacana;
+use crate::errors::Error;
 use crate::tag::Tag;
 use std::str::FromStr;
 
@@ -95,8 +95,9 @@ impl Vibhakti {
         }
     }
 }
+
 impl FromStr for Vibhakti {
-    type Err = &'static str;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             "1" => Self::Prathama,
@@ -107,7 +108,7 @@ impl FromStr for Vibhakti {
             "6" => Self::Sasthi,
             "7" => Self::Saptami,
             "s" => Self::Sambodhana,
-            &_ => return Err("Could not parse Vibhakti"),
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -168,19 +169,19 @@ impl SubantaArgsBuilder {
     /// Converts the arguments in this builder into a `SubantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(&self) -> Result<SubantaArgs, ArgumentError> {
+    pub fn build(&self) -> Result<SubantaArgs, Error> {
         Ok(SubantaArgs {
             linga: match self.linga {
                 Some(x) => x,
-                _ => return Err(ArgumentError::new("foo")),
+                _ => return Err(Error::missing_required_field("linga")),
             },
             vacana: match self.vacana {
                 Some(x) => x,
-                _ => return Err(ArgumentError::new("foo")),
+                _ => return Err(Error::missing_required_field("vacana")),
             },
             vibhakti: match self.vibhakti {
                 Some(x) => x,
-                _ => return Err(ArgumentError::new("foo")),
+                _ => return Err(Error::missing_required_field("vibhakti")),
             },
         })
     }

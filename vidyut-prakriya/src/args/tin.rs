@@ -1,4 +1,4 @@
-use crate::args::errors::*;
+use crate::errors::Error;
 use crate::tag::Tag;
 use std::str::FromStr;
 #[cfg(feature = "wasm_bindings")]
@@ -37,13 +37,13 @@ impl Prayoga {
 }
 
 impl FromStr for Prayoga {
-    type Err = ArgumentError;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             "kartari" => Self::Kartari,
             "karmani" => Self::Karmani,
             "bhave" => Self::Bhave,
-            &_ => return Err(ArgumentError::enum_parse_error("Prayoga", s)),
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -80,13 +80,13 @@ impl Purusha {
 }
 
 impl FromStr for Purusha {
-    type Err = ArgumentError;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             "prathama" => Self::Prathama,
             "madhyama" => Self::Madhyama,
             "uttama" => Self::Uttama,
-            &_ => return Err(ArgumentError::enum_parse_error("Purusha", s)),
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -103,6 +103,7 @@ pub enum Vacana {
     /// The plural.
     Bahu,
 }
+
 impl Vacana {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
@@ -111,6 +112,7 @@ impl Vacana {
             Self::Bahu => Tag::Bahuvacana,
         }
     }
+
     /// Returns a simple human-readable string that represents this enum's value.
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -120,14 +122,15 @@ impl Vacana {
         }
     }
 }
+
 impl FromStr for Vacana {
-    type Err = ArgumentError;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             "eka" => Self::Eka,
             "dvi" => Self::Dvi,
             "bahu" => Self::Bahu,
-            &_ => return Err(ArgumentError::enum_parse_error("Vacana", s)),
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -202,7 +205,7 @@ impl Lakara {
 }
 
 impl FromStr for Lakara {
-    type Err = ArgumentError;
+    type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let res = match s {
             "lat" => Self::Lat,
@@ -216,7 +219,46 @@ impl FromStr for Lakara {
             "ashir-lin" => Self::AshirLin,
             "lun" => Self::Lun,
             "lrn" => Self::Lrn,
-            &_ => return Err(ArgumentError::enum_parse_error("Lakara", s)),
+            &_ => return Err(Error::enum_parse_error(s)),
+        };
+        Ok(res)
+    }
+}
+
+/// The pada of some tinanta.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
+pub enum Pada {
+    /// Parasmaipada.
+    Parasmai,
+    /// Atmanepada.
+    Atmane,
+}
+
+impl Pada {
+    pub(crate) fn as_tag(&self) -> Tag {
+        match self {
+            Self::Parasmai => Tag::Parasmaipada,
+            Self::Atmane => Tag::Atmanepada,
+        }
+    }
+
+    /// Returns a simple human-readable string that represents this enum's value.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Parasmai => "parasmai",
+            Self::Atmane => "atmane",
+        }
+    }
+}
+
+impl FromStr for Pada {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let res = match s {
+            "parasmai" => Self::Parasmai,
+            "atmane" => Self::Atmane,
+            &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
     }
@@ -238,6 +280,7 @@ pub struct TinantaArgs {
     purusha: Purusha,
     lakara: Lakara,
     vacana: Vacana,
+    pada: Option<Pada>,
 }
 
 impl TinantaArgs {
@@ -245,17 +288,28 @@ impl TinantaArgs {
     pub fn prayoga(&self) -> Prayoga {
         self.prayoga
     }
+
     /// The purusha to use in the derivation.
     pub fn purusha(&self) -> Purusha {
         self.purusha
     }
+
     /// The lakara to use in the derivation.
     pub fn lakara(&self) -> Lakara {
         self.lakara
     }
+
     /// The vacana to use in the derivation.
     pub fn vacana(&self) -> Vacana {
         self.vacana
+    }
+
+    /// (optional) The pada to use in the derivation.
+    ///
+    /// If unset, the program will use whatever padas are allowed by the Atmanepada section of the
+    /// Ashtadhyayi. See the `atmanepada` module for details.
+    pub fn pada(&self) -> Option<Pada> {
+        self.pada
     }
 
     /// Returns a new builder for this struct.
@@ -271,6 +325,7 @@ pub struct TinantaArgsBuilder {
     purusha: Option<Purusha>,
     lakara: Option<Lakara>,
     vacana: Option<Vacana>,
+    pada: Option<Pada>,
 }
 
 impl TinantaArgsBuilder {
@@ -279,48 +334,56 @@ impl TinantaArgsBuilder {
         self.prayoga = Some(val);
         self
     }
+
     /// Sets the purusha to use in the derivation.
     pub fn purusha(mut self, val: Purusha) -> Self {
         self.purusha = Some(val);
         self
     }
+
     /// Sets the lakara to use in the derivation.
     pub fn lakara(mut self, val: Lakara) -> Self {
         self.lakara = Some(val);
         self
     }
+
     /// Sets the vacana to use in the derivation.
     pub fn vacana(mut self, val: Vacana) -> Self {
         self.vacana = Some(val);
         self
     }
 
-    /// Helper function for creating error messages.
-    fn field_missing(name: &str) -> ArgumentError {
-        ArgumentError::new(&format!("Please define the `{name}` field."))
+    /// Sets the pada to use in the derivation.
+    ///
+    /// If unset, the program will use whatever padas are allowed by the Atmanepada section of the
+    /// Ashtadhyayi. See the `atmanepada` module for details.
+    pub fn pada(mut self, val: Pada) -> Self {
+        self.pada = Some(val);
+        self
     }
 
     /// Converts the arguments in this builder into a `TinantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(self) -> Result<TinantaArgs, ArgumentError> {
+    pub fn build(self) -> Result<TinantaArgs, Error> {
         Ok(TinantaArgs {
             prayoga: match self.prayoga {
                 Some(x) => x,
-                _ => return Err(Self::field_missing("prayoga")),
+                _ => return Err(Error::missing_required_field("prayoga")),
             },
             purusha: match self.purusha {
                 Some(x) => x,
-                _ => return Err(Self::field_missing("purusha")),
+                _ => return Err(Error::missing_required_field("purusha")),
             },
             lakara: match self.lakara {
                 Some(x) => x,
-                _ => return Err(Self::field_missing("lakara")),
+                _ => return Err(Error::missing_required_field("lakara")),
             },
             vacana: match self.vacana {
                 Some(x) => x,
-                _ => return Err(Self::field_missing("vacana")),
+                _ => return Err(Error::missing_required_field("vacana")),
             },
+            pada: self.pada,
         })
     }
 }

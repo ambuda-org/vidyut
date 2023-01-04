@@ -75,18 +75,23 @@ impl Vidyut {
         prayoga: args::Prayoga,
         purusha: args::Purusha,
         vacana: args::Vacana,
+        pada: Option<args::Pada>,
         sanadi: Option<args::Sanadi>,
     ) -> JsValue {
         use args::*;
 
         if let Some(dhatu) = self.dhatupatha.get(code) {
-            let args = TinantaArgs::builder()
+            let mut args = TinantaArgs::builder()
                 .lakara(lakara)
                 .prayoga(prayoga)
                 .purusha(purusha)
-                .vacana(vacana)
-                .build()
-                .unwrap();
+                .vacana(vacana);
+
+            if let Some(pada) = pada {
+                args = args.pada(pada);
+            }
+
+            let args = args.build().unwrap();
 
             let a = Ashtadhyayi::new();
             let prakriyas = match sanadi {

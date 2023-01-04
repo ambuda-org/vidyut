@@ -4,7 +4,7 @@
 //!
 //! The most "core" prakaraṇa is the it-saṁjñā-prakaraṇa, which identifies remove different `it`
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
-use crate::args::ArgumentError;
+use crate::errors::*;
 use crate::prakriya::Prakriya;
 use crate::sounds::{s, SoundSet};
 use crate::tag::Tag as T;
@@ -90,7 +90,7 @@ fn run_1_3_2(p: &mut Prakriya, i_term: usize, before: &mut CompactString) -> Opt
 /// Runs rules that identify and remove it letters from the term at index `i`.
 ///
 /// (1.3.2 - 1.3.9)
-pub fn run(p: &mut Prakriya, i: usize) -> Result<(), ArgumentError> {
+pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
     let t = match p.get(i) {
         Some(t) => t,
         None => return Ok(()),
@@ -101,10 +101,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<(), ArgumentError> {
     let mut temp: CompactString = match &t.u {
         Some(s) => s.clone(),
         None => {
-            return Err(ArgumentError::new(&format!(
-                "Term with text `{}` has empty upadesha.",
-                t.text
-            )))
+            return Err(Error::empty_upadesha(&t.text));
         }
     };
 
@@ -129,7 +126,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<(), ArgumentError> {
         None => return Ok(()),
     };
     if t.is_empty() {
-        return Err(ArgumentError::new("Received empty upadesha"));
+        return Err(Error::empty_upadesha(&t.text));
     }
 
     let antya = t.antya().unwrap();

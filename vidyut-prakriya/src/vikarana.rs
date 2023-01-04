@@ -18,6 +18,7 @@
 
 use crate::args::Gana::*;
 use crate::dhatu_gana::{DYUT_ADI, PUSH_ADI, TAN_ADI};
+use crate::errors::*;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
@@ -26,7 +27,6 @@ use crate::sounds::{s, SoundSet};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
-use std::error::Error;
 
 lazy_static! {
     static ref SHAL: SoundSet = s("Sal");
@@ -540,7 +540,7 @@ fn vikarana_lopa(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run(p: &mut Prakriya) -> Result<(), Box<dyn Error>> {
+pub fn run(p: &mut Prakriya) -> Result<()> {
     let tin = match p.terms().last() {
         Some(t) => t,
         None => return Ok(()),

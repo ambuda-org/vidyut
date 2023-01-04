@@ -1,5 +1,6 @@
-use crate::args::{ArgumentError, Sanadi};
+use crate::args::Sanadi;
 use crate::dhatu_gana as gana;
+use crate::errors::*;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
@@ -110,15 +111,11 @@ fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Opti
     Some(())
 }
 
-pub fn run(
-    p: &mut Prakriya,
-    is_ardhadhatuka: bool,
-    sanadi: &[Sanadi],
-) -> Result<(), ArgumentError> {
+pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Result<()> {
     if sanadi.contains(&Sanadi::Yan) {
         if let Some(i) = p.find_first(T::Dhatu) {
             if !p.has(i, can_use_yan) {
-                return Err(ArgumentError::new(
+                return Err(Error::Generic(
                     "When using yan, dhatu must start with a consonant and have exactly one vowel.",
                 ));
             }
