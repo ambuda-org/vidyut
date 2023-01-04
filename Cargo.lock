@@ -859,6 +859,9 @@ dependencies = [
 [[package]]
 name = "vidyut-lipi"
 version = "0.1.0"
+dependencies = [
+ "clap",
+]
 
 [[package]]
 name = "vidyut-prakriya"
