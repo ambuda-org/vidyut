@@ -41,8 +41,8 @@ stem with the help of prefix and suffix tables that we curate manually.
 
 This approach is workable, but has two main weaknesses:
 
-- *Speed.* To illustrate, the query `nare` could yield the candidates `ubha`,
-  `ubhA`, `ubhi`, `ubh`, and `ubhe`, all of which we much check against the
+- *Speed.* To illustrate, the query `ubhe` could yield the candidates `ubha`,
+  `ubhA`, `ubhi`, `ubh`, and `ubhe`, all of which we must check against the
   store.
 
 - *Overgeneration*. By using prefix and suffix tables, we will potentially
@@ -69,12 +69,14 @@ In exchange, we must pay the following price:
 Usage
 -----
 
-Detailed notes are coming soon. For now, you can run the following in the project directory:
+Detailed notes are coming soon. For now, try running the following command:
 
 ```shell
 $ make create_kosha
 ```
 
+If you have a specific word list you want to use instead, you can use the
+builder API directly like so:
 
 ```rust,no_run
 use vidyut_kosha::{Kosha, Builder};

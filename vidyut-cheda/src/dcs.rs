@@ -1,10 +1,10 @@
 //! Utility functions for reading DCS data.
-use crate::conllu::{Token, TokenFeatures};
-use crate::segmenting::Word;
-use crate::translit::to_slp1;
+use crate::conllu::{Token as EvalToken, TokenFeatures};
+use crate::segmenting::Token;
 use std::error::Error;
 use std::fmt;
 use vidyut_kosha::semantics::*;
+use vidyut_lipi::{transliterate, Scheme};
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -26,8 +26,12 @@ impl Error for ConversionError {
     }
 }
 
+fn to_slp1(text: &str) -> String {
+    transliterate(text, Scheme::Iast, Scheme::Slp1)
+}
+
 /// Convert DCS semantics to Vidyut semantics.
-pub fn standardize(t: &Token) -> Result<Word> {
+pub fn standardize(t: &EvalToken) -> Result<Token> {
     let slp1_lemma = standardize_lemma(&t.lemma);
 
     let semantics = match t.upos.as_str() {
@@ -51,10 +55,10 @@ pub fn standardize(t: &Token) -> Result<Word> {
         _ => panic!("Unknown upos `{}`", t.upos),
     };
 
-    Ok(Word {
+    Ok(Token {
         // The original form is not consistently present in the DCS data, so just use the lemma.
         text: slp1_lemma,
-        semantics,
+        info: semantics,
     })
 }
 
@@ -104,7 +108,7 @@ fn standardize_lemma(raw_lemma: &str) -> String {
 }
 
 /// Reshapes a DCS nominal into a Vidyut subanta.
-fn parse_subanta(t: &Token) -> Result<Pada> {
+fn parse_subanta(t: &EvalToken) -> Result<Pada> {
     let stem = parse_stem(t);
     let linga = parse_linga(&t.features)?;
     let vibhakti = parse_vibhakti(&t.features)?;
@@ -121,7 +125,7 @@ fn parse_subanta(t: &Token) -> Result<Pada> {
 }
 
 /// Reshapes a DCS verb into a Vidyut tinanta.
-fn parse_verb(t: &Token) -> Result<Pada> {
+fn parse_verb(t: &EvalToken) -> Result<Pada> {
     let root = standardize_lemma(&t.lemma);
     let purusha = parse_purusha(&t.features)?;
     let vacana = parse_vacana(&t.features)?;
@@ -137,7 +141,7 @@ fn parse_verb(t: &Token) -> Result<Pada> {
 }
 
 /// Reshapes a DCS krdanta.
-fn parse_krdanta(t: &Token) -> Result<Pada> {
+fn parse_krdanta(t: &EvalToken) -> Result<Pada> {
     match t
         .features
         .get("VerbForm")
@@ -150,7 +154,7 @@ fn parse_krdanta(t: &Token) -> Result<Pada> {
 }
 
 /// Reshapes a DCS krdanta subanta.
-fn parse_krdanta_subanta(t: &Token) -> Result<Pada> {
+fn parse_krdanta_subanta(t: &EvalToken) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
         dhatu: Dhatu(standardize_lemma(&t.lemma)),
         pratyaya: parse_krt_pratyaya(&t.features)?,
@@ -170,7 +174,7 @@ fn parse_krdanta_subanta(t: &Token) -> Result<Pada> {
 }
 
 /// Reshapes a DCS krdanta avyaya.
-fn parse_krdanta_avyaya(t: &Token) -> Result<Pada> {
+fn parse_krdanta_avyaya(t: &EvalToken) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
         dhatu: Dhatu(standardize_lemma(&t.lemma)),
         pratyaya: parse_krt_pratyaya(&t.features)?,
@@ -180,7 +184,7 @@ fn parse_krdanta_avyaya(t: &Token) -> Result<Pada> {
 }
 
 /// Reshapes a DCS stem into a Vidyut stem.
-fn parse_stem(t: &Token) -> Pratipadika {
+fn parse_stem(t: &EvalToken) -> Pratipadika {
     Pratipadika::Basic {
         text: standardize_lemma(&t.lemma),
         lingas: Vec::new(),

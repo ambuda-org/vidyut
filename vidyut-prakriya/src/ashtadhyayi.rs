@@ -1,7 +1,9 @@
-/// The Ashtadhyayi and its rules.
-///
-/// The main struct here is `Ashtadhyayi`, which accepts different config options that controls how
-/// words are derived in the system.
+/*!
+The Ashtadhyayi and its rules.
+
+The main struct here is `Ashtadhyayi`, which accepts different config options that controls how
+words are derived in the system.
+*/
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
@@ -217,7 +219,6 @@ impl Ashtadhyayi {
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
     /// # use vidyut_prakriya::args::*;
-    ///
     /// let a = Ashtadhyayi::new();
     /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
     /// let args = TinantaArgs::builder()
@@ -245,7 +246,6 @@ impl Ashtadhyayi {
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
     /// # use vidyut_prakriya::args::*;
-    ///
     /// let a = Ashtadhyayi::new();
     /// let args = SubantaArgs::builder()
     ///     .linga(Linga::Pum)
@@ -270,7 +270,6 @@ impl Ashtadhyayi {
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
     /// # use vidyut_prakriya::args::*;
-    ///
     /// let a = Ashtadhyayi::new();
     /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
     /// let args = KrdantaArgs::builder()

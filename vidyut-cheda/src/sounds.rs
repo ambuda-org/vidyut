@@ -1,13 +1,38 @@
 //! Utility functions for checking Sanskrit sounds.
 
 use lazy_static::lazy_static;
-use regex::Regex;
 
-fn match_char(c: &char, re: &Regex) -> bool {
-    // Avoid `to_string`, which will create a new string on the heap.
-    let mut buf = [0u8; 4];
-    let s = c.encode_utf8(&mut buf);
-    re.is_match(s)
+/// A set of Sanskrit sounds.
+///
+/// This implementation is copied directly from `vidyut_prakriya::sounds`. For details, see the
+/// comments there.
+pub struct SoundSet([u8; 256]);
+
+impl SoundSet {
+    /// Creates an empty set.
+    pub fn new() -> Self {
+        SoundSet([0; 256])
+    }
+
+    /// Creates a set whose members are the characters in `string`.
+    pub fn from(string: impl AsRef<str>) -> Self {
+        let mut res = Self::new();
+        for c in string.as_ref().chars() {
+            res.0[c as usize] = 1;
+        }
+        res
+    }
+
+    /// Returns whether the set contains the given sound.
+    pub fn contains(&self, c: char) -> bool {
+        self.0[c as usize] == 1
+    }
+}
+
+impl Default for SoundSet {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Returns whether the given character is a Sanskrit sound or *avagraha*.
@@ -18,26 +43,28 @@ fn match_char(c: &char, re: &Regex) -> bool {
 /// - characters or symbols from non-SLP1 encodings
 pub fn is_sanskrit(c: char) -> bool {
     lazy_static! {
-        static ref RE: Regex =
-            Regex::new(r"[aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL']").unwrap();
+        static ref CHARS: SoundSet =
+            SoundSet::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'");
     }
-    match_char(&c, &RE)
+    CHARS.contains(c)
 }
 
+/// Returns whether the given sound is a vowel.
+///
+/// `ac` is the Paninian name for the Sanskrit vowels.
 pub fn is_ac(c: char) -> bool {
     lazy_static! {
-        // Matches all non-sounds at the beginning of the string.
-        static ref RE: Regex = Regex::new(r"[aAiIuUfFxXeEoO]").unwrap();
+        static ref AC: SoundSet = SoundSet::from("aAiIuUfFxXeEoO");
     }
-    match_char(&c, &RE)
+    AC.contains(c)
 }
 
+/// Returns whether the given sound is voiced.
 pub fn is_ghosha(c: char) -> bool {
     lazy_static! {
-        // Matches all voiced sounds the beginning of the string.
-        static ref RE: Regex = Regex::new(r"[aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh]").unwrap();
+        static ref GHOSHA: SoundSet = SoundSet::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh");
     }
-    match_char(&c, &RE)
+    GHOSHA.contains(c)
 }
 
 #[cfg(test)]

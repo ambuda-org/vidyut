@@ -5,13 +5,12 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::path::Path;
 
-use vidyut::config::Config;
-use vidyut::conllu::Reader;
-use vidyut::dcs;
-use vidyut::scoring::*;
-use vidyut::segmenting::Word;
-use vidyut::translit::to_slp1;
+use vidyut_cheda::conllu::Reader;
+use vidyut_cheda::dcs;
+use vidyut_cheda::scoring::*;
+use vidyut_cheda::{Config, Token};
 use vidyut_kosha::semantics::*;
+use vidyut_lipi::{transliterate, Scheme};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -58,10 +57,14 @@ struct Statistics {
     lemma_counts: Counts,
 }
 
-fn process_sentence(sentence: &[Word], s: &mut Statistics) {
+fn to_slp1(text: &str) -> String {
+    transliterate(text, Scheme::Iast, Scheme::Slp1)
+}
+
+fn process_sentence(sentence: &[Token], s: &mut Statistics) {
     let mut prev_state = State::initial();
     for word in sentence {
-        let cur_state = State::from_pada(&word.semantics);
+        let cur_state = State::from_pada(&word.info);
         let lemma = word.lemma();
 
         // Freq(cur_state | prev_state )
@@ -84,7 +87,7 @@ fn process_sentence(sentence: &[Word], s: &mut Statistics) {
             .or_insert(0);
         *c += 1;
 
-        let tag = word.semantics.part_of_speech_tag();
+        let tag = word.info.part_of_speech_tag();
         let c = s.lemma_counts.entry((lemma, tag)).or_insert(0);
         *c += 1;
 

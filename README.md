@@ -10,8 +10,8 @@ bound to other programming languages with minimal work. We commit to providing
 first-class support for Python bindings through [vidyut-py][vidyut-py], and we
 are eager to help you create bindings for your language of choice.
 
-Vidyut is an ambitious and transformative project, and *you* can help us make
-it a success. If you simply want to join our community of Sanskrit enthusiasts,
+Vidyut is an ambitious and transformative project, and you can help us make it
+a success. If you simply want to join our community of Sanskrit enthusiasts,
 see the [Community](#community) section -- we are very friendly and welcome
 members of all backgrounds. For specific details on how you can contribute, see
 the [Contributing](#contributing) section instead.
@@ -24,8 +24,6 @@ is published under the MIT license.
 
 [ambuda]: https://ambuda.org
 [vidyut-py]: https://github.com/ambuda-org/vidyut-py
-
-
 [discord]: https://discord.gg/7rGdTyWY7Z
 [issues]: https://github.com/ambuda-org/vidyut/issues
 
@@ -35,6 +33,7 @@ Contents
 
 - [Installation](#installation)
 - [Components](#components)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [Community](#community)
 
@@ -49,6 +48,7 @@ we recommend that you [use the tools on Ambuda][ambuda-tools] instead.*
 [ambuda-tools]: https://ambuda.org/tools/dictionaries
 
 We currently offer two ways to use Vidyut:
+
 
 ### Through Python
 
@@ -81,7 +81,7 @@ tests:
 ```shell
 $ git clone https://github.com/ambuda-org/vidyut.git
 $ cd vidyut
-$ cargo test
+$ make test
 ```
 
 Your first build will likely take a few minutes, but future builds will
@@ -95,11 +95,21 @@ section.
 Components
 ----------
 
-Vidyut's components are designed to be independent so that you can include only
-the components you need. At the same time, these components are designed to
-work well together.
+Vidyut's components are designed to work independently so that you can include
+only the components you need. At the same time, these components are designed
+to work well together.
 
 In Rust, components of this kind are called *crates*.
+
+
+### `vidyut-cheda`
+
+`vidyut-cheda` segments Sanskrit expressions into words then annotates those
+words with their morphological data. Our segmenter is optimized for real-time
+and interactive usage: it is fast, low-memory, and capably handles pathological
+input.
+
+For details, see the [vidyut-cheda README][vidyut-cheda].
 
 
 ### [`vidyut-kosha`][vidyut-kosha]
@@ -123,22 +133,17 @@ complete implementation of the Ashtadhyayi.
 For details, see the [vidyut-prakriya README][vidyut-prakriya].
 
 
-### `vidyut`
-
-`vidyut` (in the `src/` directory) is a miscellaneous crate that contains all
-of our other logic. Most of the code here is focused on *padaccheda* and
-part-of-speech tagging. We intend to move this code into its own component
-soon.
-
-As a quickstart, here's how you can build the `vidyut` crate and fetch the
-linguistic data necessary to build it:
-
-    make install
-
-For details on what else you can do, see `Makefile`.
-
+[vidyut-cheda]: vidyut-cheda/README.md
 [vidyut-kosha]: vidyut-kosha/README.md
 [vidyut-prakriya]: vidyut-prakriya/README.md
+
+
+Documentation
+-------------
+
+To view documentation for all crates (including private modules and structs),
+run `make docs`. This command will generate Rust's standard documentation and
+open it in your default web browser.
 
 
 Contributing

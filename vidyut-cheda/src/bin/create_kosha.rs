@@ -8,9 +8,9 @@ use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use vidyut::config::Config;
-use vidyut::generator;
-use vidyut::io;
+use vidyut_cheda::generator;
+use vidyut_cheda::io;
+use vidyut_cheda::Config;
 use vidyut_kosha::Builder;
 
 #[derive(Parser, Debug)]

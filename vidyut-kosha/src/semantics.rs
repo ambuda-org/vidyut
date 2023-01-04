@@ -86,6 +86,7 @@ pub enum Linga {
 }
 
 impl Linga {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Linga::Pum => "m",
@@ -133,6 +134,7 @@ pub enum Vacana {
 }
 
 impl Vacana {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Vacana::None => "_",
@@ -191,6 +193,7 @@ pub enum Vibhakti {
 }
 
 impl Vibhakti {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Vibhakti::V1 => "1",
@@ -246,6 +249,7 @@ pub enum Purusha {
 }
 
 impl Purusha {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Purusha::None => "_",
@@ -312,6 +316,7 @@ pub enum Lakara {
 }
 
 impl Lakara {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Lakara::None => "_",
@@ -379,42 +384,43 @@ pub enum DhatuPratyaya {
 /// This list is not exhaustive.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum KrtPratyaya {
-    // Unknown or missing *kṛt-pratyaya*.
+    /// Unknown or missing *kṛt-pratyaya*.
     None,
 
-    // The *-tum* suffix (infinitive).
+    /// The *-tum* suffix (infinitive).
     Tumun,
-    // The *-tvā* suffix (unprefixed gerund).
+    /// The *-tvā* suffix (unprefixed gerund).
     Ktva,
-    // The *-ya* suffix (prefixed gerund).
+    /// The *-ya* suffix (prefixed gerund).
     Lyap,
 
-    // The *-vas* suffix (perfect participle).
+    /// The *-vas* suffix (perfect participle).
     Kvasu,
-    // The -*āna* suffix (perfect participle).
+    /// The -*āna* suffix (perfect participle).
     Kanac,
 
-    // The *-ta* suffix (past passive participle).
+    /// The *-ta* suffix (past passive participle).
     Kta,
-    // The *-tavat* suffix (past active participle).
+    /// The *-tavat* suffix (past active participle).
     Ktavat,
 
-    // The *-at* suffix (present active participle).
+    /// The *-at* suffix (present active participle).
     Shatr,
-    // The *-āna* suffix (present middle participle).
+    /// The *-āna* suffix (present middle participle).
     Shanac,
-    // The *-ya vikaraṇa* followed by the *-āna* suffix (present passive participle).
+    /// The *-ya vikaraṇa* followed by the *-āna* suffix (present passive participle).
     YakShanac,
 
-    // The *-sya vikaraṇa* followed by the *-at* suffix (future active participle).
+    /// The *-sya vikaraṇa* followed by the *-at* suffix (future active participle).
     SyaShatr,
-    // The *-sya vikaraṇa* followed by the *-āna* suffix (future middle participle).
+    /// The *-sya vikaraṇa* followed by the *-āna* suffix (future middle participle).
     SyaShanac,
-    // The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive).
+    /// The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive).
     Krtya,
 }
 
 impl KrtPratyaya {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::None => "_",
@@ -481,6 +487,7 @@ pub enum PadaPrayoga {
 }
 
 impl PadaPrayoga {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::None => "_",
@@ -528,7 +535,12 @@ pub enum Pratipadika {
         lingas: Vec<Linga>,
     },
     /// A *prātipadika* formed by combining a *dhātu* with one or more suffixes.
-    Krdanta { dhatu: Dhatu, pratyaya: KrtPratyaya },
+    Krdanta {
+        /// The dhatu on which this krdanta is based.
+        dhatu: Dhatu,
+        /// The pratyaya that created this krdanta.
+        pratyaya: KrtPratyaya,
+    },
 }
 
 impl Pratipadika {
@@ -539,6 +551,8 @@ impl Pratipadika {
             Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
         }
     }
+
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> String {
         match self {
             Pratipadika::Basic { text, lingas } => {
@@ -599,9 +613,13 @@ impl FromStr for Pratipadika {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 2]
 pub enum POSTag {
+    /// A token with missing, unknown, or undefined semantics.
     None,
+    /// A nominal.
     Subanta,
+    /// A verb.
     Tinanta,
+    /// An indeclinable.
     Avyaya,
 }
 
@@ -620,6 +638,7 @@ impl FromStr for POSTag {
 }
 
 impl POSTag {
+    /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::None => "_",
@@ -653,11 +672,15 @@ impl Display for POSTag {
 /// For *avyaya*s (indeclinables), see `Avyaya`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Subanta {
+    /// The nominal's stem.
     pub pratipadika: Pratipadika,
+    /// The nominal's gender.
     pub linga: Linga,
+    /// The nominal's number.
     pub vacana: Vacana,
+    /// The nominal's case.
     pub vibhakti: Vibhakti,
-    // Whether this *subanta* is part of some compound but not the final member of it.
+    /// Whether this *subanta* is part of some compound but not the final member of it.
     pub is_purvapada: bool,
 }
 
@@ -681,10 +704,15 @@ pub struct Subanta {
 /// are conveyed by the *dhātu* and its prefixes.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Tinanta {
+    /// The verb's root.
     pub dhatu: Dhatu,
+    /// The verb's person.
     pub purusha: Purusha,
+    /// The verb's number.
     pub vacana: Vacana,
+    /// The verb's tense/mood.
     pub lakara: Lakara,
+    /// The verb's voice, roughly speaking.
     pub pada: PadaPrayoga,
 }
 
@@ -695,12 +723,13 @@ pub struct Tinanta {
 /// would be easier to reason about in downstream code.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Avyaya {
+    /// The indeclinable's stem.
     pub pratipadika: Pratipadika,
 }
 
 /// Models the semantics of a Sanskrit *pada* (word).
 ///
-/// This enum can be packed into an unsigned integer via the `vidyut::packing` module.
+/// This enum can be packed into an unsigned integer via the `packing` module.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Pada {
     /// Unknown or missing semantics.
@@ -732,6 +761,7 @@ impl Pada {
         }
     }
 
+    /// Returns the part of speech tag for the given `Pada`.
     pub fn part_of_speech_tag(&self) -> POSTag {
         match self {
             Pada::Tinanta(_) => POSTag::Tinanta,

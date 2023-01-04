@@ -7,24 +7,36 @@ use std::error::Error;
 use crate::config::Config;
 use crate::normalize_text::normalize;
 use crate::sandhi;
-use crate::sandhi::Sandhi;
+use crate::sandhi::Splitter;
 use crate::scoring::Model;
 use crate::sounds;
 use crate::strict_mode;
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
 
-/// Represnts a Sanskrit word and its semantics.
+/// A Sanskrit word and its morphological data.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Word {
+pub struct Token {
+    /// The underlying text of the given word.
     pub text: String,
-    pub semantics: Pada,
+    /// The data associated with this word.
+    pub info: Pada,
 }
 
-impl Word {
-    /// Get the word's root/stem.
+impl Token {
+    /// The plain text of this word.
+    pub fn text(&self) -> &String {
+        &self.text
+    }
+
+    /// The information we have about this word.
+    pub fn info(&self) -> &Pada {
+        &self.info
+    }
+
+    /// The word's root/stem.
     pub fn lemma(&self) -> String {
-        self.semantics.lemma()
+        self.info.lemma()
     }
 }
 
@@ -32,7 +44,7 @@ impl Word {
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Phrase {
     /// The words that we've recognized so far.
-    pub words: Vec<Word>,
+    pub words: Vec<Token>,
     /// The text we still need to process.
     pub remaining: String,
     /// The score associated with this in-progress solution.
@@ -52,36 +64,40 @@ impl Phrase {
 }
 
 /// A Sanskrit segmenter.
-pub struct Segmenter {
+pub struct Chedaka {
     /// Sandhi rules. The segmenter uses these rules to exhaustively split a Sanskrit expression
     /// and find candidate words.
-    sandhi: Sandhi,
+    sandhi: Splitter,
     /// A lexicon of Sanskrit words. The segmenter uses this lexicon to examine a Sanskrit
     /// substring and test whether or not it is a valid Sanskrit word.
-    lexicon: Kosha,
+    kosha: Kosha,
     /// A scoring model. The segmenter uses this model to score candidate solutions and prioritize
     /// solutions that are the most promising.
     model: Model,
 }
 
-impl Segmenter {
+impl Chedaka {
     /// Creates a segmenter from the given input data.
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        Ok(Segmenter {
-            sandhi: Sandhi::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
-            lexicon: Kosha::new(config.lexicon()).expect("Could not read lexicon."),
+        Ok(Chedaka {
+            sandhi: Splitter::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
+            kosha: Kosha::new(config.lexicon()).expect("Could not read lexicon."),
             model: Model::new(&config.model_lemma_counts(), &config.model_transitions())?,
         })
     }
 
-    pub fn lexicon(&self) -> &Kosha {
-        &self.lexicon
+    /// Returns a reference to this segmenter's underlying kosha.
+    ///
+    /// We provide this method so that callers who want direct access to a kosha can reuse the
+    /// instance here instead of creating a new one.
+    pub fn kosha(&self) -> &Kosha {
+        &self.kosha
     }
 
     /// Segments the given text.
     ///
     /// `raw_text` should be an SLP1 string.
-    pub fn segment(&self, raw_text: &str) -> Vec<Word> {
+    pub fn tokenize(&self, raw_text: &str) -> Vec<Token> {
         segment(raw_text, self).expect("Is OK")
     }
 }
@@ -91,15 +107,15 @@ impl Segmenter {
 fn analyze_pada(
     text: &str,
     split: &sandhi::Split,
-    segmenter: &Segmenter,
+    chedaka: &Chedaka,
     cache: &mut HashMap<String, Vec<Pada>>,
 ) -> Result<(), Box<dyn Error>> {
     if !cache.contains_key(text) {
-        let res: Result<Vec<Pada>, _> = segmenter
-            .lexicon
+        let res: Result<Vec<Pada>, _> = chedaka
+            .kosha
             .get_all(text)
             .iter()
-            .map(|p| segmenter.lexicon.unpack(p))
+            .map(|p| chedaka.kosha.unpack(p))
             .collect();
         let mut res = res?;
 
@@ -117,7 +133,7 @@ fn analyze_pada(
 fn debug_print_phrase(p: &Phrase) {
     if log_enabled!(Level::Debug) {
         for word in &p.words {
-            debug!("- {} {:?}", word.text, word.semantics);
+            debug!("- {} {:?}", word.text, word.info);
         }
         debug!("score={}", p.score);
     }
@@ -161,7 +177,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, Phrase>>) {
 ///
 /// The segmenter makes a best effort to understand the input as valid Sanskrit text, even if it
 /// contains typos or other content that is not valid Sanskrit.
-fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>> {
+fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>, Box<dyn Error>> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();
@@ -213,9 +229,9 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
                         // HACK: this is buggy -- scoring based on cur score set here?
                         score: cur_score,
                     };
-                    new.words.push(Word {
+                    new.words.push(Token {
                         text: first.to_string(),
-                        semantics: Pada::None,
+                        info: Pada::None,
                     });
                     new
                 }
@@ -226,9 +242,9 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
                         // HACK: this is buggy -- scoring based on cur score set here?
                         score: cur_score,
                     };
-                    new.words.push(Word {
+                    new.words.push(Token {
                         text: cur.remaining.to_string(),
-                        semantics: Pada::None,
+                        info: Pada::None,
                     });
                     new
                 }
@@ -268,9 +284,9 @@ fn segment(raw_text: &str, ctx: &Segmenter) -> Result<Vec<Word>, Box<dyn Error>>
                     // HACK: this is buggy -- scoring based on cur score set here?
                     score: cur_score,
                 };
-                new.words.push(Word {
+                new.words.push(Token {
                     text: first.clone(),
-                    semantics: semantics.clone(),
+                    info: semantics.clone(),
                 });
                 new.score = ctx.model.score(&new);
 

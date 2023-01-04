@@ -1,5 +1,17 @@
-//! Splits Sanskrit expressions according to a list of sandhi rules. Our splitting algorithm is
-//! naive but exhaustive.
+/*!
+Utilities for undoing sandhi changes.
+
+*Sandhi* refers to any of the various sound changes that Sanskrit words and morphemes undergo when
+they are in contact with each other. For example, the two words *ca iti* would typically combine
+into the single chunk *ceti*.
+
+Sandhi is based not only on a term's sounds but also on a term's morphological properties. For
+example, the two words *te iti* could either change to *ta iti* or remain as *te iti* depending on
+the grammatical number of the first word.
+
+The full set of sandhi changes is complex and elaborate. So to simplify our problem, we deal solely
+with the common changes that occur between two words.
+*/
 
 use crate::sounds;
 use lazy_static::lazy_static;
@@ -12,6 +24,7 @@ use std::path::Path;
 /// Maps a combination to the two strings (first, second) that created it.
 pub type SandhiMap = MultiMap<String, (String, String)>;
 
+/// Describes the type of sandhi split that occurred.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SplitKind {
     /// A split created by slicing the input string, with no sandhi rules applied. As a result,
@@ -21,6 +34,7 @@ pub enum SplitKind {
     Standard,
 }
 
+/// Models a sandhi split.
 #[derive(PartialEq, Eq, Debug)]
 pub struct Split {
     pub first: String,
@@ -47,12 +61,14 @@ impl Split {
     }
 }
 
-pub struct Sandhi {
+/// Splits Sanskrit words and expressions according to the specified rules.
+pub struct Splitter {
     map: MultiMap<String, (String, String)>,
     len_longest_key: usize,
 }
 
-impl Sandhi {
+impl Splitter {
+    /// Creates a splitter from the given map.
     pub fn from_map(map: SandhiMap) -> Self {
         let len_longest_key = map
             .keys()
@@ -70,7 +86,7 @@ impl Sandhi {
     /// # Arguments
     ///
     /// - `path` - C TSV with columns `first`, `second`, `result`, and `type`.
-    pub fn from_csv(path: &Path) -> Result<Self, Box<dyn Error>> {
+    pub fn from_csv<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
         let mut rules = SandhiMap::new();
 
         let mut rdr = csv::Reader::from_path(path)?;
@@ -91,7 +107,7 @@ impl Sandhi {
                 rules.insert(result_no_spaces, (first.clone(), second.clone()));
             }
         }
-        Ok(Sandhi::from_map(rules))
+        Ok(Splitter::from_map(rules))
     }
 
     /// Yield all possible ways to split `input` at the given index `i`.
@@ -266,7 +282,7 @@ mod tests {
             "ar".to_string() => ("A".to_string(), "f".to_string()),
             "ar".to_string() => ("A".to_string(), "F".to_string()),
         ];
-        let sandhi = Sandhi {
+        let sandhi = Splitter {
             map: rules,
             len_longest_key: 2,
         };
@@ -290,7 +306,7 @@ mod tests {
             "e".to_string() => ("A".to_string(), "i".to_string()),
             "e".to_string() => ("A".to_string(), "I".to_string()),
         ];
-        let sandhi = Sandhi {
+        let sandhi = Splitter {
             map: rules,
             len_longest_key: 1,
         };
@@ -311,7 +327,7 @@ mod tests {
         let rules = multimap![
             "o".to_string() => ("a".to_string(), "u".to_string()),
         ];
-        let sandhi = Sandhi {
+        let sandhi = Splitter {
             map: rules,
             len_longest_key: 1,
         };
@@ -326,7 +342,7 @@ mod tests {
         let rules = multimap![
             "e".to_string() => ("a".to_string(), "i".to_string()),
         ];
-        let sandhi = Sandhi {
+        let sandhi = Splitter {
             map: rules,
             len_longest_key: 1,
         };

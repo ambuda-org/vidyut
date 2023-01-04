@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use std::error::Error;
 use std::path::PathBuf;
-use vidyut::config::Config;
+use vidyut_cheda::Config;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]

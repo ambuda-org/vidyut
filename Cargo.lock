@@ -822,22 +822,23 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vidyut"
 version = "0.1.0"
+
+[[package]]
+name = "vidyut-cheda"
+version = "0.1.0"
 dependencies = [
- "bencher",
  "clap",
  "csv",
  "env_logger",
- "fst",
  "glob",
  "lazy_static",
  "log",
  "modular-bitfield",
  "multimap",
  "priority-queue",
- "rand",
  "regex",
- "tempfile",
  "vidyut-kosha",
+ "vidyut-lipi",
 ]
 
 [[package]]
@@ -854,6 +855,10 @@ dependencies = [
  "rand",
  "tempfile",
 ]
+
+[[package]]
+name = "vidyut-lipi"
+version = "0.1.0"
 
 [[package]]
 name = "vidyut-prakriya"

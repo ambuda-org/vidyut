@@ -5,8 +5,7 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::process;
 
-use vidyut::config::Config;
-use vidyut::segmenting::Segmenter;
+use vidyut_cheda::{Chedaka, Config};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -36,8 +35,8 @@ fn parse_text(text: &str, segmenter: &Segmenter) {
 }
 */
 
-fn debug_word(text: &str, segmenter: &Segmenter) -> Result<(), Box<dyn Error>> {
-    let lex = segmenter.lexicon();
+fn debug_word(text: &str, segmenter: &Chedaka) -> Result<(), Box<dyn Error>> {
+    let lex = segmenter.kosha();
     println!("{text}:");
     for packed_pada in lex.get_all(text) {
         let pada = lex.unpack(&packed_pada)?;
@@ -54,7 +53,7 @@ fn main() {
 
     info!("Loading raw data from disk.");
     let config = Config::new(&args.data_dir);
-    let segmenter = Segmenter::new(config);
+    let segmenter = Chedaka::new(config);
 
     let segmenter = match segmenter {
         Ok(data) => data,
