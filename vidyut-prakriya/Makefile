@@ -92,14 +92,25 @@ profile-time-osx:
 docs:
 	cargo doc --no-deps --open
 
+
+# Web builds
+# ----------
+
 # Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
+#
+# This is a release build. Creating it will be slower but smaller and (perhaps)
+# more performant.
 wasm_release:
 	wasm-pack build --target web --release
 
 # Builds WASM module and JS wrapper (pkg/vidyut_prakriya.js).
+#
+# This is a dev build. Creating it will be faster, but size and performance
+# will not be optimized.
 wasm_dev:
 	wasm-pack build --target web
 
+# Builds a simple web debugger.
 debugger: wasm_dev
 	cp pkg/* www/static/wasm
 	cp data/* www/static/data

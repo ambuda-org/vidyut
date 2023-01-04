@@ -226,7 +226,7 @@ impl FromStr for Lakara {
 
 /// The pada of some tinanta.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "wasm_bindings", wasm_bindgen)]
+#[wasm_bindgen]
 pub enum Pada {
     /// Parasmaipada.
     Parasmai,
