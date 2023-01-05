@@ -10,9 +10,8 @@ use compact_str::CompactString;
 use std::collections::HashMap;
 use std::error::Error;
 use vidyut_prakriya::args::{Dhatu, Lakara, Prayoga, Purusha, Sanadi, TinantaArgs, Vacana};
-use vidyut_prakriya::dhatupatha;
-use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
+use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -82,17 +81,19 @@ fn pretty_print_all_padas_for_dhatu(all_words: HashMap<(&Prayoga, &Lakara), Vec<
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
-    let dhatus = dhatupatha::load_all("data/dhatupatha.tsv");
+    let a = Ashtadhyayi::new();
+    let d = Dhatupatha::from_path("data/dhatupatha.tsv")?;
 
     let mut ordered_words = HashMap::new();
-    let a = Ashtadhyayi::new();
 
     let (gana, number) = match args.code.split_once('.') {
         Some((x, y)) => (x.parse::<u8>()?, y.parse::<u16>()?),
         _ => return Ok(()),
     };
 
-    for (dhatu, dhatu_number) in dhatus?.iter() {
+    for entry in d {
+        let dhatu = entry.dhatu();
+
         let mut builder = Dhatu::builder()
             .upadesha(dhatu.upadesha())
             .gana(dhatu.gana());
@@ -104,7 +105,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         }
         let dhatu = builder.build()?;
 
-        if !(dhatu.gana() == gana && *dhatu_number == number) {
+        if !(dhatu.gana() == gana && entry.number() == number) {
             continue;
         }
         for prayoga in PRAYOGAS {

@@ -26,7 +26,7 @@ pub struct Vidyut {
     dhatupatha: Dhatupatha,
 }
 
-fn to_web_history(history: &Vec<Step>) -> Vec<WebStep> {
+fn to_web_history(history: &[Step]) -> Vec<WebStep> {
     history
         .iter()
         .map(|x| WebStep {
@@ -36,9 +36,9 @@ fn to_web_history(history: &Vec<Step>) -> Vec<WebStep> {
         .collect()
 }
 
-fn to_web_prakriyas(prakriyas: &Vec<Prakriya>) -> Vec<WebPrakriya> {
+fn to_web_prakriyas(prakriyas: &[Prakriya]) -> Vec<WebPrakriya> {
     prakriyas
-        .into_iter()
+        .iter()
         .map(|p| WebPrakriya {
             text: String::from(p.text()),
             history: to_web_history(p.history()),
@@ -68,6 +68,7 @@ impl Vidyut {
 
     /// Returns each possible *prakriyā* for `upadesha` in "laṭ".
     /// See documentation of Dhatu::new etc.
+    #[allow(clippy::too_many_arguments)]
     pub fn derive(
         &self,
         code: &str,
@@ -99,7 +100,7 @@ impl Vidyut {
                     let dhatu = dhatu.with_sanadi(s);
                     a.derive_tinantas(&dhatu, &args)
                 }
-                None => a.derive_tinantas(&dhatu, &args),
+                None => a.derive_tinantas(dhatu, &args),
             };
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);

@@ -8,9 +8,8 @@
 use clap::Parser;
 use std::error::Error;
 use vidyut_prakriya::args::{KrdantaArgs, Krt};
-use vidyut_prakriya::dhatupatha;
-use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
+use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -36,14 +35,15 @@ fn pretty_print_prakriya(p: &Prakriya, args: &KrdantaArgs) {
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
-    let dhatus = dhatupatha::load_all("data/dhatupatha.tsv");
+    let dhatupatha = Dhatupatha::from_path("data/dhatupatha.tsv")?;
     let (gana, number) = match args.code.split_once('.') {
         Some((x, y)) => (x.parse::<u8>()?, y.parse::<u16>()?),
         _ => return Ok(()),
     };
 
-    for (dhatu, dhatu_number) in dhatus?.iter() {
-        if !(dhatu.gana() == gana && *dhatu_number == number) {
+    for entry in dhatupatha {
+        let dhatu = entry.dhatu();
+        if !(dhatu.gana() == gana && entry.number() == number) {
             continue;
         }
 

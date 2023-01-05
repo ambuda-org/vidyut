@@ -6,10 +6,8 @@ use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use std::path::Path;
 use vidyut_prakriya::args::{Dhatu, Lakara, Prayoga, Purusha, Sanadi, TinantaArgs, Vacana};
-use vidyut_prakriya::dhatupatha as D;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -61,7 +59,7 @@ struct Row<'a> {
     vacana: &'static str,
 }
 
-fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
+fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let a = Ashtadhyayi::builder().log_steps(false).build();
 
@@ -70,7 +68,9 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
         None => Vec::new(),
     };
 
-    for (dhatu, number) in dhatus {
+    for entry in d {
+        let dhatu = entry.dhatu();
+
         // Add sanadi to the dhatu.
         let mut builder = Dhatu::builder()
             .upadesha(dhatu.upadesha())
@@ -119,7 +119,7 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
                         padas,
                         dhatu: dhatu_text,
                         gana: dhatu.gana(),
-                        number,
+                        number: entry.number(),
                         sanadi: sanadi_str.to_string(),
                         lakara: lakara.as_str(),
                         purusha: purusha.as_str(),
@@ -140,7 +140,7 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
 fn main() {
     let args = Args::parse();
 
-    let dhatus = match D::load_all(Path::new("data/dhatupatha.tsv")) {
+    let dhatus = match Dhatupatha::from_path("data/dhatupatha.tsv") {
         Ok(res) => res,
         Err(err) => {
             println!("{}", err);

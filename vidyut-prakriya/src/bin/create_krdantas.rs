@@ -6,10 +6,8 @@ use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use std::path::Path;
-use vidyut_prakriya::args::{Dhatu, KrdantaArgs, Krt};
-use vidyut_prakriya::dhatupatha as D;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::args::{KrdantaArgs, Krt};
+use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -27,15 +25,16 @@ struct Row<'a> {
     krt: &'static str,
 }
 
-fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
+fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let a = Ashtadhyayi::builder().log_steps(false).build();
 
-    for (dhatu, number) in dhatus {
+    for entry in d {
+        let dhatu = entry.dhatu();
         let krt = args.krt;
         let krdanta_args = KrdantaArgs::builder().krt(krt).build()?;
 
-        let prakriyas = a.derive_krdantas(&dhatu, &krdanta_args);
+        let prakriyas = a.derive_krdantas(dhatu, &krdanta_args);
 
         let dhatu_text = &dhatu.upadesha();
         let mut pratipadikas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
@@ -47,7 +46,7 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
             pratipadikas,
             dhatu: dhatu_text,
             gana: dhatu.gana(),
-            number,
+            number: entry.number(),
             krt: krt.as_str(),
         };
         wtr.serialize(row)?;
@@ -60,7 +59,7 @@ fn run(dhatus: Vec<(Dhatu, u16)>, args: Args) -> Result<(), Box<dyn Error>> {
 fn main() {
     let args = Args::parse();
 
-    let dhatus = match D::load_all(Path::new("data/dhatupatha.tsv")) {
+    let dhatus = match Dhatupatha::from_path("data/dhatupatha.tsv") {
         Ok(res) => res,
         Err(err) => {
             println!("{}", err);
