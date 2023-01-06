@@ -13,7 +13,7 @@ fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<CompactString> {
 
 // todo: 7.4.40+ (ti kiti)
 #[test]
-fn test_ktva() {
+fn ktva() {
     let cases = vec![
         // Basic
         ("BU", 1, vec!["BUtvA"]),
@@ -48,7 +48,7 @@ fn test_ktva() {
 }
 
 #[test]
-fn test_kta() {
+fn kta() {
     let cases = vec![
         // Basic
         ("BU", 1, vec!["BUta"]),
@@ -71,6 +71,44 @@ fn test_kta() {
     for (dhatu, gana, expected) in cases {
         let mut expected = expected.to_vec();
         let mut actual = create_kta(dhatu, gana);
+
+        expected.sort();
+        actual.sort();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn lyuw() {
+    let cases = vec![
+        // Basic
+        ("BU", 1, vec!["Bavana"]),
+        ("qukf\\Y", 8, vec!["karaRa"]),
+    ];
+
+    let create_lyuw = |dhatu, gana| create_krdanta(dhatu, gana, Krt::lyuw);
+    for (dhatu, gana, expected) in cases {
+        let mut expected = expected.to_vec();
+        let mut actual = create_lyuw(dhatu, gana);
+
+        expected.sort();
+        actual.sort();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn nvul() {
+    let cases = vec![
+        // Basic
+        ("BU", 1, vec!["BAvaka"]),
+        ("qukf\\Y", 8, vec!["kAraka"]),
+    ];
+
+    let create_lyuw = |dhatu, gana| create_krdanta(dhatu, gana, Krt::Rvul);
+    for (dhatu, gana, expected) in cases {
+        let mut expected = expected.to_vec();
+        let mut actual = create_lyuw(dhatu, gana);
 
         expected.sort();
         actual.sort();
