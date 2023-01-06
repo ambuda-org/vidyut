@@ -1,12 +1,22 @@
 import init, { Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, Pada, Sanadi } from "/static/wasm/vidyut_prakriya.js";
 
 
+function removeSlpSvaras(s) {
+    return s.replaceAll(/[\^\\]/g, '');
+}
+
+
 function parseDhatus(text) {
     let dhatus = [];
     text.split(/\r?\n/).forEach((line) => {
         const [code, upadesha, artha] = line.split(/\t/);
         if (!!code && code !== 'code') {
-            dhatus.push({ code, upadesha, artha });
+            dhatus.push({
+                code,
+                upadesha,
+                upadeshaQuery: removeSlpSvaras(upadesha),
+                artha
+            });
         }
     });
     return dhatus;
@@ -53,7 +63,7 @@ const App = () => ({
     dhatuFilter: null,
 
     async init() {
-        const data = await loadVidyut(); 
+        const data = await loadVidyut();
         this.vidyut = data.vidyut;
         this.dhatus = data.dhatus;
     },
@@ -69,9 +79,16 @@ const App = () => ({
     /** A filtered list of dhatus according to a user query. */
     filteredDhatus() {
         if (this.dhatuFilter !== null) {
-            const filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
-            console.log(filter);
-            return this.dhatus.filter(d => d.code.includes(filter));
+            let filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
+            let hkFilter = Sanscript.t(this.dhatuFilter, 'hk', 'slp1');
+            console.log('filter is ', filter);
+            return this.dhatus.filter(d =>
+                d.code.includes(filter)
+                || d.upadeshaQuery.includes(filter)
+                || d.artha.includes(filter)
+                || d.upadeshaQuery.includes(hkFilter)
+                || d.artha.includes(hkFilter)
+            );
         } else {
             return this.dhatus;
         }
@@ -79,6 +96,8 @@ const App = () => ({
 
     setActiveDhatu(s) {
         this.activeDhatu = this.dhatus.find(d => d.code === s);
+        // Scroll position might be off if the user has scrolled far down the dhatu list.
+        window.scrollTo({ top: 0 });
     },
 
     setActivePada(p) {
@@ -124,8 +143,9 @@ const App = () => ({
     deva(s) {
         return Sanscript.t(s, 'slp1', 'devanagari');
     },
+
     devaNoSvara(s) {
-        return Sanscript.t(s, 'slp1', 'devanagari').replace(/[\^\\]/, '');
+        return Sanscript.t(removeSlpSvaras(s), 'slp1', 'devanagari');
     },
 
     entryString(entries) {
@@ -133,10 +153,8 @@ const App = () => ({
         return this.deva(str);
     },
 
-
     createParadigm(args) {
         const { dhatu, lakara, prayoga, pada, sanadi } = args;
-        console.log('paradigm', dhatu, lakara, prayoga, pada, sanadi);
 
         let purushas = Object.values(Purusha).filter(Number.isInteger);
         let vacanas = Object.values(Vacana).filter(Number.isInteger);
@@ -144,7 +162,6 @@ const App = () => ({
         let paradigm = [];
         for (const purusha in purushas) {
             for (const vacana in vacanas) {
-                let pvPadas = [];
                 let prakriyas = this.vidyut.derive(
                     dhatu.code,
                     lakara,
@@ -154,7 +171,16 @@ const App = () => ({
                     pada,
                     sanadi,
                 );
+
+                let pvPadas = [];
+                let seen = new Set();
                 prakriyas.forEach((p) => {
+                    if (seen.has(p.text)) {
+                        return;
+                    }
+                    console.log(p.text);
+                    seen.add(p.text);
+
                     pvPadas.push({
                         text: p.text,
                         dhatu,
@@ -197,7 +223,6 @@ const App = () => ({
 
             for (const tinPada in tinPadas) {
                 const padaKey = Pada[tinPada];
-                console.log(lakara, padaKey, tinPada);
                 const paradigm = this.createParadigm({
                     dhatu,
                     lakara,
@@ -213,7 +238,6 @@ const App = () => ({
             results.push(laResults);
         }
 
-        console.log(results);
         return results;
     },
 });
