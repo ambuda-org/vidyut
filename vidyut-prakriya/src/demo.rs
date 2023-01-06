@@ -20,12 +20,6 @@ pub struct WebPrakriya {
     history: Vec<WebStep>,
 }
 
-/// WebAssembly API for vidyut-prakriya.
-#[wasm_bindgen]
-pub struct Vidyut {
-    dhatupatha: Dhatupatha,
-}
-
 fn to_web_history(history: &[Step]) -> Vec<WebStep> {
     history
         .iter()
@@ -55,9 +49,15 @@ extern "C" {
     fn error_num(s: &str, value: usize);
 }
 
+/// WebAssembly API for vidyut-prakriya.
+#[wasm_bindgen]
+pub struct Vidyut {
+    dhatupatha: Dhatupatha,
+}
+
 #[wasm_bindgen]
 impl Vidyut {
-    /// Creates a new API manager
+    /// Creates a new API manager.
     ///
     /// This constructor is not called `new` because `new` is a reserved word in JavaScript.
     pub fn init(dhatupatha: &str) -> Self {
@@ -66,8 +66,9 @@ impl Vidyut {
         }
     }
 
-    /// Returns each possible *prakriyā* for `upadesha` in "laṭ".
-    /// See documentation of Dhatu::new etc.
+    /// Returns each possible *prakriyā* for the given args.
+    ///
+    /// TODO: how might we reduce the number of arguments here?
     #[allow(clippy::too_many_arguments)]
     pub fn derive(
         &self,

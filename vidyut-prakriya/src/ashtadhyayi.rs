@@ -94,13 +94,6 @@ fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result
     ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
     atmanepada::run(p);
 
-    // If the caller specified an explicit pada, abort if the pada doesn't match.
-    if let Some(pada) = args.pada() {
-        if !p.has_tag(pada.as_tag()) {
-            return Err(Error::Generic("The prakriya's pada doesn't match."));
-        }
-    }
-
     tin_pratyaya::adesha(p, purusha, vacana);
     samjna::run(p);
 
@@ -248,7 +241,17 @@ impl Ashtadhyayi {
         let mut stack = PrakriyaStack::new();
         // TODO: handle error properly.
         stack.find_all(|p| derive_tinanta(p, dhatu, args), self.log_steps);
-        stack.prakriyas()
+        let mut prakriyas = stack.prakriyas();
+
+        // If the caller specified an explicit pada, keep only the results that match that pada.
+        //
+        // TODO: to avoid wasting time on deriving words that we'll just throw out, push this
+        // further into `derive_tinanta`.
+        if let Some(pada) = args.pada() {
+            prakriyas.retain(|p| p.has_tag(pada.as_tag()));
+        }
+
+        prakriyas
     }
 
     /// Returns all possible subanta prakriyas that can be derived with the given initial
