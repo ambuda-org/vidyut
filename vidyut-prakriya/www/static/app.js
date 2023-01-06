@@ -70,7 +70,6 @@ const App = () => ({
     filteredDhatus() {
         if (this.dhatuFilter !== null) {
             const filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
-            console.log(filter);
             return this.dhatus.filter(d => d.code.includes(filter));
         } else {
             return this.dhatus;
@@ -136,7 +135,6 @@ const App = () => ({
 
     createParadigm(args) {
         const { dhatu, lakara, prayoga, pada, sanadi } = args;
-        console.log('paradigm', dhatu, lakara, prayoga, pada, sanadi);
 
         let purushas = Object.values(Purusha).filter(Number.isInteger);
         let vacanas = Object.values(Vacana).filter(Number.isInteger);
@@ -144,7 +142,6 @@ const App = () => ({
         let paradigm = [];
         for (const purusha in purushas) {
             for (const vacana in vacanas) {
-                let pvPadas = [];
                 let prakriyas = this.vidyut.derive(
                     dhatu.code,
                     lakara,
@@ -154,7 +151,16 @@ const App = () => ({
                     pada,
                     sanadi,
                 );
+
+                let pvPadas = [];
+                let seen = new Set();
                 prakriyas.forEach((p) => {
+                    if (seen.has(p.text)) {
+                        return;
+                    }
+                    console.log(p.text);
+                    seen.add(p.text);
+
                     pvPadas.push({
                         text: p.text,
                         dhatu,
@@ -197,7 +203,6 @@ const App = () => ({
 
             for (const tinPada in tinPadas) {
                 const padaKey = Pada[tinPada];
-                console.log(lakara, padaKey, tinPada);
                 const paradigm = this.createParadigm({
                     dhatu,
                     lakara,
@@ -213,7 +218,6 @@ const App = () => ({
             results.push(laResults);
         }
 
-        console.log(results);
         return results;
     },
 });
