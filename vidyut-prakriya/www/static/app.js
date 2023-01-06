@@ -6,7 +6,12 @@ function parseDhatus(text) {
     text.split(/\r?\n/).forEach((line) => {
         const [code, upadesha, artha] = line.split(/\t/);
         if (!!code && code !== 'code') {
-            dhatus.push({ code, upadesha, artha });
+            dhatus.push({
+                code,
+                upadesha,
+                upadeshaQuery: upadesha.replace("\\", "").replace("^", ""),
+                artha
+            });
         }
     });
     return dhatus;
@@ -69,8 +74,16 @@ const App = () => ({
     /** A filtered list of dhatus according to a user query. */
     filteredDhatus() {
         if (this.dhatuFilter !== null) {
-            const filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
-            return this.dhatus.filter(d => d.code.includes(filter));
+            let filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
+            let hkFilter = Sanscript.t(this.dhatuFilter, 'hk', 'slp1');
+            console.log('filter is ', filter);
+            return this.dhatus.filter(d => 
+                d.code.includes(filter)
+                || d.upadeshaQuery.includes(filter)
+                || d.artha.includes(filter)
+                || d.upadeshaQuery.includes(hkFilter)
+                || d.artha.includes(hkFilter)
+            );
         } else {
             return this.dhatus;
         }
