@@ -2,6 +2,7 @@ use compact_str::CompactString;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
+/// Creates a krdanta with the given args.
 fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<CompactString> {
     let a = Ashtadhyayi::new();
     let dhatu = Dhatu::new(dhatu, Gana::from_int(gana).unwrap());
@@ -9,6 +10,18 @@ fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<CompactString> {
 
     let prakriyas = a.derive_krdantas(&dhatu, &args);
     prakriyas.iter().map(|p| p.text()).collect()
+}
+
+/// Tests all of the given test cases against the given krt-pratyaya.
+fn test_krdanta(cases: &Vec<(&'static str, u8, Vec<&'static str>)>, krt: Krt) {
+    for (dhatu, gana, expected) in cases {
+        let mut expected = expected.to_vec();
+        let mut actual = create_krdanta(dhatu, *gana, krt);
+
+        expected.sort();
+        actual.sort();
+        assert_eq!(actual, expected);
+    }
 }
 
 // todo: 7.4.40+ (ti kiti)
@@ -36,15 +49,7 @@ fn ktva() {
         ("va\\sa~", 1, vec!["uzitvA"]),
     ];
 
-    let create_ktva = |dhatu, gana| create_krdanta(dhatu, gana, Krt::ktvA);
-    for (dhatu, gana, expected) in cases {
-        let mut expected = expected.to_vec();
-        let mut actual = create_ktva(dhatu, gana);
-
-        expected.sort();
-        actual.sort();
-        assert_eq!(actual, expected);
-    }
+    test_krdanta(&cases, Krt::ktvA);
 }
 
 #[test]
@@ -67,15 +72,7 @@ fn kta() {
         ("Su\\za~", 4, vec!["Suzka"]),
     ];
 
-    let create_kta = |dhatu, gana| create_krdanta(dhatu, gana, Krt::kta);
-    for (dhatu, gana, expected) in cases {
-        let mut expected = expected.to_vec();
-        let mut actual = create_kta(dhatu, gana);
-
-        expected.sort();
-        actual.sort();
-        assert_eq!(actual, expected);
-    }
+    test_krdanta(&cases, Krt::kta);
 }
 
 #[test]
@@ -86,15 +83,7 @@ fn lyuw() {
         ("qukf\\Y", 8, vec!["karaRa"]),
     ];
 
-    let create_lyuw = |dhatu, gana| create_krdanta(dhatu, gana, Krt::lyuw);
-    for (dhatu, gana, expected) in cases {
-        let mut expected = expected.to_vec();
-        let mut actual = create_lyuw(dhatu, gana);
-
-        expected.sort();
-        actual.sort();
-        assert_eq!(actual, expected);
-    }
+    test_krdanta(&cases, Krt::lyuw);
 }
 
 #[test]
@@ -105,13 +94,5 @@ fn nvul() {
         ("qukf\\Y", 8, vec!["kAraka"]),
     ];
 
-    let create_lyuw = |dhatu, gana| create_krdanta(dhatu, gana, Krt::Rvul);
-    for (dhatu, gana, expected) in cases {
-        let mut expected = expected.to_vec();
-        let mut actual = create_lyuw(dhatu, gana);
-
-        expected.sort();
-        actual.sort();
-        assert_eq!(actual, expected);
-    }
+    test_krdanta(&cases, Krt::Rvul);
 }
