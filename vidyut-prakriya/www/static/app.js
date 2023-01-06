@@ -91,6 +91,8 @@ const App = () => ({
 
     setActiveDhatu(s) {
         this.activeDhatu = this.dhatus.find(d => d.code === s);
+        // Scroll position might be off if the user has scrolled far down the dhatu list.
+        window.scrollTo({ top: 0 });
     },
 
     setActivePada(p) {
