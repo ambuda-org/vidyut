@@ -2,6 +2,7 @@ use compact_str::CompactString;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
+/// Creates a krdanta with the given args.
 fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<CompactString> {
     let a = Ashtadhyayi::new();
     let dhatu = Dhatu::new(dhatu, Gana::from_int(gana).unwrap());
@@ -11,9 +12,21 @@ fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<CompactString> {
     prakriyas.iter().map(|p| p.text()).collect()
 }
 
+/// Tests all of the given test cases against the given krt-pratyaya.
+fn test_krdanta(cases: &Vec<(&'static str, u8, Vec<&'static str>)>, krt: Krt) {
+    for (dhatu, gana, expected) in cases {
+        let mut expected = expected.to_vec();
+        let mut actual = create_krdanta(dhatu, *gana, krt);
+
+        expected.sort();
+        actual.sort();
+        assert_eq!(actual, expected);
+    }
+}
+
 // todo: 7.4.40+ (ti kiti)
 #[test]
-fn test_ktva() {
+fn ktva() {
     let cases = vec![
         // Basic
         ("BU", 1, vec!["BUtvA"]),
@@ -36,19 +49,11 @@ fn test_ktva() {
         ("va\\sa~", 1, vec!["uzitvA"]),
     ];
 
-    let create_ktva = |dhatu, gana| create_krdanta(dhatu, gana, Krt::ktvA);
-    for (dhatu, gana, expected) in cases {
-        let mut expected = expected.to_vec();
-        let mut actual = create_ktva(dhatu, gana);
-
-        expected.sort();
-        actual.sort();
-        assert_eq!(actual, expected);
-    }
+    test_krdanta(&cases, Krt::ktvA);
 }
 
 #[test]
-fn test_kta() {
+fn kta() {
     let cases = vec![
         // Basic
         ("BU", 1, vec!["BUta"]),
@@ -67,13 +72,27 @@ fn test_kta() {
         ("Su\\za~", 4, vec!["Suzka"]),
     ];
 
-    let create_kta = |dhatu, gana| create_krdanta(dhatu, gana, Krt::kta);
-    for (dhatu, gana, expected) in cases {
-        let mut expected = expected.to_vec();
-        let mut actual = create_kta(dhatu, gana);
+    test_krdanta(&cases, Krt::kta);
+}
 
-        expected.sort();
-        actual.sort();
-        assert_eq!(actual, expected);
-    }
+#[test]
+fn lyuw() {
+    let cases = vec![
+        // Basic
+        ("BU", 1, vec!["Bavana"]),
+        ("qukf\\Y", 8, vec!["karaRa"]),
+    ];
+
+    test_krdanta(&cases, Krt::lyuw);
+}
+
+#[test]
+fn nvul() {
+    let cases = vec![
+        // Basic
+        ("BU", 1, vec!["BAvaka"]),
+        ("qukf\\Y", 8, vec!["kAraka"]),
+    ];
+
+    test_krdanta(&cases, Krt::Rvul);
 }

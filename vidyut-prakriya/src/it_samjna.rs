@@ -29,6 +29,12 @@ fn get_adi(s: &CompactString) -> Option<char> {
 fn run_1_3_2(p: &mut Prakriya, i_term: usize, before: &mut CompactString) -> Option<()> {
     let term = p.get_mut(i_term)?;
 
+    // If the text contains `yu~` or `vu~`, skip lopa of nasal vowels so that rule 7.1.1
+    // (yuvoranAkau) can apply.
+    if term.has_tag(T::Krt) && (term.text.contains("yu~") || term.text.contains("vu~")) {
+        return None;
+    }
+
     let mut i = 0;
     let bytes = before.as_bytes();
     let mut after = CompactString::from("");
