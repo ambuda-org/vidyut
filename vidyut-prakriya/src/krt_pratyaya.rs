@@ -60,9 +60,10 @@ The main functions here are `try_add_krt` and `try_add_krt_for_tacchila_etc`, wh
 own control flow. For details, please see the docs for those functions.
 */
 
-use crate::args::Krt;
+use crate::args::{Krt, Lakara};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
+use crate::la_karya;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
 use crate::sounds::{s, SoundSet};
@@ -399,15 +400,15 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
     // For convenience below, wrap `Prakriya` in a new `KrtPrakriya` type that contains `krt` and
     // records whether or not any of these rules were applied.
-    let mut p = KrtPrakriya::new(p, krt);
-    let dhatu = p.get(i)?;
+    let mut wrap = KrtPrakriya::new(p, krt);
+    let dhatu = wrap.get(i)?;
 
     match krt {
         // ------------------------------------------
         // krtyAH
         // ------------------------------------------
         K::tavyat | K::tavya | K::anIyar => {
-            p.try_add("3.1.96", krt);
+            wrap.try_add("3.1.96", krt);
         }
 
         // "ya" (3.1.97 - 3.1.132)
@@ -423,78 +424,79 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             let mut skip_3_1_110 = false;
 
             // Specific rules (optional)
-            let dhatu = p.get(i)?;
+            let dhatu = wrap.get(i)?;
             if dhatu.has_u("quBf\\Y") {
-                p.optional_try_add("3.1.112", K::kyap);
+                wrap.optional_try_add("3.1.112", K::kyap);
             } else if dhatu.has_u_in(&["qukf\\Y", "vfzu~"]) {
                 if dhatu.has_text("kf") {
-                    p.optional_try_add("3.1.120", K::kyap);
+                    wrap.optional_try_add("3.1.120", K::kyap);
                 } else {
                     // This rule makes rule 3.1.110 optional for vfz.
-                    skip_3_1_110 = p.p.op_optional("3.1.120", |_| {});
+                    skip_3_1_110 = wrap.p.op_optional("3.1.120", |_| {});
                 }
             } else if dhatu.has_text("mfj") {
                 // This rule makes rule 3.1.110 optional for mfj.
-                skip_3_1_110 = p.p.op_optional("3.1.113", |_| {});
+                skip_3_1_110 = wrap.p.op_optional("3.1.113", |_| {});
             }
 
             // Specific rules (required)
-            let dhatu = p.get(i)?;
+            let dhatu = wrap.get(i)?;
             if dhatu.has_u_in(&["Sa\\kx~", "zaha~\\"]) {
-                p.try_add("3.1.99", K::yat);
+                wrap.try_add("3.1.99", K::yat);
             } else if dhatu.has_u_in(&["gada~", "madI~", "cara~", "ya\\ma~"]) && !upasarge {
-                p.try_add("3.1.100", K::yat);
+                wrap.try_add("3.1.100", K::yat);
             } else if !upasarge && dhatu.has_text("vad") && supi {
-                p.try_add("3.1.106", K::yat);
-                p.try_add("3.1.106", K::kyap);
+                wrap.try_add("3.1.106", K::yat);
+                wrap.try_add("3.1.106", K::kyap);
             } else if !upasarge && supi && dhatu.has_u("BU") {
                 // The condition here is bhAve, but per the kashika, it is always bhAve per 3.4.70,
                 // so it is effectively nitya.
-                p.try_add("3.1.107", K::kyap);
+                wrap.try_add("3.1.107", K::kyap);
             } else if !upasarge && supi && dhatu.has_u("ha\\na~") {
-                p.try_add_with("3.1.108", K::kyap, |p, i| {
+                wrap.try_add_with("3.1.108", K::kyap, |p, i| {
                     p.set(i, |t| t.set_antya("t"));
                 });
             } else if dhatu.has_u("i\\R") || dhatu.has_text_in(&["stu", "SAs", "vf", "df", "juz"]) {
-                p.try_add("3.1.109", K::kyap);
+                wrap.try_add("3.1.109", K::kyap);
             } else if dhatu.has_upadha('f') && !dhatu.has_text_in(&["kfp", "cft"]) && !skip_3_1_110
             {
-                p.try_add("3.1.110", K::kyap);
+                wrap.try_add("3.1.110", K::kyap);
             } else if dhatu.has_text("Kan") {
-                p.try_add_with("3.1.111", K::kyap, |p, i| {
+                wrap.try_add_with("3.1.111", K::kyap, |p, i| {
                     p.set(i, |t| t.set_antya("I"));
                 });
-            } else if (p.has_prefix("A") && dhatu.has_text("su")) || dhatu.has_text_in(vapi_rapi) {
-                p.try_add("3.1.126", K::Ryat);
+            } else if (wrap.has_prefix("A") && dhatu.has_text("su")) || dhatu.has_text_in(vapi_rapi)
+            {
+                wrap.try_add("3.1.126", K::Ryat);
             }
 
             // General rules (optional)
-            let dhatu = p.get(i)?;
+            let dhatu = wrap.get(i)?;
             if dhatu.has_antya('u') || dhatu.has_antya('U') {
-                p.optional_try_add("3.1.125", K::Ryat);
+                wrap.optional_try_add("3.1.125", K::Ryat);
             }
 
             // General rules (obligatory)
-            let dhatu = p.get(i)?;
-            if !p.tried {
+            let dhatu = wrap.get(i)?;
+            if !wrap.tried {
                 if dhatu.has_upadha('a') && dhatu.has_antya(&*PU) {
                     // Sapya, laBya, japya
-                    p.try_add("3.1.98", K::yat);
+                    wrap.try_add("3.1.98", K::yat);
                 } else if dhatu.has_antya('f') || dhatu.has_antya('F') || dhatu.has_antya(&*HAL) {
-                    p.try_add("3.1.124", K::Ryat);
+                    wrap.try_add("3.1.124", K::Ryat);
                 } else if dhatu.has_antya(&*AC) {
-                    p.try_add("3.1.97", K::yat);
+                    wrap.try_add("3.1.97", K::yat);
                 }
             }
         }
 
         K::Rvul | K::tfc => {
-            p.try_add("3.1.133", krt);
+            wrap.try_add("3.1.133", krt);
         }
 
         K::lyu | K::Rini => {
-            if is_nandi_grahi_pacadi(&p, i) {
-                p.try_add("3.1.134", krt);
+            if is_nandi_grahi_pacadi(&wrap, i) {
+                wrap.try_add("3.1.134", krt);
             }
         }
 
@@ -505,94 +507,116 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
             if dhatu.has_u_in(pa_ghra) && dhatu.has_gana(1) {
                 // These are all bhvAdi dhAtus, so enforce `has_gana(1)` to avoid other dhatus.
-                p.try_add("3.1.137", K::Sa);
+                wrap.try_add("3.1.137", K::Sa);
             } else if dhatu.has_upadha(&*IK) || dhatu.has_u_in(&["JYA\\", "prI\\Y", "kF"]) {
                 // vikzipa, viliKa, buDa
-                p.try_add("3.1.135", K::ka);
+                wrap.try_add("3.1.135", K::ka);
             } else if upasarge && dhatu.has_antya('A') {
-                p.try_add("3.1.136", K::ka);
-            } else if is_nandi_grahi_pacadi(&p, i) {
-                p.try_add("3.1.134", K::ac);
+                wrap.try_add("3.1.136", K::ka);
+            } else if is_nandi_grahi_pacadi(&wrap, i) {
+                wrap.try_add("3.1.134", K::ac);
             }
         }
 
         K::zvun | K::vun => {
             if dhatu.has_text_in(&["nft", "Kan", "ranj"]) {
-                p.try_add("3.1.145", K::zvun);
+                wrap.try_add("3.1.145", K::zvun);
             } else if dhatu.has_text_in(&["pru", "sf", "lU"]) {
-                p.try_add("3.1.149", K::vun);
+                wrap.try_add("3.1.149", K::vun);
             }
 
             // Allowed for all dhatus in the sense of ASIH.
-            p.try_add("3.1.150", K::vun);
+            wrap.try_add("3.1.150", K::vun);
         }
 
         K::Takan => {
             if dhatu.has_text("gE") {
-                p.try_add("3.1.146", krt);
+                wrap.try_add("3.1.146", krt);
             }
         }
 
         K::Ryuw => {
             if dhatu.has_text("gE") {
-                p.try_add("3.1.146", krt);
+                wrap.try_add("3.1.146", krt);
             } else if dhatu.has_text("hA") {
-                p.try_add("3.1.148", krt);
+                wrap.try_add("3.1.148", krt);
             }
         }
 
         K::kta | K::ktavatu => {
             if dhatu.has_tag(T::YIt) {
-                p.try_add("3.2.187", Krt::kta);
+                wrap.try_add("3.2.187", Krt::kta);
             }
-            p.try_add("3.2.102", krt);
+            wrap.try_add("3.2.102", krt);
 
-            if p.has_krt {
-                p.p.op_term("1.1.26", i + 1, op::add_tag(T::Nistha));
+            if wrap.has_krt {
+                wrap.p.op_term("1.1.26", i + 1, op::add_tag(T::Nistha));
             }
         }
 
         K::Nvanip => {
             if dhatu.has_u("zu\\Y") || dhatu.has_text("yaj") {
-                p.try_add("3.2.103", krt);
+                wrap.try_add("3.2.103", krt);
             }
         }
 
         K::atfn => {
             if dhatu.has_text("jF") {
-                p.try_add("3.2.104", krt);
+                wrap.try_add("3.2.104", krt);
             }
         }
 
-        K::kvasu => {
-            // Although the rule states "chandasi," kvasu~ has wide application:
+        K::kAnac | K::kvasu => {
+            // Although the rule has "chandasi" by anuvrtti from 3.2.105, kvasu~ has wide
+            // application:
             //
             // > kavayastu bahulaṃ prayuñjate । taṃ tasthivāṃsaṃ nagaropakaṇṭhe iti । śreyāṃsi
             // > sarvāṇyadhijagmuṣaste ityādi ॥
             // -- Siddhanta Kaumudi on 3.2.107.
-            //
-            if dhatu.has_text_in(&["sad", "vas", "Sru"]) {
-                p.try_add("3.2.108", krt);
-            } else {
-                p.try_add("3.2.107", krt);
+            if !wrap.has_krt {
+                let i_la = i + 1;
+                if krt == K::kvasu && dhatu.has_text_in(&["sad", "vas", "Sru"]) {
+                    wrap.p.set(i_la, op::add_tag(T::Krt));
+                    op::adesha("3.2.108", wrap.p, i_la, krt.as_str());
+                } else {
+                    wrap.p.set(i_la, op::add_tag(T::Krt));
+                    op::adesha("3.2.107", wrap.p, i_la, krt.as_str());
+                }
             }
         }
 
         // 3.2.111 - 3.2.123 are various lakaras.
         // TODO: 3.3.130 - 3.2.133
         K::Satf | K::SAnac => {
+            wrap.p.add_tag(T::Kartari);
+
+            /*
+            // TODO: not sure if these block 3.2.127 below.
+            if krt == K::Satf {
+                if dhatu.has_text("dviz") {
+                    wrap.try_add("3.2.131", krt);
+                } else if dhatu.has_u("zu\\Y") {
+                    wrap.try_add("3.2.132", krt);
+                } else if dhatu.has_text("arh") {
+                    wrap.try_add("3.2.133", krt);
+                }
+            }
+            */
+
             // 3.2.125 and 3.2.126 define other semantics conditions for Satf and SAnac.
-            if p.try_add("3.2.124", krt) {
-                p.p.op_term("3.2.127", i + 1, op::add_tag(T::Sat));
+            if !wrap.has_krt {
+                let i_la = i + 1;
+                op::adesha("3.2.124", wrap.p, i_la, krt.as_str());
+                wrap.p.op_term("3.2.127", i_la, op::add_tag(T::Sat));
             }
         }
 
         // These are treated separately from SAnac because they are not `Lat` replacements.
         K::SAnan | K::cAnaS => {
             if dhatu.has_text_in(&["pU", "yaj"]) {
-                p.try_add("3.2.128", K::SAnan);
+                wrap.try_add("3.2.128", K::SAnan);
             } else {
-                p.try_add("3.2.129", K::cAnaS);
+                wrap.try_add("3.2.129", K::cAnaS);
             }
         }
 
@@ -601,8 +625,8 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         // The normal control flow resumes from 3.2.180 onward.
         K::qu => {
-            if p.has_prefix_in(&["vi", "pra", "sam"]) && dhatu.has_text("BU") {
-                p.try_add("3.2.180", krt);
+            if wrap.has_prefix_in(&["vi", "pra", "sam"]) && dhatu.has_text("BU") {
+                wrap.try_add("3.2.180", krt);
             }
         }
 
@@ -611,25 +635,25 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 "nI", "Sas", "yu", "yuj", "stu", "tud", "si", "sic", "mih", "pat", "danS", "nah",
             ];
             if dhatu.has_text("DA") {
-                p.try_add("3.2.181", krt);
+                wrap.try_add("3.2.181", krt);
             } else if dhatu.has_u("dA\\p") || dhatu.has_text_in(ni_shasa) {
-                p.try_add("3.2.182", krt);
+                wrap.try_add("3.2.182", krt);
             } else if dhatu.has_text("pU") {
-                p.try_add("3.2.183", krt);
+                wrap.try_add("3.2.183", krt);
             }
         }
 
         K::itra => {
             if dhatu.has_text_in(&["f", "lU", "DU", "sU", "Kan", "sah", "car"]) {
-                p.try_add("3.2.184", krt);
+                wrap.try_add("3.2.184", krt);
             } else if dhatu.has_text("pU") {
                 // Also allowed by 3.2.186.
-                p.try_add("3.2.185", krt);
+                wrap.try_add("3.2.185", krt);
             }
         }
 
         K::tumun => {
-            p.try_add("3.3.10", krt);
+            wrap.try_add("3.3.10", krt);
         }
 
         K::ktri => {}
@@ -638,13 +662,13 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         K::naN => {
             if dhatu.has_text_in(&["yaj", "yAc", "yat", "viC", "praC", "rakz"]) {
-                p.try_add("3.3.90", krt);
+                wrap.try_add("3.3.90", krt);
             }
         }
 
         K::nan => {
             if dhatu.has_text("svap") {
-                p.try_add("3.3.91", krt);
+                wrap.try_add("3.3.91", krt);
             }
         }
 
@@ -653,7 +677,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         // ------------------------------------------
         K::ktin => {
             // TODO: striyam
-            p.try_add("3.3.94", krt);
+            wrap.try_add("3.3.94", krt);
         }
 
         K::Rvuc => {}
@@ -661,7 +685,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         K::ani => {}
 
         K::lyuw => {
-            p.try_add("3.3.115", krt);
+            wrap.try_add("3.3.115", krt);
         }
 
         K::Ga => {}
@@ -672,28 +696,46 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         K::GaY => {
             // TODO: move with other a-pratyayas?
-            let dhatu = p.get(i)?;
+            let dhatu = wrap.get(i)?;
             if dhatu.has_text_in(&["pad", "ruj", "viS"]) {
-                p.try_add("3.3.16", K::GaY);
+                wrap.try_add("3.3.16", K::GaY);
             } else if dhatu.has_text("sf") {
-                p.try_add("3.3.17", K::GaY);
+                wrap.try_add("3.3.17", K::GaY);
             } else {
-                p.try_add("3.3.18", K::GaY);
+                wrap.try_add("3.3.18", K::GaY);
             }
         }
         K::ktvA => {
-            p.try_add("3.4.21", krt);
+            wrap.try_add("3.4.21", krt);
         }
         _ => {
-            try_add_krt_for_tacchila_etc(&mut p, i, krt);
+            try_add_krt_for_tacchila_etc(&mut wrap, i, krt);
         }
     }
 
-    Some(p.has_krt)
+    Some(wrap.has_krt)
+}
+
+/// Runs rules that potentially add a lakara.
+///
+/// Certain krt-pratyayas are allowed only if they replace a specific lakara. To accommodate those
+/// rules, first run this check.
+fn maybe_add_lakara_for_krt(p: &mut Prakriya, krt: Krt) {
+    use Krt::*;
+    use Lakara::*;
+
+    if matches!(krt, Satf | SAnac) {
+        // TODO: also support Lrt (gamizyat).
+        la_karya::run(p, Lat);
+    }
+    if matches!(krt, kAnac | kvasu) {
+        la_karya::run(p, Lit);
+    }
 }
 
 #[allow(unused)]
 pub fn run(p: &mut Prakriya, krt: Krt) {
+    maybe_add_lakara_for_krt(p, krt);
     try_add_krt(p, krt);
 }
 

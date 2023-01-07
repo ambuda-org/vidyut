@@ -519,7 +519,7 @@ fn vikarana_lopa(p: &mut Prakriya) -> Option<()> {
     // TODO: extend this to other pratyayas -- should properly be called `pratyaya_lopa`
     let i_dhatu = p.find_last(T::Dhatu)?;
     let i_vikarana = i_dhatu + 1;
-    let i_tin = p.find_last(T::Tin)?;
+    let i_tin = i_vikarana + 1;
 
     let dhatu = p.get(i_dhatu)?;
     let vikarana = p.get_if(i_vikarana, |t| t.has_tag(T::Vikarana))?;

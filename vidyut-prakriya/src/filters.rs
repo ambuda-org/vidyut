@@ -24,6 +24,12 @@ pub fn is_eka_ac(t: &Term) -> bool {
     num_ac == 1
 }
 
+/// Returns whether the term could be called a `pada`.
+/// TODO: create and use `T::Pada` instead.
+pub fn is_pada(t: &Term) -> bool {
+    t.has_tag_in(&[T::Tin, T::Sup])
+}
+
 /// Returns whether the term begins with a conjunct consonant.
 pub fn is_samyogadi(t: &Term) -> bool {
     al::is_samyogadi(&t.text)

@@ -229,7 +229,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     if al::is_dirgha(abhyasa.antya()?) {
         let val = al::to_hrasva(abhyasa.antya()?)?;
-        p.op_term("7.4.62", i, op::antya(&val.to_string()));
+        p.op_term("7.4.60", i, op::antya(&val.to_string()));
     }
 
     if p.has(i, |t| t.has_antya('f')) {

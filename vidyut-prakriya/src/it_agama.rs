@@ -49,8 +49,21 @@ fn is_hacky_eka_ac(t: &Term) -> bool {
 /// Returns whether the given term is vet by 7.2.44.
 ///
 /// We wrap this condition in its own function because other rules need to check it as well.
-fn is_vet(anga: &Term) -> bool {
+fn is_generally_vet(anga: &Term) -> bool {
+    // > vakṣyati svaratisūtisūyatidhūñūdito vā 7.2.44। vidhūtaḥ। vidhūtavān। guhū gūḍhaḥ। gūḍhavān।
+    // > udito vā vṛdhu vṛddhaḥ।
+    // -- Kashikavrtti on 7.2.15.
     anga.has_u_in(&["svf", "zUN", "DUY"]) || anga.has_tag(T::Udit)
+}
+
+/// Returns whether the given term is ever vet in any rule.
+///
+/// This condition is necessary for 7.2.14.
+fn is_ever_vet(anga: &Term) -> bool {
+    // > vakṣyati svaratisūtisūyatidhūñūdito vā 7.2.44। vidhūtaḥ। vidhūtavān। guhū gūḍhaḥ। gūḍhavān।
+    // > udito vā vṛdhu vṛddhaḥ।
+    // -- Kashikavrtti on 7.2.15.
+    is_generally_vet(anga) || anga.has_tag(T::udit)
 }
 
 /// A wrapper for `Prakriya` that allows at most one it-Agama rule to be added to the derivation.
@@ -141,7 +154,10 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // > auṇādikasya eva taśabdasya grahaṇam iṣyate, na punaḥ ktasya
         // -- Kashika Vrtti
         wrap.anit("7.2.9");
-    } else if is_hacky_eka_ac(dhatu) && sri_uk && n.has_tag(T::kit) {
+    } else if (is_hacky_eka_ac(dhatu) || dhatu.has_text("UrRu")) && sri_uk && n.has_tag(T::kit) {
+        // Include UrRu:
+        // > ūrṇotestu vācya ūrṇorṇuvadbhāvo yaṅprasiddhiḥ prayojanam
+        // -- Kashikavrtti
         wrap.anit("7.2.11");
     } else if n.has_u("san") && (dhatu.has_text_in(&["grah", "guh"]) || is_uk) {
         // "Sri" is excluded from this condition because it is mentioned explicitly in 7.2.49.
@@ -149,7 +165,7 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     } else if n.has_tag(T::Nistha) {
         if dhatu.has_text("Svi") || dhatu.has_tag(T::Idit) {
             wrap.anit("7.2.14");
-        } else if is_vet(dhatu) {
+        } else if is_ever_vet(dhatu) {
             wrap.anit("7.2.15");
         } else if dhatu.has_tag(T::Adit) {
             let mut can_run = true;
@@ -230,8 +246,56 @@ fn try_it_rules_for_ktva_and_nistha(wrap: &mut ItPrakriya, i: usize) -> Option<(
     Some(())
 }
 
+/// Runs iT rules specific to kvasu~ pratyaya.
+fn try_rules_for_kvasu(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
+    let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
+    let n = wrap.p.view(i_n)?;
+
+    if !n.has_u("kvasu~") {
+        return None;
+    }
+
+    let anga = wrap.p.get(i)?;
+    if anga.has_text_in(&["gam", "han", "vid", "viS"]) {
+        wrap.optional_set("7.2.68", i_n);
+    } else if anga.has_text("dfS") {
+        wrap.optional_set("7.2.68.v1", i_n);
+    }
+
+    let anga = wrap.p.get(i)?;
+
+    // Per the kashikavrtti, the condition is "kṛtadvirvacanānāṃ dhātūnām ekācām" -- if the dhatu
+    // *would have* one vowel after dvirvacana and all of the usual procedures there.
+
+    // Dhatus that start with vowels (Adivas, ASivas, ...)
+    let is_ac_adi = anga.has_adi(&*AC);
+    // Dhatus that will start with vowels due to kit-samprasarana (Ucivas, Ijivas, ...).
+    // NOTE: keep this in sync with the `samprasarana` module.
+    let will_be_ac_adi = anga.has_u_in(&[
+        "va\\ca~",
+        "ya\\ja~^",
+        "quva\\pa~^",
+        "va\\ha~^",
+        "va\\sa~",
+        "ve\\Y",
+        "vye\\Y",
+        "vada~",
+    ]);
+    // Dhatus that undergo ettva-abhyAsalopa (pecivas, Sekivas, ...)
+    let will_be_eka_ac = is_ac_adi || will_be_ac_adi;
+
+    let code = "7.2.67";
+    if will_be_eka_ac || anga.has_antya('A') || anga.has_text("Gas") {
+        wrap.set(code, i_n);
+    } else {
+        wrap.anit(code);
+    }
+
+    None
+}
+
 /// Runs iT rules specific to liT. Returns whether the iT-Agama procedure is complete.
-fn try_lit_it(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
+fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
     let n = wrap.p.view(i_n)?;
 
@@ -364,7 +428,7 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let n = wrap.p.view(i + 1)?;
     let last = wrap.p.terms().last()?;
     if n.has_adi(&*VAL) && !wrap.added {
-        if is_vet(anga) {
+        if is_generally_vet(anga) {
             // Synchronize choice of "it" with the choice of lun-vikarana in 3.1.45:
             // - if lun and using ksa, must use anit.
             // - if lun and not using ksa, must use set.
@@ -499,7 +563,8 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
 }
 
 fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
-    try_lit_it(wrap, i);
+    try_rules_for_kvasu(wrap, i);
+    try_rules_for_lit(wrap, i);
     try_general_anit(wrap, i);
     try_ardhadhatuke(wrap, i);
     try_sarvadhatuke(wrap.p, i);

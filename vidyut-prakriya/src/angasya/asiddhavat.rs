@@ -331,7 +331,9 @@ fn try_et_adesha_and_abhyasa_lopa_for_lit(p: &mut Prakriya, i: usize) -> Option<
         if !thali_seti {
             p.op("6.4.120.v1", op_et_abhyasa_lopa);
         }
-    } else if dhatu.has_u("tF") || dhatu.has_text_in(&["Pal", "Baj", "trap"]) {
+    } else if (dhatu.has_u("tF") && dhatu.has_text("tar"))
+        || dhatu.has_text_in(&["Pal", "Baj", "trap"])
+    {
         // teratuH, PelatuH, BejatuH, trepatuH
         p.op("6.4.122", op_et_abhyasa_lopa);
     } else if dhatu.has_text("SraT") && dhatu.has_u("SranTa~") {
@@ -355,7 +357,7 @@ fn try_et_adesha_and_abhyasa_lopa_for_lit(p: &mut Prakriya, i: usize) -> Option<
             dhatu.text.len() == 3 && dhatu.has_adi(&*HAL) && dhatu.has_antya(&*HAL);
         let is_a = dhatu.has_upadha('a');
         let is_lit = n.has_lakshana("li~w");
-        // Aspirated consonants become usaspirated in the tripAdi, which hasn't run
+        // Aspirated consonants become unaspirated in the tripAdi, which hasn't run
         // yet at this stage in the derivation. So, also "look ahead" and check for
         // aspirated consonants.
         let is_anadeshadi = abhyasa.adi() == dhatu.adi() && !abhyasa.has_adi(&*MAHAPRANA);

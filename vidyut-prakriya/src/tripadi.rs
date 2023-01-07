@@ -333,7 +333,7 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last_where(|t| !t.text.is_empty())?;
     let last = p.get(i)?;
 
-    if last.has_antya('s') {
+    if last.has_antya('s') && f::is_pada(p.terms().last()?) {
         p.op_term("8.2.66", i, op::antya("ru~"));
     }
     Some(())
@@ -480,7 +480,11 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
     // - h for 8.2.31 (ho QaH)
     for i in 0..p.terms().len() {
         let c = p.get(i)?;
-        let is_padanta = p.find_next_where(i, |t| !t.is_empty()).is_none();
+        let is_anta = p.find_next_where(i, |t| !t.is_empty()).is_none();
+        // TODO: 1.4.14
+        let is_pada = f::is_pada(p.terms().last()?);
+        let is_padanta = is_pada && is_anta;
+
         let has_exception = c.has_antya(&*JHAL_TO_JASH_EXCEPTIONS);
 
         if c.has_antya(&*JHAL) && !has_exception && is_padanta {
@@ -533,7 +537,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
     let optional_to_n = |rule, p: &mut Prakriya| p.op_optional(rule, op::t(k, op::adi("n")));
 
     let dhatu = p.get(d)?;
-    if f::is_samyogadi(dhatu) && dhatu.has_at(1, &*YAN) {
+    if f::is_samyogadi(dhatu) && dhatu.has_at(1, &*YAN) && dhatu.has_antya('A') {
         // mlAna, ...
         to_n("8.2.43", p);
     } else if dhatu.has_u_in(dhatu_gana::LU_ADI) {

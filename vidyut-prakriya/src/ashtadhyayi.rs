@@ -90,7 +90,7 @@ fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result
     add_dhatu(p, dhatu, lakara.is_ardhadhatuka())?;
 
     // Add the lakAra and convert it to a basic tin ending.
-    la_karya::run(p, lakara)?;
+    la_karya::run(p, lakara);
     ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
     atmanepada::run(p);
 
@@ -154,7 +154,15 @@ fn derive_krdanta(p: &mut Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result
     add_dhatu(p, dhatu, krt.is_ardhadhatuka())?;
     krt_pratyaya::run(p, krt);
     samjna::run(p);
+
+    // Add necessary vikaranas.
+    // TODO: unify this with the tinanta path.
+    vikarana::run(p)?;
+    samjna::run(p);
     run_various_dhatu_tasks(p);
+
+    dvitva::run(p);
+    samprasarana::run_for_abhyasa(p);
     angasya::try_pratyaya_adesha(p);
     finish_prakriya(p);
 

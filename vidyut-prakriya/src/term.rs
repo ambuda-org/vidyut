@@ -285,6 +285,12 @@ impl<'a> TermView<'a> {
 
         let mut end = start;
         for (i, t) in terms.iter().enumerate().filter(|(i, _)| *i >= start) {
+            // A `kit` Agama is part of the term it follows, i.e. there is no view available here.
+            // Exception: iw-Agama marked as kit.
+            if i == start && t.all(&[Tag::Agama, Tag::kit]) && !t.has_u("iw") {
+                return None;
+            }
+
             if !t.has_tag(Tag::Agama) {
                 end = i;
                 break;

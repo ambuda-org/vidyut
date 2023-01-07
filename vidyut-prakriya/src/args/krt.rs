@@ -71,6 +71,8 @@ pub enum Krt {
     izRuc,
     /// -a
     ka,
+    /// -Ana (cakrARa, ...)
+    kAnac,
     /// -i (udaDi, ...)
     ki,
     /// -i
@@ -183,7 +185,7 @@ impl Krt {
             K::SAnac => "SAnac",
             K::SAnan => "SAnan",
             K::Sa => "Sa",
-            K::Satf => "Satf",
+            K::Satf => "Satf~",
             K::Takan => "Takan",
             K::Tuc => "Tuc",
             K::Uka => "Uka",
@@ -196,6 +198,7 @@ impl Krt {
             K::ini => "ini",
             K::itra => "itra",
             K::izRuc => "izRuc",
+            K::kAnac => "kAnac",
             K::ka => "ka",
             K::ki => "ki",
             K::kin => "kin",
@@ -275,7 +278,7 @@ impl FromStr for Krt {
             "SAnac" => K::SAnac,
             "SAnan" => K::SAnan,
             "Sa" => K::Sa,
-            "Satf" => K::Satf,
+            "Satf~" => K::Satf,
             "Takan" => K::Takan,
             "Tuc" => K::Tuc,
             "Uka" => K::Uka,

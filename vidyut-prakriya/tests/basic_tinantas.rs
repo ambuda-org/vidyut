@@ -197,7 +197,8 @@ fn san_tinantas() {
 #[ignore]
 fn yan_tinantas() {
     // Test cases come from M. R. Kale's *A Higher Sanskrit Grammar* starting from paragraph 613.
-    // Corrections:
+    //
+    // Corrections to Kale:
     // - kanIkasyate -> canIkasyate
     // - kanIskadyate -> canIskadyate
     // - vanIvaYcyate -> vanIvacyate

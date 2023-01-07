@@ -207,8 +207,20 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 fn try_r_guna_before_lit(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
 
-    let tin = p.terms().last()?;
-    if !tin.has_lakshana("li~w") {
+    if !p.terms().last()?.has_lakshana("li~w") {
+        return None;
+    }
+
+    if p.get(i + 1)?.has_tag(T::Krt) {
+        // Skip if this is kvasu~ or kAnac. Since these are the only krt-pratyayas that replace
+        // li~w, just check if the pratyaya is `Krt`.
+        //
+        // > ṛkārāntānāṃ guṇapratiṣedhārthaṃ tarhi kittvaṃ vaktavyam। ayaṃ hi liṭi ṛkārāntānāṃ
+        // > pratiṣedhaviṣaye guṇa ārabhyate। sa yathaiveha pratiṣedhaṃ bādhitvā guṇo bhavati -
+        // > teratuḥ teruriti। evamihāpi syāt - titīrvān, titirāṇa iti। punaḥ kitkaraṇāt
+        // > pratiṣidhyate। tasmātkittvaṃ kartavyam।
+        //
+        // -- Mahabhashya on 3.2.107.
         return None;
     }
 

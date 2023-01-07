@@ -366,11 +366,12 @@ pub fn iit_agama(p: &mut Prakriya) -> Option<()> {
 ///
 /// (7.2.76 - 7.2.81)
 fn try_sarvadhatuke(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Tin)?;
+    let i = p.find_last(T::Sarvadhatuka)?;
+    let i_anga = p.find_prev_where(i, |t| !t.is_empty())?;
 
-    let tin = p.get_if(i, |t| t.has_tag(T::Sarvadhatuka))?;
-
-    if tin.has_lakshana("li~N") {
+    let anga = p.get(i_anga)?;
+    let sarva = p.get(i)?;
+    if sarva.has_lakshana("li~N") {
         // At this stage, all liN verbs will have an Agama (such as yAsu~w) between the
         // dhatu/vikarana and the tin-pratyaya.
         let i_anga = i - 2;
@@ -378,7 +379,7 @@ fn try_sarvadhatuke(p: &mut Prakriya) -> Option<()> {
         let agama = p.get_if(i_agama, |t| t.has_tag(T::Agama))?;
 
         let contains_s = |t: &Term| t.text.contains('s');
-        if contains_s(agama) || contains_s(tin) {
+        if contains_s(agama) || contains_s(sarva) {
             p.op("7.2.79", |p| {
                 let agama = p.get_mut(i_agama).expect("present");
                 agama.text.retain(|c| c != 's');
@@ -399,11 +400,18 @@ fn try_sarvadhatuke(p: &mut Prakriya) -> Option<()> {
         if anga.has_antya('a') && agama.has_text("yA") {
             p.op_term("7.2.80", i_agama, op::text("Iy"));
         }
-    }
-
-    // TODO: not sure where to put this. Not lin.
-    if p.has(i - 1, |t| t.has_antya('a')) && p.has(i, |t| t.has_adi('A') && t.has_tag(T::Nit)) {
-        p.op_term("7.2.81", i, op::adi("Iy"));
+    } else {
+        // TODO: not sure where to put this. Not lin.
+        if anga.has_text("As") && sarva.has_text("Ana") {
+            // AsIna
+            p.op_term("7.2.83", i, op::adi("I"));
+        } else if anga.has_antya('a') && sarva.has_text("Ana") {
+            // pacamAna, ...
+            op::append_agama("7.2.80", p, i_anga, "mu~k");
+        } else if anga.has_antya('a') && sarva.has_adi('A') && sarva.has_tag(T::Nit) {
+            // pacayAt --> pacet
+            p.op_term("7.2.81", i, op::adi("Iy"));
+        }
     }
 
     Some(())

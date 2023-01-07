@@ -121,7 +121,7 @@ pub fn append_agama(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
     let agama = Term::make_agama(sub);
     p.insert_after(i, agama);
     p.step(rule);
-    it_samjna::run(p, i + 1).unwrap();
+    it_samjna::run(p, i + 1).expect("should always succeed");
 }
 
 /// Complex op
@@ -131,7 +131,7 @@ pub fn adesha(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
         t.set_u(sub);
         t.set_text(sub);
         p.step(rule);
-        it_samjna::run(p, i).unwrap();
+        it_samjna::run(p, i).expect("should always succeed");
     }
 }
 
