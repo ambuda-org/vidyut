@@ -25,5 +25,3 @@ pub const PRATHAMA_ADI: &[&str] = &[
 pub const PURVA_ADI: &[&str] = &[
     "pUrva", "para", "avara", "dakziRa", "uttara", "apara", "aDara", "sva", "antara",
 ];
-
-pub const DATARA_ADI: &[&str] = &["qatara", "qatama", "anya", "anyatara", "itara"];

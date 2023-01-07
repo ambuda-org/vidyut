@@ -23,8 +23,7 @@ lazy_static! {
     static ref HAL: SoundSet = s("hal");
 }
 
-/// Runs various general rules of vowel sandhi.
-pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
+pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
     char_rule(
         p,
         |p, text, i| {
@@ -47,7 +46,10 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             true
         },
     );
+}
 
+/// Runs various general rules of vowel sandhi.
+pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     char_rule(p, xy(|x, y| x == 'a' && al::is_guna(y)), |p, _, i| {
         set_at(p, i, "");
         p.step("6.1.97");
@@ -140,6 +142,29 @@ pub fn try_sup_sandhi_before_angasya(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
+fn try_sup_sandhi_for_nasi_nas(p: &mut Prakriya) -> Option<()> {
+    let i_anga = p.find_last(T::Pratipadika)?;
+    let i_sup = i_anga + 1;
+    let anga = p.get(i_anga)?;
+    let _sup = p.get_if(i_sup, |t| t.has_u_in(&["Nasi~", "Nas"]));
+
+    if anga.has_antya(&*EN) {
+        // muneH, guroH
+        p.op_term("6.1.110", i_sup, op::adi(""));
+    } else if anga.has_antya('f') {
+        // pituH
+        p.op("6.1.111", |p| {
+            p.set(i_anga, op::antya("ur"));
+            p.set(i_sup, op::adi(""));
+        });
+    } else if anga.ends_with("Kya") || anga.ends_with("tya") {
+        // saKyuH
+        p.op_term("6.1.112", i_sup, op::text("us"));
+    }
+
+    Some(())
+}
+
 pub fn try_sup_sandhi_after_angasya(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last(T::Sup)?;
     if i == 0 {
@@ -165,16 +190,8 @@ pub fn try_sup_sandhi_after_angasya(p: &mut Prakriya) -> Option<()> {
                 p.op_term("6.1.103", i, op::antya("n"));
             }
         }
-    } else if sup.has_u_in(&["Nasi~", "Nas"]) {
-        if anga.has_antya(&*EN) {
-            p.op_term("6.1.110", i, op::adi(""));
-        } else if anga.has_antya('f') {
-            p.op("6.1.110", |p| {
-                p.set(i - 1, op::antya("ur"));
-                p.set(i, op::adi(""));
-            });
-        }
     }
+    try_sup_sandhi_for_nasi_nas(p);
 
     Some(())
 }
@@ -186,9 +203,9 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
     let x = p.get(i)?;
     let y = p.get(j)?;
 
-    let ni_ap = x.has_u_in(&["GI", "Ap"]) && x.has_tag(T::Pratyaya);
+    let ni_ap = x.has_tag(T::StriNyap);
     // Check for Agama to avoid lopa on yAs + t.
-    let hal_ni_ap_dirgha = (x.has_antya(&*HAL) || ni_ap) && f::is_dirgha(x) && !x.has_tag(T::Agama);
+    let hal_ni_ap_dirgha = x.has_antya(&*HAL) || (ni_ap && f::is_dirgha(x)) && !x.has_tag(T::Agama);
     if hal_ni_ap_dirgha && f::is_aprkta(y) && y.has_u_in(&["su~", "tip", "sip"]) {
         p.op_term("6.1.68", j, op::lopa);
     }
@@ -234,6 +251,8 @@ fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_common(p: &mut Prakriya) {
+    try_lopo_vyor_vali(p);
+
     for i in 0..p.terms().len() {
         apply_ac_sandhi_at_term_boundary(p, i);
     }

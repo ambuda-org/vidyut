@@ -54,7 +54,7 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
         p.op_optional("dp.01.0936", op::t(0, op::add_tag(T::mit)));
     } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]) && dhatu.has_gana(4))
-        || (dhatu.text.ends_with("am") && dhatu.has_gana(1))
+        || (dhatu.ends_with("am") && dhatu.has_gana(1))
     {
         p.op_term("dp.01.0934", i, op::add_tag(T::mit));
     }

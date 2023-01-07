@@ -7,7 +7,7 @@ words are derived in the system.
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
-use crate::args::{Dhatu, KrdantaArgs, Lakara, Sanadi, SubantaArgs, TinantaArgs};
+use crate::args::{Dhatu, KrdantaArgs, Lakara, Pratipadika, Sanadi, SubantaArgs, TinantaArgs};
 use crate::atidesha;
 use crate::atmanepada;
 use crate::dhatu_karya;
@@ -137,12 +137,10 @@ fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result
     Ok(())
 }
 
-fn derive_subanta(p: &mut Prakriya, pratipadika: &str, args: &SubantaArgs) -> Result<()> {
+fn derive_subanta(p: &mut Prakriya, pratipadika: &Pratipadika, args: &SubantaArgs) -> Result<()> {
     pratipadika_karya::run(p, pratipadika, args);
-
     sup_karya::run(p, args);
     samjna::run(p);
-
     finish_prakriya(p);
 
     Ok(())
@@ -192,7 +190,7 @@ fn derive_krdanta(p: &mut Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result
 ///
 /// let a = Ashtadhyayi::builder().log_steps(false).build();
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Ashtadhyayi {
     // Options we hope to add in the future:
     // - `nlp_mode` -- if set, preserve the final `s` and `r` of a pada, since these are important
@@ -204,12 +202,6 @@ pub struct Ashtadhyayi {
     // - `disable`  -- if set, disable the rules provided. To implement this, we should make
     //   `Prakriya::step` private and add a check statement with `Prakriya::op`.
     log_steps: bool,
-}
-
-impl Default for Ashtadhyayi {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 // TODO: better error handling.
@@ -274,15 +266,16 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
+    /// let pratipadika = Pratipadika::new("nara");
     /// let args = SubantaArgs::builder()
     ///     .linga(Linga::Pum)
     ///     .vibhakti(Vibhakti::Trtiya)
     ///     .vacana(Vacana::Eka)
     ///     .build()?;
-    /// let prakriyas = a.derive_subantas("nara", &args);
+    /// let prakriyas = a.derive_subantas(&pratipadika, &args);
     /// # Ok::<(), Error>(())
     /// ```
-    pub fn derive_subantas(&self, pratipadika: &str, args: &SubantaArgs) -> Vec<Prakriya> {
+    pub fn derive_subantas(&self, pratipadika: &Pratipadika, args: &SubantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
         stack.find_all(|p| derive_subanta(p, pratipadika, args), self.log_steps);
         stack.prakriyas()
@@ -339,7 +332,7 @@ impl AshtadhyayiBuilder {
         self
     }
 
-    /// Creates an `Ashtadhyayi` object.
+    /// Creates an `Ashtadhyayi` struct.
     pub fn build(self) -> Ashtadhyayi {
         self.a
     }

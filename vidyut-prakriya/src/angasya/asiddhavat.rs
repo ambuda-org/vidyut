@@ -408,6 +408,53 @@ fn try_ardhadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
+pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
+    p: &mut Prakriya,
+    i: usize,
+    i_sup: usize,
+) -> Option<()> {
+    let anga = p.get(i)?;
+    let sup = p.get(i_sup)?;
+    let sau = sup.has_u("su~");
+
+    if anga.has_antya('n') {
+        if anga.ends_with("in") || anga.has_text("pUzan") {
+            let sub = al::to_dirgha(anga.upadha()?)?;
+            if sup.has_u("Si") {
+                // yogIni
+                p.op_term("6.4.12", i, op::upadha(&sub.to_string()));
+            } else if sau {
+                // yogI
+                p.op_term("6.4.13", i, op::upadha(&sub.to_string()));
+            }
+        } else {
+            // PalAni
+            let sub = al::to_dirgha(anga.upadha()?)?;
+            p.op_term("6.4.8", i, op::upadha(&sub.to_string()));
+        }
+    } else if anga.ends_with("as") && sau && !anga.has_tag(T::Dhatu) {
+        // TODO: atu-
+        let sub = al::to_dirgha(anga.upadha()?)?;
+        p.op_term("6.4.14", i, op::upadha(&sub.to_string()));
+    } else if (anga.ends_with("ns") && anga.text.len() >= 3) || anga.has_text("mahant") {
+        let c = anga.text.len() - 3;
+        let sub = al::to_dirgha(anga.get_at(c)?)?;
+        p.op_term("6.4.10", i, |t| {
+            t.set_at(c, &sub.to_string());
+        });
+    } else if anga.has_text("ap")
+        || anga.has_tag(T::TrnTrc)
+        || anga.has_u_in(&[
+            "svasf", "naptf", "nezwf", "tvaswf", "kzawf", "hotf", "potf", "praSAstf",
+        ])
+    {
+        let sub = al::to_dirgha(anga.upadha()?)?;
+        p.op_term("6.4.11", i, op::upadha(&sub.to_string()));
+    }
+
+    Some(())
+}
+
 /// 6.4.2 - 6.4.19
 pub fn run_dirgha(p: &mut Prakriya) -> Option<()> {
     let i_sup = p.find_last(T::Sup)?;
@@ -440,17 +487,7 @@ pub fn run_dirgha(p: &mut Prakriya) -> Option<()> {
             p.op_term("6.4.2", i, op::antya(&sub.to_string()));
         }
     } else if sup.has_tag(T::Sarvanamasthana) && !sup.has_tag(T::Sambuddhi) {
-        let tr_exclude = &["pitf", "pitar", "jAmAtf", "jAmAtar", "BrAtf", "BrAtar"];
-        if anga.has_antya('n') {
-            let sub = al::to_dirgha(anga.upadha()?)?;
-            p.op_term("6.4.8", i, op::upadha(&sub.to_string()));
-        // TODO: restrict
-        } else if (anga.has_antya('f') || anga.text.ends_with("ar"))
-            && !anga.has_text_in(tr_exclude)
-        {
-            let sub = al::to_dirgha(anga.upadha()?)?;
-            p.op_term("6.4.11", i, op::upadha(&sub.to_string()));
-        }
+        try_run_dirgha_for_sarvanamasthane_asambuddhau(p, i, i_sup);
     }
 
     Some(())
@@ -699,7 +736,12 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
             p.op_term("6.4.82", i, op::antya("y"));
             p.debug(format!("{:?}", p.terms()));
         }
-    } else if anga.has_antya(&*UU) && n.has_tag(T::Sup) && is_anekac(p, i) && is_asamyogapurva {
+    } else if anga.has_antya(&*UU)
+        && anga.has_tag(T::Dhatu)
+        && n.has_tag(T::Sup)
+        && is_anekac(p, i)
+        && is_asamyogapurva
+    {
         if anga.has_text("BU") {
             p.step("6.4.85");
         } else {
@@ -781,6 +823,48 @@ fn try_kr_rule(p: &mut Prakriya, i: usize) -> Option<()> {
     let sarva_kniti = last.has_tag(T::Sarvadhatuka) && last.has_tag_in(&[T::kit, T::Nit]);
     if anga.has_u("qukf\\Y") && anga.has_text("kar") && n.has_adi('u') && sarva_kniti {
         p.op_term("6.4.110", i, op::text("kur"));
+    }
+
+    Some(())
+}
+
+/// Runs rules in the "bhasya" section.
+///
+/// (6.4.134 - 6.4.175)
+pub fn bhasya(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Bha)?;
+
+    let bha = p.get(i)?;
+    let next = p.get(i + 1)?;
+
+    if bha.has_text("pAd") {
+        p.op_term("6.4.130", i, op::text("pad"));
+    } else if bha.has_u("kvasu~") {
+        p.op_term("6.4.131", i, op::text("us"));
+    } else if bha.has_text("vAh") {
+        op::adesha("6.4.132", p, i, "Uh");
+    } else if bha.has_text_in(&["Svan", "yuvan", "maGavan"]) && !next.has_tag(T::Taddhita) {
+        p.op_term("6.4.133", i, |t| t.find_and_replace_text("va", "u"));
+    } else if bha.ends_with("an") {
+        let mut blocked = false;
+        let n = bha.text.len();
+        if n >= 4
+            && (bha.get_at(n - 3)? == 'm' || bha.get_at(n - 3)? == 'v')
+            && HAL.contains(bha.get_at(n - 4)?)
+        {
+            p.step("6.4.137");
+            blocked = true;
+        } else if next.has_u_in(&["Ni", "SI"]) {
+            blocked = p.op_optional("6.4.135", |_| {});
+        }
+        if !blocked {
+            p.op_term("6.4.134", i, op::upadha(""));
+        }
+    }
+
+    let bha = p.get(i)?;
+    if bha.has_antya('A') && bha.has_tag(T::Dhatu) {
+        p.op_term("6.4.140", i, op::antya(""));
     }
 
     Some(())

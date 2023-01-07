@@ -1,6 +1,8 @@
 use crate::args::tin::Vacana;
 use crate::errors::Error;
 use crate::tag::Tag;
+use compact_str::CompactString;
+use enumset::EnumSet;
 use std::str::FromStr;
 
 /// The gender of some subanta.
@@ -68,19 +70,24 @@ pub enum Vibhakti {
     /// *sambodhana* condition separately.
     Sambodhana,
 }
+
+const VIBHAKTIS: &[Vibhakti] = &[
+    Vibhakti::Prathama,
+    Vibhakti::Dvitiya,
+    Vibhakti::Trtiya,
+    Vibhakti::Caturthi,
+    Vibhakti::Panchami,
+    Vibhakti::Sasthi,
+    Vibhakti::Saptami,
+    Vibhakti::Sambodhana,
+];
+
 impl Vibhakti {
-    pub(crate) fn as_tag(&self) -> Tag {
-        match self {
-            Self::Prathama => Tag::V1,
-            Self::Dvitiya => Tag::V2,
-            Self::Trtiya => Tag::V3,
-            Self::Caturthi => Tag::V4,
-            Self::Panchami => Tag::V5,
-            Self::Sasthi => Tag::V6,
-            Self::Saptami => Tag::V7,
-            Self::Sambodhana => Tag::V1,
-        }
+    /// Iterates over the values of `Vibhakti` in order.
+    pub fn iter() -> impl Iterator<Item = &'static Vibhakti> {
+        VIBHAKTIS.iter()
     }
+
     /// Returns a simple human-readable string that represents this enum's value.
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -92,6 +99,19 @@ impl Vibhakti {
             Self::Sasthi => "6",
             Self::Saptami => "7",
             Self::Sambodhana => "s",
+        }
+    }
+
+    pub(crate) fn as_tag(&self) -> Tag {
+        match self {
+            Self::Prathama => Tag::V1,
+            Self::Dvitiya => Tag::V2,
+            Self::Trtiya => Tag::V3,
+            Self::Caturthi => Tag::V4,
+            Self::Panchami => Tag::V5,
+            Self::Sasthi => Tag::V6,
+            Self::Saptami => Tag::V7,
+            Self::Sambodhana => Tag::V1,
         }
     }
 }
@@ -111,6 +131,111 @@ impl FromStr for Vibhakti {
             &_ => return Err(Error::enum_parse_error(s)),
         };
         Ok(res)
+    }
+}
+
+/// The verb root to use for the derivation.
+#[derive(Debug, Default, Clone, Hash)]
+pub struct Pratipadika {
+    text: CompactString,
+    tags: EnumSet<Tag>,
+}
+
+impl Pratipadika {
+    /// Creates a new pratipadika.
+    pub fn new(text: impl AsRef<str>) -> Self {
+        Pratipadika::builder()
+            .text(text.as_ref())
+            .build()
+            .expect("should have text")
+    }
+
+    /// The text of this pratipadika.
+    pub fn text(&self) -> &CompactString {
+        &self.text
+    }
+
+    /// Returns whether this pratipadika ends in `NI` or `Ap.`
+    pub fn is_nyap(&self) -> bool {
+        self.tags.contains(Tag::StriNyap)
+    }
+
+    /// Returns whether this pratipadika ends in a dhatu.
+    pub fn is_dhatu(&self) -> bool {
+        self.tags.contains(Tag::Dhatu)
+    }
+
+    /// Returns whether this pratipadika ends in a pratyaya.
+    pub fn is_pratyaya(&self) -> bool {
+        self.tags.contains(Tag::Pratyaya)
+    }
+
+    /// Returns a new builder for this struct.
+    pub fn builder() -> PratipadikaBuilder {
+        PratipadikaBuilder::default()
+    }
+}
+
+/// Convenience struct for building a `Pratipadika` struct.
+#[derive(Default)]
+pub struct PratipadikaBuilder {
+    text: Option<CompactString>,
+    is_nyap: bool,
+    is_dhatu: bool,
+    is_pratyaya: bool,
+}
+
+impl PratipadikaBuilder {
+    /// Sets the text of the pratipadika.
+    pub fn text(&mut self, value: impl AsRef<str>) -> &mut Self {
+        self.text = Some(CompactString::from(value.as_ref()));
+        self
+    }
+
+    /// Sets whether this pratipadika should be treated as ending in `NI` or `Ap`.
+    pub fn is_nyap(&mut self, yes: bool) -> &mut Self {
+        self.is_nyap = yes;
+        self
+    }
+
+    /// Sets whether this pratipadika should be treated as ending in a dhatu.
+    pub fn is_dhatu(&mut self, yes: bool) -> &mut Self {
+        self.is_dhatu = yes;
+        self
+    }
+
+    /// Sets whether this pratipadika should be treated as ending in a dhatu.
+    pub fn is_pratyaya(&mut self, yes: bool) -> &mut Self {
+        self.is_pratyaya = yes;
+        self
+    }
+
+    /// Converts the arguments in this builder into a `Pratipadika` struct.
+    ///
+    /// `build()` will fail if `text` is missing.
+    pub fn build(&self) -> Result<Pratipadika, Error> {
+        Ok(Pratipadika {
+            text: match &self.text {
+                Some(x) => x.clone(),
+                None => return Err(Error::MissingRequiredField("text")),
+            },
+            tags: self.create_tags()?,
+        })
+    }
+
+    fn create_tags(&self) -> Result<EnumSet<Tag>, Error> {
+        let mut tags = EnumSet::default();
+        if self.is_nyap {
+            tags.insert(Tag::StriNyap);
+        }
+        if self.is_dhatu {
+            tags.insert(Tag::Dhatu);
+        }
+        if self.is_dhatu {
+            tags.insert(Tag::Pratyaya);
+        }
+
+        Ok(tags)
     }
 }
 
@@ -141,7 +266,7 @@ impl SubantaArgs {
     }
 }
 
-/// Convenience struct for building a `SubantaArgs` object.
+/// Convenience struct for building a `SubantaArgs` struct.
 #[derive(Default)]
 pub struct SubantaArgsBuilder {
     linga: Option<Linga>,
@@ -184,5 +309,42 @@ impl SubantaArgsBuilder {
                 _ => return Err(Error::missing_required_field("vibhakti")),
             },
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create_pratipadika() {
+        let deva = Pratipadika::new("deva");
+        assert_eq!(deva.text(), &"deva");
+        assert!(!deva.is_nyap());
+        assert!(!deva.is_dhatu());
+    }
+
+    #[test]
+    fn create_pratipadika_with_nyap() {
+        let mala = Pratipadika::builder()
+            .text("mAlA")
+            .is_nyap(true)
+            .build()
+            .unwrap();
+        assert_eq!(mala.text(), &"mAlA");
+        assert!(mala.is_nyap());
+        assert!(!mala.is_dhatu());
+    }
+
+    #[test]
+    fn create_pratipadika_with_dhatu() {
+        let senani = Pratipadika::builder()
+            .text("senAnI")
+            .is_dhatu(true)
+            .build()
+            .unwrap();
+        assert_eq!(senani.text(), &"senAnI");
+        assert!(senani.is_dhatu());
+        assert!(!senani.is_nyap());
     }
 }

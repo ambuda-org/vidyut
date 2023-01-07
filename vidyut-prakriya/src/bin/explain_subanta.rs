@@ -7,7 +7,7 @@
 //! ```
 use clap::Parser;
 use std::error::Error;
-use vidyut_prakriya::args::{Linga, SubantaArgs, Vacana, Vibhakti};
+use vidyut_prakriya::args::{Linga, Pratipadika, SubantaArgs, Vacana, Vibhakti};
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
 
@@ -20,6 +20,10 @@ struct Args {
     linga: Linga,
     #[arg(long)]
     pada: String,
+    #[arg(long)]
+    is_dhatu: Option<bool>,
+    #[arg(long)]
+    is_pratyaya: Option<bool>,
 }
 
 fn pretty_print_prakriya(p: &Prakriya, args: &SubantaArgs) {
@@ -58,6 +62,12 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     let mut padas = vec![];
     let a = Ashtadhyayi::new();
 
+    let pratipadika = Pratipadika::builder()
+        .text(&args.pratipadika)
+        .is_dhatu(args.is_dhatu.unwrap_or(false))
+        .is_pratyaya(args.is_pratyaya.unwrap_or(false))
+        .build()?;
+
     for vibhakti in VIBHAKTIS {
         for vacana in VACANAS {
             let subanta_args = SubantaArgs::builder()
@@ -65,7 +75,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
                 .vibhakti(*vibhakti)
                 .vacana(*vacana)
                 .build()?;
-            let prakriyas = a.derive_subantas(&args.pratipadika, &subanta_args);
+            let prakriyas = a.derive_subantas(&pratipadika, &subanta_args);
             for p in prakriyas {
                 let text = p.text();
                 if text == args.pada {

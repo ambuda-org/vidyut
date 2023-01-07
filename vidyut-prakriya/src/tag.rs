@@ -228,6 +228,11 @@ pub enum Tag {
 
     // Indicates atidesha of `ciR`-pratyaya's behavior, per 6.4.62.
     Cinvat,
+
+    StriNyap,
+    TrnTrc,
+    Pada,
+    Bha,
 }
 
 impl Tag {

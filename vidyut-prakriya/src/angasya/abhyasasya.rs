@@ -139,7 +139,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     if is_sanvat {
         if abhyasa.has_antya('a') {
             p.op_term("7.4.79", i, op::antya("i"));
-        } else if abhyasa.has_antya(&*UU) && anga.has_adi(&*PU_YAN_J) && anga.get(1)? == 'a' {
+        } else if abhyasa.has_antya(&*UU) && anga.has_adi(&*PU_YAN_J) && anga.get_at(1)? == 'a' {
             p.op_term("7.4.80", i, op::antya("i"));
         } else if anga.has_u_in(sravati_etc) && anga.has_upadha('a') {
             // Example: sru -> sisrAvayizyati
@@ -205,7 +205,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let abhyasa = p.get(i)?;
-    if abhyasa.has_adi(&*SHAR) && abhyasa.get(1).map(|c| KHAY.contains(c)).unwrap_or(false) {
+    if abhyasa.has_adi(&*SHAR) && abhyasa.get_at(1).map(|c| KHAY.contains(c)).unwrap_or(false) {
         let mut abhyasa = &mut p.get_mut(i)?;
         let res = try_shar_purva(&abhyasa.text);
         if res != abhyasa.text {

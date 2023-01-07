@@ -154,19 +154,19 @@ fn maybe_do_lot_only_siddhi(p: &mut Prakriya, i: usize) -> Option<()> {
         if p.has_tag(T::Chandasi) {
             p.op_optional("3.4.88", op::t(i, op::add_tag(T::Pit)));
         }
-    } else if tin.text.ends_with("mi") {
+    } else if tin.ends_with("mi") {
         // BavAni
         op::adesha("3.4.89", p, i, "ni");
     } else if tin.has_antya('i') {
         // Bavatu
         p.op_term("3.4.86", i, op::antya("u"));
     } else if tin.has_antya('e') {
-        if tin.has_tag(T::Uttama) && tin.text.ends_with('e') {
+        if tin.has_tag(T::Uttama) && tin.has_antya('e') {
             p.op_term("3.4.93", i, op::antya("E"));
-        } else if tin.text.ends_with("se") || tin.text.ends_with("ve") {
+        } else if tin.ends_with("se") || tin.ends_with("ve") {
             p.op_term("3.4.91", i, |t| {
                 let n = t.text.len();
-                if t.text.ends_with("se") {
+                if t.ends_with("se") {
                     t.text.replace_range(n - 2.., "sva");
                 } else {
                     t.text.replace_range(n - 2.., "vam");
@@ -261,12 +261,12 @@ fn maybe_do_lot_and_nit_siddhi(p: &mut Prakriya, la: Lakara) {
         }
 
         if p.has(i, |t| t.has_tag(T::Parasmaipada)) {
-            if p.has(i, |t| t.has_tag(T::Uttama) && t.text.ends_with('s')) {
+            if p.has(i, |t| t.has_tag(T::Uttama) && t.has_antya('s')) {
                 p.op_term("3.4.99", i, op::antya(""));
             }
 
             // lo~w excluded by existence of 3.4.86
-            if p.has(i, |t| t.text.ends_with('i')) && la != Lakara::Lot {
+            if p.has(i, |t| t.has_antya('i')) && la != Lakara::Lot {
                 p.op_term("3.4.100", i, op::antya(""));
             }
         }

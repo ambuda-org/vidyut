@@ -9,15 +9,12 @@ this module.
 For extra flexibility, all of the enums here provides `as_str` and `from_str` methods. For details
 on which strings are valid arguments in `from_str`, please read the source code directly.
 */
-mod errors;
-
 mod dhatu;
 mod krt;
 mod sup;
 mod tin;
 
 pub use dhatu::*;
-pub use errors::*;
 pub use krt::*;
 pub use sup::*;
 pub use tin::*;

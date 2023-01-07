@@ -80,7 +80,7 @@ impl Term {
     }
 
     /// Returns the sound at index `i` if it exists.
-    pub fn get(&self, i: usize) -> Option<char> {
+    pub fn get_at(&self, i: usize) -> Option<char> {
         self.text.as_bytes().get(i).map(|x| *x as char)
     }
 
@@ -111,7 +111,7 @@ impl Term {
 
     /// Returns whether the term has a sound at index `i` that matches the given pattern.
     pub fn has_at(&self, i: usize, p: impl Pattern) -> bool {
-        self.matches_sound_pattern(self.get(i), p)
+        self.matches_sound_pattern(self.get_at(i), p)
     }
 
     /// Returns whether the term has a specific upadesha.
@@ -152,6 +152,10 @@ impl Term {
 
     pub fn has_prefix_in(&self, terms: &[&str]) -> bool {
         terms.iter().any(|t| self.text.starts_with(t))
+    }
+
+    pub fn ends_with(&self, value: &str) -> bool {
+        self.text.ends_with(value)
     }
 
     /// Returns whether the term has the given root gaNa.
@@ -359,6 +363,7 @@ impl<'a> TermView<'a> {
         None
     }
 
+    #[allow(unused)]
     pub fn antya(&self) -> Option<char> {
         for t in self.slice().iter().rev() {
             match t.antya() {
@@ -373,6 +378,7 @@ impl<'a> TermView<'a> {
         self.matches_sound_pattern(self.adi(), pattern)
     }
 
+    #[allow(unused)]
     pub fn has_antya(&self, pattern: impl Pattern) -> bool {
         self.matches_sound_pattern(self.antya(), pattern)
     }
@@ -448,10 +454,10 @@ mod tests {
         assert_eq!(t.upadha(), Some('a'));
         assert_eq!(t.antya(), Some('m'));
 
-        assert_eq!(t.get(0), Some('g'));
-        assert_eq!(t.get(1), Some('a'));
-        assert_eq!(t.get(2), Some('m'));
-        assert_eq!(t.get(3), None);
+        assert_eq!(t.get_at(0), Some('g'));
+        assert_eq!(t.get_at(1), Some('a'));
+        assert_eq!(t.get_at(2), Some('m'));
+        assert_eq!(t.get_at(3), None);
     }
 
     #[test]

@@ -103,13 +103,12 @@ pub enum Vacana {
     Bahu,
 }
 
+const VACANAS: &[Vacana] = &[Vacana::Eka, Vacana::Dvi, Vacana::Bahu];
+
 impl Vacana {
-    pub(crate) fn as_tag(&self) -> Tag {
-        match self {
-            Self::Eka => Tag::Ekavacana,
-            Self::Dvi => Tag::Dvivacana,
-            Self::Bahu => Tag::Bahuvacana,
-        }
+    /// Iterates over the values of `Vacana` in order.
+    pub fn iter() -> impl Iterator<Item = &'static Vacana> {
+        VACANAS.iter()
     }
 
     /// Returns a simple human-readable string that represents this enum's value.
@@ -118,6 +117,14 @@ impl Vacana {
             Self::Eka => "eka",
             Self::Dvi => "dvi",
             Self::Bahu => "bahu",
+        }
+    }
+
+    pub(crate) fn as_tag(&self) -> Tag {
+        match self {
+            Self::Eka => Tag::Ekavacana,
+            Self::Dvi => Tag::Dvivacana,
+            Self::Bahu => Tag::Bahuvacana,
         }
     }
 }
