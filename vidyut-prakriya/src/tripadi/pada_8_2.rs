@@ -415,24 +415,61 @@ fn run_misc_rules_1(p: &mut Prakriya) -> Option<()> {
 /// Runs rules that affect the "t" of a `Nistha` pratyaya.
 /// (8.2.42 - 8.2.61)
 fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
-    let k = p.find_last(T::Nistha)?;
-    let d = p.find_prev_where(k, |t| !t.is_empty())?;
+    let i_d = p.find_last(T::Dhatu)?;
+    let i_k = i_d + 1;
 
-    let dhatu = p.get(d)?;
-    if dhatu.has_antya('r') || dhatu.has_antya('d') {
+    let k = p.view(i_k)?;
+    if !k.has_tag(T::Nistha) {
+        return None;
+    }
+
+    let dhatu = p.get(i_d)?;
+
+    // Nipatana rules. Since other rules require ta-Adi, run these first.
+    if i_d == 0 && dhatu.has_text_in(&["Pal", "kzIb", "kfS"]) {
+        // TODO: ullAgha.
+        let code = "8.2.55";
+        if dhatu.has_u("YiPalA~") {
+            // Applies only for `YiPalA~`:
+            // > phullaḥ iti ñiphalā viśaraṇe ityetasmād ...
+            // -- KV
+            p.op(code, op::nipatana("Pulla"));
+        } else if dhatu.has_text("kzIb") {
+            p.op(code, op::nipatana("kzIba"));
+        } else if dhatu.has_text("kfS") {
+            p.op(code, op::nipatana("kfSa"));
+        }
+
+        return Some(());
+    }
+
+    // All of the rules below require the pratyaya to start with `t`.
+    let ti = k.has_adi('t');
+    if !ti {
+        return None;
+    }
+
+    // Exceptions that block the rules below.
+    if dhatu.has_text_in(&["DyA", "KyA", "pF", "mUrC", "mad"]) {
+        // DyAta, KyAta, pUrta, mUrta, matta
+        p.step("8.2.57");
+        return Some(());
+    }
+
+    if dhatu.has_antya('r') || dhatu.has_antya('d') && ti {
         p.op("8.2.42", |p| {
-            if p.has(d, |t| t.has_antya('d')) {
-                p.set(d, op::antya("n"));
+            if p.has(i_d, |t| t.has_antya('d')) {
+                p.set(i_d, op::antya("n"));
             }
-            p.set(k, op::adi("n"));
+            p.set(i_k, op::adi("n"));
         });
     }
 
-    let set_adi = |rule, p: &mut Prakriya, s| p.op_term(rule, k, op::adi(s));
+    let set_adi = |rule, p: &mut Prakriya, s| p.op_term(rule, i_k, op::adi(s));
     let to_n = |rule, p: &mut Prakriya| set_adi(rule, p, "n");
-    let optional_to_n = |rule, p: &mut Prakriya| p.op_optional(rule, op::t(k, op::adi("n")));
+    let optional_to_n = |rule, p: &mut Prakriya| p.op_optional(rule, op::t(i_k, op::adi("n")));
 
-    let dhatu = p.get(d)?;
+    let dhatu = p.get(i_d)?;
     if f::is_samyogadi(dhatu) && dhatu.has_at(1, &*YAN) && dhatu.has_antya('A') {
         // mlAna, ...
         to_n("8.2.43", p);
@@ -452,7 +489,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
         optional_to_n("8.2.48", p);
     } else if dhatu.has_text("dyU") {
         optional_to_n("8.2.49", p);
-    } else if dhatu.has_text("vA") && d > 0 && p.has(d - 1, |t| t.has_text("nis")) {
+    } else if dhatu.has_text("vA") && i_d > 0 && p.has(i_d - 1, |t| t.has_text("nis")) {
         // Check for "nis" because this is before the rutva section.
         optional_to_n("8.2.50", p);
     } else if dhatu.has_text("Suz") {

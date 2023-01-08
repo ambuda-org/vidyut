@@ -104,6 +104,10 @@ fn try_murdhanya_for_s(p: &mut Prakriya) -> Option<()> {
 
 fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
     let i = p.terms().len() - 1;
+    if i == 0 {
+        return None;
+    }
+
     let tin = p.get(i)?;
 
     let dha = tin.has_adi('D');

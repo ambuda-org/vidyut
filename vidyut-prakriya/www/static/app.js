@@ -1,10 +1,25 @@
-import init, { Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, Pada, Sanadi } from "/static/wasm/vidyut_prakriya.js";
+import init, { Krt, Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, Pada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
 
+const COMMON_KRTS = [
+    Krt.tavya,
+    Krt.anIyar,
+
+    Krt.Satf,
+    Krt.SAnac,
+
+    Krt.kta,
+    Krt.ktavatu,
+
+    Krt.kvasu,
+    Krt.kAnac,
+
+    Krt.tumun,
+    Krt.ktvA,
+];
 
 function removeSlpSvaras(s) {
     return s.replaceAll(/[\^\\]/g, '');
 }
-
 
 function parseDhatus(text) {
     let dhatus = [];
@@ -21,7 +36,6 @@ function parseDhatus(text) {
     });
     return dhatus;
 }
-
 
 async function loadVidyut() {
     await init();
@@ -123,20 +137,31 @@ const App = () => ({
         }
 
         const pada = this.activePada;
-        let allPrakriyas = this.vidyut.derive(
-            pada.dhatu.code,
-            pada.lakara,
-            pada.prayoga,
-            pada.purusha,
-            pada.vacana,
-            null,
-            pada.sanadi,
-        );
+        let allPrakriyas = [];
+        if (pada.type === "tin") {
+            allPrakriyas = this.vidyut.derive_tinantas(
+                pada.dhatu.code,
+                pada.lakara,
+                pada.prayoga,
+                pada.purusha,
+                pada.vacana,
+                null,
+                pada.sanadi,
+            );
+        } else if (pada.type === "krt") {
+            allPrakriyas = this.vidyut.derive_krdantas(
+                pada.dhatu.code,
+                pada.krt
+            );
+        }
 
         return allPrakriyas.find((p) => p.text == pada.text);
     },
 
-    show(s) {
+    changeTab(s) {
+        // Reset the prakriya so that we don't display a krt pratyaya for tin, etc.
+        // The proper fix is to have separate prakriyas for each tab.
+        this.clearActivePada();
         this.activeTab = s;
     },
 
@@ -162,7 +187,7 @@ const App = () => ({
         let paradigm = [];
         for (const purusha in purushas) {
             for (const vacana in vacanas) {
-                let prakriyas = this.vidyut.derive(
+                let prakriyas = this.vidyut.derive_tinantas(
                     dhatu.code,
                     lakara,
                     prayoga,
@@ -178,11 +203,11 @@ const App = () => ({
                     if (seen.has(p.text)) {
                         return;
                     }
-                    console.log(p.text);
                     seen.add(p.text);
 
                     pvPadas.push({
                         text: p.text,
+                        type: "tin",
                         dhatu,
                         lakara,
                         prayoga,
@@ -202,6 +227,39 @@ const App = () => ({
         }
 
         return paradigm;
+    },
+
+    createKrdantas() {
+        if (this.activeDhatu === null) {
+            return [];
+        }
+
+        const dhatu = this.activeDhatu;
+        let results = [];
+        COMMON_KRTS.forEach((krt) => {
+            let krtResults = {
+                title: Krt[krt],
+            };
+
+            let padas = [];
+            const prakriyas = this.vidyut.derive_krdantas(
+                dhatu.code,
+                krt
+            );
+            prakriyas.forEach((p) => {
+                padas.push({
+                    text: p.text,
+                    type: "krt",
+                    dhatu,
+                    krt,
+                });
+            });
+            krtResults.padas = padas;
+            results.push(krtResults);
+        });
+
+        console.log("krt", results);
+        return results;
     },
 
     createTinantas() {
@@ -245,26 +303,7 @@ const App = () => ({
 window.Lakara = Lakara;
 window.Prayoga = Prayoga;
 window.Sanadi = Sanadi;
+
 window.addEventListener('alpine:init', () => {
     Alpine.data("app", App)
-
-    // From https://github.com/alpinejs/alpine/discussions/1205
-    document.querySelectorAll('[x-component]').forEach(component => {
-        const componentName = `x-${component.getAttribute('x-component')}`
-        class Component extends HTMLElement {
-            connectedCallback() {
-                this.append(component.content.cloneNode(true))
-            }
-
-            data() {
-                const attributes = this.getAttributeNames()
-                const data = {}
-                attributes.forEach(attribute => {
-                    data[attribute] = this.getAttribute(attribute)
-                })
-                return data
-            }
-        }
-        customElements.define(componentName, Component)
-    })
 });

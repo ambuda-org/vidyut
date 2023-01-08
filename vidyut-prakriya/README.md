@@ -18,7 +18,6 @@ enthusiasts.
 - [Contributing](#contributing)
 - [Data](#data)
 - [Design](#design)
-- [Roadmap](#roadmap)
 
 [crate]: https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html
 [ambuda]: https://ambuda.org
@@ -158,11 +157,7 @@ Next, try using our prakriya debugger, which shows exactly how a given word was
 derived:
 
 ```shell
-# Explain a tinanta
-$ cargo run --bin explain_tinanta -- --code 01.0001 --pada Bavati
-
-# Explain a krdanta
-$ cargo run --bin explain_tinanta -- --code 01.0001 --krt ktvA --pratipadika BUtvA
+$ make debugger
 ```
 
 Once you've confirmed that your setup works, we suggest that you read through
@@ -274,37 +269,3 @@ Notes on our API:
 [rust-q]: https://doc.rust-lang.org/rust-by-example/std/result/question_mark.html
 [rust-borrow]: https://users.rust-lang.org/t/newbie-mut-with-nested-structs/84755
 [funcs]: https://en.wikipedia.org/wiki/First-class_function
-
-
-Roadmap
--------
-
-*(This section uses Paninian terms that might be difficult for a general reader to
-understand.)*
-
-For tinantas, we aim to produce all valid combinations of (`upasarga`, `dhatu`,
-`sanadi`, `prayoga`, `purusha`, `vacana`, `lakara`, `pada`), where:
-
-- `upasarga` is a group of zero or more upasargas, focusing on common
-  combinations.
-- `dhatu` is a mUla-dhAtu (basic verb root) from the Dhatupatha.
-- `sanadi` is an optional *san*, *nic*, *yan*, or *yan-luk* pratyaya.
-- `purusha` is one of {prathama, madhyama, uttama}
-- `vacana` is one of {ekavacana, dvivacana, bahuvacana}
-- `lakara` is any lakara, excluding `let`.
-
-For krt-subantas, we aim to produce all valid combinations of (`upasarga`, `dhatu`,
-`sanadi`, `krt`, `linga`, `vibhakti`, `vacana`), where:
-
-- `upasarga`, `dhatu`, and `sanadi` are as above.
-- `krt` is any `krt`-pratyaya introduced in the Ashtadhyayi, including the
-  uNAdi-sUtras but excluding chAndasa usage. 
-- `linga` is one of {pum, stri, napumsaka}
-- `vibhakti` is one of the seven vibhaktis or sambodhana.
-- `vacana` is as above.
-
-For all other subantas, we aim to produce all valid combinations of
-(`pratipadika`, `linga`, `vibhakti`, `vacana`), where:
-
-- `pratipadika` is a stem listed in a standard dictionary.
-- `linga`, `vibhakti`, and `vacana` are as above.

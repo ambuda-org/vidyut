@@ -41,6 +41,7 @@ lazy_static! {
     static ref HAL: SoundSet = s("hal");
     static ref JHAL: SoundSet = s("Jal");
     static ref YANY: SoundSet = s("yaY");
+    static ref ANUNASIKA: SoundSet = s("Yam");
     static ref I_U: SoundSet = s("i u");
     static ref PHA_DHA_KHA_CHA_GHA: SoundSet = s("P Q K C G");
 }
@@ -52,6 +53,26 @@ fn maybe_rule(p: &mut Prakriya, rule: Rule) -> Option<Rule> {
         p.decline(rule);
         None
     }
+}
+
+/// Runs rules that lengthen a vowel in the anga.
+fn try_do_dirgha(p: &mut Prakriya) -> Option<()> {
+    let i_last = p.terms().len() - 1;
+    let i_prev = p.find_prev_where(i_last, |t| !t.is_empty())?;
+
+    let prev = p.get(i_prev)?;
+    let last = p.get(i_last)?;
+
+    // Exclude tin -- otherwise, we get "daDAntaH" instead of "daDantaH".
+    // "kvisāhacaryeṇa tiṅbhinnasyaiva jhalādestatra grahaṇāt" -- Balamanorama on 6.4.48.
+    let jhal_knit = last.has_adi(&*JHAL) && f::is_knit(last) && !last.has_tag(T::Tin);
+    if prev.has_antya(&*ANUNASIKA) && (last.has_u("kvi~p") || jhal_knit) {
+        if let Some(sub) = al::to_dirgha(prev.upadha()?) {
+            p.op_term("6.4.15", i_prev, |t| t.set_upadha(&sub.to_string()));
+        }
+    }
+
+    Some(())
 }
 
 /// Applies rules that replace an initial "J" in a pratyaya with the appropriate sounds.
@@ -474,6 +495,35 @@ fn try_change_dhatu_before_y(p: &mut Prakriya) -> Option<()> {
             p.op_term("7.4.25", i, op::antya(&sub.to_string()));
         }
     }
+
+    Some(())
+}
+
+/// Runs rules that change the dhatu when a kit pratyaya starting with "t" follows.
+fn try_dhatu_changes_for_ti_kiti(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Dhatu)?;
+
+    let dhatu = p.get(i)?;
+    let next = p.get_if(i + 1, |t| t.has_adi('t') && t.has_tag(T::kit))?;
+
+    if dhatu.has_text_in(&["dyut", "mA", "sA", "sTA"]) {
+        let code = "7.4.40";
+        if dhatu.has_text("dyut") {
+            p.op_term(code, i, op::upadha("i"));
+        } else {
+            p.op_term(code, i, op::antya("i"));
+        }
+    } else if dhatu.has_text_in(&["SA", "CA"]) {
+        p.op_optional("7.4.41", op::t(i, op::antya("i")));
+    } else if dhatu.has_u("quDA\\Y") {
+        p.op_term("7.4.42", i, op::text("hi"));
+    } else if dhatu.has_u("o~hA\\k") && next.has_u("ktvA") {
+        // Only `o~hA\\k`. ("jahāternideśāt jihīterna bhavati। hātvā" -- KV)
+        p.op_term("7.4.43", i, op::text("hi"));
+    } else if dhatu.has_tag(T::Ghu) && dhatu.has_adi('d') {
+        p.op_term("7.4.46", i, op::text("dat"));
+    }
+    // TODO: 7.4.47
 
     Some(())
 }
@@ -1170,6 +1220,9 @@ pub fn run_remainder(p: &mut Prakriya) {
         asiddhavat::run_before_guna(p, i);
     }
 
+    // Must follow asiddhavat rules 6.4.37 and 6.4.42.
+    try_do_dirgha(p);
+
     // num-Agama must come after asiddhavat rule 6.2.24, which causes na-lopa.
     try_add_num_agama_for_dhatu(p);
     try_sic_vrddhi(p);
@@ -1193,6 +1246,7 @@ pub fn run_remainder(p: &mut Prakriya) {
     guna_vrddhi::run(p);
 
     try_change_dhatu_before_y(p);
+    try_dhatu_changes_for_ti_kiti(p);
     // Rules for various lun-vikaranas.
     try_change_anga_before_an(p);
 

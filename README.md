@@ -204,8 +204,8 @@ community.
 
 - Most of our conversation occurs on [Ambuda's Discord server][discord] on the
   `#nlp` channel, where you can chat directly with our team and get fast
-  answers to your questions. We also schedule time to spend time together
-  virtually, usually on a weekly frequency.
+  answers to your questions. We also schedule time to spend together virtually,
+  usually on a weekly frequency.
 
 - Occasional discussion related to Vidyut might also appear on
   [ambuda-discuss][ambuda-discuss] or on standard mailing lists like

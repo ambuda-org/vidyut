@@ -31,22 +31,27 @@ impl PrakriyaStack {
     /// Finds all variants of the given derivation function.
     ///
     /// `derive` should accept an empty `Prakriya` and mutate it in-place.
-    pub fn find_all(&mut self, derive: impl Fn(&mut Prakriya) -> Result<()>, log_steps: bool) {
-        let mut p_init = Self::new_prakriya(vec![], log_steps);
-        // TODO: handle errors better.
-        if derive(&mut p_init).is_ok() {
-            self.add_prakriya(p_init, &[]);
-        }
+    pub fn find_all(&mut self, derive: impl Fn(Prakriya) -> Result<Prakriya>, log_steps: bool) {
+        self.paths.push(vec![]);
 
         while let Some(path) = self.pop_path() {
-            let mut p = Self::new_prakriya(path.clone(), log_steps);
-            if derive(&mut p).is_ok() {
-                self.add_prakriya(p, &path);
+            let p_init = Self::new_prakriya(path.clone(), log_steps);
+            match derive(p_init) {
+                Ok(p) => {
+                    self.add_new_paths(&p, &path);
+                    self.prakriyas.push(p);
+                }
+                Err(e) => {
+                    if let Error::Abort(p) = e {
+                        self.add_new_paths(&p, &path);
+                    }
+                    // TODO: handle other errors better.
+                }
             }
         }
     }
 
-    /// Adds a prakriya to the result set and adds new paths to the stack.
+    /// Adds new paths to the stack.
     ///
     /// We find new paths as follows. Suppose our initial prakriya followed the following path:
     ///
@@ -68,7 +73,7 @@ impl PrakriyaStack {
     ///
     /// > Decline(A), Decline(B)
     /// > Decline(A), Accept(B), Decline(D)
-    fn add_prakriya(&mut self, p: Prakriya, initial_choices: &[RuleChoice]) {
+    fn add_new_paths(&mut self, p: &Prakriya, initial_choices: &[RuleChoice]) {
         let choices = p.rule_choices();
         let offset = initial_choices.len();
         for i in offset..choices.len() {
@@ -83,7 +88,6 @@ impl PrakriyaStack {
 
             self.paths.push(path);
         }
-        self.prakriyas.push(p);
     }
 
     /// Pops an unexplored choice path from the stack.

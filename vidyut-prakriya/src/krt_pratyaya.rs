@@ -60,10 +60,9 @@ The main functions here are `try_add_krt` and `try_add_krt_for_tacchila_etc`, wh
 own control flow. For details, please see the docs for those functions.
 */
 
-use crate::args::{Krt, Lakara};
+use crate::args::Krt;
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
-use crate::la_karya;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
 use crate::sounds::{s, SoundSet};
@@ -156,6 +155,20 @@ impl<'a> KrtPrakriya<'a> {
     /// This method does nothing if a krt pratyaya has already been added.
     fn try_add(&mut self, rule: Rule, krt: Krt) -> bool {
         self.try_add_with(rule, krt, |_p, _i| {})
+    }
+
+    /// If there's a match, replace the `lakAra` of the dhatu.
+    ///
+    /// This method does nothing if a krt pratyaya has already been added.
+    fn try_replace_lakara(&mut self, rule: Rule, i_lakara: usize, krt: Krt) -> bool {
+        self.tried = true;
+        if self.krt == krt && !self.has_krt {
+            op::adesha(rule, self.p, i_lakara, krt.as_str());
+            self.has_krt = true;
+            true
+        } else {
+            false
+        }
     }
 
     /// If there's a match, optionally adds the given `krt` pratyaya.
@@ -567,20 +580,27 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
 
         K::kAnac | K::kvasu => {
+            // TODO: does this check make sense for kvasu and kAnac? Or should we relax this check
+            // because these are mainly chAndasa?
+            let has_pada_match = match krt {
+                K::kvasu => wrap.p.has_tag(T::Parasmaipada),
+                // taṅānāv ātmanepadam (1.4.100)
+                K::kAnac => wrap.p.has_tag(T::Atmanepada),
+                _ => false,
+            };
+
             // Although the rule has "chandasi" by anuvrtti from 3.2.105, kvasu~ has wide
             // application:
             //
             // > kavayastu bahulaṃ prayuñjate । taṃ tasthivāṃsaṃ nagaropakaṇṭhe iti । śreyāṃsi
             // > sarvāṇyadhijagmuṣaste ityādi ॥
             // -- Siddhanta Kaumudi on 3.2.107.
-            if !wrap.has_krt {
+            if has_pada_match && !wrap.has_krt {
                 let i_la = i + 1;
                 if krt == K::kvasu && dhatu.has_text_in(&["sad", "vas", "Sru"]) {
-                    wrap.p.set(i_la, op::add_tag(T::Krt));
-                    op::adesha("3.2.108", wrap.p, i_la, krt.as_str());
+                    wrap.try_replace_lakara("3.2.108", i_la, krt);
                 } else {
-                    wrap.p.set(i_la, op::add_tag(T::Krt));
-                    op::adesha("3.2.107", wrap.p, i_la, krt.as_str());
+                    wrap.try_replace_lakara("3.2.107", i_la, krt);
                 }
             }
         }
@@ -588,7 +608,12 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         // 3.2.111 - 3.2.123 are various lakaras.
         // TODO: 3.3.130 - 3.2.133
         K::Satf | K::SAnac => {
-            wrap.p.add_tag(T::Kartari);
+            let has_pada_match = match krt {
+                K::Satf => wrap.p.has_tag(T::Parasmaipada),
+                // taṅānāv ātmanepadam (1.4.100)
+                K::SAnac => wrap.p.has_tag(T::Atmanepada),
+                _ => false,
+            };
 
             /*
             // TODO: not sure if these block 3.2.127 below.
@@ -604,9 +629,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             */
 
             // 3.2.125 and 3.2.126 define other semantics conditions for Satf and SAnac.
-            if !wrap.has_krt {
+            if has_pada_match && !wrap.has_krt {
                 let i_la = i + 1;
-                op::adesha("3.2.124", wrap.p, i_la, krt.as_str());
+                wrap.try_replace_lakara("3.2.128", i_la, krt);
                 wrap.p.op_term("3.2.127", i_la, op::add_tag(T::Sat));
             }
         }
@@ -716,27 +741,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
     Some(wrap.has_krt)
 }
 
-/// Runs rules that potentially add a lakara.
-///
-/// Certain krt-pratyayas are allowed only if they replace a specific lakara. To accommodate those
-/// rules, first run this check.
-fn maybe_add_lakara_for_krt(p: &mut Prakriya, krt: Krt) {
-    use Krt::*;
-    use Lakara::*;
-
-    if matches!(krt, Satf | SAnac) {
-        // TODO: also support Lrt (gamizyat).
-        la_karya::run(p, Lat);
-    }
-    if matches!(krt, kAnac | kvasu) {
-        la_karya::run(p, Lit);
-    }
-}
-
-#[allow(unused)]
-pub fn run(p: &mut Prakriya, krt: Krt) {
-    maybe_add_lakara_for_krt(p, krt);
-    try_add_krt(p, krt);
+/// Runs the rules that add a krt-pratyaya to a given dhatu. Returns whether a pratyaya was added.
+pub fn run(p: &mut Prakriya, krt: Krt) -> bool {
+    try_add_krt(p, krt).unwrap_or(false)
 }
 
 #[cfg(test)]
@@ -771,7 +778,6 @@ mod tests {
         assert!(allows("BU", kta));
         assert!(allows("BU", ktavatu));
         assert!(allows("BU", ktvA));
-        assert!(allows("BU", Satf));
         assert!(allows("BU", lyuw));
         assert!(allows("BU", tumun));
 

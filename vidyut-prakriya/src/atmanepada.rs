@@ -260,7 +260,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         p.op("1.3.78", op_parasmaipada);
     }
 
-    assert!(p.any(&[T::Parasmaipada, T::Atmanepada]));
+    debug_assert!(p.any(&[T::Parasmaipada, T::Atmanepada]));
 
     Some(())
 }

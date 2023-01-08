@@ -35,17 +35,18 @@
 </td>
 {% endmacro %}
 
+
 {% macro tabs() %}
 <ul class="flex my-4">
-  <a class="py-2 mr-4" href="#" :class="tab('tin')" @click.prevent="show('tin')">{{ 'tiGantAni'|d }}</a>
-  {# <a class="py-2 mr-4" href="#" :class="tab('sup')" @click.prevent="show('sup')">{{ 'kRdantAni'|d }}</a> #}
-  {# <a class="py-2 mr-4" href="#" :class="tab('krt')" @click.prevent="show('krt')">{{ 'subantAni'|d }}</a> #}
-  <a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="show('about')">About</a>
+  <a class="py-2 mr-4" href="#" :class="tab('tin')" @click.prevent="changeTab('tin')">{{ 'tiGantAni'|d }}</a>
+  <a class="py-2 mr-4" href="#" :class="tab('krt')" @click.prevent="changeTab('krt')">{{ 'kRdantAni'|d }}</a>
+  {# <a class="py-2 mr-4" href="#" :class="tab('sup')" @click.prevent="changeTab('sup')">{{ 'subantAni'|d }}</a> #}
+  <a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="changeTab('about')">About</a>
 </ul>
 {% endmacro %}
 
 
-{% macro tinanta_prakriya() %}
+{% macro prakriya_table() %}
 <table class="border min-w-xl">
   <caption class="font-bold text-2xl text-left mb-2" x-text="deva(prakriya.text)"></caption>
   <thead class="font-bold text-left border-b">
@@ -89,7 +90,7 @@
 
   <template x-if="prakriya">
     <div>
-      {{ tinanta_prakriya() }}
+      {{ prakriya_table() }}
     </div>
   </template>
 
@@ -162,6 +163,56 @@
 {% endmacro %}
 
 
+{% macro dhatu_krdantas() %}
+<template x-if="activeDhatu">
+<div>
+  <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
+    &times; <span x-text="devaNoSvara(activeDhatu.upadesha)"></span>
+  </button>
+  <template x-if="activePada">
+    <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
+      &times; <span x-text="deva(activePada.text)"></span>
+    </button>
+  </template>
+
+  <header class="text-center">
+    <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.upadesha)"></h1>
+    <p x-text="deva(activeDhatu.artha)"></p>
+  </header>
+
+  <template x-if="prakriya">
+    <div>
+      {{ prakriya_table() }}
+    </div>
+  </template>
+  
+  <table class="w-full my-4 text-left table-fixed text-xl border">
+    <thead>
+      <tr class="bg-slate-200">
+          <th class="p-2" x-text="deva('kft-pratyaya')"></th>
+          <th class="p-2" x-text="deva('kfdanta')"></th>
+      </tr>
+    </thead>
+    <template x-for="k in createKrdantas()">
+      <tr class="even:bg-slate-50">
+        <th class="p-2" x-text="deva(k.title)"></th>
+        <td class="p-2">
+          <template x-for="pada in k.padas">
+            <a href="#"
+               class="block hover:underline"
+               x-text="deva(pada.text || '-')"
+               @click.prevent="setActivePada(pada)"></div>
+          </template>
+        </td>
+      </tr>
+    </template>
+  </table>
+</div>
+</template>
+{% endmacro %}
+
+
+
 {% macro dhatu_list() %}
 <div x-show="!activeDhatu">
 
@@ -200,13 +251,14 @@
       <p>Loading &hellip;</p>
     </section>
   
-    <section x-show="activeTab === 'tin'">
-      {{ dhatu_tinantas() }}
+    <section x-show="activeTab === 'tin' || activeTab === 'krt'">
+      <div x-show="activeTab === 'tin'">
+        {{ dhatu_tinantas() }}
+      </div>
+      <div x-show="activeTab === 'krt'">
+        {{ dhatu_krdantas() }}
+      </div>
       {{ dhatu_list() }}
-    </section>
-
-    <section x-show="activeTab === 'krt'">
-      <p>Coming soon.</p>
     </section>
 
     <section x-show="activeTab === 'sup'">
@@ -222,9 +274,9 @@
 
         <p class="mb-4">Please note that this site is <strong>for demonstration
         purposes only</strong>: we have not polished it much, and it might disappear or
-        break at any time. And although we have done our best to keep our
-        generator's output high quality, many of the words or prakriyas here
-        will have small errors.</p>
+        break at any time. We have done our best to keep our generator's output
+        high quality, but even so, many of the words or prakriyas here will
+        have small errors.</p>
 
         <p class="mb-4">To notify us of any word or prakriya errors, please <a
             href="{{ gh_issues }}">create an issue</a> on our project's GitHub

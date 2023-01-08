@@ -4,9 +4,11 @@ use crate::tag::Tag;
 use compact_str::CompactString;
 use enumset::EnumSet;
 use std::str::FromStr;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The gender of some subanta.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[wasm_bindgen]
 pub enum Linga {
     /// The masculine.
     Pum,
@@ -15,6 +17,7 @@ pub enum Linga {
     /// The neuter.
     Napumsaka,
 }
+
 impl Linga {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
@@ -32,6 +35,7 @@ impl Linga {
         }
     }
 }
+
 impl FromStr for Linga {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -47,6 +51,7 @@ impl FromStr for Linga {
 
 /// The case ending of some subanta.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[wasm_bindgen]
 pub enum Vibhakti {
     /// The first vibhakti . Sometimes called the *nominative case*.
     Prathama,

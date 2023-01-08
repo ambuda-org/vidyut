@@ -38,6 +38,7 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             // Likewise for roots ending with 'v'.
             // For now, just check if the term is a dhatu.
             let is_upadesha = t.has_tag(T::Dhatu);
+            //let is_upadesha = t.has_tag(T::Dhatu) && (t.has_adi('v') || t.has_adi('y'));
             vyor_vali && !is_upadesha
         },
         |p, _, i| {

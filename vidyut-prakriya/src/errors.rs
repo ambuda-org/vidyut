@@ -1,3 +1,4 @@
+use crate::prakriya::Prakriya;
 use std::fmt;
 use std::io;
 use std::num;
@@ -34,6 +35,9 @@ pub enum Error {
 
     /// A generic error.
     Generic(&'static str),
+
+    /// The caller's arguments are incompatible with the prakriya, so we aborted early.
+    Abort(Prakriya),
 }
 
 impl From<io::Error> for Error {
@@ -92,6 +96,7 @@ impl fmt::Display for Error {
             ParseError(v) => write!(f, "Could not parse `{v}` into an enum value."),
             GanaParseError(v) => write!(f, "Could not parse `{v}` as a dhatu gana."),
             Generic(msg) => write!(f, "{msg}"),
+            Abort(_) => write!(f, "The given arguments cannot produce a valid prakriya."),
         }
     }
 }

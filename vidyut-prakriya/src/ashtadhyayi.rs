@@ -7,7 +7,7 @@ words are derived in the system.
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
-use crate::args::{Dhatu, KrdantaArgs, Lakara, Pratipadika, Sanadi, SubantaArgs, TinantaArgs};
+use crate::args::{Dhatu, KrdantaArgs, Krt, Lakara, Pratipadika, Sanadi, SubantaArgs, TinantaArgs};
 use crate::atidesha;
 use crate::atmanepada;
 use crate::dhatu_karya;
@@ -23,6 +23,7 @@ use crate::samjna;
 use crate::samprasarana;
 use crate::sanadi;
 use crate::sup_karya;
+use crate::tag::Tag;
 use crate::tin_pratyaya;
 use crate::tripadi;
 use crate::vikarana;
@@ -37,6 +38,32 @@ fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<(
     sanadi::run(p, is_ardhadhatuka, dhatu.sanadi())?;
 
     Ok(())
+}
+
+// Adds a lakara and decides which pada it is allowed to use.
+fn add_lakara_and_decide_pada(p: &mut Prakriya, lakara: Lakara) {
+    la_karya::run(p, lakara);
+    ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
+    atmanepada::run(p);
+}
+
+/// Runs rules that potentially add a lakara.
+///
+/// Certain krt-pratyayas are allowed only if they replace a specific lakara. To accommodate those
+/// rules, first run this check.
+fn maybe_add_lakara_for_krt(p: &mut Prakriya, krt: Krt) {
+    use Krt::*;
+    use Lakara::*;
+
+    if matches!(krt, Satf | SAnac) {
+        // TODO: also support Lrt (gamizyat) and karmani.
+        p.add_tag(Tag::Kartari);
+        add_lakara_and_decide_pada(p, Lat);
+    } else if matches!(krt, kAnac | kvasu) {
+        // TODO: also support karmani.
+        p.add_tag(Tag::Kartari);
+        add_lakara_and_decide_pada(p, Lit);
+    }
 }
 
 fn run_various_dhatu_tasks(p: &mut Prakriya) {
@@ -80,7 +107,9 @@ fn finish_prakriya(p: &mut Prakriya) {
     tripadi::run(p);
 }
 
-fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result<()> {
+fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result<Prakriya> {
+    let p = &mut prakriya;
+
     let prayoga = args.prayoga();
     let lakara = args.lakara();
     let purusha = args.purusha();
@@ -88,11 +117,7 @@ fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result
     p.add_tags(&[prayoga.as_tag(), purusha.as_tag(), vacana.as_tag()]);
 
     add_dhatu(p, dhatu, lakara.is_ardhadhatuka())?;
-
-    // Add the lakAra and convert it to a basic tin ending.
-    la_karya::run(p, lakara);
-    ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
-    atmanepada::run(p);
+    add_lakara_and_decide_pada(p, lakara);
 
     tin_pratyaya::adesha(p, purusha, vacana);
     samjna::run(p);
@@ -134,23 +159,36 @@ fn derive_tinanta(p: &mut Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result
 
     finish_prakriya(p);
 
-    Ok(())
+    Ok(prakriya)
 }
 
-fn derive_subanta(p: &mut Prakriya, pratipadika: &Pratipadika, args: &SubantaArgs) -> Result<()> {
+fn derive_subanta(
+    mut prakriya: Prakriya,
+    pratipadika: &Pratipadika,
+    args: &SubantaArgs,
+) -> Result<Prakriya> {
+    let p = &mut prakriya;
+
     pratipadika_karya::run(p, pratipadika, args);
     sup_karya::run(p, args);
     samjna::run(p);
     finish_prakriya(p);
 
-    Ok(())
+    Ok(prakriya)
 }
 
-fn derive_krdanta(p: &mut Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result<()> {
+fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result<Prakriya> {
     let krt = args.krt();
+    let p = &mut prakriya;
 
     add_dhatu(p, dhatu, krt.is_ardhadhatuka())?;
-    krt_pratyaya::run(p, krt);
+    maybe_add_lakara_for_krt(p, krt);
+
+    let added = krt_pratyaya::run(p, krt);
+    if !added {
+        return Err(Error::Abort(prakriya));
+    }
+
     samjna::run(p);
 
     // Add necessary vikaranas.
@@ -164,7 +202,7 @@ fn derive_krdanta(p: &mut Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result
     angasya::try_pratyaya_adesha(p);
     finish_prakriya(p);
 
-    Ok(())
+    Ok(prakriya)
 }
 
 /// An interface to the rules of the Ashtadhyayi.

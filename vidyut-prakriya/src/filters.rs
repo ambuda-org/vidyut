@@ -30,6 +30,11 @@ pub fn is_pada(t: &Term) -> bool {
     t.has_tag_in(&[T::Tin, T::Sup])
 }
 
+/// Returns whether the term is knit.
+pub fn is_knit(t: &Term) -> bool {
+    t.has_tag_in(&[T::kit, T::Nit])
+}
+
 /// Returns whether the term begins with a conjunct consonant.
 pub fn is_samyogadi(t: &Term) -> bool {
     al::is_samyogadi(&t.text)

@@ -1,5 +1,6 @@
 use crate::errors::*;
 use std::str::FromStr;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The complete list of krt-pratyayas.
 ///
@@ -8,6 +9,7 @@ use std::str::FromStr;
 /// distinguish between pratyayas like `naN` and `nan`.
 #[allow(dead_code, non_camel_case_types)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[wasm_bindgen]
 pub enum Krt {
     /// -Alu
     Aluc,

@@ -59,4 +59,4 @@ mod tin_pratyaya;
 mod tripadi;
 mod vikarana;
 
-pub mod demo;
+pub mod wasm;

@@ -116,6 +116,21 @@ pub fn upadesha(p: &mut Prakriya, i: usize, sub: &str) {
     }
 }
 
+/// Performs a nipAtana replacement.
+///
+/// Algorithm:
+/// - replace the text of the last term with `sub`.
+/// - delete all other terms.
+pub fn nipatana(sub: &str) -> impl Fn(&mut Prakriya) + '_ {
+    move |p: &mut Prakriya| {
+        let n = p.terms().len();
+        if n > 0 {
+            p.set(n - 1, |t| t.set_text(sub));
+            p.terms_mut().drain(..n - 1);
+        }
+    }
+}
+
 /// Complex op
 pub fn append_agama(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
     let agama = Term::make_agama(sub);
