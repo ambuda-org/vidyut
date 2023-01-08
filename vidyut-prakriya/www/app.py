@@ -10,11 +10,6 @@ def d(s) -> str:
     return sanscript.transliterate(s, 'hk', 'devanagari')
 
 
-@app.template_filter()
-def ds(s) -> str:
-    return sanscript.transliterate(s, 'slp1', 'devanagari')
-
-
 @app.route('/')
 def index():
     return render_template("index.html")

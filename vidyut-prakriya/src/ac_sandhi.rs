@@ -9,6 +9,7 @@ use crate::prakriya::Prakriya;
 use crate::sounds as al;
 use crate::sounds::{s, SoundSet};
 use crate::tag::Tag as T;
+use crate::tripadi::utils::xy_rule;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -217,6 +218,7 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
         p.op_term("6.1.69", j, op::lopa);
     }
 
+    let mut had_vrddhi = false;
     let x = p.get(i)?;
     let y = p.get(j)?;
     if (x.has_antya('a') || x.has_antya('A')) && y.has_text("us") {
@@ -228,6 +230,28 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
             p.set(i, op::text(""));
             p.set(j, op::adi(sub));
         });
+        had_vrddhi = true;
+    }
+
+    // TODO: refactor other rules in this fn in the xy_rule style.
+    if i == 0 {
+        // Bo + ya -> Bavya, BO + ya -> BAvya
+        xy_rule(
+            p,
+            |x, y| {
+                y.has_tag(T::Pratyaya) && y.has_adi('y') && (x.has_antya('o') || x.has_antya('O'))
+            },
+            |p, i, _| {
+                let t = p.get(i).expect("defined");
+                if t.has_tag(T::Dhatu) && had_vrddhi {
+                    // e.g. A + u + yak + ta should be Oyata, not Avyata.
+                    p.step("6.1.80");
+                } else {
+                    let sub = if t.has_antya('o') { "av" } else { "Av" };
+                    p.op_term("6.1.79", i, op::antya(sub));
+                }
+            },
+        );
     }
 
     Some(())

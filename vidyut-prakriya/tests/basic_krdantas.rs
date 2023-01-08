@@ -1,5 +1,5 @@
 /*!
-Various test cases for krdantas.
+Various test cases for krdantas. Test cases are arranged in Sanskrit alphabetical order.
 
 Tests marked with *Kale* are from M. R. Kale's *A Higher Sanskrit Grammar*.
 */
@@ -41,6 +41,23 @@ fn test_krdanta(cases: &Vec<(&'static str, u8, &'static str)>, krt: Krt) {
         println!("{num_ok} / {n} tests passed.");
     }
     assert_eq!(num_errors, 0);
+}
+
+#[test]
+fn kanac() {
+    let cases = vec![
+        // Kale 675 (a).
+        ("RI\\Y", 1, "ninyAna"),
+        ("qudA\\Y", 3, "dadAna"),
+        ("qupa\\ca~^z", 1, "pecAna"),
+        ("ya\\ja~^", 1, "IjAna"),
+        ("qukf\\Y", 8, "cakrARa"),
+        // ("va\\ca~", 2, "UcAna"),
+        ("zwu\\Y", 2, "tuzwuvAna"),
+        // ("Sru\\", 1, "SuSruvARa"),
+    ];
+
+    test_krdanta(&cases, Krt::kAnac);
 }
 
 #[test]
@@ -184,23 +201,6 @@ fn ktva() {
 }
 
 #[test]
-fn kanac() {
-    let cases = vec![
-        // Kale 675 (a).
-        ("RI\\Y", 1, "ninyAna"),
-        ("qudA\\Y", 3, "dadAna"),
-        ("qupa\\ca~^z", 1, "pecAna"),
-        ("ya\\ja~^", 1, "IjAna"),
-        ("qukf\\Y", 8, "cakrARa"),
-        // ("va\\ca~", 2, "UcAna"),
-        ("zwu\\Y", 2, "tuzwuvAna"),
-        // ("Sru\\", 1, "SuSruvARa"),
-    ];
-
-    test_krdanta(&cases, Krt::kAnac);
-}
-
-#[test]
 fn kvasu() {
     let cases = vec![
         // Kale 675.
@@ -239,6 +239,31 @@ fn nvul() {
     ];
 
     test_krdanta(&cases, Krt::Rvul);
+}
+
+#[test]
+fn yat() {
+    let cases = vec![("BU", 1, "Bavya")];
+
+    test_krdanta(&cases, Krt::yat);
+}
+
+#[test]
+fn nyat() {
+    let cases = vec![("BU", 1, "BAvya"), ("qukf\\Y", 8, "kArya")];
+
+    test_krdanta(&cases, Krt::Ryat);
+}
+
+#[test]
+fn lyuw() {
+    let cases = vec![
+        // Basic
+        ("BU", 1, "Bavana"),
+        ("qukf\\Y", 8, "karaRa"),
+    ];
+
+    test_krdanta(&cases, Krt::lyuw);
 }
 
 #[test]
@@ -289,15 +314,4 @@ fn shanac() {
     ];
 
     test_krdanta(&cases, Krt::SAnac);
-}
-
-#[test]
-fn lyuw() {
-    let cases = vec![
-        // Basic
-        ("BU", 1, "Bavana"),
-        ("qukf\\Y", 8, "karaRa"),
-    ];
-
-    test_krdanta(&cases, Krt::lyuw);
 }

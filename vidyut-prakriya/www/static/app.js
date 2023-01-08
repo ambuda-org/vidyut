@@ -1,8 +1,18 @@
 import init, { Krt, Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, Pada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
 
-const COMMON_KRTS = [
+// Krts that create ordinary nouns.
+const NOMINAL_KRTS = [
+    Krt.GaY,
+    Krt.lyuw,
+    Krt.Rvul,
+];
+
+// Krts that are generally called *participles*.
+const PARTICIPLE_KRTS = [
     Krt.tavya,
     Krt.anIyar,
+    Krt.yat,
+    Krt.Ryat,
 
     Krt.Satf,
     Krt.SAnac,
@@ -12,10 +22,46 @@ const COMMON_KRTS = [
 
     Krt.kvasu,
     Krt.kAnac,
+];
 
+// Krts that create avyayas.
+const AVYAYA_KRTS = [
     Krt.tumun,
     Krt.ktvA,
 ];
+
+function setParam(url, key, value) {
+    if (value) {
+        url.searchParams.set(key, value);
+    } else {
+        url.searchParams.delete(key);
+    }
+}
+
+function createKrdantasFrom(vidyut, dhatu, krtList) {
+    let results = [];
+
+    krtList.forEach((krt) => {
+        let padas = [];
+        const prakriyas = vidyut.derive_krdantas(
+            dhatu.code,
+            krt
+        );
+        prakriyas.forEach((p) => {
+            padas.push({
+                text: p.text,
+                type: "krt",
+                dhatu,
+                krt,
+            });
+        });
+        results.push({
+            title: Krt[krt],
+            padas,
+        });
+    });
+    return results;
+}
 
 function removeSlpSvaras(s) {
     return s.replaceAll(/[\^\\]/g, '');
@@ -80,7 +126,77 @@ const App = () => ({
         const data = await loadVidyut();
         this.vidyut = data.vidyut;
         this.dhatus = data.dhatus;
+
+        // TODO: set state earlier. But, our current implemenation needs to
+        // wait for the dhatus to load so that we can set activeDhatu.
+        this.readUrlState();
+
+        this.$watch('activeDhatu', (value) => {
+            this.updateUrlState();
+        });
+        this.$watch('tab', (value) => {
+            this.updateUrlState();
+        });
     },
+
+    // Mutators
+
+    readUrlState() {
+        const params = new URLSearchParams(window.location.search);
+        const dhatuCode = params.get('dhatu');
+        const tab = params.get('tab');
+        if (tab) {
+            this.setTab(tab);
+        }
+        if (dhatuCode) {
+            this.setActiveDhatu(dhatuCode);
+        }
+    },
+
+    updateUrlState() {
+        const url = new URL(window.location.href);
+        let dhatuCode = null;
+        if (this.activeDhatu) {
+            dhatuCode = this.activeDhatu.code;
+        }
+        setParam(url, "dhatu", dhatuCode);
+        setParam(url, "tab", this.activeTab);
+        // TODO: sanadi, prayoga, etc.
+
+        history.replaceState(null, document.title, url.toString());
+    },
+
+    setActiveDhatu(s) {
+        this.activeDhatu = this.dhatus.find(d => d.code === s);
+        // Scroll position might be off if the user has scrolled far down the dhatu list.
+        window.scrollTo({ top: 0 });
+    },
+
+    setActivePada(p) {
+        this.activePada = p;
+        this.prakriya = this.createPrakriya();
+    },
+
+    clearActivePada() {
+        this.activePada = null;
+        this.prakriya = null;
+    },
+
+    clearActiveDhatu() {
+        // Breaks if we clear `activeDhatu` last -- not sure why. So, clear it first.
+        this.activeDhatu = null;
+        this.tinantas = null;
+        this.clearActivePada();
+    },
+
+    setTab(s) {
+        // Reset the prakriya so that we don't display a krt pratyaya for tin, etc.
+        // The proper fix is to have separate prakriyas for each tab.
+        this.clearActivePada();
+        this.activeTab = s;
+    },
+
+    // Computed properties
 
     tab(s) {
         if (s === this.activeTab) {
@@ -108,29 +224,6 @@ const App = () => ({
         }
     },
 
-    setActiveDhatu(s) {
-        this.activeDhatu = this.dhatus.find(d => d.code === s);
-        // Scroll position might be off if the user has scrolled far down the dhatu list.
-        window.scrollTo({ top: 0 });
-    },
-
-    setActivePada(p) {
-        this.activePada = p;
-        this.prakriya = this.createPrakriya();
-    },
-
-    clearActivePada() {
-        this.activePada = null;
-        this.prakriya = null;
-    },
-
-    clearActiveDhatu() {
-        // Breaks if we clear `activeDhatu` last -- not sure why. So, clear it first.
-        this.activeDhatu = null;
-        this.tinantas = null;
-        this.clearActivePada();
-    },
-
     createPrakriya() {
         if (!this.activePada) {
             return null;
@@ -156,13 +249,6 @@ const App = () => ({
         }
 
         return allPrakriyas.find((p) => p.text == pada.text);
-    },
-
-    changeTab(s) {
-        // Reset the prakriya so that we don't display a krt pratyaya for tin, etc.
-        // The proper fix is to have separate prakriyas for each tab.
-        this.clearActivePada();
-        this.activeTab = s;
     },
 
     deva(s) {
@@ -235,31 +321,11 @@ const App = () => ({
         }
 
         const dhatu = this.activeDhatu;
-        let results = [];
-        COMMON_KRTS.forEach((krt) => {
-            let krtResults = {
-                title: Krt[krt],
-            };
-
-            let padas = [];
-            const prakriyas = this.vidyut.derive_krdantas(
-                dhatu.code,
-                krt
-            );
-            prakriyas.forEach((p) => {
-                padas.push({
-                    text: p.text,
-                    type: "krt",
-                    dhatu,
-                    krt,
-                });
-            });
-            krtResults.padas = padas;
-            results.push(krtResults);
-        });
-
-        console.log("krt", results);
-        return results;
+        return [
+            createKrdantasFrom(this.vidyut, dhatu, NOMINAL_KRTS),
+            createKrdantasFrom(this.vidyut, dhatu, PARTICIPLE_KRTS),
+            createKrdantasFrom(this.vidyut, dhatu, AVYAYA_KRTS),
+        ];
     },
 
     createTinantas() {
