@@ -30,7 +30,16 @@ const AVYAYA_KRTS = [
     Krt.ktvA,
 ];
 
-const sutras = fetch("/static/data/sutrapatha.json").then(resp => resp.text()).then(text => JSON.parse(text));
+// Turn the TSV file sutrapatha.tsv into a map.
+function parseSutras(tsv) {
+    let sutras = {};
+    tsv.split(/\r?\n/).forEach(line => {
+        const [id, text] = line.split(/\t/);
+        sutras[id] = text;
+    });
+    return sutras;
+}
+const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
 
 function setParam(url, key, value) {
     if (value) {
