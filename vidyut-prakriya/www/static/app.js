@@ -186,6 +186,7 @@ const App = () => ({
     setActivePada(p) {
         this.activePada = p;
         this.prakriya = this.createPrakriya();
+        window.scrollTo({ top: 0 });
     },
 
     clearActivePada() {
