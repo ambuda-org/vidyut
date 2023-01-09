@@ -120,7 +120,4 @@ wasm_dev:
 debugger: wasm_dev
 	mkdir -p www/static/wasm && cp pkg/* www/static/wasm
 	mkdir -p www/static/data && cp data/* www/static/data
-	source env/bin/activate
-	cd www
-	pip3 install -r requirements.txt
-	python app.py
+	. env/bin/activate && cd www && pip3 install -r requirements.txt && python app.py
