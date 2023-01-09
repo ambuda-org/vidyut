@@ -60,7 +60,7 @@
       <tr>
         <td class="py-2 px-4">
           <a class="text-blue-500 underline"
-              x-text="deva(step.rule).replaceAll('।', '.')"
+              x-text="deva(step.rule).replaceAll('।', '.') + ' ' + (await sutraText(step.rule))"
               target="_blank"
               :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
         </td>

@@ -30,6 +30,8 @@ const AVYAYA_KRTS = [
     Krt.ktvA,
 ];
 
+const sutras = fetch("https://raw.githubusercontent.com/ashtadhyayi-com/data/master/sutraani/data.txt").then(resp => resp.text()).then(text => JSON.parse(text));
+
 function setParam(url, key, value) {
     if (value) {
         url.searchParams.set(key, value);
@@ -257,6 +259,17 @@ const App = () => ({
 
     devaNoSvara(s) {
         return Sanscript.t(removeSlpSvaras(s), 'slp1', 'devanagari');
+    },
+
+    async sutraText(id) {
+        const data = (await sutras).data;
+        for (let sutra of data) {
+            const name = `${sutra.a}.${sutra.p}.${sutra.n}`;
+            if (name == id) {
+                return sutra.s;
+            }
+        }
+        return null;
     },
 
     entryString(entries) {
