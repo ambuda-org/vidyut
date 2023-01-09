@@ -30,6 +30,17 @@ const AVYAYA_KRTS = [
     Krt.ktvA,
 ];
 
+// Turn the TSV file sutrapatha.tsv into a map.
+function parseSutras(tsv) {
+    let sutras = {};
+    tsv.split(/\r?\n/).forEach(line => {
+        const [id, text] = line.split(/\t/);
+        sutras[id] = text;
+    });
+    return sutras;
+}
+const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
+
 function setParam(url, key, value) {
     if (value) {
         url.searchParams.set(key, value);
@@ -257,6 +268,11 @@ const App = () => ({
 
     devaNoSvara(s) {
         return Sanscript.t(removeSlpSvaras(s), 'slp1', 'devanagari');
+    },
+
+    async sutraText(rule) {
+        const text = (await sutras)[rule];
+        return text ? this.deva(text) : '';
     },
 
     entryString(entries) {

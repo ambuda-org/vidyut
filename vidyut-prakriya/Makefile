@@ -118,6 +118,6 @@ wasm_dev:
 
 # Builds a simple web debugger.
 debugger: wasm_dev
-	cp pkg/* www/static/wasm
-	cp data/* www/static/data
-	cd www && source env/bin/activate && python app.py
+	mkdir -p www/static/wasm && cp pkg/* www/static/wasm
+	mkdir -p www/static/data && cp data/* www/static/data
+	. env/bin/activate && cd www && pip3 install -r requirements.txt && python app.py
