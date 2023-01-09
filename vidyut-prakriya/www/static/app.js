@@ -263,7 +263,7 @@ const App = () => ({
 
     async sutraText(rule) {
         const text = (await sutras)[rule];
-        return this.deva(text);
+        return text ? this.deva(text) : '';
     },
 
     entryString(entries) {

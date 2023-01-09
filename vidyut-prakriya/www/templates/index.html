@@ -52,6 +52,7 @@
   <thead class="font-bold text-left border-b">
     <tr>
       <th class="py-2 px-4">{{ 'sUtram'|d }}</th>
+      <th class="py-2 px-4"></th>
       <th class="py-2 px-4">Result</th>
     </tr>
   </thead>
@@ -60,14 +61,19 @@
       <tr>
         <td class="py-2 px-4">
           <a class="text-blue-500 underline"
-              x-text="deva(step.rule).replaceAll('।', '.') + ' ' + (await sutraText(step.rule))"
+              x-text="deva(step.rule).replaceAll('।', '.')"
               target="_blank"
               :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
         </td>
+        <td class="py-2 px-4" x-text="await sutraText(step.rule)"></td>
         <td class="py-2 px-4" x-text="devaNoSvara(step.result)"></td>
       </tr>
     </template>
-    <tr><td></td><td x-text="deva(prakriya.text)" class="py-2 px-4 font-bold"></td></tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td x-text="deva(prakriya.text)" class="py-2 px-4 font-bold"></td>
+    </tr>
   </tbody>
 </table>
 {% endmacro %}
