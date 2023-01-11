@@ -30,7 +30,7 @@ test_kosha:
 # Train a model and save important features to disk.
 # NOTE: when training, exclude the file paths used in `make eval`.
 train:
-	./scripts/fetch_training_data.py
+	python3 ./scripts/fetch_training_data.py
 	cargo run --release --bin train -- \
 		--vidyut-dir "data/vidyut-0.1.0" \
 		--include "dcs-data/dcs/data/conllu/files/**/*.conllu" \
