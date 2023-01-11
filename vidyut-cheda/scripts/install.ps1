@@ -8,7 +8,7 @@ if ((Test-Path "data-git") -eq $false) {
 	git clone --depth=1 https://github.com/sanskrit/data.git data-git
 }
 
-python data-git\bin\make_data.py --make_prefixed_verbals
+python3 data-git\bin\make_data.py --make_prefixed_verbals
 
 if (Test-Path "data-git") {
 	Copy-Item -Path "data-git/all-data" -Destination "data" -Force -Recurse 
