@@ -849,6 +849,7 @@ dependencies = [
  "regex",
  "vidyut-kosha",
  "vidyut-lipi",
+ "vidyut-sandhi",
 ]
 
 [[package]]
@@ -888,6 +889,16 @@ dependencies = [
  "sha2 0.10.6",
  "sha256",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vidyut-sandhi"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "csv",
+ "lazy_static",
+ "multimap",
 ]
 
 [[package]]

@@ -2,8 +2,8 @@
 <h1>विद्युत्</h1>
 </div>
 
-Vidyut provides best-in-class infrastructure for Sanskrit software. Our main
-focus is on building libraries for natural language processing.
+Vidyut provides reliable infrastructure for Sanskrit software. Our main focus
+is on building libraries for natural language processing.
 
 Vidyut compiles to fast, safe, and memory-efficient native code, and it can be
 bound to other programming languages with minimal work. We commit to providing
@@ -52,9 +52,6 @@ We currently offer two ways to use Vidyut:
 
 ### Through Python
 
-*(Note [2022-12-26]: these bindings are currently stale, and we are in the
-process of updating them.)*
-
 We provide first-class support for Python through the [vidyut][vidyut-pypi]
 Python package, which we define in the [vidyut-py][vidyut-py] repo. If you have
 Python installed on your machine, you can install Vidyut as follows.
@@ -68,8 +65,8 @@ $ pip install vidyut
 
 ### Through Rust
 
-Vidyut is implemented in [Rust][rust], which combines low-level performance
-with high-level ergonomics. You can install Rust on your computer by following
+Vidyut is implemented in [Rust][rust], which provides low-level control with
+high-level ergonomics. You can install Rust on your computer by following
 the instructions [here][install-rust].
 
 [rust]: https://www.rust-lang.org/
@@ -95,9 +92,9 @@ section.
 Components
 ----------
 
-Vidyut's components are designed to work independently so that you can include
-only the components you need. At the same time, these components are designed
-to work well together.
+Vidyut contains several standard components for common Sanskrit processing
+tasks. These components work together well, but you can also use them
+independently depending on your use case.
 
 In Rust, components of this kind are called *crates*.
 
@@ -133,9 +130,18 @@ complete implementation of the Ashtadhyayi.
 For details, see the [vidyut-prakriya README][vidyut-prakriya].
 
 
+### [`vidyut-sandhi`][vidyut-sandhi]
+
+`vidyut-sandhi` contains various utilities for working with sandhi changes
+between words. It is fast, simple, and appropriate for most use cases.
+
+For details, see the [vidyut-sandhi README][vidyut-sandhi].
+
+
 [vidyut-cheda]: vidyut-cheda/README.md
 [vidyut-kosha]: vidyut-kosha/README.md
 [vidyut-prakriya]: vidyut-prakriya/README.md
+[vidyut-sandhi]: vidyut-sandhi/README.md
 
 
 Documentation
@@ -166,18 +172,17 @@ and what you think the correction should be. This kind of work is especially
 valuable for `vidyut-prakriya`.
 
 If you can program, we encourage you to [learn some Rust][learn-rust] and get
-involved with the issues in our [issue tracker][issue-tracker]. All of our open
-work items are listed there, and we encourage you to create a PR for any open
-issue. Issues tagged with `sanskrit` require some basic familiarity with
-Sanskrit. Issues tagged with `vyakarana` require a much deeper level of
-Sanskrit grammatical knowledge.
-
-(In the future, we will also track our highest-priority work items in our
-[project tracker][project-tracker].)
+involved with Vidyut directly. We encourage you to **be bold** and make pull
+requests for work that you think will improve the project. Or if you would like
+some pointers on where to get started, you can explore the issues in our [issue
+tracker][issue-tracker]. All of our open work items are listed there, and we
+encourage you to create a PR for any open issue. Issues tagged with `sanskrit`
+require some basic familiarity with Sanskrit, and issues tagged with
+`vyakarana` require a much deeper level of Sanskrit grammatical knowledge.
 
 If you are familiar with machine learning as well, we are always eager for
-improvements to our segmenting code in the `vidyut` crate. Our current model
-use simple bigram statistics; there is plenty of room to improve!
+improvements to `vidyut-cheda`. Our current model use simple bigram statistics;
+there is plenty of room to improve!
 
 If you want to pursue an open-ended research project, here are the components
 we are most excited about:
@@ -185,6 +190,8 @@ we are most excited about:
 - dependency parsing and *anvaya* generation
 - search indexing that accounts for sandhi and Sanskrit's complex morphology.
 - transliteration, perhaps through a port of [Aksharamukha][aksharamukha]
+- meter recognition
+- support for Vedic Sanskrit
 - implementations of non-Paninian grammars
 
 And if there's something else you're excited about, please [let us know about
@@ -192,7 +199,6 @@ it](#community) -- we'll probably be excited about it too!
 
 [learn-rust]: https://doc.rust-lang.org/book/
 [issue-tracker]: https://github.com/ambuda-org/vidyut/issues
-[project-tracker]: https://github.com/orgs/ambuda-org/projects
 [aksharamukha]: https://github.com/virtualvinodh/aksharamukha
 
 

@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 vidyut-kosha = { path = "../vidyut-kosha" }
+vidyut-sandhi = { path = "../vidyut-sandhi" }
 vidyut-lipi = { path = "../vidyut-lipi" }
 clap = { version = "4.0.12", features = ["derive"] }
 csv = "1.1.6"

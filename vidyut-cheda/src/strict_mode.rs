@@ -1,10 +1,10 @@
 //! Heuristics for validating segmented candidates.
 
-/// Simple hand-coded rules to avoid overgenerating.
-use crate::sandhi::Split;
 use crate::segmenting::Phrase;
 use crate::sounds;
 use vidyut_kosha::semantics::*;
+/// Simple hand-coded rules to avoid overgenerating.
+use vidyut_sandhi::Split;
 
 /// Returns whether the given word semantics are invalid for the current solution.
 pub fn is_valid_word(cur: &Phrase, split: &Split, semantics: &Pada) -> bool {
@@ -24,7 +24,7 @@ pub fn is_valid_word(cur: &Phrase, split: &Split, semantics: &Pada) -> bool {
 /// (`Darmakzetre` vs. `Darma kzetre`)
 fn if_purvapada_then_not_chunk_end(split: &Split, s: &Subanta) -> bool {
     if s.is_purvapada {
-        !split.is_end_of_chunk
+        !split.is_end_of_chunk()
     } else {
         true
     }
@@ -33,11 +33,11 @@ fn if_purvapada_then_not_chunk_end(split: &Split, s: &Subanta) -> bool {
 // Require that vowel-final words are not immediately followed by consonants.
 // (`iti ca` vs. `itica`)
 fn if_ac_pada_then_not_hal(split: &Split, is_purvapada: bool) -> bool {
-    if split.first.ends_with(sounds::is_ac) && !is_purvapada {
+    if split.first().ends_with(sounds::is_ac) && !is_purvapada {
         // iti ca
-        split.is_end_of_chunk
+        split.is_end_of_chunk()
         // sEva (sA eva)
-        || split.second.starts_with(sounds::is_ac)
+        || split.second().starts_with(sounds::is_ac)
     } else {
         true
     }
@@ -68,17 +68,17 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, s: &Subanta) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sandhi::SplitKind;
+    use vidyut_sandhi::{Kind, Location};
 
     #[test]
     fn test_is_valid_word() {
         let cur = Phrase::new("tatra".to_string());
-        let split = Split {
-            first: "tatra".to_string(),
-            second: "".to_string(),
-            is_end_of_chunk: true,
-            kind: SplitKind::Prefix,
-        };
+        let split = Split::new(
+            "tatra".to_string(),
+            "".to_string(),
+            Location::EndOfChunk,
+            Kind::Prefix,
+        );
         let semantics = Pada::Avyaya(Avyaya {
             pratipadika: Pratipadika::Basic {
                 text: "grAma".to_string(),
@@ -92,12 +92,12 @@ mod tests {
     #[test]
     fn test_is_valid_word_with_invalid() {
         let cur = Phrase::new("grAmesa".to_string());
-        let split = Split {
-            first: "grAme".to_string(),
-            second: "sa".to_string(),
-            is_end_of_chunk: false,
-            kind: SplitKind::Prefix,
-        };
+        let split = Split::new(
+            "grAme".to_string(),
+            "sa".to_string(),
+            Location::WithinChunk,
+            Kind::Prefix,
+        );
         let semantics = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Basic {
                 text: "grAma".to_string(),

@@ -210,6 +210,7 @@ pub struct PackedSubanta {
     is_purvapada: bool,
     pratipadika_id: B21,
 }
+
 impl PackedSubanta {
     fn pack(s: &Subanta, pratipadika_id: usize) -> Self {
         Self::new()
