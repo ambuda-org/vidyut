@@ -122,7 +122,7 @@ Data
 `vidyut-cheda` depends on two kinds of data: linguistic data and training data.
 
 Our *linguistic data* is an extensive list of Sanskrit words and stems. We use
-this lust to check whether a given string is a valid Sanskrit word and, if so,
+this list to check whether a given string is a valid Sanskrit word and, if so,
 what properties that word has. As of now, our linguistic data comes from the
 [sanskrit/data][s-data] repo. But over time, we will make increasing use of
 `vidyut-prakriya` to generate the data we need.
