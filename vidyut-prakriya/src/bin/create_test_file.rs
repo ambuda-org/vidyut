@@ -5,7 +5,7 @@ padas produced by those inputs.
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
+use vidyut_prakriya::args::{Gana, Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
 use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 // TODO: reuse with other binaries?
@@ -38,7 +38,7 @@ const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
 struct Row<'a> {
     padas: String,
     dhatu: &'a str,
-    gana: u8,
+    gana: Gana,
     number: u16,
     prayoga: &'static str,
     lakara: &'static str,

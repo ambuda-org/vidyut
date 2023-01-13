@@ -7,7 +7,7 @@ fn derive_tinantas() {
     let a = Ashtadhyayi::new();
     let kr = Dhatu::builder()
         .upadesha("qukf\\Y")
-        .gana(8)
+        .gana(Gana::Tanadi)
         .build()
         .unwrap();
 

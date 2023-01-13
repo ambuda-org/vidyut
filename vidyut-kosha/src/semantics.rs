@@ -15,39 +15,14 @@
 //!    `Vacana`, `Vibhakti`, etc. because using a single `Sup` enum is more trouble than it's
 //!    worth.
 
+use crate::errors::*;
 use modular_bitfield::prelude::*;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
 /// Lemma for `None` semantics or any other case where the lemma is unknown.
 pub const NONE_LEMMA: &str = "[none]";
-
-/// Indicates a failure to parse a string representation of some `semantics` enum.
-#[derive(Debug, Clone)]
-pub struct ParseError {
-    /// The error message.
-    msg: String,
-}
-
-impl ParseError {
-    fn new(s: &str) -> Self {
-        ParseError { msg: s.to_owned() }
-    }
-
-    fn err_from_str(name: &str, value: &str) -> ParseError {
-        Self::new(&format!("Could not parse value `{}` as {}", value, name))
-    }
-}
-
-impl Error for ParseError {}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.msg)
-    }
-}
 
 /// Utility struct for reading complex serialized enums.
 struct FeatureMap(HashMap<String, String>);
@@ -62,11 +37,13 @@ impl FeatureMap {
 
         FeatureMap(map)
     }
-    fn get(&self, s: &str) -> Result<&String, ParseError> {
+    fn get(&self, s: &str) -> Result<&String> {
         if let Some(val) = self.0.get(s) {
             Ok(val)
         } else {
-            Err(ParseError::new(&format!("Could not parse `{}`", s)))
+            Err(Error::Generic(format!(
+                "Could not parse `{s}` as a feature map."
+            )))
         }
     }
 }
@@ -98,8 +75,8 @@ impl Linga {
 }
 
 impl FromStr for Linga {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "m" => Linga::Pum,
             "f" => Linga::Stri,
@@ -107,7 +84,7 @@ impl FromStr for Linga {
             "_" => Linga::None,
             // Legacy format on `github.com/sanskrit/data`
             "none" => Linga::None,
-            _ => return Err(ParseError::err_from_str("Linga", s)),
+            _ => return Err(Error::EnumParse("Linga", s.to_string())),
         };
         Ok(val)
     }
@@ -146,14 +123,14 @@ impl Vacana {
 }
 
 impl FromStr for Vacana {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "_" => Vacana::None,
             "s" => Vacana::Eka,
             "d" => Vacana::Dvi,
             "p" => Vacana::Bahu,
-            _ => return Err(ParseError::err_from_str("Vacana", s)),
+            _ => return Err(Error::EnumParse("Vacana", s.to_string())),
         };
         Ok(val)
     }
@@ -210,8 +187,8 @@ impl Vibhakti {
 }
 
 impl FromStr for Vibhakti {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "_" => Vibhakti::None,
             "1" => Vibhakti::V1,
@@ -222,7 +199,7 @@ impl FromStr for Vibhakti {
             "6" => Vibhakti::V6,
             "7" => Vibhakti::V7,
             "8" => Vibhakti::Sambodhana,
-            _ => return Err(ParseError::err_from_str("Vibhakti", s)),
+            _ => return Err(Error::EnumParse("Vibhakti", s.to_string())),
         };
         Ok(val)
     }
@@ -261,14 +238,15 @@ impl Purusha {
 }
 
 impl FromStr for Purusha {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
+        use Purusha::*;
         let val = match s {
-            "_" => Purusha::None,
-            "3" => Purusha::Prathama,
-            "2" => Purusha::Madhyama,
-            "1" => Purusha::Uttama,
-            _ => return Err(ParseError::err_from_str("Purusha", s)),
+            "_" => None,
+            "3" => Prathama,
+            "2" => Madhyama,
+            "1" => Uttama,
+            _ => return Err(Error::EnumParse("Purusha", s.to_string())),
         };
         Ok(val)
     }
@@ -337,8 +315,8 @@ impl Lakara {
 }
 
 impl FromStr for Lakara {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "_" => Lakara::None,
             "lat" => Lakara::Lat,
@@ -353,7 +331,7 @@ impl FromStr for Lakara {
             "lun" => Lakara::Lun,
             "lun-no-agama" => Lakara::LunNoAgama,
             "lrn" => Lakara::Lrn,
-            _ => return Err(ParseError::err_from_str("Lakara", s)),
+            _ => return Err(Error::EnumParse("Lakara", s.to_string())),
         };
         Ok(val)
     }
@@ -442,8 +420,8 @@ impl KrtPratyaya {
 }
 
 impl FromStr for KrtPratyaya {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "_" => Self::None,
             "tumun" => Self::Tumun,
@@ -459,7 +437,7 @@ impl FromStr for KrtPratyaya {
             "sya-Satf" => Self::SyaShatr,
             "sya-SAnac" => Self::SyaShanac,
             "kftya" => Self::Krtya,
-            _ => return Err(ParseError::err_from_str("KrtPratyaya", s)),
+            _ => return Err(Error::EnumParse("KrtPratyaya", s.to_string())),
         };
         Ok(val)
     }
@@ -499,14 +477,14 @@ impl PadaPrayoga {
 }
 
 impl FromStr for PadaPrayoga {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "_" => Self::None,
             "para" => Self::Parasmaipada,
             "atma-kartari" => Self::AtmanepadaKartari,
             "atma-not-kartari" => Self::AtmanepadaNotKartari,
-            _ => return Err(ParseError::err_from_str("PadaPrayoga", s)),
+            _ => return Err(Error::EnumParse("PadaPrayoga", s.to_string())),
         };
         Ok(val)
     }
@@ -571,8 +549,8 @@ impl Pratipadika {
 }
 
 impl FromStr for Pratipadika {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         if let Some(s) = s.strip_prefix("basic:") {
             let kv = FeatureMap::from_str(s);
             let text = kv.get("text")?.clone();
@@ -584,7 +562,7 @@ impl FromStr for Pratipadika {
                 linga_str
                     .split(',')
                     .map(Linga::from_str)
-                    .collect::<Result<Vec<_>, _>>()?
+                    .collect::<Result<Vec<_>>>()?
             };
 
             Ok(Pratipadika::Basic { text, lingas })
@@ -599,7 +577,7 @@ impl FromStr for Pratipadika {
                 pratyaya,
             })
         } else {
-            Err(ParseError::err_from_str("Pratipadika", s))
+            Err(Error::EnumParse("Pratipadika", s.to_string()))
         }
     }
 }
@@ -624,14 +602,14 @@ pub enum POSTag {
 }
 
 impl FromStr for POSTag {
-    type Err = ParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         let val = match s {
             "_" => Self::None,
             "s" => Self::Subanta,
             "t" => Self::Tinanta,
             "a" => Self::Avyaya,
-            _ => return Err(ParseError::err_from_str("POSTag", s)),
+            _ => return Err(Error::EnumParse("POSTag", s.to_string())),
         };
         Ok(val)
     }
@@ -775,7 +753,7 @@ impl Pada {
 #[cfg(test)]
 mod tests {
     use super::*;
-    type TestResult = Result<(), Box<dyn Error>>;
+    type TestResult = Result<()>;
 
     #[test]
     fn test_linga_serde() -> TestResult {

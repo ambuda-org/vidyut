@@ -35,7 +35,7 @@ fn try_napumsaka_su_am_adesha(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> 
         {
             p.op_term("7.1.25", i_sup, op::text("adq"));
         } else {
-            p.op("7.1.24", |p| op::upadesha(p, i_sup, "am"));
+            op::adesha("7.1.24", p, i_sup, "am");
         }
     } else {
         p.op_term("7.1.23", i_sup, op::luk);
@@ -116,27 +116,27 @@ fn try_yusmad_asmad_sup_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
     if sup.has_u("Nas") {
         // mama, tava
-        p.op("7.1.27", |p| op::upadesha(p, i, "aS"));
+        op::adesha("7.1.27", p, i, "aS");
     } else if sup.has_u("Ne") || sup.has_tag_in(&[T::V1, T::V2]) {
         if sup.has_u("Sas") {
             // asmAn, yuzmAn
-            p.op("7.1.29", |p| op::upadesha(p, i, "n"));
+            op::adesha("7.1.29", p, i, "n");
         } else {
             // mahyam; aham, AvAm, vayam, mAm
             // tuByam; tvam, yuvAm, yUyam, tvAm
-            p.op("7.1.28", |p| op::upadesha(p, i, "am"));
+            op::adesha("7.1.28", p, i, "am");
         }
     } else if sup.has_u("Byas") {
         if sup.has_tag(T::V5) {
             // asmat, yuzmat
-            p.op("7.1.31", |p| op::upadesha(p, i, "at"));
+            op::adesha("7.1.31", p, i, "at");
         } else {
             // asmaByam, yuzmaByam
-            p.op("7.1.30", |p| op::upadesha(p, i, "Byam"));
+            op::adesha("7.1.30", p, i, "Byam");
         }
     } else if sup.all(&[T::V5, T::Ekavacana]) {
         // mat, tvat
-        p.op("7.1.32", |p| op::upadesha(p, i, "at"));
+        op::adesha("7.1.32", p, i, "at");
     } else if sup.first()?.has_text("s") && sup.last()?.has_text("Am") {
         let start = sup.start();
         p.op("7.1.33", |p| {
@@ -176,17 +176,13 @@ fn try_sarvanamasthane_asambuddhau(p: &mut Prakriya, i_anga: usize, i: usize) ->
     Some(())
 }
 
-fn to_guna(t: &mut Term) {
-    let last = al::to_guna(t.antya().unwrap()).unwrap();
-    t.set_antya(last);
-}
-
 fn try_pratipadika_guna(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
     let sup = p.get(i)?;
     if anga.has_antya('f') && (sup.has_u("Ni") || sup.has_tag(T::Sarvanamasthana)) {
         // kartari
-        p.op_term("7.3.110", i_anga, to_guna);
+        let sub = al::to_guna(anga.antya()?)?;
+        p.op_term("7.3.110", i_anga, op::antya(sub));
     } else {
         // `Ni` rules are an exception to 7.3.111.
         let anga = p.get(i_anga)?;
@@ -196,7 +192,8 @@ fn try_pratipadika_guna(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()>
             && (anga.has_antya('i') || anga.has_antya('u'))
         {
             // agnaye, agneH
-            p.op_term("7.3.111", i_anga, to_guna);
+            let sub = al::to_guna(anga.antya()?)?;
+            p.op_term("7.3.111", i_anga, op::antya(sub));
         }
     }
     Some(())

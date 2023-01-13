@@ -3,6 +3,7 @@ use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
 fn create_sanadyanta(upadesha: &str, gana: u8, sanadi: Sanadi) -> Vec<CompactString> {
+    let gana = Gana::from_int(gana).expect("valid");
     let a = Ashtadhyayi::new();
     let dhatu = Dhatu::builder()
         .upadesha(upadesha)

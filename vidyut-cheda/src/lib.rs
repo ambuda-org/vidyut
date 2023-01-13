@@ -1,10 +1,18 @@
 #![doc = include_str!("../README.md")]
-#![warn(clippy::unwrap_used)]
+#![deny(missing_docs)]
+#![deny(clippy::unwrap_used)]
 
 pub use crate::config::Config;
 pub use crate::segmenting::{Chedaka, Token};
 
-pub mod scoring;
+mod scoring;
+
+/// Model structs.
+///
+/// These are exposed for training purposes only.
+pub mod model {
+    pub use crate::scoring::State;
+}
 
 // TODO: move this to its own crate?
 pub mod sounds;

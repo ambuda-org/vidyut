@@ -20,7 +20,7 @@ struct Args {
 struct Row<'a> {
     pratipadikas: String,
     dhatu: &'a str,
-    gana: u8,
+    gana: &'static str,
     number: u16,
     krt: &'static str,
 }
@@ -45,7 +45,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
         let row = Row {
             pratipadikas,
             dhatu: dhatu_text,
-            gana: dhatu.gana(),
+            gana: dhatu.gana().as_str(),
             number: entry.number(),
             krt: krt.as_str(),
         };

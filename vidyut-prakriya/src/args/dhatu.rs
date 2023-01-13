@@ -246,9 +246,9 @@ impl Dhatu {
         &self.upadesha
     }
 
-    /// The dhatu's gana. This should be a number between 1 and 10, inclusive.
-    pub fn gana(&self) -> u8 {
-        self.gana.into()
+    /// The dhatu's gana.
+    pub fn gana(&self) -> Gana {
+        self.gana
     }
 
     /// The antargana this dhatu belongs to.
@@ -302,8 +302,8 @@ impl DhatuBuilder {
     }
 
     /// Sets the gana of the dhatu.
-    pub fn gana(mut self, value: u8) -> Self {
-        self.gana = Some(Gana::from_int(value).unwrap());
+    pub fn gana(mut self, gana: Gana) -> Self {
+        self.gana = Some(gana);
         self
     }
 

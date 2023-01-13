@@ -1,4 +1,4 @@
-//! Creates an FST lexicon using our raw linguistic data.
+//! Creates an FST kosha using our raw linguistic data.
 //!
 //! The slowest part of this process is `add_nominals`, which inflects almost 200,000 nominal
 //! stems with all of the endings they allow.
@@ -563,7 +563,7 @@ fn run(args: Args) -> Result<()> {
 
     info!("Adding terms to FST builder.");
     let config = Config::new(&args.output_dir);
-    let mut builder = Builder::new(config.lexicon())?;
+    let mut builder = Builder::new(config.kosha())?;
     for (key, pada_vec) in padas {
         for pada in pada_vec {
             // debug!("Inserting {} {:?}", key, pada);
@@ -572,7 +572,7 @@ fn run(args: Args) -> Result<()> {
     }
 
     info!("Building FST.");
-    let _fst = builder.into_lexicon();
+    let _fst = builder.into_kosha();
 
     info!("Complete.");
     Ok(())

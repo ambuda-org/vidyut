@@ -67,8 +67,8 @@ pub struct Chedaka {
     /// Sandhi rules. The segmenter uses these rules to exhaustively split a Sanskrit expression
     /// and find candidate words.
     sandhi: Splitter,
-    /// A lexicon of Sanskrit words. The segmenter uses this lexicon to examine a Sanskrit
-    /// substring and test whether or not it is a valid Sanskrit word.
+    /// A kosha of Sanskrit words. The segmenter uses this kosha to examine a Sanskrit substring
+    /// and test whether or not it is a valid Sanskrit word.
     kosha: Kosha,
     /// A scoring model. The segmenter uses this model to score candidate solutions and prioritize
     /// solutions that are the most promising.
@@ -80,7 +80,7 @@ impl Chedaka {
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
         Ok(Chedaka {
             sandhi: Splitter::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
-            kosha: Kosha::new(config.lexicon()).expect("Could not read lexicon."),
+            kosha: Kosha::new(config.kosha()).expect("Could not read kosha."),
             model: Model::new(&config.model_lemma_counts(), &config.model_transitions())?,
         })
     }

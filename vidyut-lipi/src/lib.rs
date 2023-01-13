@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
+#![deny(clippy::unwrap_used)]
 
 //! Hacky transliteration functions that other crates might need.
 use std::cmp;

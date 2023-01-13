@@ -342,7 +342,7 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // The effect of 7.2.13 is that all other roots are considerd `sew` by
         // default.
         wrap.p.step("7.2.13");
-        let n = wrap.p.view(i + 1).unwrap();
+        let n = wrap.p.view(i + 1)?;
         if n.has_adi(&*VAL) {
             wrap.set("7.2.35", i_n);
         }
