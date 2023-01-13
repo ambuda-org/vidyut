@@ -11,7 +11,7 @@ vidyut-sandhi = { path = "../vidyut-sandhi" }
 vidyut-lipi = { path = "../vidyut-lipi" }
 clap = { version = "4.0.12", features = ["derive"] }
 csv = "1.1.6"
-env_logger = "0.9.1"
+env_logger = "0.10.0"
 glob = "0.3.0"
 lazy_static = "1.4.0"
 log = "0.4.17"
