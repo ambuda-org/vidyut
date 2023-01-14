@@ -1,51 +1,58 @@
-//! This script generates most of the common sandhi rules that occur between two *pada*s. We aim
-//! here for high coverage without getting lost in minor exceptions.
-//!
-//! A future iteration might clean up this script to remove all of the `panic!`s.
-use clap::Parser;
-use lazy_static::lazy_static;
-use regex::Regex;
-use std::error::Error;
-use std::path::PathBuf;
-use vidyut_cheda::Config;
+/*!
+Utilities for generating sandhi rules.
 
-#[derive(Parser, Debug)]
-#[command(author, version, about)]
-struct Args {
-    // The output path for our rules.
-    #[arg(long)]
-    data_dir: PathBuf,
-}
+For details, see the `create_rules` function below.
+*/
+use crate::sounds::Set;
+use lazy_static::lazy_static;
 
 /// All vowels.
 const AC: &str = "aAiIuUfFxXeEoO";
 /// All consonants.
 const HAL: &str = "kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzsh";
 
+/// Models a sandhi rule.
+///
+/// We model rules as having three parts: a first part, a second part, and the resulting
+/// combination. For example, if the rule is `a + i --> e`, then:
+///
+/// - the first part is `a`
+/// - the second part is `i`
+/// - the result is `e`.
 #[derive(Debug)]
-struct Rule {
+pub struct Rule {
     first: String,
     second: String,
     result: String,
 }
 
-struct SandhiRules(Vec<Rule>);
-
-impl SandhiRules {
-    fn new() -> Self {
-        SandhiRules(Vec::new())
+impl Rule {
+    /// Returns the first part of the rule.
+    pub fn first(&self) -> &String {
+        &self.first
     }
+    /// Returns the second part of the rule.
+    pub fn second(&self) -> &String {
+        &self.second
+    }
+    /// Returns the result of the rule.
+    pub fn result(&self) -> &String {
+        &self.result
+    }
+}
 
+trait Sandhi {
+    /// Adds the given rule.
+    fn add(&mut self, first: String, second: String, result: String);
+}
+
+impl Sandhi for Vec<Rule> {
     fn add(&mut self, first: String, second: String, result: String) {
-        self.0.push(Rule {
+        self.push(Rule {
             first,
             second,
             result,
         });
-    }
-
-    fn into_vec(self) -> Vec<Rule> {
-        self.0
     }
 }
 
@@ -57,17 +64,17 @@ fn is_savarna_ac(f: char, s: char) -> bool {
 /// Returns whether the given sound is voiced.
 fn is_ghoshavat(c: char) -> bool {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"[aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh]").unwrap();
+        static ref S: Set = Set::from(r"aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh");
     }
-    RE.is_match(&c.to_string())
+    S.contains(c)
 }
 
 /// Returns whether the given sound is nasal.
 fn is_anunasika(c: char) -> bool {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"[NYRnm]").unwrap();
+        static ref S: Set = Set::from(r"NYRnm");
     }
-    RE.is_match(&c.to_string())
+    S.contains(c)
 }
 
 /// Returns the lengthened form of a vowel.
@@ -86,7 +93,7 @@ fn to_dirgha(f: char) -> char {
     }
 }
 
-/// Convert a vowel to its semivowel.
+/// Converts a vowel to its semivowel.
 fn to_yan(f: char) -> char {
     match f {
         'i' | 'I' => 'y',
@@ -98,7 +105,7 @@ fn to_yan(f: char) -> char {
 }
 
 /// Sandhi for initial a/A.
-fn a_sandhi(rules: &mut SandhiRules) {
+fn a_sandhi(rules: &mut Vec<Rule>) {
     for f in "aA".chars() {
         for s in AC.chars() {
             let result = match s {
@@ -119,7 +126,7 @@ fn a_sandhi(rules: &mut SandhiRules) {
 }
 
 /// Sandhi for in initial i/I/u/U/f/F/x/X.
-fn ik_sandhi(rules: &mut SandhiRules) {
+fn ik_sandhi(rules: &mut Vec<Rule>) {
     for f in "iIuUfF".chars() {
         for s in AC.chars() {
             let first = f.to_string();
@@ -135,7 +142,7 @@ fn ik_sandhi(rules: &mut SandhiRules) {
 }
 
 /// Sandhi for initial e/E/o/O.
-fn ec_sandhi(rules: &mut SandhiRules) {
+fn ec_sandhi(rules: &mut Vec<Rule>) {
     // Use separate loops to keep rules nicely ordered.
     for s in AC.chars() {
         let result = match s {
@@ -163,8 +170,8 @@ fn ru_khar(vowel: char, s: char) -> String {
     format!("{vowel}{f_result}")
 }
 
-/// Sandhi for initial `as`
-fn as_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is "as".
+fn as_sandhi(rules: &mut Vec<Rule>) {
     let first = "as";
 
     for s in AC.chars() {
@@ -185,8 +192,8 @@ fn as_sandhi(rules: &mut SandhiRules) {
     }
 }
 
-/// Sandhi for initial `As`
-fn aas_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is "As".
+fn aas_sandhi(rules: &mut Vec<Rule>) {
     let first = "As";
 
     for s in AC.chars() {
@@ -203,7 +210,8 @@ fn aas_sandhi(rules: &mut SandhiRules) {
     }
 }
 
-fn other_s_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is neither "as" nor "As".
+fn other_s_sandhi(rules: &mut Vec<Rule>) {
     for f_vowel in "aAiIuUfFeEoO".chars() {
         for f_cons in "rs".chars() {
             let first = format!("{f_vowel}{f_cons}");
@@ -230,7 +238,8 @@ fn other_s_sandhi(rules: &mut SandhiRules) {
     }
 }
 
-fn t_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is "t".
+fn t_sandhi(rules: &mut Vec<Rule>) {
     let first = "t".to_string();
 
     AC.chars().for_each(|s| {
@@ -259,13 +268,13 @@ fn t_sandhi(rules: &mut SandhiRules) {
     });
 }
 
-fn n_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is "n".
+fn n_sandhi(rules: &mut Vec<Rule>) {
     let first = "n".to_string();
 
     "ai".chars().for_each(|f| {
         let first = format!("{f}n");
-        "aiufx"
-            .chars()
+        AC.chars()
             .for_each(|s| rules.add(first.clone(), s.to_string(), format!("{f}nn {s}")));
     });
 
@@ -281,6 +290,7 @@ fn n_sandhi(rules: &mut SandhiRules) {
         };
         rules.add(first.clone(), s.to_string(), format!("{f_result} {s}"));
     });
+
     // For encodings that don't use nasal vowels, as a fallback.
     rules.add(first.clone(), "l".to_string(), "Ml l".to_string());
 
@@ -293,7 +303,8 @@ fn n_sandhi(rules: &mut SandhiRules) {
     });
 }
 
-fn m_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is "m".
+fn m_sandhi(rules: &mut Vec<Rule>) {
     HAL.chars().for_each(|s| {
         rules.add(
             "m".to_string(),
@@ -303,7 +314,7 @@ fn m_sandhi(rules: &mut SandhiRules) {
     });
 }
 
-fn other_cons_sandhi(rules: &mut SandhiRules) {
+fn other_cons_sandhi(rules: &mut Vec<Rule>) {
     for f in "kwp".chars() {
         HAL.chars().filter(|c| is_ghoshavat(*c)).for_each(|s| {
             let f_result = if is_anunasika(s) {
@@ -340,7 +351,8 @@ fn other_cons_sandhi(rules: &mut SandhiRules) {
     }
 }
 
-fn ac_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is a vowel.
+fn ac_sandhi(rules: &mut Vec<Rule>) {
     a_sandhi(rules);
     ik_sandhi(rules);
     ec_sandhi(rules);
@@ -350,7 +362,8 @@ fn ac_sandhi(rules: &mut SandhiRules) {
     }
 }
 
-fn visarga_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is a visarga.
+fn visarga_sandhi(rules: &mut Vec<Rule>) {
     as_sandhi(rules);
     aas_sandhi(rules);
     other_s_sandhi(rules);
@@ -359,39 +372,23 @@ fn visarga_sandhi(rules: &mut SandhiRules) {
     rules.add("s".to_string(), "".to_string(), "H".to_string());
 }
 
-fn hal_sandhi(rules: &mut SandhiRules) {
+/// Generates sandhi rules for when the first sound is a consonant.
+fn hal_sandhi(rules: &mut Vec<Rule>) {
     t_sandhi(rules);
     n_sandhi(rules);
     m_sandhi(rules);
     other_cons_sandhi(rules);
 }
 
-fn write_rules(rules: SandhiRules, config: &Config) -> Result<(), Box<dyn Error>> {
-    let mut w = csv::Writer::from_path(config.sandhi())?;
-    w.write_record(["first", "second", "result", "type"])?;
-    for r in rules.into_vec() {
-        w.write_record([&r.first, &r.second, &r.result, ""])?;
-    }
-    w.flush()?;
-    Ok(())
-}
+/// Creates a comprehensive list of sandhi rules.
+pub fn generate_rules() -> Vec<Rule> {
+    let mut rules = Vec::new();
 
-fn main() {
-    let args = Args::parse();
-    let config = Config::new(&args.data_dir);
-
-    let mut rules = SandhiRules::new();
     ac_sandhi(&mut rules);
     visarga_sandhi(&mut rules);
     hal_sandhi(&mut rules);
 
-    match write_rules(rules, &config) {
-        Ok(()) => println!("Wrote rules to {}.", &config.sandhi().display()),
-        Err(err) => {
-            println!("{}", err);
-            std::process::exit(1);
-        }
-    }
+    rules
 }
 
 #[cfg(test)]

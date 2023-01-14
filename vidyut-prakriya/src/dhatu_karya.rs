@@ -1,5 +1,5 @@
 use crate::args::Antargana;
-use crate::args::{Dhatu, Gana};
+use crate::args::Dhatu;
 use crate::dhatu_gana as gana;
 use crate::errors::*;
 use crate::it_samjna;
@@ -12,7 +12,7 @@ fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
     // The root enters the prakriyA
     p.push(Term::make_dhatu(
         dhatu.upadesha(),
-        Gana::from_int(dhatu.gana()).unwrap(),
+        dhatu.gana(),
         dhatu.antargana(),
     ));
     p.op_term("1.3.1", 0, op::add_tag(T::Dhatu));
@@ -175,18 +175,19 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::args::Gana;
 
     fn check(text: &str, code: &str) -> Term {
-        let (gana, _number) = code.split_once('.').unwrap();
+        let (gana, _number) = code.split_once('.').expect("valid");
         let dhatu = Dhatu::builder()
             .upadesha(text)
-            .gana(gana.parse().unwrap())
+            .gana(Gana::from_int(gana.parse().expect("defined")).expect("valid"))
             .build()
-            .unwrap();
+            .expect("ok");
 
         let mut p = Prakriya::new();
-        run(&mut p, &dhatu).unwrap();
-        p.get(0).unwrap().clone()
+        run(&mut p, &dhatu).expect("ok");
+        p.get(0).expect("ok").clone()
     }
 
     #[test]

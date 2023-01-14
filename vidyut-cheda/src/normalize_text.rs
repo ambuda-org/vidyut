@@ -9,7 +9,8 @@ use regex::Regex;
 /// 3. Separate all remaining spans with a single " ".
 pub fn normalize(text: &str) -> String {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"([a-zA-Z']+)|(\s+)|([^a-zA-Z']+)").unwrap();
+        static ref RE: Regex =
+            Regex::new(r"([a-zA-Z']+)|(\s+)|([^a-zA-Z']+)").expect("always defined");
     }
 
     let mut ret = RE

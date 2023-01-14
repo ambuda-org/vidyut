@@ -64,42 +64,13 @@ we need to convert between representations.
 TODO: investigate different packing orders to see if we can reduce the size of the FST.
 */
 
+use crate::errors::*;
 use crate::semantics::*;
 use modular_bitfield::prelude::*;
 use std::collections::HashMap;
-use std::error::Error;
-use std::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-
-/// A generic error related to packing or unpacking data.
-#[derive(Debug, Clone)]
-pub struct PackingError {
-    msg: String,
-}
-
-impl PackingError {
-    fn new(s: &str) -> Self {
-        PackingError { msg: s.to_owned() }
-    }
-
-    fn unknown_pratipadika_id(id: u32) -> PackingError {
-        Self::new(&format!("Unknown pratipadika ID {}", id))
-    }
-
-    fn unknown_dhatu_id(id: u32) -> PackingError {
-        Self::new(&format!("Unknown dhatu ID {}", id))
-    }
-}
-
-impl Error for PackingError {}
-
-impl fmt::Display for PackingError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.msg)
-    }
-}
 
 /// A lookup table for `Dhatu`s.
 #[derive(Default, Debug)]
@@ -112,7 +83,7 @@ impl DhatuTable {
     }
 
     /// Reads this table from disk.
-    pub fn read(path: &Path) -> Result<Self, Box<dyn Error>> {
+    pub fn read(path: &Path) -> Result<Self> {
         let f = File::open(path)?;
         let reader = BufReader::new(f);
 
@@ -124,7 +95,7 @@ impl DhatuTable {
     }
 
     /// Writes this table to disk.
-    pub fn write(&self, path: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn write(&self, path: &Path) -> Result<()> {
         let data: String = self
             .0
             .iter()
@@ -147,7 +118,7 @@ impl PratipadikaTable {
     }
 
     /// Reads this table from disk.
-    pub fn read(path: &Path) -> Result<Self, Box<dyn Error>> {
+    pub fn read(path: &Path) -> Result<Self> {
         let f = File::open(path)?;
         let reader = BufReader::new(f);
 
@@ -159,7 +130,7 @@ impl PratipadikaTable {
     }
 
     /// Writes this table to disk.
-    pub fn write(&self, out: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn write(&self, out: &Path) -> Result<()> {
         let data: String = self
             .0
             .iter()
@@ -210,21 +181,22 @@ pub struct PackedSubanta {
     is_purvapada: bool,
     pratipadika_id: B21,
 }
+
 impl PackedSubanta {
-    fn pack(s: &Subanta, pratipadika_id: usize) -> Self {
-        Self::new()
-            .with_pratipadika_id(pratipadika_id.try_into().unwrap())
+    fn pack(s: &Subanta, pratipadika_id: usize) -> Result<Self> {
+        Ok(Self::new()
+            .with_pratipadika_id(pratipadika_id.try_into()?)
             .with_linga(s.linga)
             .with_vacana(s.vacana)
             .with_vibhakti(s.vibhakti)
-            .with_is_purvapada(s.is_purvapada)
+            .with_is_purvapada(s.is_purvapada))
     }
 
-    fn unpack(&self, pratipadikas: &PratipadikaTable) -> Result<Pada, Box<dyn Error>> {
+    fn unpack(&self, pratipadikas: &PratipadikaTable) -> Result<Pada> {
         let val = Pada::Subanta(Subanta {
             pratipadika: pratipadikas
                 .get(self.pratipadika_id() as usize)
-                .ok_or_else(|| PackingError::unknown_pratipadika_id(self.pratipadika_id()))?
+                .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?
                 .clone(),
             linga: self.linga(),
             vacana: self.vacana(),
@@ -246,20 +218,20 @@ pub struct PackedTinanta {
 }
 
 impl PackedTinanta {
-    fn pack(t: &Tinanta, dhatu_id: usize) -> Self {
-        Self::new()
-            .with_dhatu_id(dhatu_id.try_into().unwrap())
+    fn pack(t: &Tinanta, dhatu_id: usize) -> Result<Self> {
+        Ok(Self::new()
+            .with_dhatu_id(dhatu_id.try_into()?)
             .with_lakara(t.lakara)
             .with_purusha(t.purusha)
             .with_vacana(t.vacana)
-            .with_pada(t.pada)
+            .with_pada(t.pada))
     }
 
-    fn unpack(&self, dhatus: &DhatuTable) -> Result<Pada, Box<dyn Error>> {
+    fn unpack(&self, dhatus: &DhatuTable) -> Result<Pada> {
         let val = Pada::Tinanta(Tinanta {
             dhatu: dhatus
                 .get(self.dhatu_id() as usize)
-                .ok_or_else(|| PackingError::unknown_dhatu_id(self.dhatu_id()))?
+                .ok_or_else(|| Error::UnknownDhatuId(self.dhatu_id()))?
                 .clone(),
             purusha: self.purusha(),
             lakara: self.lakara(),
@@ -277,15 +249,15 @@ pub struct PackedAvyaya {
 }
 
 impl PackedAvyaya {
-    fn pack(_a: &Avyaya, pratipadika_id: usize) -> Self {
-        Self::new().with_pratipadika_id(pratipadika_id.try_into().unwrap())
+    fn pack(_a: &Avyaya, pratipadika_id: usize) -> Result<Self> {
+        Ok(Self::new().with_pratipadika_id(pratipadika_id.try_into()?))
     }
 
-    fn unpack(&self, pratipadikas: &PratipadikaTable) -> Result<Pada, Box<dyn Error>> {
+    fn unpack(&self, pratipadikas: &PratipadikaTable) -> Result<Pada> {
         let val = Pada::Avyaya(Avyaya {
             pratipadika: pratipadikas
                 .get(self.pratipadika_id() as usize)
-                .ok_or_else(|| PackingError::unknown_pratipadika_id(self.pratipadika_id()))?
+                .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?
                 .clone(),
         });
         Ok(val)
@@ -379,33 +351,34 @@ impl Packer {
     }
 
     /// Packs the given semantics into an integer value.
-    pub fn pack(&mut self, semantics: &Pada) -> PackedPada {
+    pub fn pack(&mut self, semantics: &Pada) -> Result<PackedPada> {
         let to_u32 = u32::from_le_bytes;
 
-        match semantics {
+        let val = match semantics {
             Pada::Subanta(s) => {
                 let stem_index = self.stem_index_for(&s.pratipadika);
-                let payload = PackedSubanta::pack(s, stem_index).into_bytes();
+                let payload = PackedSubanta::pack(s, stem_index)?.into_bytes();
                 PackedPada::new()
                     .with_pos(PartOfSpeech::Subanta)
                     .with_payload(to_u32(payload))
             }
             Pada::Tinanta(t) => {
                 let dhatu_index = self.dhatu_index_for(&t.dhatu);
-                let payload = PackedTinanta::pack(t, dhatu_index).into_bytes();
+                let payload = PackedTinanta::pack(t, dhatu_index)?.into_bytes();
                 PackedPada::new()
                     .with_pos(PartOfSpeech::Tinanta)
                     .with_payload(to_u32(payload))
             }
             Pada::Avyaya(a) => {
                 let stem_index = self.stem_index_for(&a.pratipadika);
-                let payload = PackedAvyaya::pack(a, stem_index).into_bytes();
+                let payload = PackedAvyaya::pack(a, stem_index)?.into_bytes();
                 PackedPada::new()
                     .with_pos(PartOfSpeech::Avyaya)
                     .with_payload(to_u32(payload))
             }
             Pada::None => PackedPada::new().with_pos(PartOfSpeech::None),
-        }
+        };
+        Ok(val)
     }
 
     fn stem_index_for(&mut self, p: &Pratipadika) -> usize {
@@ -453,14 +426,14 @@ impl Unpacker {
     }
 
     /// Writes this unpacker's data files to disk.
-    pub fn write(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<(), Box<dyn Error>> {
+    pub fn write(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<()> {
         self.dhatus.write(dhatu_path)?;
         self.pratipadikas.write(pratipadika_path)?;
         Ok(())
     }
 
     /// Unpacks the given packed pada.
-    pub fn unpack(&self, pada: &PackedPada) -> Result<Pada, Box<dyn Error>> {
+    pub fn unpack(&self, pada: &PackedPada) -> Result<Pada> {
         match pada.pos() {
             PartOfSpeech::Avyaya => pada.unwrap_as_avyaya().unpack(&self.pratipadikas),
             PartOfSpeech::Subanta => pada.unwrap_as_subanta().unpack(&self.pratipadikas),
@@ -473,7 +446,7 @@ impl Unpacker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    type TestResult = Result<(), Box<dyn Error>>;
+    type TestResult = Result<()>;
 
     #[test]
     fn test_subanta_packing() -> TestResult {
@@ -499,8 +472,8 @@ mod tests {
         });
 
         let mut packer = Packer::new();
-        let devasya_code = packer.pack(&devasya);
-        let narasya_code = packer.pack(&narasya);
+        let devasya_code = packer.pack(&devasya)?;
+        let narasya_code = packer.pack(&narasya)?;
 
         let unpacker = Unpacker::from_packer(&packer);
         assert_eq!(unpacker.unpack(&narasya_code)?, narasya);
@@ -527,8 +500,8 @@ mod tests {
         });
 
         let mut packer = Packer::new();
-        let gacchati_code = packer.pack(&gacchati);
-        let carati_code = packer.pack(&carati);
+        let gacchati_code = packer.pack(&gacchati)?;
+        let carati_code = packer.pack(&carati)?;
 
         let unpacker = Unpacker::from_packer(&packer);
         assert_eq!(unpacker.unpack(&carati_code)?, carati);
@@ -552,8 +525,8 @@ mod tests {
         });
 
         let mut packer = Packer::new();
-        let iti_code = packer.pack(&iti);
-        let ca_code = packer.pack(&ca);
+        let iti_code = packer.pack(&iti)?;
+        let ca_code = packer.pack(&ca)?;
 
         let unpacker = Unpacker::from_packer(&packer);
         assert_eq!(unpacker.unpack(&ca_code)?, ca);

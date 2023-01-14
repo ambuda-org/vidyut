@@ -355,9 +355,8 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         };
 
         if x.has_adi(&*BASH) && x.has_antya(&*JHAZ) && if_y {
+            let sub = BASH_TO_BHAZ.get(x.adi()?)?;
             p.op_term("8.2.37", i, |t| {
-                let key = t.adi().unwrap();
-                let sub = BASH_TO_BHAZ.get(key).unwrap();
                 t.set_adi(&sub.to_string());
             });
         }
@@ -612,11 +611,11 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) -> Option<()> {
             // p.op_term("8.2.76", i, op::upadha(&sub.to_string()));
         }
     } else if is_ik(before_upadha(dhatu)) && is_rv(dhatu.upadha()) && is_hal(dhatu.antya()) {
+        let pre_upadha = before_upadha(dhatu)?;
+        let sub = al::to_dirgha(pre_upadha)?.to_string();
         p.op("8.2.78", |p| {
             let dhatu = &p.terms()[i];
             let n = dhatu.text.len();
-            let pre_upadha = before_upadha(dhatu).unwrap();
-            let sub = al::to_dirgha(pre_upadha).unwrap().to_string();
             p.set(i, |t| {
                 t.text = CompactString::from(&t.text[..n - 3]) + &sub + &t.text[n - 2..]
             });

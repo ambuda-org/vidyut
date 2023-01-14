@@ -189,13 +189,13 @@ fn try_dha_lopa(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-fn try_jhal_adesha(p: &mut Prakriya) {
+fn try_jhal_adesha(p: &mut Prakriya) -> Option<()> {
     char_rule(
         p,
         xy(|x, y| JHAL.contains(x) && JHASH.contains(y)),
         |p, text, i| {
             let x = text.as_bytes()[i] as char;
-            let sub = JHAL_TO_JASH.get(x).unwrap();
+            let sub = JHAL_TO_JASH.get(x).expect("should be present");
             if x != sub {
                 set_at(p, i, &sub.to_string());
                 p.step("8.4.53");
@@ -207,12 +207,9 @@ fn try_jhal_adesha(p: &mut Prakriya) {
     );
 
     if let Some(i) = p.find_first(T::Abhyasa) {
-        let abhyasa = p.get(i).unwrap();
+        let abhyasa = p.get(i)?;
         if abhyasa.has_adi(&*JHAL) {
-            let sub = JHAL_TO_JASH_CAR
-                .get(abhyasa.adi().unwrap())
-                .unwrap()
-                .to_string();
+            let sub = JHAL_TO_JASH_CAR.get(abhyasa.adi()?)?.to_string();
             p.op_term("8.4.54", i, op::adi(&sub));
         }
     }
@@ -240,7 +237,7 @@ fn try_jhal_adesha(p: &mut Prakriya) {
         xy(|x, y| JHAL.contains(x) && KHAR.contains(y)),
         |p, text, i| {
             let x = text.as_bytes()[i] as char;
-            let sub = JHAL_TO_CAR.get(x).unwrap();
+            let sub = JHAL_TO_CAR.get(x).expect("present");
             if x != sub {
                 set_at(p, i, &sub.to_string());
                 p.step("8.4.55");
@@ -260,7 +257,7 @@ fn try_jhal_adesha(p: &mut Prakriya) {
         |p, text, i| {
             let code = "8.4.56";
             let x = text.as_bytes()[i] as char;
-            let sub = JHAL_TO_CAR.get(x).unwrap();
+            let sub = JHAL_TO_CAR.get(x).expect("present");
             if x != sub {
                 if p.is_allowed(code) {
                     set_at(p, i, &sub.to_string());
@@ -275,6 +272,8 @@ fn try_jhal_adesha(p: &mut Prakriya) {
             }
         },
     );
+
+    Some(())
 }
 
 /// Runs rules that convert sounds to their savarna version.

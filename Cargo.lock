@@ -286,6 +286,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "env_logger"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85cdab6a89accf66733ad5a1693a4dcced6aeff64602b634530dd73c1f3ee9f0"
+dependencies = [
+ "humantime",
+ "is-terminal",
+ "log",
+ "regex",
+ "termcolor",
+]
+
+[[package]]
 name = "errno"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -839,7 +852,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "csv",
- "env_logger",
+ "env_logger 0.10.0",
  "glob",
  "lazy_static",
  "log",
@@ -849,6 +862,7 @@ dependencies = [
  "regex",
  "vidyut-kosha",
  "vidyut-lipi",
+ "vidyut-sandhi",
 ]
 
 [[package]]
@@ -857,7 +871,7 @@ version = "0.1.0"
 dependencies = [
  "bencher",
  "clap",
- "env_logger",
+ "env_logger 0.9.3",
  "fst",
  "log",
  "modular-bitfield",
@@ -888,6 +902,16 @@ dependencies = [
  "sha2 0.10.6",
  "sha256",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vidyut-sandhi"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "csv",
+ "lazy_static",
+ "multimap",
 ]
 
 [[package]]

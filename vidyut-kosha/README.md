@@ -90,7 +90,7 @@ builder.insert("Bavati", &Pada::Tinanta(Tinanta {
     lakara: Lakara::Lat,
     pada: PadaPrayoga::Parasmaipada,
 }));
-let kosha = builder.into_lexicon().unwrap();
+let kosha = builder.into_kosha().unwrap();
 ```
 
 

@@ -429,7 +429,7 @@ pub fn s(terms: &str) -> SoundSet {
 
     for term in terms.split_whitespace() {
         if term.ends_with("u~") || ak.contains(&term) {
-            let first = term.chars().next().unwrap();
+            let first = term.chars().next().expect("non-empty");
             ret += &savarna(first).to_string();
         } else if term.len() == 1 {
             ret += term;

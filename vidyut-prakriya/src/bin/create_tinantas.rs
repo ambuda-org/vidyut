@@ -50,7 +50,7 @@ const PRAYOGAS: &[Prayoga] = &[Prayoga::Kartari, Prayoga::Karmani];
 struct Row<'a> {
     padas: String,
     dhatu: &'a str,
-    gana: u8,
+    gana: &'static str,
     number: u16,
     sanadi: String,
     prayoga: &'static str,
@@ -118,7 +118,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
                     let row = Row {
                         padas,
                         dhatu: dhatu_text,
-                        gana: dhatu.gana(),
+                        gana: dhatu.gana().as_str(),
                         number: entry.number(),
                         sanadi: sanadi_str.to_string(),
                         lakara: lakara.as_str(),

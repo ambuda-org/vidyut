@@ -6,13 +6,12 @@ use std::error::Error;
 
 use crate::config::Config;
 use crate::normalize_text::normalize;
-use crate::sandhi;
-use crate::sandhi::Splitter;
 use crate::scoring::Model;
 use crate::sounds;
 use crate::strict_mode;
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
+use vidyut_sandhi::{Split, Splitter};
 
 /// A Sanskrit word and its morphological data.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -68,8 +67,8 @@ pub struct Chedaka {
     /// Sandhi rules. The segmenter uses these rules to exhaustively split a Sanskrit expression
     /// and find candidate words.
     sandhi: Splitter,
-    /// A lexicon of Sanskrit words. The segmenter uses this lexicon to examine a Sanskrit
-    /// substring and test whether or not it is a valid Sanskrit word.
+    /// A kosha of Sanskrit words. The segmenter uses this kosha to examine a Sanskrit substring
+    /// and test whether or not it is a valid Sanskrit word.
     kosha: Kosha,
     /// A scoring model. The segmenter uses this model to score candidate solutions and prioritize
     /// solutions that are the most promising.
@@ -81,7 +80,7 @@ impl Chedaka {
     pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
         Ok(Chedaka {
             sandhi: Splitter::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
-            kosha: Kosha::new(config.lexicon()).expect("Could not read lexicon."),
+            kosha: Kosha::new(config.kosha()).expect("Could not read kosha."),
             model: Model::new(&config.model_lemma_counts(), &config.model_transitions())?,
         })
     }
@@ -106,7 +105,7 @@ impl Chedaka {
 // caller.
 fn analyze_pada(
     text: &str,
-    split: &sandhi::Split,
+    split: &Split,
     chedaka: &Chedaka,
     cache: &mut HashMap<String, Vec<Pada>>,
 ) -> Result<(), Box<dyn Error>> {
@@ -120,7 +119,7 @@ fn analyze_pada(
         let mut res = res?;
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
-        if split.is_end_of_chunk || text.starts_with(|c| !sounds::is_sanskrit(c)) {
+        if split.is_end_of_chunk() || text.starts_with(|c| !sounds::is_sanskrit(c)) {
             res.push(Pada::None);
         }
 
@@ -195,7 +194,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>, Box<dyn Error>> 
         // debug_print_viterbi(&viterbi_cache);
 
         // Pop the best solution remaining.
-        let (cur, cur_score) = pq.pop().unwrap();
+        let (cur, cur_score) = pq.pop().expect("always defined");
 
         // The best solution remaining is complete, so we can stop here.
         //
@@ -269,8 +268,8 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>, Box<dyn Error>> 
                 continue;
             }
 
-            let first = &split.first;
-            let second = &split.second;
+            let first = split.first();
+            let second = split.second();
             analyze_pada(first, &split, ctx, &mut word_cache)?;
 
             for semantics in word_cache.get(first).unwrap_or(&no_results) {

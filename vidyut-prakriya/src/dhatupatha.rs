@@ -3,7 +3,7 @@ Utility functions for working with the Dhatupatha file included in this crate. F
 comments on the `Dhatupatha` struct.
 */
 
-use crate::args::{Antargana, Dhatu};
+use crate::args::{Antargana, Dhatu, Gana};
 use crate::errors::*;
 use std::path::Path;
 
@@ -154,12 +154,12 @@ impl IntoIterator for Dhatupatha {
     }
 }
 
-fn maybe_find_antargana(gana: u8, number: u16) -> Option<Antargana> {
-    if gana == 6 && (93..=137).contains(&number) {
+fn maybe_find_antargana(gana: Gana, number: u16) -> Option<Antargana> {
+    if gana == Gana::Tudadi && (93..=137).contains(&number) {
         // Check number explicitly because some roots are duplicated within tudAdi
         // but outside this gana (e.g. juq).
         Some(Antargana::Kutadi)
-    } else if gana == 10 && (192..=236).contains(&number) {
+    } else if gana == Gana::Curadi && (192..=236).contains(&number) {
         // Need to check range explicitly because some of these roots appear
         // multiple times in the gana, e.g. lakza~
         Some(Antargana::Akusmiya)
@@ -170,7 +170,7 @@ fn maybe_find_antargana(gana: u8, number: u16) -> Option<Antargana> {
 
 /// Resolve a specific lookup code against our version of the Dhatupatha.
 pub fn resolve(upadesha: &str, gana: &str, number: &str) -> Result<Dhatu> {
-    let gana = gana.parse()?;
+    let gana = Gana::from_int(gana.parse()?)?;
     let number = number.parse()?;
     let mut builder = Dhatu::builder().upadesha(upadesha).gana(gana);
     if let Some(x) = maybe_find_antargana(gana, number) {

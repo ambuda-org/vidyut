@@ -1,4 +1,4 @@
-//! Benchmark an FST lexicon.
+//! Benchmark an FST kosha.
 use bencher::black_box;
 use clap::Parser;
 use fst::Streamer;
@@ -13,7 +13,7 @@ use vidyut_kosha::packing::*;
 use vidyut_kosha::Kosha;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
-type NaiveLexicon = MultiMap<String, PackedPada>;
+type NaiveKosha = MultiMap<String, PackedPada>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -26,7 +26,7 @@ struct Args {
     bench: bool,
 }
 
-fn create_naive_lexicon(fst_lex: &Kosha) -> Result<NaiveLexicon> {
+fn create_naive_kosha(fst_lex: &Kosha) -> Result<NaiveKosha> {
     let mut ret = MultiMap::new();
     let mut stream = fst_lex.stream();
     while let Some((key, value)) = stream.next() {
@@ -37,8 +37,8 @@ fn create_naive_lexicon(fst_lex: &Kosha) -> Result<NaiveLexicon> {
     Ok(ret)
 }
 
-fn sample_from_fst_lexicon(lex: &Kosha, prob: f32) -> Result<Vec<String>> {
-    info!("Sampling from lexicon (rate = {prob})");
+fn sample_from_fst_kosha(lex: &Kosha, prob: f32) -> Result<Vec<String>> {
+    info!("Sampling from kosha (rate = {prob})");
 
     let mut keys = Vec::new();
     let mut stream = lex.stream();
@@ -58,7 +58,7 @@ fn stats_for_word_sample(dur: &Duration, num_words: usize) {
     println!("Fetched {num_words} arbitrary words in {s_elapsed} seconds ({ns_per_word} ns/word)");
 }
 
-fn bench_fst_lexicon_sample_1p(lex: &Kosha, words: &[String]) {
+fn bench_fst_kosha_sample_1p(lex: &Kosha, words: &[String]) {
     for w in words {
         for _pada in lex.get_all(w) {
             // println!("{w}: {:?}", lex.unpack(&pada));
@@ -66,7 +66,7 @@ fn bench_fst_lexicon_sample_1p(lex: &Kosha, words: &[String]) {
     }
 }
 
-fn bench_naive_lexicon_sample_1p(lex: &NaiveLexicon, words: &[String]) {
+fn bench_naive_kosha_sample_1p(lex: &NaiveKosha, words: &[String]) {
     for w in words {
         if let Some(vec) = lex.get_vec(w) {
             for _pada in vec {
@@ -77,28 +77,28 @@ fn bench_naive_lexicon_sample_1p(lex: &NaiveLexicon, words: &[String]) {
 }
 
 fn run(args: Args) -> Result<()> {
-    info!("Loading lexicon");
+    info!("Loading kosha");
     let lex = Kosha::new(&args.data_dir)?;
-    let words = sample_from_fst_lexicon(&lex, 0.01)?;
+    let words = sample_from_fst_kosha(&lex, 0.01)?;
 
     println!();
     println!("================================");
-    println!("FST lexicon");
+    println!("FST kosha");
     println!("================================");
     let start = Instant::now();
-    black_box(bench_fst_lexicon_sample_1p(&lex, &words));
+    black_box(bench_fst_kosha_sample_1p(&lex, &words));
     let dur = start.elapsed();
     stats_for_word_sample(&dur, words.len());
 
     println!();
     println!("================================");
-    println!("Naive lexicon");
+    println!("Naive kosha");
     println!("================================");
     info!("Initializing ...");
-    let naive_lex = create_naive_lexicon(&lex)?;
+    let naive_lex = create_naive_kosha(&lex)?;
     info!("Begin.");
     let start = Instant::now();
-    black_box(bench_naive_lexicon_sample_1p(&naive_lex, &words));
+    black_box(bench_naive_kosha_sample_1p(&naive_lex, &words));
     let dur = start.elapsed();
     stats_for_word_sample(&dur, words.len());
 

@@ -1,14 +1,14 @@
-//! A memory-efficient Sanskrit lexicon with basic support for searching prefixes.
+//! A memory-efficient Sanskrit kosha (lexicon) with basic support for searching prefixes.
 //!
 //!
 //! Implementation
 //! --------------
-//! We implement our lexicon as a finite state transducer using the `fst` crate. Finite state
+//! We implement our kosha as a finite state transducer using the `fst` crate. Finite state
 //! transducers are a generalization of tries in that they support both shared prefixes and shared
 //! suffixes.
 //!
 //! The `fst` crate that we use internally has two important restrictions that affect the design of
-//! our lexicon:
+//! our kosha:
 //!
 //! 1. Each key can be stored at most once.
 //! 2. Each value must be an unsigned 64 bit integer.
@@ -29,9 +29,10 @@
 //! ----------
 //!
 //! According to our benchmarks, an average Sanskrit word can be retrieved in around 500ns and is
-//! roughly 1.5x slower than a default `HashMap`. Our production lexicon stores more than 29
-//! million words in around 31MB of data with an average storage cost of 1 byte per word. Of
-//! course, the specific storage cost will vary depending on the words in the input list.
+//! roughly 1.5x slower than a default `HashMap`. Our production kosha stores more than 29 million
+//! words in around 31MB of data with an average storage cost of 1 byte per word. Of course, the
+//! specific storage cost will vary depending on the words in the input list.
+use crate::errors::*;
 use crate::packing::*;
 use crate::semantics::Pada;
 use fst::map::Stream;
@@ -39,7 +40,6 @@ use fst::raw::{Fst, Node, Output};
 use fst::{Map, MapBuilder};
 use log::info;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -50,7 +50,7 @@ const DUPES_PER_BYTE: u8 = 65;
 const MAX_DUPLICATES: usize = (DUPES_PER_BYTE as usize) * (DUPES_PER_BYTE as usize);
 
 struct Paths {
-    /// Path to the data dir for this lexicon. If writing, the writer will create the directory if
+    /// Path to the data dir for this kosha. If writing, the writer will create the directory if
     /// it does not exist already.
     base: PathBuf,
 }
@@ -79,7 +79,7 @@ fn to_packed_pada(output: Output) -> PackedPada {
     PackedPada::from_u32(output.value() as u32)
 }
 
-/// A highly memory-efficient Sanskrit lexicon.
+/// A compact Sanskrit kosha.
 pub struct Kosha {
     /// The underlying FST object.
     fst: Map<Vec<u8>>,
@@ -88,8 +88,8 @@ pub struct Kosha {
 }
 
 impl Kosha {
-    /// Reads the lexicon from the given `base_path`.
-    pub fn new(base_path: &Path) -> Result<Self, Box<dyn Error>> {
+    /// Reads the kosha from the given `base_path`.
+    pub fn new(base_path: &Path) -> Result<Self> {
         let paths = Paths::new(base_path);
 
         info!("Loading fst from `{:?}`", paths.fst());
@@ -102,13 +102,13 @@ impl Kosha {
         Ok(Self { fst, unpacker })
     }
 
-    /// Returns whether this lexicon contains at least one word with exact value `key`.
+    /// Returns whether this kosha contains at least one word with exact value `key`.
     #[inline]
     pub fn contains_key(&self, key: &str) -> bool {
         self.fst.contains_key(key)
     }
 
-    /// Returns whether the lexicon contains at least one word that starts with `key`.
+    /// Returns whether the kosha contains at least one word that starts with `key`.
     ///
     /// Prefix checks are slightly faster than ordinary key lookups. I also tried implementing this
     /// with `fst::Stream`, but that approach was much slower than just accessing the FST directly,
@@ -130,8 +130,8 @@ impl Kosha {
         true
     }
 
-    /// Unpacks the given word via this lexicon's `Unpacker` instance.
-    pub fn unpack(&self, p: &PackedPada) -> Result<Pada, Box<dyn Error>> {
+    /// Unpacks the given word via this kosha's `Unpacker` instance.
+    pub fn unpack(&self, p: &PackedPada) -> Result<Pada> {
         self.unpacker.unpack(p)
     }
 
@@ -205,7 +205,7 @@ fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec
     }
 }
 
-/// Builder for a `Lexicon`.
+/// Builder for a `Kosha`.
 ///
 /// Memory usage is linear in the number of unique lemmas (`Dhatu`s or `Pratipadika`s).
 pub struct Builder {
@@ -238,7 +238,7 @@ impl Builder {
     /// Creates a new builder whose output will be written to `base_path`.
     ///
     /// If `base_path` does not exist, the builder will create it.
-    pub fn new(base_path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>> {
+    pub fn new(base_path: impl AsRef<Path>) -> Result<Self> {
         let base_path = base_path.as_ref();
         std::fs::create_dir_all(base_path)?;
         let paths = Paths::new(base_path);
@@ -256,7 +256,7 @@ impl Builder {
     ///
     /// Keys must be inserted in lexicographic order. If a key is received out of order,
     /// the build process will fail.
-    pub fn insert(&mut self, key: &str, value: &Pada) -> Result<(), Box<dyn Error>> {
+    pub fn insert(&mut self, key: &str, value: &Pada) -> Result<()> {
         let seen_keys = &mut self.seen_keys;
 
         let num_repeats = match seen_keys.get(key) {
@@ -265,7 +265,7 @@ impl Builder {
         };
         seen_keys.insert(key.to_string(), num_repeats + 1);
 
-        let value = u64::from(self.packer.pack(value).to_u32());
+        let value = u64::from(self.packer.pack(value)?.to_u32());
 
         // For duplicates, add another u8 to make this key unique.
         if num_repeats > 0 {
@@ -279,8 +279,8 @@ impl Builder {
         Ok(())
     }
 
-    /// Writes all FST data to disk and returns a complete `FSTLexicon`.
-    pub fn into_lexicon(self) -> Result<Kosha, Box<dyn Error>> {
+    /// Writes all FST data to disk and returns a complete `Kosha`.
+    pub fn into_kosha(self) -> Result<Kosha> {
         info!("Writing FST and packer data to `{:?}`.", self.paths.base);
         self.fst_builder.finish()?;
         let unpacker = Unpacker::from_packer(&self.packer);
@@ -301,7 +301,7 @@ mod tests {
     use fst::Streamer;
     use tempfile::tempdir;
 
-    type TestResult = Result<(), Box<dyn Error>>;
+    type TestResult = Result<()>;
 
     #[test]
     fn test_paths() {
@@ -314,7 +314,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lexicon() -> TestResult {
+    fn test_kosha() -> TestResult {
         let tin = Pada::Tinanta(Tinanta {
             dhatu: Dhatu("gam".to_string()),
             purusha: Purusha::Prathama,
@@ -349,7 +349,7 @@ mod tests {
         builder.insert("agnim", &sup)?;
         builder.insert("gacCati", &tin)?;
         builder.insert("gacCati", &krdanta)?;
-        builder.into_lexicon()?;
+        builder.into_kosha()?;
 
         // Constructor
         let lex = Kosha::new(dir.path())?;
@@ -370,7 +370,7 @@ mod tests {
         assert!(!lex.contains_prefix("gacCant"));
 
         // get_all
-        fn get_all_padas(lex: &Kosha, key: &str) -> Result<Vec<Pada>, Box<dyn Error>> {
+        fn get_all_padas(lex: &Kosha, key: &str) -> Result<Vec<Pada>> {
             lex.get_all(key).iter().map(|p| lex.unpack(p)).collect()
         }
 

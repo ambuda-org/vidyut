@@ -216,7 +216,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
     } else if anga.has_u_in(pa_ghra) && !anga.has_gana(2) && !anga.has_gana(3) {
         // Check ganas above to avoid `pA rakzaRe` (pAti), `f gatO` (iyarti)
         let to_piba_jighra = |p: &mut Prakriya| {
-            let anga = p.get(i).unwrap();
+            let anga = p.get(i).expect("ok");
             if let Some(needle) = &anga.u {
                 if let Some(sub) = op::yatha(needle, pa_ghra, piba_jighra) {
                     p.set(i, |t| t.set_text(sub));
@@ -323,7 +323,7 @@ fn try_add_num_agama_for_dhatu(p: &mut Prakriya) -> Option<()> {
     let liti = n.has_lakshana("li~w");
     if n.has_adi(&*AC) {
         if anga.has_u_in(&["ra\\Da~", "jaBI~\\"]) {
-            if anga.has_u("ra\\Da~") && f::is_it_agama(n.first().unwrap()) && !liti {
+            if anga.has_u("ra\\Da~") && f::is_it_agama(n.first()?) && !liti {
                 p.step("7.1.62");
             } else {
                 p.op_term("7.1.61", i, op::mit("n"));
@@ -717,10 +717,6 @@ fn dhatu_rt_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = p.view(i + 1)?;
 
-    let to_guna = |t: &mut Term| {
-        let last = al::to_guna(t.antya().unwrap()).unwrap();
-        t.set_antya(last);
-    };
     let ends_in_a = |t: &Term| t.has_antya('a');
 
     if n.has_tag(T::Sarvadhatuka) {
@@ -759,12 +755,13 @@ fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
         } else {
             let anga = p.get(i)?;
             if al::is_hrasva(anga.antya()?) && !anga.has_antya('a') {
+                let sub = al::to_guna(anga.antya()?)?;
                 if sup.has_tag(T::Sambuddhi) {
                     // agne, vAyo
-                    p.op_term("7.3.108", i, to_guna);
+                    p.op_term("7.3.108", i, op::antya(sub));
                 } else if sup.has_u("jas") {
                     // agnayaH, vAyavaH
-                    p.op_term("7.3.109", i, to_guna);
+                    p.op_term("7.3.109", i, op::antya(sub));
                 }
             }
         }
@@ -853,8 +850,7 @@ fn try_sic_vrddhi(p: &mut Prakriya) -> Option<()> {
         // 7.2.3 applies to the final vowel generally, even if samyoganta
         let n_3 = dhatu.get_at(dhatu.text.len() - 3)?;
         p.op_term("7.2.3", i, |t| {
-            if AC.contains(n_3) {
-                let sub = al::to_vrddhi(n_3).unwrap();
+            if let Some(sub) = al::to_vrddhi(n_3) {
                 let i = t.text.len() - 3;
                 t.text.replace_range(i..=i, sub);
             } else {
@@ -958,7 +954,7 @@ fn try_change_anga_before_an(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("asu~") {
         p.op("7.4.17", |p| {
             p.insert_after(i, Term::make_agama("Tu~k"));
-            it_samjna::run(p, i + 1).unwrap();
+            it_samjna::run(p, i + 1).expect("ok");
         });
     } else if dhatu.has_text("Svi") {
         p.op_term("7.4.18", i, op::antya("a"));
@@ -1010,7 +1006,7 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
 
     let optional_append_agama = |rule, p: &mut Prakriya, i, sub| -> bool {
         if p.op_optional(rule, |p| op::insert_agama_after(p, i, sub)) {
-            it_samjna::run(p, i + 1).unwrap();
+            it_samjna::run(p, i + 1).expect("ok");
             true
         } else {
             false
@@ -1193,13 +1189,13 @@ pub fn run_subanta_rules(p: &mut Prakriya) {
     sup_adesha::run_remainder(p);
 }
 
-pub fn run_remainder(p: &mut Prakriya) {
+pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
     run_subanta_rules(p);
 
     // TODO: move this rule to a better place.
     {
         let i = p.terms().len() - 1;
-        let last = p.terms().last().unwrap();
+        let last = p.terms().last()?;
         if p.has(i - 1, |t| t.has_antya('A')) && last.has_u("Ral") {
             op::adesha("7.1.34", p, i, "O");
         }
@@ -1263,4 +1259,6 @@ pub fn run_remainder(p: &mut Prakriya) {
     }
 
     asiddhavat::run_dirgha(p);
+
+    Some(())
 }

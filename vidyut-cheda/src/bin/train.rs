@@ -7,7 +7,7 @@ use std::path::Path;
 
 use vidyut_cheda::conllu::Reader;
 use vidyut_cheda::dcs;
-use vidyut_cheda::scoring::*;
+use vidyut_cheda::model::State;
 use vidyut_cheda::{Config, Token};
 use vidyut_kosha::semantics::*;
 use vidyut_lipi::{transliterate, Scheme};
@@ -62,7 +62,7 @@ fn to_slp1(text: &str) -> String {
 }
 
 fn process_sentence(sentence: &[Token], s: &mut Statistics) {
-    let mut prev_state = State::initial();
+    let mut prev_state = State::new();
     for word in sentence {
         let cur_state = State::from_pada(&word.info);
         let lemma = word.lemma();

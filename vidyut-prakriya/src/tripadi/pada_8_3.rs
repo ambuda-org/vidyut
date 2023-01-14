@@ -89,7 +89,7 @@ fn try_murdhanya_for_s(p: &mut Prakriya) -> Option<()> {
                 || x.has_text("s"))
         },
         |p, i, _| {
-            let x = p.get(i).unwrap();
+            let x = p.get(i).expect("present");
             let code = "8.3.60";
             if x.has_text("s") {
                 p.op_term(code, i, op::text("z"));

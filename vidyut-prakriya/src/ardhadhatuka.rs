@@ -99,7 +99,7 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
             op::optional_adesha("2.4.40", p, i, "Gasx~");
         } else if n.has_u("lyap") || (n.has_adi('t') && n.has_tag(T::kit)) {
             // jagDvA, vijagDya
-            p.op("2.4.36", |p| op::upadesha(p, i, "jagDi~"));
+            op::adesha("2.4.36", p, i, "jagDi~");
         }
         // Skip 2.4.39 (bahulaM chandasi).
     } else if dhatu.has_u("ve\\Y") && n.has_lakshana("li~w") {
@@ -139,17 +139,17 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
 
         if n.has_u("san") {
             // aDijigAMsate
-            p.op("2.4.48", |p| op::upadesha(p, i, "gami~"));
+            op::adesha("2.4.48", p, i, "gami~");
         } else if n.has_lakshana("li~w") {
             p.op("2.4.49", to_gaa);
         } else if n.has_lakshana_in(&["lu~N", "lf~N"]) {
             p.op_optional("2.4.50", to_gaa);
         }
     } else if dhatu.has_u("asa~") {
-        p.op("2.4.52", |p| op::upadesha(p, i, "BU"));
+        op::adesha("2.4.52", p, i, "BU");
     } else if dhatu.has_u("brUY") {
         // anudAtta to prevent iT
-        p.op("2.4.53", |p| op::upadesha(p, i, "va\\ci~"));
+        op::adesha("2.4.53", p, i, "va\\ci~");
     } else if dhatu.has_u("aja~") && !n.has_u_in(&["GaY", "ap"]) {
         let mut run = true;
         if n.has_u("lyuw") {
@@ -189,7 +189,7 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
         }
         if run {
             // aniT-tva comes from anudAtta in upadesha.
-            p.op("2.4.56", |p| op::upadesha(p, i, "vI\\"));
+            op::adesha("2.4.56", p, i, "vI\\");
         }
     }
 
