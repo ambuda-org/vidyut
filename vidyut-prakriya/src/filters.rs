@@ -8,14 +8,14 @@ For most use cases, we recommend using the helper methods on `Term`, which have 
 calling convention.
 */
 use crate::sounds as al;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref HAL: SoundSet = s("hal");
+    static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
 }
 
 /// Returns whether the given term has exactly one vowel sound.

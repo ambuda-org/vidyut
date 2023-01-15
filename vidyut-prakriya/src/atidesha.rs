@@ -7,17 +7,17 @@ use crate::args::Antargana;
 use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref F: SoundSet = s("f");
-    static ref I_U: SoundSet = s("i u");
-    static ref IK: SoundSet = s("ik");
-    static ref JHAL: SoundSet = s("Jal");
-    static ref RAL: SoundSet = s("ral");
-    static ref HAL: SoundSet = s("hal");
+    static ref F: Set = s("f");
+    static ref I_U: Set = s("i u");
+    static ref IK: Set = s("ik");
+    static ref JHAL: Set = s("Jal");
+    static ref RAL: Set = s("ral");
+    static ref HAL: Set = s("hal");
 }
 
 /// Extends `Prakriya` with helper functions. In addition, this wrapper remembers whether a rule

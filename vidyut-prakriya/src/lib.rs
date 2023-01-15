@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
+#![deny(clippy::unwrap_used)]
 
 pub use crate::ashtadhyayi::{Ashtadhyayi, AshtadhyayiBuilder};
 pub use crate::dhatupatha::Dhatupatha;

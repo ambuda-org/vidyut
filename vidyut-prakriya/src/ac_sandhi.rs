@@ -7,21 +7,21 @@ use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::tripadi::utils::xy_rule;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref A: SoundSet = s("a");
-    static ref AK: SoundSet = s("ak");
-    static ref AC: SoundSet = s("ac");
-    static ref IC: SoundSet = s("ic");
-    static ref IK: SoundSet = s("ik");
-    static ref EN: SoundSet = s("eN");
-    static ref EC: SoundSet = s("ec");
-    static ref VAL: SoundSet = s("val");
-    static ref HAL: SoundSet = s("hal");
+    static ref A: Set = s("a");
+    static ref AK: Set = s("ak");
+    static ref AC: Set = s("ac");
+    static ref IC: Set = s("ic");
+    static ref IK: Set = s("ik");
+    static ref EN: Set = s("eN");
+    static ref EC: Set = s("ec");
+    static ref VAL: Set = s("val");
+    static ref HAL: Set = s("hal");
 }
 
 pub fn try_lopo_vyor_vali(p: &mut Prakriya) {

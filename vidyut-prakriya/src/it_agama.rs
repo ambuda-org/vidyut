@@ -28,17 +28,17 @@ use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref HAL: SoundSet = s("hal");
-    static ref VAL: SoundSet = s("val");
-    static ref VASH: SoundSet = s("vaS");
-    static ref UK: SoundSet = s("uk");
+    static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
+    static ref VAL: Set = s("val");
+    static ref VASH: Set = s("vaS");
+    static ref UK: Set = s("uk");
 }
 
 fn is_hacky_eka_ac(t: &Term) -> bool {

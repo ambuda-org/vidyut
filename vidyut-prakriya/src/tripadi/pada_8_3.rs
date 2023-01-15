@@ -3,15 +3,15 @@ use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::tripadi::utils::xy_rule;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref IN2: SoundSet = s("iR2");
-    static ref IN_KU: SoundSet = s("iR2 ku~");
-    static ref JHAL: SoundSet = s("Jal");
+    static ref IN2: Set = s("iR2");
+    static ref IN_KU: Set = s("iR2 ku~");
+    static ref JHAL: Set = s("Jal");
 }
 
 fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {

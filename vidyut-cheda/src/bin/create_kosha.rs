@@ -13,7 +13,7 @@ use std::process;
 use vidyut_cheda::sounds::{is_ac, is_ghosha};
 use vidyut_cheda::Config;
 use vidyut_kosha::semantics::*;
-use vidyut_kosha::Builder;
+use vidyut_kosha::{Builder, Kosha};
 
 pub type StemMap = MultiMap<String, Pratipadika>;
 pub type PadaMap = MultiMap<String, Pada>;
@@ -572,7 +572,11 @@ fn run(args: Args) -> Result<()> {
     }
 
     info!("Building FST.");
-    let _fst = builder.into_kosha();
+    builder.finish()?;
+
+    // Check that we can load the dict.
+    let kosha = Kosha::new(config.kosha())?;
+    assert!(kosha.contains_key("narasya"));
 
     info!("Complete.");
     Ok(())

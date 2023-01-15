@@ -12,21 +12,21 @@ use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
-use crate::sounds::{map, s, SoundMap, SoundSet};
+use crate::sounds::{map, s, Map, Set};
 use crate::tag::Tag as T;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref ANUNASIKA: SoundSet = s("Yam");
-    static ref UU: SoundSet = s("u");
-    static ref SHAR: SoundSet = s("Sar");
-    static ref KHAY: SoundSet = s("Kay");
-    static ref HAL: SoundSet = s("hal");
-    static ref F_HAL: SoundSet = s("f hal");
-    static ref PU_YAN_J: SoundSet = s("pu~ yaR j");
-    static ref KUH_CU: SoundMap = map("ku~ h", "cu~");
+    static ref AC: Set = s("ac");
+    static ref ANUNASIKA: Set = s("Yam");
+    static ref UU: Set = s("u");
+    static ref SHAR: Set = s("Sar");
+    static ref KHAY: Set = s("Kay");
+    static ref HAL: Set = s("hal");
+    static ref F_HAL: Set = s("f hal");
+    static ref PU_YAN_J: Set = s("pu~ yaR j");
+    static ref KUH_CU: Map = map("ku~ h", "cu~");
 }
 
 /// Simplifies the abhyasa per 7.4.60.
@@ -263,7 +263,7 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
     let add_nut_agama = |rule, p: &mut Prakriya, i: usize| {
         op::insert_agama_before(p, i, "nu~w");
         p.step(rule);
-        it_samjna::run(p, i).unwrap();
+        it_samjna::run(p, i).expect("ok");
     };
 
     if !last.has_lakshana("li~w") {

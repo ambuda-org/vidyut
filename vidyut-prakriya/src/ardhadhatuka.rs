@@ -4,16 +4,16 @@ use crate::args::Lakara;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::TermView;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref EC: SoundSet = s("ec");
-    static ref JHAL: SoundSet = s("Jal");
-    static ref VAL: SoundSet = s("val");
+    static ref AC: Set = s("ac");
+    static ref EC: Set = s("ec");
+    static ref JHAL: Set = s("Jal");
+    static ref VAL: Set = s("val");
 }
 
 /// Lookahead function for the following rules:

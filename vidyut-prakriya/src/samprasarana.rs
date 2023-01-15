@@ -103,28 +103,15 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_for_abhyasa(p: &mut Prakriya) {
-    let i = match p.find_first(T::Abhyasa) {
-        Some(i) => i,
-        None => return,
-    };
-    let dhatu = match p.get(i + 1) {
-        Some(t) => {
-            if t.has_tag(T::Dhatu) {
-                t
-            } else {
-                return;
-            }
-        }
-        None => return,
-    };
-
-    let last = p.terms().last().unwrap();
+pub fn run_for_abhyasa(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_first(T::Abhyasa)?;
+    let dhatu = p.get_if(i + 1, |t| t.has_tag(T::Dhatu))?;
+    let last = p.terms().last()?;
 
     if last.has_lakshana("li~w") {
         // yadā ca dhātorna bhavati tadā "liṭyabhyāsasya ubhayeṣām"
         // ityabhyāsasya api na bhavati -- kāśikā.
-        if is_vaci_svapi(dhatu) && dhatu.text != "Svi" {
+        if is_vaci_svapi(dhatu) && !dhatu.has_text("Svi") {
             if dhatu.has_u("ve\\Y") {
                 p.step("6.1.40");
             } else {
@@ -134,4 +121,6 @@ pub fn run_for_abhyasa(p: &mut Prakriya) {
             do_samprasarana("6.1.17", p, i);
         }
     }
+
+    Some(())
 }

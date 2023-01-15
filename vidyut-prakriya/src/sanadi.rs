@@ -5,13 +5,13 @@ use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref HAL: SoundSet = s("hal");
+    static ref HAL: Set = s("hal");
 }
 
 // These dhatus use their pratyaya optionally if followed by ArdhadhAtuka.
@@ -29,7 +29,8 @@ fn add_sanadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
 
     let i_pratyaya = i_dhatu + 1;
     p.op_term("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
-    it_samjna::run(p, i_pratyaya).ok().unwrap();
+
+    it_samjna::run(p, i_pratyaya).expect("ok")
 }
 
 fn can_use_yan(t: &Term) -> bool {

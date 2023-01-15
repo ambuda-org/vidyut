@@ -4,7 +4,7 @@ use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
-use crate::sounds::{map, s, SoundMap, SoundSet};
+use crate::sounds::{map, s, Map, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use crate::tripadi::utils::xy_rule;
@@ -12,21 +12,21 @@ use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AT_KU_PU_M: SoundSet = s("aw ku~ pu~ M");
-    static ref AN: SoundSet = s("aR");
-    static ref YAN: SoundSet = s("yaR");
-    static ref AC: SoundSet = s("ac");
-    static ref CU: SoundSet = s("cu~");
-    static ref JHAL: SoundSet = s("Jal");
-    static ref JHAZ: SoundSet = s("Jaz");
-    static ref BASH: SoundSet = s("baS");
-    static ref BASH_TO_BHAZ: SoundMap = map("baS", "Baz");
-    static ref JHAL_TO_JASH: SoundMap = map("Jal", "jaS");
-    static ref JHAL_TO_JASH_EXCEPTIONS: SoundSet = s("c S s h");
-    static ref CU_TO_KU: SoundMap = map("cu~", "ku~");
-    static ref IK: SoundSet = s("ik");
-    static ref HASH: SoundSet = s("haS");
-    static ref HAL: SoundSet = s("hal");
+    static ref AT_KU_PU_M: Set = s("aw ku~ pu~ M");
+    static ref AN: Set = s("aR");
+    static ref YAN: Set = s("yaR");
+    static ref AC: Set = s("ac");
+    static ref CU: Set = s("cu~");
+    static ref JHAL: Set = s("Jal");
+    static ref JHAZ: Set = s("Jaz");
+    static ref BASH: Set = s("baS");
+    static ref BASH_TO_BHAZ: Map = map("baS", "Baz");
+    static ref JHAL_TO_JASH: Map = map("Jal", "jaS");
+    static ref JHAL_TO_JASH_EXCEPTIONS: Set = s("c S s h");
+    static ref CU_TO_KU: Map = map("cu~", "ku~");
+    static ref IK: Set = s("ik");
+    static ref HASH: Set = s("haS");
+    static ref HAL: Set = s("hal");
 }
 
 /// Runs rules for lopa of the final `n` of a prAtipadika.
@@ -175,7 +175,8 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
                     match bytes.get(i - 1) {
                         Some(w) => {
                             let w = *w as char;
-                            (AC.contains(w) || w == 'n') && !get_at(p, i).unwrap().has_text("sanst")
+                            (AC.contains(w) || w == 'n')
+                                && !get_at(p, i).map_or(false, |t| t.has_text("sanst"))
                         }
                         None => true,
                     }
@@ -237,7 +238,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
 /// (8.2.31 - 8.2.35)
 fn try_ha_adesha(p: &mut Prakriya) -> Option<()> {
     lazy_static! {
-        static ref JHAL: SoundSet = s("Jal");
+        static ref JHAL: Set = s("Jal");
     }
 
     // TODO: implement padAnta

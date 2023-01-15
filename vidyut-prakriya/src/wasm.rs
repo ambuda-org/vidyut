@@ -77,6 +77,7 @@ impl Vidyut {
         console_error_panic_hook::set_once();
 
         Vidyut {
+            #[allow(clippy::unwrap_used)]
             dhatupatha: Dhatupatha::from_text(dhatupatha).unwrap(),
         }
     }
@@ -118,10 +119,10 @@ impl Vidyut {
             };
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
-            serde_wasm_bindgen::to_value(&web_prakriyas).unwrap()
+            serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
         } else {
             error(&format!("[vidyut] Dhatu code not found: {code}"));
-            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).unwrap()
+            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
         }
     }
 
@@ -145,7 +146,7 @@ impl Vidyut {
         let prakriyas = a.derive_subantas(&pratipadika, &args);
 
         let web_prakriyas = to_web_prakriyas(&prakriyas);
-        serde_wasm_bindgen::to_value(&web_prakriyas).unwrap()
+        serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
     }
 
     /// Wrapper for `Ashtadhyayi::derive_krdantas`.
@@ -162,10 +163,10 @@ impl Vidyut {
             let prakriyas = a.derive_krdantas(dhatu, &args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
-            serde_wasm_bindgen::to_value(&web_prakriyas).unwrap()
+            serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
         } else {
             error(&format!("[vidyut] Dhatu code not found: {code}"));
-            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).unwrap()
+            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
         }
     }
 }

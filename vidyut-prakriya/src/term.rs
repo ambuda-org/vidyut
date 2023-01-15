@@ -160,7 +160,7 @@ impl Term {
 
     /// Returns whether the term has the given root gaNa.
     pub fn has_gana(&self, gana: u8) -> bool {
-        self.gana == Some(Gana::from_int(gana).unwrap())
+        self.gana == Some(Gana::from_int(gana).expect("valid"))
     }
 
     pub fn has_antargana(&self, antargana: Antargana) -> bool {

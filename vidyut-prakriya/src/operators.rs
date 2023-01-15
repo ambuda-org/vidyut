@@ -112,7 +112,7 @@ pub fn upadesha(p: &mut Prakriya, i: usize, sub: &str) {
         t.save_lakshana();
         t.set_u(sub);
         t.set_text(sub);
-        it_samjna::run(p, i).unwrap();
+        it_samjna::run(p, i).expect("ok");
     }
 }
 

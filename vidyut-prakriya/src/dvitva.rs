@@ -2,7 +2,7 @@ use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
 use crate::sounds as al;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 /// Runs rules that perform `dvitva` (doubling) on the dhAtu.
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -10,8 +10,8 @@ use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref NDR: SoundSet = s("n d r");
+    static ref AC: Set = s("ac");
+    static ref NDR: Set = s("n d r");
 }
 
 /// Runs dvitva rules for roots that begin with vowels, e.g. UrRu.
