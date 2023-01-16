@@ -1,0 +1,1256 @@
+{
+    "comment": "Automatically generated file, edit as necessary",
+    "implicit": "a",
+    "encodings": [
+        {
+            "token": "TOK_INV_CHANDRABINDU",
+            "enc": [
+                "\u0900"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_CHANDRABINDU",
+            "enc": [
+                "\u0901"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_ANUSVARA",
+            "enc": [
+                "\u0902"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VISARGA",
+            "enc": [
+                "\u0903"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_SHORT_A",
+            "enc": [
+                "\u0904"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_A",
+            "enc": [
+                "\u0905"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_AA",
+            "enc": [
+                "\u0906"
+            ],
+	    "assoc": "\u093E",
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_I",
+            "enc": [
+                "\u0907"
+            ],
+	    "assoc": "\u093F",
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_II",
+            "enc": [
+                "\u0908"
+            ],
+	    "assoc": "\u0940",	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_U",
+            "enc": [
+                "\u0909"
+            ],
+	    "assoc": "\u0941",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_UU",
+            "enc": [
+                "\u090A"
+            ],
+	    "assoc": "\u0942",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_VOCALIC_R",
+            "enc": [
+                "\u090B"
+            ],
+	    "assoc": "\u0943",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_VOCALIC_L",
+            "enc": [
+                "\u090C"
+            ],
+	    "assoc": "\u0962",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_CHANDRA_E",
+            "enc": [
+                "\u090D"
+            ],
+	    "assoc": "\u0945",	    
+            "ttype": "issign"
+        },
+	{
+            "token": "TOK_LETTER_CHANDRABINDU_E",
+            "enc": [
+                "\u090F\u0901"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_SHORT_E",
+            "enc": [
+                "\u090E"
+            ],
+	    "assoc": "\u0946",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_E",
+            "enc": [
+                "\u090F"
+            ],
+	    "assoc": "\u0947",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_AI",
+            "enc": [
+                "\u0910"
+            ],
+	    "assoc": "\u0948",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_CHANDRA_O",
+            "enc": [
+                "\u0911"
+            ],
+	    "assoc": "\u0949",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_SHORT_O",
+            "enc": [
+                "\u0912"
+            ],
+	    "assoc": "\u094A",	    	    
+            "ttype": ""
+        },
+        {
+            "token": "TOK_LETTER_O",
+            "enc": [
+                "\u0913"
+            ],
+	    "assoc": "\u094B",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_AU",
+            "enc": [
+                "\u0914"
+            ],
+	    "assoc": "\u094C",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_KA",
+            "enc": [
+                "\u0915"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_KHA",
+            "enc": [
+                "\u0916"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_GA",
+            "enc": [
+                "\u0917"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_GHA",
+            "enc": [
+                "\u0918"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_NGA",
+            "enc": [
+                "\u0919"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_CA",
+            "enc": [
+                "\u091A"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_CHA",
+            "enc": [
+                "\u091B"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_JA",
+            "enc": [
+                "\u091C"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_JHA",
+            "enc": [
+                "\u091D"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_NYA",
+            "enc": [
+                "\u091E"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_TTA",
+            "enc": [
+                "\u091F"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_TTHA",
+            "enc": [
+                "\u0920"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_DDA",
+            "enc": [
+                "\u0921"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_DDHA",
+            "enc": [
+                "\u0922"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_NNA",
+            "enc": [
+                "\u0923"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_TA",
+            "enc": [
+                "\u0924"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_THA",
+            "enc": [
+                "\u0925"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_DA",
+            "enc": [
+                "\u0926"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_DHA",
+            "enc": [
+                "\u0927"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_NA",
+            "enc": [
+                "\u0928"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_NNNA",
+            "enc": [
+                "\u0929"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_PA",
+            "enc": [
+                "\u092A"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_PHA",
+            "enc": [
+                "\u092B"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_BA",
+            "enc": [
+                "\u092C"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_BHA",
+            "enc": [
+                "\u092D"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_MA",
+            "enc": [
+                "\u092E"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_YA",
+            "enc": [
+                "\u092F"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_RA",
+            "enc": [
+                "\u0930"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_RRA",
+            "enc": [
+                "\u0931"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_LA",
+            "enc": [
+                "\u0932"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_LLA",
+            "enc": [
+                "\u0933"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_LLLA",
+            "enc": [
+                "\u0934"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_VA",
+            "enc": [
+                "\u0935"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_SHA",
+            "enc": [
+                "\u0936"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_SSA",
+            "enc": [
+                "\u0937"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_SA",
+            "enc": [
+                "\u0938"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_HA",
+            "enc": [
+                "\u0939"
+            ],
+            "ttype": "isconsonant"
+        },
+	{
+            "token": "TOK_LETTER_KSHA",
+            "enc": [
+                "\u0915\u094D\u0937"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_OE",
+            "enc": [
+                "\u093A"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_OOE",
+            "enc": [
+                "\u093B"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_SIGN_NUKTA",
+            "enc": [
+                "\u093C"
+            ],
+            "ttype": ""
+        },
+        {
+            "token": "TOK_SIGN_AVAGRAHA",
+            "enc": [
+                "\u093D"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_AA",
+            "enc": [
+                "\u093E"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_I",
+            "enc": [
+                "\u093F"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_II",
+            "enc": [
+                "\u0940"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_U",
+            "enc": [
+                "\u0941"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_UU",
+            "enc": [
+                "\u0942"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_VOCALIC_R",
+            "enc": [
+                "\u0943"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_VOCALIC_RR",
+            "enc": [
+                "\u0944"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_CANDRA_E",
+            "enc": [
+                "\u0945"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_SHORT_E",
+            "enc": [
+                "\u0946"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_E",
+            "enc": [
+                "\u0947"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_AI",
+            "enc": [
+                "\u0948"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_CANDRA_O",
+            "enc": [
+                "\u0949"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_SHORT_O",
+            "enc": [
+                "\u094A"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_O",
+            "enc": [
+                "\u094B"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_AU",
+            "enc": [
+                "\u094C"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_VIRAMA",
+            "enc": [
+                "\u094D"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_PRISHTHAMATRA_E",
+            "enc": [
+                "\u094E"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_AW",
+            "enc": [
+                "\u094F"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_OM",
+            "enc": [
+                "\u0950"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_STRESS_SIGN_UDATTA",
+            "enc": [
+                "\u0951"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_STRESS_SIGN_ANUDATTA",
+            "enc": [
+                "\u0952"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_GRAVE_ACCENT",
+            "enc": [
+                "\u0953"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_ACUTE_ACCENT",
+            "enc": [
+                "\u0954"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_CANDRA_LONG_E",
+            "enc": [
+                "\u0955"
+            ],
+            "ttype": "iss"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_UE",
+            "enc": [
+                "\u0956"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_UUE",
+            "enc": [
+                "\u0957"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_LETTER_QA",
+            "enc": [
+                "\u0958"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_KHHA",
+            "enc": [
+                "\u0959"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_GHHA",
+            "enc": [
+                "\u095A"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_ZA",
+            "enc": [
+                "\u095B"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_DDDHA",
+            "enc": [
+                "\u095C"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_RHA",
+            "enc": [
+                "\u095D"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_FA",
+            "enc": [
+                "\u095E"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_YYA",
+            "enc": [
+                "\u095F"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_VOCALIC_RR",
+            "enc": [
+                "\u0960"
+            ],
+	    "assoc": "\u0944",	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_VOCALIC_LL",
+            "enc": [
+                "\u0961"
+            ],
+	    "assoc": "\u0963",	    	    
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_VOCALIC_L",
+            "enc": [
+                "\u0962"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VOWEL_SIGN_VOCALIC_LL",
+            "enc": [
+                "\u0963"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_DANDA",
+            "enc": [
+                "\u0964"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_DOUBLE_DANDA",
+            "enc": [
+                "\u0965"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_DIGIT_ZERO",
+            "enc": [
+                "\u0966"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_ONE",
+            "enc": [
+                "\u0967"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_TWO",
+            "enc": [
+                "\u0968"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_THREE",
+            "enc": [
+                "\u0969"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_FOUR",
+            "enc": [
+                "\u096A"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_FIVE",
+            "enc": [
+                "\u096B"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_SIX",
+            "enc": [
+                "\u096C"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_SEVEN",
+            "enc": [
+                "\u096D"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_EIGHT",
+            "enc": [
+                "\u096E"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_DIGIT_NINE",
+            "enc": [
+                "\u096F"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_ABBREVIATION_SIGN",
+            "enc": [
+                "\u0970"
+            ],
+            "ttype": "isnumeral"
+        },
+        {
+            "token": "TOK_SIGN_HIGH_SPACING_DOT",
+            "enc": [
+                "\u0971"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_LETTER_CANDRA_A",
+            "enc": [
+                "\u0972"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_OE",
+            "enc": [
+                "\u0973"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_OOE",
+            "enc": [
+                "\u0974"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_AW",
+            "enc": [
+                "\u0975"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_UE",
+            "enc": [
+                "\u0976"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_UUE",
+            "enc": [
+                "\u0977"
+            ],
+            "ttype": "isvowel"
+        },
+        {
+            "token": "TOK_LETTER_MARWARI_DDA",
+            "enc": [
+                "\u0978"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_ZHA",
+            "enc": [
+                "\u0979"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_HEAVY_YA",
+            "enc": [
+                "\u097A"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_GGA",
+            "enc": [
+                "\u097B"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_JJA",
+            "enc": [
+                "\u097C"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_GLOTTAL_STOP",
+            "enc": [
+                "\u097D"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_DDDA",
+            "enc": [
+                "\u097E"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_LETTER_BBA",
+            "enc": [
+                "\u097F"
+            ],
+            "ttype": "isconsonant"
+        },
+        {
+            "token": "TOK_VEDIC_KARSHANA",
+            "enc": [
+                "\u1CD0"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SHARA",
+            "enc": [
+                "\u1CD1"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_PRENKHA",
+            "enc": [
+                "\u1CD2"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_NIMSHVASA",
+            "enc": [
+                "\u1CD3"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_MIDLINE_SVARITA",
+            "enc": [
+                "\u1CD4"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_AGGRAVATED_SVARITA",
+            "enc": [
+                "\u1CD5"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_INDEPENDENT_SVARITA",
+            "enc": [
+                "\u1CD6"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_KATHAKA_SVARITA",
+            "enc": [
+                "\u1CD7"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_ADHORDHA_VAKRA",
+            "enc": [
+                "\u1CD8"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_SAMYUKTA_SVARITA",
+            "enc": [
+                "\u1CD9"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_DOUBLE_SVARITA",
+            "enc": [
+                "\u1CDA"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_TRIPLE_SVARITA",
+            "enc": [
+                "\u1CDB"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_YAJUR_ADHO_REKHAA",
+            "enc": [
+                "\u1CDC"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_ADHO_BINDU",
+            "enc": [
+                "\u1CDD"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_ADHO_DVI_BINDU",
+            "enc": [
+                "\u1CDE"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_ADHO_TRI_BINDU",
+            "enc": [
+                "\u1CDF"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_UURDHA_VAKRA_REKHA",
+            "enc": [
+                "\u1CE0"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_DVI_VAKRA_KHANDA",
+            "enc": [
+                "\u1CE1"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_VISARGA_SVARITA",
+            "enc": [
+                "\u1CE2"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_VISARGA_UDATTA",
+            "enc": [
+                "\u1CE3"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_VAAMATAH_UURDHVAGA",
+            "enc": [
+                "\u1CE4"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_VAAMATHA_ADHOGA",
+            "enc": [
+                "\u1CE5"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_DAKSHINNATAH_ADHOGHA",
+            "enc": [
+                "\u1CE6"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_DAKSHINNATAH_UURDHVA_VAKRA",
+            "enc": [
+                "\u1CE7"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_VAAMATAHA_ADHO_VAKRA",
+            "enc": [
+                "\u1CE8"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ANUSVARA_ANTARGOMUKHA",
+            "enc": [
+                "\u1CE9"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ANUSVARA_BAHIRGOMUKHA",
+            "enc": [
+                "\u1CEA"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ANUSVARA_VAMAGOMUKHA",
+            "enc": [
+                "\u1CEB"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ANUSVARA_VAMAGOMUKHA_SA_VAKRA",
+            "enc": [
+                "\u1CEC"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_TIRYAK",
+            "enc": [
+                "\u1CED"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_HEXIFORM_LONG_ANUSVARA",
+            "enc": [
+                "\u1CEE"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_LONG_ANUSVARA",
+            "enc": [
+                "\u1CEF"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_RTHANG_LONG_ANUSVARA",
+            "enc": [
+                "\u1CF0"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ANUSVARA_UBHAYATO_MUKHA",
+            "enc": [
+                "\u1CF1"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ARDHAVISARGA",
+            "enc": [
+                "\u1CF2"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ROTATED_ARDHAVISARGA",
+            "enc": [
+                "\u1CF3"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_TONE_CANDRA_ABOVE",
+            "enc": [
+                "\u1CF4"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_JIHVAMULIYA",
+            "enc": [
+                "\u1CF5"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_UPADHMANIYA",
+            "enc": [
+                "\u1CF6"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_ATIKRAMA",
+            "enc": [
+                "\u1CF7"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_TONE_RING_ABOVE",
+            "enc": [
+                "\u1CF8"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_TONE_DOUBLE_RING_ABOVE",
+            "enc": [
+                "\u1CF9"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_VEDIC_SIGN_DOUBLE_ANUSVARA_ANTARGOMUKHA",
+            "enc": [
+                "\u1CF9"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_SIGN_ZWJ",
+            "enc": [
+                "\u200D"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_SIGN_ZWNJ",
+            "enc": [
+                "\u200C"
+            ],
+            "ttype": "issign"
+        },
+        {
+            "token": "TOK_SIGN_ZWJV",
+            "enc": [
+                "\u200D\u094D"
+            ],
+            "ttype": "issign"
+        }	
+
+    ]
+}
