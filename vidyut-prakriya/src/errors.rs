@@ -74,7 +74,7 @@ impl Error {
         Error::MissingRequiredField(field)
     }
 
-    pub(crate) fn empty_upadesha(value: &str) -> Self {
+    pub(crate) fn invalid_upadesha(value: &str) -> Self {
         Error::EmptyUpadesha(value.to_string())
     }
 }

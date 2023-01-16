@@ -66,7 +66,7 @@ let data_dir = "path/to/your/vidyut-data";
 let config = Config::new(&data_dir);
 let chedaka = Chedaka::new(config)?;
 
-let words = chedaka.tokenize("Darmakzetre kurukzetre samavetA yuyutsavaH .");
+let words = chedaka.run("Darmakzetre kurukzetre samavetA yuyutsavaH .");
 for word in words {
     println!("{}:  {}, {:?}", word.text(), word.lemma(), word.info());
 }

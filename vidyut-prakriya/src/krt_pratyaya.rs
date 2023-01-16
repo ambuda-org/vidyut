@@ -65,16 +65,16 @@ use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref IK: SoundSet = s("ik");
-    static ref PU: SoundSet = s("pu~");
-    static ref HAL: SoundSet = s("hal");
+    static ref AC: Set = s("ac");
+    static ref IK: Set = s("ik");
+    static ref PU: Set = s("pu~");
+    static ref HAL: Set = s("hal");
 }
 
 impl Krt {

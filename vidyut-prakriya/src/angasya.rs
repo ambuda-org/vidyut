@@ -25,25 +25,25 @@ use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
 use crate::sounds as al;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::stem_gana;
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref DANTYA: SoundSet = s("tu~ v");
-    static ref OSHTHYA: SoundSet = s("pu~ v");
-    static ref FF: SoundSet = s("f");
-    static ref IK: SoundSet = s("ik");
-    static ref KU: SoundSet = s("ku~");
-    static ref HAL: SoundSet = s("hal");
-    static ref JHAL: SoundSet = s("Jal");
-    static ref YANY: SoundSet = s("yaY");
-    static ref ANUNASIKA: SoundSet = s("Yam");
-    static ref I_U: SoundSet = s("i u");
-    static ref PHA_DHA_KHA_CHA_GHA: SoundSet = s("P Q K C G");
+    static ref AC: Set = s("ac");
+    static ref DANTYA: Set = s("tu~ v");
+    static ref OSHTHYA: Set = s("pu~ v");
+    static ref FF: Set = s("f");
+    static ref IK: Set = s("ik");
+    static ref KU: Set = s("ku~");
+    static ref HAL: Set = s("hal");
+    static ref JHAL: Set = s("Jal");
+    static ref YANY: Set = s("yaY");
+    static ref ANUNASIKA: Set = s("Yam");
+    static ref I_U: Set = s("i u");
+    static ref PHA_DHA_KHA_CHA_GHA: Set = s("P Q K C G");
 }
 
 fn maybe_rule(p: &mut Prakriya, rule: Rule) -> Option<Rule> {

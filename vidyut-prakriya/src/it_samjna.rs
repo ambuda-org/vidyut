@@ -6,19 +6,19 @@
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
 use crate::errors::*;
 use crate::prakriya::Prakriya;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
     // FIXME: find a better approach for `s`.
-    static ref AC: SoundSet = s("ac");
-    static ref HAL: SoundSet = s("hal");
-    static ref TUSMA: SoundSet = s("tu~ s m");
-    static ref CUTU: SoundSet = s("cu~ wu~");
-    static ref CUTU_EXCEPTION: SoundSet = s("C J W Q");
-    static ref LASHAKU: SoundSet = s("l S ku~");
+    static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
+    static ref TUSMA: Set = s("tu~ s m");
+    static ref CUTU: Set = s("cu~ wu~");
+    static ref CUTU_EXCEPTION: Set = s("C J W Q");
+    static ref LASHAKU: Set = s("l S ku~");
 }
 
 fn get_adi(s: &CompactString) -> Option<char> {
@@ -107,7 +107,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
     let mut temp: CompactString = match &t.u {
         Some(s) => s.clone(),
         None => {
-            return Err(Error::empty_upadesha(&t.text));
+            return Err(Error::invalid_upadesha(&t.text));
         }
     };
 
@@ -131,11 +131,12 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
         Some(t) => t,
         None => return Ok(()),
     };
-    if t.is_empty() {
-        return Err(Error::empty_upadesha(&t.text));
-    }
 
-    let antya = t.antya().unwrap();
+    let antya = match t.antya() {
+        Some(x) => x,
+        None => return Err(Error::invalid_upadesha(&t.text)),
+    };
+
     if let Some(t) = p.get_mut(i) {
         if HAL.contains(antya) && !irit {
             let vibhaktau_tusmah = t.has_tag(T::Vibhakti) && TUSMA.contains(antya);
@@ -164,7 +165,11 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
         }
     }
 
-    let adi = get_adi(&temp).unwrap();
+    let adi = match get_adi(&temp) {
+        Some(x) => x,
+        None => return Err(Error::invalid_upadesha(&temp)),
+    };
+
     if let Some(t) = p.get_mut(i) {
         if t.has_tag(T::Pratyaya) {
             if adi == 'z' {
@@ -212,8 +217,8 @@ mod tests {
     fn check(t: Term) -> Term {
         let mut p = Prakriya::new();
         p.push(t);
-        run(&mut p, 0).unwrap();
-        p.get(0).unwrap().clone()
+        run(&mut p, 0).expect("test");
+        p.get(0).expect("test").clone()
     }
 
     #[test]

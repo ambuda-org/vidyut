@@ -117,11 +117,5 @@ wasm_dev:
 	wasm-pack build --target web
 
 # Builds a simple web debugger.
-debugger: wasm_dev
-	mkdir -p www/static/wasm && cp pkg/* www/static/wasm
-	mkdir -p www/static/data && cp data/* www/static/data
-	cd www \
-		&& python3 -m venv env \
-		&& . env/bin/activate \
-		&& pip3 install -r requirements.txt \
-		&& python app.py
+debugger:
+	./scripts/run-debugger.sh

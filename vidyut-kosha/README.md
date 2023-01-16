@@ -90,7 +90,9 @@ builder.insert("Bavati", &Pada::Tinanta(Tinanta {
     lakara: Lakara::Lat,
     pada: PadaPrayoga::Parasmaipada,
 }));
-let kosha = builder.into_kosha().unwrap();
+builder.finish().unwrap();
+
+let kosha = Kosha::new("output-dir");
 ```
 
 

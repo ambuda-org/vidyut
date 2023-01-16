@@ -23,15 +23,15 @@ use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref SHAL: SoundSet = s("Sal");
-    static ref IK: SoundSet = s("ik");
-    static ref IC: SoundSet = s("ic");
+    static ref SHAL: Set = s("Sal");
+    static ref IK: Set = s("ik");
+    static ref IC: Set = s("ic");
 }
 
 /// Returns a function that inserts the vikarana `v` after the dhatu.

@@ -89,7 +89,7 @@ pub struct Kosha {
 
 impl Kosha {
     /// Reads the kosha from the given `base_path`.
-    pub fn new(base_path: &Path) -> Result<Self> {
+    pub fn new(base_path: impl AsRef<Path>) -> Result<Self> {
         let paths = Paths::new(base_path);
 
         info!("Loading fst from `{:?}`", paths.fst());
@@ -279,17 +279,15 @@ impl Builder {
         Ok(())
     }
 
-    /// Writes all FST data to disk and returns a complete `Kosha`.
-    pub fn into_kosha(self) -> Result<Kosha> {
+    /// Writes all FST data to disk.
+    pub fn finish(self) -> Result<()> {
         info!("Writing FST and packer data to `{:?}`.", self.paths.base);
         self.fst_builder.finish()?;
+
         let unpacker = Unpacker::from_packer(&self.packer);
         unpacker.write(&self.paths.dhatus(), &self.paths.pratipadikas())?;
 
-        info!("Reading new FST from `{:?}`.", self.paths.base);
-        let fst_data = std::fs::read(self.paths.fst())?;
-        let fst = Map::new(fst_data)?;
-        Ok(Kosha { fst, unpacker })
+        Ok(())
     }
 }
 
@@ -314,7 +312,7 @@ mod tests {
     }
 
     #[test]
-    fn test_kosha() -> TestResult {
+    fn write_and_load() -> TestResult {
         let tin = Pada::Tinanta(Tinanta {
             dhatu: Dhatu("gam".to_string()),
             purusha: Purusha::Prathama,
@@ -349,7 +347,7 @@ mod tests {
         builder.insert("agnim", &sup)?;
         builder.insert("gacCati", &tin)?;
         builder.insert("gacCati", &krdanta)?;
-        builder.into_kosha()?;
+        builder.finish()?;
 
         // Constructor
         let lex = Kosha::new(dir.path())?;

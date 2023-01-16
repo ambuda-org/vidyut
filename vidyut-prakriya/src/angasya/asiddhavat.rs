@@ -18,7 +18,7 @@ use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
 use crate::term::TermView;
@@ -26,15 +26,15 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     // The name has two Is for readability.
-    static ref LAGHU: SoundSet = SoundSet::from("aiufx");
-    static ref II: SoundSet = s("i");
-    static ref UU: SoundSet = s("u");
-    static ref I_U: SoundSet = s("i u");
-    static ref AC: SoundSet = s("ac");
-    static ref HAL: SoundSet = s("hal");
-    static ref JHAL: SoundSet = s("Jal");
-    static ref MAHAPRANA: SoundSet = s("K G C J W Q T D P B");
-    static ref ANUNASIKA: SoundSet = s("N Y R n m M");
+    static ref LAGHU: Set = Set::from("aiufx");
+    static ref II: Set = s("i");
+    static ref UU: Set = s("u");
+    static ref I_U: Set = s("i u");
+    static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
+    static ref JHAL: Set = s("Jal");
+    static ref MAHAPRANA: Set = s("K G C J W Q T D P B");
+    static ref ANUNASIKA: Set = s("N Y R n m M");
 }
 
 fn is_knit(n: &TermView) -> bool {
@@ -632,11 +632,11 @@ fn try_add_a_agama(p: &mut Prakriya) -> Option<()> {
     if p.has(i_start, |t| t.has_adi(&*AC)) {
         op::insert_agama_before(p, i_start, "Aw");
         p.step("6.4.72");
-        it_samjna::run(p, i_start).unwrap();
+        it_samjna::run(p, i_start).expect("ok");
     } else {
         op::insert_agama_before(p, i_start, "aw");
         p.step("6.4.71");
-        it_samjna::run(p, i_start).unwrap();
+        it_samjna::run(p, i_start).expect("ok");
     }
 
     Some(())

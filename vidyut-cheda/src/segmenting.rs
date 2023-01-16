@@ -96,7 +96,7 @@ impl Chedaka {
     /// Segments the given text.
     ///
     /// `raw_text` should be an SLP1 string.
-    pub fn tokenize(&self, raw_text: &str) -> Vec<Token> {
+    pub fn run(&self, raw_text: &str) -> Vec<Token> {
         segment(raw_text, self).expect("Is OK")
     }
 }

@@ -2,28 +2,28 @@ use crate::char_view::{char_at, char_rule, get_at, set_at, xy, xyz};
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
-use crate::sounds::{map, s, SoundMap, SoundSet};
+use crate::sounds::{map, s, Map, Set};
 use crate::tag::Tag as T;
 use crate::tripadi::utils::xy_rule;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AT_KU_PU_M: SoundSet = s("aw ku~ pu~ M");
-    static ref AA: SoundSet = s("a");
-    static ref AN: SoundSet = s("aR");
-    static ref YAN: SoundSet = s("yaR");
-    static ref CU: SoundSet = s("cu~");
-    static ref JHAL: SoundSet = s("Jal");
-    static ref JHAR: SoundSet = s("Jar");
-    static ref JHASH: SoundSet = s("JaS");
-    static ref KHAR: SoundSet = s("Kar");
-    static ref YAM: SoundSet = s("yam");
-    static ref JHAL_TO_CAR: SoundMap = map("Jal", "car");
-    static ref JHAL_TO_JASH: SoundMap = map("Jal", "jaS");
-    static ref JHAL_TO_JASH_CAR: SoundMap = map("Jal", "jaS car");
-    static ref IK: SoundSet = s("ik");
-    static ref YAY: SoundSet = s("yay");
-    static ref HAL: SoundSet = s("hal");
+    static ref AT_KU_PU_M: Set = s("aw ku~ pu~ M");
+    static ref AA: Set = s("a");
+    static ref AN: Set = s("aR");
+    static ref YAN: Set = s("yaR");
+    static ref CU: Set = s("cu~");
+    static ref JHAL: Set = s("Jal");
+    static ref JHAR: Set = s("Jar");
+    static ref JHASH: Set = s("JaS");
+    static ref KHAR: Set = s("Kar");
+    static ref YAM: Set = s("yam");
+    static ref JHAL_TO_CAR: Map = map("Jal", "car");
+    static ref JHAL_TO_JASH: Map = map("Jal", "jaS");
+    static ref JHAL_TO_JASH_CAR: Map = map("Jal", "jaS car");
+    static ref IK: Set = s("ik");
+    static ref YAY: Set = s("yay");
+    static ref HAL: Set = s("hal");
 }
 
 fn allows_natva(text: &str, i: usize) -> bool {
@@ -106,10 +106,10 @@ fn stu_to_swu(c: char) -> Option<&'static str> {
 
 fn try_change_stu_to_parasavarna(p: &mut Prakriya) {
     lazy_static! {
-        static ref SCU: SoundSet = s("S cu~");
-        static ref SWU: SoundSet = s("z wu~");
-        static ref STU: SoundSet = s("s tu~");
-        static ref TU: SoundSet = s("tu~");
+        static ref SCU: Set = s("S cu~");
+        static ref SWU: Set = s("z wu~");
+        static ref STU: Set = s("s tu~");
+        static ref TU: Set = s("tu~");
     };
     char_rule(
         p,

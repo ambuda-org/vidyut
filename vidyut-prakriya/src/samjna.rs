@@ -1,12 +1,12 @@
 use crate::operators as op;
 use crate::prakriya::Prakriya;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::stem_gana::{PRATHAMA_ADI, PURVA_ADI, SARVA_ADI, USES_DATARA_DATAMA};
 use crate::tag::Tag as T;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
+    static ref AC: Set = s("ac");
 }
 
 fn try_run_for_pratipadika(p: &mut Prakriya) -> Option<()> {

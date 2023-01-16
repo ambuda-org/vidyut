@@ -2,16 +2,16 @@ use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
-use crate::sounds::{s, SoundSet};
+use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::{Term, TermView};
 use lazy_static::lazy_static;
 
 lazy_static! {
-    static ref AC: SoundSet = s("ac");
-    static ref HRASVA: SoundSet = SoundSet::from("aiufx");
-    static ref IK: SoundSet = s("ik");
-    static ref HAL: SoundSet = s("hal");
+    static ref AC: Set = s("ac");
+    static ref HRASVA: Set = Set::from("aiufx");
+    static ref IK: Set = s("ik");
+    static ref HAL: Set = s("hal");
 }
 
 fn op_antya_guna(t: &mut Term) {

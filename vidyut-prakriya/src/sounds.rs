@@ -4,11 +4,11 @@ Functions and classes for processing Sanskrit sounds.
 
 Main structs and functions
 --------------------------
-The main data structures are `SoundSet`, which checks whether a sound is a member of some set, and
-`SoundMap`, which is a simple key-value map from sound to sound.
+The main data structures are `Set`, which checks whether a sound is a member of some set, and
+`Map`, which is a simple key-value map from sound to sound.
 
-The `s` function creates a `SoundSet` according to Paninian notation, and the `map_sounds` creates
-a `SoundMap` between two sets of sounds based on their phonetic similarity. For details, see the
+The `s` function creates a `Set` according to Paninian notation, and the `map_sounds` creates
+a `Map` between two sets of sounds based on their phonetic similarity. For details, see the
 comments on those functions.
 
 We also expose a `Pattern` trait for APIs that wish to match against one or more sounds.
@@ -43,20 +43,20 @@ type Sound = char;
 lazy_static! {
     static ref SUTRAS: Vec<Sutra> = create_shiva_sutras();
     static ref SOUND_PROPS: HashMap<Sound, Uccarana> = create_sound_props();
-    static ref AC: SoundSet = s("ac");
-    static ref HAL: SoundSet = s("hal");
+    static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
 }
 
 /// A set of Sanskrit sounds.
 ///
-/// Internally, a `SoundSet` is just a 256-byte array where `array[i]` is 1 if the char with `u8`
+/// Internally, a `Set` is just a 256-byte array where `array[i]` is 1 if the char with `u8`
 /// value `i` is present in the set and 0 otherwise.
-pub struct SoundSet([u8; 256]);
+pub struct Set([u8; 256]);
 
-impl SoundSet {
+impl Set {
     /// Creates an empty set.
     pub fn new() -> Self {
-        SoundSet([0; 256])
+        Set([0; 256])
     }
 
     /// Creates a set whose members are the characters in `string`.
@@ -74,7 +74,7 @@ impl SoundSet {
     }
 }
 
-impl fmt::Display for SoundSet {
+impl fmt::Display for Set {
     /// Returns all chars in the given set in the traditional Sanskrit order.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut ret = String::new();
@@ -87,7 +87,7 @@ impl fmt::Display for SoundSet {
     }
 }
 
-impl Default for SoundSet {
+impl Default for Set {
     fn default() -> Self {
         Self::new()
     }
@@ -95,13 +95,13 @@ impl Default for SoundSet {
 
 /// Maps one Sanskrit sound to another.
 ///
-/// Internally, a `SoundSet` is just a 256-byte array where `array[key]` is `value` if the value is
+/// Internally, a `Set` is just a 256-byte array where `array[key]` is `value` if the value is
 /// present or `0` otherwise. All sounds are represented as `char`s, which we cast internally to
 /// `u8`.
 #[derive(Debug, PartialEq, Eq)]
-pub struct SoundMap([u8; 256]);
+pub struct Map([u8; 256]);
 
-impl SoundMap {
+impl Map {
     /// Creates an empty map.
     pub fn new() -> Self {
         Self([0; 256])
@@ -127,7 +127,7 @@ impl SoundMap {
     }
 }
 
-impl Default for SoundMap {
+impl Default for Map {
     fn default() -> Self {
         Self::new()
     }
@@ -148,13 +148,13 @@ impl Pattern for Sound {
     }
 }
 
-impl Pattern for SoundSet {
+impl Pattern for Set {
     fn matches(&self, s: Sound) -> bool {
         self.contains(s)
     }
 }
 
-impl Pattern for &SoundSet {
+impl Pattern for &Set {
     fn matches(&self, s: Sound) -> bool {
         self.contains(s)
     }
@@ -194,7 +194,7 @@ fn create_shiva_sutras() -> Vec<Sutra> {
 }
 
 fn create_sound_props() -> HashMap<Sound, Uccarana> {
-    fn flatten_multi<T: Copy>(data: Vec<(SoundSet, T)>) -> HashMap<Sound, Vec<T>> {
+    fn flatten_multi<T: Copy>(data: Vec<(Set, T)>) -> HashMap<Sound, Vec<T>> {
         let mut mapping = HashMap::default();
         for (ks, v) in data {
             for k in ks.to_string().chars() {
@@ -204,7 +204,7 @@ fn create_sound_props() -> HashMap<Sound, Uccarana> {
         mapping
     }
 
-    fn flatten<T: Copy>(data: Vec<(SoundSet, T)>) -> HashMap<Sound, T> {
+    fn flatten<T: Copy>(data: Vec<(Set, T)>) -> HashMap<Sound, T> {
         let mut mapping = HashMap::default();
         for (ks, v) in data {
             for k in ks.to_string().chars() {
@@ -380,7 +380,7 @@ pub fn to_dirgha(s: Sound) -> Option<Sound> {
 /// Since the it letter `R` is duplicated, we disambiguate as follows:
 /// - `R` refers to the first `R`.
 /// - `R2` refers to the second `R`.
-fn pratyahara(s: &str) -> SoundSet {
+fn pratyahara(s: &str) -> Set {
     let first = s.as_bytes()[0] as char;
 
     let use_second_n = s.ends_with("R2");
@@ -420,10 +420,10 @@ fn pratyahara(s: &str) -> SoundSet {
     }
 
     assert!(!res.is_empty(), "Could not parse pratyahara `{s}`");
-    SoundSet::from(&res)
+    Set::from(&res)
 }
 
-pub fn s(terms: &str) -> SoundSet {
+pub fn s(terms: &str) -> Set {
     let mut ret = String::new();
     let ak = ["a", "A", "i", "I", "u", "U", "f", "F", "x", "X"];
 
@@ -438,7 +438,7 @@ pub fn s(terms: &str) -> SoundSet {
         }
     }
 
-    SoundSet::from(&ret)
+    Set::from(&ret)
 }
 
 /// Models the point of articulation of a Sanskrit sound.
@@ -533,25 +533,30 @@ pub fn is_savarna(x: Sound, y: Sound) -> bool {
 }
 
 /// Creates a `savarna` set for teh given sound.
-pub fn savarna(c: Sound) -> SoundSet {
-    SoundSet::from(savarna_str(c))
+pub fn savarna(c: Sound) -> Set {
+    Set::from(savarna_str(c))
 }
 
 /// Maps the sounds in `keys` to the sounds is `values` according to their phonetic similarity.
-pub fn map(keys: &str, values: &str) -> SoundMap {
+pub(crate) fn map(keys: &str, values: &str) -> Map {
     let keys = s(keys);
     let values = s(values);
 
-    let mut map = SoundMap::new();
+    let mut map = Map::new();
     for key in keys.to_string().chars() {
-        let key_props = SOUND_PROPS.get(&key).unwrap();
+        let key_props = SOUND_PROPS.get(&key).expect("called statically");
 
         // The best sound has the minimal distance.
         let best_value = values
             .to_string()
             .chars()
-            .min_by_key(|v| SOUND_PROPS.get(v).unwrap().distance(key_props))
-            .unwrap();
+            .min_by_key(|v| {
+                SOUND_PROPS
+                    .get(v)
+                    .expect("called statically")
+                    .distance(key_props)
+            })
+            .expect("called statically");
         map.insert(key, best_value);
     }
 
@@ -614,7 +619,7 @@ mod tests {
             ('s', 'd'),
             ('h', 'g'),
         ];
-        let mut expected = SoundMap::new();
+        let mut expected = Map::new();
         for (k, v) in expected_vec {
             expected.insert(k, v);
         }
@@ -632,7 +637,7 @@ mod tests {
             ('N', 'Y'),
             ('h', 'J'),
         ];
-        let mut expected = SoundMap::new();
+        let mut expected = Map::new();
         for (k, v) in expected_vec {
             expected.insert(k, v);
         }
