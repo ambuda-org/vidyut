@@ -106,7 +106,7 @@
       <label>{{ 'prayogaH'|d }}</label>
       <select x-model="prayoga" class="p-2 bg-white rounded border">
         <option :value="Prayoga.Kartari" x-text="deva('kartari')"></option>
-        <option :value="Prayoga.Karmani" x-text="deva('karmaNi')"></option>
+        <option :value="Prayoga.Karmani" x-text="deva('karmaRi')"></option>
       </select>
 
       <label>{{ 'sanAdi'|d }}</label>
@@ -210,7 +210,7 @@
                 <a href="#"
                    class="block hover:underline"
                    x-text="deva(pada.text || '-')"
-                   @click.prevent="setActivePada(pada)"></div>
+                   @click.prevent="setActivePada(pada)"></a>
               </template>
             </td>
           </tr>
@@ -228,7 +228,7 @@
 <div x-show="!activeDhatu">
 
   <input type="text" x-model="dhatuFilter" class="w-full border p-1 my-2"
-    placeholder="Type query (भू, bhU, etc.)"></input>
+    placeholder="Type query (भू, bhU, etc.)"/>
 
   <ol>
     <template x-for="d in filteredDhatus()">
@@ -241,7 +241,7 @@
       </li>
     </template>
   </ol>
-</ol>
+</div>
 {% endmacro %}
 
 
