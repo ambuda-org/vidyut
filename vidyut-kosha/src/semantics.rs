@@ -282,9 +282,9 @@ pub enum Lakara {
     /// *laṅ-lakāra* (imperfect).
     Lan,
     /// *liṅ-lakāra* in the sense of benediction (benedictive).
-    LinAshih,
+    AshirLin,
     /// *liṅ-lakāra* in the sense of a rule or injunction (optative).
-    LinVidhi,
+    VidhiLin,
     /// *luṅ-lakāra* (aorist).
     Lun,
     /// *luṅ-lakāra* without its *a-* prefix (injunctive).
@@ -305,8 +305,8 @@ impl Lakara {
             Lakara::Let => "let",
             Lakara::Lot => "lot",
             Lakara::Lan => "lan",
-            Lakara::LinVidhi => "lin-vidhi",
-            Lakara::LinAshih => "lin-ashih",
+            Lakara::VidhiLin => "vidhi-lin",
+            Lakara::AshirLin => "ashir-lin",
             Lakara::Lun => "lun",
             Lakara::LunNoAgama => "lun-no-agama",
             Lakara::Lrn => "lrn",
@@ -326,11 +326,16 @@ impl FromStr for Lakara {
             "let" => Lakara::Let,
             "lot" => Lakara::Lot,
             "lan" => Lakara::Lan,
-            "lin-vidhi" => Lakara::LinVidhi,
-            "lin-ashih" => Lakara::LinAshih,
+            "vidhi-lin" => Lakara::VidhiLin,
+            "ashir-lin" => Lakara::AshirLin,
             "lun" => Lakara::Lun,
             "lun-no-agama" => Lakara::LunNoAgama,
             "lrn" => Lakara::Lrn,
+
+            // Legacy format
+            "lin-vidhi" => Lakara::VidhiLin,
+            "lin-ashih" => Lakara::AshirLin,
+
             _ => return Err(Error::EnumParse("Lakara", s.to_string())),
         };
         Ok(val)
@@ -499,6 +504,13 @@ impl Display for PadaPrayoga {
 /// Models the semantics of a *dhātu* (verb root).
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Dhatu(pub String);
+
+impl Dhatu {
+    /// The text of this dhatu.
+    pub fn text(&self) -> &String {
+        &self.0
+    }
+}
 
 /// Models the semantics of a *prātipadika*.
 ///
@@ -795,7 +807,7 @@ mod tests {
     fn test_lakara_serde() -> TestResult {
         use Lakara::*;
         for val in [
-            Lat, Lit, Lut, Lrt, Let, Lot, Lan, LinVidhi, LinAshih, Lun, Lrn,
+            Lat, Lit, Lut, Lrt, Let, Lot, Lan, VidhiLin, AshirLin, Lun, Lrn,
         ] {
             assert_eq!(val, val.as_str().parse()?);
         }
@@ -821,6 +833,12 @@ mod tests {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
+    }
+
+    #[test]
+    fn test_dhatu() {
+        let d = Dhatu("BU".to_string());
+        assert_eq!(d.text(), "BU");
     }
 
     #[test]

@@ -294,7 +294,7 @@ fn parse_lakara(f: &TokenFeatures) -> Result<Lakara> {
         ("Aor", "Ind") => Lakara::Lun,
         ("Aor", "Imp") => Lakara::None,
         ("Aor", "Jus") => Lakara::LunNoAgama,
-        ("Aor", "Prec") => Lakara::LinAshih,
+        ("Aor", "Prec") => Lakara::AshirLin,
         ("Fut", "Cond") => Lakara::Lrn,
         ("Fut", "Ind") => Lakara::Lrt,
         ("Impf", "Ind") => Lakara::Lan,
@@ -303,7 +303,7 @@ fn parse_lakara(f: &TokenFeatures) -> Result<Lakara> {
         ("Pres", "Imp") => Lakara::Lot,
         ("Pres", "Ind") => Lakara::Lat,
         ("Pres", "Jus") => Lakara::None,
-        ("Pres", "Opt") => Lakara::LinVidhi,
+        ("Pres", "Opt") => Lakara::VidhiLin,
         ("Pres", "Sub") => Lakara::Lot,
         (&_, &_) => Lakara::None,
     };

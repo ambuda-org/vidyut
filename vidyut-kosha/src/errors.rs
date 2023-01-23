@@ -6,6 +6,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// Models all of the errors this crate might produce.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     /// An IO error.
     Io(io::Error),
