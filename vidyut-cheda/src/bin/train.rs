@@ -81,12 +81,12 @@ fn process_sentence(sentence: &[Token], s: &mut Statistics) {
             .emissions
             .entry(cur_state)
             .or_insert_with(HashMap::new)
-            .entry(to_slp1(&lemma))
+            .entry(to_slp1(lemma))
             .or_insert(0);
         *c += 1;
 
         let tag = word.info.part_of_speech_tag();
-        let c = s.lemma_counts.entry((lemma, tag)).or_insert(0);
+        let c = s.lemma_counts.entry((lemma.to_string(), tag)).or_insert(0);
         *c += 1;
 
         prev_state = cur_state;

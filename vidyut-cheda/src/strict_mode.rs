@@ -1,17 +1,22 @@
 //! Heuristics for validating segmented candidates.
 
-use crate::segmenting::Phrase;
+use crate::segmenting::{Phrase, TokenPool};
 use crate::sounds;
 use vidyut_kosha::semantics::*;
 /// Simple hand-coded rules to avoid overgenerating.
 use vidyut_sandhi::Split;
 
 /// Returns whether the given word semantics are invalid for the current solution.
-pub fn is_valid_word(cur: &Phrase, split: &Split, semantics: &Pada) -> bool {
+pub(crate) fn is_valid_word(
+    cur: &Phrase,
+    pool: &TokenPool,
+    split: &Split,
+    semantics: &Pada,
+) -> bool {
     if let Pada::Subanta(s) = &semantics {
         if_purvapada_then_not_chunk_end(split, s)
             && if_ac_pada_then_not_hal(split, s.is_purvapada)
-            && if_not_in_compound_then_linga_match(cur, s)
+            && if_not_in_compound_then_linga_match(cur, pool, s)
     } else if let Pada::Tinanta(_) = &semantics {
         if_ac_pada_then_not_hal(split, false)
     } else {
@@ -45,11 +50,14 @@ fn if_ac_pada_then_not_hal(split: &Split, is_purvapada: bool) -> bool {
 
 // Require that subantas use the endings that match their declared linga.
 // Exception: words in a compound, since these might be bahuvrihi compounds.
-fn if_not_in_compound_then_linga_match(cur: &Phrase, s: &Subanta) -> bool {
-    let in_compound = match cur.words.last() {
-        Some(word) => match &word.info {
-            Pada::Subanta(s) => s.is_purvapada,
-            _ => false,
+fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Subanta) -> bool {
+    let in_compound = match cur.tokens.last() {
+        Some(i) => match pool.get(*i) {
+            Some(t) => match &t.info {
+                Pada::Subanta(s) => s.is_purvapada,
+                _ => false,
+            },
+            None => false,
         },
         None => false,
     };
@@ -68,6 +76,8 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, s: &Subanta) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Token;
+    use compact_str::CompactString;
     use vidyut_sandhi::{Kind, Location};
 
     #[test]
@@ -79,14 +89,19 @@ mod tests {
             Location::EndOfChunk,
             Kind::Prefix,
         );
-        let semantics = Pada::Avyaya(Avyaya {
+        let info = Pada::Avyaya(Avyaya {
             pratipadika: Pratipadika::Basic {
                 text: "grAma".to_string(),
                 lingas: Vec::new(),
             },
         });
 
-        assert!(is_valid_word(&cur, &split, &semantics));
+        let mut token_pool = TokenPool::new();
+        token_pool.insert(Token {
+            text: CompactString::from("tatra"),
+            info: info.clone(),
+        });
+        assert!(is_valid_word(&cur, &token_pool, &split, &info));
     }
 
     #[test]
@@ -98,7 +113,7 @@ mod tests {
             Location::WithinChunk,
             Kind::Prefix,
         );
-        let semantics = Pada::Subanta(Subanta {
+        let info = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Basic {
                 text: "grAma".to_string(),
                 lingas: vec![Linga::Pum],
@@ -109,6 +124,11 @@ mod tests {
             is_purvapada: false,
         });
 
-        assert!(!is_valid_word(&cur, &split, &semantics));
+        let mut token_pool = TokenPool::new();
+        token_pool.insert(Token {
+            text: CompactString::from("grAme"),
+            info: info.clone(),
+        });
+        assert!(!is_valid_word(&cur, &token_pool, &split, &info));
     }
 }

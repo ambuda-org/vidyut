@@ -14,10 +14,12 @@ with the common changes that occur between two words.
 */
 
 use crate::errors::Result;
+use std::collections::hash_map::Keys;
 use crate::sounds;
 use crate::sounds::Set;
+use rustc_hash::FxHashMap;
 use lazy_static::lazy_static;
-use multimap::MultiMap;
+use compact_str::CompactString;
 use std::cmp;
 use std::path::Path;
 
@@ -43,7 +45,7 @@ pub enum Location {
 /// Models a sandhi split.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Split {
-    first: String,
+    first: CompactString,
     second: String,
     location: Location,
     kind: Kind,
@@ -53,19 +55,19 @@ impl Split {
     /// Creates a new split.
     pub fn new(first: String, second: String, location: Location, kind: Kind) -> Self {
         Self {
-            first,
+            first: CompactString::from(first),
             second,
             location,
             kind,
         }
     }
     /// The first half of the split.
-    pub fn first(&self) -> &String {
+    pub fn first(&self) -> &str {
         &self.first
     }
 
     /// The second half of the split.
-    pub fn second(&self) -> &String {
+    pub fn second(&self) -> &str {
         &self.second
     }
 
@@ -97,11 +99,37 @@ impl Split {
 }
 
 /// Maps a combination to the two strings (first, second) that created it.
-pub type SplitsMap = MultiMap<String, (String, String)>;
+#[derive(Default, Debug)]
+pub struct SplitsMap(FxHashMap<String, Vec<(String, String)>>);
+
+impl SplitsMap {
+    /// Creates an empty `SplitsMap`.
+    pub fn new() -> Self {
+        SplitsMap(FxHashMap::default())
+    }
+
+    /// Inserts the given (`key`, `value`) rule.
+    pub fn insert(&mut self, key: String, value: (String, String)) {
+        if !self.0.contains_key(&key) {
+            self.0.insert(key.to_string(), vec![]);
+        }
+        self.0.get_mut(&key).expect("present").push(value);
+    }
+
+    /// Returns an iterator over all keys in the map.
+    pub fn keys(&self) -> Keys<'_, String, Vec<(String, String)>> {
+        self.0.keys()
+    }
+
+    /// Returns all available splits for the given `key`.
+    pub fn get_vec(&self, key: &str) -> Option<&Vec<(String, String)>> {
+        self.0.get(key)
+    }
+}
 
 /// Splits Sanskrit words and expressions according to the specified rules.
 pub struct Splitter {
-    map: MultiMap<String, (String, String)>,
+    map: SplitsMap,
     len_longest_key: usize,
 }
 
@@ -183,7 +211,7 @@ impl Splitter {
         // 1, `input[..j]` will likewise not be in the tree. This principle does not apply for
         // "normal" sandhi splits.
         res.push(Split {
-            first: input[..i + 1].to_string(),
+            first: CompactString::from(&input[..i + 1]),
             // Trim leading whitespace on the remainder for consistency later on.
             second: input[i + 1..].trim_start().to_string(),
             // We are at the end of a chunk if and only if the next sound is not a Sanskrit sound
@@ -201,7 +229,7 @@ impl Splitter {
         if first == "sa" || first == "eza" {
             let second = input[i + 1..].trim_start().to_string();
             res.push(Split {
-                first: first.to_string() + "s",
+                first: CompactString::from(first) + "s",
                 second,
                 location: Location::EndOfChunk,
                 kind: Kind::Standard,
@@ -236,7 +264,7 @@ impl Splitter {
 
             if let Some(pairs) = self.map.get_vec(combination) {
                 for (f, s) in pairs {
-                    let first = String::from(&input[0..i]) + f;
+                    let first = CompactString::from(&input[0..i]) + f;
                     let mut second = String::from(s) + &input[j..];
 
                     // Trim leading whitespace since it might still be present in the remaining
@@ -272,15 +300,15 @@ impl Splitter {
 }
 
 /// Hackily converts a word ending with a visarga to end with an `s`.
-fn visarga_to_s(s: &str) -> String {
+fn visarga_to_s(s: &str) -> CompactString {
     let n = s.len();
-    String::from(&s[0..n - 1]) + "s"
+    CompactString::from(&s[0..n - 1]) + "s"
 }
 
 /// Hackily converts a word ending with a visarga to end with an `r`.
-fn visarga_to_r(s: &str) -> String {
+fn visarga_to_r(s: &str) -> CompactString {
     let n = s.len();
-    String::from(&s[0..n - 1]) + "r"
+    CompactString::from(&s[0..n - 1]) + "r"
 }
 
 /// Returns whether the first item in a sandhi split is OK according to some basic heuristics.
@@ -329,13 +357,12 @@ fn is_good_second(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use multimap::multimap;
 
     fn splits(items: Vec<(&str, &str, Location, Kind)>) -> Vec<Split> {
         items
             .iter()
             .map(|(f, s, location, kind)| Split {
-                first: f.to_string(),
+                first: CompactString::from(*f),
                 second: s.to_string(),
                 location: *location,
                 kind: *kind,
@@ -350,12 +377,12 @@ mod tests {
 
     #[test]
     fn test_split_at_start_of_chunk() {
-        let rules = multimap![
-            "ar".to_string() => ("a".to_string(), "f".to_string()),
-            "ar".to_string() => ("a".to_string(), "F".to_string()),
-            "ar".to_string() => ("A".to_string(), "f".to_string()),
-            "ar".to_string() => ("A".to_string(), "F".to_string()),
-        ];
+        let mut rules = SplitsMap::new();
+        rules.insert("ar".to_string(), ("a".to_string(), "f".to_string()));
+        rules.insert("ar".to_string(), ("a".to_string(), "F".to_string()));
+        rules.insert("ar".to_string(), ("A".to_string(), "f".to_string()));
+        rules.insert("ar".to_string(), ("A".to_string(), "F".to_string()));
+
         let sandhi = Splitter {
             map: rules,
             len_longest_key: 2,
@@ -374,12 +401,12 @@ mod tests {
 
     #[test]
     fn test_split_at_middle_of_chunk() {
-        let rules = multimap![
-            "e".to_string() => ("a".to_string(), "i".to_string()),
-            "e".to_string() => ("a".to_string(), "I".to_string()),
-            "e".to_string() => ("A".to_string(), "i".to_string()),
-            "e".to_string() => ("A".to_string(), "I".to_string()),
-        ];
+        let mut rules = SplitsMap::new();
+        rules.insert("e".to_string(), ("a".to_string(), "i".to_string()));
+        rules.insert("e".to_string(), ("a".to_string(), "I".to_string()));
+        rules.insert("e".to_string(), ("A".to_string(), "i".to_string()));
+        rules.insert("e".to_string(), ("A".to_string(), "I".to_string()));
+
         let sandhi = Splitter {
             map: rules,
             len_longest_key: 1,
@@ -398,9 +425,9 @@ mod tests {
 
     #[test]
     fn test_split_at_end_of_chunk_trims_whitespace() {
-        let rules = multimap![
-            "o".to_string() => ("a".to_string(), "u".to_string()),
-        ];
+        let mut rules = SplitsMap::new();
+        rules.insert("o".to_string(), ("a".to_string(), "u".to_string()));
+
         let sandhi = Splitter {
             map: rules,
             len_longest_key: 1,
@@ -413,9 +440,9 @@ mod tests {
 
     #[test]
     fn test_split_at_end_of_input() {
-        let rules = multimap![
-            "e".to_string() => ("a".to_string(), "i".to_string()),
-        ];
+        let mut rules = SplitsMap::new();
+        rules.insert("e".to_string(), ("a".to_string(), "i".to_string()));
+
         let sandhi = Splitter {
             map: rules,
             len_longest_key: 1,

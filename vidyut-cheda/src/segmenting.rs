@@ -1,5 +1,5 @@
 //! Segments Sanskrit phrases into separate words with their morphological analysis.
-use log::{debug, log_enabled, Level};
+// use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
 
@@ -9,6 +9,7 @@ use crate::normalize_text::normalize;
 use crate::scoring::Model;
 use crate::sounds;
 use crate::strict_mode;
+use compact_str::CompactString;
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
 use vidyut_sandhi::{Split, Splitter};
@@ -17,14 +18,14 @@ use vidyut_sandhi::{Split, Splitter};
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Token {
     /// The underlying text of the given word.
-    pub text: String,
+    pub text: CompactString,
     /// The data associated with this word.
     pub info: Pada,
 }
 
 impl Token {
     /// The plain text of this word.
-    pub fn text(&self) -> &String {
+    pub fn text(&self) -> &CompactString {
         &self.text
     }
 
@@ -34,8 +35,32 @@ impl Token {
     }
 
     /// The word's root/stem.
-    pub fn lemma(&self) -> String {
+    pub fn lemma(&self) -> &str {
         self.info.lemma()
+    }
+}
+
+/// A small cache that stores all tokens seen during a segmentation.
+#[derive(Debug, Default)]
+pub(crate) struct TokenPool {
+    tokens: Vec<Token>,
+}
+
+impl TokenPool {
+    /// Creates a new pool.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Inserts the given token into the pool and returns its index.
+    pub fn insert(&mut self, token: Token) -> usize {
+        self.tokens.push(token);
+        self.tokens.len() - 1
+    }
+
+    /// Returns the token corresponding to the given index, if one exists.
+    pub fn get(&self, index: usize) -> Option<&Token> {
+        self.tokens.get(index)
     }
 }
 
@@ -43,7 +68,7 @@ impl Token {
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Phrase {
     /// The words that we've recognized so far.
-    pub words: Vec<Token>,
+    pub tokens: Vec<usize>,
     /// The text we still need to process.
     pub remaining: String,
     /// The score associated with this in-progress solution.
@@ -54,7 +79,7 @@ impl Phrase {
     /// Create a new state.
     pub const fn new(text: String) -> Self {
         Self {
-            words: Vec::new(),
+            tokens: Vec::new(),
             remaining: text,
             // log_10(1) = 0
             score: 0,
@@ -128,10 +153,11 @@ fn analyze_pada(
     Ok(())
 }
 
+/*
 #[allow(dead_code)]
 fn debug_print_phrase(p: &Phrase) {
     if log_enabled!(Level::Debug) {
-        for word in &p.words {
+        for word in &p.tokens {
             debug!("- {} {:?}", word.text, word.info);
         }
         debug!("score={}", p.score);
@@ -148,7 +174,7 @@ fn debug_print_stack(pq: &PriorityQueue<Phrase, i32>) {
         words.sort_by(|x, y| y.1.cmp(x.1));
 
         for (i, (s, score)) in words.iter().enumerate() {
-            let words: Vec<String> = s.words.iter().map(|x| x.text.clone()).collect();
+            let words: Vec<String> = s.tokens.iter().map(|x| x.text.to_string()).collect();
             debug!("{}: \"{:?}\" + \"{}\" ({})", i, words, s.remaining, score);
         }
         debug!("-------------------");
@@ -161,13 +187,14 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, Phrase>>) {
         debug!("Viterbi:");
         for (key1, entries) in v.iter() {
             for (key2, state) in entries.iter() {
-                let words: Vec<String> = state.words.iter().map(|x| x.text.clone()).collect();
+                let words: Vec<String> = state.tokens.iter().map(|x| x.text.to_string()).collect();
                 debug!("(`{}`, {}) -> {:?} : {}", key1, key2, words, state.score);
             }
         }
         debug!("-------------------");
     }
 }
+*/
 
 /// Segments the given text.
 ///
@@ -181,6 +208,8 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();
 
+    let mut token_pool = TokenPool::new();
+
     // viterbi_cache[remainder][state] = the best result that ends with $state and has $remainder
     // text remaining in the input.
     let mut viterbi_cache: HashMap<String, HashMap<String, Phrase>> = HashMap::new();
@@ -190,7 +219,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
     pq.push(initial_state, score);
 
     while !pq.is_empty() {
-        debug_print_stack(&pq);
+        // debug_print_stack(&pq);
         // debug_print_viterbi(&viterbi_cache);
 
         // Pop the best solution remaining.
@@ -223,33 +252,35 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
             let mut new = match cur.remaining.split_once(' ') {
                 Some((first, second)) => {
                     let mut new = Phrase {
-                        words: cur.words.clone(),
+                        tokens: cur.tokens.clone(),
                         remaining: second.to_string(),
                         // HACK: this is buggy -- scoring based on cur score set here?
                         score: cur_score,
                     };
-                    new.words.push(Token {
-                        text: first.to_string(),
+                    let i = token_pool.insert(Token {
+                        text: CompactString::from(first),
                         info: Pada::None,
                     });
+                    new.tokens.push(i);
                     new
                 }
                 None => {
                     let mut new = Phrase {
-                        words: cur.words.clone(),
+                        tokens: cur.tokens.clone(),
                         remaining: "".to_string(),
                         // HACK: this is buggy -- scoring based on cur score set here?
                         score: cur_score,
                     };
-                    new.words.push(Token {
-                        text: cur.remaining.to_string(),
+                    let i = token_pool.insert(Token {
+                        text: CompactString::from(cur.remaining),
                         info: Pada::None,
                     });
+                    new.tokens.push(i);
                     new
                 }
             };
 
-            new.score = ctx.model.score(&new);
+            new.score = ctx.model.score(&new, &token_pool);
             viterbi_cache
                 .entry(new.remaining.clone())
                 .or_insert_with(HashMap::new)
@@ -273,21 +304,22 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
             analyze_pada(first, &split, ctx, &mut word_cache)?;
 
             for semantics in word_cache.get(first).unwrap_or(&no_results) {
-                if !strict_mode::is_valid_word(&cur, &split, semantics) {
+                if !strict_mode::is_valid_word(&cur, &token_pool, &split, semantics) {
                     continue;
                 }
 
                 let mut new = Phrase {
-                    words: cur.words.clone(),
+                    tokens: cur.tokens.clone(),
                     remaining: second.to_string(),
                     // HACK: this is buggy -- scoring based on cur score set here?
                     score: cur_score,
                 };
-                new.words.push(Token {
-                    text: first.clone(),
+                let i = token_pool.insert(Token {
+                    text: CompactString::from(first),
                     info: semantics.clone(),
                 });
-                new.score = ctx.model.score(&new);
+                new.tokens.push(i);
+                new.score = ctx.model.score(&new, &token_pool);
 
                 // Use state "STATE" for now since we don't have any states implemented.
                 let maybe_rival = viterbi_cache
@@ -312,7 +344,12 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
     // Return the best result we could find above.
     if let Some(solutions) = viterbi_cache.get("") {
         if let Some(best) = solutions.values().max_by_key(|s| s.score) {
-            return Ok(best.words.clone());
+            let ret: Vec<_> = best
+                .tokens
+                .iter()
+                .map(|i| token_pool.get(*i).expect("present").clone())
+                .collect();
+            return Ok(ret);
         }
     }
     Ok(Vec::new())

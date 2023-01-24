@@ -2,6 +2,7 @@
 use crate::conllu::{Token as EvalToken, TokenFeatures};
 use crate::errors::{Error, Result};
 use crate::segmenting::Token;
+use compact_str::CompactString;
 use vidyut_kosha::semantics::*;
 use vidyut_lipi::{transliterate, Scheme};
 
@@ -36,7 +37,7 @@ pub fn standardize(t: &EvalToken) -> Result<Token> {
 
     Ok(Token {
         // The original form is not consistently present in the DCS data, so just use the lemma.
-        text: slp1_lemma,
+        text: CompactString::from(slp1_lemma),
         info: semantics,
     })
 }

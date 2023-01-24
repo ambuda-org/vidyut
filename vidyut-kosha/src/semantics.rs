@@ -535,10 +535,10 @@ pub enum Pratipadika {
 
 impl Pratipadika {
     /// Returns the lemma that the *prātipadika* is based on.
-    pub fn lemma(&self) -> String {
+    pub fn lemma(&self) -> &str {
         match &self {
-            Pratipadika::Basic { text, .. } => text.clone(),
-            Pratipadika::Krdanta { dhatu, .. } => dhatu.0.clone(),
+            Pratipadika::Basic { text, .. } => text,
+            Pratipadika::Krdanta { dhatu, .. } => &dhatu.0,
         }
     }
 
@@ -742,12 +742,12 @@ impl Pada {
     /// In Vidyut, we use lemma frequencies to score different padaccheda solutions.
     ///
     /// In Sanskrit, a lemma is either a *dhātu* or a *prātipadika*.
-    pub fn lemma(&self) -> String {
+    pub fn lemma(&self) -> &str {
         match &self {
-            Pada::Tinanta(t) => t.dhatu.0.clone(),
+            Pada::Tinanta(t) => &t.dhatu.0,
             Pada::Subanta(s) => s.pratipadika.lemma(),
             Pada::Avyaya(a) => a.pratipadika.lemma(),
-            Pada::None => NONE_LEMMA.to_string(),
+            Pada::None => NONE_LEMMA,
         }
     }
 

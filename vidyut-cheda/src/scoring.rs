@@ -6,10 +6,10 @@
 #![allow(dead_code)]
 
 use crate::errors::{Error, Result};
-use crate::segmenting::Phrase;
+use crate::segmenting::{Phrase, TokenPool};
 use core::str::FromStr;
 use modular_bitfield::prelude::*;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use std::path::Path;
 use vidyut_kosha::semantics::POSTag;
 use vidyut_kosha::semantics::*;
@@ -129,18 +129,20 @@ fn log_prob(num: f64, denom: i32) -> f32 {
     prob.log10() as f32
 }
 
-type LemmaMap<T> = HashMap<(String, POSTag), T>;
+type LemmaMap<T> = FxHashMap<(usize, POSTag), T>;
 
 struct LemmaModel {
+    strings: FxHashMap<String, usize>,
     /// Log probability that a (lemma, pos) appears.
-    log_probs: HashMap<(String, POSTag), f32>,
+    log_probs: FxHashMap<(usize, POSTag), f32>,
     /// The log probability of a token not seen anywhere in the training data.
     log_p_unknown: f32,
 }
 
 impl LemmaModel {
     fn new(path: impl AsRef<Path>) -> Result<Self> {
-        let mut counts = HashMap::new();
+        let mut counts = FxHashMap::default();
+        let mut strings = FxHashMap::default();
 
         let mut rdr = csv::Reader::from_path(path)?;
         for maybe_row in rdr.records() {
@@ -148,11 +150,21 @@ impl LemmaModel {
             let lemma = &r[0];
             let pos_tag = r[1].parse()?;
             let count = r[2].parse::<i32>()?;
-            counts.insert((lemma.to_string(), pos_tag), count);
+
+            let i = match strings.get(lemma) {
+                Some(i) => *i,
+                None => {
+                    let i = strings.len();
+                    strings.insert(lemma.to_string(), i);
+                    i
+                }
+            };
+            counts.insert((i, pos_tag), count);
         }
 
         let (log_probs, log_p_unknown) = Self::to_log_probs(counts);
         Ok(Self {
+            strings,
             log_probs,
             log_p_unknown,
         })
@@ -165,7 +177,7 @@ impl LemmaModel {
         let n: i32 = counts.values().sum();
         let num_keys = counts.len() as i32;
 
-        let log_probs: HashMap<_, f32> = counts
+        let log_probs: FxHashMap<_, f32> = counts
             .iter()
             .map(|(k, c)| {
                 let smoothed_v = log_prob(f64::from(*c) + eps, n + num_keys);
@@ -178,17 +190,19 @@ impl LemmaModel {
         (log_probs, log_p_epsilon)
     }
 
-    fn log_prob(&self, lemma: String, pos_tag: POSTag) -> f32 {
-        match self.log_probs.get(&(lemma, pos_tag)) {
-            Some(log_prob) => *log_prob,
-            None => self.log_p_unknown,
+    fn log_prob(&self, lemma: &str, pos_tag: POSTag) -> f32 {
+        if let Some(i) = self.strings.get(lemma) {
+            if let Some(log_prob) = self.log_probs.get(&(*i, pos_tag)) {
+                return *log_prob;
+            }
         }
+        self.log_p_unknown
     }
 }
 
 struct TransitionModel {
     /// Log probability of (state[n] | state[n-1])
-    log_probs: HashMap<(State, State), f32>,
+    log_probs: FxHashMap<(State, State), f32>,
     /// The log probability of a transition state not seen anywhere in the training data.
     log_epsilon: f32,
 }
@@ -197,7 +211,7 @@ impl TransitionModel {
     fn new(path: impl AsRef<Path>) -> Result<Self> {
         type Key = (State, State);
 
-        let mut log_probs = HashMap::new();
+        let mut log_probs = FxHashMap::default();
         let mut rdr = csv::Reader::from_path(path)?;
         for maybe_row in rdr.records() {
             let row = maybe_row?;
@@ -247,15 +261,17 @@ impl Model {
     /// We return our float score as an i32 because floats aren't hashed by default in Rust. To
     /// represent "floatness," multiply the float score by 100 so that the ones and tens places
     /// represent the tenths and hundredths places, respectively.
-    pub fn score(&self, phrase: &Phrase) -> i32 {
-        let n = phrase.words.len();
-        let delta = if let Some(last) = phrase.words.last() {
+    pub(crate) fn score(&self, phrase: &Phrase, pool: &TokenPool) -> i32 {
+        let n = phrase.tokens.len();
+        let delta = if let Some(i_last) = phrase.tokens.last() {
             let prev_state = if n >= 2 {
-                State::from_pada(&phrase.words[n - 2].info)
+                let i = phrase.tokens[n - 2];
+                State::from_pada(&pool.get(i).expect("present").info)
             } else {
                 State::new()
             };
 
+            let last = pool.get(*i_last).expect("present");
             let cur_state = State::from_pada(&last.info);
 
             let pada = &last.info;

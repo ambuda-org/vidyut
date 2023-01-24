@@ -169,9 +169,10 @@ fn eval_input_path(path: &Path, segmenter: &Chedaka, show_semantics: &bool) -> R
             println!("[  OK  ]: {}", &slp1_text);
         } else {
             println!("[ FAIL ]: {}", &slp1_text);
-            println!("- {}", pretty_print(&vidyut_parse, show_semantics));
-            println!("- {}", pretty_print(&dcs_parse, show_semantics));
+            println!("vid: {}", pretty_print(&vidyut_parse, show_semantics));
+            println!("dcs: {}", pretty_print(&dcs_parse, show_semantics));
         }
+        println!();
         stats += sentence_stats
     }
 
