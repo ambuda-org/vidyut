@@ -1,30 +1,9 @@
 //! Utility functions for reading DCS data.
 use crate::conllu::{Token as EvalToken, TokenFeatures};
+use crate::errors::{Error, Result};
 use crate::segmenting::Token;
-use std::error::Error;
-use std::fmt;
 use vidyut_kosha::semantics::*;
 use vidyut_lipi::{transliterate, Scheme};
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
-
-#[derive(Debug, Clone)]
-struct ConversionError(String);
-impl ConversionError {
-    fn new(s: &str) -> Box<Self> {
-        Box::new(ConversionError(s.to_string()))
-    }
-}
-impl fmt::Display for ConversionError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Could not parse value `{}`", self.0)
-    }
-}
-impl Error for ConversionError {
-    fn description(&self) -> &str {
-        &self.0
-    }
-}
 
 fn to_slp1(text: &str) -> String {
     transliterate(text, Scheme::Iast, Scheme::Slp1)
@@ -199,7 +178,7 @@ fn parse_krt_pratyaya(f: &TokenFeatures) -> Result<KrtPratyaya> {
             "Pres" => KrtPratyaya::Shatr,
             "Past" => KrtPratyaya::Kta,
             "Fut" => KrtPratyaya::SyaShatr,
-            &_ => return Err(ConversionError::new(s)),
+            &_ => return Err(Error::parse_dcs("Tense", s)),
         },
         None => KrtPratyaya::None,
     };
@@ -213,7 +192,7 @@ fn parse_linga(f: &TokenFeatures) -> Result<Linga> {
             "Masc" => Linga::Pum,
             "Fem" => Linga::Stri,
             "Neut" => Linga::Napumsaka,
-            &_ => return Err(ConversionError::new(s)),
+            &_ => return Err(Error::parse_dcs("Gender", s)),
         },
         None => Linga::None,
     };
@@ -233,7 +212,7 @@ fn parse_vibhakti(f: &TokenFeatures) -> Result<Vibhakti> {
             "Loc" => Vibhakti::V7,
             "Voc" => Vibhakti::Sambodhana,
             "Cpd" => Vibhakti::None,
-            &_ => return Err(ConversionError::new(s)),
+            &_ => return Err(Error::parse_dcs("Case", s)),
         },
         None => Vibhakti::None,
     };
@@ -258,7 +237,7 @@ fn parse_purusha(f: &TokenFeatures) -> Result<Purusha> {
             "3" => Purusha::Prathama,
             "2" => Purusha::Madhyama,
             "1" => Purusha::Uttama,
-            &_ => return Err(ConversionError::new(s)),
+            &_ => return Err(Error::parse_dcs("Person", s)),
         },
         None => Purusha::None,
     };
@@ -272,7 +251,7 @@ fn parse_vacana(f: &TokenFeatures) -> Result<Vacana> {
             "Sing" => Vacana::Eka,
             "Dual" => Vacana::Dvi,
             "Plur" => Vacana::Bahu,
-            &_ => return Err(ConversionError::new("Could not parse number")),
+            &_ => return Err(Error::parse_dcs("Number", s)),
         },
         None => Vacana::None,
     };
@@ -283,11 +262,11 @@ fn parse_vacana(f: &TokenFeatures) -> Result<Vacana> {
 fn parse_lakara(f: &TokenFeatures) -> Result<Lakara> {
     let tense = match f.get("Tense") {
         Some(s) => s,
-        None => return Err(ConversionError::new("`Tense` not found")),
+        None => return Err(Error::dcs_undefined("Tense")),
     };
     let mood = match f.get("Mood") {
         Some(s) => s,
-        None => return Err(ConversionError::new("`Mood` not found")),
+        None => return Err(Error::dcs_undefined("Mood")),
     };
 
     let val = match (tense.as_str(), mood.as_str()) {

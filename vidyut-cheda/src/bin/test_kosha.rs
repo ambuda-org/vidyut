@@ -1,8 +1,8 @@
 //! Test the production setup.
 
 use clap::Parser;
-use std::error::Error;
 use std::path::PathBuf;
+use vidyut_cheda::Result;
 use vidyut_cheda::{Chedaka, Config};
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
@@ -14,8 +14,6 @@ struct Args {
     #[arg(long)]
     data_dir: PathBuf,
 }
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn test_kosha_tinantas(lex: &Kosha) -> Result<()> {
     let keys = vec![

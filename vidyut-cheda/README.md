@@ -59,8 +59,7 @@ Usage
 -----
 
 ```rust,no_run
-use std::error::Error;
-use vidyut_cheda::{Config, Chedaka};
+use vidyut_cheda::{Config, Chedaka, Error};
 
 let data_dir = "path/to/your/vidyut-data";
 let config = Config::new(&data_dir);
@@ -71,7 +70,7 @@ for word in words {
     println!("{}:  {}, {:?}", word.text(), word.lemma(), word.info());
 }
 
-# Ok::<(), Box<dyn Error>>(())
+# Ok::<(), Error>(())
 ```
 
 

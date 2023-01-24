@@ -2,12 +2,12 @@
 use clap::Parser;
 use glob::glob;
 use std::collections::{HashMap, HashSet};
-use std::error::Error;
 use std::path::Path;
 
 use vidyut_cheda::conllu::Reader;
 use vidyut_cheda::dcs;
 use vidyut_cheda::model::State;
+use vidyut_cheda::Result;
 use vidyut_cheda::{Config, Token};
 use vidyut_kosha::semantics::*;
 use vidyut_lipi::{transliterate, Scheme};
@@ -29,8 +29,6 @@ struct Args {
     #[arg(short, long)]
     exclude: Vec<String>,
 }
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Freq(`state[n]` | `state[n-1]`).
 ///

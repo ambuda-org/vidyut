@@ -3,8 +3,10 @@
 #![deny(clippy::unwrap_used)]
 
 pub use crate::config::Config;
+pub use crate::errors::{Error, Result};
 pub use crate::segmenting::{Chedaka, Token};
 
+mod errors;
 mod scoring;
 
 /// Model structs.

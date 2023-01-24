@@ -2,8 +2,8 @@
 //!
 //! The `conllu` crate on Rust doesn't support multi-word tokens, which appear constantly in the
 //! DCS data. Therefore, we've rolled our own reader.
+use crate::errors::Result;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -54,7 +54,7 @@ pub struct Reader {
 
 impl Reader {
     /// Read a CoNLL-U document from the given path.
-    pub fn from_path(path: &Path) -> Result<Reader, Box<dyn Error>> {
+    pub fn from_path(path: &Path) -> Result<Reader> {
         let rdr = BufReader::new(File::open(path)?);
         Ok(Reader { rdr })
     }

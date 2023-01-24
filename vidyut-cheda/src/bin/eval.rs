@@ -2,12 +2,12 @@
 
 use clap::Parser;
 use glob::glob;
-use std::error::Error;
 use std::ops::AddAssign;
 use std::path::{Path, PathBuf};
 
 use vidyut_cheda::conllu::Reader;
 use vidyut_cheda::dcs;
+use vidyut_cheda::Result;
 use vidyut_cheda::{Chedaka, Config, Token};
 use vidyut_kosha::semantics::*;
 use vidyut_lipi::{transliterate, Scheme};
@@ -26,8 +26,6 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     show_semantics: bool,
 }
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Summary statistics for our eval.
 #[derive(Debug)]
@@ -155,7 +153,8 @@ fn eval_input_path(path: &Path, segmenter: &Chedaka, show_semantics: &bool) -> R
         let slp1_text = to_slp1(&sentence.text);
         let vidyut_parse = segmenter.run(&slp1_text);
 
-        let dcs_parse: Result<Vec<Token>> = sentence.tokens.iter().map(dcs::standardize).collect();
+        let dcs_parse: std::result::Result<Vec<Token>, _> =
+            sentence.tokens.iter().map(dcs::standardize).collect();
         let dcs_parse = dcs_parse?;
 
         let sentence_stats = eval_sentence(&vidyut_parse, &dcs_parse);

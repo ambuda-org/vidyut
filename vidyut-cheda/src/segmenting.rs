@@ -2,9 +2,9 @@
 use log::{debug, log_enabled, Level};
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
-use std::error::Error;
 
 use crate::config::Config;
+use crate::errors::Result;
 use crate::normalize_text::normalize;
 use crate::scoring::Model;
 use crate::sounds;
@@ -77,7 +77,7 @@ pub struct Chedaka {
 
 impl Chedaka {
     /// Creates a segmenter from the given input data.
-    pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
+    pub fn new(config: Config) -> Result<Self> {
         Ok(Chedaka {
             sandhi: Splitter::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
             kosha: Kosha::new(config.kosha()).expect("Could not read kosha."),
@@ -108,9 +108,9 @@ fn analyze_pada(
     split: &Split,
     chedaka: &Chedaka,
     cache: &mut HashMap<String, Vec<Pada>>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     if !cache.contains_key(text) {
-        let res: Result<Vec<Pada>, _> = chedaka
+        let res: std::result::Result<Vec<Pada>, _> = chedaka
             .kosha
             .get_all(text)
             .iter()
@@ -176,7 +176,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, Phrase>>) {
 ///
 /// The segmenter makes a best effort to understand the input as valid Sanskrit text, even if it
 /// contains typos or other content that is not valid Sanskrit.
-fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>, Box<dyn Error>> {
+fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
     let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();

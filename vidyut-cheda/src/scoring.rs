@@ -5,12 +5,11 @@
 // allowed. So instead, just allow dead code in this module.
 #![allow(dead_code)]
 
+use crate::errors::{Error, Result};
 use crate::segmenting::Phrase;
 use core::str::FromStr;
 use modular_bitfield::prelude::*;
 use std::collections::HashMap;
-use std::error::Error;
-use std::num::ParseIntError;
 use std::path::Path;
 use vidyut_kosha::semantics::POSTag;
 use vidyut_kosha::semantics::*;
@@ -38,8 +37,8 @@ impl ToString for State {
 }
 
 impl FromStr for State {
-    type Err = ParseIntError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         Ok(Self(s.parse()?))
     }
 }
@@ -140,7 +139,7 @@ struct LemmaModel {
 }
 
 impl LemmaModel {
-    fn new(path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>> {
+    fn new(path: impl AsRef<Path>) -> Result<Self> {
         let mut counts = HashMap::new();
 
         let mut rdr = csv::Reader::from_path(path)?;
@@ -195,7 +194,7 @@ struct TransitionModel {
 }
 
 impl TransitionModel {
-    fn new(path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>> {
+    fn new(path: impl AsRef<Path>) -> Result<Self> {
         type Key = (State, State);
 
         let mut log_probs = HashMap::new();
@@ -233,10 +232,7 @@ pub struct Model {
 
 impl Model {
     /// Loads a new model from the given paths.
-    pub fn new<P: AsRef<Path>>(
-        lemma_counts_path: P,
-        transitions_path: P,
-    ) -> Result<Self, Box<dyn Error>> {
+    pub fn new<P: AsRef<Path>>(lemma_counts_path: P, transitions_path: P) -> Result<Self> {
         let lemmas = LemmaModel::new(&lemma_counts_path)?;
         let transitions = TransitionModel::new(&transitions_path)?;
 

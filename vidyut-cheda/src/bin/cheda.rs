@@ -1,11 +1,10 @@
 /// Parse text strings received on the command line.
 use clap::Parser;
 use log::info;
-use std::error::Error;
 use std::path::PathBuf;
 use std::process;
 
-use vidyut_cheda::{Chedaka, Config};
+use vidyut_cheda::{Chedaka, Config, Result};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -35,7 +34,7 @@ fn parse_text(text: &str, segmenter: &Segmenter) {
 }
 */
 
-fn debug_word(text: &str, segmenter: &Chedaka) -> Result<(), Box<dyn Error>> {
+fn debug_word(text: &str, segmenter: &Chedaka) -> Result<()> {
     let lex = segmenter.kosha();
     println!("{text}:");
     for packed_pada in lex.get_all(text) {

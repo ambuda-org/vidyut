@@ -55,7 +55,7 @@ profile-general:
 	cargo build --release
 	/usr/bin/time -l make eval
 
-# Profile parsing a large sample of text (OSX only)
+# Profile parsing a large sample of text (OSX only). Usage:
 #
 #     $ make target=time profile-target-osx
 #     $ make target=alloc profile-target-osx

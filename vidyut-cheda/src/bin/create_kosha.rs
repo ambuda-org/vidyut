@@ -7,19 +7,17 @@ use lazy_static::lazy_static;
 use log::info;
 use multimap::MultiMap;
 use regex::Regex;
-use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::process;
 use vidyut_cheda::sounds::{is_ac, is_ghosha};
 use vidyut_cheda::Config;
+use vidyut_cheda::Result;
 use vidyut_kosha::semantics::*;
 use vidyut_kosha::{Builder, Kosha};
 
 pub type StemMap = MultiMap<String, Pratipadika>;
 pub type PadaMap = MultiMap<String, Pada>;
 pub type EndingMap = MultiMap<String, (String, Pada)>;
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]

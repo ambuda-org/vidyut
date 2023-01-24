@@ -1,5 +1,5 @@
 //! Config options for Vidyut.
-use std::error::Error;
+use crate::errors::Result;
 use std::path::{Path, PathBuf};
 
 /// Stores config options and file paths for the utilities in Vidyut.
@@ -24,7 +24,7 @@ impl Config {
     }
 
     /// Creates all necesary directories, if they don't exist.
-    pub fn create_dirs(&self) -> Result<(), Box<dyn Error>> {
+    pub fn create_dirs(&self) -> Result<()> {
         std::fs::create_dir_all(self.kosha())?;
         std::fs::create_dir_all(self.model())?;
         Ok(())
