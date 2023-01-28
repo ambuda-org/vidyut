@@ -151,7 +151,7 @@ fn eval_input_path(path: &Path, segmenter: &Chedaka, show_semantics: &bool) -> R
 
     for sentence in reader {
         let slp1_text = to_slp1(&sentence.text);
-        let vidyut_parse = segmenter.run(&slp1_text);
+        let vidyut_parse = segmenter.run(&slp1_text)?;
 
         let dcs_parse: std::result::Result<Vec<Token>, _> =
             sentence.tokens.iter().map(dcs::standardize).collect();

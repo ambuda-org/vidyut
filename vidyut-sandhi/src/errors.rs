@@ -10,6 +10,8 @@ pub enum Error {
     Io(io::Error),
     /// A CSV format error.
     Csv(csv::Error),
+    /// The CSV file doesn't contain any rules.
+    EmptyFile,
 }
 
 impl From<io::Error> for Error {
@@ -33,8 +35,9 @@ impl fmt::Display for Error {
         use Error::*;
 
         match self {
-            Io(_) => write!(f, "I/O error"),
-            Csv(_) => write!(f, "CSV error"),
+            Io(e) => e.fmt(f),
+            Csv(e) => e.fmt(f),
+            EmptyFile => write!(f, "Sandhi file is empty."),
         }
     }
 }

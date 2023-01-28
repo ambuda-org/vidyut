@@ -14,13 +14,13 @@ with the common changes that occur between two words.
 */
 
 use crate::errors::Result;
-use std::collections::hash_map::Keys;
 use crate::sounds;
 use crate::sounds::Set;
-use rustc_hash::FxHashMap;
-use lazy_static::lazy_static;
 use compact_str::CompactString;
+use lazy_static::lazy_static;
+use rustc_hash::FxHashMap;
 use std::cmp;
+use std::collections::hash_map::Keys;
 use std::path::Path;
 
 /// Describes the type of sandhi split that occurred.
@@ -164,9 +164,23 @@ impl Splitter {
     ///
     /// - `path` - a CSV with columns `first`, `second`, and `result`.
     pub fn from_csv<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let mut rules = SplitsMap::new();
+        // Use this ugly error matching so that downstream error messages can be more legible.
+        let mut rdr = match csv::Reader::from_path(path) {
+            Ok(rdr) => rdr,
+            Err(e) => {
+                if e.is_io_error() {
+                    if let csv::ErrorKind::Io(e) = e.into_kind() {
+                        return Err(crate::Error::Io(e));
+                    } else {
+                        panic!("Should be unreachable -- see `is_io_error` docs.");
+                    }
+                } else {
+                    return Err(crate::Error::Csv(e));
+                }
+            }
+        };
 
-        let mut rdr = csv::Reader::from_path(path)?;
+        let mut rules = SplitsMap::new();
         for maybe_row in rdr.records() {
             let row = maybe_row?;
             let first = String::from(&row[0]);
@@ -180,7 +194,11 @@ impl Splitter {
                 rules.insert(result_no_spaces, (first.clone(), second.clone()));
             }
         }
-        Ok(Splitter::from_map(rules))
+        if rules.0.is_empty() {
+            Err(crate::Error::EmptyFile)
+        } else {
+            Ok(Splitter::from_map(rules))
+        }
     }
 
     /// Yields all possible ways to split `input` at the given index `i`.

@@ -9,6 +9,7 @@ use crate::normalize_text::normalize;
 use crate::scoring::Model;
 use crate::sounds;
 use crate::strict_mode;
+use crate::Error;
 use compact_str::CompactString;
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
@@ -104,8 +105,8 @@ impl Chedaka {
     /// Creates a segmenter from the given input data.
     pub fn new(config: Config) -> Result<Self> {
         Ok(Chedaka {
-            sandhi: Splitter::from_csv(config.sandhi()).expect("Could not read sandhi rules."),
-            kosha: Kosha::new(config.kosha()).expect("Could not read kosha."),
+            sandhi: Splitter::from_csv(config.sandhi())?,
+            kosha: Kosha::new(config.kosha())?,
             model: Model::new(&config.model_lemma_counts(), &config.model_transitions())?,
         })
     }
@@ -121,8 +122,12 @@ impl Chedaka {
     /// Segments the given text.
     ///
     /// `raw_text` should be an SLP1 string.
-    pub fn run(&self, raw_text: &str) -> Vec<Token> {
-        segment(raw_text, self).expect("Is OK")
+    pub fn run(&self, raw_text: &str) -> Result<Vec<Token>> {
+        if raw_text.is_ascii() {
+            Ok(segment(raw_text, self).expect("Is OK"))
+        } else {
+            Err(Error::NotAscii)
+        }
     }
 }
 

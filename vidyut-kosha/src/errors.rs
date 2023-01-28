@@ -12,14 +12,16 @@ pub enum Error {
     Io(io::Error),
     /// An FST error.
     Fst(fst::raw::Error),
+    /// An integer couldn't be parsed.
+    TryFromInt(num::TryFromIntError),
+    /// Tried to insert too many duplicates into the kosha.
+    TooManyDuplicates(String),
     /// The given int could not be mapped to a dhatu.
     UnknownDhatuId(u32),
     /// The given int could not be mapped to a pratipadika.
     UnknownPratipadikaId(u32),
     /// Value could not be parsed into the given enum.
     EnumParse(&'static str, String),
-    /// An integer couldn't be parsed.
-    TryFromInt(num::TryFromIntError),
     /// A eneric error.
     Generic(String),
 }
@@ -55,10 +57,14 @@ impl fmt::Display for Error {
         use Error::*;
 
         match self {
-            Io(_) => write!(f, "I/O error"),
+            Io(e) => e.fmt(f),
+            Fst(e) => e.fmt(f),
+            TooManyDuplicates(s) => write!(f, "Key `{}` has been inserted too many times.", s),
             UnknownDhatuId(id) => write!(f, "Unknown dhatu ID {}", id),
             UnknownPratipadikaId(id) => write!(f, "Unknown pratipadika id {}", id),
-            _ => write!(f, "foo"),
+            EnumParse(name, value) => write!(f, "Enum `{name}` has no value `{value}`."),
+            TryFromInt(e) => e.fmt(f),
+            Generic(s) => write!(f, "{s}"),
         }
     }
 }

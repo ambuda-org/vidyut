@@ -224,14 +224,16 @@ pub struct Builder {
 /// assume a hard cap of at most 4096 duplicated keys, as this is the largest number we can fit in
 /// two bytes. (Our most duplicated forms appear around 100 times, so we need at least 2 bytes to
 /// support them.)
-fn create_extended_key(key: &str, tag: usize) -> Vec<u8> {
+fn create_extended_key(key: &str, tag: usize) -> Result<Vec<u8>> {
     // FIXME: make this an Error.
-    assert!(tag < MAX_DUPLICATES);
-
-    let mut extended_key = key.as_bytes().to_vec();
-    extended_key.push((tag / (DUPES_PER_BYTE as usize)) as u8);
-    extended_key.push((tag % (DUPES_PER_BYTE as usize)) as u8);
-    extended_key
+    if tag < MAX_DUPLICATES {
+        let mut extended_key = key.as_bytes().to_vec();
+        extended_key.push((tag / (DUPES_PER_BYTE as usize)) as u8);
+        extended_key.push((tag % (DUPES_PER_BYTE as usize)) as u8);
+        Ok(extended_key)
+    } else {
+        Err(Error::TooManyDuplicates(key.to_string()))
+    }
 }
 
 impl Builder {
@@ -270,7 +272,7 @@ impl Builder {
         // For duplicates, add another u8 to make this key unique.
         if num_repeats > 0 {
             // Subtract 1 so that the duplicate tag always starts at 0.
-            let final_key = create_extended_key(key, num_repeats - 1);
+            let final_key = create_extended_key(key, num_repeats - 1)?;
             self.fst_builder.insert(&final_key, value)?;
         } else {
             self.fst_builder.insert(key, value)?;
@@ -292,6 +294,7 @@ impl Builder {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 
@@ -406,7 +409,7 @@ mod tests {
             (("a", 4224), [97, 64, 64].to_vec()),
         ];
         for ((base, num), result) in cases {
-            assert_eq!(create_extended_key(base, num), result);
+            assert_eq!(create_extended_key(base, num).unwrap(), result);
         }
 
         Ok(())

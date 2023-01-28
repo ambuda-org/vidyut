@@ -868,6 +868,7 @@ dependencies = [
  "priority-queue",
  "regex",
  "rustc-hash",
+ "tempfile",
  "vidyut-kosha",
  "vidyut-lipi",
  "vidyut-sandhi",
@@ -921,6 +922,7 @@ dependencies = [
  "csv",
  "lazy_static",
  "rustc-hash",
+ "tempfile",
 ]
 
 [[package]]

@@ -2,6 +2,7 @@ use std::fmt;
 use std::io;
 use std::num::{ParseFloatError, ParseIntError};
 use vidyut_kosha::Error as KoshaError;
+use vidyut_sandhi::Error as SandhiError;
 
 /// A type alias for `Result<T, vidyut_cheda::Error>`.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -16,6 +17,10 @@ pub enum Error {
     Csv(csv::Error),
     /// A kosha read error.
     Kosha(KoshaError),
+    /// A sandhi read error.
+    Sandhi(SandhiError),
+    /// Text is not encoded as ASCII.
+    NotAscii,
     /// A DCS parse error.
     DcsParse {
         /// The field that couldn't be parsed.
@@ -42,6 +47,17 @@ impl From<csv::Error> for Error {
     #[inline]
     fn from(err: csv::Error) -> Error {
         Error::Csv(err)
+    }
+}
+
+impl From<vidyut_sandhi::Error> for Error {
+    fn from(err: vidyut_sandhi::Error) -> Error {
+        use vidyut_sandhi::Error::*;
+        match err {
+            Io(e) => Error::Io(e),
+            Csv(e) => Error::Csv(e),
+            e => Error::Sandhi(e),
+        }
     }
 }
 
@@ -86,13 +102,15 @@ impl fmt::Display for Error {
         use Error::*;
 
         match self {
-            Io(_) => write!(f, "I/O error"),
-            Csv(_) => write!(f, "CSV error"),
-            Kosha(_) => write!(f, "Kosha error"),
+            Io(e) => e.fmt(f),
+            Csv(e) => e.fmt(f),
+            Kosha(e) => e.fmt(f),
+            Sandhi(e) => e.fmt(f),
             DcsParse { field, value } => write!(f, "Could not parse {field} value `{value}`."),
             DcsUndefined(field) => write!(f, "Field {field} is missing."),
             ParseInt(_) => write!(f, "Int parsing error"),
             ParseFloat(_) => write!(f, "Float parsing error"),
+            NotAscii => write!(f, "Input text must be an ASCII (SLP1) string."),
         }
     }
 }
