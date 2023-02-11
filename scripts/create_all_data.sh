@@ -19,7 +19,6 @@ echo
 if [ -e "data/raw/dcs" ]; then
     echo "Training data already exists -- skipping fetch."
 else
-    aoeu
     echo "Training data does not exist -- fetching."
     mkdir -p "data/raw/dcs"
     git clone --depth 1 https://github.com/OliverHellwig/sanskrit.git dcs-data
