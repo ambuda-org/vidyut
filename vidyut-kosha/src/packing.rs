@@ -67,7 +67,8 @@ TODO: investigate different packing orders to see if we can reduce the size of t
 use crate::errors::*;
 use crate::semantics::*;
 use modular_bitfield::prelude::*;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -306,17 +307,17 @@ impl PackedPada {
 #[derive(Default)]
 pub struct Packer {
     /// Maps a pratipadika to its numeric ID.
-    stem_mapper: HashMap<Pratipadika, usize>,
+    stem_mapper: FxHashMap<Pratipadika, usize>,
     /// Maps a dhatu to its numeric ID.
-    dhatu_mapper: HashMap<Dhatu, usize>,
+    dhatu_mapper: FxHashMap<Dhatu, usize>,
 }
 
 impl Packer {
     /// Creates a new packer with no data.
     pub fn new() -> Self {
         Packer {
-            stem_mapper: HashMap::new(),
-            dhatu_mapper: HashMap::new(),
+            stem_mapper: FxHashMap::default(),
+            dhatu_mapper: FxHashMap::default(),
         }
     }
 

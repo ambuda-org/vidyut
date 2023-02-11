@@ -84,6 +84,15 @@ $ make test
 Your first build will likely take a few minutes, but future builds will
 be much faster.
 
+Next, we recommend creating and collecting our rich linguistic data:
+
+```shell
+$ make create_all_data
+```
+
+This command will take several minutes, but most users will not need to re-run
+this command after the first run completes.
+
 To learn how to navigate this repo, see the [Components](#components) section.
 For details on how to get involved, see the [Contributing](#contributing)
 section.

@@ -20,6 +20,21 @@ keywords = ["sanskrit"]
 license = "MIT"
 edition = "2021"
 
+[dependencies]
+vidyut-cheda = { path = "./vidyut-cheda" }
+vidyut-kosha = { path = "./vidyut-kosha" }
+vidyut-lipi = { path = "./vidyut-lipi" }
+vidyut-sandhi = { path = "./vidyut-sandhi" }
+log = "0.4.17"
+clap = "4.1.4"
+csv = "1.1.6"
+multimap = "0.8.3"
+lazy_static = "1.4.0"
+env_logger = "0.10.0"
+rayon = "1.6.1"
+rustc-hash = "1.1.0"
+glob = "0.3.1"
+
 [profile.release]
 # Enable debug symbols so that we can profile release code.
 debug = true

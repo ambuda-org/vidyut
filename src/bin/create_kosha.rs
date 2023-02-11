@@ -5,19 +5,72 @@
 use clap::Parser;
 use lazy_static::lazy_static;
 use log::info;
-use multimap::MultiMap;
-use regex::Regex;
+use rayon::prelude::*;
+use rustc_hash::FxHashMap;
+use std::cmp::Eq;
+use std::hash::Hash;
 use std::path::{Path, PathBuf};
 use std::process;
-use vidyut_cheda::sounds::{is_ac, is_ghosha};
+use vidyut_cheda::sounds::{is_ac, is_ghosha, is_hal};
 use vidyut_cheda::Config;
-use vidyut_cheda::Result;
 use vidyut_kosha::semantics::*;
 use vidyut_kosha::{Builder, Kosha};
 
-pub type StemMap = MultiMap<String, Pratipadika>;
-pub type PadaMap = MultiMap<String, Pada>;
-pub type EndingMap = MultiMap<String, (String, Pada)>;
+/// A MultiMap that can be unwrapped into its underlying map.
+/// We use this custom version of a MultiMap so that we can use Rayon's par_iter on the wrapped
+/// map.
+struct MultiMap<K: Eq + Hash + Clone, V>(FxHashMap<K, Vec<V>>);
+
+impl<K: Eq + Hash + Clone, V> MultiMap<K, V> {
+    fn new() -> Self {
+        Self(FxHashMap::default())
+    }
+
+    fn with_capacity(size: usize) -> Self {
+        Self(FxHashMap::with_capacity_and_hasher(
+            size,
+            Default::default(),
+        ))
+    }
+
+    fn insert(&mut self, key: K, value: V) {
+        self.0.entry(key).or_default().push(value);
+    }
+
+    fn extend(&mut self, other: Self) {
+        for (key, values) in other.0.into_iter() {
+            for value in values {
+                self.insert(key.clone(), value);
+            }
+        }
+    }
+}
+
+/// Copied from multimap::MultiMap;
+impl<K, V> FromIterator<(K, V)> for MultiMap<K, V>
+where
+    K: Eq + Hash + Clone,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iterable: T) -> MultiMap<K, V> {
+        let iter = iterable.into_iter();
+        let hint = iter.size_hint().0;
+
+        let mut multimap = MultiMap::with_capacity(hint);
+        for (k, v) in iter {
+            multimap.insert(k, v);
+        }
+
+        multimap
+    }
+}
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+/// A map of pratipadikas.
+type StemMap = MultiMap<String, Pratipadika>;
+/// A map of complete padas.
+type PadaMap = MultiMap<String, Pada>;
+/// A map of sup pratyayas.
+type SupMap = MultiMap<String, (String, Pada)>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -51,7 +104,8 @@ pub struct DataPaths {
 }
 
 impl DataPaths {
-    pub fn from_dir(base: &Path) -> Self {
+    pub fn new(base: impl AsRef<Path>) -> Self {
+        let base = base.as_ref();
         DataPaths {
             indeclinables: base.join("indeclinables.csv"),
             nominal_endings_compounded: base.join("nominal-endings-compounded.csv"),
@@ -69,16 +123,6 @@ impl DataPaths {
             verbal_indeclinables: base.join("verbal-indeclinables.csv"),
             verbs: base.join("verbs.csv"),
         }
-    }
-}
-
-fn parse_linga(code: &str) -> Linga {
-    match code {
-        "m" => Linga::Pum,
-        "f" => Linga::Stri,
-        "n" => Linga::Napumsaka,
-        "none" => Linga::None,
-        &_ => panic!("Unknown type {}", code),
     }
 }
 
@@ -183,14 +227,14 @@ fn add_nominal_padas(path: &Path, padas: &mut PadaMap) -> Result<()> {
     Ok(())
 }
 
-fn add_nominal_endings_compounded(path: &Path, endings: &mut EndingMap) -> Result<()> {
+fn add_nominal_endings_compounded(path: &Path, endings: &mut SupMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
         let stem = r[0].to_string();
         let stem_lingas = parse_stem_linga(&r[1]);
         let ending = r[2].to_string();
-        let ending_linga = parse_linga(&r[3]);
+        let ending_linga = r[3].parse()?;
 
         let semantics = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Basic {
@@ -207,7 +251,7 @@ fn add_nominal_endings_compounded(path: &Path, endings: &mut EndingMap) -> Resul
     Ok(())
 }
 
-fn add_nominal_endings_inflected(path: &Path, endings: &mut EndingMap) -> Result<()> {
+fn add_nominal_endings_inflected(path: &Path, endings: &mut SupMap) -> Result<()> {
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
@@ -378,8 +422,8 @@ fn add_verbs(path: &Path, padas: &mut PadaMap) -> Result<()> {
     Ok(())
 }
 
-pub fn read_nominal_endings(paths: &DataPaths) -> Result<EndingMap> {
-    let mut endings = EndingMap::new();
+fn read_nominal_endings(paths: &DataPaths) -> Result<SupMap> {
+    let mut endings = SupMap::new();
     add_nominal_endings_compounded(&paths.nominal_endings_compounded, &mut endings)?;
     add_nominal_endings_inflected(&paths.nominal_endings_inflected, &mut endings)?;
     Ok(endings)
@@ -411,16 +455,18 @@ fn get_variants(text: &str) -> Vec<String> {
     variants
 }
 
-pub fn read_stems(paths: &DataPaths) -> Result<StemMap> {
+fn read_stems(paths: &DataPaths) -> Result<StemMap> {
     let mut stems = StemMap::new();
     add_nominal_stems(&paths.nominal_stems, &mut stems)?;
     add_participle_stems(&paths.participle_stems, &mut stems)?;
 
     // Add simple support for variants.
     let mut variants = StemMap::new();
-    for (k, v) in stems.iter() {
+    for (k, vs) in stems.0.iter() {
         for k_variant in get_variants(k) {
-            variants.insert(k_variant, v.clone());
+            for v in vs {
+                variants.insert(k_variant.clone(), v.clone());
+            }
         }
     }
     stems.extend(variants);
@@ -428,8 +474,8 @@ pub fn read_stems(paths: &DataPaths) -> Result<StemMap> {
     Ok(stems)
 }
 
-pub fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
-    let mut padas = PadaMap::new();
+fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
+    let mut padas = PadaMap::with_capacity(20_000_000);
     add_indeclinables(&paths.indeclinables, &mut padas).expect("Could not find indeclinables");
     add_prefix_groups(&paths.prefix_groups, &mut padas).expect("Could not find prefix groups");
     add_pronouns(&paths.pronouns, &mut padas).expect("Could not find pronouns");
@@ -439,9 +485,11 @@ pub fn read_padas(paths: &DataPaths) -> Result<PadaMap> {
     add_nominal_padas(&paths.nominal_padas, &mut padas).expect("Could not find irregular nominals");
 
     let mut variants = PadaMap::new();
-    for (k, v) in padas.iter() {
+    for (k, vs) in padas.0.iter() {
         for k_variant in get_variants(k) {
-            variants.insert(k_variant, v.clone());
+            for v in vs {
+                variants.insert(k_variant.clone(), v.clone());
+            }
         }
     }
     padas.extend(variants);
@@ -482,23 +530,22 @@ fn inflect_halanta_stem(stem: &str, sup: &str) -> String {
 }
 
 // Generates all nominal padas and adds them to the pada map.
-fn add_nominals(stems: &StemMap, endings: &EndingMap, padas: &mut PadaMap) {
+fn add_nominals(stems: &StemMap, endings: &SupMap, padas: &mut PadaMap) {
     let stem_to_endings = endings
-        .iter_all()
+        .0
+        .iter()
         .flat_map(|(ending, vs)| {
             vs.iter()
                 .map(|(stem, pada)| (stem.clone(), (ending.clone(), pada.clone())))
         })
         .collect::<MultiMap<String, (String, Pada)>>();
 
-    let re_halanta = Regex::new(r".*[kKgGNcCjJYwWqQRtTdDnpPbBmSzsh]$").unwrap();
-
     // For all stems, ...
-    for (stem_text, all_stem_semantics) in stems.iter_all() {
-        let mut has_match = false;
+    for (stem_text, all_stem_semantics) in stems.0.iter() {
+        let mut was_inserted = false;
 
         // And all stem endings ...
-        for (stem_ending, sup_pratyayas) in stem_to_endings.iter_all() {
+        for (stem_ending, sup_pratyayas) in stem_to_endings.0.iter() {
             // If the stem ends in this ending ...
             if let Some(prefix) = stem_text.strip_suffix(stem_ending) {
                 // Then for all pratyayas that the ending allows, ...
@@ -516,15 +563,16 @@ fn add_nominals(stems: &StemMap, endings: &EndingMap, padas: &mut PadaMap) {
                         }
                     }
                 }
-                has_match = true;
+                was_inserted = true;
             }
         }
 
-        if !has_match {
+        if !was_inserted {
             // If the stem is a special consonant ending ...
-            if re_halanta.is_match(stem_text) {
+            if is_hal(stem_text.chars().last().unwrap()) {
                 let pratyayas = stem_to_endings
-                    .get_vec("_")
+                    .0
+                    .get("_")
                     .expect("`_` ending should be defined");
                 for (sup_text, sup_semantics) in pratyayas {
                     let pada_text = inflect_halanta_stem(stem_text, sup_text);
@@ -546,30 +594,29 @@ fn add_nominals(stems: &StemMap, endings: &EndingMap, padas: &mut PadaMap) {
 }
 
 fn run(args: Args) -> Result<()> {
-    info!("Reading linguistic data.");
-    let data_paths = DataPaths::from_dir(Path::new(&args.input_dir));
+    info!("Reading linguistic data ...");
+    let data_paths = DataPaths::new(Path::new(&args.input_dir));
     let mut padas = read_padas(&data_paths)?;
-
-    info!("Generating nominals.");
     let stems = read_stems(&data_paths)?;
     let endings = read_nominal_endings(&data_paths)?;
+
+    info!("Generating nominals ...");
     add_nominals(&stems, &endings, &mut padas);
 
-    info!("Sorting linguistic data for FST insertion.");
-    let mut padas: Vec<_> = padas.into_iter().collect();
-    padas.sort_by(|x, y| x.0.cmp(&y.0));
+    info!("Sorting kosha keys lexicographically ...");
+    let mut padas: Vec<_> = padas.0.into_iter().collect();
+    padas.par_sort_by(|x, y| x.0.cmp(&y.0));
 
-    info!("Adding terms to FST builder.");
+    info!("Inserting entries ...");
     let config = Config::new(&args.output_dir);
     let mut builder = Builder::new(config.kosha())?;
     for (key, pada_vec) in padas {
         for pada in pada_vec {
-            // debug!("Inserting {} {:?}", key, pada);
             builder.insert(&key, &pada)?;
         }
     }
 
-    info!("Building FST.");
+    info!("Finishing build ...");
     builder.finish()?;
 
     // Check that we can load the dict.

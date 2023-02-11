@@ -3,7 +3,6 @@
 use clap::Parser;
 use std::path::PathBuf;
 use vidyut_cheda::Result;
-use vidyut_cheda::{Chedaka, Config};
 use vidyut_kosha::semantics::Pada;
 use vidyut_kosha::Kosha;
 
@@ -15,7 +14,7 @@ struct Args {
     data_dir: PathBuf,
 }
 
-fn test_kosha_tinantas(lex: &Kosha) -> Result<()> {
+fn test_tinantas(k: &Kosha) -> Result<()> {
     let keys = vec![
         // Basic lakaras (kartari, karmani/bhAve)
         "nayati",
@@ -53,13 +52,16 @@ fn test_kosha_tinantas(lex: &Kosha) -> Result<()> {
         // TODO: yaG
     ];
 
-    for key in keys {
-        assert!(lex.contains_key(key), "{key}");
+    for key in &keys {
+        assert!(k.contains_key(key), "{key}");
     }
+    let n = keys.len();
+    println!("{n} / {n} tinanta tests passed.");
+
     Ok(())
 }
 
-fn test_kosha_subantas(lex: &Kosha) -> Result<()> {
+fn test_subantas(k: &Kosha) -> Result<()> {
     let keys = vec![
         ("devas", "deva"),
         ("senA", "senA"),
@@ -97,28 +99,28 @@ fn test_kosha_subantas(lex: &Kosha) -> Result<()> {
         ("yUnAm", "yuvan"),
     ];
 
-    for (key, lemma) in keys {
+    for (key, lemma) in &keys {
         let entries: std::result::Result<Vec<Pada>, _> =
-            lex.get_all(key).iter().map(|x| lex.unpack(x)).collect();
+            k.get_all(key).iter().map(|x| k.unpack(x)).collect();
         let entries = entries?;
 
         assert!(
-            entries.iter().any(|x| x.lemma() == lemma),
+            entries.iter().any(|x| &x.lemma() == lemma),
             "{} {}",
             key,
             lemma
         );
     }
+    let n = keys.len();
+    println!("{n} / {n} subanta tests passed.");
+
     Ok(())
 }
 
 fn run_tests(args: Args) -> Result<()> {
-    let config = Config::new(&args.data_dir);
-    let segmenter = Chedaka::new(config)?;
-    let lex = segmenter.kosha();
-
-    test_kosha_tinantas(lex)?;
-    test_kosha_subantas(lex)?;
+    let kosha = Kosha::new(args.data_dir)?;
+    test_tinantas(&kosha)?;
+    test_subantas(&kosha)?;
     Ok(())
 }
 
@@ -126,9 +128,7 @@ fn main() {
     let args = Args::parse();
 
     if let Err(e) = run_tests(args) {
-        println!("{}", e);
+        println!("Test runner failed with: `{}`", e);
         std::process::exit(1);
     }
-
-    println!("Complete.");
 }

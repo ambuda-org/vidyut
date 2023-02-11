@@ -39,7 +39,7 @@ use fst::map::Stream;
 use fst::raw::{Fst, Node, Output};
 use fst::{Map, MapBuilder};
 use log::info;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -100,6 +100,11 @@ impl Kosha {
         );
 
         Ok(Self { fst, unpacker })
+    }
+
+    /// Returns a reference to this kosha's underlying FST.
+    pub fn fst(&self) -> &Map<Vec<u8>> {
+        &self.fst
     }
 
     /// Returns whether this kosha contains at least one word with exact value `key`.
@@ -209,7 +214,7 @@ fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec
 ///
 /// Memory usage is linear in the number of unique lemmas (`Dhatu`s or `Pratipadika`s).
 pub struct Builder {
-    seen_keys: HashMap<String, usize>,
+    seen_keys: FxHashMap<String, usize>,
     fst_builder: MapBuilder<io::BufWriter<File>>,
     packer: Packer,
     paths: Paths,
@@ -247,7 +252,7 @@ impl Builder {
 
         let writer = io::BufWriter::new(File::create(paths.fst())?);
         Ok(Self {
-            seen_keys: HashMap::new(),
+            seen_keys: FxHashMap::default(),
             fst_builder: MapBuilder::new(writer)?,
             packer: Packer::new(),
             paths,

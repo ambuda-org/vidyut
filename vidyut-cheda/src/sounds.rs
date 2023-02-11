@@ -59,6 +59,16 @@ pub fn is_ac(c: char) -> bool {
     AC.contains(c)
 }
 
+/// Returns whether the given sound is a consonant.
+///
+/// `hal` is the Paninian name for the Sanskrit consonants.
+pub fn is_hal(c: char) -> bool {
+    lazy_static! {
+        static ref HAL: SoundSet = SoundSet::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL");
+    }
+    HAL.contains(c)
+}
+
 /// Returns whether the given sound is voiced.
 pub fn is_ghosha(c: char) -> bool {
     lazy_static! {
@@ -88,6 +98,16 @@ mod tests {
         }
         for c in "kKgGnSzsh0123456789 '+".chars() {
             assert!(!is_ac(c));
+        }
+    }
+
+    #[test]
+    fn test_is_hal() {
+        for c in "kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL".chars() {
+            assert!(is_hal(c));
+        }
+        for c in "aAiIuUfFxXeEoO MH 1234567890 '+".chars() {
+            assert!(!is_hal(c));
         }
     }
 

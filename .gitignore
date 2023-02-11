@@ -1,3 +1,4 @@
 /target
-/vidyut-cheda/data/
-/vidyut-cheda/dcs-data/
+/data/
+/dcs-data/
+*.log
