@@ -113,7 +113,7 @@ fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
     let dha = tin.has_adi('D');
     let shidhvam_lun_lit = p.get(i - 1)?.has_text("zI") || tin.has_lakshana_in(&["lu~N", "li~w"]);
 
-    let i_anga = p.find_prev_where(i - 1, |t| !t.is_empty() && !t.has_tag(T::Agama))?;
+    let i_anga = p.find_prev_where(i, |t| !t.is_empty() && !t.has_tag(T::Agama))?;
     let anga = p.get(i_anga)?;
 
     if anga.has_antya(&*IN2) && shidhvam_lun_lit && dha {

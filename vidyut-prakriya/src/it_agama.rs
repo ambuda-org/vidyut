@@ -304,22 +304,30 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     }
 
     let anga = wrap.p.get(i)?;
+
+    // Rule 7.2.61 ("acas tAsvat ...") conditions on whether tAs would receive it-Agama. Estimate
+    // this by reproducing other it rules.
     let rule_7_2_10 = anga.has_tag(T::Anudatta) && is_hacky_eka_ac(anga);
+    let is_anit_for_tas = rule_7_2_10;
 
     // These rules are always aniT.
     if anga.has_text_in(&["kf", "sf", "Bf", "vf", "stu", "dru", "sru", "Sru"]) {
         wrap.anit("7.2.13");
-    } else if anga.has_antya(&*AC) && n.has_u("Tal") && rule_7_2_10 {
+    } else if (anga.has_antya(&*AC) || anga.has_upadha('a')) && n.has_u("Tal") && is_anit_for_tas {
         // Concise summary of rules:
         // - The roots in 7.2.13 are aniT. All others are seT by valAdi (7.2.35).
         // - However, there are the following exceptions for Tal:
         //   - roots ending in `f` (except `f`) are aniT.
         //   - roots ending in a vowel and roots with a middle 'a' are veT.
+        //   - other roots listed in rules explicitly (e.g. in 7.2.66)
 
-        // 7.2.63 Rto bhAradvAjasya
-        // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
-        // other roots, this condition is optional:
-        if !anga.has_antya('f') {
+        // The last root is "vyeY" per siddhAntakaumudI.
+        if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
+            wrap.set("7.2.66", i_n);
+        } else if !anga.has_antya('f') {
+            // 7.2.63 Rto bhAradvAjasya
+            // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
+            // other roots, this condition is optional:
             let code = "7.2.63";
             if wrap.p.is_allowed(code) {
                 wrap.set(code, i_n);
@@ -327,9 +335,6 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
                 wrap.p.decline(code);
                 wrap.anit("7.2.61");
             }
-        // But for other anit roots, the condition is obligatory.
-        } else if anga.has_u("f\\") {
-            wrap.set("7.2.66", i_n);
         } else {
             wrap.anit("7.2.61");
         }
