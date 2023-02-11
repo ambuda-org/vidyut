@@ -73,6 +73,37 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
+/// Defines boilerplate methods for packing and unpacking enums.
+///
+/// Requirements: `$Packed` and `$Raw` should be ordinary C-style enums. `$Packed` must have the
+/// same exact values as `$Raw` plus an extra `None` value.
+macro_rules! boilerplate {
+    ($Packed:ident, $Raw:ident, [$( $variant:ident ),*]) => {
+        impl From<Option<$Raw>> for $Packed {
+            fn from(val: Option<$Raw>) -> $Packed {
+                match val {
+                    $(
+                        Some($Raw::$variant) => Self::$variant,
+                    )*
+                    None => Self::None,
+                }
+            }
+        }
+
+        impl $Packed {
+            /// Unpack this data into its corresponding Raw value.
+            fn unpack(&self) -> Option<$Raw> {
+                match self {
+                    $(
+                        $Packed::$variant => Some($Raw::$variant),
+                    )*
+                    Self::None => None,
+                }
+            }
+        }
+    }
+}
+
 /// A lookup table for `Dhatu`s.
 #[derive(Default, Debug)]
 pub struct DhatuTable(Vec<Dhatu>);
@@ -186,28 +217,8 @@ pub enum PackedLinga {
     /// The neuter gender.
     Napumsaka,
 }
-impl From<Option<Linga>> for PackedLinga {
-    fn from(val: Option<Linga>) -> PackedLinga {
-        use Linga::*;
-        match val {
-            None => Self::None,
-            Some(Pum) => Self::Pum,
-            Some(Stri) => Self::Stri,
-            Some(Napumsaka) => Self::Napumsaka,
-        }
-    }
-}
-impl PackedLinga {
-    fn unpack(&self) -> Option<Linga> {
-        use Linga::*;
-        match self {
-            Self::None => None,
-            Self::Pum => Some(Pum),
-            Self::Stri => Some(Stri),
-            Self::Napumsaka => Some(Napumsaka),
-        }
-    }
-}
+
+boilerplate!(PackedLinga, Linga, [Pum, Stri, Napumsaka]);
 
 /// A space-efficient version of `Vacana`.
 #[derive(BitfieldSpecifier)]
@@ -222,28 +233,8 @@ pub enum PackedVacana {
     /// The plural.
     Bahu,
 }
-impl From<Option<Vacana>> for PackedVacana {
-    fn from(val: Option<Vacana>) -> PackedVacana {
-        use Vacana::*;
-        match val {
-            None => Self::None,
-            Some(Eka) => Self::Eka,
-            Some(Dvi) => Self::Dvi,
-            Some(Bahu) => Self::Bahu,
-        }
-    }
-}
-impl PackedVacana {
-    fn unpack(&self) -> Option<Vacana> {
-        use Vacana::*;
-        match self {
-            Self::None => None,
-            Self::Eka => Some(Eka),
-            Self::Dvi => Some(Dvi),
-            Self::Bahu => Some(Bahu),
-        }
-    }
-}
+
+boilerplate!(PackedVacana, Vacana, [Eka, Dvi, Bahu]);
 
 /// A space-efficient version of `Vibhakti`.
 #[derive(BitfieldSpecifier)]
@@ -268,38 +259,12 @@ pub enum PackedVibhakti {
     /// The first *vibhakti* in the condition of *sambodhana* (vocative case).
     Sambodhana,
 }
-impl From<Option<Vibhakti>> for PackedVibhakti {
-    fn from(val: Option<Vibhakti>) -> PackedVibhakti {
-        use Vibhakti::*;
-        match val {
-            None => Self::None,
-            Some(V1) => Self::V1,
-            Some(V2) => Self::V2,
-            Some(V3) => Self::V3,
-            Some(V4) => Self::V4,
-            Some(V5) => Self::V5,
-            Some(V6) => Self::V6,
-            Some(V7) => Self::V7,
-            Some(Sambodhana) => Self::Sambodhana,
-        }
-    }
-}
-impl PackedVibhakti {
-    fn unpack(&self) -> Option<Vibhakti> {
-        use Vibhakti::*;
-        match self {
-            Self::None => None,
-            Self::V1 => Some(V1),
-            Self::V2 => Some(V2),
-            Self::V3 => Some(V3),
-            Self::V4 => Some(V4),
-            Self::V5 => Some(V5),
-            Self::V6 => Some(V6),
-            Self::V7 => Some(V7),
-            Self::Sambodhana => Some(Sambodhana),
-        }
-    }
-}
+
+boilerplate!(
+    PackedVibhakti,
+    Vibhakti,
+    [V1, V2, V3, V4, V5, V6, V7, Sambodhana]
+);
 
 /// Semantics for a *subanta*.
 #[bitfield(bits = 30)]

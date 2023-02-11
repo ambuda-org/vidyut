@@ -21,6 +21,41 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
+/// Implements several boilerplate functions for our enums.
+macro_rules! boilerplate {
+    ($Enum:ident, [$( ($variant:ident, $str:literal) ),*]) => {
+        impl $Enum {
+            /// Returns a string representation of this enum.
+            pub fn as_str(&self) -> &'static str {
+                match self {
+                    $(
+                        $Enum::$variant => $str,
+                    )*
+                }
+            }
+        }
+
+        impl FromStr for $Enum {
+            type Err = Error;
+            fn from_str(s: &str) -> Result<Self> {
+                let val = match s {
+                    $(
+                        $str => $Enum::$variant,
+                    )*
+                    _ => return Err(Error::EnumParse(stringify!($Enum), s.to_string())),
+                };
+                Ok(val)
+            }
+        }
+
+        impl Display for $Enum {
+            fn fmt(&self, f: &mut Formatter) -> FmtResult {
+                write!(f, "{}", self.as_str())
+            }
+        }
+    }
+}
+
 /// Lemma for `None` semantics or any other case where the lemma is unknown.
 pub const NONE_LEMMA: &str = "[none]";
 
@@ -60,35 +95,7 @@ pub enum Linga {
     Napumsaka,
 }
 
-impl Linga {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Linga::Pum => "m",
-            Linga::Stri => "f",
-            Linga::Napumsaka => "n",
-        }
-    }
-}
-
-impl FromStr for Linga {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "m" => Linga::Pum,
-            "f" => Linga::Stri,
-            "n" => Linga::Napumsaka,
-            _ => return Err(Error::EnumParse("Linga", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for Linga {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(Linga, [(Pum, "m"), (Stri, "f"), (Napumsaka, "n")]);
 
 /// The *vacana* (number) of a *subanta* or *tiṅanta*.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
@@ -102,35 +109,7 @@ pub enum Vacana {
     Bahu,
 }
 
-impl Vacana {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Vacana::Eka => "s",
-            Vacana::Dvi => "d",
-            Vacana::Bahu => "p",
-        }
-    }
-}
-
-impl FromStr for Vacana {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "s" => Vacana::Eka,
-            "d" => Vacana::Dvi,
-            "p" => Vacana::Bahu,
-            _ => return Err(Error::EnumParse("Vacana", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for Vacana {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(Vacana, [(Eka, "s"), (Dvi, "d"), (Bahu, "p")]);
 
 /// The *vibhakti* (case) of a *subanta*.
 ///
@@ -157,45 +136,19 @@ pub enum Vibhakti {
     Sambodhana,
 }
 
-impl Vibhakti {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Vibhakti::V1 => "1",
-            Vibhakti::V2 => "2",
-            Vibhakti::V3 => "3",
-            Vibhakti::V4 => "4",
-            Vibhakti::V5 => "5",
-            Vibhakti::V6 => "6",
-            Vibhakti::V7 => "7",
-            Vibhakti::Sambodhana => "8",
-        }
-    }
-}
-
-impl FromStr for Vibhakti {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "1" => Vibhakti::V1,
-            "2" => Vibhakti::V2,
-            "3" => Vibhakti::V3,
-            "4" => Vibhakti::V4,
-            "5" => Vibhakti::V5,
-            "6" => Vibhakti::V6,
-            "7" => Vibhakti::V7,
-            "8" => Vibhakti::Sambodhana,
-            _ => return Err(Error::EnumParse("Vibhakti", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for Vibhakti {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(
+    Vibhakti,
+    [
+        (V1, "1"),
+        (V2, "2"),
+        (V3, "3"),
+        (V4, "4"),
+        (V5, "5"),
+        (V6, "6"),
+        (V7, "7"),
+        (Sambodhana, "8")
+    ]
+);
 
 /// The *puruṣa* (person) of a *tiṅanta*.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
@@ -209,36 +162,7 @@ pub enum Purusha {
     Uttama,
 }
 
-impl Purusha {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Purusha::Prathama => "3",
-            Purusha::Madhyama => "2",
-            Purusha::Uttama => "1",
-        }
-    }
-}
-
-impl FromStr for Purusha {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        use Purusha::*;
-        let val = match s {
-            "3" => Prathama,
-            "2" => Madhyama,
-            "1" => Uttama,
-            _ => return Err(Error::EnumParse("Purusha", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for Purusha {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(Purusha, [(Prathama, "3"), (Madhyama, "2"), (Uttama, "1")]);
 
 /// The *lakāra* (tense/mood) of a *tiṅanta*.
 ///
@@ -273,58 +197,23 @@ pub enum Lakara {
     Lrn,
 }
 
-impl Lakara {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Lakara::Lat => "lat",
-            Lakara::Lit => "lit",
-            Lakara::Lut => "lut",
-            Lakara::Lrt => "lrt",
-            Lakara::Let => "let",
-            Lakara::Lot => "lot",
-            Lakara::Lan => "lan",
-            Lakara::VidhiLin => "vidhi-lin",
-            Lakara::AshirLin => "ashir-lin",
-            Lakara::Lun => "lun",
-            Lakara::LunNoAgama => "lun-no-agama",
-            Lakara::Lrn => "lrn",
-        }
-    }
-}
-
-impl FromStr for Lakara {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "lat" => Lakara::Lat,
-            "lit" => Lakara::Lit,
-            "lut" => Lakara::Lut,
-            "lrt" => Lakara::Lrt,
-            "let" => Lakara::Let,
-            "lot" => Lakara::Lot,
-            "lan" => Lakara::Lan,
-            "vidhi-lin" => Lakara::VidhiLin,
-            "ashir-lin" => Lakara::AshirLin,
-            "lun" => Lakara::Lun,
-            "lun-no-agama" => Lakara::LunNoAgama,
-            "lrn" => Lakara::Lrn,
-
-            // Legacy format
-            "lin-vidhi" => Lakara::VidhiLin,
-            "lin-ashih" => Lakara::AshirLin,
-
-            _ => return Err(Error::EnumParse("Lakara", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for Lakara {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(
+    Lakara,
+    [
+        (Lat, "lat"),
+        (Lit, "lit"),
+        (Lut, "lut"),
+        (Lrt, "lrt"),
+        (Let, "let"),
+        (Lot, "lot"),
+        (Lan, "lan"),
+        (VidhiLin, "vidhi-lin"),
+        (AshirLin, "ashir-lin"),
+        (Lun, "lun"),
+        (LunNoAgama, "lun-no-agama"),
+        (Lrn, "lrn")
+    ]
+);
 
 /// A *pratyaya* (suffix) that creates a new *dhātu* (verb root)
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
@@ -341,7 +230,7 @@ pub enum DhatuPratyaya {
 /// A *kṛt-pratyaya* (root or primary suffix).
 ///
 /// This list is not exhaustive.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum KrtPratyaya {
     /// The *-tum* suffix (infinitive).
     Tumun,
@@ -375,55 +264,24 @@ pub enum KrtPratyaya {
     Krtya,
 }
 
-impl KrtPratyaya {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Tumun => "tumun",
-            Self::Ktva => "ktvA",
-            Self::Lyap => "lyap",
-            Self::Kvasu => "kvasu",
-            Self::Kanac => "kAnac",
-            Self::Kta => "kta",
-            Self::Ktavat => "ktavat",
-            Self::Shatr => "Satf",
-            Self::Shanac => "SAnac",
-            Self::YakShanac => "yak-SAnac",
-            Self::SyaShatr => "sya-Satf",
-            Self::SyaShanac => "sya-SAnac",
-            Self::Krtya => "kftya",
-        }
-    }
-}
-
-impl FromStr for KrtPratyaya {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "tumun" => Self::Tumun,
-            "ktvA" => Self::Ktva,
-            "lyap" => Self::Lyap,
-            "kvasu" => Self::Kvasu,
-            "kAnac" => Self::Kanac,
-            "kta" => Self::Kta,
-            "ktavat" => Self::Ktavat,
-            "Satf" => Self::Shatr,
-            "SAnac" => Self::Shanac,
-            "yak-SAnac" => Self::YakShanac,
-            "sya-Satf" => Self::SyaShatr,
-            "sya-SAnac" => Self::SyaShanac,
-            "kftya" => Self::Krtya,
-            _ => return Err(Error::EnumParse("KrtPratyaya", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for KrtPratyaya {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(
+    KrtPratyaya,
+    [
+        (Tumun, "tumun"),
+        (Ktva, "ktvA"),
+        (Lyap, "lyap"),
+        (Kvasu, "kvasu"),
+        (Kanac, "kAnac"),
+        (Kta, "kta"),
+        (Ktavat, "ktavat"),
+        (Shatr, "Satf"),
+        (Shanac, "SAnac"),
+        (YakShanac, "yak-SAnac"),
+        (SyaShatr, "sya-Satf"),
+        (SyaShanac, "sya-SAnac"),
+        (Krtya, "kftya")
+    ]
+);
 
 /// The *pada* and *prayoga* of the *tiṅanta*. Roughly, these correspond respectively to the
 /// concepts of "voice" and "thematic relation."
@@ -438,35 +296,14 @@ pub enum PadaPrayoga {
     AtmanepadaNotKartari,
 }
 
-impl PadaPrayoga {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Parasmaipada => "para",
-            Self::AtmanepadaKartari => "atma-kartari",
-            Self::AtmanepadaNotKartari => "atma-not-kartari",
-        }
-    }
-}
-
-impl FromStr for PadaPrayoga {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "para" => Self::Parasmaipada,
-            "atma-kartari" => Self::AtmanepadaKartari,
-            "atma-not-kartari" => Self::AtmanepadaNotKartari,
-            _ => return Err(Error::EnumParse("PadaPrayoga", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl Display for PadaPrayoga {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+boilerplate!(
+    PadaPrayoga,
+    [
+        (Parasmaipada, "para"),
+        (AtmanepadaKartari, "atma-kartari"),
+        (AtmanepadaNotKartari, "atma-not-kartari")
+    ]
+);
 
 /// Models the semantics of a *dhātu* (verb root).
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
