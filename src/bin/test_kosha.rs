@@ -3,7 +3,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 use vidyut_cheda::Result;
-use vidyut_kosha::semantics::Pada;
+use vidyut_kosha::morph::Pada;
 use vidyut_kosha::Kosha;
 
 #[derive(Parser, Debug)]

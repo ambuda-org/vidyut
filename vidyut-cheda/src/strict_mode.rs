@@ -2,7 +2,7 @@
 
 use crate::segmenting::{Phrase, TokenPool};
 use crate::sounds;
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
 /// Simple hand-coded rules to avoid overgenerating.
 use vidyut_sandhi::Split;
 
@@ -65,10 +65,10 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Suban
     if in_compound {
         true
     } else {
-        match &s.pratipadika {
-            Pratipadika::Basic { text: _, lingas } => lingas.contains(&s.linga),
+        match (&s.linga, &s.pratipadika) {
+            (Some(x), Pratipadika::Basic { text: _, lingas }) => lingas.contains(x),
             // Otherwise, any linga is allowed.
-            Pratipadika::Krdanta { .. } => true,
+            _ => true,
         }
     }
 }
@@ -118,9 +118,9 @@ mod tests {
                 text: "grAma".to_string(),
                 lingas: vec![Linga::Pum],
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V7,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V7),
             is_purvapada: false,
         });
 

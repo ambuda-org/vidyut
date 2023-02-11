@@ -80,7 +80,7 @@ builder API directly like so:
 
 ```rust,no_run
 use vidyut_kosha::{Kosha, Builder};
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
 
 let mut builder = Builder::new("output-dir").unwrap();
 builder.insert("Bavati", &Pada::Tinanta(Tinanta {

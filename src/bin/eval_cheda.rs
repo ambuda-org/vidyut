@@ -9,7 +9,7 @@ use vidyut_cheda::conllu::Reader;
 use vidyut_cheda::dcs;
 use vidyut_cheda::Result;
 use vidyut_cheda::{Chedaka, Config, Token};
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
 use vidyut_lipi::{transliterate, Scheme};
 
 #[derive(Parser, Debug)]
@@ -72,15 +72,15 @@ fn as_code(w: &Token) -> String {
         Pada::Subanta(s) => {
             format!(
                 "n-{}-{}-{}",
-                s.linga.as_str(),
-                s.vibhakti.as_str(),
-                s.vacana.as_str()
+                s.linga.map_or("", |x| x.as_str()),
+                s.vibhakti.map_or("", |x| x.as_str()),
+                s.vacana.map_or("", |x| x.as_str())
             )
         }
         Pada::Tinanta(s) => {
             format!("v-{}-{}", s.purusha.as_str(), s.vacana.as_str())
         }
-        Pada::None => "_".to_string(),
+        Pada::Unknown => "_".to_string(),
         Pada::Avyaya(a) => {
             let val = match &a.pratipadika {
                 Pratipadika::Basic { .. } => "i",
@@ -104,7 +104,7 @@ fn pretty_print(parse: &[Token], show_semantics: &bool) -> String {
         if *show_semantics {
             s += &format!("{} ({})", w.lemma(), code);
         } else {
-            s += &w.lemma();
+            s += w.lemma();
         }
         s += " ";
     }

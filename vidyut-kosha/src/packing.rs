@@ -65,7 +65,7 @@ TODO: investigate different packing orders to see if we can reduce the size of t
 */
 
 use crate::errors::*;
-use crate::semantics::*;
+use crate::morph::*;
 use modular_bitfield::prelude::*;
 use rustc_hash::FxHashMap;
 
@@ -169,16 +169,144 @@ impl PackedNone {
 
     #[allow(unused)]
     fn unpack(&self) -> Pada {
-        Pada::None
+        Pada::Unknown
+    }
+}
+
+/// A space-efficient version of `Linga`.
+#[derive(BitfieldSpecifier)]
+#[bits = 2]
+pub enum PackedLinga {
+    /// Unknown or missing `Linga`.
+    None,
+    /// The masculine gender.
+    Pum,
+    /// The feminine gender.
+    Stri,
+    /// The neuter gender.
+    Napumsaka,
+}
+impl From<Option<Linga>> for PackedLinga {
+    fn from(val: Option<Linga>) -> PackedLinga {
+        use Linga::*;
+        match val {
+            None => Self::None,
+            Some(Pum) => Self::Pum,
+            Some(Stri) => Self::Stri,
+            Some(Napumsaka) => Self::Napumsaka,
+        }
+    }
+}
+impl PackedLinga {
+    fn unpack(&self) -> Option<Linga> {
+        use Linga::*;
+        match self {
+            Self::None => None,
+            Self::Pum => Some(Pum),
+            Self::Stri => Some(Stri),
+            Self::Napumsaka => Some(Napumsaka),
+        }
+    }
+}
+
+/// A space-efficient version of `Vacana`.
+#[derive(BitfieldSpecifier)]
+#[bits = 2]
+pub enum PackedVacana {
+    /// Unknown or missing vacana.
+    None,
+    /// The singular.
+    Eka,
+    /// The dual.
+    Dvi,
+    /// The plural.
+    Bahu,
+}
+impl From<Option<Vacana>> for PackedVacana {
+    fn from(val: Option<Vacana>) -> PackedVacana {
+        use Vacana::*;
+        match val {
+            None => Self::None,
+            Some(Eka) => Self::Eka,
+            Some(Dvi) => Self::Dvi,
+            Some(Bahu) => Self::Bahu,
+        }
+    }
+}
+impl PackedVacana {
+    fn unpack(&self) -> Option<Vacana> {
+        use Vacana::*;
+        match self {
+            Self::None => None,
+            Self::Eka => Some(Eka),
+            Self::Dvi => Some(Dvi),
+            Self::Bahu => Some(Bahu),
+        }
+    }
+}
+
+/// A space-efficient version of `Vibhakti`.
+#[derive(BitfieldSpecifier)]
+#[bits = 4]
+pub enum PackedVibhakti {
+    /// Unknown or missing vibhakti.
+    None,
+    /// The first *vibhakti* (nominative case).
+    V1,
+    /// The second *vibhakti* (accusative case).
+    V2,
+    /// The third *vibhakti* (instrumental case).
+    V3,
+    /// The fourth *vibhakti* (dative case).
+    V4,
+    /// The fifth *vibhakti* (ablative case).
+    V5,
+    /// The sixth *vibhakti* (genitive case).
+    V6,
+    /// The seventh *vibhakti* (locative case).
+    V7,
+    /// The first *vibhakti* in the condition of *sambodhana* (vocative case).
+    Sambodhana,
+}
+impl From<Option<Vibhakti>> for PackedVibhakti {
+    fn from(val: Option<Vibhakti>) -> PackedVibhakti {
+        use Vibhakti::*;
+        match val {
+            None => Self::None,
+            Some(V1) => Self::V1,
+            Some(V2) => Self::V2,
+            Some(V3) => Self::V3,
+            Some(V4) => Self::V4,
+            Some(V5) => Self::V5,
+            Some(V6) => Self::V6,
+            Some(V7) => Self::V7,
+            Some(Sambodhana) => Self::Sambodhana,
+        }
+    }
+}
+impl PackedVibhakti {
+    fn unpack(&self) -> Option<Vibhakti> {
+        use Vibhakti::*;
+        match self {
+            Self::None => None,
+            Self::V1 => Some(V1),
+            Self::V2 => Some(V2),
+            Self::V3 => Some(V3),
+            Self::V4 => Some(V4),
+            Self::V5 => Some(V5),
+            Self::V6 => Some(V6),
+            Self::V7 => Some(V7),
+            Self::Sambodhana => Some(Sambodhana),
+        }
     }
 }
 
 /// Semantics for a *subanta*.
 #[bitfield(bits = 30)]
 pub struct PackedSubanta {
-    linga: Linga,
-    vacana: Vacana,
-    vibhakti: Vibhakti,
+    linga: PackedLinga,
+    vacana: PackedVacana,
+    vibhakti: PackedVibhakti,
     is_purvapada: bool,
     pratipadika_id: B21,
 }
@@ -187,9 +315,9 @@ impl PackedSubanta {
     fn pack(s: &Subanta, pratipadika_id: usize) -> Result<Self> {
         Ok(Self::new()
             .with_pratipadika_id(pratipadika_id.try_into()?)
-            .with_linga(s.linga)
-            .with_vacana(s.vacana)
-            .with_vibhakti(s.vibhakti)
+            .with_linga(s.linga.into())
+            .with_vacana(s.vacana.into())
+            .with_vibhakti(s.vibhakti.into())
             .with_is_purvapada(s.is_purvapada))
     }
 
@@ -199,9 +327,9 @@ impl PackedSubanta {
                 .get(self.pratipadika_id() as usize)
                 .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?
                 .clone(),
-            linga: self.linga(),
-            vacana: self.vacana(),
-            vibhakti: self.vibhakti(),
+            linga: self.linga().unpack(),
+            vacana: self.vacana().unpack(),
+            vibhakti: self.vibhakti().unpack(),
             is_purvapada: self.is_purvapada(),
         });
         Ok(val)
@@ -377,7 +505,7 @@ impl Packer {
                     .with_pos(PartOfSpeech::Avyaya)
                     .with_payload(to_u32(payload))
             }
-            Pada::None => PackedPada::new().with_pos(PartOfSpeech::None),
+            Pada::Unknown => PackedPada::new().with_pos(PartOfSpeech::None),
         };
         Ok(val)
     }
@@ -439,7 +567,7 @@ impl Unpacker {
             PartOfSpeech::Avyaya => pada.unwrap_as_avyaya().unpack(&self.pratipadikas),
             PartOfSpeech::Subanta => pada.unwrap_as_subanta().unpack(&self.pratipadikas),
             PartOfSpeech::Tinanta => pada.unwrap_as_tinanta().unpack(&self.dhatus),
-            PartOfSpeech::None => Ok(Pada::None),
+            PartOfSpeech::None => Ok(Pada::Unknown),
         }
     }
 }
@@ -456,9 +584,9 @@ mod tests {
                 text: "deva".to_owned(),
                 lingas: vec![Linga::Pum],
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V6,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V6),
             is_purvapada: false,
         });
         let narasya = Pada::Subanta(Subanta {
@@ -466,9 +594,9 @@ mod tests {
                 text: "nara".to_owned(),
                 lingas: vec![Linga::Pum],
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V6,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V6),
             is_purvapada: false,
         });
 

@@ -9,7 +9,7 @@ use vidyut_cheda::dcs;
 use vidyut_cheda::model::State;
 use vidyut_cheda::Result;
 use vidyut_cheda::{Config, Token};
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
 use vidyut_lipi::{transliterate, Scheme};
 
 #[derive(Parser, Debug)]
@@ -59,11 +59,11 @@ fn to_slp1(text: &str) -> String {
     transliterate(text, Scheme::Iast, Scheme::Slp1)
 }
 
-fn process_sentence(sentence: &[Token], s: &mut Statistics) {
+fn process_sentence(tokens: &[Token], s: &mut Statistics) {
     let mut prev_state = State::new();
-    for word in sentence {
-        let cur_state = State::from_pada(&word.info);
-        let lemma = word.lemma();
+    for token in tokens {
+        let cur_state = State::from_pada(&token.info);
+        let lemma = token.lemma();
 
         // Freq(cur_state | prev_state )
         let c = s
@@ -85,7 +85,7 @@ fn process_sentence(sentence: &[Token], s: &mut Statistics) {
             .or_insert(0);
         *c += 1;
 
-        let tag = word.info.part_of_speech_tag();
+        let tag = token.info.part_of_speech_tag();
         let c = s.lemma_counts.entry((lemma.to_string(), tag)).or_insert(0);
         *c += 1;
 

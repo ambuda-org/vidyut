@@ -3,7 +3,7 @@ use crate::conllu::{Token as EvalToken, TokenFeatures};
 use crate::errors::{Error, Result};
 use crate::segmenting::Token;
 use compact_str::CompactString;
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
 use vidyut_lipi::{transliterate, Scheme};
 
 fn to_slp1(text: &str) -> String {
@@ -31,7 +31,7 @@ pub fn standardize(t: &EvalToken) -> Result<Token> {
                 parse_verb(t)?
             }
         }
-        "MANTRA" => Pada::None,
+        "MANTRA" => Pada::Unknown,
         _ => panic!("Unknown upos `{}`", t.upos),
     };
 
@@ -108,8 +108,8 @@ fn parse_subanta(t: &EvalToken) -> Result<Pada> {
 fn parse_verb(t: &EvalToken) -> Result<Pada> {
     let root = standardize_lemma(&t.lemma);
     let purusha = parse_purusha(&t.features)?;
-    let vacana = parse_vacana(&t.features)?;
-    let lakara = parse_lakara(&t.features)?;
+    let vacana = parse_vacana(&t.features)?.unwrap_or(Vacana::Eka);
+    let lakara = parse_lakara(&t.features)?.unwrap_or(Lakara::Lat);
     let pada = parse_verb_pada(&t.features);
     Ok(Pada::Tinanta(Tinanta {
         dhatu: Dhatu(root),
@@ -137,7 +137,7 @@ fn parse_krdanta(t: &EvalToken) -> Result<Pada> {
 fn parse_krdanta_subanta(t: &EvalToken) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
         dhatu: Dhatu(standardize_lemma(&t.lemma)),
-        pratyaya: parse_krt_pratyaya(&t.features)?,
+        pratyaya: parse_krt_pratyaya(&t.features)?.unwrap_or(KrtPratyaya::Kta),
     };
     let linga = parse_linga(&t.features)?;
     let vibhakti = parse_vibhakti(&t.features)?;
@@ -157,7 +157,8 @@ fn parse_krdanta_subanta(t: &EvalToken) -> Result<Pada> {
 fn parse_krdanta_avyaya(t: &EvalToken) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
         dhatu: Dhatu(standardize_lemma(&t.lemma)),
-        pratyaya: parse_krt_pratyaya(&t.features)?,
+        // Use an arbitrary default.
+        pratyaya: parse_krt_pratyaya(&t.features)?.unwrap_or(KrtPratyaya::Kta),
     };
 
     Ok(Pada::Avyaya(Avyaya { pratipadika: stem }))
@@ -172,50 +173,51 @@ fn parse_stem(t: &EvalToken) -> Pratipadika {
 }
 
 /// Reshapes a DCS tense into a Vidyut tense.
-fn parse_krt_pratyaya(f: &TokenFeatures) -> Result<KrtPratyaya> {
+fn parse_krt_pratyaya(f: &TokenFeatures) -> Result<Option<KrtPratyaya>> {
     let val = match f.get("Tense") {
         Some(s) => match s.as_str() {
             // FIXME: not enough information to reconstruct.
-            "Pres" => KrtPratyaya::Shatr,
-            "Past" => KrtPratyaya::Kta,
-            "Fut" => KrtPratyaya::SyaShatr,
+            "Pres" => Some(KrtPratyaya::Shatr),
+            "Past" => Some(KrtPratyaya::Kta),
+            "Fut" => Some(KrtPratyaya::SyaShatr),
             &_ => return Err(Error::parse_dcs("Tense", s)),
         },
-        None => KrtPratyaya::None,
+        None => None,
     };
     Ok(val)
 }
 
 /// Reshapes a DCS gender into a Vidyut linga.
-fn parse_linga(f: &TokenFeatures) -> Result<Linga> {
+fn parse_linga(f: &TokenFeatures) -> Result<Option<Linga>> {
     let val = match f.get("Gender") {
         Some(s) => match s.as_str() {
-            "Masc" => Linga::Pum,
-            "Fem" => Linga::Stri,
-            "Neut" => Linga::Napumsaka,
+            "Masc" => Some(Linga::Pum),
+            "Fem" => Some(Linga::Stri),
+            "Neut" => Some(Linga::Napumsaka),
             &_ => return Err(Error::parse_dcs("Gender", s)),
         },
-        None => Linga::None,
+        None => None,
     };
     Ok(val)
 }
 
 /// Reshapes a DCS case into a Vidyut vibhakti.
-fn parse_vibhakti(f: &TokenFeatures) -> Result<Vibhakti> {
+fn parse_vibhakti(f: &TokenFeatures) -> Result<Option<Vibhakti>> {
+    use Vibhakti::*;
     let val = match f.get("Case") {
         Some(s) => match s.as_str() {
-            "Nom" => Vibhakti::V1,
-            "Acc" => Vibhakti::V2,
-            "Ins" => Vibhakti::V3,
-            "Dat" => Vibhakti::V4,
-            "Abl" => Vibhakti::V5,
-            "Gen" => Vibhakti::V6,
-            "Loc" => Vibhakti::V7,
-            "Voc" => Vibhakti::Sambodhana,
-            "Cpd" => Vibhakti::None,
+            "Nom" => Some(V1),
+            "Acc" => Some(V2),
+            "Ins" => Some(V3),
+            "Dat" => Some(V4),
+            "Abl" => Some(V5),
+            "Gen" => Some(V6),
+            "Loc" => Some(V7),
+            "Voc" => Some(Sambodhana),
+            "Cpd" => None,
             &_ => return Err(Error::parse_dcs("Case", s)),
         },
-        None => Vibhakti::None,
+        None => None,
     };
     Ok(val)
 }
@@ -240,13 +242,13 @@ fn parse_purusha(f: &TokenFeatures) -> Result<Purusha> {
             "1" => Purusha::Uttama,
             &_ => return Err(Error::parse_dcs("Person", s)),
         },
-        None => Purusha::None,
+        None => return Err(Error::dcs_undefined("Person")),
     };
     Ok(val)
 }
 
 /// Reshapes a DCS number into a Vidyut vacana.
-fn parse_vacana(f: &TokenFeatures) -> Result<Vacana> {
+fn parse_vacana(f: &TokenFeatures) -> Result<Option<Vacana>> {
     let val = match f.get("Number") {
         Some(s) => match s.as_str() {
             "Sing" => Vacana::Eka,
@@ -254,13 +256,13 @@ fn parse_vacana(f: &TokenFeatures) -> Result<Vacana> {
             "Plur" => Vacana::Bahu,
             &_ => return Err(Error::parse_dcs("Number", s)),
         },
-        None => Vacana::None,
+        None => return Ok(None),
     };
-    Ok(val)
+    Ok(Some(val))
 }
 
 /// Reshapes a DCS tense/mood into a Vidyut lakara.
-fn parse_lakara(f: &TokenFeatures) -> Result<Lakara> {
+fn parse_lakara(f: &TokenFeatures) -> Result<Option<Lakara>> {
     let tense = match f.get("Tense") {
         Some(s) => s,
         None => return Err(Error::dcs_undefined("Tense")),
@@ -272,25 +274,34 @@ fn parse_lakara(f: &TokenFeatures) -> Result<Lakara> {
 
     let val = match (tense.as_str(), mood.as_str()) {
         ("Aor", "Ind") => Lakara::Lun,
-        ("Aor", "Imp") => Lakara::None,
         ("Aor", "Jus") => Lakara::LunNoAgama,
         ("Aor", "Prec") => Lakara::AshirLin,
         ("Fut", "Cond") => Lakara::Lrn,
         ("Fut", "Ind") => Lakara::Lrt,
         ("Impf", "Ind") => Lakara::Lan,
         ("Perf", "Ind") => Lakara::Lit,
-        ("Perf", "Sub") => Lakara::None,
         ("Pres", "Imp") => Lakara::Lot,
         ("Pres", "Ind") => Lakara::Lat,
-        ("Pres", "Jus") => Lakara::None,
         ("Pres", "Opt") => Lakara::VidhiLin,
         ("Pres", "Sub") => Lakara::Lot,
-        (&_, &_) => Lakara::None,
+        ("Aor", "Imp") => return Ok(None),
+        ("Past", "Ind") => return Ok(None),
+        ("Past", "Imp") => return Ok(None),
+        ("Past", "Sub") => return Ok(None),
+        ("Plp", "Ind") => return Ok(None),
+        ("Past", "Prec") => return Ok(None),
+        ("Past", "Opt") => return Ok(None),
+        ("Pqp", "Ind") => return Ok(None),
+        ("Past", "Jus") => return Ok(None),
+        ("Fut", "Con") => return Ok(None),
+        ("Perf", "Sub") => return Ok(None),
+        ("Pres", "Jus") => return Ok(None),
+        (x, y) => panic!("Unknown lakara {x} {y}"),
     };
-    Ok(val)
+    Ok(Some(val))
 }
 
 fn parse_verb_pada(_f: &TokenFeatures) -> PadaPrayoga {
     // FIXME: unsupported in DCS?
-    PadaPrayoga::None
+    PadaPrayoga::Parasmaipada
 }

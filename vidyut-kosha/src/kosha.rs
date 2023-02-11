@@ -33,8 +33,8 @@
 //! words in around 31MB of data with an average storage cost of 1 byte per word. Of course, the
 //! specific storage cost will vary depending on the words in the input list.
 use crate::errors::*;
+use crate::morph::Pada;
 use crate::packing::*;
-use crate::semantics::Pada;
 use fst::map::Stream;
 use fst::raw::{Fst, Node, Output};
 use fst::{Map, MapBuilder};
@@ -303,7 +303,7 @@ impl Builder {
 mod tests {
     use super::*;
 
-    use crate::semantics::*;
+    use crate::morph::*;
     use fst::Streamer;
     use tempfile::tempdir;
 
@@ -333,9 +333,9 @@ mod tests {
                 dhatu: Dhatu("gam".to_string()),
                 pratyaya: KrtPratyaya::Shatr,
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V2,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V2),
             is_purvapada: false,
         });
         let sup = Pada::Subanta(Subanta {
@@ -343,9 +343,9 @@ mod tests {
                 text: "agni".to_string(),
                 lingas: vec![Linga::Pum],
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V2,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V2),
             is_purvapada: false,
         });
 

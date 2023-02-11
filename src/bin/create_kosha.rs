@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use std::process;
 use vidyut_cheda::sounds::{is_ac, is_ghosha, is_hal};
 use vidyut_cheda::Config;
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
 use vidyut_kosha::{Builder, Kosha};
 
 /// A MultiMap that can be unwrapped into its underlying map.
@@ -194,9 +194,9 @@ fn add_nominal_padas(path: &Path, padas: &mut PadaMap) -> Result<()> {
         let pratipadika = r[0].to_string();
         let stem_lingas = parse_stem_linga(&r[1]);
         let pada = r[2].to_string();
-        let linga = r[3].parse()?;
-        let vibhakti = r[4].parse()?;
-        let vacana = r[5].parse()?;
+        let linga = r[3].parse().ok();
+        let vibhakti = r[4].parse().ok();
+        let vacana = r[5].parse().ok();
 
         let semantics = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Basic {
@@ -217,9 +217,9 @@ fn add_nominal_padas(path: &Path, padas: &mut PadaMap) -> Result<()> {
             text: "mahat".to_string(),
             lingas: vec![Linga::Pum, Linga::Stri, Linga::Napumsaka],
         },
-        linga: Linga::None,
-        vibhakti: Vibhakti::None,
-        vacana: Vacana::None,
+        linga: None,
+        vibhakti: None,
+        vacana: None,
         is_purvapada: true,
     });
     padas.insert("mahA".to_string(), semantics);
@@ -241,9 +241,9 @@ fn add_nominal_endings_compounded(path: &Path, endings: &mut SupMap) -> Result<(
                 text: stem.clone(),
                 lingas: stem_lingas,
             },
-            linga: ending_linga,
-            vibhakti: Vibhakti::None,
-            vacana: Vacana::None,
+            linga: Some(ending_linga),
+            vibhakti: None,
+            vacana: None,
             is_purvapada: true,
         });
         endings.insert(ending, (stem, semantics));
@@ -264,9 +264,9 @@ fn add_nominal_endings_inflected(path: &Path, endings: &mut SupMap) -> Result<()
                 text: stem.clone(),
                 lingas: vec![linga],
             },
-            linga,
-            vibhakti: r[4].parse()?,
-            vacana: r[5].parse()?,
+            linga: Some(linga),
+            vibhakti: r[4].parse().ok(),
+            vacana: r[5].parse().ok(),
             is_purvapada: false,
         });
         endings.insert(ending, (stem, semantics));
@@ -330,18 +330,27 @@ fn add_pronouns(path: &Path, padas: &mut PadaMap) -> Result<()> {
 
         let stem = r[0].to_string();
         let text = r[2].to_string();
-        let linga = r[3].parse()?;
-        let semantics = Pada::Subanta(Subanta {
+        let linga = match &r[3] {
+            "none" => None,
+            "_" => None,
+            s => Some(s.parse()?),
+        };
+        let lingas = match linga {
+            Some(x) => vec![x],
+            None => vec![],
+        };
+
+        let morph = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Basic {
                 text: stem.clone(),
-                lingas: vec![linga],
+                lingas,
             },
             linga,
-            vibhakti: r[4].parse()?,
-            vacana: r[5].parse()?,
+            vibhakti: r[4].parse().ok(),
+            vacana: r[5].parse().ok(),
             is_purvapada: false,
         });
-        padas.insert(text, semantics);
+        padas.insert(text, morph);
     }
     Ok(())
 }

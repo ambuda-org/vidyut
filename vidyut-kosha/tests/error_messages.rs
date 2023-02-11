@@ -1,6 +1,6 @@
 use std::fs::File;
 use tempfile::{tempdir, NamedTempFile};
-use vidyut_kosha::semantics::Pada;
+use vidyut_kosha::morph::Pada;
 use vidyut_kosha::{Builder, Error, Kosha};
 
 fn assert_is_fst_error<T>(ret: Result<T, Error>) {
@@ -37,10 +37,10 @@ fn build_with_out_of_order_keys() {
 
     let mut builder = Builder::new(&path).unwrap();
 
-    let ret = builder.insert("b", &Pada::None);
+    let ret = builder.insert("b", &Pada::Unknown);
     assert!(ret.is_ok());
 
-    let ret = builder.insert("a", &Pada::None);
+    let ret = builder.insert("a", &Pada::Unknown);
     assert_is_fst_error(ret);
 }
 
@@ -52,10 +52,10 @@ fn build_with_too_many_duplicates() {
     let mut builder = Builder::new(&path).unwrap();
 
     for _ in 0..=4225 {
-        let ret = builder.insert("a", &Pada::None);
+        let ret = builder.insert("a", &Pada::Unknown);
         assert!(ret.is_ok());
     }
-    let ret = builder.insert("a", &Pada::None);
+    let ret = builder.insert("a", &Pada::Unknown);
     assert!(ret.is_err());
 }
 

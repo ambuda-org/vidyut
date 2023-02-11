@@ -11,8 +11,8 @@ use core::str::FromStr;
 use modular_bitfield::prelude::*;
 use rustc_hash::FxHashMap;
 use std::path::Path;
-use vidyut_kosha::semantics::POSTag;
-use vidyut_kosha::semantics::*;
+use vidyut_kosha::morph::*;
+use vidyut_kosha::packing::{PackedLinga, PackedVacana, PackedVibhakti};
 
 /// Models a Markov transition state.
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash)]
@@ -51,11 +51,11 @@ pub struct SubantaState {
     #[skip(getters)]
     unused: B5,
     #[skip(getters)]
-    linga: Linga,
+    linga: PackedLinga,
     #[skip(getters)]
-    vacana: Vacana,
+    vacana: PackedVacana,
     #[skip(getters)]
-    vibhakti: Vibhakti,
+    vibhakti: PackedVibhakti,
     #[skip(getters)]
     is_purvapada: bool,
 }
@@ -85,19 +85,19 @@ pub struct PadaState {
 impl PadaState {
     /// Creates the initial state.
     pub fn initial_state() -> Self {
-        PadaState::new().with_pos(POSTag::None)
+        PadaState::new().with_pos(POSTag::Unknown)
     }
 
     /// Creates a state label for the given pada.
     pub fn from_pada(p: &Pada) -> Self {
         let zero = [0_u8; 2];
         let (pos_tag, payload) = match p {
-            Pada::None => (POSTag::None, zero),
+            Pada::Unknown => (POSTag::Unknown, zero),
             Pada::Subanta(s) => {
                 let bytes = SubantaState::new()
-                    .with_linga(s.linga)
-                    .with_vacana(s.vacana)
-                    .with_vibhakti(s.vibhakti)
+                    .with_linga(s.linga.into())
+                    .with_vacana(s.vacana.into())
+                    .with_vibhakti(s.vibhakti.into())
                     .with_is_purvapada(s.is_purvapada)
                     .into_bytes();
                 (POSTag::Subanta, bytes)

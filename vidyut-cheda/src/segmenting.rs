@@ -11,7 +11,7 @@ use crate::sounds;
 use crate::strict_mode;
 use crate::Error;
 use compact_str::CompactString;
-use vidyut_kosha::semantics::Pada;
+use vidyut_kosha::morph::Pada;
 use vidyut_kosha::Kosha;
 use vidyut_sandhi::{Split, Splitter};
 
@@ -150,7 +150,7 @@ fn analyze_pada(
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
         if split.is_end_of_chunk() || text.starts_with(|c| !sounds::is_sanskrit(c)) {
-            res.push(Pada::None);
+            res.push(Pada::Unknown);
         }
 
         cache.insert(text.to_string(), res);
@@ -264,7 +264,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                     };
                     let i = token_pool.insert(Token {
                         text: CompactString::from(first),
-                        info: Pada::None,
+                        info: Pada::Unknown,
                     });
                     new.tokens.push(i);
                     new
@@ -278,7 +278,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                     };
                     let i = token_pool.insert(Token {
                         text: CompactString::from(cur.remaining),
-                        info: Pada::None,
+                        info: Pada::Unknown,
                     });
                     new.tokens.push(i);
                     new

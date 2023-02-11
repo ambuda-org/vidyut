@@ -1,6 +1,6 @@
-//! Models the semantics of Sanskrit words, including their stems and endings.
+//! Models the morphology of Sanskrit words, including their stems and endings.
 //!
-//! For details on how we represent semantics, see the `Pada` enum and its comments.
+//! For details on how we represent morphological data, see the `Pada` enum and its comments.
 //!
 //! We designed this module with the following design principles in mind:
 //!
@@ -11,7 +11,7 @@
 //!    grammar was designed specifically for Sanskrit and fits Sanskrit like a glove.
 //!
 //! 3. Prefer morphological names. For example, we refer to the various senses of the `-tum` suffix
-//!    with the simple label `KrtPratyaya::Tum`. For a counterexample, we explicitly model `Linga`,
+//!    with the simple label `KrtPratyaya::Tum`. As a counterexample, we explicitly model `Linga`,
 //!    `Vacana`, `Vibhakti`, etc. because using a single `Sup` enum is more trouble than it's
 //!    worth.
 
@@ -52,8 +52,6 @@ impl FeatureMap {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 2]
 pub enum Linga {
-    /// Unknown or missing gender.
-    None,
     /// The masculine gender.
     Pum,
     /// The feminine gender.
@@ -69,7 +67,6 @@ impl Linga {
             Linga::Pum => "m",
             Linga::Stri => "f",
             Linga::Napumsaka => "n",
-            Linga::None => "_",
         }
     }
 }
@@ -81,9 +78,6 @@ impl FromStr for Linga {
             "m" => Linga::Pum,
             "f" => Linga::Stri,
             "n" => Linga::Napumsaka,
-            "_" => Linga::None,
-            // Legacy format on `github.com/sanskrit/data`
-            "none" => Linga::None,
             _ => return Err(Error::EnumParse("Linga", s.to_string())),
         };
         Ok(val)
@@ -100,8 +94,6 @@ impl Display for Linga {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 2]
 pub enum Vacana {
-    /// Unknown or missing *vacana*.
-    None,
     /// The singular.
     Eka,
     /// The dual.
@@ -114,7 +106,6 @@ impl Vacana {
     /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Vacana::None => "_",
             Vacana::Eka => "s",
             Vacana::Dvi => "d",
             Vacana::Bahu => "p",
@@ -126,7 +117,6 @@ impl FromStr for Vacana {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         let val = match s {
-            "_" => Vacana::None,
             "s" => Vacana::Eka,
             "d" => Vacana::Dvi,
             "p" => Vacana::Bahu,
@@ -149,8 +139,6 @@ impl Display for Vacana {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 4]
 pub enum Vibhakti {
-    /// Unknown or missing *vibhakti*.
-    None,
     /// The first *vibhakti* (nominative case).
     V1,
     /// The second *vibhakti* (accusative case).
@@ -181,7 +169,6 @@ impl Vibhakti {
             Vibhakti::V6 => "6",
             Vibhakti::V7 => "7",
             Vibhakti::Sambodhana => "8",
-            Vibhakti::None => "_",
         }
     }
 }
@@ -190,7 +177,6 @@ impl FromStr for Vibhakti {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         let val = match s {
-            "_" => Vibhakti::None,
             "1" => Vibhakti::V1,
             "2" => Vibhakti::V2,
             "3" => Vibhakti::V3,
@@ -215,8 +201,6 @@ impl Display for Vibhakti {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 2]
 pub enum Purusha {
-    /// Unknown or missing *puruṣa*.
-    None,
     /// The first *puruṣa* (third person).
     Prathama,
     /// The middle *puruṣa* (second person).
@@ -229,7 +213,6 @@ impl Purusha {
     /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Purusha::None => "_",
             Purusha::Prathama => "3",
             Purusha::Madhyama => "2",
             Purusha::Uttama => "1",
@@ -242,7 +225,6 @@ impl FromStr for Purusha {
     fn from_str(s: &str) -> Result<Self> {
         use Purusha::*;
         let val = match s {
-            "_" => None,
             "3" => Prathama,
             "2" => Madhyama,
             "1" => Uttama,
@@ -265,8 +247,6 @@ impl Display for Purusha {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 4]
 pub enum Lakara {
-    /// Unknown or missing *lakāra*.
-    None,
     /// *laṭ-lakāra* (present indicative).
     Lat,
     /// *liṭ-lakāra* (perfect).
@@ -297,7 +277,6 @@ impl Lakara {
     /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Lakara::None => "_",
             Lakara::Lat => "lat",
             Lakara::Lit => "lit",
             Lakara::Lut => "lut",
@@ -318,7 +297,6 @@ impl FromStr for Lakara {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         let val = match s {
-            "_" => Lakara::None,
             "lat" => Lakara::Lat,
             "lit" => Lakara::Lit,
             "lut" => Lakara::Lut,
@@ -352,8 +330,6 @@ impl Display for Lakara {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 2]
 pub enum DhatuPratyaya {
-    /// No specific *dhātu-pratyaya*.
-    None,
     /// *ṇic-pratyaya* (*i*), which expresses a causal action.
     Nic,
     /// *san-pratyaya* (*sa*), which expresses a desiderative action.
@@ -367,9 +343,6 @@ pub enum DhatuPratyaya {
 /// This list is not exhaustive.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum KrtPratyaya {
-    /// Unknown or missing *kṛt-pratyaya*.
-    None,
-
     /// The *-tum* suffix (infinitive).
     Tumun,
     /// The *-tvā* suffix (unprefixed gerund).
@@ -406,7 +379,6 @@ impl KrtPratyaya {
     /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::None => "_",
             Self::Tumun => "tumun",
             Self::Ktva => "ktvA",
             Self::Lyap => "lyap",
@@ -428,7 +400,6 @@ impl FromStr for KrtPratyaya {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         let val = match s {
-            "_" => Self::None,
             "tumun" => Self::Tumun,
             "ktvA" => Self::Ktva,
             "lyap" => Self::Lyap,
@@ -459,8 +430,6 @@ impl Display for KrtPratyaya {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[bits = 2]
 pub enum PadaPrayoga {
-    /// Unknown or missing *prayoga*.
-    None,
     /// *parasmaipada*, which is always in *kartari prayoga*.
     Parasmaipada,
     /// *ātmanepada* in *kartari prayoga*.
@@ -473,7 +442,6 @@ impl PadaPrayoga {
     /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::None => "_",
             Self::Parasmaipada => "para",
             Self::AtmanepadaKartari => "atma-kartari",
             Self::AtmanepadaNotKartari => "atma-not-kartari",
@@ -485,7 +453,6 @@ impl FromStr for PadaPrayoga {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         let val = match s {
-            "_" => Self::None,
             "para" => Self::Parasmaipada,
             "atma-kartari" => Self::AtmanepadaKartari,
             "atma-not-kartari" => Self::AtmanepadaNotKartari,
@@ -604,7 +571,7 @@ impl FromStr for Pratipadika {
 #[bits = 2]
 pub enum POSTag {
     /// A token with missing, unknown, or undefined semantics.
-    None,
+    Unknown,
     /// A nominal.
     Subanta,
     /// A verb.
@@ -617,7 +584,7 @@ impl FromStr for POSTag {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         let val = match s {
-            "_" => Self::None,
+            "_" => Self::Unknown,
             "s" => Self::Subanta,
             "t" => Self::Tinanta,
             "a" => Self::Avyaya,
@@ -631,7 +598,7 @@ impl POSTag {
     /// Returns a string representation of this enum.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::None => "_",
+            Self::Unknown => "_",
             Self::Subanta => "s",
             Self::Tinanta => "t",
             Self::Avyaya => "a",
@@ -665,11 +632,11 @@ pub struct Subanta {
     /// The nominal's stem.
     pub pratipadika: Pratipadika,
     /// The nominal's gender.
-    pub linga: Linga,
+    pub linga: Option<Linga>,
     /// The nominal's number.
-    pub vacana: Vacana,
+    pub vacana: Option<Vacana>,
     /// The nominal's case.
-    pub vibhakti: Vibhakti,
+    pub vibhakti: Option<Vibhakti>,
     /// Whether this *subanta* is part of some compound but not the final member of it.
     pub is_purvapada: bool,
 }
@@ -723,7 +690,7 @@ pub struct Avyaya {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Pada {
     /// Unknown or missing semantics.
-    None,
+    Unknown,
     /// A *subanta* (nominal, excluding *avyaya*s)
     Subanta(Subanta),
     /// A *tiṅanta* (verb).
@@ -747,7 +714,7 @@ impl Pada {
             Pada::Tinanta(t) => &t.dhatu.0,
             Pada::Subanta(s) => s.pratipadika.lemma(),
             Pada::Avyaya(a) => a.pratipadika.lemma(),
-            Pada::None => NONE_LEMMA,
+            Pada::Unknown => NONE_LEMMA,
         }
     }
 
@@ -757,7 +724,7 @@ impl Pada {
             Pada::Tinanta(_) => POSTag::Tinanta,
             Pada::Subanta(_) => POSTag::Subanta,
             Pada::Avyaya(_) => POSTag::Avyaya,
-            Pada::None => POSTag::None,
+            Pada::Unknown => POSTag::Unknown,
         }
     }
 }
@@ -770,7 +737,7 @@ mod tests {
     #[test]
     fn test_linga_serde() -> TestResult {
         use Linga::*;
-        for val in [None, Pum, Stri, Napumsaka] {
+        for val in [Pum, Stri, Napumsaka] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
@@ -779,7 +746,7 @@ mod tests {
     #[test]
     fn test_vacana_serde() -> TestResult {
         use Vacana::*;
-        for val in [None, Eka, Dvi, Bahu] {
+        for val in [Eka, Dvi, Bahu] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
@@ -788,7 +755,7 @@ mod tests {
     #[test]
     fn test_vibhakti_serde() -> TestResult {
         use Vibhakti::*;
-        for val in [None, V1, V2, V3, V4, V5, V6, V7, Sambodhana] {
+        for val in [V1, V2, V3, V4, V5, V6, V7, Sambodhana] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
@@ -797,7 +764,7 @@ mod tests {
     #[test]
     fn test_purusha_serde() -> TestResult {
         use Purusha::*;
-        for val in [None, Prathama, Madhyama, Uttama] {
+        for val in [Prathama, Madhyama, Uttama] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
@@ -818,7 +785,7 @@ mod tests {
     fn test_krt_pratyaya_serde() -> TestResult {
         use KrtPratyaya::*;
         for val in [
-            None, Tumun, Ktva, Lyap, Kvasu, Kanac, Kta, Ktavat, Shatr, Shanac, YakShanac, SyaShatr,
+            Tumun, Ktva, Lyap, Kvasu, Kanac, Kta, Ktavat, Shatr, Shanac, YakShanac, SyaShatr,
             SyaShanac, Krtya,
         ] {
             assert_eq!(val, val.as_str().parse()?);
@@ -829,7 +796,7 @@ mod tests {
     #[test]
     fn test_pada_prayoga() -> TestResult {
         use PadaPrayoga::*;
-        for val in [None, Parasmaipada, AtmanepadaKartari, AtmanepadaNotKartari] {
+        for val in [Parasmaipada, AtmanepadaKartari, AtmanepadaNotKartari] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
@@ -868,9 +835,9 @@ mod tests {
                 text: "agni".to_string(),
                 lingas: vec![Linga::Pum],
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V2,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V2),
             is_purvapada: false,
         });
         assert_eq!(p.lemma(), "agni");
@@ -883,9 +850,9 @@ mod tests {
                 dhatu: Dhatu("gam".to_string()),
                 pratyaya: KrtPratyaya::Shatr,
             },
-            linga: Linga::Pum,
-            vacana: Vacana::Eka,
-            vibhakti: Vibhakti::V2,
+            linga: Some(Linga::Pum),
+            vacana: Some(Vacana::Eka),
+            vibhakti: Some(Vibhakti::V2),
             is_purvapada: false,
         });
         assert_eq!(p.lemma(), "gam");
@@ -927,7 +894,7 @@ mod tests {
 
     #[test]
     fn test_none_lemma() {
-        let p = Pada::None;
+        let p = Pada::Unknown;
         assert_eq!(p.lemma(), NONE_LEMMA);
     }
 }
