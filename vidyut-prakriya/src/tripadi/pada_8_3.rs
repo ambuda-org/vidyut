@@ -113,11 +113,11 @@ fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
     let dha = tin.has_adi('D');
     let shidhvam_lun_lit = p.get(i - 1)?.has_text("zI") || tin.has_lakshana_in(&["lu~N", "li~w"]);
 
-    let i_prev = p.find_prev_where(i, |t| !t.is_empty() && !t.has_u("sIyu~w"))?;
-    let prev = p.get(i_prev)?;
+    let i_anga = p.find_prev_where(i - 1, |t| !t.is_empty() && !t.has_tag(T::Agama))?;
+    let anga = p.get(i_anga)?;
 
-    if prev.has_antya(&*IN2) && shidhvam_lun_lit && dha {
-        if f::is_it_agama(prev) {
+    if anga.has_antya(&*IN2) && shidhvam_lun_lit && dha {
+        if p.has(i_anga + 1, f::is_it_agama) {
             p.op_optional("8.3.79", op::t(i, op::adi("Q")));
         } else {
             p.op_term("8.3.78", i, op::adi("Q"));
