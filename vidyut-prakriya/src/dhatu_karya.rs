@@ -5,6 +5,7 @@ use crate::errors::*;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
+use crate::stem_gana::PRA_ADI;
 use crate::tag::Tag as T;
 use crate::term::Term;
 
@@ -133,14 +134,18 @@ fn try_add_num_agama(p: &mut Prakriya, i: usize) {
 }
 
 /// Adds upasargas from `dhatu` into the prakriya.
-fn try_add_upasargas(p: &mut Prakriya, dhatu: &Dhatu) -> Option<()> {
+fn try_add_prefixes(p: &mut Prakriya, dhatu: &Dhatu) -> Option<()> {
     // TODO: prefixes that aren't upasargas?
     for (i, prefix) in dhatu.prefixes().iter().enumerate() {
         let mut t = Term::make_upadesha(prefix);
-        t.add_tag(T::Upasarga);
 
-        p.insert_before(i, t);
-        p.step("1.4.80");
+        if PRA_ADI.contains(&prefix.as_str()) {
+            t.add_tag(T::Upasarga);
+            p.insert_before(i, t);
+            p.step("1.4.80");
+        } else {
+            p.insert_before(i, t);
+        }
 
         // Don't run it-samjna-prakarana for other upasargas (e.g. sam, ud)
         // TODO: why run only for AN?
@@ -159,7 +164,7 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
 
     try_satva_and_natva(p, 0);
     try_add_num_agama(p, 0);
-    try_add_upasargas(p, dhatu);
+    try_add_prefixes(p, dhatu);
 
     let i_dhatu = p.terms().len() - 1;
     try_run_bhvadi_gana_sutras(p);

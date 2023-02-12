@@ -27,10 +27,25 @@ fn sutra_6_1_91() {
         .build()
         .unwrap();
 
-    let upa_f = Dhatu::new("f\\", Gana::Bhvadi).with_prefixes(&["upa"]);
-    let mut results = derive(&a, &upa_f, &tip);
+    let upa_r = Dhatu::new("f\\", Gana::Bhvadi).with_prefixes(&["upa"]);
+    let mut results = derive(&a, &upa_r, &tip);
     results.sort();
     assert_eq!(results, vec!["upArCati", "upArcCati"]);
+
+    let pra_r = Dhatu::new("f\\", Gana::Bhvadi).with_prefixes(&["pra"]);
+    let mut results = derive(&a, &pra_r, &tip);
+    results.sort();
+    assert_eq!(results, vec!["prArCati", "prArcCati"]);
+
+    let upa_rdh = Dhatu::new("fDu~", Gana::Svadi).with_prefixes(&["upa"]);
+    let results = derive(&a, &upa_rdh, &tip);
+    assert_eq!(results, vec!["upArDnoti"]);
+
+    // Exception -- KawvA is not an upasarga
+    let khatva_r = Dhatu::new("f\\", Gana::Bhvadi).with_prefixes(&["KawvA"]);
+    let mut results = derive(&a, &khatva_r, &tip);
+    results.sort();
+    assert_eq!(results, vec!["KawvarCati", "KawvarcCati"]);
 }
 
 #[test]
