@@ -1,4 +1,5 @@
 use crate::char_view::{char_at, char_rule, get_at, set_at, xy, xyz};
+use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
@@ -250,9 +251,11 @@ fn try_jhal_adesha(p: &mut Prakriya) -> Option<()> {
 
     char_rule(
         p,
-        |_, text, i| {
+        |p, text, i| {
             let x = text.as_bytes()[i] as char;
-            JHAL.contains(x) && i == text.len() - 1
+            JHAL.contains(x)
+                && i == text.len() - 1
+                && f::is_pada(p.terms().last().expect("present"))
         },
         |p, text, i| {
             let code = "8.4.56";

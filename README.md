@@ -108,7 +108,7 @@ independently depending on your use case.
 In Rust, components of this kind are called *crates*.
 
 
-### `vidyut-cheda`
+### [`vidyut-cheda`][vidyut-cheda]
 
 `vidyut-cheda` segments Sanskrit expressions into words then annotates those
 words with their morphological data. Our segmenter is optimized for real-time

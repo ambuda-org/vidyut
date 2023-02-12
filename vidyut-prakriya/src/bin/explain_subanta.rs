@@ -45,19 +45,6 @@ fn pretty_print_prakriya(p: &Prakriya, args: &SubantaArgs) {
     println!("------------------------------");
 }
 
-const VIBHAKTIS: &[Vibhakti] = &[
-    Vibhakti::Prathama,
-    Vibhakti::Dvitiya,
-    Vibhakti::Trtiya,
-    Vibhakti::Caturthi,
-    Vibhakti::Panchami,
-    Vibhakti::Sasthi,
-    Vibhakti::Saptami,
-    Vibhakti::Sambodhana,
-];
-
-const VACANAS: &[Vacana] = &[Vacana::Eka, Vacana::Dvi, Vacana::Bahu];
-
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
     let mut padas = vec![];
     let a = Ashtadhyayi::new();
@@ -68,8 +55,8 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         .is_pratyaya(args.is_pratyaya.unwrap_or(false))
         .build()?;
 
-    for vibhakti in VIBHAKTIS {
-        for vacana in VACANAS {
+    for vibhakti in Vibhakti::iter() {
+        for vacana in Vacana::iter() {
             let subanta_args = SubantaArgs::builder()
                 .linga(args.linga)
                 .vibhakti(*vibhakti)

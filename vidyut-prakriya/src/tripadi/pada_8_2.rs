@@ -298,14 +298,14 @@ fn try_ch_to_s(p: &mut Prakriya) {
 
     iter_terms(p, |p, i| {
         let x = p.get(i)?;
-        let maybe_j = p.find_next_where(i, |t| !t.is_empty());
         if !(x.has_u_in(vrascha) || x.has_antya('C') || x.has_antya('S')) {
             return None;
         }
 
+        let maybe_j = p.find_next_where(i, |t| !t.is_empty());
         let jhali_ante = match maybe_j {
             Some(i) => p.get(i)?.has_adi(&*JHAL),
-            None => true,
+            None => f::is_pada(p.terms().last()?),
         };
         if !jhali_ante {
             return None;
@@ -331,7 +331,7 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
         let x = p.get(i)?;
         let jhali_or_ante = match p.find_next_where(i, |t| !t.is_empty()) {
             Some(j) => p.get(j)?.has_adi(&*JHAL),
-            None => true,
+            None => f::is_pada(p.terms().last()?),
         };
         if x.has_antya(&*CU) && jhali_or_ante {
             if let Some(c) = x.antya() {
@@ -365,10 +365,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
 
     // Exclude the following from 8.2.39 so that the corresponding rules aren't
     // vyartha:
-    // - c for 8.2.30 (coH kuH)
-    // - S for 8.2.36 (vraSca-Brasja-...-Ca-SAM zaH)
     // - s for 8.2.66 (sasajuSo ruH)
-    // - h for 8.2.31 (ho QaH)
     for i in 0..p.terms().len() {
         let c = p.get(i)?;
         let is_anta = p.find_next_where(i, |t| !t.is_empty()).is_none();

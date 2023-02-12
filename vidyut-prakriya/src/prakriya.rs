@@ -73,8 +73,8 @@ pub struct Prakriya {
 impl Prakriya {
     /// Returns the current state of the derivation. If the derivation is complete, `text()` will
     /// thus represent the derivation's final output, which is a complete Sanskrit *pada*.
-    pub fn text(&self) -> CompactString {
-        let mut ret = CompactString::from("");
+    pub fn text(&self) -> String {
+        let mut ret = String::from("");
         for t in &self.terms {
             ret.push_str(&t.text);
         }
@@ -106,6 +106,15 @@ impl Prakriya {
             config: Config::new(),
             rule_decisions: Vec::new(),
         }
+    }
+
+    /// Like `text` but creates a CompactString.
+    pub(crate) fn compact_text(&self) -> CompactString {
+        let mut ret = CompactString::from("");
+        for t in &self.terms {
+            ret.push_str(&t.text);
+        }
+        ret
     }
 
     /// Creates an empty prakriya with the given config options.

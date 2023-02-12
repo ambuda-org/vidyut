@@ -16,7 +16,7 @@ lazy_static! {
 
 // These dhatus use their pratyaya optionally if followed by ArdhadhAtuka.
 const AYADAYA: &[&str] = &[
-    "gupU~", "DUpa~", "vicCa~", "paRa~\\", "pana~\\", "fti", "kamu~\\",
+    "gupU~", "DUpa~", "viCa~", "paRa~\\", "pana~\\", "fti", "kamu~\\",
 ];
 
 /// Adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
@@ -90,7 +90,7 @@ fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Opti
 
         if add_pratyaya {
             let dhatu = p.get(i)?;
-            if dhatu.has_u_in(&["gupU~", "DUpa~", "vicCa~", "paRa~\\", "pana~\\"]) {
+            if dhatu.has_u_in(&["gupU~", "DUpa~", "viCa~", "paRa~\\", "pana~\\"]) {
                 add_sanadi("3.1.28", p, i, "Aya");
             } else if dhatu.has_u("fti") {
                 // ftIyate

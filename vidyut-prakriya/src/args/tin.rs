@@ -1,6 +1,6 @@
+use crate::enum_boilerplate;
 use crate::errors::Error;
 use crate::tag::Tag;
-use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The prayoga of some tinanta.
@@ -16,6 +16,12 @@ pub enum Prayoga {
     Bhave,
 }
 
+enum_boilerplate!(Prayoga, {
+    Kartari => "kartari",
+    Karmani => "karmani",
+    Bhave => "bhave",
+});
+
 impl Prayoga {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
@@ -24,32 +30,10 @@ impl Prayoga {
             Self::Bhave => Tag::Bhave,
         }
     }
-
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Kartari => "kartari",
-            Self::Karmani => "karmani",
-            Self::Bhave => "bhave",
-        }
-    }
-}
-
-impl FromStr for Prayoga {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "kartari" => Self::Kartari,
-            "karmani" => Self::Karmani,
-            "bhave" => Self::Bhave,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
-    }
 }
 
 /// The person of some tinanta.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Purusha {
     /// The third person.
@@ -60,6 +44,12 @@ pub enum Purusha {
     Uttama,
 }
 
+enum_boilerplate!(Purusha, {
+    Prathama => "prathama",
+    Madhyama => "madhyama",
+    Uttama => "uttama",
+});
+
 impl Purusha {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
@@ -68,31 +58,10 @@ impl Purusha {
             Self::Uttama => Tag::Uttama,
         }
     }
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Prathama => "prathama",
-            Self::Madhyama => "madhyama",
-            Self::Uttama => "uttama",
-        }
-    }
-}
-
-impl FromStr for Purusha {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "prathama" => Self::Prathama,
-            "madhyama" => Self::Madhyama,
-            "uttama" => Self::Uttama,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
-    }
 }
 
 /// The number of some tinanta or subanta.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Vacana {
     /// The singular.
@@ -103,42 +72,19 @@ pub enum Vacana {
     Bahu,
 }
 
-const VACANAS: &[Vacana] = &[Vacana::Eka, Vacana::Dvi, Vacana::Bahu];
+enum_boilerplate!(Vacana, {
+    Eka => "eka",
+    Dvi => "dvi",
+    Bahu => "bahu",
+});
 
 impl Vacana {
-    /// Iterates over the values of `Vacana` in order.
-    pub fn iter() -> impl Iterator<Item = &'static Vacana> {
-        VACANAS.iter()
-    }
-
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Eka => "eka",
-            Self::Dvi => "dvi",
-            Self::Bahu => "bahu",
-        }
-    }
-
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
             Self::Eka => Tag::Ekavacana,
             Self::Dvi => Tag::Dvivacana,
             Self::Bahu => Tag::Bahuvacana,
         }
-    }
-}
-
-impl FromStr for Vacana {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "eka" => Self::Eka,
-            "dvi" => Self::Dvi,
-            "bahu" => Self::Bahu,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
     }
 }
 
@@ -170,24 +116,21 @@ pub enum Lakara {
     Lrn,
 }
 
-impl Lakara {
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Lakara::Lat => "lat",
-            Lakara::Lit => "lit",
-            Lakara::Lut => "lut",
-            Lakara::Lrt => "lrt",
-            Lakara::Let => "let",
-            Lakara::Lot => "lot",
-            Lakara::Lan => "lan",
-            Lakara::VidhiLin => "vidhi-lin",
-            Lakara::AshirLin => "ashir-lin",
-            Lakara::Lun => "lun",
-            Lakara::Lrn => "lrn",
-        }
-    }
+enum_boilerplate!(Lakara, {
+    Lat => "lat",
+    Lit => "lit",
+    Lut => "lut",
+    Lrt => "lrt",
+    Let => "let",
+    Lot => "lot",
+    Lan => "lan",
+    VidhiLin => "vidhi-lin",
+    AshirLin => "ashir-lin",
+    Lun => "lun",
+    Lrn => "lrn",
+});
 
+impl Lakara {
     /// Returns whether or not this lakara is Nit.
     pub(crate) fn is_nit(&self) -> bool {
         matches![
@@ -210,29 +153,8 @@ impl Lakara {
     }
 }
 
-impl FromStr for Lakara {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "lat" => Self::Lat,
-            "lit" => Self::Lit,
-            "lut" => Self::Lut,
-            "lrt" => Self::Lrt,
-            "let" => Self::Let,
-            "lot" => Self::Lot,
-            "lan" => Self::Lan,
-            "vidhi-lin" => Self::VidhiLin,
-            "ashir-lin" => Self::AshirLin,
-            "lun" => Self::Lun,
-            "lrn" => Self::Lrn,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
-    }
-}
-
 /// The pada of some tinanta.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Pada {
     /// Parasmaipada.
@@ -241,32 +163,17 @@ pub enum Pada {
     Atmane,
 }
 
+enum_boilerplate!(Pada, {
+    Parasmai => "parasmai",
+    Atmane => "atmane",
+});
+
 impl Pada {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
             Self::Parasmai => Tag::Parasmaipada,
             Self::Atmane => Tag::Atmanepada,
         }
-    }
-
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Parasmai => "parasmai",
-            Self::Atmane => "atmane",
-        }
-    }
-}
-
-impl FromStr for Pada {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "parasmai" => Self::Parasmai,
-            "atmane" => Self::Atmane,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
     }
 }
 
@@ -325,7 +232,7 @@ impl TinantaArgs {
 }
 
 /// Convenience struct for building a `TinantaArgs` object.
-#[derive(Default)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct TinantaArgsBuilder {
     prayoga: Option<Prayoga>,
     purusha: Option<Purusha>,

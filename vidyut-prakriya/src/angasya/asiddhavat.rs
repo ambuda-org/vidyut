@@ -134,14 +134,14 @@ fn run_before_knit_ardhadhatuka(p: &mut Prakriya, i: usize) -> Option<()> {
         // included in `n`.
     } else if aat && n.has_adi(&*AC) && (kniti_ardha || f::is_it_agama(n.first()?)) {
         p.op_term("6.4.64", i, op::antya(""));
+    } else if aat && n.has_u("yat") {
+        p.op_term("6.4.65", i, op::antya("I"));
     } else if aat && kniti_ardha {
         let ghu_ma = dhatu.has_tag(T::Ghu)
             || dhatu.has_text_in(&["mA", "sTA", "gA", "sA"])
             || dhatu.has_u("o~hA\\k")
             || (dhatu.has_u("pA\\") && dhatu.has_gana(1));
-        if n.has_u("yat") {
-            p.op_term("6.4.65", i, op::antya("I"));
-        } else if n.has_adi(&*HAL) && ghu_ma {
+        if n.has_adi(&*HAL) && ghu_ma {
             if n.has_lakshana("li~N") {
                 p.op_term("6.4.67", i, op::antya("e"));
             } else {

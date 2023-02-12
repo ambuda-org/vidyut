@@ -5,22 +5,8 @@ padas produced by those inputs.
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{Gana, Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
+use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
 use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
-
-// TODO: reuse with other binaries?
-const LAKARA: &[Lakara] = &[
-    Lakara::Lat,
-    Lakara::Lit,
-    Lakara::Lut,
-    Lakara::Lrt,
-    Lakara::Lot,
-    Lakara::Lan,
-    Lakara::AshirLin,
-    Lakara::VidhiLin,
-    Lakara::Lun,
-    Lakara::Lrn,
-];
 
 const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
     (Purusha::Prathama, Vacana::Eka),
@@ -38,7 +24,7 @@ const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
 struct Row<'a> {
     padas: String,
     dhatu: &'a str,
-    gana: Gana,
+    gana: &'static str,
     number: u16,
     prayoga: &'static str,
     lakara: &'static str,
@@ -52,7 +38,7 @@ fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
 
     for entry in d {
         let dhatu = entry.dhatu();
-        for lakara in LAKARA {
+        for lakara in Lakara::iter() {
             for (purusha, vacana) in TIN_SEMANTICS {
                 let prayoga = Prayoga::Kartari;
                 let tinanta_args = TinantaArgs::builder()
@@ -72,7 +58,7 @@ fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
                 let row = Row {
                     padas,
                     dhatu: dhatu_text,
-                    gana: dhatu.gana(),
+                    gana: dhatu.gana().as_str(),
                     number: entry.number(),
                     lakara: lakara.as_str(),
                     purusha: purusha.as_str(),

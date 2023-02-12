@@ -9,6 +9,8 @@ this module.
 For extra flexibility, all of the enums here provides `as_str` and `from_str` methods. For details
 on which strings are valid arguments in `from_str`, please read the source code directly.
 */
+mod macros;
+
 mod dhatu;
 mod krt;
 mod sup;

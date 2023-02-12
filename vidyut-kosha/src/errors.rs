@@ -21,7 +21,7 @@ pub enum Error {
     /// The given int could not be mapped to a pratipadika.
     UnknownPratipadikaId(u32),
     /// Value could not be parsed into the given enum.
-    EnumParse(&'static str, String),
+    ParseEnum(&'static str, String),
     /// A eneric error.
     Generic(String),
 }
@@ -62,7 +62,7 @@ impl fmt::Display for Error {
             TooManyDuplicates(s) => write!(f, "Key `{}` has been inserted too many times.", s),
             UnknownDhatuId(id) => write!(f, "Unknown dhatu ID {}", id),
             UnknownPratipadikaId(id) => write!(f, "Unknown pratipadika id {}", id),
-            EnumParse(name, value) => write!(f, "Enum `{name}` has no value `{value}`."),
+            ParseEnum(name, value) => write!(f, "Enum `{name}` has no value `{value}`."),
             TryFromInt(e) => e.fmt(f),
             Generic(s) => write!(f, "{s}"),
         }

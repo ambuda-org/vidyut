@@ -24,7 +24,7 @@ lazy_static! {
     static ref HAL: Set = s("hal");
 }
 
-pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
+fn try_lopo_vyor_vali(p: &mut Prakriya) {
     char_rule(
         p,
         |p, text, i| {
@@ -48,6 +48,16 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             true
         },
     );
+}
+
+fn try_ver_aprktasya(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Krt)?;
+    let krt = p.get(i)?;
+    if krt.has_text("v") {
+        p.op_term("6.1.67", i, op::lopa);
+    }
+
+    Some(())
 }
 
 /// Runs various general rules of vowel sandhi.
@@ -277,6 +287,7 @@ fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
 
 pub fn run_common(p: &mut Prakriya) {
     try_lopo_vyor_vali(p);
+    try_ver_aprktasya(p);
 
     for i in 0..p.terms().len() {
         apply_ac_sandhi_at_term_boundary(p, i);

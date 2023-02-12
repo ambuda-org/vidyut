@@ -76,12 +76,7 @@ pub fn dhatu_adesha_before_pada(p: &mut Prakriya, la: Lakara) {
 ///
 /// These rules must run before we choose the vikarana because the results here affect which
 /// vikarana we add.
-pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> {
-    // Rules are under 2.4.35 "ArdhadhAtuke".
-    if la.is_sarvadhatuka() {
-        return None;
-    }
-
+fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let j = p.find_next_where(i, |t| !t.is_empty())?;
     let dhatu = p.get(i)?;
@@ -117,7 +112,6 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
                 op::adesha("2.4.43", p, i, "vaDa");
             }
         }
-        p.step("han but failed");
     } else if dhatu.has_u_in(&["i\\R", "i\\k"]) {
         if dhatu.has_u("i\\k") {
             p.step("2.4.45.v1");
@@ -165,7 +159,7 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
         // This vArttika is troublesome and highly constrained. To derive
         // vivAya, we must run in this order:
         //
-        //   siddhi --> vArttika --> dvitva
+        //   tin-siddhi --> this vArttika --> dvitva
         //
         // But tin-siddhi must follow dvitva for rule 3.4.109. I considered
         // breaking siddhi into two stages -- one for liT, and one for other
@@ -176,8 +170,8 @@ pub fn dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Lakara) -> Option<()> 
         // As a crude fix, just check for endings that we expect will start with
         // vowels.
         let n = p.get(j)?;
-        let will_yasut = la == Lakara::AshirLin && p.has_tag(T::Parasmaipada);
-        let is_lit_ajadi = la == Lakara::Lit && p.terms().last()?.has_adi(&*AC);
+        let will_yasut = la == Some(Lakara::AshirLin) && p.has_tag(T::Parasmaipada);
+        let is_lit_ajadi = la == Some(Lakara::Lit) && p.terms().last()?.has_adi(&*AC);
         let will_have_valadi = !(will_yasut || is_lit_ajadi);
         if n.has_adi(&*VAL) && will_have_valadi {
             if p.is_allowed("2.4.56.v2") {
@@ -291,8 +285,11 @@ pub fn run_am_agama(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_before_vikarana(p: &mut Prakriya, la: Lakara) {
-    dhatu_adesha_before_vikarana(p, la);
+pub fn run_before_vikarana(p: &mut Prakriya, la: Option<Lakara>, will_be_ardhadhatuke: bool) {
+    // Rules are under 2.4.35 "ArdhadhAtuke".
+    if will_be_ardhadhatuke {
+        try_dhatu_adesha_before_vikarana(p, la);
+    }
 }
 
 /// Replaces the dhAtu based on the following suffix.

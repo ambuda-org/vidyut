@@ -1,13 +1,12 @@
 use crate::args::tin::Vacana;
+use crate::enum_boilerplate;
 use crate::errors::Error;
 use crate::tag::Tag;
-use compact_str::CompactString;
 use enumset::EnumSet;
-use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The gender of some subanta.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Linga {
     /// The masculine.
@@ -18,6 +17,12 @@ pub enum Linga {
     Napumsaka,
 }
 
+enum_boilerplate!(Linga, {
+    Pum => "pum",
+    Stri => "stri",
+    Napumsaka => "napumsaka"
+});
+
 impl Linga {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
@@ -26,31 +31,10 @@ impl Linga {
             Self::Napumsaka => Tag::Napumsaka,
         }
     }
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Pum => "pum",
-            Self::Stri => "stri",
-            Self::Napumsaka => "napumsaka",
-        }
-    }
-}
-
-impl FromStr for Linga {
-    type Err = &'static str;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "pum" => Self::Pum,
-            "stri" => Self::Stri,
-            "napumsaka" => Self::Napumsaka,
-            &_ => return Err("Could not parse Linga"),
-        };
-        Ok(res)
-    }
 }
 
 /// The case ending of some subanta.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Vibhakti {
     /// The first vibhakti . Sometimes called the *nominative case*.
@@ -70,43 +54,24 @@ pub enum Vibhakti {
     /// The first vibhakti used in the sense of *sambodhana*. Sometimes called the *vocative case*.
     ///
     /// *Sambodhana* is technically not a *vibhakti but rather an additional semantic condition
-    /// that conditions the first vibhakti. But we felt that users would find it more convenient to
-    /// have this condition available on `Vibhakti` directly rather than have to define the
-    /// *sambodhana* condition separately.
+    /// on the first vibhakti. But we felt that users would find it more convenient to have this
+    /// condition available on `Vibhakti` directly rather than have to define the *sambodhana*
+    /// condition separately.
     Sambodhana,
 }
 
-const VIBHAKTIS: &[Vibhakti] = &[
-    Vibhakti::Prathama,
-    Vibhakti::Dvitiya,
-    Vibhakti::Trtiya,
-    Vibhakti::Caturthi,
-    Vibhakti::Panchami,
-    Vibhakti::Sasthi,
-    Vibhakti::Saptami,
-    Vibhakti::Sambodhana,
-];
+enum_boilerplate!(Vibhakti, {
+    Prathama => "1",
+    Dvitiya => "2",
+    Trtiya => "3",
+    Caturthi => "4",
+    Panchami => "5",
+    Sasthi => "6",
+    Saptami => "7",
+    Sambodhana => "s",
+});
 
 impl Vibhakti {
-    /// Iterates over the values of `Vibhakti` in order.
-    pub fn iter() -> impl Iterator<Item = &'static Vibhakti> {
-        VIBHAKTIS.iter()
-    }
-
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Prathama => "1",
-            Self::Dvitiya => "2",
-            Self::Trtiya => "3",
-            Self::Caturthi => "4",
-            Self::Panchami => "5",
-            Self::Sasthi => "6",
-            Self::Saptami => "7",
-            Self::Sambodhana => "s",
-        }
-    }
-
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
             Self::Prathama => Tag::V1,
@@ -121,28 +86,10 @@ impl Vibhakti {
     }
 }
 
-impl FromStr for Vibhakti {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "1" => Self::Prathama,
-            "2" => Self::Dvitiya,
-            "3" => Self::Trtiya,
-            "4" => Self::Caturthi,
-            "5" => Self::Panchami,
-            "6" => Self::Sasthi,
-            "7" => Self::Saptami,
-            "s" => Self::Sambodhana,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
-    }
-}
-
 /// The verb root to use for the derivation.
-#[derive(Debug, Default, Clone, Hash)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Pratipadika {
-    text: CompactString,
+    text: String,
     tags: EnumSet<Tag>,
 }
 
@@ -156,7 +103,7 @@ impl Pratipadika {
     }
 
     /// The text of this pratipadika.
-    pub fn text(&self) -> &CompactString {
+    pub fn text(&self) -> &String {
         &self.text
     }
 
@@ -182,9 +129,9 @@ impl Pratipadika {
 }
 
 /// Convenience struct for building a `Pratipadika` struct.
-#[derive(Default)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct PratipadikaBuilder {
-    text: Option<CompactString>,
+    text: Option<String>,
     is_nyap: bool,
     is_dhatu: bool,
     is_pratyaya: bool,
@@ -193,7 +140,7 @@ pub struct PratipadikaBuilder {
 impl PratipadikaBuilder {
     /// Sets the text of the pratipadika.
     pub fn text(&mut self, value: impl AsRef<str>) -> &mut Self {
-        self.text = Some(CompactString::from(value.as_ref()));
+        self.text = Some(String::from(value.as_ref()));
         self
     }
 
@@ -272,7 +219,7 @@ impl SubantaArgs {
 }
 
 /// Convenience struct for building a `SubantaArgs` struct.
-#[derive(Default)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct SubantaArgsBuilder {
     linga: Option<Linga>,
     vacana: Option<Vacana>,
@@ -318,6 +265,7 @@ impl SubantaArgsBuilder {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

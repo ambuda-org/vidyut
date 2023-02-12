@@ -5,6 +5,8 @@ const NOMINAL_KRTS = [
     Krt.GaY,
     Krt.lyuw,
     Krt.Rvul,
+    Krt.kvip,
+    Krt.kvin,
 ];
 
 // Krts that are generally called *participles*.

@@ -36,7 +36,7 @@ pub fn char_rule(
 ) {
     let mut counter = 0;
     loop {
-        let text = p.text();
+        let text = p.compact_text();
         let mut changed_text = false;
 
         for i in 0..text.len() {

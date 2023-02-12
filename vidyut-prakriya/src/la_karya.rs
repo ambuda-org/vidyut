@@ -26,8 +26,8 @@ pub fn run(p: &mut Prakriya, la: Lakara) {
     };
 
     match la {
-        Lakara::Lat => add_la("3.3.123", p, i, "la~w"),
-        Lakara::Lit => add_la("3.2.114", p, i, "li~w"),
+        Lakara::Lat => add_la("3.2.123", p, i, "la~w"),
+        Lakara::Lit => add_la("3.2.115", p, i, "li~w"),
         Lakara::Lut => add_la("3.3.15", p, i, "lu~w"),
         Lakara::Lrt => add_la("3.3.13", p, i, "lf~w"),
         Lakara::Let => add_la("3.4.7", p, i, "le~w"),

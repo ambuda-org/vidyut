@@ -7,7 +7,9 @@ words are derived in the system.
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
-use crate::args::{Dhatu, KrdantaArgs, Krt, Lakara, Pratipadika, Sanadi, SubantaArgs, TinantaArgs};
+use crate::args::{
+    Dhatu, KrdantaArgs, Krt, Lakara, Pratipadika, Prayoga, Sanadi, SubantaArgs, TinantaArgs,
+};
 use crate::atidesha;
 use crate::atmanepada;
 use crate::dhatu_karya;
@@ -45,6 +47,14 @@ fn add_lakara_and_decide_pada(p: &mut Prakriya, lakara: Lakara) {
     la_karya::run(p, lakara);
     ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
     atmanepada::run(p);
+}
+
+fn try_add_vikaranas(p: &mut Prakriya, la: Option<Lakara>, is_ardhadhatuka: bool) -> Result<()> {
+    ardhadhatuka::run_before_vikarana(p, la, is_ardhadhatuka);
+    vikarana::run(p)?;
+    samjna::run(p);
+
+    Ok(())
 }
 
 /// Runs rules that potentially add a lakara.
@@ -100,6 +110,11 @@ fn run_various_dhatu_tasks(p: &mut Prakriya) {
 /// - various rules within the `angasya` section.
 /// - the tripAdi.
 fn finish_prakriya(p: &mut Prakriya) {
+    // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
+    ardhadhatuka::run_am_agama(p);
+
+    angasya::iit_agama(p);
+
     ac_sandhi::try_sup_sandhi_before_angasya(p);
     angasya::run_remainder(p);
     ac_sandhi::try_sup_sandhi_after_angasya(p);
@@ -109,14 +124,20 @@ fn finish_prakriya(p: &mut Prakriya) {
 
 fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result<Prakriya> {
     let p = &mut prakriya;
-
     let prayoga = args.prayoga();
     let lakara = args.lakara();
     let purusha = args.purusha();
     let vacana = args.vacana();
     p.add_tags(&[prayoga.as_tag(), purusha.as_tag(), vacana.as_tag()]);
 
-    add_dhatu(p, dhatu, lakara.is_ardhadhatuka())?;
+    // Prayogas other than kartari will never be sarvadhatuka, since yak-vikarana is not
+    // sarvadhatuka.
+    let is_ardhadhatuka = match prayoga {
+        Prayoga::Kartari => lakara.is_ardhadhatuka(),
+        _ => true,
+    };
+
+    add_dhatu(p, dhatu, is_ardhadhatuka)?;
     add_lakara_and_decide_pada(p, lakara);
 
     tin_pratyaya::adesha(p, purusha, vacana);
@@ -128,10 +149,7 @@ fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> 
         tin_pratyaya::siddhi(p, lakara, vacana);
     }
 
-    // Add necessary vikaranas.
-    ardhadhatuka::run_before_vikarana(p, lakara);
-    vikarana::run(p)?;
-    samjna::run(p);
+    try_add_vikaranas(p, Some(lakara), is_ardhadhatuka)?;
 
     // --- Code below this line needs to be cleaned up. ---
 
@@ -150,12 +168,7 @@ fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> 
         run_various_dhatu_tasks(p)
     }
 
-    // Must follow tin-siddhi (for valAdi)
-    ardhadhatuka::run_am_agama(p);
-
     // --- Code above this line needs to be cleaned up. ---
-
-    angasya::iit_agama(p);
 
     finish_prakriya(p);
 
@@ -191,10 +204,7 @@ fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> 
 
     samjna::run(p);
 
-    // Add necessary vikaranas.
-    // TODO: unify this with the tinanta path.
-    vikarana::run(p)?;
-    samjna::run(p);
+    try_add_vikaranas(p, None, true)?;
     run_various_dhatu_tasks(p);
 
     dvitva::run(p);

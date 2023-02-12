@@ -176,7 +176,7 @@ impl PratipadikaTable {
 
 /// Models the part of speech for the given `Pada`. The value of `PartOfSpeech` controls how we
 /// interpret the rest of the packed data.
-#[derive(BitfieldSpecifier)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
 #[bits = 2]
 enum PartOfSpeech {
     None,
@@ -205,7 +205,7 @@ impl PackedNone {
 }
 
 /// A space-efficient version of `Linga`.
-#[derive(BitfieldSpecifier)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
 #[bits = 2]
 pub enum PackedLinga {
     /// Unknown or missing `Linga`.
@@ -221,7 +221,7 @@ pub enum PackedLinga {
 boilerplate!(PackedLinga, Linga, [Pum, Stri, Napumsaka]);
 
 /// A space-efficient version of `Vacana`.
-#[derive(BitfieldSpecifier)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
 #[bits = 2]
 pub enum PackedVacana {
     /// Unknown or missing vacana.
@@ -237,7 +237,7 @@ pub enum PackedVacana {
 boilerplate!(PackedVacana, Vacana, [Eka, Dvi, Bahu]);
 
 /// A space-efficient version of `Vibhakti`.
-#[derive(BitfieldSpecifier)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
 #[bits = 4]
 pub enum PackedVibhakti {
     /// Unknown or missing vibhakti.
@@ -397,7 +397,7 @@ impl PackedPada {
 }
 
 /// Packs a `Pada` enum into a u32 code.
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Packer {
     /// Maps a pratipadika to its numeric ID.
     stem_mapper: FxHashMap<Pratipadika, usize>,

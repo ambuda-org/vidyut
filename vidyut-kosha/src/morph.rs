@@ -21,9 +21,17 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
-/// Implements several boilerplate functions for our enums.
-macro_rules! boilerplate {
-    ($Enum:ident, [$( ($variant:ident, $str:literal) ),*]) => {
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+/// Implements various boilerplate for our enums:
+///
+/// - `as_str`
+/// - `iter`
+/// - `FromStr`
+/// - `Display`
+macro_rules! enum_boilerplate {
+    ($Enum:ident, { $( $variant:ident => $str:literal ),* $(,)? }) => {
         impl $Enum {
             /// Returns a string representation of this enum.
             pub fn as_str(&self) -> &'static str {
@@ -32,6 +40,16 @@ macro_rules! boilerplate {
                         $Enum::$variant => $str,
                     )*
                 }
+            }
+
+            /// Iterates over the values of this enum in order.
+            pub fn iter() -> impl Iterator<Item = &'static $Enum> {
+                const ITEMS: &[$Enum] = &[
+                    $(
+                        $Enum::$variant,
+                    )*
+                ];
+                ITEMS.iter()
             }
         }
 
@@ -42,7 +60,7 @@ macro_rules! boilerplate {
                     $(
                         $str => $Enum::$variant,
                     )*
-                    _ => return Err(Error::EnumParse(stringify!($Enum), s.to_string())),
+                    _ => return Err(Error::ParseEnum(stringify!($Enum), s.to_string())),
                 };
                 Ok(val)
             }
@@ -85,6 +103,7 @@ impl FeatureMap {
 
 /// The *liṅga* (gender) of a *subanta*.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum Linga {
     /// The masculine gender.
@@ -95,10 +114,15 @@ pub enum Linga {
     Napumsaka,
 }
 
-boilerplate!(Linga, [(Pum, "m"), (Stri, "f"), (Napumsaka, "n")]);
+enum_boilerplate!(Linga, {
+    Pum => "m",
+    Stri => "f",
+    Napumsaka => "n",
+});
 
 /// The *vacana* (number) of a *subanta* or *tiṅanta*.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum Vacana {
     /// The singular.
@@ -109,13 +133,18 @@ pub enum Vacana {
     Bahu,
 }
 
-boilerplate!(Vacana, [(Eka, "s"), (Dvi, "d"), (Bahu, "p")]);
+enum_boilerplate!(Vacana, {
+    Eka => "s",
+    Dvi => "d",
+    Bahu => "p",
+});
 
 /// The *vibhakti* (case) of a *subanta*.
 ///
 /// The term *vibhakti* refers generally to any triad of inflectional endings for a *subanta*
 /// or *tiṅanta*. Here, `Vibhakti` refers specifically to the *subanta* tridas.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 4]
 pub enum Vibhakti {
     /// The first *vibhakti* (nominative case).
@@ -136,22 +165,20 @@ pub enum Vibhakti {
     Sambodhana,
 }
 
-boilerplate!(
-    Vibhakti,
-    [
-        (V1, "1"),
-        (V2, "2"),
-        (V3, "3"),
-        (V4, "4"),
-        (V5, "5"),
-        (V6, "6"),
-        (V7, "7"),
-        (Sambodhana, "8")
-    ]
-);
+enum_boilerplate!(Vibhakti, {
+    V1 => "1",
+    V2 => "2",
+    V3 => "3",
+    V4 => "4",
+    V5 => "5",
+    V6 => "6",
+    V7 => "7",
+    Sambodhana => "8",
+});
 
 /// The *puruṣa* (person) of a *tiṅanta*.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum Purusha {
     /// The first *puruṣa* (third person).
@@ -162,13 +189,18 @@ pub enum Purusha {
     Uttama,
 }
 
-boilerplate!(Purusha, [(Prathama, "3"), (Madhyama, "2"), (Uttama, "1")]);
+enum_boilerplate!(Purusha, {
+     Prathama => "3",
+     Madhyama => "2",
+     Uttama => "1",
+});
 
 /// The *lakāra* (tense/mood) of a *tiṅanta*.
 ///
 /// The *lakāras* are morphological categories, but each typically expresses a specific meaning.
 /// For example, *laṭ-lakāra* almost always expresses an action in the present tense.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 4]
 pub enum Lakara {
     /// *laṭ-lakāra* (present indicative).
@@ -197,26 +229,24 @@ pub enum Lakara {
     Lrn,
 }
 
-boilerplate!(
-    Lakara,
-    [
-        (Lat, "lat"),
-        (Lit, "lit"),
-        (Lut, "lut"),
-        (Lrt, "lrt"),
-        (Let, "let"),
-        (Lot, "lot"),
-        (Lan, "lan"),
-        (VidhiLin, "vidhi-lin"),
-        (AshirLin, "ashir-lin"),
-        (Lun, "lun"),
-        (LunNoAgama, "lun-no-agama"),
-        (Lrn, "lrn")
-    ]
-);
+enum_boilerplate!(Lakara, {
+    Lat => "lat",
+    Lit => "lit",
+    Lut => "lut",
+    Lrt => "lrt",
+    Let => "let",
+    Lot => "lot",
+    Lan => "lan",
+    VidhiLin => "vidhi-lin",
+    AshirLin => "ashir-lin",
+    Lun => "lun",
+    LunNoAgama => "lun-no-agama",
+    Lrn => "lrn",
+});
 
 /// A *pratyaya* (suffix) that creates a new *dhātu* (verb root)
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum DhatuPratyaya {
     /// *ṇic-pratyaya* (*i*), which expresses a causal action.
@@ -231,6 +261,7 @@ pub enum DhatuPratyaya {
 ///
 /// This list is not exhaustive.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum KrtPratyaya {
     /// The *-tum* suffix (infinitive).
     Tumun,
@@ -264,28 +295,26 @@ pub enum KrtPratyaya {
     Krtya,
 }
 
-boilerplate!(
-    KrtPratyaya,
-    [
-        (Tumun, "tumun"),
-        (Ktva, "ktvA"),
-        (Lyap, "lyap"),
-        (Kvasu, "kvasu"),
-        (Kanac, "kAnac"),
-        (Kta, "kta"),
-        (Ktavat, "ktavat"),
-        (Shatr, "Satf"),
-        (Shanac, "SAnac"),
-        (YakShanac, "yak-SAnac"),
-        (SyaShatr, "sya-Satf"),
-        (SyaShanac, "sya-SAnac"),
-        (Krtya, "kftya")
-    ]
-);
+enum_boilerplate!(KrtPratyaya, {
+    Tumun => "tumun",
+    Ktva => "ktvA",
+    Lyap => "lyap",
+    Kvasu => "kvasu",
+    Kanac => "kAnac",
+    Kta => "kta",
+    Ktavat => "ktavat",
+    Shatr => "Satf",
+    Shanac => "SAnac",
+    YakShanac => "yak-SAnac",
+    SyaShatr => "sya-Satf",
+    SyaShanac => "sya-SAnac",
+    Krtya => "kftya",
+});
 
 /// The *pada* and *prayoga* of the *tiṅanta*. Roughly, these correspond respectively to the
 /// concepts of "voice" and "thematic relation."
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum PadaPrayoga {
     /// *parasmaipada*, which is always in *kartari prayoga*.
@@ -296,17 +325,15 @@ pub enum PadaPrayoga {
     AtmanepadaNotKartari,
 }
 
-boilerplate!(
-    PadaPrayoga,
-    [
-        (Parasmaipada, "para"),
-        (AtmanepadaKartari, "atma-kartari"),
-        (AtmanepadaNotKartari, "atma-not-kartari")
-    ]
-);
+enum_boilerplate!(PadaPrayoga, {
+    Parasmaipada => "para",
+    AtmanepadaKartari => "atma-kartari",
+    AtmanepadaNotKartari => "atma-not-kartari",
+});
 
 /// Models the semantics of a *dhātu* (verb root).
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Dhatu(pub String);
 
 impl Dhatu {
@@ -320,6 +347,7 @@ impl Dhatu {
 ///
 /// An *prātipadika* is generally synonymous with a nominal base.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Pratipadika {
     /// A basic *prātipadika* that cannot be analyzed further.
     Basic {
@@ -393,7 +421,7 @@ impl FromStr for Pratipadika {
                 pratyaya,
             })
         } else {
-            Err(Error::EnumParse("Pratipadika", s.to_string()))
+            Err(Error::ParseEnum("Pratipadika", s.to_string()))
         }
     }
 }
@@ -405,6 +433,7 @@ impl FromStr for Pratipadika {
 /// distinctions that include linga, vacana, etc. are interesting but less useful given our
 /// limited training data.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum POSTag {
     /// A token with missing, unknown, or undefined semantics.
@@ -417,37 +446,12 @@ pub enum POSTag {
     Avyaya,
 }
 
-impl FromStr for POSTag {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let val = match s {
-            "_" => Self::Unknown,
-            "s" => Self::Subanta,
-            "t" => Self::Tinanta,
-            "a" => Self::Avyaya,
-            _ => return Err(Error::EnumParse("POSTag", s.to_string())),
-        };
-        Ok(val)
-    }
-}
-
-impl POSTag {
-    /// Returns a string representation of this enum.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Unknown => "_",
-            Self::Subanta => "s",
-            Self::Tinanta => "t",
-            Self::Avyaya => "a",
-        }
-    }
-}
-
-impl Display for POSTag {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.as_str())
-    }
-}
+enum_boilerplate!(POSTag, {
+    Unknown => "_",
+    Subanta => "s",
+    Tinanta => "t",
+    Avyaya => "a",
+});
 
 /// Models the semantics of a *subanta* if it is not an *avyaya*.
 ///
@@ -465,6 +469,7 @@ impl Display for POSTag {
 ///
 /// For *avyaya*s (indeclinables), see `Avyaya`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Subanta {
     /// The nominal's stem.
     pub pratipadika: Pratipadika,
@@ -497,6 +502,7 @@ pub struct Subanta {
 /// A *tiṅanta* expresses person, number, tense/mood, and voice in addition to whatever semantics
 /// are conveyed by the *dhātu* and its prefixes.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Tinanta {
     /// The verb's root.
     pub dhatu: Dhatu,
@@ -516,6 +522,7 @@ pub struct Tinanta {
 /// its *sup* suffix elided. But we model the *avyaya* separately because we felt that doing so
 /// would be easier to reason about in downstream code.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Avyaya {
     /// The indeclinable's stem.
     pub pratipadika: Pratipadika,
@@ -525,6 +532,7 @@ pub struct Avyaya {
 ///
 /// This enum can be packed into an unsigned integer via the `packing` module.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Pada {
     /// Unknown or missing semantics.
     Unknown,

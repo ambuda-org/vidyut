@@ -1,6 +1,5 @@
+use crate::enum_boilerplate;
 use crate::errors::Error;
-use compact_str::CompactString;
-use std::str::FromStr;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Defines a gaṇa.
@@ -8,7 +7,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// The dhatus in the Dhatupatha are organized in ten large *gaṇa*s or classes. These gaṇas
 /// add various properties to the dhatu, most notably the specific *vikaraṇa* (stem suffix) we use
 /// before sarvadhatuka suffixes.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 #[wasm_bindgen]
 pub enum Gana {
     /// The first gaṇa, whose first dhatu is `BU`.
@@ -33,6 +32,19 @@ pub enum Gana {
     Curadi,
 }
 
+enum_boilerplate!(Gana, {
+    Bhvadi => "1",
+    Adadi => "2",
+    Juhotyadi => "3",
+    Divadi => "4",
+    Svadi => "5",
+    Tudadi => "6",
+    Rudhadi => "7",
+    Tanadi => "8",
+    Kryadi => "9",
+    Curadi => "10",
+});
+
 impl Gana {
     /// Parses the given integer as a `Gana`.
     pub fn from_int(value: u8) -> Result<Gana, Error> {
@@ -51,44 +63,6 @@ impl Gana {
             _ => return Err(Error::gana_parse_error(value)),
         };
         Ok(ret)
-    }
-
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        use Gana::*;
-        match self {
-            Bhvadi => "1",
-            Adadi => "2",
-            Juhotyadi => "3",
-            Divadi => "4",
-            Svadi => "5",
-            Tudadi => "6",
-            Rudhadi => "7",
-            Tanadi => "8",
-            Kryadi => "9",
-            Curadi => "10",
-        }
-    }
-}
-
-impl FromStr for Gana {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Gana::*;
-        let res = match s {
-            "1" => Bhvadi,
-            "2" => Adadi,
-            "3" => Juhotyadi,
-            "4" => Divadi,
-            "5" => Svadi,
-            "6" => Tudadi,
-            "7" => Rudhadi,
-            "8" => Tanadi,
-            "9" => Kryadi,
-            "10" => Curadi,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
     }
 }
 
@@ -128,7 +102,7 @@ impl From<Gana> for u8 {
 /// is no canonical version of the Dhatupatha, and we cannot expect that a dhatu's index is
 /// consistent across all of these versions. So we thought it better to avoid hard-coding indices
 /// or requiring callers to follow our specific conventions.)
-#[derive(Copy, Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Antargana {
     /// Antargana of *tud* gana. Pratyayas that follow dhatus in kut-Adi will generally be marked
     /// Nit per 1.2.1. Required because of duplicates like `juqa~`.
@@ -137,6 +111,11 @@ pub enum Antargana {
     /// ātmanepadī. Required because of duplicates like `daSi~`.
     Akusmiya,
 }
+
+enum_boilerplate!(Antargana, {
+    Kutadi => "kutadi",
+    Akusmiya => "akusmiya",
+});
 
 /// One of the three common *sanAdi* pratyayas.
 ///
@@ -149,7 +128,7 @@ pub enum Antargana {
 ///
 /// For details on what these pratyayas mean and what kinds of words they produce, see the comments
 /// below.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 #[wasm_bindgen]
 pub enum Sanadi {
     /// `san`, which creates desiderative roots per 3.1.7.
@@ -175,40 +154,21 @@ pub enum Sanadi {
     Nic,
 }
 
-impl Sanadi {
-    /// Returns a simple human-readable string that represents this enum's value.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::San => "san",
-            Self::Yan => "yaN",
-            Self::YanLuk => "yaN-luk",
-            Self::Nic => "Ric",
-        }
-    }
-}
-
-impl FromStr for Sanadi {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "san" => Self::San,
-            "yaN" => Self::Yan,
-            "yaN-luk" => Self::YanLuk,
-            "Ric" => Self::Nic,
-            &_ => return Err(Error::enum_parse_error(s)),
-        };
-        Ok(res)
-    }
-}
+enum_boilerplate!(Sanadi, {
+    San => "san",
+    Yan => "yaN",
+    YanLuk => "yaN-luk",
+    Nic => "Ric",
+});
 
 /// The verb root to use for the derivation.
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Dhatu {
-    upadesha: CompactString,
+    upadesha: String,
     gana: Gana,
     antargana: Option<Antargana>,
     sanadi: Vec<Sanadi>,
-    prefixes: Vec<CompactString>,
+    prefixes: Vec<String>,
 }
 
 impl Dhatu {
@@ -231,7 +191,7 @@ impl Dhatu {
     /// ```
     pub fn new(upadesha: &str, gana: Gana) -> Self {
         Self {
-            upadesha: CompactString::from(upadesha),
+            upadesha: String::from(upadesha),
             gana,
             antargana: None,
             sanadi: Vec::new(),
@@ -242,7 +202,7 @@ impl Dhatu {
     /// The dhatu as stated in its aupadeshka form. `upadesha` should be an SLP1 string that
     /// includes any necessary svaras. For examples, see the `dhatu` column in the
     /// `data/dhatupatha.tsv` file included in this crate.
-    pub fn upadesha(&self) -> &CompactString {
+    pub fn upadesha(&self) -> &String {
         &self.upadesha
     }
 
@@ -262,7 +222,7 @@ impl Dhatu {
     }
 
     /// The prefixes to use with the dhatu.
-    pub fn prefixes(&self) -> &Vec<CompactString> {
+    pub fn prefixes(&self) -> &Vec<String> {
         &self.prefixes
     }
 
@@ -285,19 +245,19 @@ impl Dhatu {
 }
 
 /// Convenience struct for building a `Dhatu` object.
-#[derive(Default, serde::Serialize)]
+#[derive(Clone, Default, Hash, Eq, PartialEq)]
 pub struct DhatuBuilder {
-    upadesha: Option<CompactString>,
+    upadesha: Option<String>,
     gana: Option<Gana>,
     antargana: Option<Antargana>,
     sanadi: Vec<Sanadi>,
-    prefixes: Vec<CompactString>,
+    prefixes: Vec<String>,
 }
 
 impl DhatuBuilder {
     /// Sets the upadesha of the dhatu.
     pub fn upadesha(mut self, text: &str) -> Self {
-        self.upadesha = Some(CompactString::from(text));
+        self.upadesha = Some(String::from(text));
         self
     }
 
@@ -317,7 +277,7 @@ impl DhatuBuilder {
     pub fn prefixes(mut self, values: &[impl AsRef<str>]) -> Self {
         self.prefixes.clear();
         self.prefixes
-            .extend(values.iter().map(|x| CompactString::from(x.as_ref())));
+            .extend(values.iter().map(|x| String::from(x.as_ref())));
         self
     }
 

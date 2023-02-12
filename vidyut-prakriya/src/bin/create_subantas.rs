@@ -72,7 +72,7 @@ fn na(s: &str) -> TestCase {
     }
 }
 
-/// Sourced from https://ashtadhyayi.com/shabda.
+/// Sourced from <https://ashtadhyayi.com/shabda>.
 fn create_test_cases() -> Vec<TestCase> {
     vec![
         // ------------------------------

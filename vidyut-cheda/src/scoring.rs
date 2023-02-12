@@ -201,7 +201,7 @@ impl LemmaModel {
 }
 
 struct TransitionModel {
-    /// Log probability of (state[n] | state[n-1])
+    /// Log probability of `(state[n] | state[n-1])`
     log_probs: FxHashMap<(State, State), f32>,
     /// The log probability of a transition state not seen anywhere in the training data.
     log_epsilon: f32,

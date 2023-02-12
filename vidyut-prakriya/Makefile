@@ -53,7 +53,7 @@ test_tinantas:
 	cargo build --release
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-kartari.csv \
-	    --hash "2cb9791994862818fbfd2438a375f7bbb9f863c493443528ae8459b56d159b9c"
+	    --hash "963a3ace3c92145b9f840b4286ad5c224ac4ffee4d46e8eef0d2220d9ce43e1a"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-nic-kartari.csv \
 	    --hash "b87f2e09900a9eaee5d0664f525b14b00ef5c933360d18e2df0f865775691dbe"
@@ -65,16 +65,16 @@ test_tinantas:
 	    --hash "6b074a579727e5a606edf8890a31d9f33f38bf8fd3b21a97d32e4a47b582ec14"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-karmani.csv \
-	    --hash "28fd9f7d49cc0e66af7a5940e4d3c89c67eecd1158438644cba0c9330ad6375d"
+	    --hash "fddc2586211770412cd6fe8a350ada4253a2a3bb687aed2853c20384b1b844e6"
 
 test_krdantas:
 	cargo build --release
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-ktvA.csv \
-	    --hash "0e3fc140599a0a13929da421ba171d2ccf54114d28df8afc9103783d33c7c08d"
+	    --hash "1d38d2491d5c8353bed502acfdf9b34dc92acb859f34f505ca256988f0988fe7"
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-kta.csv \
-	    --hash "c764e2561c1c36070165caffab562f1e8e159be73ec49a5f26e14e047a225121"
+	    --hash "e6543b9aa098eaae3ab706cf5a2dc93047a71313639243f84245215497c41e4e"
 
 test_subantas:
 	cargo run --bin test_subantas -- \
@@ -88,7 +88,7 @@ test_subantas:
 # Profiles the program's execution time on OSX. This command will probably not
 # work on other operating systems.
 profile-time-osx:
-	cargo instruments -t time --release --bin create_test_file
+	cargo instruments -t time --release --bin create_test_files
 
 
 # Other
@@ -117,5 +117,5 @@ wasm_dev:
 	wasm-pack build --target web
 
 # Builds a simple web debugger.
-debugger:
+debugger: wasm_dev
 	./scripts/run-debugger.sh

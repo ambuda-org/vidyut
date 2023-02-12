@@ -556,6 +556,30 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             }
         }
 
+        K::kvin => {
+            if dhatu.has_text("spfS") {
+                wrap.try_add("3.2.58", krt);
+            }
+        }
+
+        K::kvip => {
+            if dhatu.has_text_in(&[
+                "sad", "sU", "dviz", "druh", "duh", "yuj", "vid", "Bid", "Cid", "ji", "nI", "rAj",
+            ]) {
+                // Exclude some of the dhatus above:
+                //
+                // > sū iti dviṣā sāhacaryāt sūteḥ ādādikasya grahaṇaṃ, na suvateḥ taudādikasya।
+                // > yujiryoge, yuja samādhau, dvayorapi grahaṇam। vida jñāne, vida sattāyām, vida
+                // > vicāraṇe, trayāṇāmapi grahaṇam। na lābhārthasya videḥ, akārasya vivakṣatatvāt
+                // -- KV
+                let skip = (dhatu.has_text("sU") && !dhatu.has_gana(2))
+                    || (dhatu.has_text("vid") && dhatu.has_tag(T::xdit));
+                if !skip {
+                    wrap.try_add("3.2.61", krt);
+                }
+            }
+        }
+
         K::kta | K::ktavatu => {
             if dhatu.has_tag(T::YIt) {
                 wrap.try_add("3.2.187", Krt::kta);
@@ -581,13 +605,15 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         K::kAnac | K::kvasu => {
             // TODO: does this check make sense for kvasu and kAnac? Or should we relax this check
-            // because these are mainly chAndasa?
+            // because these are mainly chAndasa? For now, disable it.
+            /*
             let has_pada_match = match krt {
                 K::kvasu => wrap.p.has_tag(T::Parasmaipada),
                 // taṅānāv ātmanepadam (1.4.100)
                 K::kAnac => wrap.p.has_tag(T::Atmanepada),
                 _ => false,
             };
+            */
 
             // Although the rule has "chandasi" by anuvrtti from 3.2.105, kvasu~ has wide
             // application:
@@ -595,7 +621,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             // > kavayastu bahulaṃ prayuñjate । taṃ tasthivāṃsaṃ nagaropakaṇṭhe iti । śreyāṃsi
             // > sarvāṇyadhijagmuṣaste ityādi ॥
             // -- Siddhanta Kaumudi on 3.2.107.
-            if has_pada_match && !wrap.has_krt {
+            if !wrap.has_krt {
                 let i_la = i + 1;
                 if krt == K::kvasu && dhatu.has_text_in(&["sad", "vas", "Sru"]) {
                     wrap.try_replace_lakara("3.2.108", i_la, krt);
@@ -733,9 +759,13 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         K::ktvA => {
             wrap.try_add("3.4.21", krt);
         }
-        _ => {
-            try_add_krt_for_tacchila_etc(&mut wrap, i, krt);
-        }
+        _ => (),
+    }
+
+    // Exclude this from the `match` above because it contains `kvip`, which is also matched
+    // separately above.
+    if !wrap.has_krt {
+        try_add_krt_for_tacchila_etc(&mut wrap, i, krt);
     }
 
     Some(wrap.has_krt)

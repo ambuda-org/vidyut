@@ -647,6 +647,13 @@ mod tests {
     }
 
     #[test]
+    fn test_is_savarna() {
+        assert!(is_savarna('d', 'd'));
+        assert!(is_savarna('d', 'D'));
+        assert!(!is_savarna('d', 'g'));
+    }
+
+    #[test]
     fn test_is_samyogadi() {
         assert!(is_samyogadi("krI"));
         assert!(!is_samyogadi("kf"));
