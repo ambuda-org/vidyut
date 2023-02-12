@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-if ! command -v wasm-pack > /dev/null 2<&1
+if [[ ! $(command -v wasm-pack) ]]
 then
     echo "Our debugger requires wasm-pack. Please install wasm-pack:"
     echo "https://rustwasm.github.io/wasm-pack/installer/"
