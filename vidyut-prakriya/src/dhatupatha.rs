@@ -11,6 +11,7 @@ use std::path::Path;
 pub struct Entry {
     code: String,
     dhatu: Dhatu,
+    artha: String,
 }
 
 impl Entry {
@@ -22,6 +23,11 @@ impl Entry {
     /// The dhatu and its important metadata.
     pub fn dhatu(&self) -> &Dhatu {
         &self.dhatu
+    }
+
+    /// The meaning of this dhatu as provided in the Dhatupatha.
+    pub fn artha(&self) -> &String {
+        &self.artha
     }
 
     /// Returns the position of this entry within the gana.
@@ -47,6 +53,44 @@ impl Entry {
 /// private `maybe_find_antargana` function.)
 pub struct Dhatupatha(Vec<Entry>);
 
+/// Creates a dhatu with the given metadata. This function is meant for testing or for other ad-hoc
+/// use cases that cannot load `Dhatupatha` directly.
+///
+/// This function uses the `number` parameter to determine the dhatu's antargana. If you wish to
+/// specify the antargana explicitly, please construct `Dhatu` directly with [`Dhatu::builder`].
+pub fn create_dhatu(upadesha: impl AsRef<str>, gana: Gana, number: u16) -> Result<Dhatu> {
+    let upadesha = upadesha.as_ref();
+
+    let mut builder = Dhatu::builder().upadesha(upadesha).gana(gana);
+    if let Some(x) = maybe_find_antargana(gana, number) {
+        builder = builder.antargana(x);
+    }
+    match upadesha {
+        "i\\N" | "i\\k" => {
+            builder = builder.prefixes(&["aDi"]);
+        }
+        "SAsu~\\" => {
+            builder = builder.prefixes(&["AN"]);
+        }
+        _ => (),
+    }
+
+    builder.build()
+}
+
+fn create_entry(code: &str, upadesha: &str, artha: &str) -> Result<Entry> {
+    let (gana, number) = code.split_once('.').ok_or(Error::InvalidFile)?;
+    let gana = Gana::from_int(gana.parse()?)?;
+    let number = number.parse()?;
+    let dhatu = create_dhatu(upadesha, gana, number)?;
+
+    Ok(Entry {
+        code: code.to_string(),
+        dhatu,
+        artha: artha.to_string(),
+    })
+}
+
 impl Dhatupatha {
     /// Loads a dhatupatha from the provided TSV.
     ///
@@ -70,18 +114,15 @@ impl Dhatupatha {
             let r = maybe_row?;
             let code = &r[0];
             let upadesha = &r[1];
+            let artha = &r[2];
 
+            // If the upadesha is missing, this is a ganasutra -- skip.
             if upadesha == "-" {
                 continue;
             }
 
-            if let Some((gana, number)) = code.split_once('.') {
-                let dhatu = resolve(upadesha, gana, number)?;
-                dhatus.push(Entry {
-                    code: code.to_string(),
-                    dhatu,
-                });
-            }
+            let entry = create_entry(code, upadesha, artha)?;
+            dhatus.push(entry);
         }
 
         dhatus.sort_by(|x, y| x.code.cmp(&y.code));
@@ -98,13 +139,12 @@ impl Dhatupatha {
     /// ```
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::dhatupatha::Dhatupatha;
-    /// let d = Dhatupatha::from_text("code\tdhatu\n01.0001\tBU")?;
+    /// let d = Dhatupatha::from_text("code\tdhatu\tartha\n01.0001\tBU\tsattAyAm")?;
     /// assert!(d.get("01.0001").is_some());
     /// # Ok::<(), Error>(())
     /// ```
     pub fn from_text(csv: &str) -> Result<Self> {
         let mut dhatus = Vec::new();
-
         for (i, line) in csv.split('\n').enumerate() {
             // Skip header.
             if i == 0 || line.is_empty() {
@@ -120,16 +160,13 @@ impl Dhatupatha {
                 Some(x) => x,
                 None => return Err(Error::InvalidFile),
             };
+            let artha = match fields.next() {
+                Some(x) => x,
+                None => return Err(Error::InvalidFile),
+            };
 
-            if let Some((gana, number)) = code.split_once('.') {
-                let dhatu = resolve(upadesha, gana, number)?;
-                dhatus.push(Entry {
-                    code: code.to_string(),
-                    dhatu,
-                });
-            } else {
-                return Err(Error::InvalidFile);
-            }
+            let entry = create_entry(code, upadesha, artha)?;
+            dhatus.push(entry);
         }
 
         dhatus.sort_by(|x, y| x.code.cmp(&y.code));
@@ -168,13 +205,35 @@ fn maybe_find_antargana(gana: Gana, number: u16) -> Option<Antargana> {
     }
 }
 
-/// Resolve a specific lookup code against our version of the Dhatupatha.
-pub fn resolve(upadesha: &str, gana: &str, number: &str) -> Result<Dhatu> {
-    let gana = Gana::from_int(gana.parse()?)?;
-    let number = number.parse()?;
-    let mut builder = Dhatu::builder().upadesha(upadesha).gana(gana);
-    if let Some(x) = maybe_find_antargana(gana, number) {
-        builder = builder.antargana(x);
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn create_dhatu_basic() {
+        let dhatu = create_dhatu("BU", Gana::Bhvadi, 1).unwrap();
+        assert_eq!(dhatu.upadesha(), "BU");
+        assert_eq!(dhatu.gana(), Gana::Bhvadi);
+        assert!(dhatu.prefixes().is_empty());
+        assert!(dhatu.sanadi().is_empty());
     }
-    builder.build()
+
+    #[test]
+    fn create_dhatu_with_ashas() {
+        let dhatu = create_dhatu("SAsu~\\", Gana::Adadi, 23).unwrap();
+        assert_eq!(dhatu.upadesha(), "SAsu~\\");
+        assert_eq!(dhatu.gana(), Gana::Adadi);
+        assert_eq!(dhatu.prefixes(), &vec!["AN"]);
+        assert!(dhatu.sanadi().is_empty());
+    }
+
+    #[test]
+    fn create_dhatu_with_adhii() {
+        let i_n = create_dhatu("i\\N", Gana::Adadi, 41).unwrap();
+        assert_eq!(i_n.prefixes(), &vec!["aDi"]);
+
+        let i_k = create_dhatu("i\\k", Gana::Adadi, 42).unwrap();
+        assert_eq!(i_k.prefixes(), &vec!["aDi"]);
+    }
 }

@@ -79,7 +79,7 @@ fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
     if dhatu.has_adi('z') {
         if dhatu.has_text_in(&["zWiv", "zvazk"]) {
@@ -132,42 +132,38 @@ fn try_add_num_agama(p: &mut Prakriya, i: usize) {
     }
 }
 
-fn try_add_upasarga(p: &mut Prakriya, i: usize) -> Option<()> {
-    let dhatu = p.get(i)?;
+/// Adds upasargas from `dhatu` into the prakriya.
+fn try_add_upasargas(p: &mut Prakriya, dhatu: &Dhatu) -> Option<()> {
+    // TODO: prefixes that aren't upasargas?
+    for (i, prefix) in dhatu.prefixes().iter().enumerate() {
+        let mut t = Term::make_upadesha(prefix);
+        t.add_tag(T::Upasarga);
 
-    if dhatu.has_u_in(&["i\\N", "i\\k"]) {
-        // These two roots are always used with the upasarga `adhi-`:
-        let mut upa = Term::make_upadesha("aDi");
-        upa.add_tag(T::Upasarga);
-        p.insert_before(i, upa);
+        p.insert_before(i, t);
         p.step("1.4.80");
-    } else if dhatu.has_u("SAsu~\\") {
-        // This root is nearly alwayd used with the upasarga `A-`:
-        let mut upa = Term::make_upadesha("AN");
-        upa.add_tag(T::Upasarga);
-        p.insert_before(i, upa);
-        p.step("1.4.80");
-        it_samjna::run(p, i).ok()?;
+
+        // Don't run it-samjna-prakarana for other upasargas (e.g. sam, ud)
+        // TODO: why run only for AN?
+        if prefix == "AN" {
+            it_samjna::run(p, i).ok()?;
+        }
     }
 
     Some(())
 }
 
 pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
-    let i = 0;
-
     add_dhatu(p, dhatu);
-    it_samjna::run(p, i)?;
-    add_samjnas(p, i);
+    it_samjna::run(p, 0)?;
+    add_samjnas(p, 0);
 
-    satva_and_natva(p, i);
-    try_add_num_agama(p, i);
+    try_satva_and_natva(p, 0);
+    try_add_num_agama(p, 0);
+    try_add_upasargas(p, dhatu);
 
-    // TODO: adding upasargas shifts the indices below.
-    try_add_upasarga(p, i);
-
+    let i_dhatu = p.terms().len() - 1;
     try_run_bhvadi_gana_sutras(p);
-    try_run_curadi_gana_sutras(p, i);
+    try_run_curadi_gana_sutras(p, i_dhatu);
 
     Ok(())
 }

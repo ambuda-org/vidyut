@@ -130,14 +130,13 @@ pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Result
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::args::Gana;
     use crate::dhatu_karya;
     use crate::dhatupatha;
 
-    fn check_sanadi(upadesha: &str, code: &str, sanadi: &[Sanadi]) -> (Term, Term) {
+    fn check_sanadi(upadesha: &str, gana: Gana, number: u16, sanadi: &[Sanadi]) -> (Term, Term) {
         let mut p = Prakriya::new();
-        let (gana, number) = code.split_once('.').unwrap();
-        let dhatu = dhatupatha::resolve(upadesha, gana, number).unwrap();
-
+        let dhatu = dhatupatha::create_dhatu(upadesha, gana, number).unwrap();
         dhatu_karya::run(&mut p, &dhatu).unwrap();
 
         run(&mut p, false, sanadi).unwrap();
@@ -146,49 +145,49 @@ mod tests {
         (dhatu.clone(), pratyaya.clone())
     }
 
-    fn check_basic(upadesha: &str, code: &str) -> (Term, Term) {
-        check_sanadi(upadesha, code, &[])
+    fn check_basic(upadesha: &str, gana: Gana, number: u16) -> (Term, Term) {
+        check_sanadi(upadesha, gana, number, &[])
     }
 
     #[test]
     fn test_gup() {
-        let (_, san) = check_basic("gupa~\\", "01.1125");
+        let (_, san) = check_basic("gupa~\\", Gana::Bhvadi, 1125);
         assert_eq!(san.text, "sa");
         assert!(san.all(&[T::Pratyaya, T::FlagNoArdhadhatuka]));
     }
 
     #[test]
     fn test_man() {
-        let (_, san) = check_basic("mAna~\\", "01.1127");
+        let (_, san) = check_basic("mAna~\\", Gana::Bhvadi, 1127);
         assert_eq!(san.text, "sa");
         assert!(san.all(&[T::Pratyaya, T::FlagNoArdhadhatuka]));
     }
 
     #[test]
     fn test_curadi() {
-        let (_, nic) = check_basic("cura~", "10.0001");
+        let (_, nic) = check_basic("cura~", Gana::Curadi, 1);
         assert_eq!(nic.text, "i");
         assert!(nic.has_tag(T::Pratyaya));
     }
 
     #[test]
     fn test_hetumati() {
-        let (_, nic) = check_sanadi("BU", "01.0001", &[Sanadi::Nic]);
+        let (_, nic) = check_sanadi("BU", Gana::Bhvadi, 1, &[Sanadi::Nic]);
         assert_eq!(nic.text, "i");
         assert!(nic.has_tag(T::Pratyaya));
     }
 
     #[test]
     fn test_ayadaya() {
-        let (_, aya) = check_basic("gupU~", "01.0461");
+        let (_, aya) = check_basic("gupU~", Gana::Bhvadi, 461);
         assert_eq!(aya.text, "Aya");
         assert!(aya.has_tag(T::Pratyaya));
 
-        let (_, iiya) = check_basic("fti", "01.1166");
+        let (_, iiya) = check_basic("fti", Gana::Bhvadi, 1166);
         assert_eq!(iiya.text, "Iya");
         assert!(iiya.all(&[T::Pratyaya, T::Nit]));
 
-        let (_, nin) = check_basic("kamu~\\", "01.0511");
+        let (_, nin) = check_basic("kamu~\\", Gana::Bhvadi, 511);
         assert_eq!(nin.text, "i");
         assert!(nin.all(&[T::Pratyaya, T::Rit, T::Nit]));
     }

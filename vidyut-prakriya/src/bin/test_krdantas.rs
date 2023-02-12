@@ -29,9 +29,11 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
     for maybe_row in rdr.records() {
         let r = maybe_row?;
         let expected: Vec<_> = r[0].split('|').collect();
+
+        let upadesha = &r[1];
         let gana = &r[2];
         let number = &r[3];
-        let dhatu = dhatupatha::resolve(&r[1], gana, number)?;
+        let dhatu = dhatupatha::create_dhatu(upadesha, gana.parse()?, number.parse()?)?;
 
         let krt = r[4].parse()?;
 

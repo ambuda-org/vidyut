@@ -42,19 +42,21 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         let r = maybe_row?;
         let expected: Vec<_> = r[0].split('|').collect();
 
+        let upadesha = &r[1];
         let gana = &r[2];
         let number = &r[3];
-        let dhatu = dhatupatha::resolve(&r[1], gana, number)?;
-
+        let dhatu = dhatupatha::create_dhatu(upadesha, gana.parse()?, number.parse()?)?;
         let sanadi = parse_sanadi(&r[4]);
         let prayoga = r[5].parse()?;
         let lakara = r[6].parse()?;
         let purusha = r[7].parse()?;
         let vacana = r[8].parse()?;
 
+        // TODO: this is very clumsy!
         let mut builder = Dhatu::builder()
             .upadesha(dhatu.upadesha())
             .gana(dhatu.gana())
+            .prefixes(dhatu.prefixes())
             .sanadi(&sanadi);
 
         if let Some(x) = dhatu.antargana() {
