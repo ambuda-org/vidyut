@@ -226,6 +226,14 @@ impl Dhatu {
         &self.prefixes
     }
 
+    /// Sets the prefixes on the dhatu.
+    pub fn with_prefixes(mut self, values: &[impl AsRef<str>]) -> Self {
+        self.prefixes.clear();
+        self.prefixes
+            .extend(values.iter().map(|x| String::from(x.as_ref())));
+        self
+    }
+
     /// Returns a new builder for this struct.
     pub fn builder() -> DhatuBuilder {
         DhatuBuilder::default()

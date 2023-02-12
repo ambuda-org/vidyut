@@ -25,3 +25,9 @@ pub const PRATHAMA_ADI: &[&str] = &[
 pub const PURVA_ADI: &[&str] = &[
     "pUrva", "para", "avara", "dakziRa", "uttara", "apara", "aDara", "sva", "antara",
 ];
+
+/// pra-Adi gana. These terms are called *upasarga* by rule 1.4.59.
+pub const PRA_ADI: &[&str] = &[
+    "pra", "parA", "apa", "sam", "anu", "ava", "nis", "nir", "dus", "dur", "vi", "AN", "ni", "aDi",
+    "api", "ati", "su", "ud", "aBi", "prati", "upa",
+];
