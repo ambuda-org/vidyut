@@ -1,11 +1,11 @@
 use crate::char_view::{char_rule, set_at, xy};
 use crate::filters as f;
 use crate::it_samjna;
+use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
-use crate::tripadi::utils::xy_rule;
 use lazy_static::lazy_static;
 
 lazy_static! {

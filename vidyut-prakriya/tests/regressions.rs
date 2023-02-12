@@ -1,15 +1,36 @@
+///! Tests for specific rules.
+///!
+///! Although these test cases are all tested in our exhaustive test suite, these explicit
+///! tests prevent against accidental changes and clarify the logic being tested.
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
 fn derive(a: &Ashtadhyayi, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<String> {
     a.derive_tinantas(dhatu, args)
         .iter()
-        .map(|p| p.text().to_string())
+        .map(|p| p.text())
         .collect()
 }
 
 fn contains(results: &[String], item: &'static str) -> bool {
     results.iter().any(|x| *x == item)
+}
+
+#[test]
+fn sutra_6_1_91() {
+    let a = Ashtadhyayi::new();
+    let tip = TinantaArgs::builder()
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .lakara(Lakara::Lat)
+        .build()
+        .unwrap();
+
+    let upa_f = Dhatu::new("f\\", Gana::Bhvadi).with_prefixes(&["upa"]);
+    let mut results = derive(&a, &upa_f, &tip);
+    results.sort();
+    assert_eq!(results, vec!["upArCati", "upArcCati"]);
 }
 
 #[test]

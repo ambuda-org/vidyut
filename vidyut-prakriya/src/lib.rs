@@ -34,6 +34,7 @@ mod term;
 
 // Utility functions
 mod filters;
+mod iterators;
 mod operators;
 
 // Rules

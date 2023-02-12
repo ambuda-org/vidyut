@@ -1,13 +1,13 @@
 use crate::char_view::{char_rule, get_at, set_at, xyz};
 use crate::dhatu_gana;
 use crate::filters as f;
+use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
-use crate::tripadi::utils::xy_rule;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
 

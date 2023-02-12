@@ -4,12 +4,12 @@
 
 use crate::char_view::{char_rule, get_at, set_at, xy};
 use crate::filters as f;
+use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
-use crate::tripadi::utils::xy_rule;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -116,6 +116,18 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         },
     );
 
+    // upa + fcCati -> upArcCati
+    xy_rule(
+        p,
+        |x, y| x.has_tag(T::Upasarga) && x.has_antya(&*A) && y.has_tag(T::Dhatu) && y.has_adi('f'),
+        |p, i, j| {
+            p.set(i, |t| t.set_antya(""));
+            p.set(j, |t| t.set_adi("Ar"));
+            p.step("6.1.91");
+        },
+    );
+
+    // General guna/vrddhi rules.
     char_rule(
         p,
         xy(|x, y| A.contains(x) && AC.contains(y)),
