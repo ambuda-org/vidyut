@@ -1,7 +1,7 @@
 ///! Tests for specific rules.
 ///!
-///! Although these test cases are all tested in our exhaustive test suite, these explicit
-///! tests prevent against accidental changes and clarify the logic being tested.
+///! Although these test cases generally appear in our exhaustive test suite, these explicit
+///! tests protect against accidental changes and clarify the underlying logic.
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
