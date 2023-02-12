@@ -74,6 +74,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
         // Add sanadi to the dhatu.
         let mut builder = Dhatu::builder()
             .upadesha(dhatu.upadesha())
+            .prefixes(dhatu.prefixes())
             .gana(dhatu.gana())
             .sanadi(&sanadi);
         if let Some(x) = dhatu.antargana() {
