@@ -117,5 +117,5 @@ wasm_dev:
 	wasm-pack build --target web
 
 # Builds a simple web debugger.
-debugger: wasm_dev
+debugger:
 	./scripts/run-debugger.sh
