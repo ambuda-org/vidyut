@@ -1,20 +1,30 @@
 use crate::args::{Antargana, Gana};
+use crate::sounds;
 use crate::sounds::Pattern;
 use crate::tag::Tag;
 use compact_str::CompactString;
 use enumset::EnumSet;
 
-/// A term in the prakriya.
-///
 /// `Term` is a text string with additional metadata. It is a generalized version of an *upadesha*
 /// that also stores abhyAsas and other strings that don't have an upadesha associated with them.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Term {
+    /// The *upadesha* of this term, if one exists.
+    ///
+    /// The *upadesha* contains anubandhas, accent, and other "meta" terms that define various
+    /// properties in the grammar. This field is changed only when there is a full substitution,
+    /// e.g. substitution of `ktvA` with `lyap`.
     pub u: Option<CompactString>,
+    /// The text of this term. This string contains sound changes such as guna, vrddhi, lopa, etc.
     pub text: CompactString,
+    /// Various metadata associated with this term.
     tags: EnumSet<Tag>,
+    /// If this term is a dhatu, the dhatu's gana.
     gana: Option<Gana>,
+    /// If this term is a dhatu, the dhatu's antargana.
     antargana: Option<Antargana>,
+    /// All upadeshas that this term has had. This field is called `lakshanas` per rule 1.1.62
+    /// (*pratyayalopa pratyaylakshanam*).
     lakshana: Vec<CompactString>,
 }
 
@@ -142,10 +152,12 @@ impl Term {
         self.lakshana.iter().any(|s| us.contains(&s.as_str()))
     }
 
+    /// Returns whether the term has the provided text.
     pub fn has_text(&self, text: &str) -> bool {
         self.text == text
     }
 
+    /// Returns whether the term's text matches any of the strings in `items`.
     pub fn has_text_in(&self, items: &[&str]) -> bool {
         items.contains(&self.text.as_str())
     }
@@ -154,8 +166,9 @@ impl Term {
         terms.iter().any(|t| self.text.starts_with(t))
     }
 
-    pub fn ends_with(&self, value: &str) -> bool {
-        self.text.ends_with(value)
+    /// Returns whether the term's text ends with the given value.
+    pub fn ends_with(&self, suffix: &str) -> bool {
+        self.text.ends_with(suffix)
     }
 
     /// Returns whether the term has the given root gaNa.
@@ -163,6 +176,7 @@ impl Term {
         self.gana == Some(Gana::from_int(gana).expect("valid"))
     }
 
+    /// Returns whether the term has the given antargana.
     pub fn has_antargana(&self, antargana: Antargana) -> bool {
         match self.antargana {
             Some(x) => x == antargana,
@@ -170,15 +184,21 @@ impl Term {
         }
     }
 
-    /// Returns whethre the term's text is empty.
+    /// Returns whether the term's text is empty.
     pub fn is_empty(&self) -> bool {
         self.text.is_empty()
     }
 
-    // Tags
+    // Tags and Samjnas
+    // ----------------
+
+    /// Returns whether the term has the given tag.
+    pub fn has_tag(&self, tag: Tag) -> bool {
+        self.tags.contains(tag)
+    }
 
     /// Returns whether the term has all of the tags provided.
-    pub fn all(&self, tags: &[Tag]) -> bool {
+    pub fn has_all_tags(&self, tags: &[Tag]) -> bool {
         tags.iter().all(|t| self.tags.contains(*t))
     }
 
@@ -187,14 +207,114 @@ impl Term {
         tags.iter().any(|t| self.tags.contains(*t))
     }
 
-    /// Returns whether the term has the given tag.
-    pub fn has_tag(&self, tag: Tag) -> bool {
-        self.tags.contains(tag)
+    /// Returns whether the term could be called a `pada`.
+    pub fn is_pada(&self) -> bool {
+        // TODO: create and use `T::Pada` instead.
+        self.has_tag_in(&[Tag::Tin, Tag::Sup])
+    }
+
+    /// Returns whether the term has the `Pratyaya` samjna.
+    pub fn is_pratyaya(&self) -> bool {
+        // TODO: create and use `T::Pada` instead.
+        self.has_tag(Tag::Pratyaya)
+    }
+
+    /// Returns whether the term has the `Dhatu` samjna.
+    pub fn is_dhatu(&self) -> bool {
+        self.has_tag(Tag::Dhatu)
+    }
+
+    /// Returns whether the term is an Agama.
+    pub fn is_agama(&self) -> bool {
+        self.has_tag(Tag::Agama)
+    }
+
+    /// Returns whether the term has the `Atmanepada` samjna.
+    pub fn is_atmanepada(&self) -> bool {
+        self.has_tag(Tag::Atmanepada)
+    }
+
+    /// Returns whether the term has the `Atmanepada` samjna.
+    pub fn is_parasmaipada(&self) -> bool {
+        self.has_tag(Tag::Parasmaipada)
+    }
+
+    /// Returns whether the term is kit or Nit.
+    pub fn is_knit(&self) -> bool {
+        self.has_tag_in(&[Tag::kit, Tag::Nit])
+    }
+
+    pub fn is_aprkta(&self) -> bool {
+        self.is_pratyaya() && self.text.len() == 1
+    }
+
+    /// Returns whether the term is the it-Agama.
+    pub fn is_it_agama(&self) -> bool {
+        // We must check for `Agama` specifically so that we can exclude the tiN-pratyaya "iw".
+        self.is_agama() && self.has_u("iw")
+    }
+
+    // Other properties
+    // ----------------
+
+    /// Returns whether the term begins with a conjunct consonant.
+    pub fn is_samyogadi(&self) -> bool {
+        sounds::is_samyogadi(&self.text)
+    }
+
+    /// Returns whether the term ends in a conjunct consonant.
+    pub fn is_samyoganta(&self) -> bool {
+        sounds::is_samyoganta(&self.text)
+    }
+
+    /// Returns whether the last sound of `t` is a short vowel.
+    pub fn is_hrasva(&self) -> bool {
+        match self.antya() {
+            Some(c) => sounds::is_hrasva(c),
+            None => false,
+        }
+    }
+
+    /// Returns whether the last sound of `t` is a long vowel.
+    pub fn is_dirgha(&self) -> bool {
+        match self.antya() {
+            Some(c) => sounds::is_dirgha(c),
+            None => false,
+        }
+    }
+
+    /// Returns whether the last syllable of `t` is or could be laghu.
+    pub fn is_laghu(&self) -> bool {
+        // 1.4.10 hrasvaM laghu
+        // 1.4.11 saMyoge guru
+        // 1.4.12 dIrghaM ca
+        if let Some(c) = self.antya() {
+            if sounds::is_ac(c) {
+                sounds::is_hrasva(c)
+            } else {
+                // upadha is hrasva --> laghu
+                // upadha is dirgha --> guru
+                // upadha is hal --> guru (samyoga)
+                // upadha is missing --> laghu
+                self.upadha().map(sounds::is_hrasva).unwrap_or(false)
+                // HACK for C, which will always become cC (= guru).
+                && c != 'C'
+            }
+        } else {
+            false
+        }
+    }
+
+    pub fn is_guru(&self) -> bool {
+        !self.is_laghu()
     }
 
     // Mutators
+    // --------
+
     // TODO: how to handle errors if mutation is impossible?
 
+    /// Replaces the term's first sound with the given value.
     pub fn set_adi(&mut self, s: &str) {
         if self.is_empty() {
             self.text.push_str(s);
@@ -203,6 +323,7 @@ impl Term {
         }
     }
 
+    /// Replaces the term's last sound with the given value.
     pub fn set_antya(&mut self, s: &str) {
         let n = self.text.len();
         if n >= 1 {
@@ -210,6 +331,7 @@ impl Term {
         }
     }
 
+    /// Replaces the term's penultimate sound with the given value.
     pub fn set_upadha(&mut self, s: &str) {
         let n = self.text.len();
         if n >= 2 {
@@ -217,6 +339,7 @@ impl Term {
         }
     }
 
+    /// Replaces the character at index `i` with `s`.
     pub fn set_at(&mut self, i: usize, s: &str) {
         self.text.replace_range(i..i + 1, s);
     }
@@ -243,20 +366,24 @@ impl Term {
         }
     }
 
+    /// Adds the given tag to the term's metadata.
     pub fn add_tag(&mut self, tag: Tag) {
         self.tags.insert(tag);
     }
 
+    /// Adds all of the given tag to the term's metadata.
     pub fn add_tags(&mut self, tags: &[Tag]) {
         for t in tags {
             self.tags.insert(*t);
         }
     }
 
+    /// Removes the given tags from the term's metadata.
     pub fn remove_tag(&mut self, tag: Tag) {
         self.tags.remove(tag);
     }
 
+    /// Removes all of the given tags from the term's metadata.
     pub fn remove_tags(&mut self, tags: &[Tag]) {
         for t in tags {
             self.tags.remove(*t);
@@ -291,7 +418,7 @@ impl<'a> TermView<'a> {
         for (i, t) in terms.iter().enumerate().filter(|(i, _)| *i >= start) {
             // A `kit` Agama is part of the term it follows, i.e. there is no view available here.
             // Exception: iw-Agama marked as kit.
-            if i == start && t.all(&[Tag::Agama, Tag::kit]) && !t.has_u("iw") {
+            if i == start && t.has_all_tags(&[Tag::Agama, Tag::kit]) && !t.has_u("iw") {
                 return None;
             }
 
@@ -458,6 +585,17 @@ mod tests {
         assert_eq!(t.get_at(1), Some('a'));
         assert_eq!(t.get_at(2), Some('m'));
         assert_eq!(t.get_at(3), None);
+    }
+
+    #[test]
+    fn is_laghu() {
+        let term = Term::make_text;
+
+        assert!(term("i").is_laghu());
+        assert!(term("vid").is_laghu());
+        assert!(!term("BU").is_laghu());
+        assert!(!term("uC").is_laghu());
+        assert!(!term("IS").is_laghu());
     }
 
     #[test]

@@ -24,8 +24,8 @@ fn derive_tinantas() {
         .unwrap();
     let prakriyas = a.derive_tinantas(&kr, &args_ubhaya);
     let results: Vec<_> = prakriyas.iter().map(|x| x.text()).collect();
-    assert!(results.iter().any(|x| x == &"karoti"));
-    assert!(results.iter().any(|x| x == &"kurute"));
+    assert!(results.iter().any(|x| x == "karoti"));
+    assert!(results.iter().any(|x| x == "kurute"));
 
     // Should get 1 parasmaipada result.
     let args_parasmai = TinantaArgs::builder()
@@ -97,7 +97,7 @@ fn derive_krdantas() {
         .unwrap();
     let prakriyas = a.derive_krdantas(&kr, &args);
     let results: Vec<_> = prakriyas.iter().map(|x| x.text()).collect();
-    assert!(results.iter().any(|x| x == &"kftvA"));
+    assert!(results.iter().any(|x| x == "kftvA"));
 
     let kr = Dhatu::builder()
         .upadesha("qukf\\Y")
@@ -107,5 +107,5 @@ fn derive_krdantas() {
         .unwrap();
     let prakriyas = a.derive_krdantas(&kr, &args);
     let results: Vec<_> = prakriyas.iter().map(|x| x.text()).collect();
-    assert!(results.iter().any(|x| x == &"kArayitvA"));
+    assert!(results.iter().any(|x| x == "kArayitvA"));
 }

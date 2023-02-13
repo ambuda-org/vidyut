@@ -6,10 +6,13 @@ use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
 fn derive(a: &Ashtadhyayi, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<String> {
-    a.derive_tinantas(dhatu, args)
+    let mut results: Vec<_> = a
+        .derive_tinantas(dhatu, args)
         .iter()
         .map(|p| p.text())
-        .collect()
+        .collect();
+    results.sort();
+    results
 }
 
 fn contains(results: &[String], item: &'static str) -> bool {
@@ -100,6 +103,7 @@ fn sutra_8_3_79() {
         .purusha(Purusha::Madhyama)
         .vacana(Vacana::Bahu)
         .lakara(Lakara::AshirLin)
+        .pada(Pada::Atmane)
         .build()
         .unwrap();
 
@@ -108,6 +112,7 @@ fn sutra_8_3_79() {
         .purusha(Purusha::Madhyama)
         .vacana(Vacana::Bahu)
         .lakara(Lakara::Lun)
+        .pada(Pada::Atmane)
         .build()
         .unwrap();
 
@@ -116,36 +121,31 @@ fn sutra_8_3_79() {
         .purusha(Purusha::Madhyama)
         .vacana(Vacana::Bahu)
         .lakara(Lakara::Lit)
+        .pada(Pada::Atmane)
         .build()
         .unwrap();
 
     // Examples from Kashika Vrtti
     let lu = Dhatu::new("lUY", Gana::Kryadi);
     let results = derive(&a, &lu, &shidhvam);
-    assert!(contains(&results, "lavizIQvam"));
-    assert!(contains(&results, "lavizIDvam"));
+    assert_eq!(results, vec!["lavizIDvam", "lavizIQvam"]);
 
     let pu = Dhatu::new("pUY", Gana::Kryadi);
     let results = derive(&a, &pu, &shidhvam);
-    assert!(contains(&results, "pavizIQvam"));
-    assert!(contains(&results, "pavizIDvam"));
+    assert_eq!(results, vec!["pavizIDvam", "pavizIQvam"]);
 
     let results = derive(&a, &lu, &lun);
-    assert!(contains(&results, "alaviQvam"));
-    assert!(contains(&results, "alaviDvam"));
+    assert_eq!(results, vec!["alaviDvam", "alaviQvam"]);
 
     let results = derive(&a, &lu, &lit);
-    assert!(contains(&results, "luluviQve"));
-    assert!(contains(&results, "luluviDve"));
+    assert_eq!(results, vec!["luluviDve", "luluviQve"]);
 
     let aas = Dhatu::new("Asa~\\", Gana::Adadi);
     let results = derive(&a, &aas, &shidhvam);
-    assert!(!contains(&results, "AsizIQvam"));
-    assert!(contains(&results, "AsizIDvam"));
+    assert_eq!(results, vec!["AsizIDvam"]);
 
     // Other cases
     let kr = Dhatu::new("qukf\\Y", Gana::Tanadi);
     let results = derive(&a, &kr, &lit);
-    assert!(contains(&results, "cakfQve"));
-    assert!(!contains(&results, "cakfDve"));
+    assert_eq!(results, vec!["cakfQve"]);
 }

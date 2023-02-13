@@ -1,5 +1,4 @@
 use crate::char_view::{char_at, char_rule, get_at, set_at, xy, xyz};
-use crate::filters as f;
 use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -224,7 +223,7 @@ fn try_jhal_adesha(p: &mut Prakriya) -> Option<()> {
                 && (y.has_adi('t')
                     || y.has_adi('T')
                     || y.has_adi('s')
-                    || (y.has_tag(T::Pratyaya) && y.text.starts_with("Dv")))
+                    || (y.is_pratyaya() && y.text.starts_with("Dv")))
         },
         |p, i, _| {
             p.set(i - 1, |t| t.text.replace_range(.., "Da"));
@@ -253,9 +252,7 @@ fn try_jhal_adesha(p: &mut Prakriya) -> Option<()> {
         p,
         |p, text, i| {
             let x = text.as_bytes()[i] as char;
-            JHAL.contains(x)
-                && i == text.len() - 1
-                && f::is_pada(p.terms().last().expect("present"))
+            JHAL.contains(x) && i == text.len() - 1 && p.terms().last().expect("present").is_pada()
         },
         |p, text, i| {
             let code = "8.4.56";

@@ -13,7 +13,6 @@ see the `angasya` module.
 
 use crate::ac_sandhi;
 use crate::dhatu_gana as gana;
-use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -47,7 +46,7 @@ fn is_anekac(p: &Prakriya, i: usize) -> bool {
     for t in p.terms()[..=i].iter().rev() {
         // HACK to skip aw/Aw-Agama (a-gacchat) which should not be counted because it, too, is added
         // in the asiddhavat section. (6.4.71 - 6.4.72).
-        if t.has_tag(T::Upasarga) || (t.has_tag(T::Agama) && t.has_u_in(&["aw", "Aw"])) {
+        if t.has_tag(T::Upasarga) || (t.is_agama() && t.has_u_in(&["aw", "Aw"])) {
             continue;
         }
 
@@ -126,13 +125,13 @@ fn run_before_knit_ardhadhatuka(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = p.view(i + 1)?;
 
     let aat = dhatu.has_antya('A');
-    let kniti_ardha = n.has_tag_in(&[T::kit, T::Nit]) && n.has_tag(T::Ardhadhatuka);
+    let kniti_ardha = n.is_knit() && n.has_tag(T::Ardhadhatuka);
 
     if kniti_ardha && dhatu.has_u("dI\\N") && n.has_adi(&*AC) {
         op::append_agama("6.4.63", p, i, "yu~w");
         // No change to `n` index (`i + 1`) needed since `yu~w` is an agama and will will be
         // included in `n`.
-    } else if aat && n.has_adi(&*AC) && (kniti_ardha || f::is_it_agama(n.first()?)) {
+    } else if aat && n.has_adi(&*AC) && (kniti_ardha || n.first()?.is_it_agama()) {
         p.op_term("6.4.64", i, op::antya(""));
     } else if aat && n.has_u("yat") {
         p.op_term("6.4.65", i, op::antya("I"));
@@ -147,10 +146,10 @@ fn run_before_knit_ardhadhatuka(p: &mut Prakriya, i: usize) -> Option<()> {
             } else {
                 p.op_term("6.4.66", i, op::antya("I"));
             }
-        } else if f::is_samyogadi(dhatu) {
+        } else if dhatu.is_samyogadi() {
             // HACK: skip dhatus with agama. `k` indicates a following agama.
             let next = p.get(i + 1)?;
-            if next.all(&[T::Agama, T::kit]) {
+            if next.has_all_tags(&[T::Agama, T::kit]) {
                 return None;
             }
 
@@ -173,7 +172,7 @@ fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
     let j = p.find_next_where(i, |t| !t.is_empty())?;
     let n = p.view(j)?;
 
-    if !n.has_tag_in(&[T::kit, T::Nit]) {
+    if !n.is_knit() {
         return None;
     }
 
@@ -198,7 +197,7 @@ fn try_run_kniti(p: &mut Prakriya, i: usize) -> Option<()> {
     let j = p.find_next_where(i, |t| !t.is_empty())?;
     let n = p.view(j)?;
 
-    if !n.has_tag_in(&[T::kit, T::Nit]) {
+    if !n.is_knit() {
         return None;
     }
 
@@ -206,7 +205,7 @@ fn try_run_kniti(p: &mut Prakriya, i: usize) -> Option<()> {
     if has_antya_a_asiddhavat(anga) && n.first()?.has_text("hi") {
         // Bavahi -> Bava
         p.op_term("6.4.105", n.start(), op::luk);
-    } else if anga.has_antya('u') && anga.has_tag(T::Pratyaya) {
+    } else if anga.has_antya('u') && anga.is_pratyaya() {
         let dhatu = p.get(i - 1)?;
         let n = p.view(j)?;
         let n_is_mv = n.has_adi('m') || n.has_adi('v');
@@ -311,12 +310,12 @@ fn try_et_adesha_and_abhyasa_lopa_for_lit(p: &mut Prakriya, i: usize) -> Option<
         return None;
     }
 
-    let dhatu = p.get_if(i, |t| t.all(&[T::Dhatu, T::Abhyasta]))?;
+    let dhatu = p.get_if(i, |t| t.has_all_tags(&[T::Dhatu, T::Abhyasta]))?;
     let abhyasa = p.get_if(i - 1, |t| t.has_tag(T::Abhyasa))?;
     let n = p.view(i + 1)?;
 
     let kniti = n.is_knit();
-    let thali_seti = f::is_it_agama(n.first()?) && n.last()?.has_u("Tal");
+    let thali_seti = n.first()?.is_it_agama() && n.last()?.has_u("Tal");
     if !(kniti || thali_seti) {
         return None;
     }
@@ -432,7 +431,7 @@ pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
             let sub = al::to_dirgha(anga.upadha()?)?;
             p.op_term("6.4.8", i, op::upadha(&sub.to_string()));
         }
-    } else if anga.ends_with("as") && sau && !anga.has_tag(T::Dhatu) {
+    } else if anga.ends_with("as") && sau && !anga.is_dhatu() {
         // TODO: atu-
         let sub = al::to_dirgha(anga.upadha()?)?;
         p.op_term("6.4.14", i, op::upadha(&sub.to_string()));
@@ -461,7 +460,7 @@ pub fn run_dirgha(p: &mut Prakriya) -> Option<()> {
     if i_sup == 0 {
         return None;
     };
-    let i = p.find_prev_where(i_sup, |t| !t.has_tag(T::Agama))?;
+    let i = p.find_prev_where(i_sup, |t| !t.is_agama())?;
 
     let anga = p.get(i)?;
     let sup = p.get(i_sup)?;
@@ -504,7 +503,7 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
     let n = p.view(i_n)?;
     let anidit_hal = !anga.has_tag(T::idit) && anga.has_antya(&*HAL);
-    let is_kniti = n.has_tag_in(&[T::kit, T::Nit]);
+    let is_kniti = n.is_knit();
 
     if anidit_hal && is_kniti && anga.has_upadha('n') {
         let mut can_run = true;
@@ -625,7 +624,7 @@ fn try_add_a_agama(p: &mut Prakriya) -> Option<()> {
 
     // Agama already added in a previous iteration, so return.
     // (To prevent infinite loops)
-    if i_start > 0 && p.has(i_start - 1, f::tag(T::Agama)) {
+    if i_start > 0 && p.has(i_start - 1, |t| t.is_agama()) {
         return None;
     }
 
@@ -683,7 +682,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
 //
 // (6.4.77 - 6.4.100)
 fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
-    let anga = p.get_if(i, |t| !t.has_tag(T::Agama))?;
+    let anga = p.get_if(i, |t| !t.is_agama())?;
     let j = p.find_next_where(i, |t| !t.is_empty())?;
     let n = p.view(j)?;
 
@@ -726,8 +725,7 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
         } else {
             p.op_term("6.4.81", i, op::antya("y"));
         }
-    } else if anga.has_antya(&*II) && is_anekac(p, i) && anga.has_tag(T::Dhatu) && is_asamyogapurva
-    {
+    } else if anga.has_antya(&*II) && is_anekac(p, i) && anga.is_dhatu() && is_asamyogapurva {
         // `Dhatu` is understood here even if not stated in the rule.
         // ("dhātoḥ iti vartate" -- Kashika)
         if anga.has_text("suDI") {
@@ -737,7 +735,7 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
             p.debug(format!("{:?}", p.terms()));
         }
     } else if anga.has_antya(&*UU)
-        && anga.has_tag(T::Dhatu)
+        && anga.is_dhatu()
         && n.has_tag(T::Sup)
         && is_anekac(p, i)
         && is_asamyogapurva
@@ -751,7 +749,7 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
         p.op_term("6.4.84", i, op::antya("v"));
     } else if anga.has_u_in(&["hu\\", "Snu"]) && n.has_tag(T::Sarvadhatuka) && is_asamyogapurva {
         p.op_term("6.4.87", i, op::antya("v"));
-    } else if anga.has_tag(T::Dhatu) || anga.has_u("Snu") || anga.has_text("BrU") {
+    } else if anga.is_dhatu() || anga.has_u("Snu") || anga.has_text("BrU") {
         p.op("6.4.77", |p| to_iy_uv(p, i));
     } else {
         let abhyasa = p.get_if(i, |t| t.has_tag(T::Abhyasa))?;
@@ -776,7 +774,7 @@ pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
 
     let i_dhatu = i_ni - 1;
     let n = p.view(i_ni + 1)?;
-    let iti = f::is_it_agama(n.first()?);
+    let iti = n.first()?.is_it_agama();
 
     if n.has_tag(T::Ardhadhatuka) {
         let dhatu = p.get(i_dhatu)?;
@@ -820,7 +818,7 @@ fn try_kr_rule(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = p.view(i_n)?;
     let last = p.terms().last()?;
 
-    let sarva_kniti = last.has_tag(T::Sarvadhatuka) && last.has_tag_in(&[T::kit, T::Nit]);
+    let sarva_kniti = last.has_tag(T::Sarvadhatuka) && last.is_knit();
     if anga.has_u("qukf\\Y") && anga.has_text("kar") && n.has_adi('u') && sarva_kniti {
         p.op_term("6.4.110", i, op::text("kur"));
     }
@@ -863,7 +861,7 @@ pub fn bhasya(p: &mut Prakriya) -> Option<()> {
     }
 
     let bha = p.get(i)?;
-    if bha.has_antya('A') && bha.has_tag(T::Dhatu) {
+    if bha.has_antya('A') && bha.is_dhatu() {
         p.op_term("6.4.140", i, op::antya(""));
     }
 

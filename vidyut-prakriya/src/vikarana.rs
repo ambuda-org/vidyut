@@ -171,7 +171,7 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
         p.op("3.1.52", to_an);
     } else if dhatu.has_text_in(&["lip", "sic", "hve"]) {
         let mut skip = false;
-        if tin.has_tag(T::Atmanepada) {
+        if tin.is_atmanepada() {
             if p.is_allowed("3.1.54") {
                 p.step("3.1.54");
                 skip = true;
@@ -193,7 +193,7 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let dhatu = p.get(i)?;
     let tin = p.get(i + 2)?;
-    if tin.has_tag(T::Parasmaipada) && has_cli(p, i) {
+    if tin.is_parasmaipada() && has_cli(p, i) {
         if dhatu.has_text_in(&["sf", "SAs", "f"]) {
             p.op("3.1.56", to_an);
         } else if dhatu.has_tag(T::irit) {
@@ -309,13 +309,13 @@ fn maybe_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last(T::Dhatu)?;
     let dhatu = p.get(i)?;
 
-    if dhatu.has_text("kAs") || dhatu.has_tag(T::Pratyaya) {
+    if dhatu.has_text("kAs") || dhatu.is_pratyaya() {
         // kAsAYcakre; corayAYcakre
         p.op("3.1.35", add_aam);
     } else if !f::is_eka_ac(dhatu) && !dhatu.has_text_in(&["jAgf", "UrRu"]) {
         // jAgf is handled separately below.
         p.op("3.1.35.v1", add_aam);
-    } else if dhatu.has_adi(&*IC) && f::is_guru(dhatu) && !dhatu.has_u("fCa~") {
+    } else if dhatu.has_adi(&*IC) && dhatu.is_guru() && !dhatu.has_u("fCa~") {
         // IkSAYcakre
         p.op("3.1.36", add_aam);
     } else if dhatu.has_text_in(&["day", "ay", "As"]) {
@@ -454,7 +454,7 @@ fn maybe_sic_lopa_before_parasmaipada(
     i_vikarana: usize,
     i_tin: usize,
 ) -> Option<()> {
-    if !p.has(i_tin, |t| t.has_tag(T::Parasmaipada)) {
+    if !p.has(i_tin, |t| t.is_parasmaipada()) {
         return None;
     }
 

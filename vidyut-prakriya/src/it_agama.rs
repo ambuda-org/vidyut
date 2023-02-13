@@ -445,13 +445,13 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
             } else {
                 wrap.optional_anit("7.2.44")
             }
-        } else if (n.has_lakshana("li~N") || n.has_u("si~c")) && last.has_tag(T::Atmanepada) {
+        } else if (n.has_lakshana("li~N") || n.has_u("si~c")) && last.is_atmanepada() {
             let vft = anga.has_text("vf") || anga.has_antya('F');
             if vft && n.has_tag(T::Ardhadhatuka) {
                 // By default, all of these roots are seT.
                 // So, the option allows anit.
                 wrap.optional_anit("7.2.42");
-            } else if anga.has_antya('f') && f::is_samyogadi(anga) {
+            } else if anga.has_antya('f') && anga.is_samyogadi() {
                 if anga.has_tag(T::Anudatta) {
                     // For anit roots, optional seT.
                     wrap.optional_set("7.2.43", i_n);
@@ -557,7 +557,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if dhatu.has_antya('F') || dhatu.has_text("vf") {
         if last.has_lakshana("li~N") {
             p.step("7.2.39");
-        } else if n.slice().iter().any(|t| t.has_u("si~c")) && last.has_tag(T::Parasmaipada) {
+        } else if n.slice().iter().any(|t| t.has_u("si~c")) && last.is_parasmaipada() {
             p.step("7.2.40");
         } else {
             p.op_optional("7.2.38", op::t(i, op::text("I")));
@@ -587,7 +587,7 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    if let Some(i) = p.find_first_where(f::is_it_agama) {
+    if let Some(i) = p.find_first_where(|t| t.is_it_agama()) {
         try_lengthen_it_agama(p, i);
     }
 
@@ -595,7 +595,7 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
-    if p.find_last_where(f::is_it_agama).is_some() {
+    if p.find_last_where(|t| t.is_it_agama()).is_some() {
         return None;
     }
 

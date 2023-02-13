@@ -171,7 +171,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
     };
 
     if let Some(t) = p.get_mut(i) {
-        if t.has_tag(T::Pratyaya) {
+        if t.is_pratyaya() {
             if adi == 'z' {
                 t.add_tag(T::parse_it(adi)?);
                 temp_slice = &temp_slice[1..];
@@ -246,7 +246,7 @@ mod tests {
         for (raw, text, tags) in tests {
             let t = check(Term::make_upadesha(raw));
             assert_eq!(t.text, text);
-            assert!(t.all(&tags));
+            assert!(t.has_all_tags(&tags));
         }
     }
 
@@ -267,7 +267,7 @@ mod tests {
             let t = check(start);
 
             assert_eq!(t.text, text);
-            assert!(t.all(&tags));
+            assert!(t.has_all_tags(&tags));
         }
     }
 
@@ -284,7 +284,7 @@ mod tests {
             let t = check(start);
 
             assert_eq!(t.text, text, "{text}");
-            assert!(t.all(&tags), "Missing one or more of `{tags:?}`");
+            assert!(t.has_all_tags(&tags), "Missing one or more of `{tags:?}`");
         }
     }
 }

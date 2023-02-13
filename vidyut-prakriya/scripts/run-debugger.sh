@@ -7,7 +7,10 @@ then
     exit 1
 fi
 
-wasm-pack build --target web
+# `cargo` uses the debug build by default, but `wasm-pack` uses the release
+# build by default instead. Creating this release build is slow, so instead
+# explicitly use the debug build by passing the `--debug` flag.
+wasm-pack build --target web --debug
 mkdir -p www/static/wasm && cp pkg/* www/static/wasm
 mkdir -p www/static/data && cp data/* www/static/data
 cd www \

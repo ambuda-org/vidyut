@@ -126,14 +126,14 @@ impl<'a> KrtPrakriya<'a> {
     }
 
     fn has_prefix(&self, value: &str) -> bool {
-        match self.p.find_last_where(|t| !t.has_tag(T::Dhatu)) {
+        match self.p.find_last_where(|t| !t.is_dhatu()) {
             Some(i) => self.p.terms()[i].has_text(value),
             None => false,
         }
     }
 
     fn has_prefixes(&self, values: &[&str; 2]) -> bool {
-        match self.p.find_last_where(|t| !t.has_tag(T::Dhatu)) {
+        match self.p.find_last_where(|t| !t.is_dhatu()) {
             Some(i) => {
                 i > 0
                     && self.p.has(i - 1, |t| t.has_text(values[0]))
@@ -144,7 +144,7 @@ impl<'a> KrtPrakriya<'a> {
     }
 
     fn has_prefix_in(&self, values: &[&str]) -> bool {
-        match self.p.find_last_where(|t| !t.has_tag(T::Dhatu)) {
+        match self.p.find_last_where(|t| !t.is_dhatu()) {
             Some(i) => self.p.terms()[i].has_text_in(values),
             None => false,
         }

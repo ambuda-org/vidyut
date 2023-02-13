@@ -4,7 +4,6 @@ atidesha (1.2.1 - 1.2.17)
 */
 
 use crate::args::Antargana;
-use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
 use crate::sounds::{s, Set};
@@ -71,7 +70,7 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = wrap.p.view(i + 1)?;
 
     let apit = !n.has_tag(T::pit);
-    let iti = f::is_it_agama(n.first()?);
+    let iti = n.first()?.is_it_agama();
     let gan_kutadi = cur.has_u("gAN") || cur.has_antargana(Antargana::Kutadi);
     let i_n = n.end();
 
@@ -95,7 +94,7 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
 
     let cur = wrap.p.get(i)?;
     let n = wrap.p.view(i + 1)?;
-    if cur.has_tag(T::Agama) {
+    if cur.is_agama() {
         return None;
     }
 
@@ -104,7 +103,7 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
     let apit = !n.has_tag(T::pit);
     let n_is_lit = n.has_lakshana("li~w");
 
-    if !f::is_samyoganta(cur) && n_is_lit && !n.has_tag(T::pit) {
+    if !cur.is_samyoganta() && n_is_lit && !n.has_tag(T::pit) {
         wrap.add_kit("1.2.5", i_n);
     } else if cur.has_text_in(&["BU", "inD"]) && n_is_lit && apit {
         // baBUva
@@ -143,7 +142,7 @@ fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
 
     let sic = n.has_u("si~c");
     let lin_or_sic = last.has_lakshana("li~N") || sic;
-    let atmanepadesu = last.has_tag(T::Atmanepada);
+    let atmanepadesu = last.is_atmanepada();
 
     if (cur.has_text("sTA") || cur.has_tag(T::Ghu)) && sic && atmanepadesu {
         // upAsTita, aDita, ...
@@ -155,7 +154,7 @@ fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
         Some(true)
     } else if lin_or_sic && atmanepadesu && n.has_adi(&*JHAL) {
         let t = wrap.p.get(i)?;
-        let is_dhatu = t.has_tag(T::Dhatu);
+        let is_dhatu = t.is_dhatu();
         let is_ik_halanta = t.has_upadha(&*IK) && t.has_antya(&*HAL);
 
         if is_dhatu && is_ik_halanta {
@@ -275,8 +274,9 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
     let i_tin = p.terms().len() - 1;
 
     let dhatu = p.get(i)?;
+    let tin = p.get(i_tin)?;
     let stha_ghu = dhatu.has_text("sTA") || dhatu.has_tag(T::Ghu);
-    if stha_ghu && p.has(i_tin, f::atmanepada) && n.has_u("si~c") {
+    if stha_ghu && tin.is_atmanepada() && n.has_u("si~c") {
         let i_n_end = n.end();
         p.op("1.2.17", |p| {
             p.set(i, op::antya("i"));

@@ -33,7 +33,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Option<
     third.set_text(&dhatu.text[1..]);
 
     // 6.1.3 na ndrAH saMyogAdayaH
-    while f::is_samyogadi(&third) && NDR.contains(third.adi()?) {
+    while third.is_samyogadi() && NDR.contains(third.adi()?) {
         third.set_adi("");
     }
     third.add_tags(&[T::Dhatu]);
@@ -73,7 +73,7 @@ fn try_dvitva_for_ajadi_ni_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Opti
     let mut third = Term::make_text(&text);
 
     // 6.1.3 na ndrAH saMyogAdayaH
-    while f::is_samyogadi(&third) && NDR.contains(third.adi()?) {
+    while third.is_samyogadi() && NDR.contains(third.adi()?) {
         third.set_adi("");
     }
     // The structure here is workaround for a Rust compile issue.
@@ -189,7 +189,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
-    let filter = |t: &Term| t.has_tag(T::Dhatu) && !t.has_tag_in(&[T::Abhyasta, T::Pratyaya]);
+    let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Abhyasta, T::Pratyaya]);
 
     let mut num_loops = 0;
     let mut i = p.find_first_where(filter)?;

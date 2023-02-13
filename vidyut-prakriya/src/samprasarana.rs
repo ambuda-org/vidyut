@@ -10,14 +10,14 @@ use crate::tag::Tag as T;
 use crate::term::Term;
 
 fn is_vaci_svapi(t: &Term) -> bool {
-    t.has_tag(T::Dhatu)
+    t.is_dhatu()
         && (t.has_u_in(&["va\\ca~", "Yizva\\pa~"])
             || t.has_u_in(gana::YAJ_ADI)
             || t.has_u("va\\ci~"))
 }
 
 fn is_grahi_jya(t: &Term) -> bool {
-    t.has_tag(T::Dhatu)
+    t.is_dhatu()
         && t.has_u_in(&[
             "graha~^",
             "jyA\\",
@@ -79,7 +79,7 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
         } else {
             do_samprasarana("6.1.15", p, i);
         }
-    } else if is_grahi_jya(dhatu) && n.has_tag_in(&[T::kit, T::Nit]) {
+    } else if is_grahi_jya(dhatu) && n.is_knit() {
         do_samprasarana("6.1.16", p, i);
         if p.has(i, |t| t.has_text("uy") && t.has_u("vayi~")) {
             p.op_optional("6.1.39", op::t(i, op::text("uv")));
@@ -105,7 +105,7 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
 
 pub fn run_for_abhyasa(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Abhyasa)?;
-    let dhatu = p.get_if(i + 1, |t| t.has_tag(T::Dhatu))?;
+    let dhatu = p.get_if(i + 1, |t| t.is_dhatu())?;
     let last = p.terms().last()?;
 
     if last.has_lakshana("li~w") {

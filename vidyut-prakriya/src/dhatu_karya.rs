@@ -195,25 +195,25 @@ mod tests {
     fn test_basic() {
         let t = check("ga\\mx~", "01.1137");
         assert_eq!(t.text, "gam");
-        assert!(t.has_tag(T::Dhatu));
+        assert!(t.is_dhatu());
     }
 
     #[test]
     fn test_ghu() {
         let t = check("qudA\\Y", "03.0010");
         assert_eq!(t.text, "dA");
-        assert!(t.all(&[T::Dhatu, T::Ghu]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::Ghu]));
     }
 
     #[test]
     fn test_satva() {
         let t = check("zaha~\\", "01.0988");
         assert_eq!(t.text, "sah");
-        assert!(t.all(&[T::Dhatu, T::FlagAdeshadi]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::FlagAdeshadi]));
 
         let t = check("zWA\\", "01.1077");
         assert_eq!(t.text, "sTA");
-        assert!(t.all(&[T::Dhatu, T::FlagAdeshadi]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::FlagAdeshadi]));
     }
 
     #[test]
@@ -231,13 +231,13 @@ mod tests {
     fn test_natva() {
         let t = check("RI\\Y", "01.1049");
         assert_eq!(t.text, "nI");
-        assert!(t.all(&[T::Dhatu, T::FlagAdeshadi]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::FlagAdeshadi]));
     }
 
     #[test]
     fn test_num_agama() {
         let t = check("vadi~\\", "01.0011");
         assert_eq!(t.text, "vand");
-        assert!(t.has_tag(T::Dhatu));
+        assert!(t.is_dhatu());
     }
 }

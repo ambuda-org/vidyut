@@ -1,7 +1,6 @@
 /*!
 Runs rules that apply substitutions to the sup-pratyaya.
 */
-use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -271,7 +270,7 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
     let sup = p.get(i_sup)?;
 
     let is_napumsaka = p.has_tag(T::Napumsaka);
-    let is_jas_shas = p.has(i_sup, f::u_in(&["jas", "Sas"]));
+    let is_jas_shas = sup.has_u_in(&["jas", "Sas"]);
 
     if is_aap(anga) && sup.has_text("O") {
         op::adesha("7.1.18", p, i_sup, "SI");

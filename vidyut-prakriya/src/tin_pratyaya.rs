@@ -103,7 +103,7 @@ fn maybe_replace_jhi_with_jus(p: &mut Prakriya, i: usize, la: Lakara) -> Option<
         let is_vid = prev.has_text("vid") && prev.has_gana(2);
         if prev.has_u("si~c") || prev.has_tag(T::Abhyasta) || is_vid {
             op::adesha("3.4.109", p, i, "jus");
-        } else if prev.has_tag(T::Dhatu) {
+        } else if prev.is_dhatu() {
             if prev.has_antya('A') {
                 if la == Lakara::Lan {
                     op::optional_adesha("3.4.111", p, i, "jus");
@@ -198,7 +198,7 @@ fn maybe_do_lin_siddhi(p: &mut Prakriya, i_tin: usize, la: Lakara) -> Result<()>
     if !p.has(i, |t| t.has_lakshana("li~N")) {
         return Ok(());
     }
-    if p.has(i, |t| t.has_tag(T::Parasmaipada)) {
+    if p.has(i, |t| t.is_parasmaipada()) {
         p.insert_before(i, Term::make_agama("yAsu~w"));
         i += 1;
 
@@ -260,7 +260,7 @@ fn maybe_do_lot_and_nit_siddhi(p: &mut Prakriya, la: Lakara) {
             yatha("3.4.101", p, i, tas_thas, taam_tam);
         }
 
-        if p.has(i, |t| t.has_tag(T::Parasmaipada)) {
+        if p.has(i, |t| t.is_parasmaipada()) {
             if p.has(i, |t| t.has_tag(T::Uttama) && t.has_antya('s')) {
                 p.op_term("3.4.99", i, op::antya(""));
             }
@@ -291,7 +291,7 @@ pub fn siddhi(p: &mut Prakriya, la: Lakara, vacana: Vacana) -> Option<()> {
     // Matching for "w" will cause errors because the ending 'iw' has 'w' as an
     // anubandha. So, match the wit-lakAras by name so we can exclude 'iw':
     let wits = &["la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w"];
-    if tin.has_tag(T::Atmanepada) && tin.has_lakshana_in(wits) {
+    if tin.is_atmanepada() && tin.has_lakshana_in(wits) {
         let ta_jha = &["ta", "Ja"];
         let es_irec = &["eS", "irec"];
         if tin.has_lakshana("li~w") && tin.has_text_in(ta_jha) {
@@ -301,9 +301,9 @@ pub fn siddhi(p: &mut Prakriya, la: Lakara, vacana: Vacana) -> Option<()> {
         } else {
             p.op_term("3.4.79", i, op::ti("e"));
         }
-    } else if tin.has_lakshana("li~w") && tin.has_tag(T::Parasmaipada) {
+    } else if tin.has_lakshana("li~w") && tin.is_parasmaipada() {
         yatha("3.4.82", p, i, TIN_PARA, NAL_PARA);
-    } else if tin.has_lakshana("la~w") && tin.has_tag(T::Parasmaipada) {
+    } else if tin.has_lakshana("la~w") && tin.is_parasmaipada() {
         if dhatu.has_u("vida~") && tin.has_u_in(TIN_PARA) {
             yatha_optional("3.4.83", p, i, TIN_PARA, NAL_PARA);
         } else if dhatu.has_text("brU") && tin.has_u_in(&TIN_PARA[..5]) {

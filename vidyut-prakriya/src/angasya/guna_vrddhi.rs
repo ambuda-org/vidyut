@@ -1,4 +1,3 @@
-use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
@@ -26,11 +25,10 @@ fn op_antya_guna(t: &mut Term) {
 /// Tests whether a term can use guna and vrddhi in the general case.
 fn can_use_guna_or_vrddhi(anga: &Term, n: &TermView) -> bool {
     // 1.1.5 kNiti ca
-    let kniti = n.has_tag_in(&[T::kit, T::Nit]);
+    let kniti = n.is_knit();
 
     // 1.1.6 dIdhI-vevI-iTAm
-    let didhi_vevi_itam =
-        anga.has_u_in(&["dIDIN", "vevIN"]) || (anga.has_u("iw") && anga.has_tag(T::Agama));
+    let didhi_vevi_itam = anga.has_u_in(&["dIDIN", "vevIN"]) || anga.is_it_agama();
 
     let blocked = anga.has_tag_in(&[T::FlagAtLopa, T::FlagGunaApavada]);
     let is_pratyaya = n.has_tag(T::Pratyaya);
@@ -112,7 +110,7 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
 fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     let j = p.find_next_where(i, |t| !t.is_empty())?;
 
-    let anga = p.get_if(i, |t| !t.has_tag(T::Agama))?;
+    let anga = p.get_if(i, |t| !t.is_agama())?;
     let n = p.view(j)?;
 
     let can_use_guna = can_use_guna_or_vrddhi(anga, &n);
@@ -123,7 +121,7 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     // HACK: Asiddhavat, but this blocks guna.
     // TODO: move this to asiddhavat && add no_guna tag.
     if anga.has_text("guh") && n.has_adi(&*AC) && can_use_guna {
-        // gUhati, agUhat -- but jugohatuH due to Nit on the pratyaya.
+        // gUhati, agUhat -- but juguhatuH due to Nit on the pratyaya.
         p.op_term("6.4.89", i, op::upadha("U"));
     } else if anga.has_u_in(&["Divi~", "kfvi~"]) {
         // Per commentary on 3.1.81, these roots don't take guna.
@@ -155,7 +153,7 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
             let n = p.view(j)?;
             let sub = al::to_vrddhi(anga.antya()?)?;
             if anga.has_u("UrRuY") {
-                if f::is_aprkta(n.last()?) {
+                if n.last()?.is_aprkta() {
                     // prOrRot
                     p.op_term("7.3.91", i, op_antya_guna);
                 } else {
@@ -230,7 +228,7 @@ fn try_r_guna_before_lit(p: &mut Prakriya) -> Option<()> {
     };
 
     let anga = p.get(i)?;
-    if anga.has_antya('f') && f::is_samyogadi(anga) {
+    if anga.has_antya('f') && anga.is_samyogadi() {
         p.op_term("7.4.10", i, do_ar_guna);
     } else if anga.has_antya('F') || anga.has_u_in(&["fCa~", "f\\"]) {
         if anga.has_u("fCa~") {

@@ -107,7 +107,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
 
     // Exclude "san" per 1.3.62.
     // TODO: handle this better.
-    let i = p.find_last_where(|t| t.has_tag(T::Dhatu) && !t.has_u("san"))?;
+    let i = p.find_last_where(|t| t.is_dhatu() && !t.has_u("san"))?;
 
     if p.has_tag(T::Atmanepada) {
         // E.g. if set by gana sutra (see `dhatu_karya`)
@@ -195,7 +195,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         para("1.3.59", &["prati", "AN"], &["Sru"]),
         atma("1.3.57", &[], &["jYA", "Sru", "smf", "dfS"]),
     ];
-    let has_san = |t: &Term| t.has_u("san") && t.has_tag(T::Pratyaya);
+    let has_san = |t: &Term| t.has_u("san") && t.is_pratyaya();
     if p.terms().iter().any(has_san) {
         for rule in san_rules {
             if rule.is_match(p, &upasargas, i) {

@@ -1,6 +1,5 @@
 use crate::char_view::{char_rule, get_at, set_at, xyz};
 use crate::dhatu_gana;
-use crate::filters as f;
 use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -213,7 +212,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
     // hrasvAd aGgAt
     for i in 0..p.terms().len() {
         if let (Some(x), Some(y), Some(z)) = (p.get(i), p.get(i + 1), p.get(i + 2)) {
-            if f::is_hrasva(x) && y.has_text("s") && z.has_adi(&*JHAL) && !x.has_tag(T::Agama) {
+            if x.is_hrasva() && y.has_text("s") && z.has_adi(&*JHAL) && !x.is_agama() {
                 p.op_term("8.2.27", i + 1, op::lopa);
             }
         }
@@ -246,7 +245,7 @@ fn try_ha_adesha(p: &mut Prakriya) -> Option<()> {
     let druha_muha = &["dru\\ha~", "mu\\ha~", "zRu\\ha~", "zRi\\ha~"];
 
     for i in 0..p.terms().len() {
-        let is_dhatu = p.has(i, f::tag(T::Dhatu));
+        let is_dhatu = p.has(i, |t| t.is_dhatu());
 
         let maybe_j = p.find_next_where(i, |t| !t.is_empty());
         let jhali_or_ante = match maybe_j {
@@ -305,7 +304,7 @@ fn try_ch_to_s(p: &mut Prakriya) {
         let maybe_j = p.find_next_where(i, |t| !t.is_empty());
         let jhali_ante = match maybe_j {
             Some(i) => p.get(i)?.has_adi(&*JHAL),
-            None => f::is_pada(p.terms().last()?),
+            None => p.terms().last()?.is_pada(),
         };
         if !jhali_ante {
             return None;
@@ -331,7 +330,7 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
         let x = p.get(i)?;
         let jhali_or_ante = match p.find_next_where(i, |t| !t.is_empty()) {
             Some(j) => p.get(j)?.has_adi(&*JHAL),
-            None => f::is_pada(p.terms().last()?),
+            None => p.terms().last()?.is_pada(),
         };
         if x.has_antya(&*CU) && jhali_or_ante {
             if let Some(c) = x.antya() {
@@ -350,7 +349,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         let if_y = match p.find_next_where(i, |t| !t.is_empty()) {
             Some(i_y) => {
                 let y = p.get(i_y)?;
-                y.has_adi('s') || (y.has_tag(T::Pratyaya) && y.text.starts_with("Dv"))
+                y.has_adi('s') || (y.is_pratyaya() && y.text.starts_with("Dv"))
             }
             None => true,
         };
@@ -370,7 +369,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         let c = p.get(i)?;
         let is_anta = p.find_next_where(i, |t| !t.is_empty()).is_none();
         // TODO: 1.4.14
-        let is_pada = f::is_pada(p.terms().last()?);
+        let is_pada = p.terms().last()?.is_pada();
         let is_padanta = is_pada && is_anta;
         let has_exception = c.has_antya(&*JHAL_TO_JASH_EXCEPTIONS);
 
@@ -388,7 +387,7 @@ fn run_misc_rules_1(p: &mut Prakriya) -> Option<()> {
     xy_rule(
         p,
         |x, y| {
-            x.has_tag(T::Dhatu)
+            x.is_dhatu()
                 && !x.has_u("quDA\\Y")
                 && x.has_antya(&*JHAZ)
                 && (y.has_adi('t') || y.has_adi('T'))
@@ -467,7 +466,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
     let optional_to_n = |rule, p: &mut Prakriya| p.op_optional(rule, op::t(i_k, op::adi("n")));
 
     let dhatu = p.get(i_d)?;
-    if f::is_samyogadi(dhatu) && dhatu.has_at(1, &*YAN) && dhatu.has_antya('A') {
+    if dhatu.is_samyogadi() && dhatu.has_at(1, &*YAN) && dhatu.has_antya('A') {
         // mlAna, ...
         to_n("8.2.43", p);
     } else if dhatu.has_u_in(dhatu_gana::LU_ADI) {
@@ -507,7 +506,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
 fn run_misc_rules_2(p: &mut Prakriya) -> Option<()> {
     xy_rule(
         p,
-        |x, y| x.has_tag(T::Dhatu) && x.has_antya('m') && (y.has_adi('m') || y.has_adi('v')),
+        |x, y| x.is_dhatu() && x.has_antya('m') && (y.has_adi('m') || y.has_adi('v')),
         |p, i, _| {
             p.op_term("8.2.65", i, op::antya("n"));
         },
@@ -523,7 +522,7 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last_where(|t| !t.text.is_empty())?;
     let last = p.get(i)?;
 
-    if last.has_antya('s') && f::is_pada(p.terms().last()?) {
+    if last.has_antya('s') && p.terms().last()?.is_pada() {
         p.op_term("8.2.66", i, op::antya("ru~"));
     }
 
@@ -550,7 +549,7 @@ fn try_add_final_r_with_final_tin(p: &mut Prakriya) -> Option<()> {
         return None;
     }
 
-    let i_dhatu = p.find_last_where(|t| t.has_tag(T::Dhatu) && !t.is_empty())?;
+    let i_dhatu = p.find_last_where(|t| t.is_dhatu() && !t.is_empty())?;
     if p.find_next_where(i_dhatu, |t| !t.is_empty()).is_some() {
         // For these rules, the dhatu must be at the end of the pada.
         return None;
@@ -579,7 +578,7 @@ fn try_add_final_r_with_final_tin(p: &mut Prakriya) -> Option<()> {
 
 /// (8.2.76 - 8.2.79)
 fn try_lengthen_dhatu_vowel(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_first_where(|t| t.has_tag(T::Dhatu))?;
+    let i = p.find_first_where(|t| t.is_dhatu())?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
     let dhatu = p.get(i)?;
 

@@ -7,7 +7,6 @@ Runs rules that modify the abhyāsa.
 */
 
 use crate::dhatu_gana as gana;
-use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -121,8 +120,8 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     let anga = p.get(i_abhyasta)?;
 
-    let is_laghu = f::is_laghu(anga);
-    let has_at_lopa = p.has(i_abhyasta, f::tag(T::FlagAtLopa));
+    let is_laghu = anga.is_laghu();
+    let has_at_lopa = p.has(i_abhyasta, |t| t.has_tag(T::FlagAtLopa));
     let is_ni = p
         .find_next_where(i_abhyasta, |t| t.has_u_in(&["Ric", "RiN"]))
         .is_some();
@@ -131,7 +130,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         .is_some();
     let is_laghu_cani = is_ni && is_laghu && is_cani && !has_at_lopa;
 
-    let is_sanvat = is_laghu_cani || p.find_next_where(i, f::u("san")).is_some();
+    let is_sanvat = is_laghu_cani || p.find_next_where(i, |t| t.has_u("san")).is_some();
     let smf_df = &["smf", "dF", "tvar", "praT", "mrad", "stF", "spaS"];
     let sravati_etc = &["sru\\", "Sru\\", "dru\\", "pru\\N", "plu\\N", "cyu\\N"];
 
@@ -153,7 +152,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         let dhatu = p.get(i + 1)?;
         if dhatu.has_text_in(smf_df) {
             p.op_term("7.4.95", i, op::antya("a"));
-        } else if !f::is_samyogadi(dhatu) {
+        } else if !dhatu.is_samyogadi() {
             if let Some(sub) = al::to_dirgha(abhyasa.antya()?) {
                 p.op_term("7.4.94", i, op::antya(&sub.to_string()));
             }
@@ -391,7 +390,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i: usize) -> Option<()> {
 fn run_at_index(p: &mut Prakriya, i: usize) {
     // TODO: expand for abhyasa after dhatu.
     let i_dhatu = i + 1;
-    if !p.has(i_dhatu, f::dhatu) {
+    if !p.has(i_dhatu, |t| t.is_dhatu()) {
         return;
     }
 

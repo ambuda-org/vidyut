@@ -92,7 +92,7 @@ fn try_run_for_dhatu_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     let add_sarva = op::t(i, op::add_tag(T::Sarvadhatuka));
     let add_ardha = op::t(i, op::add_tag(T::Ardhadhatuka));
 
-    if pratyaya.has_tag(T::Pratyaya) {
+    if pratyaya.is_pratyaya() {
         if pratyaya.has_lakshana("li~w") {
             p.op("3.4.115", add_ardha);
         } else if pratyaya.has_lakshana("li~N") && p.has_tag(T::Ashih) {
@@ -117,7 +117,7 @@ fn try_run_for_dhatu_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
 }
 
 fn try_run_for_dhatu(p: &mut Prakriya) -> Option<()> {
-    p.find_first_where(|t| t.has_tag(T::Dhatu))?;
+    p.find_first_where(|t| t.is_dhatu())?;
 
     for i in 0..p.terms().len() {
         try_run_for_dhatu_pratyaya(p, i);

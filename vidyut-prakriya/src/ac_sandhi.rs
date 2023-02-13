@@ -3,7 +3,6 @@
 //! (6.1.66 - 6.1.101)
 
 use crate::char_view::{char_rule, get_at, set_at, xy};
-use crate::filters as f;
 use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -38,8 +37,8 @@ fn try_lopo_vyor_vali(p: &mut Prakriya) {
             // Ignore if it starts an upadesha, otherwise roots like "vraj" would by vyartha.
             // Likewise for roots ending with 'v'.
             // For now, just check if the term is a dhatu.
-            let is_upadesha = t.has_tag(T::Dhatu);
-            //let is_upadesha = t.has_tag(T::Dhatu) && (t.has_adi('v') || t.has_adi('y'));
+            let is_upadesha = t.is_dhatu();
+            //let is_upadesha = t.is_dhatu() && (t.has_adi('v') || t.has_adi('y'));
             vyor_vali && !is_upadesha
         },
         |p, _, i| {
@@ -119,7 +118,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     // upa + fcCati -> upArcCati
     xy_rule(
         p,
-        |x, y| x.has_tag(T::Upasarga) && x.has_antya(&*A) && y.has_tag(T::Dhatu) && y.has_adi('f'),
+        |x, y| x.has_tag(T::Upasarga) && x.has_antya(&*A) && y.is_dhatu() && y.has_adi('f'),
         |p, i, j| {
             p.set(i, |t| t.set_antya(""));
             p.set(j, |t| t.set_adi("Ar"));
@@ -203,7 +202,7 @@ pub fn try_sup_sandhi_after_angasya(p: &mut Prakriya) -> Option<()> {
             p.op_term("6.1.107", i, op::adi(""));
         } else if anga.has_antya('a') && sup.has_adi(&*IC) {
             p.step("6.1.104");
-        } else if f::is_dirgha(anga) && (sup.has_adi(&*IC) || sup.has_u("jas")) {
+        } else if anga.is_dirgha() && (sup.has_adi(&*IC) || sup.has_u("jas")) {
             p.step("6.1.105");
         } else if sup.has_adi(&*AC) {
             let sub = al::to_dirgha(anga.antya()?)?;
@@ -229,14 +228,14 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let ni_ap = x.has_tag(T::StriNyap);
     // Check for Agama to avoid lopa on yAs + t.
-    let hal_ni_ap_dirgha = x.has_antya(&*HAL) || (ni_ap && f::is_dirgha(x)) && !x.has_tag(T::Agama);
-    if hal_ni_ap_dirgha && f::is_aprkta(y) && y.has_u_in(&["su~", "tip", "sip"]) {
+    let hal_ni_ap_dirgha = x.has_antya(&*HAL) || (ni_ap && x.is_dirgha()) && !x.is_agama();
+    if hal_ni_ap_dirgha && y.is_aprkta() && y.has_u_in(&["su~", "tip", "sip"]) {
         p.op_term("6.1.68", j, op::lopa);
     }
 
     let x = p.get(i)?;
     let y = p.get(j)?;
-    if (f::is_hrasva(x) || x.has_antya(&*EN)) && y.has_tag(T::Sambuddhi) {
+    if (x.is_hrasva() || x.has_antya(&*EN)) && y.has_tag(T::Sambuddhi) {
         p.op_term("6.1.69", j, op::lopa);
     }
 
@@ -260,12 +259,10 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
         // Bo + ya -> Bavya, BO + ya -> BAvya
         xy_rule(
             p,
-            |x, y| {
-                y.has_tag(T::Pratyaya) && y.has_adi('y') && (x.has_antya('o') || x.has_antya('O'))
-            },
+            |x, y| y.is_pratyaya() && y.has_adi('y') && (x.has_antya('o') || x.has_antya('O')),
             |p, i, _| {
                 let t = p.get(i).expect("defined");
-                if t.has_tag(T::Dhatu) && had_vrddhi {
+                if t.is_dhatu() && had_vrddhi {
                     // e.g. A + u + yak + ta should be Oyata, not Avyata.
                     p.step("6.1.80");
                 } else {
