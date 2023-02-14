@@ -10,7 +10,8 @@ use vidyut_cheda::conllu::Reader;
 use vidyut_cheda::dcs;
 use vidyut_cheda::{Chedaka, Config, Token};
 use vidyut_kosha::semantics::*;
-use vidyut_lipi::{transliterate, Scheme};
+//use vidyut_lipi::{transliterate, Scheme};
+use vidyut_lipi as vl;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -61,7 +62,14 @@ impl AddAssign for Stats {
 }
 
 fn to_slp1(text: &str) -> String {
-    transliterate(text, Scheme::Iast, Scheme::Slp1)
+
+    let mut outstr = "".to_string();
+    
+    vl::transliterate_scheme((*text).to_string(), vl::TranslationScheme::Slp1,
+                             vl::TranslationScheme::Iast,
+                             &mut outstr );
+    //    transliterate(text, Scheme::Iast, Scheme::Slp1)
+    return outstr;
 }
 
 /// Converts a word's semantics into a short human-readable code, which we use for comparisons.

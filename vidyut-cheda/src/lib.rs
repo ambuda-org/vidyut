@@ -11,7 +11,7 @@ pub mod sandhi;
 // Evaluation code. TODO: move to its own crate?
 pub mod conllu;
 pub mod dcs;
-pub mod translit;
+//pub mod translit;
 
 // TODO: see if we can make this private.
 pub mod io;

@@ -10,7 +10,7 @@ use vidyut_cheda::dcs;
 use vidyut_cheda::scoring::*;
 use vidyut_cheda::{Config, Token};
 use vidyut_kosha::semantics::*;
-use vidyut_lipi::{transliterate, Scheme};
+use vidyut_lipi as vl;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -58,7 +58,13 @@ struct Statistics {
 }
 
 fn to_slp1(text: &str) -> String {
-    transliterate(text, Scheme::Iast, Scheme::Slp1)
+    let mut outstr = "".to_string();
+    
+    vl::transliterate_scheme((*text).to_string(), vl::TranslationScheme::Slp1,
+                             vl::TranslationScheme::Iast,
+                             &mut outstr );
+    //    transliterate(text, Scheme::Iast, Scheme::Slp1)
+    return outstr;
 }
 
 fn process_sentence(sentence: &[Token], s: &mut Statistics) {

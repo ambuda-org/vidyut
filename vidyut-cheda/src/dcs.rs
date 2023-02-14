@@ -4,7 +4,8 @@ use crate::segmenting::Token;
 use std::error::Error;
 use std::fmt;
 use vidyut_kosha::semantics::*;
-use vidyut_lipi::{transliterate, Scheme};
+//use vidyut_lipi::{transliterate_scheme, TranslationScheme};
+use vidyut_lipi as vl;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
@@ -27,7 +28,13 @@ impl Error for ConversionError {
 }
 
 fn to_slp1(text: &str) -> String {
-    transliterate(text, Scheme::Iast, Scheme::Slp1)
+    let mut outstr = "".to_string();
+
+    vl::transliterate_scheme((*text).to_string(), vl::TranslationScheme::Slp1,
+                             vl::TranslationScheme::Iast,
+                             &mut outstr );
+    //transliterate(text, Scheme::Iast, Scheme::Slp1)
+    return outstr;
 }
 
 /// Convert DCS semantics to Vidyut semantics.
