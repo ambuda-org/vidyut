@@ -2,38 +2,6 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::*;
 
-pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lat(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lan(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lan(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lat_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lat_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lit_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lit_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lan_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lan_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: &[&str]) {
-    assert_padas(
-        derive_krdantas(&dhatu.clone().with_prefixes(prefixes), krt),
-        expected,
-    );
-}
-
 #[test]
 fn sutra_8_3_63() {
     let su = Dhatu::new("zu\\Y", Gana::Svadi);
@@ -92,7 +60,6 @@ fn sutra_8_3_67() {
     assert_has_lit_p(&["prati"], &stanbh, &["pratitazwamBa"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_8_3_68() {
     let ava_stanbh = Dhatu::new("sta\\nBu~", Gana::Kryadi).with_prefixes(&["ava"]);

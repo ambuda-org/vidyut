@@ -211,14 +211,18 @@ fn is_nandi_grahi_pacadi(p: &KrtPrakriya, i: usize) -> bool {
     let dhatu = p.get(i).expect("should be present");
 
     // TODO: add the others.
+    const NAND_ADI: &[&str] = &["nand", "jalp", "ram", "dfp"];
+
+    const PAC_ADI: &[&str] = &[
+        "pac", "vac", "vap", "vad", "cal", "tap", "pat", "nadaw", "Bazaw", "vas", "garat",
+        "plavaw", "cIraw", "mAhaw", "jara", "mara", "kzara", "kzama", "sUdaw", "devaw", "moraw",
+        "seva", "meza", "kroDa", "vraRa", "daMSa", "daSa", "damBa", "jAraBara", "Svapaca", "meGa",
+        "kIza", "kzapa", "mada", "raja", "dIzaw", "caraw",
+    ];
+
+    // TODO: add the others.
     // TODO: at this length, maybe a set? sorted vec?
-    dhatu.has_text_in(&[
-        // pac-Adi
-        "pac", "vac", "vap", "vad", "cal", "tap", "pat", "nadaw", "Bazaw", "vas", "garat", "plavaw",
-        "cIraw", "mAhaw", "jara", "mara", "kzara", "kzama", "sUdaw", "devaw", "moraw", "seva",
-        "meza", "kroDa", "vraRa", "daMSa", "daSa", "damBa", "jAraBara", "Svapaca", "meGa", "kIza",
-        "kzapa", "mada", "raja", "dIzaw", "caraw",
-    ])
+    dhatu.has_text_in(NAND_ADI) || dhatu.has_text_in(PAC_ADI)
 }
 
 /// Runs rules that try to add `krt` in one of three specific senses. (3.2.134 - 3.2.179)

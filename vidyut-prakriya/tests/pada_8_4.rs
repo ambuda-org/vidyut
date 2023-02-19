@@ -2,17 +2,7 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::*;
 
-pub fn assert_has_lat_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lat);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lit_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lit);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lot_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+pub fn assert_has_lot_p_1s(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let args = TinantaArgs::builder()
         .prayoga(Prayoga::Kartari)
         .purusha(Purusha::Uttama)
@@ -26,11 +16,6 @@ pub fn assert_has_lot_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_padas(actual, expected);
 }
 
-pub fn assert_has_krt(prefixes: &[&str], dhatu: &Dhatu, k: Krt, expected: &[&str]) {
-    let actual = derive_krdantas(&dhatu.clone().with_prefixes(prefixes), k);
-    assert_padas(actual, expected);
-}
-
 #[test]
 fn sutra_8_4_14() {
     let nam = Dhatu::new("Ra\\ma~", Gana::Bhvadi);
@@ -38,12 +23,12 @@ fn sutra_8_4_14() {
     assert_has_lat(&["pari"], &nam, &["pariRamati"]);
 
     let ni = Dhatu::new("RI\\Y", Gana::Bhvadi);
-    assert_has_krt(&["pra"], &ni, Krt::Rvul, &["praRAyaka"]);
-    assert_has_krt(&["pari"], &ni, Krt::Rvul, &["pariRAyaka"]);
+    assert_has_krdanta(&["pra"], &ni, Krt::Rvul, &["praRAyaka"]);
+    assert_has_krdanta(&["pari"], &ni, Krt::Rvul, &["pariRAyaka"]);
 
     let nard = Dhatu::new("narda~", Gana::Bhvadi);
     assert_has_lat(&["pra"], &nard, &["pranardati"]);
-    assert_has_krt(&["pra"], &nard, Krt::Rvul, &["pranardaka"]);
+    assert_has_krdanta(&["pra"], &nard, Krt::Rvul, &["pranardaka"]);
 }
 
 #[test]
@@ -58,10 +43,10 @@ fn sutra_8_4_15() {
 fn sutra_8_4_16() {
     let vap = Dhatu::new("quva\\pa~^", Gana::Bhvadi);
     let yaa = Dhatu::new("yA\\", Gana::Adadi);
-    assert_has_lot_p(&["pra"], &vap, &["pravapARi"]);
-    assert_has_lot_p(&["pari"], &vap, &["parivapARi"]);
-    assert_has_lot_p(&["pra"], &yaa, &["prayARi"]);
-    assert_has_lot_p(&["pari"], &yaa, &["pariyARi"]);
+    assert_has_lot_p_1s(&["pra"], &vap, &["pravapARi"]);
+    assert_has_lot_p_1s(&["pari"], &vap, &["parivapARi"]);
+    assert_has_lot_p_1s(&["pra"], &yaa, &["prayARi"]);
+    assert_has_lot_p_1s(&["pari"], &yaa, &["pariyARi"]);
 }
 
 #[test]
@@ -185,5 +170,5 @@ fn sutra_8_4_19() {
 #[test]
 fn sutra_8_4_35() {
     let paa = Dhatu::new("pA\\", Gana::Bhvadi);
-    assert_has_krt(&["nis"], &paa, Krt::lyuw, &["nizpAna"]);
+    assert_has_krdanta(&["nis"], &paa, Krt::lyuw, &["nizpAna"]);
 }

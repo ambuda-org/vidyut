@@ -174,6 +174,8 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
         }
     }
 
+    try_ktvo_lyap(p);
+
     Some(())
 }
 /// Runs rules that are conditioned on a following Sit-pratyaya.
@@ -455,20 +457,26 @@ fn try_change_dhatu_before_y(p: &mut Prakriya) -> Option<()> {
     let n = p.view(i_n)?;
 
     let akrt_sarva = !n.has_tag_in(&[T::Sarvadhatuka, T::Krt]);
+    let has_upasarga = i > 0 && p.has(i - 1, |t| t.has_tag(T::Upasarga));
+    let yi_kniti = n.has_adi('y') && n.is_knit();
 
     if dhatu.has_u("SIN") && n.has_tag(T::Sarvadhatuka) {
         p.op_term("7.4.21", i, op::text("Se"));
-    } else if dhatu.has_u("SIN") && n.has_adi('y') && n.is_knit() {
+    } else if dhatu.has_u("SIN") && yi_kniti {
         p.op_term("7.4.22", i, op::text("Say"));
-    } else if i > 0 && p.has(i - 1, |t| t.has_tag(T::Upasarga)) {
-        if dhatu.has_text("Uh") {
-            // Example: sam[u]hyate
-            p.op_term("7.4.23", i, op::adi("u"));
-        } else if dhatu.has_u("i\\R") && p.has(i + 1, |t| t.has_lakshana("li~N")) {
-            // Example: ud[i]yAt
-            p.op_term("7.4.24", i, op::adi("i"));
-        }
+    } else if has_upasarga && yi_kniti && dhatu.has_u("Uha~\\") {
+        // Example: sam[u]hyate
+        p.op_term("7.4.23", i, op::adi("u"));
+    } else if has_upasarga
+        && yi_kniti
+        && dhatu.has_u("i\\R")
+        && p.terms().last()?.has_lakshana("li~N")
+    {
+        // Example: ud[i]yAt
+        p.op_term("7.4.24", i, op::adi("i"));
     } else if dhatu.has_antya('f') {
+        let dhatu = p.get(i)?;
+        let n = p.view(i_n)?;
         let is_sha_or_yak = n.has_u_in(&["Sa", "yak"]);
         let is_ardhadhatuka_lin = n.has_lakshana("li~N") && n.has_tag(T::Ardhadhatuka);
 
@@ -1189,6 +1197,17 @@ pub fn run_subanta_rules(p: &mut Prakriya) {
     try_add_num_agama_for_sup(p);
     try_add_num_agama_for_sarvanamasthana(p);
     sup_adesha::run_remainder(p);
+}
+
+fn try_ktvo_lyap(p: &mut Prakriya) -> Option<()> {
+    let i_dhatu = p.find_first(T::Dhatu)?;
+    let i_ktva = i_dhatu + 1;
+    let _i_upasarga = p.find_prev_where(i_dhatu, |t| t.is_upasarga())?;
+
+    if p.has(i_ktva, |t| t.has_u("ktvA")) {
+        op::adesha("7.1.37", p, i_ktva, "lyap");
+    }
+    Some(())
 }
 
 pub fn run_remainder(p: &mut Prakriya) -> Option<()> {

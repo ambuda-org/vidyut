@@ -375,7 +375,7 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
 /// Runs iT rules that condition on a following ArdhadhAtuka suffix.
 ///
 /// (7.2.35 - 7.2.36 and 7.2.41 - 7.2.75)
-fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
+fn try_ardhadhatuke_1(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let n = wrap.p.view(i + 1)?;
     if !n.has_tag(T::Ardhadhatuka) {
         return None;
@@ -415,6 +415,16 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     try_it_rules_for_san(wrap, i);
     try_it_rules_for_ktva_and_nistha(wrap, i);
 
+    Some(())
+}
+
+fn try_ardhadhatuke_2(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
+    let n = wrap.p.view(i + 1)?;
+    if !n.has_tag(T::Ardhadhatuka) {
+        return None;
+    }
+
+    let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
     let anga = wrap.p.get(i)?;
     let n = wrap.p.view(i + 1)?;
     let antya_para = wrap.p.terms().last()?.has_tag(T::Parasmaipada);
@@ -590,8 +600,9 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
 fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
     try_rules_for_kvasu(wrap, i);
     try_rules_for_lit(wrap, i);
+    try_ardhadhatuke_1(wrap, i);
     try_general_anit(wrap, i);
-    try_ardhadhatuke(wrap, i);
+    try_ardhadhatuke_2(wrap, i);
     try_sarvadhatuke(wrap.p, i);
 }
 

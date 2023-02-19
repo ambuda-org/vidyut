@@ -2,38 +2,6 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::*;
 
-pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lat);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lut_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lut);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lan_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lan);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lun_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lun);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lit_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lit);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: &[&str]) {
-    assert_padas(
-        derive_krdantas(&dhatu.clone().with_prefixes(prefixes), krt),
-        expected,
-    );
-}
-
 #[test]
 fn sutra_6_1_91() {
     let r = Dhatu::new("f\\", Gana::Bhvadi);

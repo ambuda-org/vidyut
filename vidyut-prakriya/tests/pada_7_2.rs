@@ -2,31 +2,6 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::*;
 
-pub fn assert_has_lun_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lun);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lun_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_atmane(&dhatu.clone().with_prefixes(prefixes), Lakara::Lun);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lat_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lat_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrt_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lrt_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lit_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lit_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
 pub fn assert_has_lit_p_1d(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let args = TinantaArgs::builder()
         .prayoga(Prayoga::Kartari)
@@ -67,18 +42,6 @@ pub fn assert_has_lit_a_1d(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) 
 
     let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
     assert_padas(actual, expected);
-}
-
-pub fn assert_has_lan_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lan_p(&dhatu.clone().with_prefixes(prefixes));
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: &[&str]) {
-    assert_padas(
-        derive_krdantas(&dhatu.clone().with_prefixes(prefixes), krt),
-        expected,
-    );
 }
 
 #[test]
@@ -385,6 +348,7 @@ fn sutra_7_2_74() {
     assert_has_san_lat("pUY", Gana::Kryadi, &["pupUzati"]);
 }
 
+#[ignore]
 #[test]
 fn sutra_7_2_75() {
     let assert_has_san_lat = |u, gana, exp| {

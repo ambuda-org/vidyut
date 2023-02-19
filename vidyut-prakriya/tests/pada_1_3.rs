@@ -1,36 +1,6 @@
 extern crate test_utils;
-use test_utils::{assert_padas, derive_lakara};
+use test_utils::*;
 use vidyut_prakriya::args::*;
-
-pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lat);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lan(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lan);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrt(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lrt);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrn(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lrn);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lun(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lun);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_ashirlin(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::AshirLin);
-    assert_padas(actual, expected);
-}
 
 #[test]
 fn sutra_1_3_17() {
