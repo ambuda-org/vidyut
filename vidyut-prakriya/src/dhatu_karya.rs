@@ -37,12 +37,12 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     // TODO: zamo darzane
     // TODO: yamo 'parivezane
     let no_mit = if dhatu.has_text_in(&["kam", "am", "cam"]) {
-        p.step("dp.01.0937");
+        p.step("DA.01.0937");
         true
     } else if dhatu.has_u("Samo~") {
-        p.op_optional("dp.01.0938", |_| {})
-    } else if dhatu.has_text("yam") && dhatu.has_gana(1) {
-        p.op_optional("dp.01.0939", |_| {})
+        p.op_optional("DA.01.0938", |_| {})
+    } else if dhatu.has_text("yam") && dhatu.has_gana_int(1) {
+        p.op_optional("DA.01.0939", |_| {})
     } else {
         false
     };
@@ -51,30 +51,30 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     if no_mit {
         // Do nothing.
     } else if dhatu.has_text_in(&["jval", "hval", "hmal", "nam"]) && !has_upasarga {
-        p.op_optional("dp.01.0935", op::t(0, op::add_tag(T::mit)));
+        p.op_optional("DA.01.0935", op::t(0, op::add_tag(T::mit)));
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
-        p.op_optional("dp.01.0936", op::t(0, op::add_tag(T::mit)));
-    } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]) && dhatu.has_gana(4))
-        || (dhatu.ends_with("am") && dhatu.has_gana(1))
+        p.op_optional("DA.01.0936", op::t(0, op::add_tag(T::mit)));
+    } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]) && dhatu.has_gana_int(4))
+        || (dhatu.ends_with("am") && dhatu.has_gana_int(1))
     {
-        p.op_term("dp.01.0934", i, op::add_tag(T::mit));
+        p.op_term("DA.01.0934", i, op::add_tag(T::mit));
     }
 
     Some(())
 }
 
 fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
-    let dhatu = p.get_if(i, |t| t.has_gana(10))?;
+    let dhatu = p.get_if(i, |t| t.has_gana_int(10))?;
 
     if dhatu.has_u_in(gana::CUR_MIT) {
-        p.op_term("dp.10.0493", i, op::add_tag(T::mit));
+        p.op_term("DA.10.0493", i, op::add_tag(T::mit));
     }
 
     let dhatu = p.get(i)?;
     if dhatu.has_antargana(Antargana::Akusmiya) {
-        p.op("dp.10.0496", |p| p.add_tag(T::Atmanepada));
+        p.op("DA.10.0496", |p| p.add_tag(T::Atmanepada));
     } else if dhatu.has_u_in(gana::AAGARVIYA) {
-        p.op("dp.10.0497", |p| p.add_tag(T::Atmanepada));
+        p.op("DA.10.0497", |p| p.add_tag(T::Atmanepada));
     }
 
     Some(())
@@ -164,6 +164,12 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
 
     try_satva_and_natva(p, 0);
     try_add_num_agama(p, 0);
+
+    if p.get(0).expect("valid").has_antya('z') {
+        // For 8.4.18.
+        p.set(0, |t| t.add_tag(T::FlagShanta));
+    }
+
     try_add_prefixes(p, dhatu);
 
     let i_dhatu = p.terms().len() - 1;

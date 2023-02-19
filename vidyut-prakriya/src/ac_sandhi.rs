@@ -2,7 +2,8 @@
 //! =========
 //! (6.1.66 - 6.1.101)
 
-use crate::char_view::{char_rule, get_at, set_at, xy};
+use crate::char_view::{char_rule, get_at, get_index_at, set_at, xy};
+use crate::it_samjna;
 use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -62,9 +63,16 @@ fn try_ver_aprktasya(p: &mut Prakriya) -> Option<()> {
 /// Runs various general rules of vowel sandhi.
 pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     char_rule(p, xy(|x, y| x == 'a' && al::is_guna(y)), |p, _, i| {
-        set_at(p, i, "");
-        p.step("6.1.97");
-        true
+        // HACK: clean up
+        let i_x = get_index_at(p, i).expect("valid");
+        let i_y = get_index_at(p, i + 1).expect("valid");
+        if i_x != i_y && p.get(i_x).expect("valid").has_tag(T::Upasarga) {
+            false
+        } else {
+            set_at(p, i, "");
+            p.step("6.1.97");
+            true
+        }
     });
 
     char_rule(
@@ -276,6 +284,38 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
+fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
+    let i_dhatu = p.find_first(T::Dhatu)?;
+    let dhatu = p.get(i_dhatu)?;
+
+    let i_prev = p.find_prev_where(i_dhatu, |t| {
+        // By 6.1.136, allow aw-abhyAsa-vyavAya. So, find the previous term that is neither
+        // aw-Agama nor an abhyasa.
+        !t.is_empty() && !t.is_abhyasa() && !(t.is_agama() && t.has_u("aw"))
+    })?;
+    let prev = p.get(i_prev)?;
+
+    let optional_add_sut = |rule, p: &mut Prakriya, i_dhatu: usize| {
+        if p.op_optional(rule, |p| op::insert_agama_before(p, i_dhatu, "su~w")) {
+            it_samjna::run(p, i_dhatu).expect("ok");
+        }
+    };
+
+    if prev.has_u_in(&["sam", "pari", "upa"]) && dhatu.has_u("qukf\\Y") {
+        optional_add_sut("6.1.137", p, i_dhatu);
+        // Ignore 6.1.139, which creates the same result as 6.1.137.
+    } else if dhatu.has_u("kF") {
+        if prev.has_u("upa") {
+            optional_add_sut("6.1.140", p, i_dhatu);
+        } else if prev.has_u("prati") {
+            optional_add_sut("6.1.141", p, i_dhatu);
+        } else if prev.has_u("apa") {
+            optional_add_sut("6.1.142", p, i_dhatu);
+        }
+    }
+    Some(())
+}
+
 fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let x = p.get(i)?;
@@ -304,4 +344,6 @@ pub fn run_common(p: &mut Prakriya) {
 
     apply_general_ac_sandhi(p);
     hacky_apply_ni_asiddhavat_rules(p);
+
+    try_sut_kat_purva(p);
 }

@@ -329,7 +329,8 @@ fn try_add_krt_for_tacchila_etc(p: &mut KrtPrakriya, i: usize, krt: Krt) -> Opti
         p.try_add("3.2.160", K::kmarac);
     } else if dhatu.has_text_in(&["Banj", "BAs", "mid"]) {
         p.try_add("3.2.161", K::Gurac);
-    } else if (dhatu.has_u("vida~") && dhatu.has_gana(2)) || dhatu.has_text_in(&["Bid", "Cid"]) {
+    } else if (dhatu.has_u("vida~") && dhatu.has_gana_int(2)) || dhatu.has_text_in(&["Bid", "Cid"])
+    {
         // Per commentaries, allow only this specific `vid`.
         p.try_add("3.2.162", K::kurac);
     } else if dhatu.has_u("i\\R") || dhatu.has_text_in(&["naS", "ji", "sf"]) {
@@ -518,7 +519,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             // TODO: 3.1.138 - 3.1.144
             let pa_ghra = &["pA\\", "GrA\\", "DmA\\", "De\\w", "df\\Si~r"];
 
-            if dhatu.has_u_in(pa_ghra) && dhatu.has_gana(1) {
+            if dhatu.has_u_in(pa_ghra) && dhatu.has_gana_int(1) {
                 // These are all bhvAdi dhAtus, so enforce `has_gana(1)` to avoid other dhatus.
                 wrap.try_add("3.1.137", K::Sa);
             } else if dhatu.has_upadha(&*IK) || dhatu.has_u_in(&["JYA\\", "prI\\Y", "kF"]) {
@@ -572,7 +573,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 // > yujiryoge, yuja samādhau, dvayorapi grahaṇam। vida jñāne, vida sattāyām, vida
                 // > vicāraṇe, trayāṇāmapi grahaṇam। na lābhārthasya videḥ, akārasya vivakṣatatvāt
                 // -- KV
-                let skip = (dhatu.has_text("sU") && !dhatu.has_gana(2))
+                let skip = (dhatu.has_text("sU") && !dhatu.has_gana_int(2))
                     || (dhatu.has_text("vid") && dhatu.has_tag(T::xdit));
                 if !skip {
                     wrap.try_add("3.2.61", krt);

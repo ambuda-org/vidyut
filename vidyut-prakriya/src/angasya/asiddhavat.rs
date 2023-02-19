@@ -139,7 +139,7 @@ fn run_before_knit_ardhadhatuka(p: &mut Prakriya, i: usize) -> Option<()> {
         let ghu_ma = dhatu.has_tag(T::Ghu)
             || dhatu.has_text_in(&["mA", "sTA", "gA", "sA"])
             || dhatu.has_u("o~hA\\k")
-            || (dhatu.has_u("pA\\") && dhatu.has_gana(1));
+            || (dhatu.has_u("pA\\") && dhatu.has_gana_int(1));
         if n.has_adi(&*HAL) && ghu_ma {
             if n.has_lakshana("li~N") {
                 p.op_term("6.4.67", i, op::antya("e"));
@@ -340,7 +340,7 @@ fn try_et_adesha_and_abhyasa_lopa_for_lit(p: &mut Prakriya, i: usize) -> Option<
     } else if dhatu.has_text("graT") {
         // TODO: attested, but can't find the rule for it.
         p.op("???", op_et_abhyasa_lopa);
-    } else if dhatu.has_text("rAD") && dhatu.has_gana(5) {
+    } else if dhatu.has_text("rAD") && dhatu.has_gana_int(5) {
         // TODO: why gana 5? For now, just follow what ashtadhyayi.com does.
         p.op("6.4.123", op_et_abhyasa_lopa);
     } else if dhatu.has_u("jF") || dhatu.has_text_in(&["Bram", "tras"]) {
@@ -454,42 +454,72 @@ pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
     Some(())
 }
 
-/// 6.4.2 - 6.4.19
-pub fn run_dirgha(p: &mut Prakriya) -> Option<()> {
+fn try_dirgha_adesha_for_sup(p: &mut Prakriya) -> Option<()> {
     let i_sup = p.find_last(T::Sup)?;
-    if i_sup == 0 {
-        return None;
-    };
-    let i = p.find_prev_where(i_sup, |t| !t.is_agama())?;
+    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama())?;
 
-    let anga = p.get(i)?;
+    let anga = p.get(i_anga)?;
     let sup = p.get(i_sup)?;
-    let has_num = if i + 1 != i_sup {
-        p.get(i + 1)?.has_u("nu~w")
+    let has_nuw_agama = if i_anga + 1 != i_sup {
+        p.get(i_anga + 1)?.has_u("nu~w")
     } else {
         false
     };
 
-    if sup.has_text("Am") && has_num {
+    if sup.has_text("Am") && has_nuw_agama {
         if anga.has_text_in(&["tisf", "catasf"]) {
             // No change.
             p.step("6.4.3")
         } else if anga.has_text("nf") {
             // nfRAm, nFRAm
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.op_optional("6.4.4", op::t(i, op::antya(&sub.to_string())));
+            p.op_optional("6.4.4", op::t(i_anga, op::antya(&sub.to_string())));
         } else if anga.has_antya('n') {
             let sub = al::to_dirgha(anga.upadha()?)?;
-            p.op_term("6.4.5", i, op::upadha(&sub.to_string()));
+            p.op_term("6.4.5", i_anga, op::upadha(&sub.to_string()));
         } else if anga.has_antya(&*AC) {
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.op_term("6.4.2", i, op::antya(&sub.to_string()));
+            p.op_term("6.4.2", i_anga, op::antya(&sub.to_string()));
         }
     } else if sup.has_tag(T::Sarvanamasthana) && !sup.has_tag(T::Sambuddhi) {
-        try_run_dirgha_for_sarvanamasthane_asambuddhau(p, i, i_sup);
+        try_run_dirgha_for_sarvanamasthane_asambuddhau(p, i_anga, i_sup);
     }
 
     Some(())
+}
+
+fn try_dirgha_adesha_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    let dhatu = p.get_if(i, |t| t.is_dhatu())?;
+    let next = p.view(i + 1)?;
+
+    if (dhatu.has_antya(&*AC) || dhatu.has_u_in(&["ha\\na~", "gami~"])) && next.has_u("san") {
+        let sub = if dhatu.has_upadha('a') {
+            // For gam and han
+            'A'
+        } else {
+            al::to_dirgha(dhatu.antya()?)?
+        };
+        p.op_term("6.4.16", i, |t| {
+            if t.has_upadha('a') {
+                t.set_upadha(&sub.to_string())
+            } else {
+                t.set_antya(&sub.to_string())
+            }
+        });
+    }
+
+    Some(())
+}
+
+/// Runs rules that cause dirgha-adesha in the anga.
+///
+/// 6.4.2 - 6.4.19
+pub fn try_dirgha_adesha(p: &mut Prakriya) {
+    try_dirgha_adesha_for_sup(p);
+
+    for i in 0..p.terms().len() {
+        try_dirgha_adesha_at_index(p, i);
+    }
 }
 
 fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
@@ -521,7 +551,6 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
         if can_run {
             p.op_term("6.4.24", i, op::upadha(""));
         }
-        p.step("canrun");
     } else if anga.has_text_in(&["danS", "sanj", "svanj"]) && n.has_u("Sap") {
         // daSati
         p.op_term("6.4.25", i, op::upadha(""));
@@ -767,7 +796,7 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
 
 /// Runs asiddhavat rules that alter a Ri suffix.
 pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
-    let i_ni = p.find_last_where(|t| t.has_u_in(&["Ric", "RiN"]))?;
+    let i_ni = p.find_last_where(|t| t.is_ni_pratyaya())?;
     if i_ni == 0 {
         return None;
     }

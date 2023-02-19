@@ -112,7 +112,7 @@ impl Vidyut {
             let a = Ashtadhyayi::new();
             let prakriyas = match sanadi {
                 Some(s) => {
-                    let dhatu = dhatu.with_sanadi(s);
+                    let dhatu = dhatu.clone().with_sanadi(s);
                     a.derive_tinantas(&dhatu, &args)
                 }
                 None => a.derive_tinantas(dhatu, &args),

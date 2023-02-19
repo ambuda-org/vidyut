@@ -127,7 +127,8 @@ fn san_tinantas() {
     // Kale 613
     let cases = &[
         ("paWa~", 1, "pipaWizati"),
-        ("zi\\Y", 1, "sisIzati"),
+        // Kala has only parasmaipada, but the dhatu is Yit so include both.
+        ("zi\\Y", 1, "sisIzati|sisIzate"),
         ("zi\\ca~^", 1, "sisikzati|sisikzate"),
         ("zmi\\N", 1, "sismayizate"),
         ("zUN", 2, "susUzate"),
@@ -172,9 +173,10 @@ fn san_tinantas() {
         ("pa\\da~\\", 4, "pitsate"),
         ("pUN", 1, "pipavizate"),
         (
-            "Br\\sja~^",
+            "Bra\\sja~^",
             6,
-            "biBarkzati|biBrakzati|biBarjizati|biBrajjizati",
+            // Kale is missing atmanepada
+            "biBarkzati|biBarkzate|biBrakzati|biBrakzate|biBarjizati|biBarjizate|biBrajjizati|biBrajjizate",
         ),
         ("wuma\\sjo~", 6, "mimaNkzati|mimajjizati"),
         ("mA\\", 2, "mitsati"),
@@ -222,7 +224,8 @@ fn yan_tinantas() {
         ("GrA\\", 1, "jeGrIyate"),
         ("DmA\\", 1, "deDmIyate"),
         ("ya\\ma~", 1, "yaMyamyate"),
-        ("janI~\\", 4, "jaYjanyate"),
+        // Also check jAjAyate per 6.4.43
+        ("janI~\\", 4, "jaYjanyate|jAjAyate"),
         ("YiPalA~", 1, "pamPulyate"),
         ("da\\ha~", 1, "dandahyate"),
         ("japa~", 1, "jaYjapyate"),

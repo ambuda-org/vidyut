@@ -23,5 +23,5 @@ pub fn is_eka_ac(t: &Term) -> bool {
 
 /// Returns whether this term is the dhAtu `as` in the sense of `asti`.
 pub fn is_asti(t: &Term) -> bool {
-    t.has_u("asa~") && t.has_gana(2)
+    t.has_u("asa~") && t.has_gana_int(2)
 }

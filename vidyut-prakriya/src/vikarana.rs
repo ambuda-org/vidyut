@@ -99,8 +99,8 @@ fn maybe_replace_cli_with_ksa(p: &mut Prakriya, i: usize) -> Option<()> {
     };
 
     let pushadi_dyutadi_ldit = |t: &Term| {
-        (t.has_u_in(PUSH_ADI) && t.has_gana(4))
-            || (t.has_u_in(DYUT_ADI) && t.has_gana(1))
+        (t.has_u_in(PUSH_ADI) && t.has_gana_int(4))
+            || (t.has_u_in(DYUT_ADI) && t.has_gana_int(1))
             || t.has_tag(T::xdit)
     };
 
@@ -115,7 +115,7 @@ fn maybe_replace_cli_with_ksa(p: &mut Prakriya, i: usize) -> Option<()> {
         let dhatu = p.get(i)?;
         if dhatu.has_text("dfS") {
             p.step("3.1.47")
-        } else if dhatu.has_text("Sliz") && dhatu.has_gana(4) {
+        } else if dhatu.has_text("Sliz") && dhatu.has_gana_int(4) {
             p.op_optional("3.1.46", to_ksa);
         } else if dhatu.has_tag(T::Udit) {
             p.op_optional("3.1.45", |p| {
@@ -139,12 +139,11 @@ fn maybe_replace_cli_with_can(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let dhatu = p.get(i)?;
-    let is_ni = |t: &Term| t.has_u_in(&["Ric", "RiN"]);
     let is_shri_dru_sru = |t: &Term| t.has_text_in(&["Sri", "dru", "sru"]);
 
     let to_can = replace_with(i + 1, "caN");
 
-    if p.has_tag(T::Kartari) && is_ni(dhatu) || is_shri_dru_sru(dhatu) {
+    if p.has_tag(T::Kartari) && dhatu.is_ni_pratyaya() || is_shri_dru_sru(dhatu) {
         // acIkarat; aSiSriyat, adudruvat, asusruvat
         p.op("3.1.48", to_can);
     } else if dhatu.has_u("kamu~\\") {
@@ -321,7 +320,8 @@ fn maybe_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_text_in(&["day", "ay", "As"]) {
         // dayAYcakre
         p.op("3.1.37", add_aam);
-    } else if dhatu.has_text_in(&["uz", "jAgf"]) || (dhatu.has_text("vid") && dhatu.has_gana(2)) {
+    } else if dhatu.has_text_in(&["uz", "jAgf"]) || (dhatu.has_text("vid") && dhatu.has_gana_int(2))
+    {
         let used = p.op_optional("3.1.38", add_aam);
         if used {
             let dhatu = p.get(i)?;
@@ -361,7 +361,7 @@ fn maybe_add_am_pratyaya_for_lot(p: &mut Prakriya) {
         None => false,
     };
 
-    if p.has(i, |t| t.has_text("vid") && t.has_gana(2) && is_lot) {
+    if p.has(i, |t| t.has_text("vid") && t.has_gana_int(2) && is_lot) {
         let added_am = p.op_optional("3.1.41", add_aam);
 
         if added_am {
@@ -391,7 +391,7 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
         let applied = p.op_optional("3.1.70", add_vikarana("Syan"));
 
         // Needed to make 3.1.69 available to roots like Bram
-        if !applied && p.has(i, |t| t.has_gana(4)) {
+        if !applied && p.has(i, |t| t.has_gana_int(4)) {
             gana_4_declined = true;
         }
     // TODO: anupasarga
@@ -410,26 +410,26 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
     }
 
     let dhatu = p.get(i)?;
-    if dhatu.has_gana(4) && !gana_4_declined {
+    if dhatu.has_gana_int(4) && !gana_4_declined {
         // dIvyati
         p.op("3.1.69", add_vikarana("Syan"));
-    } else if dhatu.has_gana(5) {
+    } else if dhatu.has_gana_int(5) {
         p.op("3.1.73", add_vikarana("Snu"));
     } else if dhatu.has_text("Sru") {
         p.op("3.1.74", |p| {
             p.set(i, |t| t.set_text("Sf"));
             add_vikarana("Snu")(p);
         });
-    } else if dhatu.has_gana(6) {
+    } else if dhatu.has_gana_int(6) {
         // tudati
         p.op("3.1.77", add_vikarana("Sa"));
-    } else if dhatu.has_gana(7) {
+    } else if dhatu.has_gana_int(7) {
         // ruRadDi
         p.op("3.1.78", |p| {
             p.set(i, |t| t.add_tag(T::Snam));
             p.set(i, op::mit("na"));
         });
-    } else if dhatu.has_gana(8) || dhatu.has_u("qukf\\Y") {
+    } else if dhatu.has_gana_int(8) || dhatu.has_u("qukf\\Y") {
         // tanoti; karoti
         p.op("3.1.79", add_vikarana("u"));
     } else if dhatu.has_u_in(&["Divi~", "kfvi~"]) {
@@ -437,7 +437,7 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
             p.set(i, op::antya("a"));
             add_vikarana("u")(p);
         });
-    } else if dhatu.has_gana(9) {
+    } else if dhatu.has_gana_int(9) {
         // krIRAti
         p.op("3.1.81", add_vikarana("SnA"));
     } else {
@@ -482,10 +482,10 @@ fn maybe_sic_lopa_before_parasmaipada(
     }
 
     let gati_stha = |t: &Term| {
-        (t.has_text("gA") && t.has_gana(2))
+        (t.has_text("gA") && t.has_gana_int(2))
             || t.has_text("sTA")
             || t.has_tag(T::Ghu)
-            || (t.has_text("pA") && t.has_gana(1))
+            || (t.has_text("pA") && t.has_gana_int(1))
             || t.has_text("BU")
     };
 
@@ -525,10 +525,10 @@ fn vikarana_lopa(p: &mut Prakriya) -> Option<()> {
     let vikarana = p.get_if(i_vikarana, |t| t.has_tag(T::Vikarana))?;
 
     if vikarana.has_u("Sap") {
-        if dhatu.has_gana(2) {
+        if dhatu.has_gana_int(2) {
             // atti, dvezwi
             p.op_term("2.4.72", i_vikarana, op::luk);
-        } else if dhatu.has_gana(3) {
+        } else if dhatu.has_gana_int(3) {
             // juhoti, biBarti
             p.op_term("2.4.75", i_vikarana, op::slu);
         }

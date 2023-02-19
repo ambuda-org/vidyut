@@ -221,6 +221,10 @@ pub enum Tag {
     FlagAtLopa,
     /// Indicates deletion of a term's final "n" in the asiddhavat section.
     FlagNaLopa,
+    /// Indicates prevention of a sa -> za change in the asiddha section.
+    FlagKeepSa,
+    /// Indicates that a dhatu ends in `z` in upadesha.
+    FlagShanta,
 
     Sat,
     /// Indicates the insertion of `na` through the Snam-vikarana.

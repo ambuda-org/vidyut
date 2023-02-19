@@ -102,7 +102,7 @@ fn maybe_do_jha_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
             // Serate
             p.op("7.1.6", add_rut);
             it_samjna::run(p, i).ok()?;
-        } else if base.has_u("vida~") && base.has_gana(2) {
+        } else if base.has_u("vida~") && base.has_gana_int(2) {
             // vidrate
             if p.op_optional("7.1.7", add_rut) {
                 it_samjna::run(p, i).ok()?;
@@ -197,7 +197,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
     if anga.has_antya('o') && n.has_u("Syan") {
         // Syati
         p.op_term("7.3.71", i, op::antya(""));
-    } else if anga.has_u_in(gana::SHAM_ADI) && n.has_u("Syan") && anga.has_gana(4) {
+    } else if anga.has_u_in(gana::SHAM_ADI) && n.has_u("Syan") && anga.has_gana_int(4) {
         // Check ganas to avoid `Bramu~ anavasTAne` (BrAmyati).
         p.op_term("7.3.74", i, op::upadha("A"));
     } else if anga.has_text_in(&["zWiv", "klam"]) {
@@ -216,7 +216,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
     } else if anga.has_u_in(&["izu~", "ga\\mx~", "ya\\ma~"]) {
         // icCati, gacCati, yacCati
         p.op_term("7.3.77", i, op::antya("C"));
-    } else if anga.has_u_in(pa_ghra) && !anga.has_gana(2) && !anga.has_gana(3) {
+    } else if anga.has_u_in(pa_ghra) && !anga.has_gana_int(2) && !anga.has_gana_int(3) {
         // Check ganas above to avoid `pA rakzaRe` (pAti), `f gatO` (iyarti)
         let to_piba_jighra = |p: &mut Prakriya| {
             let anga = p.get(i).expect("ok");
@@ -243,7 +243,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
     } else if anga.has_u_in(&["jYA\\", "janI~\\"]) {
         // jAnAti, jAyate
         p.op_term("7.3.79", i, op::text("jA"));
-    } else if anga.has_u_in(gana::PU_ADI) && (anga.has_gana(5) || anga.has_gana(9)) {
+    } else if anga.has_u_in(gana::PU_ADI) && (anga.has_gana_int(5) || anga.has_gana_int(9)) {
         // punAti, stfRAti, riRAti
         // All of these dhatus end in vowels.
         p.op_term("7.3.80", i, |t| {
@@ -682,7 +682,7 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
     let n = p.view(i_n)?;
     if anga.has_tag(T::Abhyasta) && n.has_u("san") || n.has_lakshana("li~w") {
-        if anga.has_text("ji") && anga.has_gana(1) {
+        if anga.has_text("ji") && anga.has_gana_int(1) {
             p.op_term("7.3.57", i, op::adi("g"));
         } else if anga.has_text("ci") {
             p.op_optional("7.3.58", op::t(i, op::adi("k")));
@@ -873,7 +873,7 @@ fn try_cani_before_guna(p: &mut Prakriya) -> Option<()> {
 
     let dhatu = p.get(i)?;
     let is_nici = match p.get(i + 1) {
-        Some(t) => t.has_u_in(&["Ric", "RiN"]),
+        Some(t) => t.is_ni_pratyaya(),
         None => false,
     };
     let is_cani = match p.get(i + 2) {
@@ -912,7 +912,7 @@ fn try_cani_after_guna(p: &mut Prakriya) -> Option<()> {
     // Our dhatu search should also supported duplicated ac-Adi roots, e.g. uDras -> u + Da + Dras.
     // Hence, search for the last term called "dhatu" that isn't a pratyaya.
     let i = p.find_last_where(|t| t.is_dhatu() && !t.is_pratyaya())?;
-    let i_ni = p.find_next_where(i, |t| t.has_u_in(&["Ric", "RiN"]))?;
+    let i_ni = p.find_next_where(i, |t| t.is_ni_pratyaya())?;
     let _i_can = p.find_next_where(i_ni, |t| t.has_u("caN"))?;
 
     let dhatu = p.get(i)?;
@@ -1002,7 +1002,7 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get(i)?;
     let ni = p.get(i + 1)?;
 
-    if !ni.has_u_in(&["Ric", "RiN"]) {
+    if !ni.is_ni_pratyaya() {
         return None;
     }
 
@@ -1028,7 +1028,7 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
         if !blocked {
             op::append_agama("7.3.37", p, i, "yu~k");
         }
-    } else if dhatu.has_text("pA") && dhatu.has_gana(2) {
+    } else if dhatu.has_text("pA") && dhatu.has_gana_int(2) {
         op::append_agama("7.3.36", p, i, "lu~k");
     } else if dhatu.has_text_in(&["prI", "DU"]) {
         // Optional per Haradatta (see commentary on prIY in siddhAnta-kaumudI)
@@ -1260,7 +1260,7 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
         dhatu_rt_adesha(p, index);
     }
 
-    asiddhavat::run_dirgha(p);
+    asiddhavat::try_dirgha_adesha(p);
 
     Some(())
 }

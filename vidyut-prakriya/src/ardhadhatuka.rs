@@ -249,7 +249,8 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
 
     if dhatu.has_u_in(&["mI\\Y", "qu\\mi\\Y", "dI\\N"]) && ashiti_lyapi && will_cause_guna(&n) {
         p.op_term("6.1.50", i, op::antya("A"));
-    } else if dhatu.has_text("lI") && ashiti_lyapi && will_cause_guna(&n) && !dhatu.has_gana(10) {
+    } else if dhatu.has_text("lI") && ashiti_lyapi && will_cause_guna(&n) && !dhatu.has_gana_int(10)
+    {
         // līyateriti yakā nirdeśo na tu śyanā. līlīṅorātvaṃ vā syādejviṣaye
         // lyapi ca. (SK)
         p.op_optional("6.1.51", op::t(i, op::antya("A")));
@@ -285,11 +286,20 @@ pub fn run_am_agama(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_before_vikarana(p: &mut Prakriya, la: Option<Lakara>, will_be_ardhadhatuke: bool) {
-    // Rules are under 2.4.35 "ArdhadhAtuke".
-    if will_be_ardhadhatuke {
+pub fn run_before_vikarana(
+    p: &mut Prakriya,
+    la: Option<Lakara>,
+    la_is_ardhadhatuka: bool,
+) -> Option<()> {
+    let i = p.find_first(T::Dhatu)?;
+
+    // Check the following term in case we have `san`, etc.
+    if p.has(i + 1, |t| t.has_tag(T::Ardhadhatuka)) || la_is_ardhadhatuka {
+        // Rules are under 2.4.35 "ArdhadhAtuke".
         try_dhatu_adesha_before_vikarana(p, la);
     }
+
+    Some(())
 }
 
 /// Replaces the dhAtu based on the following suffix.

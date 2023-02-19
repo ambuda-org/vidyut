@@ -927,6 +927,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "test_utils"
+version = "0.1.0"
+dependencies = [
+ "vidyut-prakriya",
+]
+
+[[package]]
 name = "typenum"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1022,6 +1029,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "sha2 0.10.6",
  "sha256",
+ "test_utils",
  "wasm-bindgen",
 ]
 

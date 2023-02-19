@@ -43,7 +43,7 @@ fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Opti
     let dhatu = p.get(i)?;
 
     // `gana` is required so that we can exclude "03.0021 kita~".
-    if dhatu.has_u_in(&["gupa~\\", "tija~\\", "kita~"]) && dhatu.has_gana(1) {
+    if dhatu.has_u_in(&["gupa~\\", "tija~\\", "kita~"]) && dhatu.has_gana_int(1) {
         // jugupsate, titikzate, cikitsati
         add_sanadi("3.1.5", p, i, "san");
         p.set(i + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
@@ -64,7 +64,7 @@ fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Opti
             // We skip 3.1.23 because it conditions on the dhatu implying a sense of motion, which
             // we can't easily model.
         }
-    } else if dhatu.has_gana(10) {
+    } else if dhatu.has_gana_int(10) {
         // corayati
         add_sanadi("3.1.25", p, i, "Ric");
     } else if sanadi.contains(&Sanadi::Nic) {

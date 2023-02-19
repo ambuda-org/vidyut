@@ -244,11 +244,10 @@ impl Dhatu {
         self.gana == gana.into()
     }
 
-    #[allow(unused)]
-    pub(crate) fn with_sanadi(&self, sanadi: Sanadi) -> Self {
-        let mut new = self.clone();
-        new.sanadi = vec![sanadi];
-        new
+    /// Sets the sanadi-pratyayas on the dhatu.
+    pub fn with_sanadi(mut self, sanadi: Sanadi) -> Self {
+        self.sanadi = vec![sanadi];
+        self
     }
 }
 

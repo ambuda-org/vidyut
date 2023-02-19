@@ -22,3 +22,25 @@ pub fn xy_rule(
     }
     Some(())
 }
+
+pub fn xy_rule_rev(
+    p: &mut Prakriya,
+    filter: impl Fn(&Term, &Term) -> bool,
+    op: impl Fn(&mut Prakriya, usize, usize),
+) -> Option<()> {
+    let n = p.terms().len();
+    for j in (0..n).rev() {
+        let y = p.get(j)?;
+        if y.is_empty() {
+            continue;
+        }
+
+        let i = p.find_prev_where(j, |t| !t.is_empty())?;
+        let x = p.get(i)?;
+
+        if filter(x, y) {
+            op(p, i, j);
+        }
+    }
+    Some(())
+}

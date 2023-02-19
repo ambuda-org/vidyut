@@ -123,7 +123,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let is_laghu = anga.is_laghu();
     let has_at_lopa = p.has(i_abhyasta, |t| t.has_tag(T::FlagAtLopa));
     let is_ni = p
-        .find_next_where(i_abhyasta, |t| t.has_u_in(&["Ric", "RiN"]))
+        .find_next_where(i_abhyasta, |t| t.is_ni_pratyaya())
         .is_some();
     let is_cani = p
         .find_next_where(i_abhyasta + 1, |t| t.has_u("caN"))
@@ -291,11 +291,11 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
             } else {
                 add_nut_agama("7.4.71", p, i_dhatu);
             }
-        } else if dhatu.has_text("aS") && dhatu.has_gana(5) {
+        } else if dhatu.has_text("aS") && dhatu.has_gana_int(5) {
             // For aSnoti only, not aSnAti
             add_nut_agama("7.4.72", p, i_dhatu);
         }
-    } else if dhatu.has_text("BU") && (dhatu.has_gana(1) || dhatu.has_gana(2)) {
+    } else if dhatu.has_text("BU") && (dhatu.has_gana_int(1) || dhatu.has_gana_int(2)) {
         // baBUva
         //
         // We check gana 1 for `BU` and gana 2 for `as` replaced by `BU`. This check excludes BU

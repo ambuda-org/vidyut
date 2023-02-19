@@ -52,7 +52,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Option<
     p.set(i, |t| t.add_tag(T::Abhyasta));
     p.set(i + 1, |t| t.add_tag(T::Abhyasta));
     p.set(i + 2, |t| t.add_tag(T::Abhyasta));
-    if p.has(i + 3, |t| t.has_u_in(&["Ric", "RiN"])) {
+    if p.has(i + 3, |t| t.is_ni_pratyaya()) {
         p.set(i + 3, |t| t.add_tag(T::Abhyasta));
     }
     p.step("6.1.5");
@@ -123,7 +123,7 @@ fn try_dvitva(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
 
         p.set(i_abhyasa, |t| t.add_tag(T::Abhyasta));
         p.set(i_dhatu, |t| t.add_tag(T::Abhyasta));
-        if p.has(i_dhatu + 1, |t| t.has_u_in(&["Ric", "RiN"])) {
+        if p.has(i_dhatu + 1, |t| t.is_ni_pratyaya()) {
             p.set(i_dhatu + 1, |t| t.add_tag(T::Abhyasta));
         }
         p.step("6.1.5")
@@ -133,23 +133,6 @@ fn try_dvitva(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
 
     Some(())
 }
-
-/*
-fn _double(rule: str, p: Prakriya, dhatu: Term, i: int) -> Term:
-
-    } else if  eka_ac(dhatu) or dhatu.adi in s("hal"):
-        // TODO: correctly double jAgR
-        abhyasa = Term.make_term(dhatu.text)
-        op.insert_before(rule, p, dhatu, abhyasa)
-        op.samjna("6.1.4", p, abhyasa, T.ABHYASA)
-
-        abhyasa.add_tags(T.ABHYASTA)
-        dhatu.add_tags(T.ABHYASTA)
-        if p.terms[i + 2].u in ("Ric", "RiN"):
-            p.terms[i + 2].add_tags(T.ABHYASTA)
-        p.step("6.1.5")
-    else:
-*/
 
 /// Runs dvitva at the given index.
 ///

@@ -157,6 +157,21 @@ impl Prakriya {
         None
     }
 
+    /// Returns whether the given term can be called "pada".
+    pub(crate) fn is_pada(&self, i: usize) -> bool {
+        if let Some(t) = self.get(i) {
+            if t.is_pada() {
+                true
+            } else {
+                let all_following_are_empty = self.terms[i + 1..].iter().all(|t| t.is_empty());
+                let last_is_pada = self.terms.last().expect("ok").is_pada();
+                all_following_are_empty && last_is_pada
+            }
+        } else {
+            false
+        }
+    }
+
     pub(crate) fn view(&self, i: usize) -> Option<TermView> {
         TermView::new(self.terms(), i)
     }

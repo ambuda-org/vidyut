@@ -172,8 +172,13 @@ impl Term {
     }
 
     /// Returns whether the term has the given root gaNa.
-    pub fn has_gana(&self, gana: u8) -> bool {
-        self.gana == Some(Gana::from_int(gana).expect("valid"))
+    pub fn has_gana_int(&self, gana: u8) -> bool {
+        self.has_gana(Gana::from_int(gana).expect("valid"))
+    }
+
+    /// Returns whether the term has the given root gaNa.
+    pub fn has_gana(&self, gana: Gana) -> bool {
+        self.gana == Some(gana)
     }
 
     /// Returns whether the term has the given antargana.
@@ -210,13 +215,19 @@ impl Term {
     /// Returns whether the term could be called a `pada`.
     pub fn is_pada(&self) -> bool {
         // TODO: create and use `T::Pada` instead.
-        self.has_tag_in(&[Tag::Tin, Tag::Sup])
+        // TODO: avoid `Upasarga` hack.
+        self.has_tag_in(&[Tag::Tin, Tag::Sup, Tag::Upasarga])
     }
 
     /// Returns whether the term has the `Pratyaya` samjna.
     pub fn is_pratyaya(&self) -> bool {
         // TODO: create and use `T::Pada` instead.
         self.has_tag(Tag::Pratyaya)
+    }
+
+    /// Returns whether the term is `Ric` or `RiN`.
+    pub fn is_ni_pratyaya(&self) -> bool {
+        self.has_u_in(&["Ric", "RiN"])
     }
 
     /// Returns whether the term has the `Dhatu` samjna.
@@ -227,6 +238,21 @@ impl Term {
     /// Returns whether the term is an Agama.
     pub fn is_agama(&self) -> bool {
         self.has_tag(Tag::Agama)
+    }
+
+    /// Returns whether the term is an upasarga.
+    pub fn is_upasarga(&self) -> bool {
+        self.has_tag(Tag::Upasarga)
+    }
+
+    /// Returns whether the term is a nistha.
+    pub fn is_nistha(&self) -> bool {
+        self.has_tag(Tag::Nistha)
+    }
+
+    /// Returns whether the term is an abhyAsa.
+    pub fn is_abhyasa(&self) -> bool {
+        self.has_tag(Tag::Abhyasa)
     }
 
     /// Returns whether the term has the `Atmanepada` samjna.

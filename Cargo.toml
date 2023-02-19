@@ -38,3 +38,4 @@ glob = "0.3.1"
 [profile.release]
 # Enable debug symbols so that we can profile release code.
 debug = true
+incremental = true

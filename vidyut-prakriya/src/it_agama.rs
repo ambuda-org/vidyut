@@ -134,6 +134,11 @@ impl<'a> ItPrakriya<'a> {
 /// (7.2.8 - 7.2.34)
 fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let j = wrap.p.find_next_where(i, |t| !t.is_empty())?;
+
+    let has_upasarga_in = |p: &mut Prakriya, i, items| {
+        i > 0 && p.has(i - 1, |t| t.is_upasarga() && t.has_u_in(items))
+    };
+
     let dhatu = wrap.p.get(i)?;
     let n = wrap.p.get(j)?;
 
@@ -160,9 +165,9 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // -- Kashikavrtti
         wrap.anit("7.2.11");
     } else if n.has_u("san") && (dhatu.has_text_in(&["grah", "guh"]) || is_uk) {
-        // "Sri" is excluded from this condition because it is mentioned explicitly in 7.2.49.
+        // Exclude "Sri" and "yu" because they are mentioned explicitly in 7.2.49.
         wrap.anit("7.2.12");
-    } else if n.has_tag(T::Nistha) {
+    } else if n.is_nistha() {
         if dhatu.has_text("Svi") || dhatu.has_tag(T::Idit) {
             wrap.anit("7.2.14");
         } else if is_ever_vet(dhatu) {
@@ -176,6 +181,14 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
             if can_run {
                 wrap.anit("7.2.16");
             }
+        } else if dhatu.has_u("arda~") {
+            if has_upasarga_in(wrap.p, i, &["sam", "ni", "vi"]) {
+                wrap.anit("7.2.24");
+            } else if has_upasarga_in(wrap.p, i, &["aBi"]) {
+                wrap.optional_anit("7.2.25");
+            }
+        } else if dhatu.has_u_in(&["ruza~", "ama~", "YitvarA~\\"]) {
+            wrap.optional_anit("7.2.28");
         }
         // skipped: 7.2.18 - 23.
     }
@@ -196,6 +209,9 @@ fn try_it_rules_for_san(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap", "san",
     ];
     if anga.text.ends_with("iv") || anga.has_text_in(rdhu_adi) {
+        // didevizati, dudyUzati;
+        // ardiDizati, Irtsati;
+        // biBrajjizati, biBrakzati, biBarjjizati, biBarkzati
         wrap.optional_set("7.2.49", i_n);
     }
 
@@ -369,10 +385,12 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let anga = wrap.p.get(i)?;
 
     // Special cases
-    if (anga.has_antya('f') || anga.has_text("han")) && n.has_u("sya") {
-        wrap.set("7.2.70", i_n);
+    if n.has_u("sya") {
+        if anga.has_antya('f') || anga.has_text("han") {
+            wrap.set("7.2.70", i_n);
+        }
     } else if n.has_u("si~c") {
-        if anga.has_text("aYj") {
+        if anga.has_text("anj") {
             wrap.set("7.2.71", i_n);
         } else if wrap.p.terms().last()?.has_tag(T::Parasmaipada) {
             if anga.has_u_in(&["zwu\\Y", "zu\\Y", "DUY"]) {
@@ -385,11 +403,13 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
                 return None;
             }
         }
-    } else if anga.has_u_in(&["zmi\\N", "pUN", "f\\", "anjU~", "asU~\\"]) && n.has_u("san") {
-        wrap.set("7.2.74", i_n);
-    } else if anga.has_u_in(&["kF", "gF", "df\\N", "Df\\N", "pra\\Ca~"]) && n.has_u("san") {
-        // cikarizati, jigarizati, didarizate, diDarizate, papracCizati
-        wrap.set("7.2.75", i_n);
+    } else if n.has_u("san") {
+        if anga.has_u_in(&["zmi\\N", "pUN", "f\\", "anjU~", "aSU~\\"]) {
+            wrap.set("7.2.74", i_n);
+        } else if anga.has_u_in(&["kF", "gF", "df\\N", "Df\\N", "pra\\Ca~"]) {
+            // cikarizati, jigarizati, didarizate, diDarizate, papracCizati
+            wrap.set("7.2.75", i_n);
+        }
     }
 
     try_it_rules_for_san(wrap, i);
@@ -416,7 +436,7 @@ fn try_ardhadhatuke(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     } else if anga.has_text("gam") && antya_para && se {
         // gamizyati
         wrap.set("7.2.58", i_n);
-    } else if anga.has_u_in(gana::VRDBHYAH) && anga.has_gana(1) && antya_para && se {
+    } else if anga.has_u_in(gana::VRDBHYAH) && anga.has_gana_int(1) && antya_para && se {
         // vartsyati (vfd), vartsyati (vfD), Sftsyati, syantsyati
         wrap.anit("7.2.59");
     } else if anga.has_u("kfpU~\\") && antya_para && (se || n.has_u("tAsi~")) {

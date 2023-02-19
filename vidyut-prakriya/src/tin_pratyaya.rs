@@ -100,7 +100,7 @@ fn maybe_replace_jhi_with_jus(p: &mut Prakriya, i: usize, la: Lakara) -> Option<
         let i_prev = p.find_prev_where(i, |t| !t.is_empty())?;
         let prev = p.get(i_prev)?;
 
-        let is_vid = prev.has_text("vid") && prev.has_gana(2);
+        let is_vid = prev.has_text("vid") && prev.has_gana_int(2);
         if prev.has_u("si~c") || prev.has_tag(T::Abhyasta) || is_vid {
             op::adesha("3.4.109", p, i, "jus");
         } else if prev.is_dhatu() {

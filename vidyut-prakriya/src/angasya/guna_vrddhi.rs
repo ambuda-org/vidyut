@@ -235,7 +235,7 @@ fn try_r_guna_before_lit(p: &mut Prakriya) -> Option<()> {
             p.op_term("7.4.11", i, op::adi("ar"));
         } else {
             let mut skipped = false;
-            if anga.has_text_in(&["SF", "dF", "pF"]) && !anga.has_gana(10) {
+            if anga.has_text_in(&["SF", "dF", "pF"]) && !anga.has_gana_int(10) {
                 skipped = p.op_optional(
                     "7.4.12",
                     op::t(i, |t| {

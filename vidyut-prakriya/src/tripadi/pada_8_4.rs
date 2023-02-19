@@ -1,10 +1,12 @@
-use crate::char_view::{char_at, char_rule, get_at, set_at, xy, xyz};
+use crate::args::Gana;
+use crate::char_view::{char_rule, get_at, set_at, xy, xyz, CharPrakriya};
 use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
 use crate::tag::Tag as T;
+use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -21,59 +23,133 @@ lazy_static! {
     static ref JHAL_TO_CAR: Map = map("Jal", "car");
     static ref JHAL_TO_JASH: Map = map("Jal", "jaS");
     static ref JHAL_TO_JASH_CAR: Map = map("Jal", "jaS car");
+    static ref JASH_CAR: Set = s("jaS car");
     static ref IK: Set = s("ik");
     static ref YAY: Set = s("yay");
     static ref HAL: Set = s("hal");
 }
 
-fn allows_natva(text: &str, i: usize) -> bool {
-    // Search backward from `n` so that the `i` in the operator points directly to `n`.
-    if char_at(text, i) == Some('n') {
-        for c in text[..i].chars().rev() {
-            if "rzfF".contains(c) {
-                return true;
-            } else if !AT_KU_PU_M.contains(c) {
-                return false;
+fn find_natva_spans(text: &str) -> Vec<(usize, usize)> {
+    let mut ret = Vec::new();
+    let mut i_rasha = None;
+    for (i, c) in text.chars().enumerate() {
+        if "rzfF".contains(c) {
+            i_rasha = Some(i);
+        } else if c == 'n' {
+            if let Some(i_rasha) = i_rasha {
+                ret.push((i_rasha, i));
             }
+            i_rasha = None;
+        } else if !AT_KU_PU_M.contains(c) {
+            // By 8.4.2, reset if we see a sound that is not in at-ku-pu-AN-num.
+            i_rasha = None;
         }
     }
-    false
+    ret
 }
 
 /// Runs rules that change `n` to `R`.
 /// Example: krInAti -> krIRAti.
-fn try_natva(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_first(T::Dhatu)?;
-    let dhatu = p.get(i)?;
-    let next = p.get(i + 1)?;
-
-    // Exception to natva.
-    if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
-        || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
-        || (dhatu.has_text("nft") && next.has_u("yaN"))
-    {
-        p.step("8.4.39");
-        return None;
+fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<()> {
+    if let Some(i) = cp.p.find_first(T::Dhatu) {
+        let dhatu = cp.p.get(i)?;
+        let next = cp.p.get(i + 1)?;
+        if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
+            || (dhatu.has_u("ska\\nBu~") && next.has_u_in(&["SnA", "Snu"]))
+            || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
+            || (dhatu.has_text("nft") && next.has_u("yaN"))
+        {
+            cp.p.step("8.4.39");
+            return None;
+        }
     }
 
-    // TODO: AG and num
-    char_rule(
-        p,
-        |_, text, i| allows_natva(text, i),
-        |p, text, i| {
-            if i == text.len() - 1 {
-                p.step("8.4.37");
-                false
+    let i_x = cp.term_index_at(i_rs)?;
+    let i_y = cp.term_index_at(i_n)?;
+    let x = cp.p.get(i_x)?;
+    let y = cp.p.get(i_y)?;
+
+    if x.has_tag(T::Upasarga) {
+        const GAD_ADI: &[(&str, Gana)] = &[
+            ("gada~", Gana::Bhvadi),
+            ("Rada~", Gana::Bhvadi),
+            ("patx~", Gana::Bhvadi),
+            ("pa\\da~\\", Gana::Divadi),
+            ("qudA\\Y", Gana::Juhotyadi),
+            ("quDA\\Y", Gana::Juhotyadi),
+            ("mA\\N", Gana::Juhotyadi),
+            ("me\\N", Gana::Bhvadi),
+            ("zo\\", Gana::Divadi),
+            ("ha\\na~", Gana::Adadi),
+            ("yA\\", Gana::Adadi),
+            ("vA\\", Gana::Adadi),
+            ("drA\\", Gana::Adadi),
+            ("psA\\", Gana::Adadi),
+            ("quva\\pa~^", Gana::Bhvadi),
+            ("va\\ha~^", Gana::Bhvadi),
+            ("Samu~", Gana::Divadi),
+            ("ci\\Y", Gana::Svadi),
+            ("di\\ha~^", Gana::Adadi),
+        ];
+        let dhatu_in = |d: &Term, items: &[(&str, Gana)]| {
+            items.iter().any(|(u, g)| d.has_gana(*g) && d.has_u(u))
+        };
+
+        let i_dhatu = cp.p.find_next_where(i_x, |t| t.is_dhatu())?;
+        let dhatu = cp.p.get(i_dhatu)?;
+
+        let is_hinu = || (dhatu.has_text("hi") && y.has_u("Snu"));
+        let is_mina = || (dhatu.has_text("mI") && y.has_u("SnA"));
+
+        if y.has_adi('n') && y.has_tag(T::FlagAdeshadi) {
+            cp.set_at(i_n, "R");
+            cp.p.step("8.4.14");
+        } else if is_hinu() || is_mina() {
+            cp.set_at(i_n, "R");
+            cp.p.step("8.4.15");
+        } else if y.has_u("Ani") && y.has_lakshana("lo~w") {
+            cp.set_at(i_n, "R");
+            cp.p.step("8.4.16");
+        } else if y.has_u("ni") {
+            if dhatu_in(dhatu, GAD_ADI) {
+                cp.set_at(i_n, "R");
+                cp.p.step("8.4.17");
+            } else if !(dhatu.has_adi('k') || dhatu.has_adi('K') || dhatu.has_tag(T::FlagShanta)) {
+                cp.p.op_optional("8.4.18", |p| p.set(i_y, |t| t.set_adi("R")));
             } else {
-                // TODO: track loctaion of rzfF for better rule logging.
-                set_at(p, i, "R");
-                p.step("8.4.2");
-                true
+                // pranikaroti, pranikhAdati
             }
-        },
-    );
+        } else if dhatu.has_u("ana~") {
+            cp.set_at(i_n, "R");
+            cp.p.step("8.4.19");
+        }
+    } else if i_x != i_y && x.is_pada() && x.has_antya('z') {
+        // nizpAna, ...
+        cp.p.step("8.4.35");
+    } else if i_n == cp.text.len() - 1 {
+        // akurvan, caran, ...
+        cp.p.step("8.4.37");
+    } else {
+        // TODO: track loctaion of rzfF for better rule logging.
+        set_at(cp.p, i_n, "R");
+        cp.p.step("8.4.2");
+    }
 
     Some(())
+}
+
+/*
+ * 8.4.14
+ * 8.4.15
+ * 8.4.16
+ */
+
+/// (8.4.1 - 8.4.39)
+fn run_natva_rules(p: &mut Prakriya) {
+    let mut cp = CharPrakriya::new(p);
+    for (i_rs, i_n) in find_natva_spans(&cp.text) {
+        try_natva_for_span(&mut cp, i_rs, i_n);
+    }
 }
 
 fn stu_to_scu(c: char) -> Option<&'static str> {
@@ -208,7 +284,8 @@ fn try_jhal_adesha(p: &mut Prakriya) -> Option<()> {
 
     if let Some(i) = p.find_first(T::Abhyasa) {
         let abhyasa = p.get(i)?;
-        if abhyasa.has_adi(&*JHAL) {
+        // Check for jaz-car to avoid applying a rule that causes no changee.
+        if abhyasa.has_adi(&*JHAL) && !abhyasa.has_adi(&*JASH_CAR) {
             let sub = JHAL_TO_JASH_CAR.get(abhyasa.adi()?)?.to_string();
             p.op_term("8.4.54", i, op::adi(&sub));
         }
@@ -313,7 +390,7 @@ fn try_to_savarna(p: &mut Prakriya) {
 }
 
 pub fn run(p: &mut Prakriya) {
-    try_natva(p);
+    run_natva_rules(p);
     try_change_stu_to_parasavarna(p);
     try_dha_lopa(p);
     try_jhal_adesha(p);
@@ -325,6 +402,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_allows_natva() {
-        assert!(allows_natva("krInAti", 3));
+        assert_eq!(find_natva_spans("krInAti"), vec![(1, 3)]);
+        assert_eq!(find_natva_spans("gacCati"), vec![]);
     }
 }

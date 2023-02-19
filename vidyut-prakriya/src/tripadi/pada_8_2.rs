@@ -1,3 +1,4 @@
+use crate::args::Gana;
 use crate::char_view::{char_rule, get_at, set_at, xyz};
 use crate::dhatu_gana;
 use crate::iterators::xy_rule;
@@ -87,7 +88,7 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
         } else if x.has_u("gF") {
             if y.has_u("yaN") {
                 p.op("8.2.20", op::t(i, do_ra_la));
-            } else if x.has_gana(6) && y.has_adi(&*AC) {
+            } else if x.has_gana_int(6) && y.has_adi(&*AC) {
                 // TODO: why only gana 6?
                 p.op_optional("8.2.21", op::t(i, do_ra_la));
             }
@@ -106,9 +107,15 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         p,
         xyz(|x, y, z| JHAL.contains(x) && y == 's' && JHAL.contains(z)),
         |p, _, i| {
-            set_at(p, i + 1, "");
-            p.step("8.2.26");
-            true
+            let t = get_at(p, i + 1).expect("valid");
+            // "ayamapi sica eva lopaḥ, tena iha na bhavati, somasut stotā, dṛṣṭsthānam iti" (KV)
+            if t.has_u("si~c") {
+                set_at(p, i + 1, "");
+                p.step("8.2.26");
+                true
+            } else {
+                false
+            }
         },
     );
 
@@ -182,10 +189,18 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
                 } else {
                     false
                 };
+
                 let sku_samyoga = (x == 's' || x == 'k') && HAL.contains(y) && is_start_of_samyoga;
                 if let Some(z) = bytes.get(i + 2) {
+                    // Also, the jhal should be at the start of a pratyaya.
                     let z = *z as char;
-                    sku_samyoga && JHAL.contains(z)
+                    let jhali = JHAL.contains(z);
+                    // Include `Agama` for sIyuw, etc.
+                    let pratyaye = get_at(p, i + 2)
+                        .expect("valid")
+                        .has_tag_in(&[T::Agama, T::Pratyaya]);
+
+                    sku_samyoga && jhali && pratyaye
                 } else {
                     sku_samyoga
                 }
@@ -212,7 +227,8 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
     // hrasvAd aGgAt
     for i in 0..p.terms().len() {
         if let (Some(x), Some(y), Some(z)) = (p.get(i), p.get(i + 1), p.get(i + 2)) {
-            if x.is_hrasva() && y.has_text("s") && z.has_adi(&*JHAL) && !x.is_agama() {
+            // "ayamapi sica eva lopaḥ, tena iha na bhavati, dviṣṭarām, dviṣṭamām iti" (KV)
+            if x.is_hrasva() && y.has_u("si~c") && z.has_adi(&*JHAL) && !x.is_agama() {
                 p.op_term("8.2.27", i + 1, op::lopa);
             }
         }
@@ -469,7 +485,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
     if dhatu.is_samyogadi() && dhatu.has_at(1, &*YAN) && dhatu.has_antya('A') {
         // mlAna, ...
         to_n("8.2.43", p);
-    } else if dhatu.has_u_in(dhatu_gana::LU_ADI) {
+    } else if dhatu.has_u_in(dhatu_gana::LU_ADI) && dhatu.has_gana(Gana::Kryadi) {
         // lUna, ...
         to_n("8.2.44", p);
     } else if dhatu.has_tag(T::odit) {
@@ -519,11 +535,10 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
     try_add_final_r_with_final_tin(p);
 
     // TODO: sajuS
-    let i = p.find_last_where(|t| !t.text.is_empty())?;
-    let last = p.get(i)?;
-
-    if last.has_antya('s') && p.terms().last()?.is_pada() {
-        p.op_term("8.2.66", i, op::antya("ru~"));
+    for i in 0..p.terms().len() {
+        if p.is_pada(i) && p.has(i, |t| t.has_antya('s')) {
+            p.op_term("8.2.66", i, op::antya("ru~"));
+        }
     }
 
     // 6.1.114 is not part of the tripAdi, but it has no scope to apply otherwise.

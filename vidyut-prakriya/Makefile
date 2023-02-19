@@ -53,19 +53,19 @@ test_tinantas:
 	cargo build --release
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-kartari.csv \
-	    --hash "a673171c3a65a12807d6a03a31de10c204790eed79377aadb08f286b358db1a7"
+	    --hash "cf08ebe12177d1e69b0fe29290df06872e29e646823993b0d76db735a5381ac6"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-nic-kartari.csv \
-	    --hash "226a549bffe9b6425be33991324622c710b9a2897c4854a4b63a82e033093ab7"
+	    --hash "d4e724b811e51be2f21b4e70ce4d481cf5aa999d72a80ab2435645288516c620"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-kartari.csv \
-	    --hash "903f50118408698de9cc26dedbd192b42ddde1a48dc36206ccfe8ab0bd1c3ef5"
+	    --hash "c0201058f32b5d39f01f290fa1a78e9266d2695200c26debe8e46d6422af71f4"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-kartari.csv \
-	    --hash "12f6fc8af60529a85b02c0ab052c25a65101a885cf22d3d10c80d0e0b927baae"
+	    --hash "5e047bbea51d2aa3937f3cfaa6c1771626ae830f5a2a18347dcd20a67b3a0e3e"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-karmani.csv \
-	    --hash "b0771afb9fde2632b23fbfc4964c939d72a47f3a3c641ce552cbf840ff466c6f"
+	    --hash "7874c0632650fac639f00ef6af064d323fa0ce4d1ee25fee2bfe804568127649"
 
 test_krdantas:
 	cargo build --release
@@ -74,7 +74,7 @@ test_krdantas:
 	    --hash "1d38d2491d5c8353bed502acfdf9b34dc92acb859f34f505ca256988f0988fe7"
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-kta.csv \
-	    --hash "e6543b9aa098eaae3ab706cf5a2dc93047a71313639243f84245215497c41e4e"
+	    --hash "3857901a3c278b806e9834f49c4b13708f045b0515e78d3e51e617fbff07625e"
 
 test_subantas:
 	cargo run --bin test_subantas -- \
