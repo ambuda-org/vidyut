@@ -3,6 +3,100 @@ use test_utils::*;
 use vidyut_prakriya::args::*;
 
 #[test]
+fn sutra_3_1_5() {
+    let d = Dhatu::new;
+    assert_has_lat(&[], &d("gupa~\\", Gana::Bhvadi), &["jugupsate"]);
+    assert_has_lat(&[], &d("tija~\\", Gana::Bhvadi), &["titikzate"]);
+    assert_has_lat(&[], &d("kita~", Gana::Bhvadi), &["cikitsati"]);
+}
+
+#[test]
+fn sutra_3_1_6() {
+    let d = Dhatu::new;
+    assert_has_lat(&[], &d("mAna~\\", Gana::Bhvadi), &["mImAMsate"]);
+    assert_has_lat(&[], &d("baDa~\\", Gana::Bhvadi), &["bIBatsate"]);
+    assert_has_lat_a(&[], &d("dAna~^", Gana::Bhvadi), &["dIdAMsate"]);
+    assert_has_lat_a(&[], &d("SAna~^", Gana::Bhvadi), &["SISAMsate"]);
+
+    // TODO: mAnayati, etc.
+}
+
+#[ignore]
+#[test]
+fn sutra_3_1_7() {
+    let d = |u, gana| Dhatu::new(u, gana).with_sanadi(&[Sanadi::San]);
+    let kf = d("qukf\\Y", Gana::Tanadi);
+    let hf = d("hf\\Y", Gana::Bhvadi);
+
+    assert_has_lat_p(&[], &kf, &["cikIrzati"]);
+    assert_has_lat_p(&[], &hf, &["jihIrzati"]);
+    assert_has_lan_p(&["pra"], &kf, &["prAcikIrzat"]);
+
+    assert_has_lat_p(&[], &d("patx~", Gana::Bhvadi), &["pipatizati"]);
+    assert_has_lat_p(&[], &d("mf\\N", Gana::Tudadi), &["mumUrzati"]);
+}
+
+#[test]
+fn sutra_3_1_25() {
+    let d = Dhatu::new;
+    assert_has_lat_p(&[], &d("cura~", Gana::Curadi), &["corayati"]);
+    assert_has_lat_p(&[], &d("citi~", Gana::Curadi), &["cintayati"]);
+}
+
+#[test]
+fn sutra_3_1_26() {
+    let d = |u, gana| Dhatu::new(u, gana).with_sanadi(&[Sanadi::Nic]);
+    assert_has_lat_p(&[], &d("qukf\\Y", Gana::Tanadi), &["kArayati"]);
+    assert_has_lat_p(&[], &d("qupa\\ca~^z", Gana::Bhvadi), &["pAcayati"]);
+
+    // TODO: add others
+}
+
+#[test]
+fn sutra_3_1_28() {
+    let d = Dhatu::new;
+    assert_has_lat_p(&[], &d("gupU~", Gana::Bhvadi), &["gopAyati"]);
+    assert_has_lat_p(&[], &d("DUpa~", Gana::Bhvadi), &["DUpAyati"]);
+    assert_has_lat_p(&[], &d("viCa~", Gana::Tudadi), &["vicCAyati"]);
+    assert_has_lat_p(&[], &d("paRa~\\", Gana::Bhvadi), &["paRAyati"]);
+    assert_has_lat_p(&[], &d("pana~\\", Gana::Bhvadi), &["panAyati"]);
+}
+
+#[test]
+fn sutra_3_1_29() {
+    assert_has_lat_a(&[], &Dhatu::new("fti", Gana::Bhvadi), &["ftIyate"]);
+}
+
+#[test]
+fn sutra_3_1_30() {
+    assert_has_lat_a(&[], &Dhatu::new("kamu~\\", Gana::Bhvadi), &["kAmayate"]);
+}
+
+#[test]
+fn sutra_3_1_31() {
+    let assert_has_tfc = |u, gana, expected| {
+        assert_has_krdanta(&[], &Dhatu::new(u, gana), Krt::tfc, expected);
+    };
+    assert_has_tfc("gupU~", Gana::Bhvadi, &["goptf", "gopitf", "gopAyitf"]);
+    assert_has_tfc("fti", Gana::Bhvadi, &["artitf", "ftIyitf"]);
+    assert_has_tfc("kamu~\\", Gana::Bhvadi, &["kamitf", "kAmayitf"]);
+}
+
+#[test]
+fn sutra_3_1_33() {
+    let kf = Dhatu::new("qukf\\Y", Gana::Tanadi);
+    assert_has_lrt_p(&[], &kf, &["karizyati"]);
+    assert_has_lrn_p(&[], &kf, &["akarizyat"]);
+    assert_has_lut(&[], &kf, &["kartA"]);
+    assert_has_lut(&[], &Dhatu::new("ma\\na~\\", Gana::Divadi), &["mantA"]);
+    assert_has_lut(
+        &["sam"],
+        &Dhatu::new("ga\\mx~", Gana::Bhvadi),
+        &["saNgantA"],
+    );
+}
+
+#[test]
 fn sutra_3_1_67() {
     let d = Dhatu::new;
     assert_has_lat_karmani(&[], &d("Asa~\\", Gana::Adadi), &["Asyate"]);
@@ -45,6 +139,20 @@ fn sutra_3_1_70() {
     assert_has_lat(&[], &d("trasI~", Gana::Divadi), &["trasyati", "trasati"]);
     assert_has_lat(&[], &d("truwa~", Gana::Tudadi), &["truwyati", "truwati"]);
     assert_has_lat_p(&[], &d("laza~^", Gana::Bhvadi), &["lazyati", "lazati"]);
+}
+
+#[test]
+fn sutra_3_1_71() {
+    let yas = Dhatu::new("yasu~", Gana::Divadi);
+    assert_has_lat(&[], &yas, &["yasyati", "yasati"]);
+    assert_has_lat(&["AN"], &yas, &["Ayasyati"]);
+    assert_has_lat(&["pra"], &yas, &["prayasyati"]);
+}
+
+#[test]
+fn sutra_3_1_72() {
+    let yas = Dhatu::new("yasu~", Gana::Divadi);
+    assert_has_lat(&["sam"], &yas, &["saMyasyati", "saMyasati"]);
 }
 
 #[test]

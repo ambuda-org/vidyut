@@ -2,6 +2,21 @@ use crate::enum_boilerplate;
 use crate::errors::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+/// An auNAdika krt-pratyaya, added through 3.3.1 "uNadayo bahulam"
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub enum Unadi {
+    /// -u (kAru)
+    uR,
+    /// -vi (jAgfvi)
+    kvin,
+}
+
+enum_boilerplate!(Unadi, {
+    uR => "uR",
+    kvin => "kvin",
+});
+
 /// The complete list of krt-pratyayas.
 ///
 /// Rust's naming convention is to start enum values with capital letters. However, we allow mixed
@@ -163,6 +178,8 @@ pub enum Krt {
     zwran,
     /// -aka
     zvun,
+    /// An auNAdika pratyaya
+    __unAdi,
 }
 
 enum_boilerplate!(Krt, {
@@ -242,6 +259,7 @@ enum_boilerplate!(Krt, {
     zAkan => "zAkan",
     zwran => "zwran",
     zvun => "zvu~n",
+    __unAdi => "unAdi",
 });
 
 impl Krt {

@@ -4,7 +4,7 @@ use vidyut_prakriya::args::*;
 
 #[test]
 fn sutra_7_4_1() {
-    let d = |u, gana| Dhatu::new(u, gana).with_sanadi(Sanadi::Nic);
+    let d = |u, gana| Dhatu::new(u, gana).with_sanadi(&[Sanadi::Nic]);
     assert_has_lun_p(&[], &d("qukf\\Y", Gana::Tanadi), &["acIkarat"]);
     assert_has_lun_p(&[], &d("hf\\Y", Gana::Bhvadi), &["ajIharat"]);
     assert_has_lun_p(&[], &d("lUY", Gana::Kryadi), &["alIlavat"]);

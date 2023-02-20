@@ -90,31 +90,47 @@ fn sutra_1_3_27() {
     assert_has_lat(&["AN"], &han, &["Ahanti", "Ahate"]);
 }
 
-/*
 #[test]
 fn sutra_1_3_28() {
-    let gam = Dhatu::new("ya\\ma~", Gana::Bhvadi);
-    assert_has_lat(&["sam"], &gam, &["saNgacCati", "saNgacCate"]);
-
-    let fcch = Dhatu::new("ha\\na~", Gana::Adadi);
-    assert_has_lat(&["sam"], &fcch, &["samfcCati", "samfcCate"]);
-
-    let prach = Dhatu::new("ha\\na~", Gana::Adadi);
-    assert_has_lat(&["sam"], &prach, &["sampfcCati", "sampfcCate"]);
-
-    let svar = Dhatu::new("ha\\na~", Gana::Adadi);
-    assert_has_lat(&["sam"], &svar, &["saMsvarati", "saMsvarate"]);
-
-    let arti = Dhatu::new("ha\\na~", Gana::Adadi);
-    assert_has_lat(&["sam"], &arti, &["samaranta", "AyacCate"]);
-
-    let shru = Dhatu::new("ha\\na~", Gana::Adadi);
-    assert_has_lat(&["sam"], &shru, &["saMSfRoti", "saMSfRute"]);
-
-    let shru = Dhatu::new("ha\\na~", Gana::Adadi);
-    assert_has_lat(&["sam"], &shru, &["saMSfRoti", "saMSfRute"]);
+    let d = Dhatu::new;
+    assert_has_lat(
+        &["sam"],
+        &d("ga\\mx~", Gana::Bhvadi),
+        &["saNgacCati", "saNgacCate"],
+    );
+    assert_has_lat(
+        &["sam"],
+        &d("fCa~", Gana::Bhvadi),
+        &["samfcCati", "samfcCate"],
+    );
+    assert_has_lat(
+        &["sam"],
+        &d("pra\\Ca~", Gana::Tudadi),
+        &["sampfcCati", "sampfcCate"],
+    );
+    assert_has_lat(
+        &["sam"],
+        &d("svf", Gana::Bhvadi),
+        &["saMsvarati", "saMsvarate"],
+    );
+    assert_has_lat(
+        &["sam"],
+        &d("f\\", Gana::Bhvadi),
+        &["samfcCati", "samfcCate"],
+    );
+    assert_has_lat(
+        &["sam"],
+        &d("Sru\\", Gana::Bhvadi),
+        &["saMSfRoti", "saMSfRute"],
+    );
+    assert_has_lat(
+        &["sam"],
+        &d("vida~", Gana::Adadi),
+        &["saMvetti", "saMveda", "saMvitte"],
+    );
 }
 
+/*
 #[test]
 fn sutra_1_3_28_v1() {
     let dfs = Dhatu::new("ha\\na~", Gana::Adadi);
@@ -242,29 +258,29 @@ fn sutra_1_3_56() {
 #[ignore]
 #[test]
 fn sutra_1_3_57() {
-    let jna = Dhatu::new("jYA\\", Gana::Kryadi).with_sanadi(Sanadi::San);
+    let jna = Dhatu::new("jYA\\", Gana::Kryadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &jna, &["jijYAsate"]);
 
-    let sru = Dhatu::new("Sru\\", Gana::Svadi).with_sanadi(Sanadi::San);
+    let sru = Dhatu::new("Sru\\", Gana::Svadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &sru, &["SuSrUzate"]);
 
     // TODO: sanAdis are buggy right now, so this fails.
-    let smf = Dhatu::new("smf", Gana::Bhvadi).with_sanadi(Sanadi::San);
+    let smf = Dhatu::new("smf", Gana::Bhvadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &smf, &["susmUrzate"]);
 
-    let dfs = Dhatu::new("df\\Si~r", Gana::Bhvadi).with_sanadi(Sanadi::San);
+    let dfs = Dhatu::new("df\\Si~r", Gana::Bhvadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &dfs, &["didfkzate"]);
 }
 
 #[test]
 fn sutra_1_3_58() {
-    let jna = Dhatu::new("jYA\\", Gana::Kryadi).with_sanadi(Sanadi::San);
+    let jna = Dhatu::new("jYA\\", Gana::Kryadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&["anu"], &jna, &["anujijYAsati"]);
 }
 
 #[test]
 fn sutra_1_3_59() {
-    let sru = Dhatu::new("Sru\\", Gana::Svadi).with_sanadi(Sanadi::San);
+    let sru = Dhatu::new("Sru\\", Gana::Svadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&["prati"], &sru, &["pratiSuSrUzati"]);
     assert_has_lat(&["AN"], &sru, &["ASuSrUzati"]);
 }
@@ -272,7 +288,7 @@ fn sutra_1_3_59() {
 #[test]
 fn sutra_1_3_60() {
     let shad = Dhatu::new("Sa\\dx~", Gana::Tudadi);
-    let shad_san = shad.clone().with_sanadi(Sanadi::San);
+    let shad_san = shad.clone().with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &shad, &["SIyate"]);
     assert_has_lrn(&[], &shad, &["aSatsyat"]);
     assert_has_lrt(&[], &shad, &["Satsyati"]);
@@ -293,7 +309,7 @@ fn sutra_1_3_61() {
 #[test]
 fn sutra_1_3_62() {
     let d = Dhatu::new;
-    let san = |u, gana| Dhatu::new(u, gana).with_sanadi(Sanadi::San);
+    let san = |u, gana| Dhatu::new(u, gana).with_sanadi(&[Sanadi::San]);
 
     assert_has_lat(&[], &san("Asa~\\", Gana::Adadi), &["Asisizate"]);
     assert_has_lat(&[], &san("SIN", Gana::Adadi), &["SiSayizate"]);

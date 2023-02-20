@@ -226,6 +226,11 @@ impl Dhatu {
         &self.prefixes
     }
 
+    /// Returns whether the dhatu has the given gana.
+    pub fn has_gana(&self, gana: impl Into<Gana>) -> bool {
+        self.gana == gana.into()
+    }
+
     /// Sets the prefixes on the dhatu.
     pub fn with_prefixes(mut self, values: &[impl AsRef<str>]) -> Self {
         self.prefixes.clear();
@@ -234,20 +239,22 @@ impl Dhatu {
         self
     }
 
-    /// Returns a new builder for this struct.
-    pub fn builder() -> DhatuBuilder {
-        DhatuBuilder::default()
-    }
-
-    /// Returns whether the dhatu has the given gana.
-    pub fn has_gana(&self, gana: impl Into<Gana>) -> bool {
-        self.gana == gana.into()
+    /// Sets the sanadi-pratyayas on the dhatu.
+    pub fn with_sanadi(mut self, sanadi: &[Sanadi]) -> Self {
+        self.sanadi.clear();
+        self.sanadi.extend(sanadi);
+        self
     }
 
     /// Sets the sanadi-pratyayas on the dhatu.
-    pub fn with_sanadi(mut self, sanadi: Sanadi) -> Self {
-        self.sanadi = vec![sanadi];
+    pub fn with_antargana(mut self, antargana: Option<Antargana>) -> Self {
+        self.antargana = antargana;
         self
+    }
+
+    /// Returns a new builder for this struct.
+    pub fn builder() -> DhatuBuilder {
+        DhatuBuilder::default()
     }
 }
 

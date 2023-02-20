@@ -16,6 +16,16 @@ use crate::dhatu_gana::{DYUT_ADI, VRDBHYAH};
 use crate::prakriya::{Prakriya, Rule};
 use crate::tag::Tag as T;
 
+const GAMY_RCCHI: &[(&str, Gana)] = &[
+    ("ga\\mx~", Gana::Bhvadi),
+    ("fCa~", Gana::Bhvadi),
+    ("pra\\Ca~", Gana::Tudadi),
+    ("svf", Gana::Bhvadi),
+    ("f\\", Gana::Bhvadi),
+    ("Sru\\", Gana::Bhvadi),
+    ("vida~", Gana::Adadi),
+];
+
 fn op_atmanepada(p: &mut Prakriya) {
     p.add_tag(T::Atmanepada);
 }
@@ -38,6 +48,22 @@ impl<'a> PadaPrakriya<'a> {
     fn is(&self, upasargas: &[&str], upadeshas: &[&str]) -> bool {
         let i_dhatu = self.i_dhatu;
         let has_dhatu = self.p.has(i_dhatu, |t| t.has_u_in(upadeshas));
+        let has_upasarga = match upasargas.is_empty() {
+            true => true,
+            false => self.p.terms()[..i_dhatu]
+                .iter()
+                .any(|t| t.has_u_in(upasargas)),
+        };
+        has_dhatu && has_upasarga
+    }
+
+    /// Checks whether the prakriya has any of the given upasargas and any of the given
+    /// dhatu-upadeshas.
+    fn is_exactly(&self, upasargas: &[&str], upadeshas: &[(&str, Gana)]) -> bool {
+        let i_dhatu = self.i_dhatu;
+        let has_dhatu = upadeshas
+            .iter()
+            .any(|(u, g)| self.p.has(i_dhatu, |t| t.has_u(u) && t.has_gana(*g)));
         let has_upasarga = match upasargas.is_empty() {
             true => true,
             false => self.p.terms()[..i_dhatu]
@@ -130,13 +156,12 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.optional_atma("1.3.24");
     } else if pp.is(&["upa"], &["zWA\\"]) {
         pp.optional_atma("1.3.25");
+        // 1.3.26 can be handled with 1.3.25.
     } else if pp.is(&["ud", "vi"], &["ta\\pa~"]) {
         pp.optional_atma("1.3.27");
     } else if pp.is(&["AN"], &["ya\\ma~", "ha\\na~"]) {
         pp.optional_atma("1.3.28");
-    } else if pp.is(&["sam"], &["gam", "fC", "praC", "svf", "f", "Sru", "vid"]) {
-        // 1.3.26 can be handled with 1.3.25.
-        // TODO: f in class 1 only
+    } else if pp.is_exactly(&["sam"], GAMY_RCCHI) {
         pp.optional_atma("1.3.29");
     } else if pp.is(&["sam"], &["dfS"]) {
         pp.optional_atma("1.3.29.v1");

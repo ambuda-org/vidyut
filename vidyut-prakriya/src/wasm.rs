@@ -47,7 +47,7 @@ fn to_web_prakriyas(prakriyas: &[Prakriya]) -> Vec<WebPrakriya> {
     prakriyas
         .iter()
         .map(|p| WebPrakriya {
-            text: String::from(p.text()),
+            text: p.text(),
             history: to_web_history(p.history()),
         })
         .collect()
@@ -112,7 +112,7 @@ impl Vidyut {
             let a = Ashtadhyayi::new();
             let prakriyas = match sanadi {
                 Some(s) => {
-                    let dhatu = dhatu.clone().with_sanadi(s);
+                    let dhatu = dhatu.clone().with_sanadi(&[s]);
                     a.derive_tinantas(&dhatu, &args)
                 }
                 None => a.derive_tinantas(dhatu, &args),

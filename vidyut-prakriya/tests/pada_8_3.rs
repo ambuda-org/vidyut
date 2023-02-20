@@ -85,7 +85,11 @@ fn sutra_8_3_69() {
 #[test]
 fn sutra_8_3_70() {
     let upa_san_lat = |prefixes, d: &Dhatu| {
-        derive_lat(&d.clone().with_prefixes(prefixes).with_sanadi(Sanadi::San))
+        derive_lat(
+            &d.clone()
+                .with_prefixes(prefixes)
+                .with_sanadi(&[Sanadi::San]),
+        )
     };
 
     let sev = Dhatu::new("zevf~\\", Gana::Bhvadi);
@@ -239,4 +243,58 @@ fn sutra_8_3_76() {
 fn sutra_8_3_77() {
     let skanbh = Dhatu::new("ska\\nBu~", Gana::Kryadi);
     assert_has_lat(&["vi"], &skanbh, &["vizkaBnAti", "vizkaBnoti"]);
+}
+
+#[test]
+fn sutra_8_3_79() {
+    let shidhvam = TinantaArgs::builder()
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Madhyama)
+        .vacana(Vacana::Bahu)
+        .lakara(Lakara::AshirLin)
+        .pada(Pada::Atmane)
+        .build()
+        .unwrap();
+
+    let lun = TinantaArgs::builder()
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Madhyama)
+        .vacana(Vacana::Bahu)
+        .lakara(Lakara::Lun)
+        .pada(Pada::Atmane)
+        .build()
+        .unwrap();
+
+    let lit = TinantaArgs::builder()
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Madhyama)
+        .vacana(Vacana::Bahu)
+        .lakara(Lakara::Lit)
+        .pada(Pada::Atmane)
+        .build()
+        .unwrap();
+
+    // Examples from Kashika Vrtti
+    let lu = Dhatu::new("lUY", Gana::Kryadi);
+    let actual = derive_tinantas(&lu, &shidhvam);
+    assert_padas(actual, &["lavizIDvam", "lavizIQvam"]);
+
+    let pu = Dhatu::new("pUY", Gana::Kryadi);
+    let actual = derive_tinantas(&pu, &shidhvam);
+    assert_padas(actual, &["pavizIDvam", "pavizIQvam"]);
+
+    let actual = derive_tinantas(&lu, &lun);
+    assert_padas(actual, &["alaviDvam", "alaviQvam"]);
+
+    let actual = derive_tinantas(&lu, &lit);
+    assert_padas(actual, &["luluviDve", "luluviQve"]);
+
+    let aas = Dhatu::new("Asa~\\", Gana::Adadi);
+    let actual = derive_tinantas(&aas, &shidhvam);
+    assert_padas(actual, &["AsizIDvam"]);
+
+    // Other cases
+    let kf = Dhatu::new("qukf\\Y", Gana::Tanadi);
+    let actual = derive_tinantas(&kf, &lit);
+    assert_padas(actual, &["cakfQve"]);
 }

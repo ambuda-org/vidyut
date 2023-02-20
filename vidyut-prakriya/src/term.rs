@@ -255,6 +255,11 @@ impl Term {
         self.has_tag(Tag::Abhyasa)
     }
 
+    /// Returns whether the term is an abhyasta.
+    pub fn is_abhyasta(&self) -> bool {
+        self.has_tag(Tag::Abhyasta)
+    }
+
     /// Returns whether the term has the `Atmanepada` samjna.
     pub fn is_atmanepada(&self) -> bool {
         self.has_tag(Tag::Atmanepada)
@@ -474,6 +479,7 @@ impl<'a> TermView<'a> {
         self.start
     }
 
+    #[allow(unused)]
     pub fn get(&self, i: usize) -> Option<&Term> {
         self.slice().get(i)
     }

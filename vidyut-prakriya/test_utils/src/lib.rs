@@ -1,8 +1,8 @@
 extern crate vidyut_prakriya;
 
+use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
-use vidyut_prakriya::args::*;
 
 pub fn derive_tinantas(dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
     let a = Ashtadhyayi::new();
@@ -99,8 +99,9 @@ pub fn assert_padas(prakriyas: Vec<Prakriya>, expected: &[&str]) {
             for step in p.history() {
                 println!("{} --> {}", step.rule(), step.result());
             }
+            println!("{:?}", p.rule_choices());
+            println!();
         }
-        println!();
     }
 
     assert_eq!(
@@ -120,6 +121,7 @@ pub fn assert_padas(prakriyas: Vec<Prakriya>, expected: &[&str]) {
             for step in p.history() {
                 println!("{} --> {}", step.rule(), step.result());
             }
+            println!();
         }
         assert_eq!(actual, expected[i], "{expected:?}, {actuals:?}");
     }
@@ -131,7 +133,12 @@ pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 }
 
 pub fn assert_has_lat_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lat_p(&dhatu.clone().with_prefixes(prefixes));
+    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lat);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lat_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_atmane(&dhatu.clone().with_prefixes(prefixes), Lakara::Lat);
     assert_padas(actual, expected);
 }
 
@@ -145,6 +152,11 @@ pub fn assert_has_lat_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str
         .unwrap();
 
     let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lit(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lit);
     assert_padas(actual, expected);
 }
 
@@ -170,6 +182,11 @@ pub fn assert_has_lrt(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 
 pub fn assert_has_lrt_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lrt_p(&dhatu.clone().with_prefixes(prefixes));
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lot(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lot);
     assert_padas(actual, expected);
 }
 
@@ -211,7 +228,6 @@ pub fn assert_has_ashirlin_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &
         .lakara(Lakara::AshirLin)
         .build()
         .unwrap();
-
     let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
     assert_padas(actual, expected);
 }
@@ -236,8 +252,25 @@ pub fn assert_has_lun_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_padas(actual, expected);
 }
 
+pub fn assert_has_lun_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let args = TinantaArgs::builder()
+        .prayoga(Prayoga::Karmani)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .lakara(Lakara::Lun)
+        .build()
+        .unwrap();
+    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
+    assert_padas(actual, expected);
+}
+
 pub fn assert_has_lrn(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(&dhatu.clone().with_prefixes(prefixes), Lakara::Lrn);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lrn_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_parasmai(&dhatu.clone().with_prefixes(prefixes), Lakara::Lrn);
     assert_padas(actual, expected);
 }
 
@@ -248,3 +281,28 @@ pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: 
     );
 }
 
+pub fn assert_has_subantas(
+    text: &str,
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
+    expected: &[&str],
+) {
+    let a = Ashtadhyayi::new();
+    let pratipadika = Pratipadika::new(text);
+    let args = SubantaArgs::builder()
+        .linga(linga)
+        .vacana(vacana)
+        .vibhakti(vibhakti)
+        .build()
+        .unwrap();
+
+    let mut results = a.derive_subantas(&pratipadika, &args);
+    results.sort_by_key(|p| p.text());
+    results.dedup_by_key(|p| p.text());
+    let actual: Vec<_> = results
+        .into_iter()
+        .filter(|p| !(p.text().ends_with('d') || p.text().ends_with('q')))
+        .collect();
+    assert_padas(actual, expected);
+}

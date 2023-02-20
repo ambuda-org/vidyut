@@ -600,9 +600,11 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
 fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
     try_rules_for_kvasu(wrap, i);
     try_rules_for_lit(wrap, i);
-    try_ardhadhatuke_1(wrap, i);
+    let ok = try_ardhadhatuke_1(wrap, i);
     try_general_anit(wrap, i);
-    try_ardhadhatuke_2(wrap, i);
+    if ok.is_some() {
+        try_ardhadhatuke_2(wrap, i);
+    }
     try_sarvadhatuke(wrap.p, i);
 }
 
@@ -637,7 +639,7 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
         let dhatu = p.get(i)?;
         let is_para = p.terms().last()?.has_tag(T::Parasmaipada);
         if is_para && dhatu.has_antya('A') && n.has_adi(&*VAL) {
-            p.op("7.2.23", |p| {
+            p.op("7.2.73", |p| {
                 p.set(i, |t| t.text.push('s'));
                 op::insert_agama_after(p, i, "iw");
                 it_samjna::run(p, i + 1).ok();

@@ -209,7 +209,6 @@ fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> 
 
     dvitva::run(p);
     samprasarana::run_for_abhyasa(p);
-    angasya::try_pratyaya_adesha(p);
     finish_prakriya(p);
 
     Ok(prakriya)

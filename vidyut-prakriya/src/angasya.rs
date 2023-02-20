@@ -18,6 +18,8 @@ mod sup_adesha;
 
 pub use asiddhavat::try_cinvat_for_bhave_and_karmani_prayoga;
 
+use crate::ac_sandhi;
+use crate::args::Gana;
 use crate::char_view::{char_rule, get_at, set_at, xy};
 use crate::dhatu_gana as gana;
 use crate::filters as f;
@@ -174,7 +176,7 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    try_ktvo_lyap(p);
+    try_pratyaya_adesha_for_dhatu(p);
 
     Some(())
 }
@@ -308,11 +310,11 @@ fn try_add_num_agama_for_sup(p: &mut Prakriya) -> Option<()> {
 ///
 /// (7.1.58 - 7.1.83)
 fn try_add_num_agama_for_dhatu(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Dhatu)?;
+    let i = p.find_first(T::Dhatu)?;
 
     // 7.1.58 (idito nuM dhAtoH) is in `dhatu_karya`, so we skip it here.
 
-    let anga = &p.terms()[i];
+    let anga = p.get(i)?;
     let n = p.view(i + 1)?;
     if anga.has_u_in(gana::MUC_ADI) && n.has_u("Sa") {
         // muYcati
@@ -1199,13 +1201,17 @@ pub fn run_subanta_rules(p: &mut Prakriya) {
     sup_adesha::run_remainder(p);
 }
 
-fn try_ktvo_lyap(p: &mut Prakriya) -> Option<()> {
+fn try_pratyaya_adesha_for_dhatu(p: &mut Prakriya) -> Option<()> {
     let i_dhatu = p.find_first(T::Dhatu)?;
-    let i_ktva = i_dhatu + 1;
-    let _i_upasarga = p.find_prev_where(i_dhatu, |t| t.is_upasarga())?;
+    let i_n = p.find_next_where(i_dhatu, |t| !t.is_empty())?;
 
-    if p.has(i_ktva, |t| t.has_u("ktvA")) {
-        op::adesha("7.1.37", p, i_ktva, "lyap");
+    let dhatu = p.get(i_dhatu)?;
+    let n = p.get(i_n)?;
+
+    if dhatu.has_u("vida~") && dhatu.has_gana(Gana::Adadi) && n.has_u("Satf~") {
+        op::optional_adesha("7.1.36", p, i_n, "vasu~");
+    } else if n.has_u("ktvA") && i_dhatu > 0 && p.has(i_dhatu - 1, |t| t.is_upasarga()) {
+        op::adesha("7.1.37", p, i_n, "lyap");
     }
     Some(())
 }
@@ -1245,6 +1251,7 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
     try_sic_vrddhi(p);
 
     try_add_agama_before_ni(p);
+    ac_sandhi::try_lopo_vyor_vali(p);
     for i in 0..p.terms().len() {
         try_change_cu_to_ku(p, i);
     }

@@ -59,6 +59,7 @@ mod stem_gana;
 mod sup_karya;
 mod tin_pratyaya;
 mod tripadi;
+mod unadi_pratyaya;
 mod vikarana;
 
 pub mod wasm;

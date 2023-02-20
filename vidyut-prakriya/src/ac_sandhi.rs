@@ -24,7 +24,7 @@ lazy_static! {
     static ref HAL: Set = s("hal");
 }
 
-fn try_lopo_vyor_vali(p: &mut Prakriya) {
+pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
     char_rule(
         p,
         |p, text, i| {
@@ -38,9 +38,8 @@ fn try_lopo_vyor_vali(p: &mut Prakriya) {
             // Ignore if it starts an upadesha, otherwise roots like "vraj" would by vyartha.
             // Likewise for roots ending with 'v'.
             // For now, just check if the term is a dhatu.
-            let is_upadesha = t.is_dhatu();
-            //let is_upadesha = t.is_dhatu() && (t.has_adi('v') || t.has_adi('y'));
-            vyor_vali && !is_upadesha
+            let is_upadesha_adi = t.is_dhatu() && (t.has_adi('v') || t.has_adi('y'));
+            vyor_vali && !is_upadesha_adi
         },
         |p, _, i| {
             set_at(p, i, "");
@@ -335,7 +334,6 @@ fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_common(p: &mut Prakriya) {
-    try_lopo_vyor_vali(p);
     try_ver_aprktasya(p);
 
     for i in 0..p.terms().len() {

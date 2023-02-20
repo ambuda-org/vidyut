@@ -108,7 +108,7 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
 /// Runs rules that replace an anga's vowel with its corresponding guna.
 /// Example: buD + a + ti -> boDati
 fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
-    let j = p.find_next_where(i, |t| !t.is_empty())?;
+    let j = p.find_next_where(i, |t| !t.is_empty() && !t.has_u("pu~k"))?;
 
     let anga = p.get_if(i, |t| !t.is_agama())?;
     let n = p.view(j)?;
@@ -141,7 +141,6 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if is_sarva_ardha {
         let anga = p.get(i)?;
         let n = p.view(j)?;
-        let vi_cin_nal = n.get(0)?.has_u_in(&["kvip", "ciN", "Ral"]);
 
         // Exceptions
         if anga.has_text_in(&["BU", "sU"]) && n.has_tag(T::Tin) && piti_sarvadhatuke {
@@ -169,22 +168,28 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
         // Main guna rules.
         let anga = p.get(i)?;
         let n = p.get(j)?;
-        if anga.has_text("jAgf") && !vi_cin_nal && !n.has_tag(T::Nit) {
-            p.op_term("7.3.85", i, |t| {
-                t.set_antya("ar");
-                t.add_tag(T::FlagGuna);
-            });
-        } else if anga.has_upadha(&*HRASVA) && can_use_guna {
-            // TODO: add puganta as part of the condition.
-            if anga.has_tag(T::Abhyasta) && piti_sarvadhatuke && n.has_adi(&*AC) {
+        let is_laghu_upadha = anga.has_upadha(&*HRASVA);
+        let is_puganta = p.has(i + 1, |t| t.has_u("pu~k"));
+
+        if can_use_guna && (is_puganta || is_laghu_upadha) {
+            if anga.is_abhyasta() && piti_sarvadhatuke && n.has_adi(&*AC) {
                 // e.g. nenijAma
                 p.step("7.3.87");
             } else {
-                let sub = al::to_guna(anga.upadha()?)?;
-                p.op_term("7.3.86", i, |t| {
-                    t.set_upadha(sub);
-                    t.add_tag(T::FlagGuna);
-                });
+                let code = "7.3.86";
+                if is_puganta {
+                    let sub = al::to_guna(anga.antya()?)?;
+                    p.op_term(code, i, |t| {
+                        t.set_antya(sub);
+                        t.add_tag(T::FlagGuna);
+                    });
+                } else {
+                    let sub = al::to_guna(anga.upadha()?)?;
+                    p.op_term(code, i, |t| {
+                        t.set_upadha(sub);
+                        t.add_tag(T::FlagGuna);
+                    });
+                }
             }
         } else if is_ik && can_use_guna {
             p.op_term("7.3.84", i, op_antya_guna);
@@ -254,13 +259,31 @@ fn try_r_guna_before_lit(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run(p: &mut Prakriya) {
-    for i in 0..p.terms().len() {
+fn run_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    let anga = p.get_if(i, |t| !t.is_agama())?;
+    let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+    let n = p.get(i_n)?;
+
+    if anga.has_text("jAgf") && !n.has_u_in(&["kvip", "ciR", "Ral"]) && !n.has_tag(T::Nit) {
+        // jAgf-guna takes priority over vrddhi.
+        p.op_term("7.3.85", i, |t| {
+            t.set_antya("ar");
+            t.add_tag(T::FlagGuna);
+        });
+    } else {
         // Vrddhi takes priority over guna. For example, Ric is Ardhadhatuka (guna)
         // and Rit (vrddhi), but it will cause vrddhi if possible.
         try_vrddhi_adesha(p, i);
         try_guna_adesha(p, i);
         // TODO: 7.4.23-4
+    }
+
+    Some(())
+}
+
+pub fn run(p: &mut Prakriya) {
+    for i in 0..p.terms().len() {
+        run_for_index(p, i);
     }
 
     // Alternative to guna-adesha
