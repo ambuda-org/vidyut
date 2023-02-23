@@ -71,10 +71,10 @@ test_krdantas:
 	cargo build --release
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-ktvA.csv \
-	    --hash "8e84aea3305d88eebb05c816952093cd2386785a94234c0cc10d56b4abbff528"
+	    --hash "0116c5eac40b1d0eff74b80f91692a9e67c285757b35080e41139e619a4f7ffc"
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-kta.csv \
-	    --hash "f3becae71c654519fa48bb7c079ccd403594d7a39451eb965e7880076a8186b6"
+	    --hash "a1633108ea5020ee2498d55b2c12f613cea36018232352274cfa615f6964098a"
 
 test_subantas:
 	cargo run --bin test_subantas -- \

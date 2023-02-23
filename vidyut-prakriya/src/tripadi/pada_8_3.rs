@@ -106,7 +106,7 @@ fn try_visarjaniyasya(p: &mut Prakriya) {
 /// Checks if there are any rules that block shatva. If such a rule exists, return it so that we
 /// can mark it on the prakriya.
 ///
-/// (8.3.110 - 8.1.118)
+/// (8.3.110 - 8.3.118)
 fn try_get_shatva_niyama(p: &mut Prakriya, i: usize) -> Option<Rule> {
     // TODO: 8.3.114, 8.3.119
 
@@ -274,13 +274,15 @@ fn run_shatva_rules_after_upasarga(p: &mut Prakriya) -> Option<()> {
     // By 8.3.64, zatva also occurs for the abhyasa of dhatus starting with sthA in 8.3.65 and
     // ending with 8.3.70 inclusive.
 
-    if upasarga.has_u_in(&["pari", "ni", "vi"]) && dhatu_in(dhatu, ITEMS_8_3_70) {
+    if dhatu_in(dhatu, ITEMS_8_3_70) {
         // 8.3.70+71 take priority over 8.3.65 so that we can handle `stu` correctly.
-        if !dhatu.has_u("zevf~\\") {
-            // TODO: also exclude sita, saya
-            p.op_optional("8.3.71", try_shatva_for_dhatu_and_abhyasa);
-        } else {
-            p.op("8.3.70", try_shatva_for_dhatu_and_abhyasa);
+        if upasarga.has_u_in(&["pari", "ni", "vi"]) {
+            if !dhatu.has_u("zevf~\\") {
+                // TODO: also exclude sita, saya
+                p.op_optional("8.3.71", try_shatva_for_dhatu_and_abhyasa);
+            } else {
+                p.op("8.3.70", try_shatva_for_dhatu_and_abhyasa);
+            }
         }
     } else if dhatu_in(dhatu, ITEMS_8_3_65) {
         if i_abhyasa.is_some() && dhatu_in(dhatu, &ITEMS_8_3_65[STHA_INDEX..]) {

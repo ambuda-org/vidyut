@@ -15,6 +15,7 @@ lazy_static! {
     static ref AN: Set = s("aR");
     static ref YAN: Set = s("yaR");
     static ref CU: Set = s("cu~");
+    static ref TU: Set = s("tu~");
     static ref JHAL: Set = s("Jal");
     static ref JHAR: Set = s("Jar");
     static ref JHASH: Set = s("JaS");
@@ -373,6 +374,22 @@ fn try_to_savarna(p: &mut Prakriya) {
         // ansuvara.
         x != 'M'
     });
+
+    char_rule(
+        p,
+        xyz(|x, y, _| TU.contains(x) && y == 'l'),
+        |p, text, i| {
+            p.op("8.4.60", |p| {
+                let x = text.as_bytes()[i] as char;
+                if x == 'n' {
+                    set_at(p, i, "~l")
+                } else {
+                    set_at(p, i, "l")
+                }
+            });
+            true
+        },
+    );
 
     char_rule(
         p,

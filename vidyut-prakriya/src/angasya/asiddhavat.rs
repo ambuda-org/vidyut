@@ -535,7 +535,14 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
     let anidit_hal = !anga.has_tag(T::idit) && anga.has_antya(&*HAL);
     let is_kniti = n.is_knit();
 
-    if anidit_hal && is_kniti && anga.has_upadha('n') {
+    if anga.has_text_in(&["skand", "syand"]) && n.has_u("ktvA") {
+        p.step("6.4.31");
+    } else if anga.has_upadha('n')
+        && (anga.has_antya('j') || anga.has_text("nanS"))
+        && n.has_u("ktvA")
+    {
+        p.op_optional("6.4.32", op::t(i, op::upadha("")));
+    } else if anidit_hal && is_kniti && anga.has_upadha('n') {
         let mut can_run = true;
         // ancu gati-pUjanayoH
         if anga.has_u("ancu~") {
@@ -547,7 +554,6 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
                 can_run = false;
             }
         }
-        // TODO: 6.4.31 etc.
         if can_run {
             p.op_term("6.4.24", i, op::upadha(""));
         }
@@ -560,7 +566,7 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
         } else if n.has_u("GaY") {
             p.op_optional("6.4.27", op::t(i, op::upadha("")));
         }
-    } else if anga.has_text("syad") && n.has_u("GaY") {
+    } else if anga.has_text("syand") && n.has_u("GaY") {
         p.op_optional("6.4.28", op::t(i, op::upadha("")));
     } else if anga.has_u("SAsu~") {
         if n.last()?.has_text("hi") {

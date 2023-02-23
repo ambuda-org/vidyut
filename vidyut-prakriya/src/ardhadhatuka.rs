@@ -251,6 +251,7 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
         p.op_term("6.1.50", i, op::antya("A"));
     } else if dhatu.has_text("lI") && ashiti_lyapi && will_cause_guna(&n) && !dhatu.has_gana_int(10)
     {
+        // Accept both lI and lIN:
         // līyateriti yakā nirdeśo na tu śyanā. līlīṅorātvaṃ vā syādejviṣaye
         // lyapi ca. (SK)
         p.op_optional("6.1.51", op::t(i, op::antya("A")));

@@ -85,10 +85,10 @@ fn sutra_8_3_69() {
 #[test]
 fn sutra_8_3_70() {
     let upa_san_lat = |prefixes, d: &Dhatu| {
-        derive_lat(
-            &d.clone()
-                .with_prefixes(prefixes)
-                .with_sanadi(&[Sanadi::San]),
+        derive_lakara(
+            prefixes,
+            &d.clone().with_sanadi(&[Sanadi::San]),
+            Lakara::Lat,
         )
     };
 

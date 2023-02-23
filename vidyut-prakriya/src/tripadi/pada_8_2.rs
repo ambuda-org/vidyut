@@ -438,18 +438,24 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get(i_d)?;
 
     // Nipatana rules. Since other rules require ta-Adi, run these first.
-    if i_d == 0 && dhatu.has_text_in(&["Pal", "kzIb", "kfS"]) {
-        // TODO: ullAgha.
+    if dhatu.has_u("YiPalA~") || dhatu.has_text_in(&["kzIb", "kfS", "lAG"]) {
+        let has_upasarga = i_d != 0;
+        // Applies only for `YiPalA~`.
+        // "phullaḥ iti ñiphalā viśaraṇe ityetasmād  ..." (KV)
         let code = "8.2.55";
-        if dhatu.has_u("YiPalA~") {
-            // Applies only for `YiPalA~`:
-            // > phullaḥ iti ñiphalā viśaraṇe ityetasmād ...
-            // -- KV
-            p.op(code, op::nipatana("Pulla"));
-        } else if dhatu.has_text("kzIb") {
+        if dhatu.has_u("YiPalA~") && !has_upasarga {
+            // "ktavatvantasya apyetal latvam iṣyate, phullaḥ, phullavāniti" (KV)
+            if k.has_u("kta") {
+                p.op(code, op::nipatana("Pulla"));
+            } else {
+                p.op(code, op::nipatana("Pullavat"));
+            }
+        } else if dhatu.has_text("kzIb") && !has_upasarga {
             p.op(code, op::nipatana("kzIba"));
-        } else if dhatu.has_text("kfS") {
+        } else if dhatu.has_text("kfS") && !has_upasarga {
             p.op(code, op::nipatana("kfSa"));
+        } else if dhatu.has_text("lAG") && i_d == 1 && p.has(0, |t| t.has_u("ud")) {
+            p.op(code, op::nipatana("ullAGa"));
         }
 
         return Some(());
@@ -514,6 +520,8 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_text("kzA") {
         // kzAma
         set_adi("8.2.53", p, "m");
+    } else if dhatu.has_text("stI") && i_d > 0 && p.has(i_d - 1, |t| t.has_u("pra")) {
+        p.op_optional("8.2.54", op::t(i_k, |t| t.set_adi("m")));
     }
 
     Some(())
