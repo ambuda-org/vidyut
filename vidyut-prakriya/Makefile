@@ -53,10 +53,10 @@ test_tinantas:
 	cargo build --release
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-kartari.csv \
-	    --hash "b4a07b462e44d63d76f6d50ea6861ff5a0783672f640a7a0530ce26adf6e8468"
+	    --hash "1762849696226a87384df32ddb045181fc08719085e7a728e679b3f1c0b08e96"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-nic-kartari.csv \
-	    --hash "98825ea1b883d9e05796812e1ce9522231437756f75b69c517565f983d036c6b"
+	    --hash "1dfe6fab4f345aacd1ce85e5b481092a3ee78b74924801cfc430596b061c5f1f"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-kartari.csv \
 	    --hash "0f197dc28758132a17d4221ca69f6c3126bbb960f78ab9de1434040ba374b8d2"

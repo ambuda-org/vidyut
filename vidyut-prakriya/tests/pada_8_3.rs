@@ -3,6 +3,15 @@ use test_utils::*;
 use vidyut_prakriya::args::*;
 
 #[test]
+fn sutra_8_3_14() {
+    let raj = Dhatu::new("ra\\nja~^", Gana::Bhvadi);
+    assert_has_krdanta(&["nis"], &raj, Krt::kta, &["nIrakta"]);
+    assert_has_krdanta(&["nir"], &raj, Krt::kta, &["nIrakta"]);
+    assert_has_krdanta(&["dus"], &raj, Krt::kta, &["dUrakta"]);
+    assert_has_krdanta(&["dur"], &raj, Krt::kta, &["dUrakta"]);
+}
+
+#[test]
 fn sutra_8_3_63() {
     let su = Dhatu::new("zu\\Y", Gana::Svadi);
 

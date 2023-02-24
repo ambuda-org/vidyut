@@ -293,7 +293,7 @@ fn try_add_krt_for_tacchila_etc(p: &mut KrtPrakriya, i: usize, krt: Krt) -> Opti
         || dhatu.has_text_in(&["duz", "dviz", "druh", "duh", "yuj"])
         || has_prefix_and_text("A", "krIq")
         || has_prefix_and_text("vi", "vij")
-        || dhatu.has_text_in(&["tyaj", "raj", "Baj"])
+        || dhatu.has_text_in(&["tyaj", "ranj", "Baj"])
         || has_prefix_and_text("ati", "car")
         || has_prefix_and_text("apa", "car")
         || has_prefix_and_text("A", "muz")
@@ -515,6 +515,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         K::lyu | K::Rini => {
             if is_nandi_grahi_pacadi(&wrap, i) {
                 wrap.try_add("3.1.134", krt);
+            } else if krt == K::Rini {
+                // TODO: supi
+                wrap.try_add("3.2.78", krt);
             }
         }
 
@@ -763,6 +766,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
         K::ktvA => {
             wrap.try_add("3.4.21", krt);
+        }
+        K::Ramul => {
+            wrap.try_add("3.4.22", krt);
         }
         _ => (),
     }

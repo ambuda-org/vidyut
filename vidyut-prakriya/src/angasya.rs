@@ -939,8 +939,23 @@ fn try_cani_after_guna(p: &mut Prakriya) -> Option<()> {
 
     let dhatu = p.get(i)?;
 
-    // Ignore 'f' because it is handled by 7.4.7.
+    if dhatu.has_u_in(&[
+        "wuBrAjf~\\",
+        "BAsf~\\",
+        "BAza~\\",
+        "dIpI~\\",
+        "jIva~",
+        "mIla~",
+        "pIqa~",
+    ]) {
+        let sub = al::to_hrasva(dhatu.upadha()?)?;
+        p.op_optional("7.4.3", op::t(i, op::upadha(&sub.to_string())));
+        return Some(());
+    }
+
+    let dhatu = p.get(i)?;
     if dhatu.has_upadha(&*AC) && !dhatu.has_upadha(&*FF) {
+        // Ignore 'f' because it is handled by 7.4.7.
         let sub = al::to_hrasva(dhatu.upadha()?)?;
         if dhatu.has_tag_in(&[T::FlagAtLopa, T::fdit]) || dhatu.has_text("SAs") {
             p.step("7.4.2");

@@ -22,6 +22,7 @@ pub fn derive_krdantas(dhatu: &Dhatu, krt: Krt) -> Vec<Prakriya> {
     let a = Ashtadhyayi::new();
     let mut results = a.derive_krdantas(dhatu, &args);
     results.sort_by_key(|p| p.text());
+    results.dedup_by_key(|p| p.text());
 
     results
         .into_iter()

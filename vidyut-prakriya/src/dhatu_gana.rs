@@ -1,7 +1,79 @@
 //! Miscellaneous verb lists that are used by various rules.
 
-/// Roots that are `mit`, meaning that they will use a hrasva vowel per 6.4.92.
-pub const CUR_MIT: &[&str] = &["jYapa~", "yama~", "caha~", "capa~", "raha~", "bala~", "ciY"];
+/// Dhatus that are `mit` per DP.01.0933.
+/// These dhatus will use a hrasva vowel per 6.4.92.
+pub const GHAT_ADI: &[&str] = &[
+    "Gawa~\\",
+    "vyaTa~\\",
+    "praTa~\\",
+    "prasa~\\",
+    "mrada~\\",
+    "sKada~\\",
+    "kzaji~\\",
+    "dakza~\\",
+    "kfpa~\\",
+    "krapa~\\",
+    "vfhi~",
+    "kadi~\\",
+    "kradi~\\",
+    "kladi~\\",
+    "kada~\\",
+    "krada~\\",
+    "klada~\\",
+    "YitvarA~\\",
+    "jvara~",
+    "gaqa~",
+    "heqa~",
+    "vawa~",
+    "Bawa~",
+    "Rawa~",
+    "zwaka~",
+    "caka~",
+    "kaKe~",
+    "rage~",
+    "lage~",
+    "hrage~",
+    "hlage~",
+    "zage~",
+    "zwage~",
+    "kage~",
+    "aka~",
+    "aga~",
+    "kaRa~",
+    "raRa~",
+    "caRa~",
+    "SaRa~",
+    "SraRa~",
+    "SraTa~",
+    "zWage~",
+    "SlaTa~",
+    "knaTa~",
+    "kraTa~",
+    "klaTa~",
+    "cana~",
+    "vana~",
+    "jvala~",
+    "hvala~",
+    "hmala~",
+    "smf",
+    "dF",
+    "nF",
+    "SrA",
+    "jYA",
+    "cala~",
+    "CadiH",
+    "laqa~",
+    "madI~",
+    "Dvana~",
+    "Samo~",
+    "yama~",
+    "sKadi~\\r",
+    "svana~",
+];
+
+/// Dhatus that are `mit` per DP.10.0493.
+/// These dhatus will use a hrasva vowel per 6.4.92.
+pub const JNAP_ADI: &[&str] = &["jYapa~", "yama~", "caha~", "capa~", "raha~", "bala~", "ciY"];
 
 /// Dhatus of the AgarvIya antargaNa.
 pub const AAGARVIYA: &[&str] = &[

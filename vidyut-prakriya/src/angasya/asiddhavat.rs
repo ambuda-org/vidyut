@@ -557,15 +557,21 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
         if can_run {
             p.op_term("6.4.24", i, op::upadha(""));
         }
-    } else if anga.has_text_in(&["danS", "sanj", "svanj"]) && n.has_u("Sap") {
-        // daSati
-        p.op_term("6.4.25", i, op::upadha(""));
     } else if anga.has_text("ranj") {
-        if n.has_u("Sap") {
+        if n.first()?.is_ni_pratyaya() {
+            // "rañjerṇau mṛgaramaṇa upasaṅkhyānaṃ kartavyam"
+            p.op_optional("6.4.24.v2", op::t(i, op::upadha("")));
+        } else if n.first()?.has_u("Ginu~R") {
+            // "ghinuṇi ca rañjerupasaṅkhyānaṃ kartavyam"
+            p.op_term("6.4.24.v3", i, op::upadha(""));
+        } else if n.has_u("Sap") {
             p.op_term("6.4.26", i, op::upadha(""));
         } else if n.has_u("GaY") {
             p.op_optional("6.4.27", op::t(i, op::upadha("")));
         }
+    } else if anga.has_text_in(&["danS", "sanj", "svanj"]) && n.has_u("Sap") {
+        // daSati
+        p.op_term("6.4.25", i, op::upadha(""));
     } else if anga.has_text("syand") && n.has_u("GaY") {
         p.op_optional("6.4.28", op::t(i, op::upadha("")));
     } else if anga.has_u("SAsu~") {

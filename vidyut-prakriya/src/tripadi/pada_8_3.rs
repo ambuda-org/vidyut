@@ -4,6 +4,7 @@ use crate::it_samjna;
 use crate::iterators::{xy_rule, xy_rule_rev};
 use crate::operators as op;
 use crate::prakriya::Prakriya;
+use crate::sounds as al;
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -14,6 +15,7 @@ lazy_static! {
     static ref IN2: Set = s("iR2");
     static ref IN_KU: Set = s("iR2 ku~");
     static ref KU_PU: Set = s("ku~ pu~");
+    static ref KHAR: Set = s("Kar");
     static ref JHAL: Set = s("Jal");
     static ref SHAR: Set = s("Sar");
     static ref HAL: Set = s("hal");
@@ -23,22 +25,37 @@ lazy_static! {
 fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let c = p.get(i)?;
-        let is_padanta = c.is_pada() || p.find_next_where(i, |t| !t.is_empty()).is_none();
+        let is_avasana = p.find_next_where(i, |t| !t.is_empty()).is_none();
+
+        // Quick HACK to remove `u~`
+        if c.ends_with("ru~") {
+            p.set(i, |t| {
+                t.set_antya("");
+                t.set_antya("");
+            });
+        }
 
         // 8.3.15
         // TODO: next pada
         // HACK: use has_upadha to block "pra Rcchati -> pr Arcchati -> pHArcCati"
-        let has_ru = c.ends_with("ru~") || c.has_antya('r') && c.has_upadha(&*AC);
-        if has_ru && is_padanta {
-            p.op_term("8.3.15", i, |t| {
-                if let Some(prefix) = t.text.strip_suffix("ru~") {
-                    t.text.truncate(prefix.len());
-                    t.text += "H";
-                } else if let Some(prefix) = t.text.strip_suffix('r') {
-                    t.text.truncate(prefix.len());
-                    t.text += "H";
+        let c = p.get(i)?;
+        let has_ru = c.has_antya('r') && !c.has_upadha(&*HAL);
+        if has_ru {
+            if p.has(i + 1, |t| t.has_adi('r')) {
+                p.op_term("8.3.14", i, op::antya(""));
+                let c = p.get(i)?;
+                if c.is_hrasva() {
+                    let sub = al::to_dirgha(p.get(i)?.antya()?)?;
+                    // Placed here, otherwise this is vyartha. See `8.3.13` for the Qa case of
+                    // this rule.
+                    p.op_term("6.3.111", i, op::antya(&sub.to_string()));
                 }
-            });
+            } else if is_avasana || (p.is_pada(i) && p.has(i + 1, |t| t.has_adi(&*KHAR))) {
+                p.op_term("8.3.15", i, |t| {
+                    t.set_antya("");
+                    t.text += "H";
+                });
+            }
         }
     }
 

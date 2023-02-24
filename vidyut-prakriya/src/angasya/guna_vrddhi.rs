@@ -1,3 +1,4 @@
+use crate::args::Gana;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
@@ -74,9 +75,14 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     let is_cin = n.has_u("ciR") || n.has_tag(T::Cinvat);
     let is_cin_krt = is_cin || n.has_tag(T::Krt);
     let has_udatta = !anga.has_tag(T::Anudatta);
+    let is_acham = || {
+        anga.has_u("camu~")
+            && anga.has_gana(Gana::Bhvadi)
+            && i > 0
+            && p.has(i - 1, |t| t.has_u("AN"))
+    };
 
-    if is_cin_krt && has_udatta && anga.has_antya('m') {
-        // TODO: A-cam
+    if is_cin_krt && has_udatta && anga.has_antya('m') && !is_acham() {
         p.step("7.3.34");
     } else if is_cin_krt && anga.has_text_in(&["jan", "vaD"]) {
         // ajani, avaDi, ...
@@ -240,7 +246,7 @@ fn try_r_guna_before_lit(p: &mut Prakriya) -> Option<()> {
             p.op_term("7.4.11", i, op::adi("ar"));
         } else {
             let mut skipped = false;
-            if anga.has_text_in(&["SF", "dF", "pF"]) && !anga.has_gana_int(10) {
+            if anga.has_text_in(&["SF", "dF", "pF"]) && !anga.has_gana(Gana::Curadi) {
                 skipped = p.op_optional(
                     "7.4.12",
                     op::t(i, |t| {

@@ -32,6 +32,78 @@ fn assert_has_vidhilin_p_3p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str])
 }
 
 #[test]
+fn sutra_7_3_32() {
+    let han = Dhatu::new("ha\\na~", Gana::Adadi);
+    let han_nic = han.clone().with_sanadi(&[Sanadi::Nic]);
+
+    assert_has_lat_p(&[], &han_nic, &["GAtayati"]);
+    assert_has_krdanta(&[], &han, Krt::Rvul, &["GAtaka"]);
+    assert_has_krdanta(&[], &han, Krt::GaY, &["GAta"]);
+    assert_has_krdanta(&[], &han, Krt::Rini, &["GAtin"]);
+    assert_has_krdanta(&[], &han, Krt::Ramul, &["GAtam"]);
+    // a-ciR-Ramul
+    assert_has_lun_karmani(&[], &han, &["aGAni", "avaDi"]);
+    assert_has_lit_p(&[], &han, &["jaGAna"]);
+}
+
+#[test]
+fn sutra_7_3_33() {
+    let daa = Dhatu::new("qudA\\Y", Gana::Juhotyadi);
+    assert_has_lun_karmani(&[], &daa, &["adAyi"]);
+
+    let dhaa = Dhatu::new("quDA\\Y", Gana::Juhotyadi);
+    assert_has_lun_karmani(&[], &dhaa, &["aDAyi"]);
+
+    assert_has_krdanta(&[], &daa, Krt::GaY, &["dAya"]);
+    assert_has_krdanta(&[], &daa, Krt::Rvul, &["dAyaka"]);
+    assert_has_krdanta(&[], &dhaa, Krt::GaY, &["DAya"]);
+    assert_has_krdanta(&[], &dhaa, Krt::Rvul, &["DAyaka"]);
+    // ciN-kft
+    assert_has_lit_p(&[], &daa, &["dadO"]);
+    assert_has_lit_p(&[], &dhaa, &["daDO"]);
+}
+
+#[test]
+fn sutra_7_3_34() {
+    let d = Dhatu::new;
+    let sham = d("Samu~", Gana::Divadi);
+    let tam = d("tamu~", Gana::Divadi);
+    let dam = d("damu~", Gana::Divadi);
+    assert_has_lun_karmani(&[], &sham, &["aSami"]);
+    assert_has_lun_karmani(&[], &tam, &["atami"]);
+    assert_has_lun_karmani(&[], &dam, &["adami"]);
+    assert_has_krdanta(&[], &sham, Krt::Rvul, &["Samaka"]);
+    assert_has_krdanta(&[], &tam, Krt::Rvul, &["tamaka"]);
+    assert_has_krdanta(&[], &dam, Krt::Rvul, &["damaka"]);
+    assert_has_krdanta(&[], &sham, Krt::GaY, &["Sama"]);
+    assert_has_krdanta(&[], &tam, Krt::GaY, &["tama"]);
+    assert_has_krdanta(&[], &dam, Krt::GaY, &["dama"]);
+
+    // upadeza
+    assert_has_krdanta(&[], &d("ya\\ma~", Gana::Bhvadi), Krt::Rvul, &["yAmaka"]);
+    assert_has_krdanta(&[], &d("ra\\mu~\\", Gana::Bhvadi), Krt::Rvul, &["rAmaka"]);
+    assert_has_krdanta(&[], &sham, Krt::GinuR, &["Samin"]);
+    assert_has_krdanta(&[], &tam, Krt::GinuR, &["tamin"]);
+    assert_has_krdanta(&[], &dam, Krt::GinuR, &["damin"]);
+    // mAnta
+    assert_has_krdanta(&[], &d("cara~", Gana::Bhvadi), Krt::Rvul, &["cAraka"]);
+    assert_has_krdanta(&[], &d("paWa~", Gana::Bhvadi), Krt::Rvul, &["pAWaka"]);
+    // Acam
+    let cam = d("camu~", Gana::Bhvadi);
+    assert_has_krdanta(&["AN"], &cam, Krt::Rvul, &["AcAmaka"]);
+    assert_has_krdanta(&["AN"], &cam, Krt::GaY, &["AcAma"]);
+}
+
+#[test]
+fn sutra_7_3_35() {
+    let jan = Dhatu::new("janI~\\", Gana::Divadi);
+    assert_has_lun_karmani(&[], &jan, &["ajani", "ajanizwa"]);
+    assert_has_krdanta(&[], &jan, Krt::Rvul, &["janaka"]);
+    assert_has_krdanta(&["pra"], &jan, Krt::GaY, &["prajana"]);
+    // TODO: vadh -- not in dhatupatha?
+}
+
+#[test]
 fn sutra_7_3_36() {
     assert_has_lat_p(&[], &nic("f\\", Gana::Bhvadi), &["arpayati"]);
     assert_has_lat_p(&[], &nic("f\\", Gana::Juhotyadi), &["arpayati"]);

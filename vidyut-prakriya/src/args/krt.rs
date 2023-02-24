@@ -116,6 +116,8 @@ pub enum Krt {
     qu,
     /// -a
     Ra,
+    /// -am
+    Ramul,
     /// -in
     Rini,
     /// -ya
@@ -228,6 +230,7 @@ enum_boilerplate!(Krt, {
     wak => "wak",
     qu => "qu",
     Ra => "Ra",
+    Ramul => "Ramu~l",
     Rini => "Rini~",
     Ryat => "Ryat",
     Ryuw => "Ryuw",
