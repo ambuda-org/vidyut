@@ -52,8 +52,6 @@ pub enum Krt {
     ukaY,
     /// -Uka
     Uka,
-    /// -Ana
-    cAnaS,
     /// -a
     ka,
     /// -Ana (cakrARa, ...)
@@ -64,6 +62,8 @@ pub enum Krt {
     kin,
     /// -ura (BaNgura, ...)
     kurac,
+    /// -elima (pacelima, ...)
+    kelimar,
     /// -ta (gata, bhUta, ...)
     kta,
     /// -tavat (gatavat, bhUtavat, ...)
@@ -110,6 +110,8 @@ pub enum Krt {
     Gurac,
     /// -van
     Nvanip,
+    /// -Ana
+    cAnaS,
     /// -a
     wak,
     /// -u
@@ -204,6 +206,7 @@ enum_boilerplate!(Krt, {
     ki => "ki",
     kin => "kin",
     kurac => "kurac",
+    kelimar => "kelimar",
     kta => "kta",
     ktavatu => "ktavatu~",
     ktic => "ktic",

@@ -53,7 +53,6 @@ pub fn derive_parasmai(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<
         .pada(Pada::Parasmai)
         .build()
         .unwrap();
-
     derive_tinantas(&dhatu, &args)
 }
 
@@ -67,7 +66,18 @@ pub fn derive_atmane(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Pr
         .pada(Pada::Atmane)
         .build()
         .unwrap();
+    derive_tinantas(&dhatu, &args)
+}
 
+pub fn derive_karmani(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Prakriya> {
+    let dhatu = dhatu.clone().with_prefixes(prefixes);
+    let args = TinantaArgs::builder()
+        .prayoga(Prayoga::Karmani)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .lakara(lakara)
+        .build()
+        .unwrap();
     derive_tinantas(&dhatu, &args)
 }
 
@@ -189,15 +199,7 @@ pub fn assert_has_lat_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 }
 
 pub fn assert_has_lat_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Karmani)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lat)
-        .build()
-        .unwrap();
-
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
+    let actual = derive_karmani(prefixes, dhatu, Lakara::Lat);
     assert_padas(actual, expected);
 }
 
@@ -208,6 +210,11 @@ pub fn assert_has_lit(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 
 pub fn assert_has_lit_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_parasmai(prefixes, dhatu, Lakara::Lit);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lit_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_karmani(prefixes, dhatu, Lakara::Lit);
     assert_padas(actual, expected);
 }
 
@@ -267,14 +274,7 @@ pub fn assert_has_ashirlin_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]
 }
 
 pub fn assert_has_ashirlin_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Karmani)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::AshirLin)
-        .build()
-        .unwrap();
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
+    let actual = derive_karmani(prefixes, dhatu, Lakara::AshirLin);
     assert_padas(actual, expected);
 }
 
@@ -299,14 +299,7 @@ pub fn assert_has_lun_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 }
 
 pub fn assert_has_lun_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Karmani)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lun)
-        .build()
-        .unwrap();
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
+    let actual = derive_karmani(prefixes, dhatu, Lakara::Lun);
     assert_padas(actual, expected);
 }
 

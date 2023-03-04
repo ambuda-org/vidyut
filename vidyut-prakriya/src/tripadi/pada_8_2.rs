@@ -345,7 +345,10 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let x = p.get(i)?;
         let jhali_or_ante = match p.find_next_where(i, |t| !t.is_empty()) {
-            Some(j) => p.get(j)?.has_adi(&*JHAL),
+            Some(j) => {
+                let t = p.get(j)?;
+                (t.is_pratyaya() || t.is_agama()) && t.has_adi(&*JHAL)
+            }
             None => p.terms().last()?.is_pada(),
         };
         if x.has_antya(&*CU) && jhali_or_ante {

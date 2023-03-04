@@ -225,6 +225,10 @@ pub enum Tag {
     FlagKeepSa,
     /// Indicates that a dhatu ends in `z` in upadesha.
     FlagShanta,
+    /// Indicates the sense of hetu-bhaya
+    FlagHetuBhaya,
+    /// Indicates the application of samprasarana.
+    FlagSamprasarana,
 
     Sat,
     /// Indicates the insertion of `na` through the Snam-vikarana.

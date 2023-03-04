@@ -36,8 +36,8 @@ fn is_grahi_jya(t: &Term) -> bool {
 
 /// Runs a hacky version of samprasarana that runs 6.1.108 (samprasAraNAcca) immediately.
 ///
-/// TODO: properly annotade 6.1.108 and related rules here.
-fn do_samprasarana(rule: Rule, p: &mut Prakriya, i: usize) {
+/// TODO: properly annotate 6.1.108 and related rules here.
+fn do_samprasarana(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
     let before = &[
         "vac", "svap", "yaj", "vap", "vah", "vas", "ve", "vye", "hve", "vad", "Svi",
         // grahi-jyA
@@ -50,10 +50,14 @@ fn do_samprasarana(rule: Rule, p: &mut Prakriya, i: usize) {
         "gfh", "ji", "uy", "viD", "uS", "vic", "vfSc", "pfC", "Bfsj", // other rules
         "sim",
     ];
-    let text = &p.terms()[i].text;
+    let text = &p.get(i)?.text;
     if let Some(j) = before.iter().position(|x| x == text) {
-        p.op_term(rule, i, op::text(after[j]));
+        p.op_term(rule, i, |t| {
+            t.set_text(after[j]);
+            t.add_tag(T::FlagSamprasarana);
+        });
     }
+    Some(())
 }
 
 pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
@@ -64,7 +68,10 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     let n = p.view(i_n)?;
     let is_yan = n.has_u("yaN");
 
-    if dhatu.has_u_in(&["Yizva\\pa~", "syamu~", "vye\\Y"]) && is_yan {
+    if dhatu.has_u("Yizva\\pa~") && n.has_u("Ric") && p.has(i_n + 1, |t| t.has_u("caN")) {
+        // asUzupat
+        do_samprasarana("6.1.18", p, i);
+    } else if dhatu.has_u_in(&["Yizva\\pa~", "syamu~", "vye\\Y"]) && is_yan {
         // sozupyate, sesimyate, vevIyate
         do_samprasarana("6.1.19", p, i);
     } else if dhatu.has_u("vaSa~") && is_yan {
@@ -73,6 +80,16 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("cAyf~^") && is_yan {
         // cekIyate
         p.op_term("6.1.21", i, op::text("kI"));
+    } else if dhatu.has_u("sPAyI~\\") && n.has_tag(T::Nistha) {
+        // sPIta
+        p.op_term("6.1.22", i, op::text("sPI"));
+    } else if dhatu.has_text("styE")
+        && n.has_tag(T::Nistha)
+        && i > 0
+        && p.has(i - 1, |t| t.has_u("pra"))
+    {
+        // prastIta
+        p.op_term("6.1.23", i, op::text("sti"));
     } else if is_vaci_svapi(dhatu) && n.has_tag(T::kit) {
         if dhatu.has_u("ve\\Y") && n.has_lakshana("li~w") {
             p.step("6.1.40");
@@ -80,9 +97,13 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
             do_samprasarana("6.1.15", p, i);
         }
     } else if is_grahi_jya(dhatu) && n.is_knit() {
-        do_samprasarana("6.1.16", p, i);
-        if p.has(i, |t| t.has_text("uy") && t.has_u("vayi~")) {
-            p.op_optional("6.1.39", op::t(i, op::text("uv")));
+        if dhatu.has_u("pra\\Ca~") && n.has_u("naN") {
+            // Per ashtadhyayi.com, skip samprasarana for praC + naN.
+        } else {
+            do_samprasarana("6.1.16", p, i);
+            if p.has(i, |t| t.has_text("uy") && t.has_u("vayi~")) {
+                p.op_optional("6.1.39", op::t(i, op::text("uv")));
+            }
         }
     }
 

@@ -116,7 +116,7 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
 fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     let j = p.find_next_where(i, |t| !t.is_empty() && !t.has_u("pu~k"))?;
 
-    let anga = p.get_if(i, |t| !t.is_agama())?;
+    let anga = p.get_if(i, |t| !t.is_agama() && !t.has_tag(T::FlagGunaApavada))?;
     let n = p.view(j)?;
 
     let can_use_guna = can_use_guna_or_vrddhi(anga, &n);
@@ -124,12 +124,7 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     let piti_sarvadhatuke = n.all(&[T::pit, T::Sarvadhatuka]);
     let is_ik = anga.has_antya(&*IK);
 
-    // HACK: Asiddhavat, but this blocks guna.
-    // TODO: move this to asiddhavat && add no_guna tag.
-    if anga.has_text("guh") && n.has_adi(&*AC) && can_use_guna {
-        // gUhati, agUhat -- but juguhatuH due to Nit on the pratyaya.
-        p.op_term("6.4.89", i, op::upadha("U"));
-    } else if anga.has_u_in(&["Divi~", "kfvi~"]) {
+    if anga.has_u_in(&["Divi~", "kfvi~"]) {
         // Per commentary on 3.1.81, these roots don't take guna.
     } else if anga.has_text("mid") && n.has_tag(T::Sit) {
         // medyati
@@ -270,7 +265,10 @@ fn run_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
     let n = p.get(i_n)?;
 
-    if anga.has_text("jAgf") && !n.has_u_in(&["kvip", "ciR", "Ral"]) && !n.has_tag(T::Nit) {
+    if anga.has_text("jAgf")
+        && !n.has_u_in(&["kvip", "ciR", "Ral"])
+        && !p.view(i_n)?.has_tag(T::Nit)
+    {
         // jAgf-guna takes priority over vrddhi.
         p.op_term("7.3.85", i, |t| {
             t.set_antya("ar");
@@ -288,6 +286,7 @@ fn run_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) {
+    p.debug("guna-vrddhi");
     for i in 0..p.terms().len() {
         run_for_index(p, i);
     }

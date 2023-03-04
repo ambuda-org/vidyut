@@ -59,22 +59,193 @@ fn maybe_rule(p: &mut Prakriya, rule: Rule) -> Option<Rule> {
 
 /// Runs rules that lengthen a vowel in the anga.
 fn try_do_dirgha(p: &mut Prakriya) -> Option<()> {
-    let i_last = p.terms().len() - 1;
-    let i_prev = p.find_prev_where(i_last, |t| !t.is_empty())?;
+    let i_n = p.terms().len() - 1;
+    let i_anga = p.find_prev_where(i_n, |t| !t.is_empty())?;
 
-    let prev = p.get(i_prev)?;
-    let last = p.get(i_last)?;
+    let anga = p.get(i_anga)?;
+    let n = p.get(i_n)?;
 
     // Exclude tin -- otherwise, we get "daDAntaH" instead of "daDantaH".
     // "kvisāhacaryeṇa tiṅbhinnasyaiva jhalādestatra grahaṇāt" -- Balamanorama on 6.4.48.
-    let jhal_knit = last.has_adi(&*JHAL) && last.is_knit() && !last.has_tag(T::Tin);
-    if prev.has_antya(&*ANUNASIKA) && (last.has_u("kvi~p") || jhal_knit) {
-        if let Some(sub) = al::to_dirgha(prev.upadha()?) {
-            p.op_term("6.4.15", i_prev, |t| t.set_upadha(&sub.to_string()));
+    let jhal_knit = || n.has_adi(&*JHAL) && n.is_knit() && !n.has_tag(T::Tin);
+
+    if anga.is_hrasva() && anga.has_upadha(&*HAL) && anga.has_tag(T::FlagSamprasarana) {
+        // hUta, jIna, ...
+        let sub = al::to_dirgha(anga.antya()?)?;
+        p.op_term("6.4.2", i_anga, |t| t.set_antya(&sub.to_string()));
+    } else if anga.has_u("kramu~") && n.has_u("ktvA") {
+        // krantvA, krAntvA
+        p.op_optional("6.4.18", op::t(i_anga, |t| t.set_upadha("A")));
+    } else if (anga.has_antya(&*AC) || anga.has_u_in(&["ha\\na~", "ga\\mx~"])) && n.has_u("san") {
+        let code = "6.4.16";
+        if anga.has_antya(&*AC) {
+            let sub = al::to_dirgha(anga.upadha()?)?;
+            p.op_term(code, i_anga, |t| t.set_antya(&sub.to_string()));
+        } else {
+            p.op_term(code, i_anga, |t| t.set_upadha("A"));
+        }
+    } else if anga.has_antya(&*ANUNASIKA) && (n.has_u("kvi~p") || jhal_knit()) {
+        if let Some(sub) = al::to_dirgha(anga.upadha()?) {
+            // SAnta, ...
+            p.op_term("6.4.15", i_anga, |t| t.set_upadha(&sub.to_string()));
         }
     }
 
     Some(())
+}
+
+/// Runs rules that change a `C` or `v` sound.
+fn try_cchvoh(p: &mut Prakriya) -> Option<()> {
+    for i in 0..p.terms().len() {
+        let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+        let c = p.get(i)?;
+        let n = p.get(i_n)?;
+
+        let is_cchvoh = c.text.ends_with("tC") || c.has_antya('v');
+        if is_cchvoh
+            && n.is_knit()
+            && (n.has_adi(&*JHAL) || n.has_adi(&*ANUNASIKA) || n.has_u("kvi~p"))
+        {
+            if c.has_upadha('r') || c.text.ends_with("rtC") {
+                p.op_term("6.4.21", i, |t| {
+                    if t.text.ends_with("rtC") {
+                        t.find_and_replace_text("tC", "");
+                    } else {
+                        t.set_antya("");
+                    }
+                });
+            } else if c.has_u_in(&["jvara~", "YitvarA~\\", "srivu~", "ava~", "mava~"]) {
+                p.op_term("6.4.20", i, |t| {
+                    t.set_antya("");
+                    t.set_antya("U");
+                });
+            } else {
+                p.op_term("6.4.19", i, |t| {
+                    if t.has_antya('v') {
+                        t.set_antya("U");
+                    } else {
+                        t.find_and_replace_text("tC", "S");
+                    }
+                });
+            }
+        }
+    }
+    Some(())
+}
+
+pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
+    p: &mut Prakriya,
+    i: usize,
+    i_sup: usize,
+) -> Option<()> {
+    let anga = p.get(i)?;
+    let sup = p.get(i_sup)?;
+    let sau = sup.has_u("su~");
+
+    if anga.has_antya('n') {
+        if anga.ends_with("in") || anga.has_text("pUzan") {
+            let sub = al::to_dirgha(anga.upadha()?)?;
+            if sup.has_u("Si") {
+                // yogIni
+                p.op_term("6.4.12", i, op::upadha(&sub.to_string()));
+            } else if sau {
+                // yogI
+                p.op_term("6.4.13", i, op::upadha(&sub.to_string()));
+            }
+        } else {
+            // PalAni
+            let sub = al::to_dirgha(anga.upadha()?)?;
+            p.op_term("6.4.8", i, op::upadha(&sub.to_string()));
+        }
+    } else if anga.ends_with("as") && sau && !anga.is_dhatu() {
+        // TODO: atu-
+        let sub = al::to_dirgha(anga.upadha()?)?;
+        p.op_term("6.4.14", i, op::upadha(&sub.to_string()));
+    } else if (anga.ends_with("ns") && anga.text.len() >= 3) || anga.has_text("mahant") {
+        let c = anga.text.len() - 3;
+        let sub = al::to_dirgha(anga.get_at(c)?)?;
+        p.op_term("6.4.10", i, |t| {
+            t.set_at(c, &sub.to_string());
+        });
+    } else if anga.has_text("ap")
+        || anga.has_tag(T::TrnTrc)
+        || anga.has_u_in(&[
+            "svasf", "naptf", "nezwf", "tvaswf", "kzawf", "hotf", "potf", "praSAstf",
+        ])
+    {
+        let sub = al::to_dirgha(anga.upadha()?)?;
+        p.op_term("6.4.11", i, op::upadha(&sub.to_string()));
+    }
+
+    Some(())
+}
+
+fn try_dirgha_adesha_for_sup(p: &mut Prakriya) -> Option<()> {
+    let i_sup = p.find_last(T::Sup)?;
+    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama())?;
+
+    let anga = p.get(i_anga)?;
+    let sup = p.get(i_sup)?;
+    let has_nuw_agama = if i_anga + 1 != i_sup {
+        p.get(i_anga + 1)?.has_u("nu~w")
+    } else {
+        false
+    };
+
+    if sup.has_text("Am") && has_nuw_agama {
+        if anga.has_text_in(&["tisf", "catasf"]) {
+            // No change.
+            p.step("6.4.3")
+        } else if anga.has_text("nf") {
+            // nfRAm, nFRAm
+            let sub = al::to_dirgha(anga.antya()?)?;
+            p.op_optional("6.4.4", op::t(i_anga, op::antya(&sub.to_string())));
+        } else if anga.has_antya('n') {
+            let sub = al::to_dirgha(anga.upadha()?)?;
+            p.op_term("6.4.5", i_anga, op::upadha(&sub.to_string()));
+        } else if anga.has_antya(&*AC) {
+            let sub = al::to_dirgha(anga.antya()?)?;
+            p.op_term("6.4.2", i_anga, op::antya(&sub.to_string()));
+        }
+    } else if sup.has_tag(T::Sarvanamasthana) && !sup.has_tag(T::Sambuddhi) {
+        try_run_dirgha_for_sarvanamasthane_asambuddhau(p, i_anga, i_sup);
+    }
+
+    Some(())
+}
+
+fn try_dirgha_adesha_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    let dhatu = p.get_if(i, |t| t.is_dhatu())?;
+    let next = p.view(i + 1)?;
+
+    if (dhatu.has_antya(&*AC) || dhatu.has_u_in(&["ha\\na~", "gami~"])) && next.has_u("san") {
+        let sub = if dhatu.has_upadha('a') {
+            // For gam and han
+            'A'
+        } else {
+            al::to_dirgha(dhatu.antya()?)?
+        };
+        p.op_term("6.4.16", i, |t| {
+            if t.has_upadha('a') {
+                t.set_upadha(&sub.to_string())
+            } else {
+                t.set_antya(&sub.to_string())
+            }
+        });
+    }
+
+    Some(())
+}
+
+/// Runs rules that cause dirgha-adesha in the anga.
+///
+/// 6.4.2 - 6.4.19
+fn try_dirgha_adesha(p: &mut Prakriya) {
+    try_dirgha_adesha_for_sup(p);
+
+    for i in 0..p.terms().len() {
+        try_dirgha_adesha_at_index(p, i);
+    }
 }
 
 /// Applies rules that replace an initial "J" in a pratyaya with the appropriate sounds.
@@ -204,13 +375,15 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
     } else if anga.has_u_in(gana::SHAM_ADI) && n.has_u("Syan") && anga.has_gana_int(4) {
         // Check ganas to avoid `Bramu~ anavasTAne` (BrAmyati).
         p.op_term("7.3.74", i, op::upadha("A"));
-    } else if anga.has_text_in(&["zWiv", "klam"]) {
-        // zWIvati, kAmati
-        // TODO: A-cam
+    } else if anga.has_u_in(&["zWivu~", "klamu~"])
+        || (anga.has_u("camu~") && i > 0 && p.has(i - 1, |t| t.has_u("AN")))
+    {
+        // zWIvati, kAmati, AcAmati
         p.op_term("7.3.75", i, |t| {
             match t.text.as_str() {
                 "zWiv" => t.text.replace_range(.., "zWIv"),
                 "klam" => t.text.replace_range(.., "klAm"),
+                "cam" => t.text.replace_range(.., "cAm"),
                 _ => (),
             };
         });
@@ -460,9 +633,9 @@ fn try_sarvadhatuke(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-/// (7.4.21 - 7.4.29)
+/// (7.4.21 - 7.4.30)
 fn try_change_dhatu_before_y(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Dhatu)?;
+    let i = p.find_first(T::Dhatu)?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
     let dhatu = p.get(i)?;
     let n = p.view(i_n)?;
@@ -486,24 +659,29 @@ fn try_change_dhatu_before_y(p: &mut Prakriya) -> Option<()> {
         // Example: ud[i]yAt
         p.op_term("7.4.24", i, op::adi("i"));
     } else if dhatu.has_antya('f') {
+        p.step("antya f");
         let dhatu = p.get(i)?;
         let n = p.view(i_n)?;
         let is_sha_or_yak = n.has_u_in(&["Sa", "yak"]);
         let is_ardhadhatuka_lin = n.has_lakshana("li~N") && n.has_tag(T::Ardhadhatuka);
+        let is_sha_yak_lin = is_sha_or_yak || (n.has_adi('y') && is_ardhadhatuka_lin);
 
-        if is_sha_or_yak || (n.has_adi('y') && is_ardhadhatuka_lin) {
-            // nyAsa on 7.4.29:
-            //
-            //     `ṛ gatiprāpaṇayoḥ` (dhātupāṭhaḥ-936), `ṛ sṛ gatau`
-            //     (dhātupāṭhaḥ-1098,1099) - ityetayor bhauvādika-
-            //     jauhotyādikayor grahaṇam
-            if dhatu.is_samyogadi() || dhatu.has_text("f") {
+        // nyAsa on 7.4.29:
+        //
+        //     `ṛ gatiprāpaṇayoḥ` (dhātupāṭhaḥ-936), `ṛ sṛ gatau`
+        //     (dhātupāṭhaḥ-1098,1099) - ityetayor bhauvādika-
+        //     jauhotyādikayor grahaṇam
+        if dhatu.is_samyogadi() || dhatu.has_text("f") {
+            if n.has_u("yaN") {
+                // arAryate
+                p.op_term("7.4.30", i, op::antya("ar"));
+            } else if is_sha_yak_lin {
                 // smaryate, aryate, ...
                 p.op_term("7.4.29", i, op::antya("ar"));
-            } else {
-                // kriyate, kriyAt, ...
-                p.op_term("7.4.28", i, op::antya("ri"));
             }
+        } else if is_sha_yak_lin {
+            // kriyate, kriyAt, ...
+            p.op_term("7.4.28", i, op::antya("ri"));
         } else if akrt_sarva && (n.has_adi('y') || n.has_u("cvi")) {
             // mantrIyati
             p.op_term("7.4.27", i, op::antya("rI"));
@@ -629,7 +807,15 @@ fn unknown(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn try_add_tuk_agama_to_ch(p: &mut Prakriya) {
+fn try_add_tuk_agama(p: &mut Prakriya) -> Option<()> {
+    for i in 0..p.terms().len() {
+        let cur = p.get(i)?;
+        if cur.is_hrasva() && p.has(i + 1, |t| t.has_all_tags(&[T::pit, T::Krt])) {
+            p.op("6.1.71", |p| op::insert_agama_after(p, i, "tu~k"));
+            it_samjna::run(p, i + 1).expect("ok");
+        }
+    }
+
     char_rule(p, xy(|x, y| al::is_ac(x) && y == 'C'), |p, text, i| {
         // tena cicchidatuḥ, cicchiduḥ ityatra tukabhyāsasya grahaṇena na
         // gṛhyate iti halādiḥśeṣeṇa na nivartyate
@@ -645,20 +831,19 @@ fn try_add_tuk_agama_to_ch(p: &mut Prakriya) {
         if al::is_dirgha(x) {
             p.step("6.1.73");
         } else {
-            p.step("6.1.71");
+            p.step("6.1.72");
         }
         true
     });
+
+    Some(())
 }
 
 /// Runs rules that change `cu~` to `ku~` in various contexts.
 ///
-/// (7.3.52 - 7.3.69)
-/// TODO: add missing rules.
+/// (7.3.61 - 7.3.62)
 fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
-    let anga = p.get(i)?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
-    let n = p.view(i_n)?;
 
     fn convert(c: char) -> Option<&'static str> {
         let ret = match c {
@@ -670,42 +855,60 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
         Some(ret)
     }
 
+    let anga = p.get(i)?;
+    let n = p.view(i_n)?;
     let has_c_j_antya = anga.has_antya('c') || anga.has_antya('j');
-    let niyama = if anga.has_adi(&*KU) && has_c_j_antya {
-        Some("7.3.59")
-    } else if anga.has_text_in(&["aj", "vraj"]) {
-        Some("7.3.60")
-    } else if anga.has_text_in(&["yaj", "yAc", "ruc", "fc"]) && n.has_u("Ryat") {
-        Some("7.3.66")
-    } else {
-        None
-    };
-    if let Some(rule) = niyama {
-        p.step(rule);
-        return None;
-    }
+    let sanlitoh = n.has_u("san") || n.has_lakshana("li~w");
+    let has_upasarga = |s| i > 0 && p.has(i - 1, |t| t.has_u(s));
 
-    if has_c_j_antya && (n.has_tag(T::Git) || n.has_u("Ryat")) {
-        let sub = convert(anga.antya()?)?;
-        p.op_term("7.3.52", i, op::antya(sub));
-    } else if anga.has_text_in(&["han", "hn"]) {
-        if n.has_tag_in(&[T::Yit, T::Rit]) || anga.has_text("hn") {
-            p.op_term("7.3.54", i, op::adi("G"));
-        } else if anga.has_tag(T::Abhyasta) {
-            p.op_term("7.3.55", i, op::adi("G"));
+    let blocked = if anga.has_adi(&*KU) && has_c_j_antya {
+        p.step("7.3.59");
+        true
+    } else if anga.has_u_in(&["aja~", "vraja~"]) {
+        p.step("7.3.60");
+        true
+    } else if anga.has_u("vancu~") {
+        p.op_optional("7.3.63", |_| {})
+    } else if n.has_u("Ryat") {
+        if anga.has_u_in(&["ya\\ja~^", "quyAcf~^", "ruca~\\", "fca~"])
+            || (anga.has_u("va\\ca~") && has_upasarga("pra"))
+        {
+            p.step("7.3.66");
+            true
+        } else if anga.has_u("va\\ca~") {
+            p.op_optional("7.3.67", |_| {})
+        } else if anga.has_u("yu\\ji~^r") && (has_upasarga("pra") || has_upasarga("ni")) {
+            p.op_optional("7.3.68", |_| {})
+        } else if anga.has_u("Bu\\ja~") {
+            p.op_optional("7.3.69", |_| {})
+        } else if has_c_j_antya {
+            p.op_optional("7.3.65", |_| {})
+        } else {
+            false
         }
-    } else if anga.has_text("hi") && anga.has_tag(T::Abhyasta) && !n.has_u("caN") {
-        p.op_term("7.3.56", i, op::adi("G"));
-    }
+    } else {
+        false
+    };
 
     let anga = p.get(i)?;
     let n = p.view(i_n)?;
-    if anga.has_tag(T::Abhyasta) && n.has_u("san") || n.has_lakshana("li~w") {
-        if anga.has_u("ji\\") && anga.has_gana(Gana::Bhvadi) {
-            p.op_term("7.3.57", i, op::adi("g"));
-        } else if anga.has_text("ci") {
-            p.op_optional("7.3.58", op::t(i, op::adi("k")));
+    if blocked {
+        // Skip
+    } else if has_c_j_antya && (n.has_tag(T::Git) || n.has_u("Ryat")) {
+        let sub = convert(anga.antya()?)?;
+        p.op_term("7.3.52", i, op::antya(sub));
+    } else if anga.has_u("ha\\na~") && anga.has_adi('h') {
+        if anga.has_tag(T::Abhyasta) {
+            p.op_term("7.3.55", i, op::adi("G"));
+        } else if n.has_tag_in(&[T::Yit, T::Rit]) || anga.has_text("hn") {
+            p.op_term("7.3.54", i, op::adi("G"));
         }
+    } else if anga.has_u("hi\\") && anga.has_tag(T::Abhyasta) && !n.has_u("caN") {
+        p.op_term("7.3.56", i, op::adi("G"));
+    } else if sanlitoh && anga.has_u("ji\\") && anga.has_gana(Gana::Bhvadi) {
+        p.op_term("7.3.57", i, op::adi("g"));
+    } else if sanlitoh && anga.has_u("ci\\Y") {
+        p.op_optional("7.3.58", op::t(i, op::adi("k")));
     }
 
     Some(())
@@ -1074,10 +1277,10 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_text_in(&["f", "hrI", "vlI", "rI", "knUy", "kzmAy"]) || dhatu.has_antya('A')
     {
         op::append_agama("7.3.36", p, i, "pu~k");
-    } else if dhatu.has_text("pA") && dhatu.has_gana_int(2) {
+    } else if dhatu.has_text("pA") && dhatu.has_gana(Gana::Adadi) {
         op::append_agama("7.3.36", p, i, "lu~k");
-    } else if dhatu.has_text("BI") {
-        optional_append_agama("7.3.40", p, i, "zu~k");
+    } else if dhatu.has_u("YiBI\\") && p.has_tag(T::FlagHetuBhaya) {
+        op::append_agama("7.3.40", p, i, "zu~k");
     } else if dhatu.has_text("sPAy") {
         p.op_term("7.3.41", i, op::antya("v"));
     } else if dhatu.has_text("Sad") {
@@ -1250,7 +1453,7 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
     {
         let i = p.terms().len() - 1;
         let last = p.terms().last()?;
-        if p.has(i - 1, |t| t.has_antya('A')) && last.has_u("Ral") {
+        if i > 0 && p.has(i - 1, |t| t.has_antya('A')) && last.has_u("Ral") {
             op::adesha("7.1.34", p, i, "O");
         }
     }
@@ -1278,12 +1481,13 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
     // Exception: naS num-Agama, which is deleted in 6.4.32;
     try_add_num_agama_for_dhatu(p);
     try_sic_vrddhi(p);
-
     try_add_agama_before_ni(p);
+
+    // Must occur before guna and after 7.3.77 (gam -> gacC).
+    try_add_tuk_agama(p);
+    try_cchvoh(p);
+
     ac_sandhi::try_lopo_vyor_vali(p);
-    for i in 0..p.terms().len() {
-        try_change_cu_to_ku(p, i);
-    }
     try_add_or_remove_nit(p);
 
     for i in 0..p.terms().len() {
@@ -1292,9 +1496,6 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
 
         try_didhi_vevi_lopa(p, i);
     }
-
-    // Must occur before guna and after 7.3.77 (gam -> gacC).
-    try_add_tuk_agama_to_ch(p);
 
     guna_vrddhi::run(p);
 
@@ -1306,6 +1507,10 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
     // Asiddhavat must run before cani for "Ner aniTi"
     asiddhavat::run_for_ni(p);
 
+    for i in 0..p.terms().len() {
+        try_change_cu_to_ku(p, i);
+    }
+
     try_cani_after_guna(p);
     abhyasasya::run_for_sani_or_cani(p);
 
@@ -1315,7 +1520,7 @@ pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
         dhatu_rt_adesha(p, index);
     }
 
-    asiddhavat::try_dirgha_adesha(p);
+    try_dirgha_adesha(p);
 
     Some(())
 }

@@ -426,7 +426,16 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         // krtyAH
         // ------------------------------------------
         K::tavyat | K::tavya | K::anIyar => {
-            wrap.try_add("3.1.96", krt);
+            let added = wrap.try_add("3.1.96", krt);
+            if added && krt == K::tavyat && wrap.get(i)?.has_u("va\\sa~") {
+                // vAstavya
+                wrap.p
+                    .op_optional("3.1.96.v1", op::t(i + 1, |t| t.add_tag(T::Rit)));
+            }
+        }
+
+        K::kelimar => {
+            wrap.try_add("3.1.96.v2", krt);
         }
 
         // "ya" (3.1.97 - 3.1.132)
@@ -443,7 +452,10 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
             // Specific rules (optional)
             let dhatu = wrap.get(i)?;
-            if dhatu.has_u("quBf\\Y") {
+            if dhatu.has_u("fca~") {
+                // ṛdupadhādapi ṛcerata eva nipātanāt ṇyat bhavati
+                wrap.try_add("7.3.66", K::Ryat);
+            } else if dhatu.has_u("quBf\\Y") {
                 wrap.optional_try_add("3.1.112", K::kyap);
             } else if dhatu.has_u_in(&["qukf\\Y", "vfzu~"]) {
                 if dhatu.has_text("kf") {

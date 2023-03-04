@@ -1,6 +1,6 @@
+use crate::args::Gana;
 use crate::args::Sanadi;
 use crate::dhatu_gana as gana;
-use crate::errors::*;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
@@ -33,17 +33,15 @@ fn add_sanadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
     it_samjna::run(p, i_pratyaya).expect("ok")
 }
 
-fn can_use_yan(t: &Term) -> bool {
-    f::is_eka_ac(t) && t.has_adi(&*HAL)
-}
-
 // TODO: 3.1.8 - 3.1.21
-fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option<()> {
+pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let dhatu = p.get(i)?;
 
-    // `gana` is required so that we can exclude "03.0021 kita~".
-    if dhatu.has_u_in(&["gupa~\\", "tija~\\", "kita~"]) && dhatu.has_gana_int(1) {
+    // non-Ardhadhatuka pratyayas
+    // --------------------------
+    // `Gana` is required so that we can exclude "03.0021 kita~".
+    if dhatu.has_u_in(&["gupa~\\", "tija~\\", "kita~"]) && dhatu.has_gana(Gana::Bhvadi) {
         // jugupsate, titikzate, cikitsati
         add_sanadi("3.1.5", p, i, "san");
         p.set(i + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
@@ -52,23 +50,14 @@ fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Opti
         add_sanadi("3.1.6", p, i, "san");
         // TODO: optional by extension of "vA" from 3.1.7 per Kashika?
         p.set(i + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
-    } else if sanadi.contains(&Sanadi::San) {
-        add_sanadi("3.1.7", p, i, "san");
-    } else if sanadi.contains(&Sanadi::Yan) {
-        if can_use_yan(dhatu) {
-            if dhatu.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
-                add_sanadi("3.1.24", p, i, "yaN");
-            } else {
-                add_sanadi("3.1.22", p, i, "yaN");
-            }
-            // We skip 3.1.23 because it conditions on the dhatu implying a sense of motion, which
-            // we can't easily model.
-        }
-    } else if dhatu.has_gana_int(10) {
+    }
+
+    // Ardhadhatuka pratyayas
+    // ----------------------
+    let dhatu = p.get(i)?;
+    if dhatu.has_gana(Gana::Curadi) {
         // corayati
         add_sanadi("3.1.25", p, i, "Ric");
-    } else if sanadi.contains(&Sanadi::Nic) {
-        add_sanadi("3.1.26", p, i, "Ric");
     } else if dhatu.has_u_in(gana::KANDU_ADI) {
         add_sanadi("3.1.27", p, i, "yak");
     } else if dhatu.has_u_in(AYADAYA) {
@@ -109,22 +98,31 @@ fn run_inner(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Opti
         }
     }
 
-    Some(())
-}
-
-pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Result<()> {
-    if sanadi.contains(&Sanadi::Yan) {
-        if let Some(i) = p.find_first(T::Dhatu) {
-            if !p.has(i, can_use_yan) {
-                return Err(Error::Generic(
-                    "When using yan, dhatu must start with a consonant and have exactly one vowel.",
-                ));
+    // General sanAdi-pratyayas
+    // ------------------------
+    // We skip 3.1.23 because it conditions on the dhatu implying a sense of motion, which
+    // we can't easily model.
+    for s in sanadi {
+        let i = p.find_last(T::Dhatu)?;
+        let dhatu = p.get(i)?;
+        if *s == Sanadi::San {
+            add_sanadi("3.1.7", p, i, "san");
+        } else if *s == Sanadi::Yan {
+            if dhatu.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
+                add_sanadi("3.1.24", p, i, "yaN");
+            } else if (i > 0 && p.has(i - 1, |t| t.has_u_in(&["sUca", "sUtra", "mUtra"])))
+                || dhatu.has_u_in(&["awa~", "f\\", "aSa~", "UrRuY"])
+            {
+                add_sanadi("3.1.24.v1", p, i, "yaN");
+            } else if f::is_eka_ac(dhatu) && dhatu.has_adi(&*HAL) {
+                add_sanadi("3.1.22", p, i, "yaN");
             }
+        } else if *s == Sanadi::Nic {
+            add_sanadi("3.1.26", p, i, "Ric");
         }
     }
 
-    run_inner(p, is_ardhadhatuka, sanadi);
-    Ok(())
+    Some(())
 }
 
 #[cfg(test)]

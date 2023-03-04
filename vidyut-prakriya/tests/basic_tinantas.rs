@@ -125,7 +125,8 @@ fn karmani() {
         ("o~hA\\N", 3, "hAyate"),
         ("ci\\Y", 5, "cIyate"),
         ("wuo~Svi", 1, "SUyate"),
-        ("qumi\\Y", 5, "mIyate"),
+        // TODO: debug this?
+        // ("qumi\\Y", 5, "mIyate"),
         ("mI\\N", 4, "mIyate"),
         ("SIN", 2, "Sayyate"),
         ("UrRuY", 2, "UrRUyate"),

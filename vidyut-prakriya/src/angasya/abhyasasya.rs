@@ -6,6 +6,7 @@ abhyasasya
 Runs rules that modify the abhyāsa.
 */
 
+use crate::args::Gana;
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::operators as op;
@@ -189,7 +190,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let dhatu = p.get(i_dhatu)?;
     let last = p.terms().last()?;
-    if dhatu.has_text_in(&["dyut", "svAp"]) {
+    if dhatu.has_u("dyuta~\\") || dhatu.has_text("svAp") {
         // Hacky samprasArana.
         if dhatu.has_text("svAp") {
             // suzvApayizati
@@ -221,8 +222,14 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let abhyasa = p.get(i)?;
+    let dhatu = p.get(i_dhatu)?;
     if let Some(val) = KUH_CU.get(abhyasa.adi()?) {
-        p.op_term("7.4.62", i, op::adi(&val.to_string()));
+        let n = p.get(i_dhatu + 1)?;
+        if dhatu.has_u("ku\\N") && dhatu.has_gana(Gana::Bhvadi) && n.has_u("yaN") {
+            p.step("7.4.63");
+        } else {
+            p.op_term("7.4.62", i, op::adi(&val.to_string()));
+        }
     }
 
     let abhyasa = p.get(i)?;
@@ -291,11 +298,12 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
             } else {
                 add_nut_agama("7.4.71", p, i_dhatu);
             }
-        } else if dhatu.has_text("aS") && dhatu.has_gana_int(5) {
+        } else if dhatu.has_text("aS") && dhatu.has_gana(Gana::Svadi) {
             // For aSnoti only, not aSnAti
             add_nut_agama("7.4.72", p, i_dhatu);
         }
-    } else if dhatu.has_text("BU") && (dhatu.has_gana_int(1) || dhatu.has_gana_int(2)) {
+    } else if dhatu.has_text("BU") && (dhatu.has_gana(Gana::Bhvadi) || dhatu.has_gana(Gana::Adadi))
+    {
         // baBUva
         //
         // We check gana 1 for `BU` and gana 2 for `as` replaced by `BU`. This check excludes BU
@@ -360,9 +368,16 @@ fn try_rules_for_yan(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     let dhatu = p.get(i_dhatu)?;
     let vanc_adi = &[
-        "vanc", "srans", "Dvans", "Brans", "kas", "pat", "pad", "skand",
+        "vancu~",
+        "sransu~\\",
+        "Dvansu~\\",
+        "Bransu~\\",
+        "kasa~",
+        "patx~",
+        "pa\\da~\\",
+        "ska\\ndi~r",
     ];
-    if dhatu.has_text_in(vanc_adi) {
+    if dhatu.has_u_in(vanc_adi) {
         add_agama("7.4.84", p, i_dhatu, "nIk");
     } else if abhyasa.has_antya('a') && dhatu.has_antya(&*ANUNASIKA) {
         // Should treat as anusvAra per commentaries, otherwise we can't derive yaMyamyate.

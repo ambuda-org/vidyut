@@ -222,6 +222,15 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.atma("1.3.65");
     } else if pp.is(&[], &["Bu\\ja~"]) {
         pp.optional_atma("1.3.66");
+    } else if dhatu.has_u("Ric") && i > 0 && pp.p.has(i - 1, |t| t.has_u_in(&["YiBI\\", "zmi\\N"]))
+    {
+        let is_atma = pp.p.op_optional("1.3.68", |p| {
+            op_atmanepada(p);
+            p.add_tag(T::FlagHetuBhaya);
+        });
+        if !is_atma {
+            pp.para("1.3.68");
+        }
     } else if pp.is(&["apa"], &["vad"]) {
         // TODO: 1.3.67 - 1.3.71.
         // 1.3.72 is further below.

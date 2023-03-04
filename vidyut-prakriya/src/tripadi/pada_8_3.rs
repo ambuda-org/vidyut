@@ -228,6 +228,7 @@ fn run_shatva_rules_after_upasarga(p: &mut Prakriya) -> Option<()> {
 
     let dhatu = p.get(i_dhatu)?;
     let upasarga = p.get(i_upasarga)?;
+    let inku = upasarga.has_antya(&*IN_KU);
 
     // If the aw-Agama is used, it immediately follows the last upasarga.
     let _has_aw_agama = if i_upasarga + 1 != i_dhatu {
@@ -301,7 +302,7 @@ fn run_shatva_rules_after_upasarga(p: &mut Prakriya) -> Option<()> {
                 p.op("8.3.70", try_shatva_for_dhatu_and_abhyasa);
             }
         }
-    } else if dhatu_in(dhatu, ITEMS_8_3_65) {
+    } else if inku && dhatu_in(dhatu, ITEMS_8_3_65) {
         if i_abhyasa.is_some() && dhatu_in(dhatu, &ITEMS_8_3_65[STHA_INDEX..]) {
             p.op("8.3.65", try_shatva_for_dhatu_and_abhyasa);
         } else {
@@ -310,7 +311,7 @@ fn run_shatva_rules_after_upasarga(p: &mut Prakriya) -> Option<()> {
                 p.op_term("8.3.65", i_dhatu, op::adi("z"));
             }
         }
-    } else if dhatu.has_u("za\\dx~") {
+    } else if inku && dhatu.has_u("za\\dx~") {
         let code = "8.3.66";
         if upasarga.has_u("prati") {
             p.set(i_dhatu, |t| t.add_tag(T::FlagKeepSa));
@@ -324,7 +325,7 @@ fn run_shatva_rules_after_upasarga(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("sta\\nBu~") {
         if upasarga.has_u("ava") {
             p.op_optional("8.3.68", try_shatva_for_dhatu_and_abhyasa);
-        } else {
+        } else if inku {
             // > aprateḥ ityetadiha na anuvartate, tena etadapi bhavati, pratiṣṭabhnāti,
             // > prayaṣṭabhnāt, pratitaṣṭambha
             // -- Kashika on 8.3.67

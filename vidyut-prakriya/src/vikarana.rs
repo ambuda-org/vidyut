@@ -192,14 +192,19 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let dhatu = p.get(i)?;
     let tin = p.get(i + 2)?;
-    if tin.is_parasmaipada() && has_cli(p, i) {
-        if dhatu.has_text_in(&["sf", "SAs", "f"]) {
+    let is_parasmai = tin.is_parasmaipada();
+    if has_cli(p, i) {
+        if dhatu.has_u_in(&["sf\\", "SAsu~", "f\\"]) {
+            // SAsu~\\ (ASAste) is not part of the rule.
             p.op("3.1.56", to_an);
-        } else if dhatu.has_tag(T::irit) {
+        } else if is_parasmai && dhatu.has_tag(T::irit) {
             p.op_optional("3.1.57", to_an);
-        } else if dhatu.has_text_in(&jr_stambhu) {
+        } else if is_parasmai && dhatu.has_text_in(&jr_stambhu) {
             p.op_optional("3.1.58", to_an);
-        } else if dhatu.has_text_in(&["kf", "mf", "df", "ruh"]) && p.has_tag(T::Chandasi) {
+        } else if is_parasmai
+            && dhatu.has_text_in(&["kf", "mf", "df", "ruh"])
+            && p.has_tag(T::Chandasi)
+        {
             p.op("3.1.59", to_an);
         }
     }
@@ -220,7 +225,14 @@ fn maybe_replace_cli_with_cin(p: &mut Prakriya, i: usize) -> Option<()> {
         if dhatu.has_text("pad") {
             // apAdi
             p.op("3.1.60", to_cin);
-        } else if dhatu.has_text_in(&["dIp", "jan", "buD", "pUr", "tAy", "pyAy"]) {
+        } else if dhatu.has_u_in(&[
+            "dIpI~\\",
+            "janI~\\",
+            "buDa~",
+            "pUrI~\\",
+            "tAyf~\\",
+            "o~pyAyI~\\",
+        ]) {
             // adIpi, ajani, aboDi, ...
             p.op_optional("3.1.61", to_cin);
         } else if p.has_tag(T::Karmani) {

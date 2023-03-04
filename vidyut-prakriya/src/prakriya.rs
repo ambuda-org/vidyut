@@ -357,10 +357,10 @@ impl Prakriya {
 
     /// (debug) Writes the given string to the history.
     #[allow(unused)]
-    pub(crate) fn debug(&mut self, text: String) {
+    pub(crate) fn debug(&mut self, text: impl AsRef<str>) {
         self.history.push(Step {
             rule: "debug",
-            result: text,
+            result: text.as_ref().to_string(),
         });
     }
 

@@ -164,7 +164,7 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // > ūrṇotestu vācya ūrṇorṇuvadbhāvo yaṅprasiddhiḥ prayojanam
         // -- Kashikavrtti
         wrap.anit("7.2.11");
-    } else if n.has_u("san") && (dhatu.has_text_in(&["grah", "guh"]) || is_uk) {
+    } else if n.has_u("san") && (dhatu.has_u_in(&["graha~^", "guhU~^"]) || is_uk) {
         // Exclude "Sri" and "yu" because they are mentioned explicitly in 7.2.49.
         wrap.anit("7.2.12");
     } else if n.is_nistha() {
@@ -439,6 +439,15 @@ fn try_ardhadhatuke_2(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // All of these roots are in scope for 7.2.10 (aniT).
         // So, this option allows seT.
         wrap.optional_set("7.2.45", i_n);
+    } else if anga.has_u("kuza~")
+        && i > 0
+        && wrap.p.has(i - 1, |t| t.is_upasarga() && t.has_u("nir"))
+    {
+        if n.has_tag(T::Nistha) {
+            wrap.set("7.2.47", i_n);
+        } else {
+            wrap.optional_anit("7.2.46");
+        }
     } else if anga.has_u_in(ishu_saha) && n.has_adi('t') {
         wrap.optional_anit("7.2.48");
     } else if anga.has_text_in(krta_crta) && se && !n.has_u("si~c") {
@@ -511,7 +520,7 @@ fn try_ardhadhatuke_2(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-/// Runs rules that introduce iw-Agama before a sArvadhAtuka-pratyaya.
+/// Runs rules that introduce iw-Agama and aw-Agama before a sArvadhAtuka-pratyaya.
 /// (7.2.76 - 7.2.78)
 fn try_sarvadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
@@ -524,7 +533,11 @@ fn try_sarvadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let rudh_adi = &["rudi~r", "Yizva\\pa~", "Svasa~", "ana~", "jakza~"];
-    if anga.has_u_in(rudh_adi) {
+    let is_aprkta = n.slice().iter().map(|t| t.text.len()).sum::<usize>() == 1;
+    if anga.has_u("a\\da~") && is_aprkta {
+        p.op("7.3.100", |p| op::insert_agama_before(p, i_n, "aw"));
+        it_samjna::run(p, i_n).ok()?;
+    } else if anga.has_u_in(rudh_adi) {
         // First, check if we should use It-agama instead.
         //
         // This rule is placed here somewhat awkwardly to avoid a complex interdependency:
@@ -535,7 +548,6 @@ fn try_sarvadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
         // - tin siddhi --> possible aprkta
         // - possible aprkta --> It agama in the rule below.
         let is_pit = n.has_tag(T::pit) && !n.has_tag(T::Nit);
-        let is_aprkta = n.slice().iter().map(|t| t.text.len()).sum::<usize>() == 1;
         if n.has_adi(&*HAL) && n.has_tag(T::Sarvadhatuka) && is_pit && is_aprkta {
             let use_at = p.op_optional("7.3.99", |p| op::insert_agama_before(p, i_n, "aw"));
             if !use_at {

@@ -1,5 +1,6 @@
 //! ardhadhatuka
 
+use crate::args::Gana;
 use crate::args::Lakara;
 use crate::it_samjna;
 use crate::operators as op;
@@ -227,10 +228,13 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
             p.op_term("6.1.45", i, op::antya("A"));
         }
     } else if dhatu.has_text_in(&["sPur", "sPul"]) && n.has_u("GaY") {
+        // visPAra, visPAla
         p.op_term("6.1.47", i, op::upadha("A"));
     } else if dhatu.has_u_in(&["qukrI\\Y", "i\\N", "ji\\"]) && n.has_u("Ric") {
+        // krApayati, aDyApayati, jApayati
         p.op_term("6.1.48", i, op::antya("A"));
     } else if dhatu.has_u("zi\\Du~") && n.has_u("Ric") {
+        // sADayati, seDayati
         p.op_optional("6.1.49", op::t(i, op::upadha("A")));
     }
 
@@ -246,23 +250,28 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get(i)?;
     let n = p.view(i + 1)?;
     let ashiti_lyapi = !n.has_tag(T::Sit) || n.has_u("lyap");
+    let nici = n.has_u("Ric");
 
-    if dhatu.has_u_in(&["mI\\Y", "qu\\mi\\Y", "dI\\N"]) && ashiti_lyapi && will_cause_guna(&n) {
+    if dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "dI\\N"]) && ashiti_lyapi && will_cause_guna(&n) {
         p.op_term("6.1.50", i, op::antya("A"));
-    } else if dhatu.has_text("lI") && ashiti_lyapi && will_cause_guna(&n) && !dhatu.has_gana_int(10)
+    } else if dhatu.has_text("lI")
+        && ashiti_lyapi
+        && will_cause_guna(&n)
+        && !dhatu.has_gana(Gana::Curadi)
     {
         // Accept both lI and lIN:
         // līyateriti yakā nirdeśo na tu śyanā. līlīṅorātvaṃ vā syādejviṣaye
         // lyapi ca. (SK)
         p.op_optional("6.1.51", op::t(i, op::antya("A")));
-    // TODO: 6.1.52 - 6.1.53
-    } else if dhatu.has_u_in(&["ciY", "ci\\Y", "sPura~"]) && n.has_u("Ric") {
-        if dhatu.has_u("sPura~") {
-            p.op_optional("6.1.54", op::t(i, op::upadha("A")));
-        } else {
-            p.op_optional("6.1.54", op::t(i, op::antya("A")));
-        }
-    // TODO: 6.1.55 - 6.1.56
+    } else if dhatu.has_u("sPura~") && nici {
+        p.op_optional("6.1.54", op::t(i, op::upadha("A")));
+    } else if dhatu.has_u_in(&["ciY", "ci\\Y"]) && nici {
+        p.op_optional("6.1.54", op::t(i, op::antya("A")));
+    } else if dhatu.has_u("vI\\") && dhatu.has_gana(Gana::Adadi) && nici {
+        // Check gana to avoid aj -> vI
+        p.op_optional("6.1.55", op::t(i, op::antya("A")));
+    } else if dhatu.has_u("YiBI\\") && p.has_tag(T::FlagHetuBhaya) {
+        p.op_optional("6.1.56", op::t(i, op::antya("A")));
     } else if dhatu.has_text("smi") && n.has_u("Ric") {
         p.op_optional("6.1.57", op::t(i, op::antya("A")));
     }

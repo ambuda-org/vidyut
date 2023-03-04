@@ -37,7 +37,17 @@ use crate::vikarana;
 /// - adding any necessary sanAdi-pratyayas.
 fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<()> {
     dhatu_karya::run(p, dhatu)?;
-    sanadi::run(p, is_ardhadhatuka, dhatu.sanadi())?;
+    sanadi::run(p, is_ardhadhatuka, dhatu.sanadi());
+
+    if dhatu.sanadi() == &[Sanadi::San] || dhatu.sanadi() == &[Sanadi::Yan] {
+        samjna::run(p);
+        run_various_dhatu_tasks(p);
+        angasya::run_remainder(p);
+        dvitva::run(p);
+        samprasarana::run_for_abhyasa(p);
+        ac_sandhi::run_common(p);
+        tripadi::run(p);
+    }
 
     Ok(())
 }

@@ -51,7 +51,11 @@ fn find_natva_spans(text: &str) -> Vec<(usize, usize)> {
 
 /// Runs rules that change `n` to `R`.
 /// Example: krInAti -> krIRAti.
+///
+/// `i_rs` is the index of the `r`/`z` sound that triggers the change, and `i_n` is the index of
+/// the `n` sound that we might change.
 fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<()> {
+    // Exceptions to Ratva.
     if let Some(i) = cp.p.find_first(T::Dhatu) {
         let dhatu = cp.p.get(i)?;
         let next = cp.p.get(i + 1)?;
@@ -96,7 +100,8 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             items.iter().any(|(u, g)| d.has_gana(*g) && d.has_u(u))
         };
 
-        let i_dhatu = cp.p.find_next_where(i_x, |t| t.is_dhatu())?;
+        let i_dhatu =
+            cp.p.find_next_where(i_x, |t| t.is_dhatu() && !t.is_empty())?;
         let dhatu = cp.p.get(i_dhatu)?;
 
         let is_hinu = || (dhatu.has_text("hi") && y.has_u("Snu"));
@@ -123,6 +128,11 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
         } else if dhatu.has_u("ana~") {
             cp.set_at(i_n, "R");
             cp.p.step("8.4.19");
+
+            let dhatu = cp.p.get(i_dhatu)?;
+            if dhatu.has_tag(T::Abhyasta) {
+                cp.p.op_term("8.4.21", i_dhatu, |t| t.set_adi("R"));
+            }
         }
     } else if i_x != i_y && x.is_pada() && x.has_antya('z') {
         // nizpAna, ...

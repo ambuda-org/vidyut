@@ -30,6 +30,10 @@ impl<'a> AtideshaPrakriya<'a> {
         AtideshaPrakriya { p, added: false }
     }
 
+    fn optional(&mut self, rule: Rule, func: impl Fn(&mut Prakriya)) {
+        self.added = self.p.op_optional(rule, func);
+    }
+
     fn optional_block(&mut self, rule: Rule) {
         self.added = self.p.op_optional(rule, |_| {});
     }
@@ -192,7 +196,7 @@ fn try_remove_kit_for_set_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = wrap.p.view(i + 1)?;
     let i_n = n.end();
 
-    if !n.has_u("iw") {
+    if !n.first()?.is_it_agama() {
         return None;
     }
 
@@ -206,7 +210,10 @@ fn try_remove_kit_for_set_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
         wrap.remove_kit("1.2.22", i_n);
     } else if (ktva || san) && cur.has_upadha(&*I_U) && cur.has_antya(&*RAL) && cur.has_adi(&*HAL) {
         // dyutitvA, dyotitvA, ..., didyutizate, didyotizate, ...
-        wrap.optional_block("1.2.26");
+        wrap.optional("1.2.26", |p| {
+            let n = p.get_mut(i_n).expect("ok");
+            n.add_tag(T::kit);
+        });
     } else if nistha {
         if cur.has_text_in(&["SI", "svid", "mid", "kzvid", "Dfz"]) {
             // Sayita, svedita, medita, kzvedita, Darzita

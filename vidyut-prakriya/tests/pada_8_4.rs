@@ -163,8 +163,19 @@ fn sutra_8_4_18() {
 #[test]
 fn sutra_8_4_19() {
     let an = Dhatu::new("ana~", Gana::Adadi);
-    assert_has_lat_p(&["pra"], &an, &["prARiti"]);
-    assert_has_lat_p(&["parA"], &an, &["parARiti"]);
+    assert_has_lat(&["pra"], &an, &["prARiti"]);
+    assert_has_lat(&["parA"], &an, &["parARiti"]);
+}
+
+#[test]
+fn sutra_8_4_21() {
+    let an = Dhatu::new("ana~", Gana::Adadi);
+    let san = |d: &Dhatu| d.clone().with_sanadi(&[Sanadi::San]);
+    let nic = |d: &Dhatu| d.clone().with_sanadi(&[Sanadi::Nic]);
+    assert_has_lat(&["pra"], &san(&an), &["prARiRizati"]);
+    assert_has_lun(&["pra"], &nic(&an), &["prARiRat"]);
+    assert_has_lat(&["parA"], &san(&an), &["parARiRizati"]);
+    assert_has_lun(&["parA"], &nic(&an), &["parARiRat"]);
 }
 
 #[test]

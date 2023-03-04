@@ -11,6 +11,7 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
     static ref NDR: Set = s("n d r");
 }
 
@@ -106,11 +107,92 @@ fn try_dvitva_for_ajadi_ni_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Opti
     Some(())
 }
 
+/// Finds the character span that should be duplicated in the given text.
+fn find_abhyasa_span(text: &CompactString) -> Option<(usize, usize)> {
+    let mut start = None;
+    let mut end = None;
+    for (i, c) in text.chars().enumerate() {
+        // Start at first consonant.
+        if start.is_none() && HAL.contains(c) {
+            // 6.1.3 na ndrAH saMyogAdayaH
+            if i < text.len() - 1 {
+                let next = text.as_bytes()[i + 1] as char;
+                if NDR.contains(c) && HAL.contains(next) {
+                    if c == 'r' && next == 'y' {
+                        // yakāraparasya rephasya pratiṣedho na bhavatīti vaktavyam
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            start = Some(i);
+        }
+        if start.is_some() && AC.contains(c) {
+            end = Some(i);
+            break;
+        }
+    }
+    if let (Some(start), Some(end)) = (start, end) {
+        Some((start, end))
+    } else {
+        None
+    }
+}
+
+fn try_dvitva_for_sanadi_ajadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
+    let mut text = CompactString::from("");
+    for t in p.terms() {
+        if t.is_upasarga() {
+            continue;
+        }
+        text.push_str(&t.text);
+    }
+
+    let (start, end) = find_abhyasa_span(&text)?;
+
+    // debug_assert!(start == 1);
+    let ac = Term::make_text(&text[0..start]);
+    let abhyasa = Term::make_text(&text[start..=end]);
+
+    let i_ac = i_dhatu;
+    p.insert_before(i_ac, ac);
+    p.insert_after(i_ac, abhyasa);
+
+    // und i za
+    // un di d i za
+    let i_dhatu = i_ac + 2;
+    p.set(i_dhatu, |t| t.set_adi(""));
+    while p.has(i_dhatu, |t| t.is_samyogadi() && t.has_adi(&*NDR)) {
+        p.set(i_dhatu, |t| t.set_adi(""));
+    }
+    p.step(rule);
+
+    p.op_term("6.1.4", i_ac + 1, |t| t.add_tag(T::Abhyasa));
+    p.op("6.1.5", |p| {
+        p.set(i_ac, op::add_tag(T::Abhyasta));
+        p.set(i_ac + 1, op::add_tag(T::Abhyasta));
+        p.set(i_dhatu, op::add_tag(T::Abhyasta));
+        if p.has(i_dhatu, |t| t.has_u("UrRuY")) {
+            p.set(i_dhatu, |t| t.set_text("nu"));
+        }
+    });
+
+    Some(())
+}
+
 fn try_dvitva(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
-    let next = p.get(i + 1)?;
+    let next = p.view(i + 1)?;
 
-    if al::is_ac(dhatu.adi()?) && al::is_hal(dhatu.antya()?) && next.has_u_in(&["Ric", "RiN"]) {
+    if dhatu.has_adi(&*AC)
+        && next.last()?.is_pratyaya()
+        && next.last()?.has_u_in(&["san", "Ric", "yaN"])
+    {
+        try_dvitva_for_sanadi_ajadi(rule, p, i);
+    } else if dhatu.has_adi(&*AC)
+        && dhatu.has_antya(&*HAL)
+        && next.last()?.has_u_in(&["Ric", "RiN"])
+    {
         try_dvitva_for_ajadi_ni_dhatu(rule, p, i);
     } else if f::is_eka_ac(dhatu) || al::is_hal(dhatu.adi()?) {
         // TODO: correctly double jAgR
@@ -138,8 +220,10 @@ fn try_dvitva(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// - `i` should point to a dhatu.
 fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
-    let jaksh_adi = &["jakz", "jAgf", "daridrA", "cakAs", "SAs", "dIDI", "vevI"];
-    if p.has(i, |t| t.has_text_in(jaksh_adi)) {
+    let jaksh_adi = &[
+        "jakza~", "jAgf", "daridrA", "cakAsf~", "SAsu~", "dIDIN", "vevIN",
+    ];
+    if p.has(i, |t| t.has_u_in(jaksh_adi)) {
         // These are termed abhyasta, but they can still undergo dvitva because
         // the rules below are conditioned specifically on "anabhyAsasya" ("not having an abhyasa")
         // from 6.1.8.
@@ -158,7 +242,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         } else {
             try_dvitva("6.1.8", p, i);
         }
-    } else if n.has_u_in(&["san", "yaN"]) {
+    } else if n.last()?.has_u_in(&["san", "yaN"]) {
         try_dvitva("6.1.9", p, i);
     } else if n.has_tag(T::Slu) {
         try_dvitva("6.1.10", p, i);
@@ -174,6 +258,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
     let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Abhyasta, T::Pratyaya]);
 
+    // Loop for cases like jihriyAmbaBUva, where dvitva occurs twice.
     let mut num_loops = 0;
     let mut i = p.find_first_where(filter)?;
     loop {
@@ -185,5 +270,18 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         }
 
         i = p.find_next_where(i, filter)?;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn find_abhyasa_span_examples() {
+        let find = |t| find_abhyasa_span(&CompactString::from(t));
+        assert_eq!(find("kIrza"), Some((0, 1)));
+        assert_eq!(find("undiza"), Some((2, 3)));
+        assert_eq!(find("arya"), Some((1, 3)));
     }
 }
