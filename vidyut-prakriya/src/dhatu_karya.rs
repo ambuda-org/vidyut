@@ -75,6 +75,20 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
+fn try_run_divadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Dhatu)?;
+    let dhatu = p.get_if(i, |t| t.has_gana(Gana::Divadi))?;
+
+    if dhatu.has_u_in(&[
+        "zUN", "dUN", "dI\\N", "qIN", "DI\\N", "mI\\N", "rI\\N", "lI\\N", "vrI\\N",
+    ]) {
+        // sUna, dUna, dIna, ...
+        p.op_term("DA.04.0162", i, op::add_tag(T::odit));
+    }
+
+    Some(())
+}
+
 fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get_if(i, |t| t.has_gana(Gana::Curadi))?;
 
@@ -186,6 +200,7 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
 
     let i_dhatu = p.terms().len() - 1;
     try_run_bhvadi_gana_sutras(p);
+    try_run_divadi_gana_sutras(p);
     try_run_curadi_gana_sutras(p, i_dhatu);
 
     Ok(())

@@ -273,6 +273,11 @@ impl Prakriya {
         self.tags.insert(t);
     }
 
+    #[allow(unused)]
+    pub(crate) fn remove_tag(&mut self, t: Tag) {
+        self.tags.remove(t);
+    }
+
     pub(crate) fn add_tags(&mut self, tags: &[Tag]) {
         for t in tags {
             self.tags.insert(*t);
@@ -357,6 +362,7 @@ impl Prakriya {
 
     /// (debug) Writes the given string to the history.
     #[allow(unused)]
+    #[cfg(debug_assertions)]
     pub(crate) fn debug(&mut self, text: impl AsRef<str>) {
         self.history.push(Step {
             rule: "debug",
@@ -364,8 +370,12 @@ impl Prakriya {
         });
     }
 
+    #[cfg(not(debug_assertions))]
+    pub(crate) fn debug(&mut self, _text: impl AsRef<str>) {}
+
     /// (debug) Writes the current Prakriya state to the history.
     #[allow(unused)]
+    #[cfg(debug_assertions)]
     pub(crate) fn dump(&mut self) {
         let n = self.terms().len();
         self.debug(format!("p: {:?}", self.tags));
@@ -373,6 +383,10 @@ impl Prakriya {
             self.debug(format!("{i}: {:?}", self.terms()[i]));
         }
     }
+
+    #[allow(unused)]
+    #[cfg(not(debug_assertions))]
+    pub(crate) fn dump(&mut self) {}
 
     // Optional rules
 

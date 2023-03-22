@@ -133,6 +133,33 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         },
     );
 
+    // upa + eti -> upEti
+    xy_rule(
+        p,
+        |x, y| {
+            x.has_tag(T::Upasarga)
+                && x.has_antya(&*A)
+                && y.has_u_in(&["i\\R", "eDa~\\"])
+                && y.has_adi(&*EN)
+        },
+        |p, _i, j| {
+            let y = p.get(j).expect("ok");
+            let adi = y.adi().expect("ok");
+            let sub = al::to_vrddhi(adi).expect("ok");
+            p.op_term("6.1.89", j, |t| t.set_adi(sub));
+        },
+    );
+
+    // upa + elayati -> upelayati
+    xy_rule(
+        p,
+        |x, y| x.has_tag(T::Upasarga) && x.has_antya(&*A) && y.is_dhatu() && y.has_adi(&*EN),
+        |p, i, _j| {
+            p.set(i, |t| t.set_antya(""));
+            p.step("6.1.94");
+        },
+    );
+
     // General guna/vrddhi rules.
     char_rule(
         p,
@@ -176,7 +203,7 @@ fn try_sup_sandhi_for_nasi_nas(p: &mut Prakriya) -> Option<()> {
     let i_anga = p.find_last(T::Pratipadika)?;
     let i_sup = i_anga + 1;
     let anga = p.get(i_anga)?;
-    let _sup = p.get_if(i_sup, |t| t.has_u_in(&["Nasi~", "Nas"]));
+    let _sup = p.get_if(i_sup, |t| t.has_u_in(&["Nasi~", "Nas"]))?;
 
     if anga.has_antya(&*EN) {
         // muneH, guroH
@@ -233,7 +260,7 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
     let x = p.get(i)?;
     let y = p.get(j)?;
 
-    let ni_ap = x.has_tag(T::StriNyap);
+    let ni_ap = x.has_tag(T::StriNyap) || x.has_u_in(&["wAp", "cAp", "dAp", "NIp", "NIz"]);
     // Check for Agama to avoid lopa on yAs + t.
     let hal_ni_ap_dirgha = x.has_antya(&*HAL) || (ni_ap && x.is_dirgha()) && !x.is_agama();
     if hal_ni_ap_dirgha && y.is_aprkta() && y.has_u_in(&["su~", "tip", "sip"]) {
@@ -290,7 +317,7 @@ fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     let i_prev = p.find_prev_where(i_dhatu, |t| {
         // By 6.1.136, allow aw-abhyAsa-vyavAya. So, find the previous term that is neither
         // aw-Agama nor an abhyasa.
-        !t.is_empty() && !t.is_abhyasa() && !(t.is_agama() && t.has_u("aw"))
+        !(t.is_empty() || t.is_abhyasa() || (t.is_agama() && t.has_u("aw")))
     })?;
     let prev = p.get(i_prev)?;
 

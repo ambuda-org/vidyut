@@ -30,6 +30,20 @@ pub fn derive_krdantas(dhatu: &Dhatu, krt: Krt) -> Vec<Prakriya> {
         .collect()
 }
 
+pub fn derive_taddhitantas(p: &Pratipadika, t: Taddhita) -> Vec<Prakriya> {
+    let args = TaddhitantaArgs::builder().taddhita(t).build().unwrap();
+
+    let a = Ashtadhyayi::new();
+    let mut results = a.derive_taddhitantas(p, &args);
+    results.sort_by_key(|p| p.text());
+    results.dedup_by_key(|p| p.text());
+
+    results
+        .into_iter()
+        .filter(|p| !p.text().ends_with('d'))
+        .collect()
+}
+
 pub fn derive_lakara(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Prakriya> {
     let dhatu = dhatu.clone().with_prefixes(prefixes);
     let args = TinantaArgs::builder()
@@ -89,6 +103,14 @@ fn print_all_prakriyas(prakriyas: &[Prakriya]) {
         println!("{:?}", p.rule_choices());
         println!();
     }
+}
+
+pub fn stri(text: &str) -> Pratipadika {
+    Pratipadika::builder()
+        .text(text)
+        .is_nyap(true)
+        .build()
+        .unwrap()
 }
 
 pub fn assert_padas(prakriyas: Vec<Prakriya>, expected: &[&str]) {
@@ -238,6 +260,11 @@ pub fn assert_has_lrt_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_padas(actual, expected);
 }
 
+pub fn assert_has_lrt_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_atmane(prefixes, dhatu, Lakara::Lrt);
+    assert_padas(actual, expected);
+}
+
 pub fn assert_has_lot(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lot);
     assert_padas(actual, expected);
@@ -275,6 +302,11 @@ pub fn assert_has_ashirlin_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]
 
 pub fn assert_has_ashirlin_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_karmani(prefixes, dhatu, Lakara::AshirLin);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_vidhilin(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_lakara(prefixes, dhatu, Lakara::VidhiLin);
     assert_padas(actual, expected);
 }
 
@@ -320,15 +352,18 @@ pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: 
     );
 }
 
-pub fn assert_has_subantas(
-    text: &str,
+pub fn assert_has_taddhitanta(prati: &Pratipadika, t: Taddhita, expected: &[&str]) {
+    assert_padas(derive_taddhitantas(prati, t), expected);
+}
+
+pub fn assert_has_subantas_p(
+    pratipadika: &Pratipadika,
     linga: Linga,
     vibhakti: Vibhakti,
     vacana: Vacana,
     expected: &[&str],
 ) {
     let a = Ashtadhyayi::new();
-    let pratipadika = Pratipadika::new(text);
     let args = SubantaArgs::builder()
         .linga(linga)
         .vacana(vacana)
@@ -336,7 +371,7 @@ pub fn assert_has_subantas(
         .build()
         .unwrap();
 
-    let mut results = a.derive_subantas(&pratipadika, &args);
+    let mut results = a.derive_subantas(pratipadika, &args);
     results.sort_by_key(|p| p.text());
     results.dedup_by_key(|p| p.text());
     let actual: Vec<_> = results
@@ -344,4 +379,15 @@ pub fn assert_has_subantas(
         .filter(|p| !(p.text().ends_with('d') || p.text().ends_with('q')))
         .collect();
     assert_padas(actual, expected);
+}
+
+pub fn assert_has_subantas(
+    text: &str,
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
+    expected: &[&str],
+) {
+    let pratipadika = Pratipadika::new(text);
+    assert_has_subantas_p(&pratipadika, linga, vibhakti, vacana, expected);
 }

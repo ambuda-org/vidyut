@@ -373,6 +373,10 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
             run_shatva_rules_at_index(p, i, j);
         },
     );
+    // HACK for ezaH
+    if p.get(0)?.has_text("esa") && p.get(0)?.has_tag(T::Sarvanama) {
+        p.op_term("8.3.59", 0, |t| t.set_text("eza"));
+    }
 
     // Other s -> z rules
     xy_rule(

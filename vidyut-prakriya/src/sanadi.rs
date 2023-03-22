@@ -107,7 +107,7 @@ pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option
         let dhatu = p.get(i)?;
         if *s == Sanadi::San {
             add_sanadi("3.1.7", p, i, "san");
-        } else if *s == Sanadi::Yan {
+        } else if *s == Sanadi::Yan || *s == Sanadi::YanLuk {
             if dhatu.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
                 add_sanadi("3.1.24", p, i, "yaN");
             } else if (i > 0 && p.has(i - 1, |t| t.has_u_in(&["sUca", "sUtra", "mUtra"])))

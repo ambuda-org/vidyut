@@ -206,7 +206,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if has_san && pp.is(&["prati", "AN"], &["Sru\\"]) {
         // Takes priority over 1.3.57 below.
         pp.para("1.3.59");
-    } else if has_san && pp.is(&[], &["jYA\\", "Sru\\", "smf", "df\\Si~r"]) {
+    } else if has_san && pp.is(&[], &["jYA\\", "Sru\\", "smf", "smf\\", "df\\Si~r"]) {
         pp.atma("1.3.57");
     } else if pp.is(&[], &["Sa\\dx~"]) && is_sarvadhatuka {
         // Technically the condition here is "Siti", but sArvadhAtuka is close

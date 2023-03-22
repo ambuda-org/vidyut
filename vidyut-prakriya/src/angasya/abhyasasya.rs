@@ -72,9 +72,9 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
 
     let mut do_abhyasa_lopa = true;
     let dhatu = p.get(i)?;
-    if dhatu.has_text_in(&["mI", "mA"])
+    if dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "mA\\", "mA\\N", "me\\N"])
         || dhatu.has_tag(T::Ghu)
-        || dhatu.has_text_in(&["raB", "laB", "Sak", "pat", "pad"])
+        || dhatu.has_u_in(&["ra\\Ba~\\", "qula\\Ba~\\z", "Sa\\kx~", "patx~", "pa\\da~\\"])
     {
         // mitsati, ripsati, lipsati, Sikzati, pitsati, ...
         let code = "7.4.54";
@@ -85,8 +85,8 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
         }
     } else if dhatu.has_text("rAD") {
         do_abhyasa_lopa = p.op_optional("7.4.54.v1", op::t(i, op::upadha("is")));
-    } else if dhatu.has_text_in(&["Ap", "jYap", "fD"]) {
-        // Ipsati, jYIpsati, Irsati
+    } else if dhatu.has_u_in(&["A\\px~", "jYapa~", "fDu~"]) {
+        // Ipsati, jYIpsati, Irtsati
         let code = "7.4.55";
         if dhatu.has_text("fD") {
             p.op_term(code, i, op::upadha("Ir"));
@@ -109,6 +109,8 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
 
     if do_abhyasa_lopa {
         p.op_term("7.4.58", i_abhyasa, op::lopa);
+        // HACK: also apply "halantAcca" here.
+        p.op_term("1.2.10", i + 1, |t| t.add_tag(T::kit));
     }
 
     Some(())
@@ -331,14 +333,14 @@ fn try_rules_for_slu(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     let dhatu = p.get(i_dhatu)?;
 
-    if dhatu.has_text_in(&["nij", "vij", "viz"]) {
+    if dhatu.has_u_in(&["Ri\\ji~^r", "vi\\ji~^r", "vi\\zx~^"]) {
         // nenekti, vevekti, vevezwi
         let sub = al::to_guna(abhyasa.antya()?)?;
         p.op_term("7.4.75", i, op::antya(sub));
     } else if dhatu.has_u_in(&["quBf\\Y", "mA\\N", "o~hA\\N"]) {
         // biBarti, mimIte, jihIte
         p.op_term("7.4.76", i, op::antya("i"));
-    } else if dhatu.has_text_in(&["f", "pf", "pF"]) {
+    } else if dhatu.has_u_in(&["f\\", "pf", "pF"]) && dhatu.has_gana(Gana::Juhotyadi) {
         // iyarti, piparti (allowed by both `pf` and `pF`)
         p.op_term("7.4.77", i, op::antya("i"));
     }

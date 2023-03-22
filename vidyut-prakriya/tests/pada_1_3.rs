@@ -15,6 +15,26 @@ fn sutra_1_3_1() {
 }
 
 #[test]
+fn sutra_1_3_12() {
+    // anudAttet
+    assert_has_lat(&[], &d("Asa~\\", Adadi), &["Aste"]);
+    assert_has_lat(&[], &d("vasa~\\", Adadi), &["vaste"]);
+    // Nit
+    assert_has_lat(&[], &d("zUN", Adadi), &["sUte"]);
+    assert_has_lat(&[], &d("SIN", Adadi), &["Sete"]);
+}
+
+#[test]
+fn sutra_1_3_13() {
+    assert_has_lat_karmani(&[], &d("glE\\", Bhvadi), &["glAyate"]);
+    assert_has_lat_karmani(&[], &d("Yizva\\pa~", Adadi), &["supyate"]);
+    assert_has_lat_karmani(&[], &d("Asa~\\", Adadi), &["Asyate"]);
+    assert_has_lat_karmani(&[], &d("qukf\\Y", Tanadi), &["kriyate"]);
+    assert_has_lat_karmani(&[], &d("hf\\Y", Bhvadi), &["hriyate"]);
+    assert_has_lat_karmani(&[], &d("lUY", Kryadi), &["lUyate"]);
+}
+
+#[test]
 fn sutra_1_3_17() {
     let vish = d("vi\\Sa~", Tudadi);
     assert_has_lat(&["ni"], &vish, &["niviSate"]);
@@ -260,8 +280,7 @@ fn sutra_1_3_57() {
     let sru = d("Sru\\", Svadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &sru, &["SuSrUzate"]);
 
-    // TODO: sanAdis are buggy right now, so this fails.
-    let smf = d("smf", Bhvadi).with_sanadi(&[Sanadi::San]);
+    let smf = d("smf\\", Bhvadi).with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &smf, &["susmUrzate"]);
 
     let dfs = d("df\\Si~r", Bhvadi).with_sanadi(&[Sanadi::San]);
@@ -321,6 +340,21 @@ fn sutra_1_3_62() {
     assert_has_lat(&[], &d("tija~\\", Bhvadi), &["titikzate"]);
     assert_has_lat(&[], &d("mAna~\\", Bhvadi), &["mImAMsate"]);
     assert_has_lat(&[], &d("baDa~\\", Bhvadi), &["bIBatsate"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_1_3_63() {
+    assert_has_lit(
+        &[],
+        &d("Ikza~\\", Bhvadi),
+        &["IkzAYcakre", "IkzAmbaBUva", "IkzAmAsa"],
+    );
+    assert_has_lit(
+        &[],
+        &d("Iha~\\", Bhvadi),
+        &["IhAYcakre", "IhAmbaBUva", "IhAmAsa"],
+    );
 }
 
 #[test]

@@ -1,7 +1,8 @@
 use crate::operators as op;
 use crate::prakriya::Prakriya;
+use crate::sounds as al;
 use crate::sounds::{s, Set};
-use crate::stem_gana::{PRATHAMA_ADI, PURVA_ADI, SARVA_ADI, USES_DATARA_DATAMA};
+use crate::stem_gana::{LAUKIKA_SAMJNA, PRATHAMA_ADI, PURVA_ADI, SARVA_ADI, USES_DATARA_DATAMA};
 use crate::tag::Tag as T;
 use lazy_static::lazy_static;
 
@@ -11,12 +12,27 @@ lazy_static! {
 
 fn try_run_for_pratipadika(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Pratipadika)?;
+
+    let prati = p.get(i)?;
+    let adi_ac = prati.text.find(al::is_ac)?;
+    if al::is_vrddhi(prati.get_at(adi_ac)?) {
+        p.op_term("1.1.73", i, op::add_tag(T::Vrddha));
+    }
+
     let prati = p.get(i)?;
     let sup = p.get(i + 1)?;
 
     let ii_uu = prati.has_antya('I') || prati.has_antya('U');
     let i_u = prati.has_antya('i') || prati.has_antya('u');
-    if prati.has_text_in(SARVA_ADI) || prati.has_text_in(USES_DATARA_DATAMA) {
+    if prati.has_text_in(LAUKIKA_SAMJNA) {
+        p.op_term("1.1.23", i, op::add_tag(T::Sankhya));
+        let prati = p.get(i)?;
+        if prati.has_antya('z') || prati.has_antya('n') {
+            p.op_term("1.1.24", i, op::add_tag(T::Sat));
+        }
+    } else if prati.has_text_in(PRATHAMA_ADI) && sup.has_u("jas") {
+        p.op_optional("1.1.33", op::t(i, op::add_tag(T::Sarvanama)));
+    } else if prati.has_text_in(SARVA_ADI) || prati.has_text_in(USES_DATARA_DATAMA) {
         let mut sarvanama = true;
         if prati.has_text_in(PURVA_ADI) && sup.has_u("jas") {
             sarvanama = !p.op_optional("1.1.34", |_| {});
@@ -24,11 +40,10 @@ fn try_run_for_pratipadika(p: &mut Prakriya) -> Option<()> {
         if sarvanama {
             p.op_term("1.1.27", i, op::add_tag(T::Sarvanama));
         }
-    } else if prati.has_text_in(PRATHAMA_ADI) && sup.has_u("jas") {
-        p.op_optional("1.1.33", op::t(i, op::add_tag(T::Sarvanama)));
     } else if ii_uu && p.has_tag(T::Stri) {
         p.op_term("1.4.3", i, op::add_tag(T::Nadi));
-    } else if i_u && !prati.has_text("saKi") {
+    } else if i_u && !prati.has_text_in(&["saKi", "pati"]) {
+        // TODO: patiH *samAsa eva*
         let mut is_nadi = false;
         if sup.has_tag(T::Nit) && p.has_tag(T::Stri) {
             is_nadi = p.op_optional("1.4.6", op::t(i, op::add_tag(T::Nadi)));
@@ -41,20 +56,25 @@ fn try_run_for_pratipadika(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-/// Runs rules that add the "pada"-samjna to various terms.
+/// Runs rules that add the "pada" or "bha" samjnas to various terms.
 ///
 /// NOTE: Technically, `pada` applies to the matched term as well that all that precedes it. But
 /// since this is difficult for us to model right now, just use the last term.
-pub fn try_run_for_pada(p: &mut Prakriya) -> Option<()> {
+pub fn try_run_for_pada_or_bha(p: &mut Prakriya) -> Option<()> {
     let n = p.terms().len();
     for i in 0..n {
         let term = p.get(i)?;
+        if term.is_agama() {
+            continue;
+        }
+
         if term.has_tag_in(&[T::Sup, T::Tin]) {
-            p.op_term("1.4.13", i, op::add_tag(T::Pada));
+            // do nothing
         } else {
-            let next = p.get(i + 1)?;
-            if next.has_tag(T::Sup) && !next.has_tag(T::Sarvanamasthana) {
-                if next.has_adi('y') || next.has_adi(&*AC) {
+            let sup = p.view(i + 1)?;
+            let is_svadi = sup.has_tag_in(&[T::Sup, T::Taddhita]);
+            if is_svadi && !sup.has_tag(T::Sarvanamasthana) {
+                if sup.has_adi('y') || sup.has_adi(&*AC) {
                     p.op_term("1.4.18", i, op::add_tag(T::Bha));
                 } else {
                     p.op_term("1.4.17", i, op::add_tag(T::Pada));

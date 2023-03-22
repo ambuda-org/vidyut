@@ -4,7 +4,6 @@ Runs rules that apply substitutions to the sup-pratyaya.
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
-use crate::samjna;
 use crate::sounds as al;
 use crate::stem_gana as gana;
 use crate::tag::Tag as T;
@@ -21,6 +20,10 @@ fn yatha(needle: &str, old: &'static [&str], new: &'static [&str]) -> Option<&'s
 
 fn is_aap(anga: &Term) -> bool {
     anga.has_u_in(&["dAp", "wAp", "cAp"]) || (anga.has_antya('A') && anga.has_tag(T::StriNyap))
+}
+
+fn is_nyap_pratyaya(anga: &Term) -> bool {
+    anga.has_u_in(&["dAp", "wAp", "cAp", "NIp", "NIz"])
 }
 
 /// Tries adesha rules for napumsaka stems ending in 'a'.
@@ -60,7 +63,7 @@ fn try_adanta_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
     };
 
     if sup.has_text("Bis") {
-        if anga.has_text_in(&["idam", "adas"]) {
+        if anga.has_u_in(&["idam", "adas"]) {
             p.step("7.1.11");
         } else {
             // narEH
@@ -137,11 +140,10 @@ fn try_yusmad_asmad_sup_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         // mat, tvat
         op::adesha("7.1.32", p, i, "at");
     } else if sup.first()?.has_text("s") && sup.last()?.has_text("Am") {
+        // All three of these lines ar part of 7.1.33.
         let start = sup.start();
-        p.op("7.1.33", |p| {
-            p.terms_mut().remove(start);
-            p.set(i, |t| t.set_text("Akam"));
-        });
+        p.terms_mut().remove(start);
+        op::adesha("7.1.33", p, i, "Akam");
     }
 
     Some(())
@@ -165,9 +167,9 @@ fn try_sarvanamasthane_asambuddhau(p: &mut Prakriya, i_anga: usize, i: usize) ->
         } else if anga.has_text_in(&["catur", "anaquh"]) {
             // TODO: am/Am?
             if sambuddhau {
-                p.op_term("7.1.99", i_anga, op::antya("a"));
+                p.op_term("7.1.99", i_anga, op::mit("a"));
             } else {
-                p.op_term("7.1.98", i_anga, op::antya("A"));
+                p.op_term("7.1.98", i_anga, op::mit("A"));
             }
         }
     }
@@ -177,7 +179,8 @@ fn try_sarvanamasthane_asambuddhau(p: &mut Prakriya, i_anga: usize, i: usize) ->
 
 fn try_pratipadika_guna(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
-    let sup = p.get(i)?;
+    let sup = p.get_if(i, |t| t.is_sup())?;
+
     if anga.has_antya('f') && (sup.has_u("Ni") || sup.has_tag(T::Sarvanamasthana)) {
         // kartari
         let sub = al::to_guna(anga.antya()?)?;
@@ -199,28 +202,29 @@ fn try_pratipadika_guna(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()>
 }
 
 /// Runs rules that add various Agamas before the sup-pratyaya.
-fn try_add_nit_agamas(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
+fn try_add_nit_agamas(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+    let i_sup = p.find_next_where(i_anga, |t| t.is_sup())?;
     let anga = p.get(i_anga)?;
-    let sup = p.get(i)?;
+    let sup = p.get(i_sup)?;
 
     let niti = sup.has_tag(T::Nit);
-    let is_aap = anga.has_antya('A') && anga.has_tag(T::StriNyap);
+    let is_aap = (anga.has_antya('A') && is_aap(anga)) || p.has(i_anga + 1, is_nyap_pratyaya);
 
     if anga.has_tag(T::Nadi) && niti {
-        p.op("7.3.112", |p| op::insert_agama_before(p, i, "Aw"));
-        it_samjna::run(p, i).ok()?;
+        p.op("7.3.112", |p| op::insert_agama_before(p, i_sup, "Aw"));
+        it_samjna::run(p, i_sup).ok()?;
     } else if is_aap && niti {
         if anga.has_tag(T::Sarvanama) {
             // tasyE
             p.op("7.3.114", |p| {
                 p.set(i_anga, op::antya("a"));
-                op::insert_agama_before(p, i, "syAw")
+                op::insert_agama_before(p, i_sup, "syAw")
             });
-            it_samjna::run(p, i).ok()?;
+            it_samjna::run(p, i_sup).ok()?;
         } else {
             // senAyE
-            p.op("7.3.113", |p| op::insert_agama_before(p, i, "yAw"));
-            it_samjna::run(p, i).ok()?;
+            p.op("7.3.113", |p| op::insert_agama_before(p, i_sup, "yAw"));
+            it_samjna::run(p, i_sup).ok()?;
         }
     }
 
@@ -240,7 +244,7 @@ fn try_ni_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
             } else if it_ut && anga.has_tag(T::Ghi) {
                 p.set(i_anga, |t| t.set_antya("a"));
                 op::adesha("7.3.119", p, i, "O");
-            } else if it_ut && anga.has_antya('a') {
+            } else {
                 op::adesha("7.3.118", p, i, "O");
             }
         } else if nadi_nyap {
@@ -280,7 +284,7 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
         op::adesha("7.1.20", p, i_sup, "Si");
     } else if anga.has_text("azwA") && anga.has_u("azwan") && is_jas_shas {
         op::adesha("7.1.21", p, i_sup, "OS");
-    } else if anga.has_text("zaz") && is_jas_shas {
+    } else if anga.has_tag(T::Sat) && is_jas_shas {
         p.op_term("7.1.22", i_sup, op::luk);
     } else if is_napumsaka && sup.has_u_in(&["su~", "am"]) {
         try_napumsaka_su_am_adesha(p, i_anga, i_sup);
@@ -293,8 +297,6 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
     if sup.has_u("Si") {
         p.op_term("1.1.42", i_sup, op::add_tag(T::Sarvanamasthana));
     }
-    // For correct "bha"-samjna after 1.1.42 and various lopas.
-    samjna::try_run_for_pada(p);
 
     // This might cause "A --> nA" which blocks num-Agama.
     try_taa_adesha(p, i_anga, i_sup);
@@ -303,16 +305,15 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
 }
 
 /// (7.1.19 - 7.1.32)
-pub fn run_remainder(p: &mut Prakriya) -> Option<()> {
+pub fn run_after_bhasya(p: &mut Prakriya) -> Option<()> {
     let i_anga = p.find_last(T::Pratipadika)?;
     let i_sup = i_anga + 1;
 
+    try_yusmad_asmad_sup_adesha(p, i_anga);
     try_sarvanamasthane_asambuddhau(p, i_anga, i_sup);
     try_ni_adesha(p, i_anga, i_sup);
     try_pratipadika_guna(p, i_anga, i_sup);
-    try_add_nit_agamas(p, i_anga, i_sup);
-
-    try_yusmad_asmad_sup_adesha(p, i_anga);
+    try_add_nit_agamas(p, i_anga);
 
     Some(())
 }

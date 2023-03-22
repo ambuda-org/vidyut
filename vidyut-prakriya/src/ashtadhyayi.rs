@@ -8,7 +8,8 @@ use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
-    Dhatu, KrdantaArgs, Krt, Lakara, Pratipadika, Prayoga, Sanadi, SubantaArgs, TinantaArgs,
+    Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, Sanadi, SubantaArgs,
+    TaddhitantaArgs, TinantaArgs,
 };
 use crate::atidesha;
 use crate::atmanepada;
@@ -18,13 +19,16 @@ use crate::errors::*;
 use crate::it_agama;
 use crate::krt_pratyaya;
 use crate::la_karya;
+use crate::linganushasanam;
 use crate::prakriya::Prakriya;
 use crate::prakriya_stack::PrakriyaStack;
 use crate::pratipadika_karya;
 use crate::samjna;
 use crate::samprasarana;
 use crate::sanadi;
+use crate::stritva;
 use crate::sup_karya;
+use crate::taddhita_pratyaya;
 use crate::tag::Tag;
 use crate::tin_pratyaya;
 use crate::tripadi;
@@ -41,6 +45,7 @@ fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<(
 
     if dhatu.sanadi() == &[Sanadi::San] || dhatu.sanadi() == &[Sanadi::Yan] {
         samjna::run(p);
+        ardhadhatuka::run_before_vikarana(p, None, true);
         run_various_dhatu_tasks(p);
         angasya::run_remainder(p);
         dvitva::run(p);
@@ -192,7 +197,11 @@ fn derive_subanta(
 ) -> Result<Prakriya> {
     let p = &mut prakriya;
 
-    pratipadika_karya::run(p, pratipadika, args);
+    // Prepare pratipadika
+    pratipadika_karya::run(p, pratipadika, args.linga());
+    stritva::run(p);
+
+    // Create subanta
     sup_karya::run(p, args);
     samjna::run(p);
     finish_prakriya(p);
@@ -212,13 +221,39 @@ fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> 
         return Err(Error::Abort(prakriya));
     }
 
+    linganushasanam::run(p);
+    stritva::run(p);
     samjna::run(p);
 
     try_add_vikaranas(p, None, true)?;
     run_various_dhatu_tasks(p);
-
     dvitva::run(p);
     samprasarana::run_for_abhyasa(p);
+    finish_prakriya(p);
+
+    Ok(prakriya)
+}
+
+fn derive_taddhitanta(
+    mut prakriya: Prakriya,
+    pratipadika: &Pratipadika,
+    args: &TaddhitantaArgs,
+) -> Result<Prakriya> {
+    let taddhita = args.taddhita();
+    let p = &mut prakriya;
+
+    pratipadika_karya::run(p, pratipadika, Linga::Pum);
+    samjna::run(p);
+
+    let added = taddhita_pratyaya::run(p, taddhita);
+    if !added {
+        return Err(Error::Abort(prakriya));
+    }
+
+    linganushasanam::run(p);
+    stritva::run(p);
+    samjna::run(p);
+    angasya::try_pratyaya_adesha(p);
     finish_prakriya(p);
 
     Ok(prakriya)
@@ -359,6 +394,18 @@ impl Ashtadhyayi {
     pub fn derive_krdantas(&self, dhatu: &Dhatu, args: &KrdantaArgs) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
         stack.find_all(|p| derive_krdanta(p, dhatu, args), self.log_steps);
+        stack.prakriyas()
+    }
+
+    /// Returns all possible taddhitanta prakriyas that can be derived with the given initial
+    /// conditions.
+    pub fn derive_taddhitantas(
+        &self,
+        pratipadika: &Pratipadika,
+        args: &TaddhitantaArgs,
+    ) -> Vec<Prakriya> {
+        let mut stack = PrakriyaStack::new();
+        stack.find_all(|p| derive_taddhitanta(p, pratipadika, args), self.log_steps);
         stack.prakriyas()
     }
 }

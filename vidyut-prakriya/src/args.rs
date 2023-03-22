@@ -14,9 +14,11 @@ mod macros;
 mod dhatu;
 mod krt;
 mod sup;
+mod taddhita;
 mod tin;
 
 pub use dhatu::*;
 pub use krt::*;
 pub use sup::*;
+pub use taddhita::*;
 pub use tin::*;

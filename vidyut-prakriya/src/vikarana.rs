@@ -535,8 +535,7 @@ fn maybe_sic_lopa_for_tanadi_atmanepada(
 
 /// For certain roots && gaNas, delete the vikaraNa.
 /// (2.4.72 - 2.4.82)
-fn vikarana_lopa(p: &mut Prakriya) -> Option<()> {
-    // TODO: extend this to other pratyayas -- should properly be called `pratyaya_lopa`
+fn try_pratyaya_lopa(p: &mut Prakriya) -> Option<()> {
     let i_dhatu = p.find_last(T::Dhatu)?;
     let i_vikarana = i_dhatu + 1;
     let i_tin = i_vikarana + 1;
@@ -587,7 +586,7 @@ pub fn run(p: &mut Prakriya) -> Result<()> {
     }
 
     if let Some(i_vikarana) = p.find_first(T::Vikarana) {
-        vikarana_lopa(p);
+        try_pratyaya_lopa(p);
         // Run it-samjna-prakarana only after the lopa phase is complete.
         if p.has(i_vikarana, |t| !t.text.is_empty()) {
             it_samjna::run(p, i_vikarana)?;

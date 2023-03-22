@@ -27,6 +27,7 @@ use lazy_static::lazy_static;
 lazy_static! {
     // The name has two Is for readability.
     static ref LAGHU: Set = Set::from("aiufx");
+    static ref AA: Set = s("a");
     static ref II: Set = s("i");
     static ref UU: Set = s("u");
     static ref I_U: Set = s("i u");
@@ -501,7 +502,7 @@ fn try_antya_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if anga.has_text("gam") && n.has_u("kvip") {
         // TODO: other kvi-pratyayas?
         p.op_term("6.4.40", i, op::antya(""));
-    } else if anga.has_text_in(&["jan", "san", "Kan"]) {
+    } else if anga.has_u_in(&["jana~", "janI~\\", "zaRu~^", "Kanu~^"]) {
         if n.has_adi('y') {
             // sanyAt, sAyAt
             // "janeḥ śyani 'jñājanorjā' (7.3.79) iti nityaṃ jādeśo bhavati."
@@ -520,16 +521,24 @@ fn try_antya_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
         if !used {
             p.op_optional("6.4.45.a", op::t(i, op::antya("A")));
         }
-    } else if (is_anudatta || is_tanadi || anga.has_text("van")) && jhali_kniti {
-        // General case
-        //
-        if n.has_u("lyap") {
-            p.op_optional("6.4.38", op::t(i, op::antya("")));
-        } else if n.has_u("ktic") {
-            // TODO: also prevent 6.4.15;
-            p.step("6.4.39");
-        } else {
-            p.op_term("6.4.37", i, op::antya(""));
+    } else if is_anudatta || is_tanadi || anga.has_text("van") {
+        if jhali_kniti {
+            // General case
+            if n.has_u("ktic") {
+                // TODO: also prevent 6.4.15;
+                p.step("6.4.39");
+            } else {
+                p.op_term("6.4.37", i, op::antya(""));
+            }
+        } else if n.has_u("lyap") {
+            // vyavasthita-vibhasha -- optional only if ends in m.
+            // TODO: why?
+            let code = "6.4.38";
+            if anga.has_antya('m') {
+                p.op_optional(code, op::t(i, op::antya("")));
+            } else {
+                p.op_term(code, i, op::antya(""));
+            }
         }
     }
 
@@ -683,7 +692,6 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
             p.step("6.4.85");
         } else {
             p.op_term("6.4.82", i, op::antya("y"));
-            p.debug(format!("{:?}", p.terms()));
         }
     } else if anga.has_antya(&*UU)
         && anga.is_dhatu()
@@ -779,7 +787,7 @@ fn try_kr_rule(p: &mut Prakriya, i: usize) -> Option<()> {
 
 /// Runs rules in the "bhasya" section.
 ///
-/// (6.4.134 - 6.4.175)
+/// (6.4.129 - 6.4.175)
 pub fn bhasya(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last(T::Bha)?;
 
@@ -814,6 +822,37 @@ pub fn bhasya(p: &mut Prakriya) -> Option<()> {
     let bha = p.get(i)?;
     if bha.has_antya('A') && bha.is_dhatu() {
         p.op_term("6.4.140", i, op::antya(""));
+    }
+
+    let bha = p.get(i)?;
+    let next = p.get(i + 1)?;
+    let taddhita = next.is_taddhita();
+    if bha.has_antya('n') && taddhita {
+        if bha.has_text("ahan") {
+            if next.has_u_in(&["wac", "KA"]) {
+                p.op_term("6.4.145", i, op::ti(""));
+            }
+        } else {
+            p.op_term("6.4.144", i, op::ti(""));
+        }
+    } else if bha.has_antya(&*UU) && taddhita {
+        if next.has_tag(T::Qit) && !bha.has_text("kadrU") {
+            p.op_term("6.4.147", i, |t| t.set_antya(""));
+        } else {
+            p.op_term("6.4.146", i, |t| t.set_antya("o"));
+        }
+    } else if (bha.has_antya(&*AA) || bha.has_antya(&*II)) && (taddhita || next.has_adi('I')) {
+        if next.has_u("SI") {
+            // Pale, ...
+            p.step("6.4.148.v1");
+        } else if bha.has_text_in(&["sUrya", "tizya", "agastya", "matsya"]) {
+            p.op_term("6.4.149", i, |t| {
+                t.set_antya("");
+                t.set_antya("");
+            });
+        } else {
+            p.op_term("6.4.148", i, |t| t.set_antya(""));
+        }
     }
 
     Some(())

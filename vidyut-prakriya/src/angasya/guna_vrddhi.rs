@@ -39,18 +39,25 @@ fn can_use_guna_or_vrddhi(anga: &Term, n: &TermView) -> bool {
     // Otherwise, 1.1.3 iko guNavRddhI
 }
 
-/// Tries rules that replace an anga's vowel with its corresponding vrddhi.
-///
-/// Example: kf + i + ta -> kArita
-fn try_vrddhi_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
-    let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagGunaApavada))?;
-    let i_n = p.find_next_where(i, |t| !t.is_empty())?;
-    let n = p.view(i_n)?;
+fn try_taddhita_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
+    let anga = p.get(i)?;
+    let n = p.get_if(i + 1, |t| t.is_taddhita())?;
 
-    if dhatu.has_text("mfj") && !n.is_knit() {
-        p.op_term("7.2.114", i, op::text("mArj"));
+    let rule = if n.has_tag_in(&[T::Yit, T::Rit]) {
+        Some("7.2.117")
+    } else if n.has_tag(T::kit) {
+        Some("7.2.118")
     } else {
-        try_nnit_vrddhi(p, i);
+        None
+    };
+
+    if let Some(rule) = rule {
+        let adi_ac = anga.text.find(al::is_ac)?;
+        let ac = anga.get_at(adi_ac)?;
+        let vrddhi = al::to_vrddhi(ac)?;
+        p.op_term(rule, i, |t| {
+            t.set_at(adi_ac, vrddhi);
+        });
     }
 
     Some(())
@@ -106,6 +113,25 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if anga.has_upadha('a') {
         // pAcayati
         p.op_term("7.2.116", i, op::upadha("A"));
+    }
+
+    Some(())
+}
+
+/// Tries rules that replace an anga's vowel with its corresponding vrddhi.
+///
+/// Example: kf + i + ta -> kArita
+fn try_vrddhi_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
+    let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagGunaApavada))?;
+    let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+    let n = p.view(i_n)?;
+
+    if dhatu.has_text("mfj") && !n.is_knit() {
+        p.op_term("7.2.114", i, op::text("mArj"));
+    } else if n.first()?.is_taddhita() {
+        try_taddhita_vrddhi(p, i);
+    } else {
+        try_nnit_vrddhi(p, i);
     }
 
     Some(())
@@ -286,7 +312,6 @@ fn run_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) {
-    p.debug("guna-vrddhi");
     for i in 0..p.terms().len() {
         run_for_index(p, i);
     }

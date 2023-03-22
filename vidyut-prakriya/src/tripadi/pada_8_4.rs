@@ -21,6 +21,8 @@ lazy_static! {
     static ref JHASH: Set = s("JaS");
     static ref KHAR: Set = s("Kar");
     static ref YAM: Set = s("yam");
+    static ref YAR: Set = s("yar");
+    static ref ANUNASIKA: Set = s("Yam");
     static ref JHAL_TO_CAR: Map = map("Jal", "car");
     static ref JHAL_TO_JASH: Map = map("Jal", "jaS");
     static ref JHAL_TO_JASH_CAR: Map = map("Jal", "jaS car");
@@ -41,6 +43,8 @@ fn find_natva_spans(text: &str) -> Vec<(usize, usize)> {
                 ret.push((i_rasha, i));
             }
             i_rasha = None;
+        } else if c == '~' {
+            // Ignore nasal vowel markings.
         } else if !AT_KU_PU_M.contains(c) {
             // By 8.4.2, reset if we see a sound that is not in at-ku-pu-AN-num.
             i_rasha = None;
@@ -74,7 +78,17 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
     let x = cp.p.get(i_x)?;
     let y = cp.p.get(i_y)?;
 
-    if x.has_tag(T::Upasarga) {
+    if i_x != i_y && x.is_pada() && x.has_antya('z') {
+        // nizpAna, ...
+        cp.p.step("8.4.35");
+    } else if y.has_u("Ra\\Sa~") && (y.has_antya('z') || y.has_antya('k')) {
+        // pranazwa, ...
+        cp.p.step("8.4.36");
+    } else if i_n == cp.text.len() - 1 {
+        // akurvan, caran, ...
+        cp.p.step("8.4.37");
+    } else if x.has_tag(T::Upasarga) && !y.is_pratyaya() {
+        // Check !is_pratyaya to allow nirvAna -> nirvARa
         const GAD_ADI: &[(&str, Gana)] = &[
             ("gada~", Gana::Bhvadi),
             ("Rada~", Gana::Bhvadi),
@@ -117,7 +131,7 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             cp.set_at(i_n, "R");
             cp.p.step("8.4.16");
         } else if y.has_u("ni") {
-            if dhatu_in(dhatu, GAD_ADI) {
+            if dhatu_in(dhatu, GAD_ADI) || dhatu.has_tag(T::Ghu) {
                 cp.set_at(i_n, "R");
                 cp.p.step("8.4.17");
             } else if !(dhatu.has_adi('k') || dhatu.has_adi('K') || dhatu.has_tag(T::FlagShanta)) {
@@ -134,12 +148,6 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
                 cp.p.op_term("8.4.21", i_dhatu, |t| t.set_adi("R"));
             }
         }
-    } else if i_x != i_y && x.is_pada() && x.has_antya('z') {
-        // nizpAna, ...
-        cp.p.step("8.4.35");
-    } else if i_n == cp.text.len() - 1 {
-        // akurvan, caran, ...
-        cp.p.step("8.4.37");
     } else {
         // TODO: track loctaion of rzfF for better rule logging.
         set_at(cp.p, i_n, "R");
@@ -273,6 +281,21 @@ fn try_dha_lopa(p: &mut Prakriya) -> Option<()> {
         }
     }
 
+    Some(())
+}
+
+fn try_to_anunasika(p: &mut Prakriya) -> Option<()> {
+    for i in 0..p.terms().len() {
+        let x = p.get(i)?;
+        let y = p.get(i + 1)?;
+        if x.is_pada() && x.has_antya(&*YAR) && y.has_adi(&*ANUNASIKA) {
+            // For now, apply the rule to just these sounds.
+            if x.has_antya('d') || x.has_antya('t') {
+                // By convention, this rule is always applied in classical Sanskrit.
+                p.op_term("8.4.45", i, |t| t.set_antya("n"));
+            }
+        }
+    }
     Some(())
 }
 
@@ -420,6 +443,7 @@ pub fn run(p: &mut Prakriya) {
     run_natva_rules(p);
     try_change_stu_to_parasavarna(p);
     try_dha_lopa(p);
+    try_to_anunasika(p);
     try_jhal_adesha(p);
     try_to_savarna(p);
 }

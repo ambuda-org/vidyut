@@ -216,18 +216,32 @@ impl Term {
     pub fn is_pada(&self) -> bool {
         // TODO: create and use `T::Pada` instead.
         // TODO: avoid `Upasarga` hack.
-        self.has_tag_in(&[Tag::Tin, Tag::Sup, Tag::Upasarga])
+        self.has_tag_in(&[Tag::Pada, Tag::Tin, Tag::Sup, Tag::Upasarga])
     }
 
     /// Returns whether the term has the `Pratyaya` samjna.
     pub fn is_pratyaya(&self) -> bool {
-        // TODO: create and use `T::Pada` instead.
         self.has_tag(Tag::Pratyaya)
+    }
+
+    /// Returns whether the term has the `Sup` samjna.
+    pub fn is_sup(&self) -> bool {
+        self.has_tag(Tag::Sup)
     }
 
     /// Returns whether the term is `Ric` or `RiN`.
     pub fn is_ni_pratyaya(&self) -> bool {
         self.has_u_in(&["Ric", "RiN"])
+    }
+
+    /// Returns whether the term has the `Krt` samjna.
+    pub fn is_krt(&self) -> bool {
+        self.has_tag(Tag::Krt)
+    }
+
+    /// Returns whether the term has the `Taddhita` samjna.
+    pub fn is_taddhita(&self) -> bool {
+        self.has_tag(Tag::Taddhita)
     }
 
     /// Returns whether the term has the `Dhatu` samjna.

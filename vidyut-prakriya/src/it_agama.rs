@@ -63,7 +63,7 @@ fn is_ever_vet(anga: &Term) -> bool {
     // > vakṣyati svaratisūtisūyatidhūñūdito vā 7.2.44। vidhūtaḥ। vidhūtavān। guhū gūḍhaḥ। gūḍhavān।
     // > udito vā vṛdhu vṛddhaḥ।
     // -- Kashikavrtti on 7.2.15.
-    is_generally_vet(anga) || anga.has_tag(T::udit)
+    is_generally_vet(anga) || anga.has_tag(T::udit) || anga.has_u_in(gana::RADH_ADI)
 }
 
 /// A wrapper for `Prakriya` that allows at most one it-Agama rule to be added to the derivation.
@@ -99,13 +99,18 @@ impl<'a> ItPrakriya<'a> {
     }
 
     /// Optionally inserts it-Agama at index i.
-    fn optional_set(&mut self, rule: Rule, i: usize) {
+    /// Returns whether the rule was applied.
+    fn optional_set(&mut self, rule: Rule, i: usize) -> bool {
         if !self.added {
             if self.p.is_allowed(rule) {
                 self.set(rule, i);
+                true
             } else {
                 self.p.decline(rule);
+                false
             }
+        } else {
+            false
         }
     }
 
@@ -212,7 +217,14 @@ fn try_it_rules_for_san(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         // didevizati, dudyUzati;
         // ardiDizati, Irtsati;
         // biBrajjizati, biBrakzati, biBarjjizati, biBarkzati
-        wrap.optional_set("7.2.49", i_n);
+        if !wrap.optional_set("7.2.49", i_n) {
+            wrap.anit("7.2.49");
+        }
+    } else if anga.has_u_in(&["tanu~^", "patx~", "daridrA"]) {
+        // titanizati, titaMsati, titAMsati, ...
+        if !wrap.optional_set("7.2.49.v1", i_n) {
+            wrap.anit("7.2.49.v1");
+        }
     }
 
     Some(())
@@ -220,7 +232,7 @@ fn try_it_rules_for_san(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
 
 /// Runs it rules specific to a following ktvA or nisthA pratyaya.
 ///
-/// 7.2.51 - 7.2.56
+/// 7.2.50 - 7.2.56
 fn try_it_rules_for_ktva_and_nistha(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
 
@@ -254,7 +266,7 @@ fn try_it_rules_for_ktva_and_nistha(wrap: &mut ItPrakriya, i: usize) -> Option<(
         wrap.optional_set("7.2.54", i_n);
     } else if ktvi && anga.has_text_in(&["jF", "vrasc"]) {
         // jaritvA, jarItvA, vraScitvA
-        wrap.optional_anit("7.2.55");
+        wrap.set("7.2.55", i_n);
     } else if ktvi && anga.has_tag(T::udit) {
         // SamitvA, SAntvA, ...
         wrap.optional_anit("7.2.56");
@@ -621,6 +633,10 @@ fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
 }
 
 pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
+    if p.has_tag(T::FlagIttva) {
+        return None;
+    }
+
     // The abhyasa might come second, so match on it specifically.
     let mut wrap = ItPrakriya::new(p);
     let n = wrap.p.terms().len();
@@ -636,10 +652,15 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
         try_lengthen_it_agama(p, i);
     }
 
+    p.add_tag(T::FlagIttva);
     Some(())
 }
 
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
+    if p.has_tag(T::FlagIttva) {
+        return None;
+    }
+
     if p.find_last_where(|t| t.is_it_agama()).is_some() {
         return None;
     }
@@ -659,5 +680,6 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
         }
     }
 
+    p.add_tag(T::FlagIttva);
     Some(())
 }

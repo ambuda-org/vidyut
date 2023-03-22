@@ -22,6 +22,11 @@ lazy_static! {
 /// > 6.1.50 minātiminotidīṅāṃ lyapi ca
 /// > 6.1.51 vibhāṣā līyateḥ
 fn will_cause_guna(n: &TermView) -> bool {
+    let first = n.first().expect("ok");
+    if first.is_knit() && !first.has_u("lyap") {
+        return false;
+    }
+
     let is_apit = !n.has_tag(T::pit);
     !(
         // Parasmaipada Ashir-liN will use yAsuT-Agama, which is kit.
@@ -99,7 +104,7 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         }
         // Skip 2.4.39 (bahulaM chandasi).
     } else if dhatu.has_u("ve\\Y") && n.has_lakshana("li~w") {
-        p.op_optional("2.4.41", |p| op::upadesha(p, i, "vayi~"));
+        op::optional_adesha("2.4.41", p, i, "vayi~");
     } else if dhatu.has_text("han") {
         if n.has_lakshana("li~N") {
             // vaDyAt

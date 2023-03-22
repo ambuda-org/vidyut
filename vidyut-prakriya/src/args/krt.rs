@@ -36,6 +36,8 @@ pub enum Krt {
     ani,
     /// -anIya (gamanIya, BavanIya, ...)
     anIyar,
+    /// -a
+    ap,
     /// -Alu
     Aluc,
     /// -Aru
@@ -88,6 +90,8 @@ pub enum Krt {
     kruka,
     /// -luka (BIluka)
     klukan,
+    /// -van
+    kvanip,
     /// -vara
     kvarap,
     /// -vas
@@ -143,13 +147,15 @@ pub enum Krt {
     /// -Taka (gATaka)
     Takan,
     /// -Tu (vepaTu). Allowed only for dhatus that are `qvit`.
-    Tuc,
+    aTuc,
     /// -na
     naN,
     /// -naj
     najiN,
     /// -na (svapna)
     nan,
+    /// -man
+    manin,
     /// -a
     Sa,
     /// -at (gacCat, Bavat, ...)
@@ -170,6 +176,8 @@ pub enum Krt {
     lyu,
     /// -ana
     lyuw,
+    /// -van
+    vanip,
     /// -vaca
     varac,
     /// -aka
@@ -192,6 +200,7 @@ enum_boilerplate!(Krt, {
     atfn => "atf~n",
     ani => "ani",
     anIyar => "anIyar",
+    ap => "ap",
     Aluc => "Aluc",
     Aru => "Aru",
     itra => "itra",
@@ -219,6 +228,7 @@ enum_boilerplate!(Krt, {
     kru => "kru",
     kruka => "kruka",
     klukan => "klukan",
+    kvanip => "kvani~p",
     kvarap => "kvarap",
     kvasu => "kvasu~",
     kvin => "kvi~n",
@@ -236,7 +246,7 @@ enum_boilerplate!(Krt, {
     Ramul => "Ramu~l",
     Rini => "Rini~",
     Ryat => "Ryat",
-    Ryuw => "Ryuw",
+    Ryuw => "Ryu~w",
     Rvuc => "Rvu~c",
     Rvul => "Rvu~l",
     tavya => "tavya",
@@ -245,10 +255,11 @@ enum_boilerplate!(Krt, {
     tfc => "tfc",
     tfn => "tfn",
     Takan => "Takan",
-    Tuc => "Tuc",
+    aTuc => "aTuc",
     naN => "naN",
     najiN => "naji~N",
     nan => "nan",
+    manin => "mani~n",
     Sa => "Sa",
     Satf => "Satf~",
     SAnac => "SAnac",
@@ -259,6 +270,7 @@ enum_boilerplate!(Krt, {
     ru => "ru",
     lyu => "lyu~",
     lyuw => "lyu~w",
+    vanip => "vani~p",
     varac => "varac",
     vuY => "vu~Y",
     vun => "vu~n",

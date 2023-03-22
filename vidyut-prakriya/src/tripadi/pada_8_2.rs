@@ -35,14 +35,11 @@ lazy_static! {
 /// (8.2.7 - 8.2.8)
 fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
     let i_prati = p.find_last(T::Pratipadika)?;
-    let i_sup = p.find_next_where(i_prati, |t| t.has_tag(T::Sup))?;
+    let sup = p.view(i_prati + 1)?;
 
     let prati = p.get(i_prati)?;
-    let sup = p.get(i_sup)?;
 
-    let is_pada = prati.has_tag(T::Pada) || sup.is_empty();
-
-    // TODO: check for `pada` properly
+    let is_pada = prati.is_pada() || sup.is_empty();
     if prati.has_antya('n') && is_pada {
         let mut blocked = false;
         if sup.has_tag(T::Sambuddhi) || sup.has_u("Ni") {
@@ -88,7 +85,7 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
         } else if x.has_u("gF") {
             if y.has_u("yaN") {
                 p.op("8.2.20", op::t(i, do_ra_la));
-            } else if x.has_gana_int(6) && y.has_adi(&*AC) {
+            } else if x.has_gana(Gana::Tudadi) && y.has_adi(&*AC) {
                 // TODO: why only gana 6?
                 p.op_optional("8.2.21", op::t(i, do_ra_la));
             }
@@ -300,7 +297,7 @@ fn iter_terms(p: &mut Prakriya, func: impl Fn(&mut Prakriya, usize) -> Option<()
 }
 
 fn try_ch_to_s(p: &mut Prakriya) {
-    let vrascha = &[
+    const VRASC_ADI: &[&str] = &[
         "o~vrascU~",
         "Bra\\sja~^",
         "sf\\ja~\\",
@@ -313,7 +310,7 @@ fn try_ch_to_s(p: &mut Prakriya) {
 
     iter_terms(p, |p, i| {
         let x = p.get(i)?;
-        if !(x.has_u_in(vrascha) || x.has_antya('C') || x.has_antya('S')) {
+        if !(x.has_u_in(VRASC_ADI) || x.has_antya('C') || x.has_antya('S')) {
             return None;
         }
 
@@ -333,7 +330,10 @@ fn try_ch_to_s(p: &mut Prakriya) {
             p.op_term("8.2.36", i, |t| {
                 t.text.replace_range(n.., "z");
             });
-        } else {
+        } else if !x.has_antya('k') {
+            // HACK: check for explicit k to avoid errors with `yaj -> yiyakza -> yiyakzati`. The
+            // more principled fix might be to disable the tripAdi for the dhAtu after the first
+            // round, but that will require extensive updates elsewhere.
             p.op_term("8.2.36", i, op::antya("z"));
         }
 
@@ -648,20 +648,70 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
+/// (8.2.80)
+fn try_rules_for_adas(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_last(T::Pratipadika)?;
+    let adas = p.get_if(i, |t| t.has_u("adas"))?;
+    let sup = p.terms().last()?;
+
+    // "s" becomes "ru~" above, so check for "ru~" instead of final "s".
+    if !adas.has_antya('~') {
+        if (adas.has_antya('e') || sup.has_adi('e')) && sup.has_tag(T::Bahuvacana) {
+            p.op("8.2.81", |p| {
+                let t = p.get_mut(i).expect("ok");
+                t.find_and_replace_text("d", "m");
+                if t.has_antya('e') {
+                    t.set_antya("I")
+                } else {
+                    p.set(i + 1, |t| t.set_adi("I"));
+                }
+            });
+        } else if adas.text.contains('d') {
+            p.op("8.2.80", |p| {
+                let t = p.get_mut(i).expect("ok");
+                if t.has_antya('d') {
+                    t.set_antya("m");
+                } else {
+                    t.set_upadha("m");
+                }
+                if t.has_antya('a') {
+                    t.set_antya("u")
+                } else if t.has_antya(&*AC) {
+                    t.set_antya("U")
+                } else {
+                    // amU
+                    p.set(i + 1, |t| t.set_adi("U"));
+                }
+            });
+        }
+    }
+    Some(())
+}
+
 pub fn run(p: &mut Prakriya) {
-    try_na_lopa(p); // 8.2.7 - 8.2.8
-    try_change_r_to_l(p); // 8.2.18 - 8.2.21
-    try_lopa_of_samyoganta_and_s(p); // 8.2.23 - 8.2.29
-                                     //
-    try_ha_adesha(p); // 8.2.31 - 8.2.35
-    try_ch_to_s(p); // 8.2.36
-    per_term_1a(p); // 8.2.30 -- general rule for ha and ch_s
-    per_term_1b(p); // 8.2.37 - 8.2.39
+    // 8.2.7 - 8.2.8
+    try_na_lopa(p);
+    // 8.2.18 - 8.2.21
+    try_change_r_to_l(p);
+    // 8.2.23 - 8.2.29
+    try_lopa_of_samyoganta_and_s(p);
+    // 8.2.31 - 8.2.35
+    try_ha_adesha(p);
+    // 8.2.36
+    try_ch_to_s(p);
+    // 8.2.30 -- general rule for ha and ch_s
+    per_term_1a(p);
+    // 8.2.37 - 8.2.39
+    per_term_1b(p);
 
     run_misc_rules_1(p);
     run_rules_for_nistha_t(p);
     run_misc_rules_2(p);
 
-    try_add_final_r(p); // 8.2.66 -- 8.2.75
-    try_lengthen_dhatu_vowel(p); // 8.2.77 - 8.2.79
+    // 8.2.66 -- 8.2.75
+    try_add_final_r(p);
+    // 8.2.77 - 8.2.79
+    try_lengthen_dhatu_vowel(p);
+    // 8.2.80 -
+    try_rules_for_adas(p);
 }

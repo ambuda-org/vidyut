@@ -8,6 +8,10 @@ pub const SARVA_ADI: &[&str] = &[
     "Bavatu~", "kim",
 ];
 
+pub const LAUKIKA_SAMJNA: &[&str] = &[
+    "eka", "dvi", "tri", "catur", "paYcan", "zaz", "saptan", "azwan", "navan", "daSan",
+];
+
 pub const TYAD_ADI: &[&str] = &["tyad", "tad", "yad", "etad", "idam", "adas", "eka", "dvi"];
 
 #[allow(unused)]
@@ -18,8 +22,7 @@ pub const USES_DATARA_DATAMA: &[&str] = &[
 #[allow(unused)]
 pub const PRATHAMA_ADI: &[&str] = &[
     "praTama", "carama", // "taya",
-    "alpa", "arDa", "katipaya",
-    // "nema",
+    "alpa", "arDa", "katipaya", "nema",
 ];
 
 pub const PURVA_ADI: &[&str] = &[
