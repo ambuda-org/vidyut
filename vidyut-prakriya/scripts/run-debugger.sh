@@ -8,9 +8,10 @@ then
 fi
 
 # `cargo` uses the debug build by default, but `wasm-pack` uses the release
-# build by default instead. Creating this release build is slow, so instead
-# explicitly use the debug build by passing the `--debug` flag.
-wasm-pack build --target web --debug
+# build by default instead. Creating this release build is slow, but the debug
+# build seems to have issues with enum parsing. So, stick with the release
+# build.
+wasm-pack build --target web --release
 mkdir -p www/static/wasm && cp pkg/* www/static/wasm
 mkdir -p www/static/data && cp data/* www/static/data
 cd www \

@@ -204,6 +204,8 @@ const App = () => ({
         // Breaks if we clear `activeDhatu` last -- not sure why. So, clear it first.
         this.activeDhatu = null;
         this.tinantas = null;
+        this.sanadi = null;
+        this.prayoga = null;
         this.clearActivePada();
     },
 
@@ -229,7 +231,6 @@ const App = () => ({
         if (this.dhatuFilter !== null) {
             let filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
             let hkFilter = Sanscript.t(this.dhatuFilter, 'hk', 'slp1');
-            console.log('filter is ', filter);
             return this.dhatus.filter(d =>
                 d.code.includes(filter)
                 || d.upadeshaQuery.includes(filter)
