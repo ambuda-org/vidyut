@@ -21,9 +21,9 @@ fn d(u: &str, g: Gana) -> Dhatu {
 fn sk_2308() {
     // Udit dhatus with Tal-pratyaya
     let gupu = d("gupU~", Bhvadi);
-    assert_has_parasmai_tinanta(&[], &gupu, Lit, Madhyama, Eka, &["jugopTa"]);
-    assert_has_parasmai_tinanta(&[], &gupu, Lit, Uttama, Dvi, &["jugupva"]);
-    assert_has_parasmai_tinanta(&[], &gupu, Lit, Uttama, Bahu, &["jugupma"]);
+    assert_has_tinanta(&[], &gupu, Lit, Madhyama, Eka, &["jugopTa"]);
+    assert_has_tinanta(&[], &gupu, Lit, Uttama, Dvi, &["jugupva"]);
+    assert_has_tinanta(&[], &gupu, Lit, Uttama, Bahu, &["jugupma"]);
 }
 
 #[test]

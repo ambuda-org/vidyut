@@ -638,7 +638,6 @@ fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
 }
 
 pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
-    p.dump();
     // The abhyasa might come second, so match on it specifically.
     let mut wrap = ItPrakriya::new(p);
     let n = wrap.p.terms().len();

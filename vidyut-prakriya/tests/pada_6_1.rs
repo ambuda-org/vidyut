@@ -274,15 +274,23 @@ fn sutra_6_1_23() {
 }
 
 #[test]
-fn sutra_6_1_28() {
-    let pyai = d("o~pyAyI~\\", Bhvadi);
-    assert_has_atmane_tinanta(&["AN"], &pyai, Lit, Prathama, Eka, &["Apipye"]);
-    assert_has_atmane_tinanta(&["AN"], &pyai, Lit, Prathama, Dvi, &["ApipyAte"]);
-    assert_has_atmane_tinanta(&["AN"], &pyai, Lit, Prathama, Bahu, &["Apipyire"]);
+fn sutra_6_1_29() {
+    let pyay = d("o~pyAyI~\\", Bhvadi);
+    assert_has_tinanta(&["AN"], &pyay, Lit, Prathama, Eka, &["Apipye"]);
+    assert_has_tinanta(&["AN"], &pyay, Lit, Prathama, Dvi, &["ApipyAte"]);
+    assert_has_tinanta(&["AN"], &pyay, Lit, Prathama, Bahu, &["Apipyire"]);
     // yaNi
-    assert_has_atmane_tinanta(&["AN"], &yan(&pyai), Lat, Prathama, Eka, &["ApepIyate"]);
-    assert_has_atmane_tinanta(&["AN"], &yan(&pyai), Lat, Prathama, Dvi, &["ApepIyete"]);
-    assert_has_atmane_tinanta(&["AN"], &yan(&pyai), Lat, Prathama, Bahu, &["ApepIyante"]);
+    assert_has_tinanta(&["AN"], &yan(&pyay), Lat, Prathama, Eka, &["ApepIyate"]);
+    assert_has_tinanta(&["AN"], &yan(&pyay), Lat, Prathama, Dvi, &["ApepIyete"]);
+    assert_has_tinanta(&["AN"], &yan(&pyay), Lat, Prathama, Bahu, &["ApepIyante"]);
+}
+
+#[test]
+fn sutra_6_1_30() {
+    let svi = d("wuo~Svi", Bhvadi);
+    assert_has_tinanta(&[], &svi, Lit, Prathama, Eka, &["SuSAva", "SiSvAya"]);
+    assert_has_tinanta(&[], &svi, Lit, Prathama, Dvi, &["SuSuvatuH", "SiSviyatuH"]);
+    assert_has_lat(&[], &yan(&svi), &["SoSUyate", "SeSvIyate"]);
 }
 
 #[test]

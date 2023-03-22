@@ -66,7 +66,9 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
 
     let dhatu = p.get(i)?;
     let n = p.view(i_n)?;
-    let is_yan = n.has_u("yaN");
+    let n_is_yan = n.has_u("yaN");
+    let n_is_lit = n.has_lakshana("li~w");
+    let n_will_be_abhyasta = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.op_term(rule, i, |t| {
@@ -89,13 +91,13 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     if dhatu.has_u("Yizva\\pa~") && n.has_u("Ric") && p.has(i_n + 1, |t| t.has_u("caN")) {
         // asUzupat
         do_samprasarana("6.1.18", p, i);
-    } else if dhatu.has_u_in(&["Yizva\\pa~", "syamu~", "vye\\Y"]) && is_yan {
+    } else if dhatu.has_u_in(&["Yizva\\pa~", "syamu~", "vye\\Y"]) && n_is_yan {
         // sozupyate, sesimyate, vevIyate
         do_samprasarana("6.1.19", p, i);
-    } else if dhatu.has_u("vaSa~") && is_yan {
+    } else if dhatu.has_u("vaSa~") && n_is_yan {
         // vAvaSyate (exception to grahi-jyA-...)
         p.step("6.1.20");
-    } else if dhatu.has_u("cAyf~^") && is_yan {
+    } else if dhatu.has_u("cAyf~^") && n_is_yan {
         // cekIyate
         set_text("6.1.21", p, "kI");
     } else if dhatu.has_u("sPAyI~\\") && n.has_tag(T::Nistha) {
@@ -115,6 +117,12 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
         } else {
             optional_set_text(code, p, "pI");
         }
+    } else if dhatu.has_u("o~pyAyI~\\") && (n_is_yan || n_is_lit) {
+        set_text("6.1.29", p, "pI");
+    } else if dhatu.has_text("Svi") && (n_is_yan || n_is_lit) {
+        optional_set_text("6.1.30", p, "Su");
+    } else if dhatu.has_text("hve") && n_will_be_abhyasta {
+        set_text("6.1.33", p, "hu");
     } else if is_ve && n.has_lakshana("li~w") {
         p.step("6.1.40");
     } else if is_ve && n.has_u("lyap") {
@@ -141,20 +149,6 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
                 }
             }
         }
-    }
-
-    let dhatu = p.get(i)?;
-    let n = p.view(i_n)?;
-    let next_is_lit = n.has_lakshana("li~w");
-    let next_is_lit_or_yan = next_is_lit || n.has_u("yaN");
-    let next_will_be_abhyasta = next_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
-
-    if dhatu.has_u("o~pyAyI~\\") && next_is_lit_or_yan {
-        set_text("6.1.29", p, "pI");
-    } else if dhatu.has_text("Svi") && next_is_lit_or_yan {
-        optional_set_text("6.1.30", p, "Su");
-    } else if dhatu.has_text("hve") && next_will_be_abhyasta {
-        set_text("6.1.33", p, "hu");
     }
 
     Some(())
