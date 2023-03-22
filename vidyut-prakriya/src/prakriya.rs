@@ -370,6 +370,7 @@ impl Prakriya {
         });
     }
 
+    #[allow(unused)]
     #[cfg(not(debug_assertions))]
     pub(crate) fn debug(&mut self, _text: impl AsRef<str>) {}
 

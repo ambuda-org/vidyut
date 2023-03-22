@@ -211,9 +211,9 @@ fn try_it_rules_for_san(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
 
     let anga = wrap.p.get(i)?;
     let rdhu_adi = &[
-        "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap", "san",
+        "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap",
     ];
-    if anga.text.ends_with("iv") || anga.has_text_in(rdhu_adi) {
+    if anga.text.ends_with("iv") || anga.has_text_in(rdhu_adi) || anga.has_u_in(&["zaRu~^", "zaRa~"]) {
         // didevizati, dudyUzati;
         // ardiDizati, Irtsati;
         // biBrajjizati, biBrakzati, biBarjjizati, biBarkzati
@@ -341,13 +341,19 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     // These rules are always aniT.
     if anga.has_text_in(&["kf", "sf", "Bf", "vf", "stu", "dru", "sru", "Sru"]) {
         wrap.anit("7.2.13");
-    } else if (anga.has_antya(&*AC) || anga.has_upadha('a')) && n.has_u("Tal") && is_anit_for_tas {
+    } else if (anga.has_antya(&*AC) || anga.text.contains('a')) && n.has_u("Tal") && is_anit_for_tas
+    {
         // Concise summary of rules:
         // - The roots in 7.2.13 are aniT. All others are seT by valAdi (7.2.35).
         // - However, there are the following exceptions for Tal:
         //   - roots ending in `f` (except `f`) are aniT.
         //   - roots ending in a vowel and roots with a middle 'a' are veT.
         //   - other roots listed in rules explicitly (e.g. in 7.2.66)
+        let code = if anga.has_antya(&*AC) {
+            "7.2.61"
+        } else {
+            "7.2.62"
+        };
 
         // The last root is "vyeY" per siddhAntakaumudI.
         if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
@@ -356,15 +362,14 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
             // 7.2.63 Rto bhAradvAjasya
             // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
             // other roots, this condition is optional:
-            let code = "7.2.63";
             if wrap.p.is_allowed(code) {
                 wrap.set(code, i_n);
             } else {
                 wrap.p.decline(code);
-                wrap.anit("7.2.61");
+                wrap.anit(code);
             }
         } else {
-            wrap.anit("7.2.61");
+            wrap.anit(code);
         }
     } else if anga.has_text_in(&["sfj", "dfS"]) && n.has_u("Tal") {
         // By default, these will be seT. So the option allows aniT.
@@ -633,17 +638,23 @@ fn run_before_attva_for_term(wrap: &mut ItPrakriya, i: usize) {
 }
 
 pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
-    if p.has_tag(T::FlagIttva) {
-        return None;
-    }
-
+    p.dump();
     // The abhyasa might come second, so match on it specifically.
     let mut wrap = ItPrakriya::new(p);
     let n = wrap.p.terms().len();
+    debug_assert!(n > 0);
 
-    for i in (0..n).rev() {
+    for i in (0..n-1).rev() {
         let cur = wrap.p.get(i)?;
+
         if cur.has_tag_in(&[T::Dhatu, T::Abhyasa]) {
+            // Mark this term as "done" with it-Agama rules so that we don't try adding it back later
+            // (e.g. for sanAdi-dhAtus).
+            if cur.has_tag(T::FlagIttva) {
+                continue
+            }
+            wrap.p.set(i, |t| t.add_tag(T::FlagIttva));
+
             run_before_attva_for_term(&mut wrap, i);
         }
     }
@@ -652,19 +663,10 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
         try_lengthen_it_agama(p, i);
     }
 
-    p.add_tag(T::FlagIttva);
     Some(())
 }
 
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
-    if p.has_tag(T::FlagIttva) {
-        return None;
-    }
-
-    if p.find_last_where(|t| t.is_it_agama()).is_some() {
-        return None;
-    }
-
     let i = p.find_last(T::Dhatu)?;
     let n = p.get(i + 1)?;
 
@@ -680,6 +682,5 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    p.add_tag(T::FlagIttva);
     Some(())
 }

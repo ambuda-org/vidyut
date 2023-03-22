@@ -754,6 +754,52 @@ fn sutra_7_2_58() {
 }
 
 #[test]
+fn sutra_7_2_61() {
+    // The four dhatus below (yA, ci, ni, hu) are vew per 7.2.63.
+    let yaa = d("yA\\", Adadi);
+    assert_has_krdanta(&[], &yaa, Krt::tfc, &["yAtf"]);
+    assert_has_lit_p_2s(&[], &yaa, &["yayATa", "yayiTa"]);
+
+    let ci = d("ci\\Y", Svadi);
+    assert_has_krdanta(&[], &ci, Krt::tfc, &["cetf"]);
+    assert_has_lit_p_2s(&[], &ci, &["ciceTa", "cicayiTa", "cikeTa", "cikayiTa"]);
+
+    let ni = d("RI\\Y", Bhvadi);
+    assert_has_krdanta(&[], &ni, Krt::tfc, &["netf"]);
+    assert_has_lit_p_2s(&[], &ni, &["nineTa", "ninayiTa"]);
+
+    let hu = d("hu\\", Juhotyadi);
+    assert_has_krdanta(&[], &hu, Krt::tfc, &["hotf"]);
+    assert_has_lit_p_2s(
+        &[],
+        &hu,
+        &[
+            "juhoTa",
+            "juhaviTa",
+            "juhavAYcakarTa",
+            "juhavAmAsiTa",
+            "juhavAmbaBUviTa",
+        ],
+    );
+
+    // acaH
+    let bhid = d("Bi\\di~^r", Rudhadi);
+    assert_has_krdanta(&[], &bhid, Krt::tfc, &["Bettf"]);
+    assert_has_lit_p_2s(&[], &bhid, &["biBediTa"]);
+    // tAsvat
+    let lu = d("lUY", Kryadi);
+    assert_has_krdanta(&[], &lu, Krt::ktvA, &["lUtvA"]);
+    assert_has_lit_p_2s(&[], &lu, &["lulaviTa"]);
+    // Tali
+    assert_has_parasmai_tinanta(&[], &yaa, Lit, Uttama, Dvi, &["yayiva"]);
+    assert_has_parasmai_tinanta(&[], &yaa, Lit, Uttama, Bahu, &["yayima"]);
+    // nityagrahaRam
+    let dhu = d("DUY", Kryadi);
+    assert_has_krdanta(&["vi"], &dhu, Krt::tfc, &["viDotf", "viDavitf"]);
+    assert_has_lit_p_2s(&["vi"], &dhu, &["viduDaviTa"]);
+}
+
+#[test]
 fn sutra_7_2_62() {
     let yaj = d("ya\\ja~^", Bhvadi);
     assert_has_lit_p_2s(&[], &yaj, &["iyazWa", "iyajiTa"]);

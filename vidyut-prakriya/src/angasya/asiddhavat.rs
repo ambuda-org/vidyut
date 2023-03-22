@@ -502,7 +502,7 @@ fn try_antya_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if anga.has_text("gam") && n.has_u("kvip") {
         // TODO: other kvi-pratyayas?
         p.op_term("6.4.40", i, op::antya(""));
-    } else if anga.has_u_in(&["jana~", "janI~\\", "zaRu~^", "Kanu~^"]) {
+    } else if anga.has_u_in(&["jana~", "janI~\\", "zaRa~", "zaRu~^", "Kanu~^"]) {
         if n.has_adi('y') {
             // sanyAt, sAyAt
             // "janeḥ śyani 'jñājanorjā' (7.3.79) iti nityaṃ jādeśo bhavati."
