@@ -78,7 +78,7 @@ tests:
 ```shell
 $ git clone https://github.com/ambuda-org/vidyut.git
 $ cd vidyut
-$ make test
+$ make -j`nproc` test
 ```
 
 Your first build will likely take a few minutes, but future builds will
@@ -87,7 +87,7 @@ be much faster.
 Next, we recommend creating and collecting our rich linguistic data:
 
 ```shell
-$ make create_all_data
+$ make -j`nproc` create_all_data
 ```
 
 This command will take several minutes, but most users will not need to re-run
@@ -157,8 +157,8 @@ Documentation
 -------------
 
 To view documentation for all crates (including private modules and structs),
-run `make docs`. This command will generate Rust's standard documentation and
-open it in your default web browser.
+run `make -j`nproc` docs`. This command will generate Rust's standard
+documentation and open it in your default web browser.
 
 
 Contributing
