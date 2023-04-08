@@ -178,9 +178,10 @@ pub enum Krt {
 
     // unAdi-pratyayas
     // ===============
-
     /// -u (kAru)
     uR,
+    /// -vi (jAgfvi)
+    kvinUnadi,
 }
 
 enum_boilerplate!(Krt, {
@@ -270,6 +271,7 @@ enum_boilerplate!(Krt, {
     // unAdi-pratyayas
     // ===============
     uR => "uR",
+    kvinUnadi => "kvin",
 });
 
 impl Krt {

@@ -17,7 +17,7 @@ use crate::dhatu_karya;
 use crate::dvitva;
 use crate::errors::*;
 use crate::it_agama;
-use crate::krt_pratyaya;
+use crate::krt;
 use crate::la_karya;
 use crate::linganushasanam;
 use crate::prakriya::Prakriya;
@@ -216,7 +216,7 @@ fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> 
     add_dhatu(p, dhatu, krt.is_ardhadhatuka())?;
     maybe_add_lakara_for_krt(p, krt);
 
-    let added = krt_pratyaya::run(p, krt);
+    let added = krt::run(p, krt);
     if !added {
         return Err(Error::Abort(prakriya));
     }

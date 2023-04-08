@@ -1,4 +1,5 @@
 use crate::args::Krt;
+use crate::krt::utils::KrtPrakriya;
 use crate::prakriya::Prakriya;
 use crate::tag::Tag as T;
 
@@ -12,7 +13,11 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
     // Pre-calculate some common properties.
     let _upasarge = prev.map_or(false, |t| t.is_upasarga());
     let _supi = prev.map_or(false, |t| t.has_tag(T::Sup));
-    let dhatu = p.get(i)?;
+
+    // For convenience below, wrap `Prakriya` in a new `KrtPrakriya` type that contains `krt` and
+    // records whether or not any of these rules were applied.
+    let mut wrap = KrtPrakriya::new(p, krt);
+    let dhatu = wrap.get(i)?;
 
     // For convenience below, wrap `Prakriya` in a new `KrtPrakriya` type that contains `krt` and
     // records whether or not any of these rules were applied.
@@ -28,16 +33,20 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 "sA\\Da~",
                 "aSU~\\",
             ]) {
-                p.step("uR.1.1");
+                wrap.try_add("uR.1.1", krt);
             }
-        },
-        K::kvin => {
+        }
+        K::kvinUnadi => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {
-                p.step("uR.4.54");
+                wrap.try_add("uR.4.54", krt);
             }
-        },
+        }
         _ => (),
     }
 
-    Some(true)
+    Some(wrap.has_krt)
+}
+
+pub fn run(p: &mut Prakriya, krt: Krt) -> bool {
+    try_add_unadi(p, krt).unwrap_or(false)
 }

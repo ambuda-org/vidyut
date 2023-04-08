@@ -213,7 +213,10 @@ fn try_it_rules_for_san(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let rdhu_adi = &[
         "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap",
     ];
-    if anga.text.ends_with("iv") || anga.has_text_in(rdhu_adi) || anga.has_u_in(&["zaRu~^", "zaRa~"]) {
+    if anga.text.ends_with("iv")
+        || anga.has_text_in(rdhu_adi)
+        || anga.has_u_in(&["zaRu~^", "zaRa~"])
+    {
         // didevizati, dudyUzati;
         // ardiDizati, Irtsati;
         // biBrajjizati, biBrakzati, biBarjjizati, biBarkzati
@@ -643,14 +646,14 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
     let n = wrap.p.terms().len();
     debug_assert!(n > 0);
 
-    for i in (0..n-1).rev() {
+    for i in (0..n - 1).rev() {
         let cur = wrap.p.get(i)?;
 
         if cur.has_tag_in(&[T::Dhatu, T::Abhyasa]) {
             // Mark this term as "done" with it-Agama rules so that we don't try adding it back later
             // (e.g. for sanAdi-dhAtus).
             if cur.has_tag(T::FlagIttva) {
-                continue
+                continue;
             }
             wrap.p.set(i, |t| t.add_tag(T::FlagIttva));
 

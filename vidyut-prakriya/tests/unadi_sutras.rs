@@ -9,8 +9,8 @@ fn d(u: &str, g: Gana) -> Dhatu {
 
 #[test]
 fn sutra_4_54() {
-    assert_has_krdanta(&[], &d("jF", Kryadi), Krt::kvin, &["jIrvi"]);
-    assert_has_krdanta(&[], &d("SFY", Kryadi), Krt::kvin, &["SIrvi"]);
-    assert_has_krdanta(&[], &d("stFY", Kryadi), Krt::kvin, &["stIrvi"]);
-    assert_has_krdanta(&[], &d("jAgf", Adadi), Krt::kvin, &["jAgfvi"]);
+    assert_has_krdanta(&[], &d("jF", Kryadi), Krt::kvinUnadi, &["jIrvi"]);
+    assert_has_krdanta(&[], &d("SFY", Kryadi), Krt::kvinUnadi, &["SIrvi"]);
+    assert_has_krdanta(&[], &d("stFY", Kryadi), Krt::kvinUnadi, &["stIrvi"]);
+    assert_has_krdanta(&[], &d("jAgf", Adadi), Krt::kvinUnadi, &["jAgfvi"]);
 }
