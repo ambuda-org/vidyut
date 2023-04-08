@@ -7,6 +7,18 @@ fn d(u: &str, g: Gana) -> Dhatu {
     Dhatu::new(u, g)
 }
 
+#[ignore]
+#[test]
+fn sutra_1_5() {
+    // TODO: not sure where to apply r --> l
+    assert_has_krdanta(&[], &d("tF", Bhvadi), Krt::YuR, &["tAlu"]);
+}
+
+#[test]
+fn sutra_1_77() {
+    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::katu, &["kratu"]);
+}
+
 #[test]
 fn sutra_4_54() {
     assert_has_krdanta(&[], &d("jF", Kryadi), Krt::kvinUnadi, &["jIrvi"]);

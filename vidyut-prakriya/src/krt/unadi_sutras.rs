@@ -36,6 +36,18 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 wrap.try_add("uR.1.1", krt);
             }
         }
+        K::YuR => {
+            if dhatu.has_u("tF") {
+                wrap.try_add_with("uR.1.5", krt, |p, i| {
+                    p.set(i, |t| t.set_antya("l"));
+                });
+            }
+        }
+        K::katu => {
+            if dhatu.has_u("qukf\\Y") {
+                wrap.try_add("uR.1.77", krt);
+            }
+        }
         K::kvinUnadi => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {
                 wrap.try_add("uR.4.54", krt);
