@@ -1,11 +1,12 @@
 use crate::args::Krt;
 use crate::krt::utils::KrtPrakriya;
-use crate::prakriya::Prakriya;
+use crate::prakriya::{Prakriya, Rule};
 use crate::tag::Tag as T;
 
 /// A work-in-progress sketch of the uNAdi sutras.
 pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
     use Krt as K;
+    use Rule::Unadi;
 
     let i = p.find_last(T::Dhatu)?;
     let prev = if i > 0 { p.get(i - 1) } else { None };
@@ -33,7 +34,7 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 "sA\\Da~",
                 "aSU~\\",
             ]) {
-                wrap.try_add("uR.1.1", krt);
+                wrap.try_add(Unadi("1.1"), krt);
             }
         }
         K::YuR => {
@@ -45,12 +46,12 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
         K::katu => {
             if dhatu.has_u("qukf\\Y") {
-                wrap.try_add("uR.1.77", krt);
+                wrap.try_add(Unadi("1.77"), krt);
             }
         }
         K::kvinUnadi => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {
-                wrap.try_add("uR.4.54", krt);
+                wrap.try_add(Unadi("4.54"), krt);
             }
         }
         _ => (),

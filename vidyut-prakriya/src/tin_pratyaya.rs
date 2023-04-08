@@ -17,7 +17,7 @@ use crate::args::{Lakara, Purusha, Vacana};
 use crate::errors::*;
 use crate::it_samjna;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::tag::Tag as T;
 use crate::term::Term;
 
@@ -235,12 +235,12 @@ fn maybe_do_lin_siddhi(p: &mut Prakriya, i_tin: usize, la: Lakara) -> Result<()>
     Ok(())
 }
 
-fn yatha(rule: Rule, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
+fn yatha(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
     p.op(rule, |p| op::upadesha_yatha(p, i, old, new));
     it_samjna::run(p, i).ok();
 }
 
-fn yatha_optional(rule: Rule, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
+fn yatha_optional(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
     if p.op_optional(rule, |p| op::upadesha_yatha(p, i, old, new)) {
         it_samjna::run(p, i).ok();
     }

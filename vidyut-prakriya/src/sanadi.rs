@@ -4,7 +4,7 @@ use crate::dhatu_gana as gana;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -20,7 +20,7 @@ const AYADAYA: &[&str] = &[
 ];
 
 /// Adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
-fn add_sanadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
+fn add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
     p.op(rule, |p| {
         let mut pratyaya = Term::make_upadesha(upadesha);
         pratyaya.add_tags(&[T::Pratyaya]);

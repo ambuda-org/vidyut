@@ -8,7 +8,7 @@ use crate::sounds as al;
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
-use crate::Rule;
+use crate::Code;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -124,7 +124,7 @@ fn try_visarjaniyasya(p: &mut Prakriya) {
 /// can mark it on the prakriya.
 ///
 /// (8.3.110 - 8.3.118)
-fn try_get_shatva_niyama(p: &mut Prakriya, i: usize) -> Option<Rule> {
+fn try_get_shatva_niyama(p: &mut Prakriya, i: usize) -> Option<Code> {
     // TODO: 8.3.114, 8.3.119
 
     let t = p.get_if(i, |t| t.has_adi('s'))?;

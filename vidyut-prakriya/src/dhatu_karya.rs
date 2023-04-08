@@ -5,7 +5,7 @@ use crate::dhatu_gana as gana;
 use crate::errors::*;
 use crate::it_samjna;
 use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::prakriya::{Prakriya, Rule};
 use crate::stem_gana::PRA_ADI;
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -30,6 +30,8 @@ fn add_samjnas(p: &mut Prakriya, i: usize) {
 
 /// Applies rules 1.0933 to 1.0940 from the Dhatupatha.
 fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
+    use Rule::Dhatupatha as DP;
+
     let i = p.find_last(T::Dhatu)?;
     let dhatu = p.get(i)?;
     let is_bhvadi = dhatu.has_gana(Gana::Bhvadi);
@@ -40,17 +42,17 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     let mut is_mit_blocked = false;
     if is_bhvadi {
         if dhatu.has_text_in(&["kam", "am", "cam"]) {
-            p.step("DA.01.0937");
+            p.step(DP("01.0937"));
             is_mit_blocked = true;
         } else if dhatu.has_u("Samo~") {
-            is_mit_blocked = p.op_optional("DA.01.0938", |_| {})
+            is_mit_blocked = p.op_optional(DP("01.0938"), |_| {})
         } else if dhatu.has_text("yam") && is_bhvadi {
-            is_mit_blocked = p.op_optional("DA.01.0939", |_| {})
+            is_mit_blocked = p.op_optional(DP("01.0939"), |_| {})
         } else if dhatu.has_u("sKadi~\\r")
             && i > 0
             && p.has(i - 1, |t| t.has_u_in(&["ava", "pari"]))
         {
-            p.step("DA.01.0940");
+            p.step(DP("01.0940"));
             is_mit_blocked = true;
         }
     }
@@ -60,22 +62,24 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     if is_mit_blocked {
         // Do nothing.
     } else if is_bhvadi && dhatu.has_text_in(&["jval", "hval", "hmal", "nam"]) && !has_upasarga {
-        p.op_optional("DA.01.0935", op::t(i, op::add_tag(T::mit)));
+        p.op_optional(DP("01.0935"), op::t(i, op::add_tag(T::mit)));
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
-        p.op_optional("DA.01.0936", op::t(i, op::add_tag(T::mit)));
+        p.op_optional(DP("01.0936"), op::t(i, op::add_tag(T::mit)));
     } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"])
         && dhatu.has_gana(Gana::Divadi))
         || (is_bhvadi && dhatu.ends_with("am"))
     {
-        p.op_term("DA.01.0934", i, op::add_tag(T::mit));
+        p.op_term(DP("01.0934"), i, op::add_tag(T::mit));
     } else if is_bhvadi && dhatu.has_u_in(gana::GHAT_ADI) {
-        p.op_term("DA.01.0933", i, op::add_tag(T::mit));
+        p.op_term(DP("01.0933"), i, op::add_tag(T::mit));
     }
 
     Some(())
 }
 
 fn try_run_divadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
+    use Rule::Dhatupatha as DP;
+
     let i = p.find_last(T::Dhatu)?;
     let dhatu = p.get_if(i, |t| t.has_gana(Gana::Divadi))?;
 
@@ -83,24 +87,26 @@ fn try_run_divadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
         "zUN", "dUN", "dI\\N", "qIN", "DI\\N", "mI\\N", "rI\\N", "lI\\N", "vrI\\N",
     ]) {
         // sUna, dUna, dIna, ...
-        p.op_term("DA.04.0162", i, op::add_tag(T::odit));
+        p.op_term(DP("04.0162"), i, op::add_tag(T::odit));
     }
 
     Some(())
 }
 
 fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
+    use Rule::Dhatupatha as DP;
+
     let dhatu = p.get_if(i, |t| t.has_gana(Gana::Curadi))?;
 
     if dhatu.has_u_in(gana::JNAP_ADI) {
-        p.op_term("DA.10.0493", i, op::add_tag(T::mit));
+        p.op_term(DP("10.0493"), i, op::add_tag(T::mit));
     }
 
     let dhatu = p.get(i)?;
     if dhatu.has_antargana(Antargana::Akusmiya) {
-        p.op("DA.10.0496", |p| p.add_tag(T::Atmanepada));
+        p.op(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
     } else if dhatu.has_u_in(gana::AAGARVIYA) {
-        p.op("DA.10.0497", |p| p.add_tag(T::Atmanepada));
+        p.op(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
     }
 
     Some(())

@@ -27,7 +27,7 @@ use crate::dhatu_gana as gana;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -88,7 +88,7 @@ impl<'a> ItPrakriya<'a> {
     }
 
     /// Inserts it-Agama at index i and prevents further rules.
-    fn set(&mut self, rule: Rule, i: usize) {
+    fn set(&mut self, rule: Code, i: usize) {
         if !self.added {
             let agama = Term::make_agama("iw");
             self.p.insert_before(i, agama);
@@ -100,7 +100,7 @@ impl<'a> ItPrakriya<'a> {
 
     /// Optionally inserts it-Agama at index i.
     /// Returns whether the rule was applied.
-    fn optional_set(&mut self, rule: Rule, i: usize) -> bool {
+    fn optional_set(&mut self, rule: Code, i: usize) -> bool {
         if !self.added {
             if self.p.is_allowed(rule) {
                 self.set(rule, i);
@@ -115,7 +115,7 @@ impl<'a> ItPrakriya<'a> {
     }
 
     // Blocks it-Agama and prevents further rules.
-    fn anit(&mut self, rule: Rule) {
+    fn anit(&mut self, rule: Code) {
         if !self.added {
             self.p.step(rule);
         }
@@ -123,7 +123,7 @@ impl<'a> ItPrakriya<'a> {
     }
 
     // Optionally blocks it-Agama.
-    fn optional_anit(&mut self, rule: Rule) {
+    fn optional_anit(&mut self, rule: Code) {
         if !self.added {
             if self.p.is_allowed(rule) {
                 self.anit(rule);

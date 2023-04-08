@@ -12,7 +12,7 @@ JavaScript callers can use them more idiomatically.
 */
 use crate::args::*;
 use crate::dhatupatha::Dhatupatha;
-use crate::prakriya::{Prakriya, Rule, Step};
+use crate::prakriya::{Code, Prakriya, Step};
 use serde::Serialize;
 extern crate console_error_panic_hook;
 
@@ -22,7 +22,7 @@ use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 /// A lightweight `Step` that exposes fewer private fields.
 #[derive(Serialize)]
 pub struct WebStep {
-    rule: Rule,
+    rule: Code,
     result: String,
 }
 

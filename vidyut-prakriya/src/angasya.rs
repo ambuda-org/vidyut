@@ -25,7 +25,7 @@ use crate::dhatu_gana as gana;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya, Rule};
 use crate::samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set};
@@ -49,7 +49,7 @@ lazy_static! {
     static ref PHA_DHA_KHA_CHA_GHA: Set = s("P Q K C G");
 }
 
-fn maybe_rule(p: &mut Prakriya, rule: Rule) -> Option<Rule> {
+fn maybe_rule(p: &mut Prakriya, rule: Code) -> Option<Code> {
     if p.is_allowed(rule) {
         Some(rule)
     } else {
@@ -387,7 +387,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
         if anga.has_u("sf\\") {
             // sartervegitāyāṃ gatau dhāvādeśam icchanti। anyatra sarati, anusarati
             // ityeva bhavati. (kAzikA)
-            can_run = !p.op_optional("7.3.78.k", |_| {});
+            can_run = !p.op_optional(Rule::Kashika("7.3.78"), |_| {});
         }
         if can_run {
             // pibati, jiGrati, Damati, ...
@@ -1197,7 +1197,6 @@ fn try_ksa_lopa(p: &mut Prakriya) -> Option<()> {
 
     if vikarana.has_u("ksa") {
         if tin.has_adi(&*AC) {
-            p.step("mand");
             p.op_term("7.3.72", i, op::antya(""));
         } else if dhatu.has_text_in(&["duh", "dih", "lih", "guh"])
             && tin.is_atmanepada()

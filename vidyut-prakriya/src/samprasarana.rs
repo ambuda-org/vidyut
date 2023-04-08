@@ -5,7 +5,7 @@ use crate::operators as op;
 /// Order of operations:
 /// - Must follow atidesha so that suffixes have the kit/Nit annotations necessary to cause
 ///   samprasanara.
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::tag::Tag as T;
 use crate::term::Term;
 
@@ -37,7 +37,7 @@ fn is_grahi_jya(t: &Term) -> bool {
 /// Runs a hacky version of samprasarana that runs 6.1.108 (samprasAraNAcca) immediately.
 ///
 /// TODO: properly annotate 6.1.108 and related rules here.
-fn do_samprasarana(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
+fn do_samprasarana(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
     let before = &[
         "vac", "svap", "yaj", "vap", "vah", "vas", "ve", "vye", "hve", "vad", "Svi",
         // grahi-jyA

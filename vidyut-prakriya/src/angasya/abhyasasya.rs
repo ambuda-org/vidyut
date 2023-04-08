@@ -10,7 +10,7 @@ use crate::args::Gana;
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::prakriya::{Prakriya, Rule};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
 use crate::tag::Tag as T;
@@ -268,11 +268,11 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i_dhatu)?;
     let last = p.terms().last()?;
 
-    let add_nut_agama = |rule, p: &mut Prakriya, i: usize| {
+    fn add_nut_agama(rule: impl Into<Rule>, p: &mut Prakriya, i: usize) {
         op::insert_agama_before(p, i, "nu~w");
-        p.step(rule);
+        p.step(rule.into());
         it_samjna::run(p, i).expect("ok");
-    };
+    }
 
     if !last.has_lakshana("li~w") {
         return None;
@@ -286,12 +286,11 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
         //     ṛkāraikadeśo repho halgrahaṇena gṛhyate, tena iha api dvihalo
         //     'ṅgasya nuḍāgamo bhavati. ānṛdhatuḥ, ānṛdhuḥ.
         //
-        // if HAL.contains(dhatu.antya()) && (h
         let dhatu = p.get(i_dhatu)?;
         if dhatu.has_antya(&*HAL) && dhatu.has_upadha(&*F_HAL) {
             // 'A' acepted only by some grammarians
             if dhatu.has_adi('A') {
-                let code = "7.4.71.k";
+                let code = Rule::Kashika("7.4.71.k");
                 if p.is_allowed(code) {
                     add_nut_agama(code, p, i_dhatu);
                 } else {

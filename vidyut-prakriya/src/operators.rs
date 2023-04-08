@@ -132,7 +132,7 @@ pub fn nipatana(sub: &str) -> impl Fn(&mut Prakriya) + '_ {
 }
 
 /// Complex op
-pub fn append_agama(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
+pub fn append_agama(rule: impl Into<Rule>, p: &mut Prakriya, i: usize, sub: &str) {
     let agama = Term::make_agama(sub);
     p.insert_after(i, agama);
     p.step(rule);
@@ -140,7 +140,7 @@ pub fn append_agama(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
 }
 
 /// Complex op
-pub fn adesha(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
+pub fn adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize, sub: &str) {
     if let Some(t) = p.get_mut(i) {
         t.save_lakshana();
         t.set_u(sub);
@@ -150,7 +150,7 @@ pub fn adesha(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
     }
 }
 
-pub fn optional_adesha(rule: Rule, p: &mut Prakriya, i: usize, sub: &str) {
+pub fn optional_adesha(rule: impl Into<Rule> + Copy, p: &mut Prakriya, i: usize, sub: &str) {
     if p.is_allowed(rule) {
         adesha(rule, p, i, sub);
     } else {

@@ -1,6 +1,6 @@
 use crate::filters as f;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::sounds as al;
 use crate::sounds::{s, Set};
 /// Runs rules that perform `dvitva` (doubling) on the dhAtu.
@@ -16,7 +16,7 @@ lazy_static! {
 }
 
 /// Runs dvitva rules for roots that begin with vowels, e.g. UrRu.
-fn try_dvitva_for_ajadi_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
     // Create 3 terms:
     // 1. the dhatu without the abhyasa
     // 2. the abhyasa
@@ -62,7 +62,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Option<
 }
 
 /// Runs dvitva rules for roots that begin with vowels and , e.g. anj + i -> AYjijit
-fn try_dvitva_for_ajadi_ni_dhatu(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_dvitva_for_ajadi_ni_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
     // Example:
     let i_ni = i + 1;
     let dhatu = p.get(i)?;
@@ -139,7 +139,7 @@ fn find_abhyasa_span(text: &CompactString) -> Option<(usize, usize)> {
     }
 }
 
-fn try_dvitva_for_sanadi_ajadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
+fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     let mut text = CompactString::from("");
     for t in p.terms() {
         if t.is_upasarga() {
@@ -180,7 +180,7 @@ fn try_dvitva_for_sanadi_ajadi(rule: Rule, p: &mut Prakriya, i_dhatu: usize) -> 
     Some(())
 }
 
-fn try_dvitva(rule: Rule, p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
     let next = p.view(i + 1)?;
 

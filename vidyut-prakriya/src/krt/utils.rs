@@ -82,14 +82,14 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_add(&mut self, rule: Rule, krt: Krt) -> bool {
+    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: Krt) -> bool {
         self.try_add_with(rule, krt, |_p, _i| {})
     }
 
     /// If there's a match, replace the `lakAra` of the dhatu.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_replace_lakara(&mut self, rule: Rule, i_lakara: usize, krt: Krt) -> bool {
+    pub fn try_replace_lakara(&mut self, rule: impl Into<Rule>, i_lakara: usize, krt: Krt) -> bool {
         self.tried = true;
         if self.krt == krt && !self.has_krt {
             op::adesha(rule, self.p, i_lakara, krt.as_str());
@@ -103,7 +103,7 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, optionally adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn optional_try_add(&mut self, rule: Rule, krt: Krt) -> bool {
+    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: Krt) -> bool {
         if krt == self.krt && !self.has_krt {
             if self.p.is_allowed(rule) {
                 self.try_add_with(rule, krt, |_p, _i| {});
@@ -120,14 +120,14 @@ impl<'a> KrtPrakriya<'a> {
     /// This method does nothing if a krt pratyaya has already been added.
     pub fn try_add_with(
         &mut self,
-        rule: Rule,
+        rule: impl Into<Rule>,
         krt: Krt,
         func: impl Fn(&mut Prakriya, usize),
     ) -> bool {
         self.tried = true;
         if self.krt == krt && !self.has_krt {
             let i_dhatu = self.p.terms().len() - 1;
-            self.p.op(rule, |p| {
+            self.p.op(rule.into(), |p| {
                 p.push(krt.to_term());
                 func(p, i_dhatu);
             });

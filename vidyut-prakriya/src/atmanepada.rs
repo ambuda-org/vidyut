@@ -13,7 +13,7 @@
 
 use crate::args::Gana;
 use crate::dhatu_gana::{DYUT_ADI, VRDBHYAH};
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::tag::Tag as T;
 
 const GAMY_RCCHI: &[(&str, Gana)] = &[
@@ -74,22 +74,22 @@ impl<'a> PadaPrakriya<'a> {
     }
 
     /// Marks this prakriya as AtmanepadI.
-    fn atma(&mut self, rule: Rule) {
+    fn atma(&mut self, rule: Code) {
         self.p.op(rule, op_atmanepada);
     }
 
     /// Optionally marks this prakriya as AtmanepadI.
-    fn optional_atma(&mut self, rule: Rule) {
+    fn optional_atma(&mut self, rule: Code) {
         self.p.op_optional(rule, op_atmanepada);
     }
 
     /// Marks this prakriya as parasmaipadI.
-    fn para(&mut self, rule: Rule) {
+    fn para(&mut self, rule: Code) {
         self.p.op(rule, op_parasmaipada);
     }
 
     /// Marks this prakriya as parasmaipadI.
-    fn optional_para(&mut self, rule: Rule) {
+    fn optional_para(&mut self, rule: Code) {
         self.p.op_optional(rule, op_parasmaipada);
     }
 }

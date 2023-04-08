@@ -5,7 +5,7 @@ atidesha (1.2.1 - 1.2.17)
 
 use crate::args::Antargana;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use lazy_static::lazy_static;
@@ -30,38 +30,38 @@ impl<'a> AtideshaPrakriya<'a> {
         AtideshaPrakriya { p, added: false }
     }
 
-    fn optional(&mut self, rule: Rule, func: impl Fn(&mut Prakriya)) {
+    fn optional(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
         self.added = self.p.op_optional(rule, func);
     }
 
-    fn optional_block(&mut self, rule: Rule) {
+    fn optional_block(&mut self, rule: Code) {
         self.added = self.p.op_optional(rule, |_| {});
     }
 
-    fn add_nit(&mut self, rule: Rule, i: usize) {
+    fn add_nit(&mut self, rule: Code, i: usize) {
         self.p.op_term(rule, i, op::add_tag(T::Nit));
         self.added = true;
     }
 
-    fn optional_add_nit(&mut self, rule: Rule, i: usize) {
+    fn optional_add_nit(&mut self, rule: Code, i: usize) {
         self.added = self.p.op_optional(rule, op::t(i, |t| t.add_tag(T::Nit)));
     }
 
-    fn add_kit(&mut self, rule: Rule, i: usize) {
+    fn add_kit(&mut self, rule: Code, i: usize) {
         self.p.op_term(rule, i, op::add_tag(T::kit));
         self.added = true;
     }
 
-    fn optional_add_kit(&mut self, rule: Rule, i: usize) {
+    fn optional_add_kit(&mut self, rule: Code, i: usize) {
         self.added = self.p.op_optional(rule, op::t(i, |t| t.add_tag(T::kit)));
     }
 
-    fn remove_kit(&mut self, rule: Rule, i: usize) {
+    fn remove_kit(&mut self, rule: Code, i: usize) {
         self.p.op_term(rule, i, |t| t.remove_tag(T::kit));
         self.added = true;
     }
 
-    fn optional_remove_kit(&mut self, rule: Rule, i: usize) {
+    fn optional_remove_kit(&mut self, rule: Code, i: usize) {
         self.added = self.p.op_optional(rule, op::t(i, |t| t.remove_tag(T::kit)));
     }
 }

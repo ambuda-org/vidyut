@@ -1,10 +1,10 @@
 use crate::args::Lakara;
 use crate::it_samjna;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::{Code, Prakriya};
 use crate::tag::Tag as T;
 use crate::term::Term;
 
-fn add_la(rule: Rule, p: &mut Prakriya, i: usize, la: &str) {
+fn add_la(rule: Code, p: &mut Prakriya, i: usize, la: &str) {
     let mut la = Term::make_upadesha(la);
     la.add_tag(T::Pratyaya);
 

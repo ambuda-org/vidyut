@@ -4,19 +4,33 @@ use compact_str::CompactString;
 use enumset::EnumSet;
 
 /// A simple string label for some rule in the grammar.
+pub type Code = &'static str;
+
+/// A rule applied in the prakriya.
 ///
-/// Usually, these labels use the normal citation format for rules in the Ashtadhyayi, i.e.
-/// `<adhyaya>.<pada>.<rule>`. If the rule is from a specific commentary on some standard
-/// Ashtadhyayi rule, we use the format `<adhyaya>.<pada>.<rule>.<tag>` where `tag` is an ad-hoc
-/// descriptor of the rule, e.g. `k` for the Kashika Vrtti, `sk` for the Siddhanta Kaumudi, etc.
-///
-/// In addition, we use adhoc labels at times to represent rules outside of the Ashtadhyayi. For
-/// example, we use `"AkusmIya"` to represent that a dhatu in the AkusmIya-antargaNa is always
-/// Atmanepada.
-///
-/// We have not yet standardized how we represent rules outside the primary rules of the
-/// Ashtadhyayi, and we welcome suggestions on how to represent these rules clearly.
-pub type Rule = &'static str;
+/// Most of a derivation's rules come directly from the Ashtadhyayi. But, some derivations use
+/// rules from other sources. We use this model to clearly define which are which.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Rule {
+    /// A sutra from the Ashtadhyayi.
+    Ashtadhyayi(&'static str),
+    /// A comment in the Kashika-vrtti on a specific sutra.
+    Kashika(&'static str),
+    /// A sutra from the Dhatupatha.
+    Dhatupatha(&'static str),
+    /// A sutra from the Unadipatha.
+    Unadi(&'static str),
+    /// A sutra from the Paniniya-Linganushasanam.
+    Linganushasana(&'static str),
+}
+
+// Since Ashtadhyayi rules are by far the most common, assume by default that static strings refer
+// to rules in the Ashtadhyayi.
+impl From<&'static str> for Rule {
+    fn from(id: &'static str) -> Rule {
+        Rule::Ashtadhyayi(id)
+    }
+}
 
 /// Represents a step of the derivation.
 #[derive(Debug)]
@@ -27,9 +41,16 @@ pub struct Step {
 
 impl Step {
     /// The rule that produced the current step.
-    pub fn rule(&self) -> Rule {
-        self.rule
+    pub fn rule(&self) -> Code {
+        match self.rule {
+            Rule::Ashtadhyayi(x) => x,
+            Rule::Kashika(x) => x,
+            Rule::Dhatupatha(x) => x,
+            Rule::Unadi(x) => x,
+            Rule::Linganushasana(x) => x,
+        }
     }
+
     /// The result of this step. This result is a simple string representation and might change in
     /// the future.
     pub fn result(&self) -> &String {
@@ -306,7 +327,7 @@ impl Prakriya {
     // Rule application
 
     /// Applies the given operator.
-    pub(crate) fn op(&mut self, code: Rule, operator: impl Fn(&mut Prakriya)) -> bool {
+    pub(crate) fn op(&mut self, code: impl Into<Rule>, operator: impl Fn(&mut Prakriya)) -> bool {
         operator(self);
         self.step(code);
         true
@@ -315,13 +336,13 @@ impl Prakriya {
     /// Applies the given operator to the given term.
     pub(crate) fn op_term(
         &mut self,
-        code: Rule,
+        rule: impl Into<Rule>,
         index: usize,
         operator: impl Fn(&mut Term),
     ) -> bool {
         if let Some(term) = self.get_mut(index) {
             operator(term);
-            self.step(code);
+            self.step(rule.into());
             true
         } else {
             false
@@ -332,19 +353,24 @@ impl Prakriya {
     ///
     /// Returns: whether the operation was applied. This return value is required for certain
     /// complex conditions (e.g. 6.4.116 & 117; "if this rule was not applied, ...").
-    pub(crate) fn op_optional(&mut self, code: Rule, operator: impl Fn(&mut Prakriya)) -> bool {
-        if self.is_allowed(code) {
+    pub(crate) fn op_optional(
+        &mut self,
+        rule: impl Into<Rule>,
+        operator: impl Fn(&mut Prakriya),
+    ) -> bool {
+        let rule = rule.into();
+        if self.is_allowed(rule) {
             operator(self);
-            self.step(code);
+            self.step(rule);
             true
         } else {
-            self.decline(code);
+            self.decline(rule);
             false
         }
     }
 
     /// Adds a rule to the history.
-    pub(crate) fn step(&mut self, rule: Rule) {
+    pub(crate) fn step(&mut self, rule: impl Into<Rule>) {
         if self.config.log_steps {
             let state = self.terms.iter().fold(String::new(), |a, b| {
                 if a.is_empty() {
@@ -354,7 +380,7 @@ impl Prakriya {
                 }
             });
             self.history.push(Step {
-                rule,
+                rule: rule.into(),
                 result: state,
             })
         }
@@ -365,7 +391,7 @@ impl Prakriya {
     #[cfg(debug_assertions)]
     pub(crate) fn debug(&mut self, text: impl AsRef<str>) {
         self.history.push(Step {
-            rule: "debug",
+            rule: Rule::Ashtadhyayi("debug"),
             result: text.as_ref().to_string(),
         });
     }
@@ -391,17 +417,18 @@ impl Prakriya {
 
     // Optional rules
 
-    pub(crate) fn is_allowed(&mut self, r: Rule) -> bool {
+    pub(crate) fn is_allowed(&mut self, r: impl Into<Rule>) -> bool {
+        let r = r.into();
         for option in &self.config.rule_choices {
             match option {
-                RuleChoice::Accept(code) => {
-                    if r == *code {
+                RuleChoice::Accept(rule) => {
+                    if r == *rule {
                         self.accept(r);
                         return true;
                     }
                 }
-                RuleChoice::Decline(code) => {
-                    if r == *code {
+                RuleChoice::Decline(rule) => {
+                    if r == *rule {
                         return false;
                     }
                 }
@@ -413,11 +440,11 @@ impl Prakriya {
         true
     }
 
-    pub(crate) fn accept(&mut self, rule: Rule) {
-        self.rule_decisions.push(RuleChoice::Accept(rule));
+    pub(crate) fn accept(&mut self, rule: impl Into<Rule>) {
+        self.rule_decisions.push(RuleChoice::Accept(rule.into()));
     }
 
-    pub(crate) fn decline(&mut self, rule: Rule) {
-        self.rule_decisions.push(RuleChoice::Decline(rule));
+    pub(crate) fn decline(&mut self, rule: impl Into<Rule>) {
+        self.rule_decisions.push(RuleChoice::Decline(rule.into()));
     }
 }
