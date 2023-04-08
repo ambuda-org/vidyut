@@ -1,11 +1,10 @@
-use crate::args::Unadi;
+use crate::args::Krt;
 use crate::prakriya::Prakriya;
 use crate::tag::Tag as T;
 
 /// A work-in-progress sketch of the uNAdi sutras.
-#[allow(unused)]
-fn try_add_unadi(p: &mut Prakriya, unadi: Unadi) -> Option<bool> {
-    use Unadi::*;
+pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
+    use Krt as K;
 
     let i = p.find_last(T::Dhatu)?;
     let prev = if i > 0 { p.get(i - 1) } else { None };
@@ -17,8 +16,8 @@ fn try_add_unadi(p: &mut Prakriya, unadi: Unadi) -> Option<bool> {
 
     // For convenience below, wrap `Prakriya` in a new `KrtPrakriya` type that contains `krt` and
     // records whether or not any of these rules were applied.
-    match unadi {
-        uR => {
+    match krt {
+        K::uR => {
             if dhatu.has_u_in(&[
                 "qukf\\Y",
                 "vA\\",
@@ -31,12 +30,13 @@ fn try_add_unadi(p: &mut Prakriya, unadi: Unadi) -> Option<bool> {
             ]) {
                 p.step("uR.1.1");
             }
-        }
-        kvin => {
+        },
+        K::kvin => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {
                 p.step("uR.4.54");
             }
-        }
+        },
+        _ => (),
     }
 
     Some(true)

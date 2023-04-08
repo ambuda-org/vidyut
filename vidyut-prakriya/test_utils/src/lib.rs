@@ -4,9 +4,7 @@ use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
 
-pub fn derive_tinantas(dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
-    let a = Ashtadhyayi::new();
-    let mut results = a.derive_tinantas(dhatu, args);
+fn sanitize_results(mut results: Vec<Prakriya>) -> Vec<Prakriya> {
     results.sort_by_key(|p| p.text());
     results.dedup_by_key(|p| p.text());
 
@@ -16,32 +14,24 @@ pub fn derive_tinantas(dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
         .collect()
 }
 
+pub fn derive_tinantas(dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
+    let a = Ashtadhyayi::new();
+    let results = a.derive_tinantas(dhatu, args);
+    sanitize_results(results)
+}
+
 pub fn derive_krdantas(dhatu: &Dhatu, krt: Krt) -> Vec<Prakriya> {
     let args = KrdantaArgs::builder().krt(krt).build().unwrap();
-
     let a = Ashtadhyayi::new();
-    let mut results = a.derive_krdantas(dhatu, &args);
-    results.sort_by_key(|p| p.text());
-    results.dedup_by_key(|p| p.text());
-
-    results
-        .into_iter()
-        .filter(|p| !p.text().ends_with('d'))
-        .collect()
+    let results = a.derive_krdantas(dhatu, &args);
+    sanitize_results(results)
 }
 
 pub fn derive_taddhitantas(p: &Pratipadika, t: Taddhita) -> Vec<Prakriya> {
     let args = TaddhitantaArgs::builder().taddhita(t).build().unwrap();
-
     let a = Ashtadhyayi::new();
-    let mut results = a.derive_taddhitantas(p, &args);
-    results.sort_by_key(|p| p.text());
-    results.dedup_by_key(|p| p.text());
-
-    results
-        .into_iter()
-        .filter(|p| !p.text().ends_with('d'))
-        .collect()
+    let results = a.derive_taddhitantas(p, &args);
+    sanitize_results(results)
 }
 
 pub fn derive_lakara(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Prakriya> {

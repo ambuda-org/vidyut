@@ -61,6 +61,7 @@ own control flow. For details, please see the docs for those functions.
 */
 
 use crate::args::Gana;
+use crate::unadi_pratyaya;
 use crate::args::Krt;
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
@@ -821,6 +822,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
 /// Runs the rules that add a krt-pratyaya to a given dhatu. Returns whether a pratyaya was added.
 pub fn run(p: &mut Prakriya, krt: Krt) -> bool {
+    // First, check if the pratyaya is an unAdi-pratyaya.
+    unadi_pratyaya::try_add_unadi(p, krt); 
+    // Then, try running the general krt-pratyaya rules.
     try_add_krt(p, krt).unwrap_or(false)
 }
 
