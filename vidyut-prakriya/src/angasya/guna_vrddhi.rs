@@ -292,7 +292,7 @@ fn run_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = p.get(i_n)?;
 
     if anga.has_text("jAgf")
-        && !n.has_u_in(&["kvip", "ciR", "Ral"])
+        && !n.has_u_in(&["kvin", "ciR", "Ral"])
         && !p.view(i_n)?.has_tag(T::Nit)
     {
         // jAgf-guna takes priority over vrddhi.

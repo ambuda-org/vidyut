@@ -545,8 +545,7 @@ fn sutra_7_3_85() {
     assert_has_krdanta(&[], &jagf, Krt::kta, &["jAgarita"]);
     assert_has_krdanta(&[], &jagf, Krt::ktavatu, &["jAgaritavat"]);
 
-    // TODO: add support for unadi sutras
-    // assert_has_krdanta(&[], &jagf, Krt::Unadi::vin, &["jAgfvi"]);
+    assert_has_krdanta(&[], &jagf, Krt::kvinUnadi, &["jAgfvi"]);
     assert_has_lun_karmani(&[], &jagf, &["ajAgAri"]);
     assert_has_lit(
         &[],

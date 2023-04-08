@@ -63,12 +63,11 @@ own control flow. For details, please see the docs for those functions.
 use crate::args::Gana;
 use crate::args::Krt;
 use crate::dhatu_gana as gana;
-use crate::it_samjna;
+use crate::krt::utils::KrtPrakriya;
 use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
+use crate::prakriya::Prakriya;
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -76,136 +75,6 @@ lazy_static! {
     static ref IK: Set = s("ik");
     static ref PU: Set = s("pu~");
     static ref HAL: Set = s("hal");
-}
-
-impl Krt {
-    fn to_term(self) -> Term {
-        use Krt as K;
-        let mut krt = Term::make_upadesha(self.as_str());
-        krt.add_tags(&[T::Pratyaya, T::Krt]);
-
-        // Any rule that adds `krtya` also includes the `krtya` samjna by adhikara from 3.1.95.
-        // Other samjnas, such as `Nistha`, are added in separate rules and are thus modeled
-        // separately.
-        if matches!(
-            self,
-            K::tavyat | K::tavya | K::anIyar | K::yat | K::kyap | K::Ryat
-        ) {
-            krt.add_tag(T::Krtya);
-        }
-
-        krt
-    }
-}
-
-/// Wrapper for `Prakriya` with the following features:
-///
-/// - remembers which `krt` pratyaya the caller wishes to add, which simplifies the calling API.
-/// - records whether a `krt` pratyaya has been added or not, which simplifies the control flow for
-///   optional rules.
-struct KrtPrakriya<'a> {
-    p: &'a mut Prakriya,
-    krt: Krt,
-    tried: bool,
-    has_krt: bool,
-}
-
-impl<'a> KrtPrakriya<'a> {
-    /// Creates a new `KrtPrakriya` struct.
-    fn new(p: &'a mut Prakriya, krt: Krt) -> Self {
-        KrtPrakriya {
-            p,
-            krt,
-            tried: false,
-            has_krt: false,
-        }
-    }
-
-    /// Wraps `Prakriya::get`.
-    fn get(&self, i: usize) -> Option<&Term> {
-        self.p.get(i)
-    }
-
-    fn has_prefix(&self, value: &str) -> bool {
-        match self.p.find_last_where(|t| !t.is_dhatu()) {
-            Some(i) => self.p.terms()[i].has_text(value),
-            None => false,
-        }
-    }
-
-    fn has_prefixes(&self, values: &[&str; 2]) -> bool {
-        match self.p.find_last_where(|t| !t.is_dhatu()) {
-            Some(i) => {
-                i > 0
-                    && self.p.has(i - 1, |t| t.has_text(values[0]))
-                    && self.p.has(i, |t| t.has_text(values[1]))
-            }
-            None => false,
-        }
-    }
-
-    fn has_prefix_in(&self, values: &[&str]) -> bool {
-        match self.p.find_last_where(|t| !t.is_dhatu()) {
-            Some(i) => self.p.terms()[i].has_text_in(values),
-            None => false,
-        }
-    }
-
-    /// If there's a match, adds the given `krt` pratyaya.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    fn try_add(&mut self, rule: Rule, krt: Krt) -> bool {
-        self.try_add_with(rule, krt, |_p, _i| {})
-    }
-
-    /// If there's a match, replace the `lakAra` of the dhatu.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    fn try_replace_lakara(&mut self, rule: Rule, i_lakara: usize, krt: Krt) -> bool {
-        self.tried = true;
-        if self.krt == krt && !self.has_krt {
-            op::adesha(rule, self.p, i_lakara, krt.as_str());
-            self.has_krt = true;
-            true
-        } else {
-            false
-        }
-    }
-
-    /// If there's a match, optionally adds the given `krt` pratyaya.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    fn optional_try_add(&mut self, rule: Rule, krt: Krt) -> bool {
-        if krt == self.krt && !self.has_krt {
-            if self.p.is_allowed(rule) {
-                self.try_add_with(rule, krt, |_p, _i| {});
-                return true;
-            } else {
-                self.p.decline(rule);
-            }
-        }
-        false
-    }
-
-    /// If there's a match, adds the given `krt` pratyaya then runs `func`.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    fn try_add_with(&mut self, rule: Rule, krt: Krt, func: impl Fn(&mut Prakriya, usize)) -> bool {
-        self.tried = true;
-        if self.krt == krt && !self.has_krt {
-            let i_dhatu = self.p.terms().len() - 1;
-            self.p.op(rule, |p| {
-                p.push(krt.to_term());
-                func(p, i_dhatu);
-            });
-            it_samjna::run(self.p, i_dhatu + 1).expect("should never fail");
-
-            self.has_krt = true;
-            true
-        } else {
-            false
-        }
-    }
 }
 
 fn is_nandi_grahi_pacadi(p: &KrtPrakriya, i: usize) -> bool {

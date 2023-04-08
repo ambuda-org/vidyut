@@ -49,7 +49,7 @@ mod dhatu_karya;
 mod dvitva;
 mod it_agama;
 mod it_samjna;
-mod krt_pratyaya;
+mod krt;
 mod la_karya;
 mod linganushasanam;
 mod pratipadika_karya;
@@ -63,7 +63,6 @@ mod taddhita_gana;
 mod taddhita_pratyaya;
 mod tin_pratyaya;
 mod tripadi;
-mod unadi_pratyaya;
 mod vikarana;
 
 pub mod wasm;

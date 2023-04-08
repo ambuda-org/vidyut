@@ -18,6 +18,8 @@ fn yan(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::Yan])
 }
 
+// For tests on 3.1.1, see `unadi_sutras.rs`
+
 #[test]
 fn sutra_3_1_5() {
     assert_has_lat(&[], &d("gupa~\\", Bhvadi), &["jugupsate"]);
