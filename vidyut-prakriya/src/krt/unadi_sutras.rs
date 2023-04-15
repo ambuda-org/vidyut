@@ -29,8 +29,8 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 "vA\\",
                 "pA\\",
                 "ji\\",
-                "qu\\mi\\Y",
-                "zvada~",
+                "qumi\\Y",
+                "zvada~\\",
                 "sA\\Da~",
                 "aSU~\\",
             ]) {
