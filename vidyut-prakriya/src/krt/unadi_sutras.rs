@@ -25,14 +25,7 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
     match krt {
         K::uR => {
             if dhatu.has_u_in(&[
-                "qukf\\Y",
-                "vA\\",
-                "pA\\",
-                "ji\\",
-                "qu\\mi\\Y",
-                "zvada~",
-                "sA\\Da~",
-                "aSU~\\",
+                "qukf\\Y", "vA\\", "pA\\", "ji\\", "qumi\\Y", "zvada~\\", "sA\\Da~", "aSU~\\",
             ]) {
                 wrap.try_add(Unadi("1.1"), krt);
             }
