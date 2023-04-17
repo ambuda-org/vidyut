@@ -1,5 +1,7 @@
 use crate::args::Gana;
-use crate::char_view::{char_rule, get_at, set_at, xy, xyz, CharPrakriya};
+use crate::char_view::{
+    char_rule, get_at, get_term_and_offset_indices, set_at, xy, xyz, CharPrakriya,
+};
 use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -12,6 +14,7 @@ use lazy_static::lazy_static;
 lazy_static! {
     static ref AT_KU_PU_M: Set = s("aw ku~ pu~ M");
     static ref AA: Set = s("a");
+    static ref AC: Set = s("ac");
     static ref AN: Set = s("aR");
     static ref YAN: Set = s("yaR");
     static ref CU: Set = s("cu~");
@@ -87,7 +90,7 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
     } else if i_n == cp.text.len() - 1 {
         // akurvan, caran, ...
         cp.p.step("8.4.37");
-    } else if x.has_tag(T::Upasarga) && !y.is_pratyaya() {
+    } else if x.has_tag(T::Upasarga) {
         // Check !is_pratyaya to allow nirvAna -> nirvARa
         const GAD_ADI: &[(&str, Gana)] = &[
             ("gada~", Gana::Bhvadi),
@@ -125,9 +128,11 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             cp.set_at(i_n, "R");
             cp.p.step("8.4.14");
         } else if is_hinu() || is_mina() {
+            // prahiRoti
             cp.set_at(i_n, "R");
             cp.p.step("8.4.15");
         } else if y.has_u("Ani") && y.has_lakshana("lo~w") {
+            // pravapARi
             cp.set_at(i_n, "R");
             cp.p.step("8.4.16");
         } else if y.has_u("ni") {
@@ -147,11 +152,32 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             if dhatu.has_tag(T::Abhyasta) {
                 cp.p.op_term("8.4.21", i_dhatu, |t| t.set_adi("R"));
             }
+        } else if dhatu.has_u("ha\\na~") && dhatu.has_upadha('a') {
+            let i_z = cp.p.find_next_where(i_y, |t| !t.is_empty())?;
+            if cp.p.has(i_z, |t| t.has_adi('v') || t.has_adi('m')) {
+                cp.p.op_optional("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
+            } else {
+                cp.p.op_term("8.4.22", i_dhatu, |t| t.set_antya("R"));
+            }
+        } else if y.is_krt() {
+            let (_, i_y_offset) = get_term_and_offset_indices(cp.p, i_n)?;
+            let acah = if i_y_offset == 0 {
+                i_y > 0 && cp.p.has(i_y - 1, |t| t.has_antya(&*AC))
+            } else {
+                let prev = y.text.as_bytes()[i_y_offset - 1] as char;
+                AC.contains(prev)
+            };
+            if acah {
+                cp.p.op_term("8.4.22", i_y, |t| t.find_and_replace_text("n", "R"));
+            }
         }
     } else {
-        // TODO: track loctaion of rzfF for better rule logging.
-        set_at(cp.p, i_n, "R");
-        cp.p.step("8.4.2");
+        // NOTE: condition is `samAnapada`, so upasargas can't cause changes with this rule.
+        if !x.is_upasarga() {
+            // TODO: track loctaion of rzfF for better rule logging.
+            set_at(cp.p, i_n, "R");
+            cp.p.step("8.4.2");
+        }
     }
 
     Some(())

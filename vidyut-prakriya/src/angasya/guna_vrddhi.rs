@@ -140,7 +140,10 @@ fn try_vrddhi_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 /// Runs rules that replace an anga's vowel with its corresponding guna.
 /// Example: buD + a + ti -> boDati
 fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
-    let j = p.find_next_where(i, |t| !t.is_empty() && !t.has_u("pu~k"))?;
+    let j = p.find_next_where(i, |t| {
+        // HACK: allow yaN for beBiditf, etc. (6.4.49)
+        (!t.is_empty() && !t.has_u("pu~k")) || t.has_u("yaN")
+    })?;
 
     let anga = p.get_if(i, |t| !t.is_agama() && !t.has_tag(T::FlagGunaApavada))?;
     let n = p.view(j)?;

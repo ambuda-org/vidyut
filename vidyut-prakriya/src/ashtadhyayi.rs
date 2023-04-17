@@ -47,7 +47,7 @@ fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<(
         samjna::run(p);
         ardhadhatuka::run_before_vikarana(p, None, true);
         run_various_dhatu_tasks(p);
-        angasya::run_remainder(p);
+        angasya::run_after_dvitva(p);
         dvitva::run(p);
         samprasarana::run_for_abhyasa(p);
         ac_sandhi::run_common(p);
@@ -131,7 +131,7 @@ fn finish_prakriya(p: &mut Prakriya) {
     angasya::iit_agama(p);
 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
-    angasya::run_remainder(p);
+    angasya::run_after_dvitva(p);
     ac_sandhi::try_sup_sandhi_after_angasya(p);
     ac_sandhi::run_common(p);
     tripadi::run(p);
@@ -172,6 +172,8 @@ fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> 
         run_various_dhatu_tasks(p)
     }
 
+    angasya::run_before_dvitva(p);
+
     dvitva::run(p);
     samprasarana::run_for_abhyasa(p);
 
@@ -185,7 +187,17 @@ fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> 
 
     // --- Code above this line needs to be cleaned up. ---
 
-    finish_prakriya(p);
+    // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
+    ardhadhatuka::run_am_agama(p);
+
+    angasya::iit_agama(p);
+
+    ac_sandhi::try_sup_sandhi_before_angasya(p);
+    angasya::run_after_dvitva(p);
+
+    ac_sandhi::try_sup_sandhi_after_angasya(p);
+    ac_sandhi::run_common(p);
+    tripadi::run(p);
 
     Ok(prakriya)
 }

@@ -15,7 +15,7 @@ Generally, these pratyayas are of two types:
 */
 
 use crate::it_samjna;
-use crate::prakriya::Prakriya;
+use crate::prakriya::{Code, Prakriya};
 use crate::tag::Tag as T;
 use crate::term::Term;
 
@@ -102,13 +102,39 @@ const BAHU_ADI: &[&str] = &[
     "ahan",
 ];
 
-/// Runs strītva rules.
-pub fn run(p: &mut Prakriya) -> Option<()> {
-    if !p.has_tag(T::Stri) {
-        return None;
-    }
+const INDRA_ADI: &[&str] = &[
+    "indra", "varuRa", "Bava", "Sarva", "rudra", "mfqa", "hima", "araRya", "yava", "yavana",
+    "mAtula", "AcArya",
+];
 
-    let add = |rule, p: &mut Prakriya, s: &str| {
+fn add(rule: Code, p: &mut Prakriya, s: &str) {
+    let i = p.terms().len();
+    let mut t = Term::make_upadesha(s);
+    t.add_tag(T::Pratyaya);
+
+    p.terms_mut().push(t);
+    p.step(rule);
+    it_samjna::run(p, i).expect("should never fail");
+}
+
+fn add_with_agama(rule: Code, p: &mut Prakriya, s: &str, agama: &str) {
+    let i = p.terms().len() - 1;
+
+    let a = Term::make_agama(agama);
+    p.terms_mut().push(a);
+
+    let mut t = Term::make_upadesha(s);
+    t.add_tag(T::Pratyaya);
+    p.terms_mut().push(t);
+
+    p.step(rule);
+
+    it_samjna::run(p, i + 1).expect("should never fail");
+    it_samjna::run(p, i + 2).expect("should never fail");
+}
+
+fn optional_add(rule: Code, p: &mut Prakriya, s: &str) {
+    if p.is_allowed(rule) {
         let i = p.terms().len();
         let mut t = Term::make_upadesha(s);
         t.add_tag(T::Pratyaya);
@@ -116,26 +142,23 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         p.terms_mut().push(t);
         p.step(rule);
         it_samjna::run(p, i).expect("should never fail");
-    };
+    } else {
+        p.decline(rule);
+    }
+}
 
-    let optional_add = |rule, p: &mut Prakriya, s: &str| {
-        if p.is_allowed(rule) {
-            let i = p.terms().len();
-            let mut t = Term::make_upadesha(s);
-            t.add_tag(T::Pratyaya);
-
-            p.terms_mut().push(t);
-            p.step(rule);
-            it_samjna::run(p, i).expect("should never fail");
-        } else {
-            p.decline(rule);
-        }
-    };
+/// Runs strītva rules.
+pub fn run(p: &mut Prakriya) -> Option<()> {
+    if !p.has_tag(T::Stri) {
+        return None;
+    }
 
     let last = p.terms().last()?;
 
     if last.has_text_in(BAHU_ADI) {
         optional_add("4.1.45", p, "NIz");
+    } else if last.has_text_in(INDRA_ADI) {
+        add_with_agama("4.1.49", p, "NIz", "Anu~k");
     } else if last.has_text_in(AJA_ADI) || last.has_antya('a') {
         add("4.1.4", p, "wAp");
     } else if last.has_text_in(SVASR_ADI) {

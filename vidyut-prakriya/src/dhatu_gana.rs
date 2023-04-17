@@ -141,7 +141,7 @@ pub const DYUT_ADI: &[&str] = &[
 
 /// For usage, see 2.4.79 and 6.4.37.
 pub const TAN_ADI: &[&str] = &[
-    "tanu~^", "zanu~^", "kzaRu~^", "kziRu~^", "fRu~^", "tfRu~^", "GfRu~^", "vanu~\\", "manu~\\",
+    "tanu~^", "zaRu~^", "kzaRu~^", "kziRu~^", "fRu~^", "tfRu~^", "GfRu~^", "vanu~\\", "manu~\\",
     "qukf\\Y",
 ];
 

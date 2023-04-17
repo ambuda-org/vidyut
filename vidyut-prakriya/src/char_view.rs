@@ -90,6 +90,20 @@ impl<'a> CharPrakriya<'a> {
     }
 }
 
+/// Gets the indices corresponding to the character at absolute index `i`.
+pub fn get_term_and_offset_indices(p: &Prakriya, i_absolute: usize) -> Option<(usize, usize)> {
+    let mut offset = 0;
+    for (i_term, t) in p.terms().iter().enumerate() {
+        let delta = t.text.len();
+        if (offset..offset + delta).contains(&i_absolute) {
+            return Some((i_term, i_absolute - offset));
+        } else {
+            offset += delta;
+        }
+    }
+    None
+}
+
 /// Gets the term corresponding to character `i` of the current prakriya.
 pub fn get_at(p: &Prakriya, index: usize) -> Option<&Term> {
     let mut cur = 0;
@@ -104,15 +118,7 @@ pub fn get_at(p: &Prakriya, index: usize) -> Option<&Term> {
 }
 
 pub(crate) fn get_index_at(p: &mut Prakriya, index: usize) -> Option<usize> {
-    let mut cur = 0;
-    for (i, t) in p.terms().iter().enumerate() {
-        let delta = t.text.len();
-        if (cur..cur + delta).contains(&index) {
-            return Some(i);
-        }
-        cur += delta;
-    }
-    None
+    get_term_and_offset_indices(p, index).map(|(i_term, _)| i_term)
 }
 
 /// Replaces character `i` of the current prakriya with the given substitute.

@@ -229,6 +229,11 @@ impl Term {
         self.has_tag(Tag::Sup)
     }
 
+    /// Returns whether the term has the `Vibhakti` samjna.
+    pub fn is_vibhakti(&self) -> bool {
+        self.has_tag(Tag::Vibhakti)
+    }
+
     /// Returns whether the term is `Ric` or `RiN`.
     pub fn is_ni_pratyaya(&self) -> bool {
         self.has_u_in(&["Ric", "RiN"])

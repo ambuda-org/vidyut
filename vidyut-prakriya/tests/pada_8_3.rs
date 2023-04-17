@@ -1,6 +1,24 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Vacana::*;
+use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
+
+fn d(u: &str, g: Gana) -> Dhatu {
+    Dhatu::new(u, g)
+}
+
+fn san(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::San])
+}
+
+#[test]
+fn sutra_8_3_13() {
+    assert_has_krdanta(&[], &d("li\\ha~^", Adadi), Krt::kta, &["lIQa"]);
+    assert_has_krdanta(&["upa"], &d("guhU~^", Bhvadi), Krt::kta, &["upagUQa"]);
+}
 
 #[test]
 fn sutra_8_3_14() {
@@ -9,6 +27,61 @@ fn sutra_8_3_14() {
     assert_has_krdanta(&["nir"], &raj, Krt::kta, &["nIrakta"]);
     assert_has_krdanta(&["dus"], &raj, Krt::kta, &["dUrakta"]);
     assert_has_krdanta(&["dur"], &raj, Krt::kta, &["dUrakta"]);
+}
+
+#[test]
+fn sutra_8_3_15() {
+    // TODO: Kar
+    assert_has_subantas("vfkza", Pum, V::Prathama, Eka, &["vfkzaH"]);
+    assert_has_subantas("plakza", Pum, V::Prathama, Eka, &["plakzaH"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_3_16() {
+    assert_has_subantas(
+        "payas",
+        Napumsaka,
+        V::Saptami,
+        Bahu,
+        &["payaHsu", "payassu"],
+    );
+    // TODO: sarpizzu?
+    // assert_has_subantas("sarpis", Napumsaka, V::Saptami, Bahu, &["sarpiHzu"]);
+    assert_has_subantas(
+        "yaSas",
+        Napumsaka,
+        V::Saptami,
+        Bahu,
+        &["yaSaHsu", "yaSassu"],
+    );
+    // ruH
+    assert_has_subantas("gir", Napumsaka, V::Saptami, Bahu, &["gIrzu"]);
+    assert_has_subantas("Dur", Napumsaka, V::Saptami, Bahu, &["DUrzu"]);
+}
+
+#[test]
+fn sutra_8_3_23() {
+    assert_has_lat_karmani(&[], &d("ga\\mx~", Bhvadi), &["gamyate"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_3_24() {
+    assert_has_subantas("payas", Napumsaka, V::Prathama, Bahu, &["payAMsi"]);
+    assert_has_subantas("yaSas", Napumsaka, V::Prathama, Bahu, &["yaSAMsi"]);
+
+    assert_has_subantas("sarpis", Napumsaka, V::Prathama, Bahu, &["sarpIMzi"]);
+
+    // makArasya
+    let kram = d("kramu~", Bhvadi);
+    assert_has_lrt_a(&["AN"], &kram, &["AkraMsyate"]);
+    assert_has_lat_karmani(&["AN"], &san(&kram), &["AcikraMsyate"]);
+    assert_has_lat(&["aDi"], &san(&d("i\\N", Adadi)), &["aDijigaMsate"]);
+
+    // Jali
+    assert_has_lat_karmani(&[], &d("ra\\ma~\\", Bhvadi), &["ramyate"]);
+    assert_has_lat_karmani(&[], &d("ga\\mx~", Bhvadi), &["gamyate"]);
 }
 
 #[test]

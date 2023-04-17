@@ -41,6 +41,40 @@ fn sutra_8_2_8() {
 }
 
 #[test]
+fn sutra_8_2_9() {
+    // makAra-anta
+    assert_has_taddhitanta(&prati("kim"), T::matup, &["kiMvat"]);
+    assert_has_taddhitanta(&prati("Sam"), T::matup, &["SaMvat"]);
+    // makAra-upadha
+    assert_has_taddhitanta(&prati("SamI"), T::matup, &["SamIvat"]);
+    assert_has_taddhitanta(&prati("dAqimI"), T::matup, &["dAqimIvat"]);
+    // avarRa-anta
+    assert_has_taddhitanta(&prati("vfkza"), T::matup, &["vfkzavat"]);
+    assert_has_taddhitanta(&prati("plakza"), T::matup, &["plakzavat"]);
+    assert_has_taddhitanta(&prati("KawvA"), T::matup, &["KawvAvat"]);
+    assert_has_taddhitanta(&prati("mAlA"), T::matup, &["mAlAvat"]);
+    // avarRa-upaDa
+    assert_has_taddhitanta(&prati("payas"), T::matup, &["payasvat"]);
+    assert_has_taddhitanta(&prati("yaSas"), T::matup, &["yaSasvat"]);
+    assert_has_taddhitanta(&prati("BAs"), T::matup, &["BAsvat"]);
+    // mAd?
+    assert_has_taddhitanta(&prati("agni"), T::matup, &["agnimat"]);
+    assert_has_taddhitanta(&prati("vAyu"), T::matup, &["vAyumat"]);
+    // avAdibhyaH?
+    assert_has_taddhitanta(&prati("yava"), T::matup, &["yavamat"]);
+    assert_has_taddhitanta(&prati("dalmi"), T::matup, &["dalmimat"]);
+    assert_has_taddhitanta(&prati("Urmi"), T::matup, &["Urmimat"]);
+}
+
+#[test]
+fn sutra_8_2_10() {
+    assert_has_taddhitanta(&prati("agnicit"), T::matup, &["agnicitvat"]);
+    assert_has_taddhitanta(&prati("vidyut"), T::matup, &["vidyutvat"]);
+    assert_has_taddhitanta(&prati("marut"), T::matup, &["marutvat"]);
+    assert_has_taddhitanta(&prati("dfzad"), T::matup, &["dfzadvat"]);
+}
+
+#[test]
 fn sutra_8_2_18() {
     use Purusha::*;
     let kfp = d("kfpU~\\", Bhvadi);
@@ -50,6 +84,24 @@ fn sutra_8_2_18() {
     assert_has_lat_p(&[], &san(&kfp), &["cikxpsati"]);
     assert_has_krdanta(&[], &kfp, Krt::kta, &["kxpta"]);
     assert_has_krdanta(&[], &kfp, Krt::ktavatu, &["kxptavat"]);
+}
+
+#[test]
+fn sutra_8_2_19() {
+    let ay = d("aya~\\", Bhvadi);
+    assert_has_lat_a(&["pra"], &ay, &["plAyate"]);
+    assert_has_lat_a(&["parA"], &ay, &["palAyate"]);
+    assert_has_lat_a(&["pari"], &ay, &["palyayate"]);
+
+    assert_has_lat_a(&["prati"], &ay, &["pratyayate"]);
+    assert_has_krdanta(&["nis"], &ay, Krt::lyuw, &["nirayaRa"]);
+    assert_has_krdanta(&["dus"], &ay, Krt::lyuw, &["durayaRa"]);
+
+    // extra examples from the Siddhantakaumudi
+    assert_has_lat_a(&["nis"], &ay, &["nirayate"]);
+    assert_has_lat_a(&["dus"], &ay, &["durayate"]);
+    assert_has_lat_a(&["nir"], &ay, &["nilayate"]);
+    assert_has_lat_a(&["dur"], &ay, &["dulayate"]);
 }
 
 #[test]
@@ -70,6 +122,94 @@ fn sutra_8_2_21() {
     assert_has_krdanta(&["ni"], &gf, Krt::lyuw, &["nigaraRa", "nigalana"]);
     assert_has_krdanta(&["ni"], &gf, Krt::Rvul, &["nigAraka", "nigAlaka"]);
     // TODO: others.
+}
+
+#[test]
+fn sutra_8_2_26() {
+    use Purusha::*;
+    let bhid = d("Bi\\di~^r", Rudhadi);
+    assert_has_atmane_tinanta(&[], &bhid, Lun, Prathama, Eka, &["aBitta"]);
+    assert_has_atmane_tinanta(&[], &bhid, Lun, Madhyama, Eka, &["aBitTAH"]);
+
+    let chid = d("Ci\\di~^r", Rudhadi);
+    assert_has_atmane_tinanta(&[], &chid, Lun, Prathama, Eka, &["acCitta"]);
+    assert_has_atmane_tinanta(&[], &chid, Lun, Madhyama, Eka, &["acCitTAH"]);
+
+    let vas = d("va\\sa~", Bhvadi);
+    assert_has_parasmai_tinanta(&[], &vas, Lun, Prathama, Dvi, &["avAttAm"]);
+    assert_has_parasmai_tinanta(&[], &vas, Lun, Madhyama, Bahu, &["avAtta"]);
+
+    // JalaH
+    let man = d("ma\\na~\\", Divadi);
+    assert_has_atmane_tinanta(&[], &man, Lun, Prathama, Eka, &["amaMsta"]);
+    assert_has_atmane_tinanta(&[], &man, Lun, Madhyama, Eka, &["amaMsTAH"]);
+
+    // Jali
+    assert_has_atmane_tinanta(&[], &bhid, Lun, Prathama, Dvi, &["aBitsAtAm"]);
+    assert_has_atmane_tinanta(&[], &bhid, Lun, Prathama, Bahu, &["aBitsata"]);
+
+    // TODO: others
+}
+
+#[test]
+fn sutra_8_2_27() {
+    use Purusha::*;
+    let kf = d("qukf\\Y", Tanadi);
+    assert_has_atmane_tinanta(&[], &kf, Lun, Prathama, Eka, &["akfta"]);
+    assert_has_atmane_tinanta(&[], &kf, Lun, Madhyama, Eka, &["akfTAH"]);
+
+    let hf = d("hf\\Y", Bhvadi);
+    assert_has_atmane_tinanta(&[], &hf, Lun, Prathama, Eka, &["ahfta"]);
+    assert_has_atmane_tinanta(&[], &hf, Lun, Madhyama, Eka, &["ahfTAH"]);
+
+    // hrasvAt?
+    assert_has_lun_a(&[], &d("cyu\\N", Bhvadi), &["acyozwa"]);
+    assert_has_lun_a(&[], &d("plu\\N", Bhvadi), &["aplozwa"]);
+
+    // aNgAt?
+    let lu = d("lUY", Kryadi);
+    assert_has_parasmai_tinanta(&[], &lu, Lun, Prathama, Dvi, &["alAvizwAm"]);
+    assert_has_parasmai_tinanta(&[], &lu, Lun, Prathama, Bahu, &["alAvizuH"]);
+
+    // Jali?
+    assert_has_atmane_tinanta(&[], &kf, Lun, Prathama, Dvi, &["akfzAtAm"]);
+    assert_has_atmane_tinanta(&[], &kf, Lun, Prathama, Bahu, &["akfzata"]);
+
+    // TODO: others
+}
+
+#[test]
+fn sutra_8_2_28() {
+    use Purusha::*;
+    // TODO: adAvIt?
+    // assert_has_lun_p(&[], &d("du\\", Bhvadi), &["adAvIt"]);
+    assert_has_lun_p(&[], &d("lUY", Kryadi), &["alAvIt"]);
+    assert_has_lun_p(&[], &d("zivu~", Divadi), &["asevIt"]);
+    assert_has_lun_p(&[], &d("kuza~", Kryadi), &["akozIt"]);
+    assert_has_lun_p(&[], &d("muza~", Kryadi), &["amozIt"]);
+
+    // iwaH?
+    assert_has_lun_p(&[], &d("qukf\\Y", Tanadi), &["akArzIt"]);
+    assert_has_lun_p(&[], &d("hf\\Y", Bhvadi), &["ahArzIt"]);
+
+    // Iwi?
+    let lu = d("lUY", Kryadi);
+    assert_has_parasmai_tinanta(&[], &lu, Lun, Prathama, Dvi, &["alAvizwAm"]);
+    assert_has_parasmai_tinanta(&[], &lu, Lun, Prathama, Bahu, &["alAvizuH"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_29() {
+    let lasj = d("o~lasjI~\\", Tudadi);
+    assert_has_krdanta(&[], &lasj, Krt::kta, &["lagna"]);
+    assert_has_krdanta(&[], &lasj, Krt::ktavatu, &["lagnavat"]);
+    assert_has_krdanta(&[], &d("wuma\\sjo~", Tudadi), Krt::kta, &["magna"]);
+
+    assert_has_krdanta(&[], &d("takza~", Bhvadi), Krt::kta, &["tazwa"]);
+    assert_has_krdanta(&[], &d("takza~", Bhvadi), Krt::ktavatu, &["tazwavat"]);
+
+    // TODO: others
 }
 
 #[test]

@@ -108,7 +108,7 @@ fn try_adanta_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
 /// Tries adesha rules for the bases `asmad` and `yuzmad`.
 ///
 /// Ordering: must come after 7.1.52 which creates "sAm"
-fn try_yusmad_asmad_sup_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+fn try_yusmad_asmad_sup_adesha_before_bhasya(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     if !p.has(i_anga, |t| t.has_text_in(&["yuzmad", "asmad"])) {
         return None;
     }
@@ -139,13 +139,25 @@ fn try_yusmad_asmad_sup_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     } else if sup.all(&[T::V5, T::Ekavacana]) {
         // mat, tvat
         op::adesha("7.1.32", p, i, "at");
-    } else if sup.first()?.has_text("s") && sup.last()?.has_text("Am") {
+    }
+
+    Some(())
+}
+
+fn try_yusmad_asmad_sup_adesha_after_bhasya(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+    if !p.has(i_anga, |t| t.has_text_in(&["yuzmad", "asmad"])) {
+        return None;
+    }
+
+    let i = i_anga + 1;
+    let sup = p.view(i_anga + 1)?;
+
+    if sup.first()?.has_text("s") && sup.last()?.has_text("Am") {
         // All three of these lines ar part of 7.1.33.
         let start = sup.start();
         p.terms_mut().remove(start);
         op::adesha("7.1.33", p, i, "Akam");
     }
-
     Some(())
 }
 
@@ -266,6 +278,39 @@ fn try_taa_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
     Some(())
 }
 
+pub fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
+    let anga = p.get(i_anga)?;
+    let sup = p.get(i_sup)?;
+    let sau = sup.has_u("su~");
+    sup.has_tag(T::Sarvanamasthana);
+
+    if sau && anga.has_text("div") {
+        // dyOH
+        p.op_term("7.1.84", i_anga, op::antya("O"));
+    } else if anga.has_text_in(&["paTin", "maTin", "fBukzin"]) {
+        if sau {
+            // panTAH, ...
+            p.op_term("7.1.85", i_anga, op::antya("A"));
+        }
+
+        let sup = p.get(i_sup)?;
+        if sup.has_tag(T::Sarvanamasthana) {
+            // panTAnam, ...
+            p.op_term("7.1.86", i_anga, |t| t.find_and_replace_text("i", "a"));
+            if p.has(i_anga, |t| t.text.contains('T')) {
+                // panTAnam, ...
+                p.op_term("7.1.87", i_anga, |t| t.find_and_replace_text("T", "nT"));
+            }
+        }
+
+        if p.has(i_anga, |t| t.has_tag(T::Bha)) {
+            // paTA, ...
+            p.op_term("7.1.88", i_anga, op::ti(""));
+        }
+    }
+    Some(())
+}
+
 pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
     let i_anga = p.find_last(T::Pratipadika)?;
     let i_sup = i_anga + 1;
@@ -301,6 +346,9 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
     // This might cause "A --> nA" which blocks num-Agama.
     try_taa_adesha(p, i_anga, i_sup);
 
+    // Causes Bhyas -> at (asmat), which we need before bhatva
+    try_yusmad_asmad_sup_adesha_before_bhasya(p, i_anga);
+
     Some(())
 }
 
@@ -309,8 +357,9 @@ pub fn run_after_bhasya(p: &mut Prakriya) -> Option<()> {
     let i_anga = p.find_last(T::Pratipadika)?;
     let i_sup = i_anga + 1;
 
-    try_yusmad_asmad_sup_adesha(p, i_anga);
+    try_yusmad_asmad_sup_adesha_after_bhasya(p, i_anga);
     try_sarvanamasthane_asambuddhau(p, i_anga, i_sup);
+    try_misc_rules(p, i_anga, i_sup);
     try_ni_adesha(p, i_anga, i_sup);
     try_pratipadika_guna(p, i_anga, i_sup);
     try_add_nit_agamas(p, i_anga);

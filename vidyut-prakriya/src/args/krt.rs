@@ -259,7 +259,7 @@ enum_boilerplate!(Krt, {
     SAnac => "SAnac",
     SAnan => "SAnan",
     yat => "yat",
-    yuc => "yuc",
+    yuc => "yu~c",
     ra => "ra",
     ru => "ru",
     lyu => "lyu~",

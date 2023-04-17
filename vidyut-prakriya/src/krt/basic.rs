@@ -480,6 +480,8 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 if !skip {
                     wrap.try_add("3.2.61", krt);
                 }
+            } else {
+                wrap.try_add("3.2.76", krt);
             }
         }
 
@@ -652,8 +654,13 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         // striyAm
         // ------------------------------------------
         K::ktin => {
-            // TODO: striyam
-            wrap.try_add("3.3.94", krt);
+            wrap.try_add_with("3.3.94", krt, |p, _| p.add_tag(T::Stri));
+        }
+
+        K::yuc => {
+            if dhatu.has_u_in(&["Ric", "Asa~\\", "SranTa~"]) {
+                wrap.try_add_with("3.3.107", krt, |p, _| p.add_tag(T::Stri));
+            }
         }
 
         K::Rvuc => {}

@@ -482,14 +482,15 @@ fn sutra_7_2_25() {
     );
 }
 
-/*
 #[test]
 fn sutra_7_2_28() {
-    let assert_has_kta = |x, y, z| assert_has_krdanta(x, &y, Krt::kta, z);
+    let assert_has_kta = |w, x, y| assert_has_krdanta(w, &x, Krt::kta, y);
     assert_has_kta(&[], d("ruza~", Bhvadi), &["ruzwa", "ruzita"]);
     assert_has_kta(&["aBi"], d("ama~", Bhvadi), &["aByAnta", "aByamita"]);
+    assert_has_kta(&[], d("YitvarA~\\", Bhvadi), &["tUrRa", "tvarita"]);
+    assert_has_kta(&["sam"], d("Guzi~r", Bhvadi), &["saNGuzwa", "saNGuzita"]);
+    assert_has_kta(&["AN"], d("svana~", Bhvadi), &["AsvAnta", "Asvanita"]);
 }
-*/
 
 #[test]
 fn sutra_7_2_35() {
@@ -512,15 +513,36 @@ fn sutra_7_2_35() {
 }
 
 #[test]
+fn sutra_7_2_36() {
+    let snu = d("zRu", Adadi);
+    assert_has_krdanta(&["pra"], &snu, Krt::tfc, &["prasnavitf"]);
+    assert_has_krdanta(&["pra"], &snu, Krt::tumun, &["prasnavitum"]);
+    assert_has_krdanta(&["pra"], &snu, Krt::tavya, &["prasnavitavya"]);
+
+    let kram = d("kramu~", Bhvadi);
+    assert_has_krdanta(&["pra"], &kram, Krt::tfc, &["prakramitf"]);
+    assert_has_krdanta(&["pra"], &kram, Krt::tumun, &["prakramitum"]);
+    assert_has_krdanta(&["pra"], &kram, Krt::tavya, &["prakramitavya"]);
+
+    // anAtmanepadanimitte
+    assert_has_ashirlin_karmani(&["pra"], &snu, &["prasnozIzwa", "prasnAvizIzwa"]);
+    assert_has_ashirlin_karmani(&["pra"], &kram, &["prakraMsIzwa"]);
+    assert_has_lrt_karmani(&["pra"], &snu, &["prasnozyate", "prasnAvizyate"]);
+    assert_has_lrt_karmani(&["pra"], &kram, &["prakraMsyate"]);
+    assert_has_lrt_karmani(&["pra"], &san(&snu), &["prasusnUzizyate"]);
+    // TODO: we produce pracikramizizyate instead
+    // assert_has_lrt_karmani(&["pra"], &san(&kram), &["pracikraMsizyate"]);
+}
+
+#[test]
 fn sutra_7_2_37() {
     let grah = d("graha~^", Kryadi);
     assert_has_krdanta(&[], &grah, Krt::tfc, &["grahItf"]);
     assert_has_krdanta(&[], &grah, Krt::tumun, &["grahItum"]);
     assert_has_krdanta(&[], &grah, Krt::tavya, &["grahItavya"]);
-
     assert_has_lit_p_1d(&[], &grah, &["jagfhiva"]);
-
-    // TODO: ignore cinvat it
+    assert_has_lut_karmani(&[], &grah, &["grAhitA", "grahItA"]);
+    assert_has_lrt_karmani(&[], &grah, &["grAhizyate", "grahIzyate"]);
 }
 
 #[test]
@@ -1278,6 +1300,18 @@ fn sutra_7_2_103() {
     assert_has_subantas("kim", Pum, Prathama, Eka, &["kaH"]);
     assert_has_subantas("kim", Pum, Prathama, Dvi, &["kO"]);
     assert_has_subantas("kim", Pum, Prathama, Bahu, &["ke"]);
+}
+
+#[test]
+fn sutra_7_2_104() {
+    assert_has_taddhitanta(&prati("kim"), T::tasil, &["kutas"]);
+    assert_has_taddhitanta(&prati("kim"), T::tral, &["kutra"]);
+    assert_has_taddhitanta(&prati("kim"), T::ha, &["kuha"]);
+}
+
+#[test]
+fn sutra_7_2_105() {
+    assert_has_taddhitanta(&prati("kim"), T::at, &["kva"]);
 }
 
 #[test]

@@ -90,7 +90,6 @@ fn sutra_7_1_2() {
 
 #[test]
 fn sutra_7_1_3() {
-    let d = d;
     assert_has_lat_p_3p(&[], &d("qukf\\Y", Tanadi), &["kurvanti"]);
     assert_has_lat_p_3p(&[], &d("zu\\Y", Svadi), &["sunvanti"]);
     assert_has_lat_p_3p(&[], &d("ci\\Y", Svadi), &["cinvanti"]);
@@ -194,7 +193,6 @@ fn sutra_7_1_13() {
     assert_has_subantas("pati", Pum, Caturthi, Eka, &["patye"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_14() {
     assert_has_subantas("sarva", Pum, Caturthi, Eka, &["sarvasmE"]);
@@ -204,7 +202,6 @@ fn sutra_7_1_14() {
     assert_has_subantas("kim", Pum, Caturthi, Eka, &["kasmE"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_15() {
     assert_has_subantas("sarva", Pum, Panchami, Eka, &["sarvasmAt"]);
@@ -213,11 +210,11 @@ fn sutra_7_1_15() {
     assert_has_subantas("tad", Pum, Panchami, Eka, &["tasmAt"]);
     assert_has_subantas("kim", Pum, Panchami, Eka, &["kasmAt"]);
 
-    assert_has_subantas("sarva", Pum, Panchami, Eka, &["sarvasmin"]);
-    assert_has_subantas("viSva", Pum, Panchami, Eka, &["viSvasmin"]);
-    assert_has_subantas("yad", Pum, Panchami, Eka, &["yasmin"]);
-    assert_has_subantas("tad", Pum, Panchami, Eka, &["tasmin"]);
-    assert_has_subantas("anya", Pum, Panchami, Eka, &["anyasmin"]);
+    assert_has_subantas("sarva", Pum, Saptami, Eka, &["sarvasmin"]);
+    assert_has_subantas("viSva", Pum, Saptami, Eka, &["viSvasmin"]);
+    assert_has_subantas("yad", Pum, Saptami, Eka, &["yasmin"]);
+    assert_has_subantas("tad", Pum, Saptami, Eka, &["tasmin"]);
+    assert_has_subantas("anya", Pum, Saptami, Eka, &["anyasmin"]);
 }
 
 #[test]
@@ -327,7 +324,6 @@ fn sutra_7_1_25() {
     assert_has_subantas("nema", Napumsaka, Dvitiya, Eka, &["nemam"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_27() {
     assert_has_subantas("asmad", Pum, Sasthi, Eka, &["mama"]);
@@ -357,7 +353,6 @@ fn sutra_7_1_29() {
     assert_has_subantas("yuzmad", Pum, Dvitiya, Bahu, &["yuzmAn"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_30() {
     assert_has_subantas("asmad", Pum, Caturthi, Bahu, &["asmaByam"]);
@@ -376,7 +371,6 @@ fn sutra_7_1_32() {
     assert_has_subantas("yuzmad", Pum, Panchami, Eka, &["tvat"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_33() {
     assert_has_subantas("asmad", Pum, Sasthi, Bahu, &["asmAkam"]);
@@ -385,7 +379,6 @@ fn sutra_7_1_33() {
 
 #[test]
 fn sutra_7_1_34() {
-    let d = d;
     assert_has_lit_p(&[], &d("pE\\", Bhvadi), &["papO"]);
     assert_has_lit_p(&[], &d("zWA\\", Bhvadi), &["tasTO"]);
     assert_has_lit_p(&[], &d("glE\\", Bhvadi), &["jaglO"]);
@@ -394,7 +387,6 @@ fn sutra_7_1_34() {
 
 #[test]
 fn sutra_7_1_35() {
-    let d = d;
     assert_has_lot(&[], &d("jIva~", Bhvadi), &["jIvatAt", "jIvatu"]);
     assert_has_lot_2s(&[], &d("jIva~", Bhvadi), &["jIvatAt", "jIva"]);
     assert_has_lot_p(&[], &d("brUY", Adadi), &["brUtAt", "bravItu"]);
@@ -404,6 +396,23 @@ fn sutra_7_1_35() {
 fn sutra_7_1_36() {
     let vid = d("vida~", Adadi);
     assert_has_krdanta(&[], &vid, Krt::Satf, &["vidat", "vidvas"]);
+}
+
+#[test]
+fn sutra_7_1_37() {
+    let kf = d("qukf\\Y", Tanadi);
+    let hf = d("hf\\Y", Bhvadi);
+    assert_has_krdanta(&["pra"], &kf, Krt::ktvA, &["prakftya"]);
+    assert_has_krdanta(&["pra"], &hf, Krt::ktvA, &["prahftya"]);
+    assert_has_krdanta(&["pArSvataH"], &kf, Krt::ktvA, &["pArSvataHkftya"]);
+    assert_has_krdanta(&["nAnA"], &kf, Krt::ktvA, &["nAnAkftya"]);
+    assert_has_krdanta(&["dviDA"], &kf, Krt::ktvA, &["dviDAkftya"]);
+
+    // samAse
+    assert_has_krdanta(&[], &kf, Krt::ktvA, &["kftvA"]);
+    assert_has_krdanta(&[], &hf, Krt::ktvA, &["hftvA"]);
+
+    // TODO: others
 }
 
 // 7.1.38 - 7.1.50 are *chandasi*.
@@ -467,7 +476,6 @@ fn sutra_7_1_58() {
 
 #[test]
 fn sutra_7_1_59() {
-    let d = d;
     let muc = d("mu\\cx~^", Tudadi);
     assert_has_lat_p(&[], &muc, &["muYcati"]);
     assert_has_lat_p(&[], &d("lu\\px~^", Tudadi), &["lumpati"]);
@@ -577,26 +585,149 @@ fn sutra_7_1_64() {
     // TODO: other labh padas
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_65() {
-    // TODO: num-Agama is added before adding the affix.
     let labh = d("qula\\Ba~\\z", Bhvadi);
     assert_has_krdanta(&["AN"], &labh, Krt::yat, &["AlamBya"]);
     assert_has_krdanta(&[], &labh, Krt::yat, &["laBya"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_66() {
-    // TODO: num-Agama is added before adding the affix.
     let labh = d("qula\\Ba~\\z", Bhvadi);
     assert_has_krdanta(&["upa"], &labh, Krt::yat, &["upalamBya", "upalaBya"]);
 }
 
 #[test]
+fn sutra_7_1_69() {
+    let labh = d("qula\\Ba~\\z", Bhvadi);
+    assert_has_lun_karmani(&[], &labh, &["alamBi", "alABi"]);
+    assert_has_krdanta(&[], &labh, Krt::Ramul, &["lABam", "lamBam"]);
+
+    // nitya for sopasarga
+    assert_has_lun_karmani(&["pra"], &labh, &["prAlamBi"]);
+    assert_has_krdanta(&["pra"], &labh, Krt::Ramul, &["pralamBam"]);
+}
+
+#[test]
+fn sutra_7_1_72() {
+    assert_has_subantas("udaSvit", Napumsaka, Prathama, Bahu, &["udaSvinti"]);
+    assert_has_subantas("Sakft", Napumsaka, Prathama, Bahu, &["Sakfnti"]);
+    assert_has_subantas("yaSas", Napumsaka, Prathama, Bahu, &["yaSAMsi"]);
+    assert_has_subantas("payas", Napumsaka, Prathama, Bahu, &["payAMsi"]);
+    // ajantasya
+    assert_has_subantas("kuRqa", Napumsaka, Prathama, Bahu, &["kuRqAni"]);
+    assert_has_subantas("vana", Napumsaka, Prathama, Bahu, &["vanAni"]);
+    assert_has_subantas("trapu", Napumsaka, Prathama, Bahu, &["trapURi"]);
+    assert_has_subantas("jatu", Napumsaka, Prathama, Bahu, &["jatUni"]);
+
+    // TODO: others
+}
+
+#[test]
+fn sutra_7_1_73() {
+    assert_has_subantas("trapu", Napumsaka, Prathama, Dvi, &["trapuRI"]);
+    assert_has_subantas("jatu", Napumsaka, Prathama, Dvi, &["jatunI"]);
+    assert_has_subantas("tumburu", Napumsaka, Prathama, Dvi, &["tumburuRI"]);
+    assert_has_subantas("trapu", Napumsaka, Caturthi, Eka, &["trapuRe"]);
+    assert_has_subantas("jatu", Napumsaka, Caturthi, Eka, &["jatune"]);
+    assert_has_subantas("tumburu", Napumsaka, Caturthi, Eka, &["tumburuRe"]);
+    // ikaH
+    assert_has_subantas("kuRqa", Napumsaka, Prathama, Dvi, &["kuRqe"]);
+    assert_has_subantas("pIWa", Napumsaka, Prathama, Dvi, &["pIWe"]);
+}
+
+#[test]
+fn sutra_7_1_84() {
+    assert_has_subantas("div", Stri, Prathama, Eka, &["dyOH"]);
+}
+
+#[test]
+fn sutra_7_1_85() {
+    assert_has_subantas("paTin", Pum, Prathama, Eka, &["panTAH"]);
+    assert_has_subantas("maTin", Pum, Prathama, Eka, &["manTAH"]);
+    assert_has_subantas("fBukzin", Pum, Prathama, Eka, &["fBukzAH"]);
+}
+
+#[test]
+fn sutra_7_1_86() {
+    assert_has_subantas("paTin", Pum, Prathama, Eka, &["panTAH"]);
+    assert_has_subantas("paTin", Pum, Prathama, Dvi, &["panTAnO"]);
+    assert_has_subantas("paTin", Pum, Prathama, Bahu, &["panTAnaH"]);
+    assert_has_subantas("paTin", Pum, Dvitiya, Eka, &["panTAnam"]);
+    assert_has_subantas("paTin", Pum, Dvitiya, Dvi, &["panTAnO"]);
+
+    assert_has_subantas("maTin", Pum, Prathama, Eka, &["manTAH"]);
+    assert_has_subantas("maTin", Pum, Prathama, Dvi, &["manTAnO"]);
+    assert_has_subantas("maTin", Pum, Prathama, Bahu, &["manTAnaH"]);
+    assert_has_subantas("maTin", Pum, Dvitiya, Eka, &["manTAnam"]);
+    assert_has_subantas("maTin", Pum, Dvitiya, Dvi, &["manTAnO"]);
+
+    assert_has_subantas("fBukzin", Pum, Prathama, Eka, &["fBukzAH"]);
+    assert_has_subantas("fBukzin", Pum, Prathama, Dvi, &["fBukzARO"]);
+    assert_has_subantas("fBukzin", Pum, Prathama, Bahu, &["fBukzARaH"]);
+    assert_has_subantas("fBukzin", Pum, Dvitiya, Eka, &["fBukzARam"]);
+    assert_has_subantas("fBukzin", Pum, Dvitiya, Dvi, &["fBukzARO"]);
+}
+
+#[test]
+fn sutra_7_1_87() {
+    assert_has_subantas("paTin", Pum, Prathama, Eka, &["panTAH"]);
+    assert_has_subantas("paTin", Pum, Prathama, Dvi, &["panTAnO"]);
+    assert_has_subantas("paTin", Pum, Prathama, Bahu, &["panTAnaH"]);
+
+    assert_has_subantas("maTin", Pum, Prathama, Eka, &["manTAH"]);
+    assert_has_subantas("maTin", Pum, Prathama, Dvi, &["manTAnO"]);
+    assert_has_subantas("maTin", Pum, Prathama, Bahu, &["manTAnaH"]);
+}
+
+#[test]
+fn sutra_7_1_88() {
+    assert_has_subantas("paTin", Pum, Dvitiya, Bahu, &["paTaH"]);
+    assert_has_subantas("paTin", Pum, Trtiya, Eka, &["paTA"]);
+    assert_has_subantas("paTin", Pum, Caturthi, Eka, &["paTe"]);
+
+    assert_has_subantas("maTin", Pum, Dvitiya, Bahu, &["maTaH"]);
+    assert_has_subantas("maTin", Pum, Trtiya, Eka, &["maTA"]);
+    assert_has_subantas("maTin", Pum, Caturthi, Eka, &["maTe"]);
+
+    assert_has_subantas("fBukzin", Pum, Dvitiya, Bahu, &["fBukzaH"]);
+    assert_has_subantas("fBukzin", Pum, Trtiya, Eka, &["fBukzA"]);
+    assert_has_subantas("fBukzin", Pum, Caturthi, Eka, &["fBukze"]);
+}
+
+#[test]
+fn sutra_7_1_90() {
+    assert_has_subantas("go", Pum, Prathama, Eka, &["gOH"]);
+    assert_has_subantas("go", Pum, Prathama, Dvi, &["gAvO"]);
+    assert_has_subantas("go", Pum, Prathama, Bahu, &["gAvaH"]);
+    // TODO: others
+}
+
+#[test]
+fn sutra_7_1_91() {
+    use Purusha::*;
+    let assert = assert_has_parasmai_tinanta;
+    assert(
+        &[],
+        &d("qukf\\Y", Tanadi),
+        Lit,
+        Uttama,
+        Eka,
+        &["cakara", "cakAra"],
+    );
+    assert(
+        &[],
+        &d("qupa\\ca~^z", Bhvadi),
+        Lit,
+        Uttama,
+        Eka,
+        &["papaca", "papAca"],
+    );
+}
+
+#[test]
 fn sutra_7_1_100() {
-    let d = d;
     assert_has_lat(&[], &d("kF", Tudadi), &["kirati"]);
     assert_has_lat(&[], &d("gF", Tudadi), &["girati", "gilati"]);
     assert_has_krdanta(&["AN"], &d("stFY", Kryadi), Krt::kta, &["AstIrRa"]);

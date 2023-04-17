@@ -78,7 +78,6 @@ impl<'a> ItPrakriya<'a> {
         ItPrakriya { p, added: false }
     }
 
-    #[allow(unused)]
     fn has_upasarga_in(&self, i: usize, values: &[&str]) -> bool {
         if i == 0 {
             false
@@ -138,14 +137,10 @@ impl<'a> ItPrakriya<'a> {
 ///
 /// (7.2.8 - 7.2.34)
 fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
-    let j = wrap.p.find_next_where(i, |t| !t.is_empty())?;
-
-    let has_upasarga_in = |p: &mut Prakriya, i, items| {
-        i > 0 && p.has(i - 1, |t| t.is_upasarga() && t.has_u_in(items))
-    };
+    let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
 
     let dhatu = wrap.p.get(i)?;
-    let n = wrap.p.get(j)?;
+    let n = wrap.p.get(i_n)?;
 
     let ti_tu_tra = &[
         "ti", "tu", "tra", "ta", "Ta", "si", "su", "sara", "ka", "sa",
@@ -177,7 +172,20 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
             wrap.anit("7.2.14");
         } else if is_ever_vet(dhatu) {
             wrap.anit("7.2.15");
-        } else if dhatu.has_tag(T::Adit) {
+        } else if dhatu.has_u_in(&["ruza~", "ama~", "YitvarA~\\", "svana~"])
+            || (dhatu.has_u("Guzi~r") && wrap.has_upasarga_in(i, &["sam"]))
+        {
+            let dhatu = wrap.p.get(i)?;
+            let code = "7.2.28";
+            if dhatu.has_u("YitvarA~\\") {
+                wrap.optional_set(code, i_n);
+            } else {
+                wrap.optional_anit(code);
+            }
+        }
+
+        let dhatu = wrap.p.get(i)?;
+        if dhatu.has_tag(T::Adit) {
             let mut can_run = true;
             // TODO: Adikarmani.
             if wrap.p.any(&[T::Bhave]) {
@@ -187,13 +195,11 @@ fn try_general_anit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
                 wrap.anit("7.2.16");
             }
         } else if dhatu.has_u("arda~") {
-            if has_upasarga_in(wrap.p, i, &["sam", "ni", "vi"]) {
+            if wrap.has_upasarga_in(i, &["sam", "ni", "vi"]) {
                 wrap.anit("7.2.24");
-            } else if has_upasarga_in(wrap.p, i, &["aBi"]) {
+            } else if wrap.has_upasarga_in(i, &["aBi"]) {
                 wrap.optional_anit("7.2.25");
             }
-        } else if dhatu.has_u_in(&["ruza~", "ama~", "YitvarA~\\"]) {
-            wrap.optional_anit("7.2.28");
         }
         // skipped: 7.2.18 - 23.
     }
@@ -481,8 +487,8 @@ fn try_ardhadhatuke_2(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     } else if anga.has_u("kfpU~\\") && antya_para && (se || n.has_u("tAsi~")) {
         wrap.anit("7.2.60");
     } else if anga.has_text_in(&["snu", "kram"]) && n.has_adi(&*VAL) {
-        // TODO: not sure I undesrtand the scope of this rule.
-        if n.has_tag(T::Atmanepada) && n.has_u("sIyu~w") {
+        // prasnozIzwa, prakraMsIzwa
+        if wrap.p.has_tag(T::Atmanepada) {
             wrap.anit("7.2.36");
         }
     }
@@ -615,7 +621,11 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     if dhatu.has_text("grah") {
-        p.op_term("7.2.37", i, op::text("I"));
+        if !n.has_tag(T::Cinvat) {
+            p.op_term("7.2.37", i, op::text("I"));
+            p.step("cinvat");
+        }
+        p.dump();
     } else if dhatu.has_antya('F') || dhatu.has_text("vf") {
         if last.has_lakshana("li~N") {
             p.step("7.2.39");

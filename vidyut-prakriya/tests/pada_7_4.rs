@@ -573,17 +573,17 @@ fn sutra_7_4_66() {
     // TODO: yaNluk examples.
 }
 
-#[ignore]
 #[test]
 fn sutra_7_4_67() {
     let dyut = d("dyuta~\\", Bhvadi);
     assert_has_lit(&["vi"], &dyut, &["vididyute"]);
     assert_has_lun(&["vi"], &nic(&dyut), &["vyadidyutat"]);
-    assert_has_lat(&["vi"], &san(&dyut), &["vididyotizate", "vidyutizate"]);
-    assert_has_lit(&["vi"], &yan(&dyut), &["videdyutyate"]);
+    assert_has_lat(&["vi"], &san(&dyut), &["vididyotizate", "vididyutizate"]);
+    assert_has_lat(&["vi"], &yan(&dyut), &["videdyutyate"]);
 
-    let svap = nic(&d("Yizva\\pa~", Adadi));
-    assert_has_lat_p(&[], &san(&svap), &["suzvApayizati"]);
+    // TODO
+    let _svap = d("Yizva\\pa~", Adadi).with_sanadi(&[Sanadi::Nic, Sanadi::San]);
+    // assert_has_lat_p(&[], &svap, &["suzvApayizati"]);
 }
 
 #[test]

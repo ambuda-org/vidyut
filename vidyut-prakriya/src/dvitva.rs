@@ -181,8 +181,11 @@ fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> 
 }
 
 fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
+    let i_n = p.find_next_where(i, |t| {
+        !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
+    })?;
     let dhatu = p.get(i)?;
-    let next = p.view(i + 1)?;
+    let next = p.view(i_n)?;
 
     if dhatu.has_adi(&*AC)
         && next.last()?.is_pratyaya()
@@ -230,8 +233,11 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         p.op_term("6.1.6", i, op::add_tag(T::Abhyasta));
     }
 
-    // Use a view to include `iw`-Agama.
-    let n = p.view(i + 1)?;
+    // Use a view to include `iw`-Agama. Skip vu~k and other dhatu-agamas.
+    let i_n = p.find_next_where(i, |t| {
+        !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
+    })?;
+    let n = p.view(i_n)?;
     if n.has_lakshana("li~w") {
         let dhatu = p.get(i)?;
         // kAshikA:

@@ -82,6 +82,23 @@ fn sutra_4_1_45() {
 }
 
 #[test]
+fn sutra_4_1_49() {
+    assert_has_stri("indra", &["indrARI"]);
+    assert_has_stri("varuRa", &["varuRAnI"]);
+    assert_has_stri("Bava", &["BavAnI"]);
+    assert_has_stri("Sarva", &["SarvARI"]);
+    assert_has_stri("rudra", &["rudrARI"]);
+    assert_has_stri("mfqa", &["mfqAnI"]);
+    assert_has_stri("hima", &["himAnI"]);
+    assert_has_stri("araRya", &["araRyAnI"]);
+    assert_has_stri("yava", &["yavAnI"]);
+    assert_has_stri("yavana", &["yavanAnI"]);
+    assert_has_stri("mAtula", &["mAtulAnI"]);
+
+    // TODO: others;
+}
+
+#[test]
 fn sutra_4_1_146() {
     assert_has_taddhitanta(&prati("revatI"), Taddhita::Wak, &["rEvatika"]);
     assert_has_taddhitanta(&prati("aSvapAlI"), Taddhita::Wak, &["ASvapAlika"]);

@@ -214,10 +214,11 @@ fn try_sup_sandhi_for_nasi_nas(p: &mut Prakriya) -> Option<()> {
             p.set(i_anga, op::antya("ur"));
             p.set(i_sup, op::adi(""));
         });
-    } else if anga.ends_with("Kya") || anga.ends_with("tya") {
-        // saKyuH
+    } else if anga.has_text("saKi") || anga.has_text("pati") {
+        // saKyuH, patyuH
         p.op_term("6.1.112", i_sup, op::text("us"));
     }
+    p.step("khyatya");
 
     Some(())
 }

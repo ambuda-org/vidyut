@@ -7,6 +7,10 @@ fn d(u: &str, g: Gana) -> Dhatu {
     Dhatu::new(u, g)
 }
 
+fn san(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::San])
+}
+
 #[test]
 fn sutra_1_3_1() {
     assert_has_lat(&[], &d("BU", Bhvadi), &["Bavati"]);
@@ -274,40 +278,39 @@ fn sutra_1_3_56() {
 #[ignore]
 #[test]
 fn sutra_1_3_57() {
-    let jna = d("jYA\\", Kryadi).with_sanadi(&[Sanadi::San]);
-    assert_has_lat(&[], &jna, &["jijYAsate"]);
+    let jna = d("jYA\\", Kryadi);
+    assert_has_lat(&[], &san(&jna), &["jijYAsate"]);
 
-    let sru = d("Sru\\", Svadi).with_sanadi(&[Sanadi::San]);
-    assert_has_lat(&[], &sru, &["SuSrUzate"]);
+    let sru = d("Sru\\", Svadi);
+    assert_has_lat(&[], &san(&sru), &["SuSrUzate"]);
 
-    let smf = d("smf\\", Bhvadi).with_sanadi(&[Sanadi::San]);
-    assert_has_lat(&[], &smf, &["susmUrzate"]);
+    let smf = d("smf\\", Bhvadi);
+    assert_has_lat(&[], &san(&smf), &["susmUrzate"]);
 
-    let dfs = d("df\\Si~r", Bhvadi).with_sanadi(&[Sanadi::San]);
-    assert_has_lat(&[], &dfs, &["didfkzate"]);
+    let dfs = d("df\\Si~r", Bhvadi);
+    assert_has_lat(&[], &san(&dfs), &["didfkzate"]);
 }
 
 #[test]
 fn sutra_1_3_58() {
-    let jna = d("jYA\\", Kryadi).with_sanadi(&[Sanadi::San]);
-    assert_has_lat(&["anu"], &jna, &["anujijYAsati"]);
+    let jna = d("jYA\\", Kryadi);
+    assert_has_lat(&["anu"], &san(&jna), &["anujijYAsati"]);
 }
 
 #[test]
 fn sutra_1_3_59() {
-    let sru = d("Sru\\", Svadi).with_sanadi(&[Sanadi::San]);
-    assert_has_lat(&["prati"], &sru, &["pratiSuSrUzati"]);
-    assert_has_lat(&["AN"], &sru, &["ASuSrUzati"]);
+    let sru = d("Sru\\", Svadi);
+    assert_has_lat(&["prati"], &san(&sru), &["pratiSuSrUzati"]);
+    assert_has_lat(&["AN"], &san(&sru), &["ASuSrUzati"]);
 }
 
 #[test]
 fn sutra_1_3_60() {
     let shad = d("Sa\\dx~", Tudadi);
-    let shad_san = shad.clone().with_sanadi(&[Sanadi::San]);
     assert_has_lat(&[], &shad, &["SIyate"]);
     assert_has_lrn(&[], &shad, &["aSatsyat"]);
     assert_has_lrt(&[], &shad, &["Satsyati"]);
-    assert_has_lat(&[], &shad_san, &["SiSatsati"]);
+    assert_has_lat(&[], &san(&shad), &["SiSatsati"]);
 }
 
 #[test]

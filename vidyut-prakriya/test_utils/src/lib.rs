@@ -195,6 +195,27 @@ pub fn assert_has_atmane_tinanta(
     assert_padas(actual, expected);
 }
 
+/// Checks karmani + the given lakara/purusha/vacana
+pub fn assert_has_karmani_tinanta(
+    prefixes: &[&str],
+    dhatu: &Dhatu,
+    lakara: Lakara,
+    purusha: Purusha,
+    vacana: Vacana,
+    expected: &[&str],
+) {
+    let args = TinantaArgs::builder()
+        .prayoga(Prayoga::Karmani)
+        .purusha(purusha)
+        .vacana(vacana)
+        .lakara(lakara)
+        .build()
+        .unwrap();
+    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
+    assert_padas(actual, expected);
+}
+
+
 pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lat);
     assert_padas(actual, expected);
@@ -240,6 +261,11 @@ pub fn assert_has_lut_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_padas(actual, expected);
 }
 
+pub fn assert_has_lut_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_karmani(prefixes, dhatu, Lakara::Lut);
+    assert_padas(actual, expected);
+}
+
 pub fn assert_has_lrt(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lrt);
     assert_padas(actual, expected);
@@ -255,6 +281,11 @@ pub fn assert_has_lrt_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_padas(actual, expected);
 }
 
+pub fn assert_has_lrt_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_karmani(prefixes, dhatu, Lakara::Lrt);
+    assert_padas(actual, expected);
+}
+
 pub fn assert_has_lot(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lot);
     assert_padas(actual, expected);
@@ -265,6 +296,11 @@ pub fn assert_has_lot_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_padas(actual, expected);
 }
 
+pub fn assert_has_lot_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_atmane(prefixes, dhatu, Lakara::Lot);
+    assert_padas(actual, expected);
+}
+
 pub fn assert_has_lan(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lan);
     assert_padas(actual, expected);
@@ -272,6 +308,11 @@ pub fn assert_has_lan(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 
 pub fn assert_has_lan_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_parasmai(prefixes, dhatu, Lakara::Lan);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lan_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_atmane(prefixes, dhatu, Lakara::Lan);
     assert_padas(actual, expected);
 }
 
@@ -305,6 +346,11 @@ pub fn assert_has_vidhilin_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]
     assert_padas(actual, expected);
 }
 
+pub fn assert_has_vidhilin_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_atmane(prefixes, dhatu, Lakara::VidhiLin);
+    assert_padas(actual, expected);
+}
+
 pub fn assert_has_lun(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lun);
     assert_padas(actual, expected);
@@ -332,6 +378,11 @@ pub fn assert_has_lrn(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
 
 pub fn assert_has_lrn_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_parasmai(prefixes, dhatu, Lakara::Lrn);
+    assert_padas(actual, expected);
+}
+
+pub fn assert_has_lrn_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    let actual = derive_karmani(prefixes, dhatu, Lakara::Lrn);
     assert_padas(actual, expected);
 }
 

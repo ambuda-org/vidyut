@@ -1,5 +1,5 @@
 use crate::args::Gana;
-use crate::char_view::{char_rule, get_at, set_at, xyz};
+use crate::char_view::{char_rule, get_at, get_term_and_offset_indices, set_at, xyz};
 use crate::dhatu_gana;
 use crate::iterators::xy_rule;
 use crate::operators as op;
@@ -65,6 +65,34 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
+/// (8.2.9 - 8.2.10)
+fn try_matup_to_vatup(p: &mut Prakriya) -> Option<()> {
+    const YAVA_ADI: &[&str] = &[
+        "yava", "dalmi", "Urmi", "BUmi", "kfmi", "kruYcA", "vaSA", "drAkzA",
+    ];
+
+    lazy_static! {
+        static ref MA: Set = s("a m");
+        static ref JHAY: Set = s("Jay");
+    }
+
+    for i in 1..p.terms().len() {
+        let x = p.get(i - 1)?;
+        let y = p.get(i)?;
+        if y.has_u("matu~p") {
+            let mat_upadha = x.has_antya(&*MA) || x.has_upadha(&*MA);
+            let yavadi = x.has_u_in(YAVA_ADI);
+            if mat_upadha && !yavadi {
+                p.op_term("8.2.9", i, |t| t.set_adi("v"));
+            } else if x.has_antya(&*JHAY) {
+                p.op_term("8.2.10", i, |t| t.set_adi("v"));
+            }
+        }
+    }
+
+    Some(())
+}
+
 /// Runs rules that change r to l.
 /// Example: girati -> gilati.
 ///
@@ -82,6 +110,10 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
 
         if x.has_u_in(&["kfpU~\\", "kfpa~\\", "kfpa~"]) {
             p.op("8.2.18", op::t(i, do_ra_la));
+        } else if y.has_u("aya~\\") {
+            if x.has_upadha('r') || x.has_antya('r') {
+                p.op("8.2.19", op::t(i, do_ra_la));
+            }
         } else if x.has_u("gF") {
             if y.has_u("yaN") {
                 p.op("8.2.20", op::t(i, do_ra_la));
@@ -153,9 +185,8 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         p,
         |p, text, i| {
             let bytes = text.as_bytes();
-            if let (Some(x), Some(y)) = (bytes.get(i), bytes.get(i + 1)) {
+            if let Some(x) = bytes.get(i) {
                 let x = *x as char;
-                let y = *y as char;
 
                 // Check that this is the start of a samyoga as opposed to a portion of a larger
                 // samyoga. This check is necessary to prevent `saMstti -> santti`.
@@ -174,7 +205,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
                 //
                 // [1]: https://archive.org/details/237131938MadhaviyaDhatuVrtti/page/n434/mode/1up
                 // [2]: as above, but `n540` instead of `n434` in the URL.
-                let is_start_of_samyoga = if i > 0 {
+                let is_first_hal = if i > 0 {
                     match bytes.get(i - 1) {
                         Some(w) => {
                             let w = *w as char;
@@ -187,23 +218,39 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
                     false
                 };
 
-                let sku_samyoga = (x == 's' || x == 'k') && HAL.contains(y) && is_start_of_samyoga;
-                if let Some(z) = bytes.get(i + 2) {
-                    // Also, the jhal should be at the start of a pratyaya.
-                    let z = *z as char;
-                    let jhali = JHAL.contains(z);
-                    // Include `Agama` for sIyuw, etc.
-                    let pratyaye = get_at(p, i + 2)
-                        .expect("valid")
-                        .has_tag_in(&[T::Agama, T::Pratyaya]);
+                let sk = x == 's' || x == 'k';
 
-                    sku_samyoga && jhali && pratyaye
-                } else {
-                    sku_samyoga
+                if !sk || !is_first_hal {
+                    return false;
                 }
-            } else {
-                false
+
+                let mut num_hals = 0;
+                if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
+                    for i in i_term..p.terms().len() {
+                        let start = if i == i_term { i_offset } else { 0 };
+                        let cur = p.get(i).expect("ok");
+                        for j in start..cur.text.len() {
+                            let x = cur.text.as_bytes()[j] as char;
+                            if HAL.contains(x) {
+                                num_hals += 1;
+                            } else {
+                                return false;
+                            }
+
+                            if num_hals >= 3
+                                && JHAL.contains(x)
+                                && (cur.is_pratyaya() || cur.is_agama())
+                            {
+                                return true;
+                            }
+                            if num_hals >= 2 && j == cur.text.len() - 1 && cur.is_pada() {
+                                return true;
+                            }
+                        }
+                    }
+                }
             }
+            false
         },
         |p, text, i| {
             let bytes = text.as_bytes();
@@ -344,6 +391,7 @@ fn try_ch_to_s(p: &mut Prakriya) {
 fn per_term_1a(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let x = p.get(i)?;
+
         let jhali_or_ante = match p.find_next_where(i, |t| !t.is_empty()) {
             Some(j) => {
                 let t = p.get(j)?;
@@ -351,7 +399,8 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
             }
             None => p.terms().last()?.is_pada(),
         };
-        if x.has_antya(&*CU) && jhali_or_ante {
+
+        if x.has_antya(&*CU) && (x.is_pada() || jhali_or_ante) {
             if let Some(c) = x.antya() {
                 let sub = CU_TO_KU.get(c)?;
                 p.op_term("8.2.30", i, op::antya(&sub.to_string()));
@@ -654,8 +703,8 @@ fn try_rules_for_adas(p: &mut Prakriya) -> Option<()> {
     let adas = p.get_if(i, |t| t.has_u("adas"))?;
     let sup = p.terms().last()?;
 
-    // "s" becomes "ru~" above, so check for "ru~" instead of final "s".
-    if !adas.has_antya('~') {
+    // "s" might become "ru~" above, so check for "ru~" as well as final "s".
+    if !adas.has_antya('~') && !adas.has_antya('s') {
         if (adas.has_antya('e') || sup.has_adi('e')) && sup.has_tag(T::Bahuvacana) {
             p.op("8.2.81", |p| {
                 let t = p.get_mut(i).expect("ok");
@@ -691,6 +740,8 @@ fn try_rules_for_adas(p: &mut Prakriya) -> Option<()> {
 pub fn run(p: &mut Prakriya) {
     // 8.2.7 - 8.2.8
     try_na_lopa(p);
+    // 8.2.9 - 8.2.10
+    try_matup_to_vatup(p);
     // 8.2.18 - 8.2.21
     try_change_r_to_l(p);
     // 8.2.23 - 8.2.29

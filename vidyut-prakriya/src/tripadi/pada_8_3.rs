@@ -50,7 +50,7 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
                     // this rule.
                     p.op_term("6.3.111", i, op::antya(&sub.to_string()));
                 }
-            } else if is_avasana || (p.is_pada(i) && p.has(i + 1, |t| t.has_adi(&*KHAR))) {
+            } else if p.is_pada(i) && (is_avasana || p.has(i + 1, |t| t.has_adi(&*KHAR))) {
                 p.op_term("8.3.15", i, |t| {
                     t.set_antya("");
                     t.text += "H";

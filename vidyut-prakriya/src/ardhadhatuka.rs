@@ -137,7 +137,9 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
     } else if dhatu.has_u("i\\N") {
         let to_gaa = |p: &mut Prakriya| op::upadesha(p, i, "gAN");
 
-        if n.has_u("san") {
+        if p.has(i + 1, |t| t.has_u("Ric")) && p.has(i + 2, |t| t.has_u_in(&["san", "caN"])) {
+            p.op_optional("2.4.51", to_gaa);
+        } else if n.has_u("san") {
             // aDijigAMsate
             op::adesha("2.4.48", p, i, "gami~");
         } else if n.has_lakshana("li~w") {
