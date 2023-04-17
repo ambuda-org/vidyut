@@ -12,9 +12,12 @@ called *iṭ*. Dhatus use iṭ in one of three patterns:
 - Roots that generally avoid iṭ are called *aniṭ* (an-iṭ).
 - Roots that optionally use iṭ are called *veṭ* (vā-iṭ).
 
-The main rules here are 7.2.35, which adds *iṭ* before ardhadhatuka suffixes that start with a
-consonant other than *y*, and 7.2.10, which blocks *iṭ* for single-vowel roots stated with an
-anudatta accent in upadesha. All other rules here are exceptions to these two general rules.
+The main rules here are:
+
+- 7.2.35, which adds *iṭ* before ardhadhatuka suffixes that start with a consonant other than *y*.
+- 7.2.10, which blocks *iṭ* for single-vowel roots stated with an anudatta accent in upadesha.
+
+All other rules here are exceptions to these two general rules.
 
 Order of operations:
 - must run before dvitva since *iṭ* can be part of the abhyasa for certain verbs, such as
