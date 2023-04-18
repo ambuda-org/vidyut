@@ -215,7 +215,6 @@ pub fn assert_has_karmani_tinanta(
     assert_padas(actual, expected);
 }
 
-
 pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     let actual = derive_lakara(prefixes, dhatu, Lakara::Lat);
     assert_padas(actual, expected);
