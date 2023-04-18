@@ -85,9 +85,11 @@ fn try_do_dirgha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     } else if anga.has_u("tanu~^") && n.has_u("san") {
         p.op_optional("6.4.17", op::t(i_anga, |t| t.set_upadha("A")));
     } else if anga.has_antya(&*ANUNASIKA) && (n.has_u("kvi~p") || jhal_knit()) {
+        let blocked = anga.has_tag(T::FlagNoDirgha);
         if let Some(sub) = al::to_dirgha(anga.upadha()?) {
-            // SAnta, ...
-            p.op_term("6.4.15", i_anga, |t| t.set_upadha(&sub.to_string()));
+            if !blocked {
+                p.op_term("6.4.15", i_anga, |t| t.set_upadha(&sub.to_string()));
+            }
         }
     }
 

@@ -37,15 +37,66 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 });
             }
         }
+        K::tun => {
+            if dhatu.has_u_in(&[
+                "zi\\Y", "tanu~^", "ga\\mx~", "masI~", "zaca~\\", "ava~", "quDA\\Y", "kru\\Sa~",
+            ]) {
+                wrap.try_add(Unadi("1.69"), krt);
+            }
+        }
         K::katu => {
             if dhatu.has_u("qukf\\Y") {
                 wrap.try_add(Unadi("1.77"), krt);
+            }
+        }
+        K::kTan => {
+            if dhatu.has_u_in(&["ha\\na~", "kuza~", "RI\\Y", "ama~", "kASf~"]) {
+                wrap.try_add(Unadi("2.2"), krt);
+            }
+        }
+        K::kan => {
+            if dhatu.has_u_in(&["i\\R", "YiBI\\", "kE\\", "pA\\", "Sala~", "ata~", "marca~"]) {
+                wrap.try_add(Unadi("3.43"), krt);
+            }
+        }
+        K::sa => {
+            if dhatu.has_u_in(&["vF", "vFY", "tF", "vada~", "ha\\na~", "kamu~\\", "kaza~"]) {
+                wrap.try_add(Unadi("3.62"), krt);
+            }
+        }
+        K::sara => {
+            if dhatu.has_u("aSU~\\") {
+                wrap.try_add(Unadi("3.70"), krt);
+            }
+        }
+        K::tan => {
+            if dhatu.has_u_in(&[
+                "hase~", "mf\\N", "gF", "i\\R", "vA\\", "ama~", "damu~", "lUY", "pUY", "DurvI~",
+            ]) {
+                wrap.try_add(Unadi("3.86"), krt);
+            }
+        }
+        K::ksi => {
+            if dhatu.has_u_in(&["pluza~", "kuza~", "Su\\za~"]) {
+                wrap.try_add(Unadi("3.155"), krt);
+            } else if dhatu.has_u("aSU~") {
+                wrap.try_add_with(Unadi("3.156"), krt, |p, i| {
+                    p.set(i + 1, |t| t.add_tag(T::nit))
+                });
+            }
+        }
+        K::ksu => {
+            if dhatu.has_u("izu~") {
+                wrap.try_add(Unadi("3.157"), krt);
             }
         }
         K::kvinUnadi => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {
                 wrap.try_add(Unadi("4.54"), krt);
             }
+        }
+        K::zwran => {
+            wrap.try_add(Unadi("4.158"), krt);
         }
         _ => (),
     }

@@ -14,6 +14,10 @@ fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
 }
 
+fn yan(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::Yan])
+}
+
 #[test]
 fn sutra_8_3_13() {
     assert_has_krdanta(&[], &d("li\\ha~^", Adadi), Krt::kta, &["lIQa"]);
@@ -379,4 +383,26 @@ fn sutra_8_3_79() {
     let kf = Dhatu::new("qukf\\Y", Gana::Tanadi);
     let actual = derive_tinantas(&kf, &lit);
     assert_padas(actual, &["cakfQve"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_3_112() {
+    let sic = d("zi\\ca~^", Tudadi);
+    assert_has_lat(&[], &yan(&sic), &["sesicyate"]);
+    assert_has_lat(&["aBi"], &yan(&sic), &["aBisesicyate"]);
+    // yani
+    assert_has_lat(&["aBi"], &san(&sic), &["aBizizikzati"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_3_115() {
+    let sah = d("zaha~\\", Bhvadi);
+    assert_has_krdanta(&["pari"], &sah, Krt::kta, &["parisoQa", "parizahita"]);
+    assert_has_krdanta(&["pari"], &sah, Krt::tumun, &["parisoQum"]);
+    assert_has_krdanta(&["pari"], &sah, Krt::tavya, &["parisoQavya"]);
+
+    // soQa?
+    assert_has_lat(&["pari"], &sah, &["parizahate"]);
 }
