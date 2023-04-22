@@ -202,6 +202,9 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
     if let Some(t) = p.get_mut(i) {
         if temp_slice != t.text {
             t.text.replace_range(.., temp_slice);
+            if t.has_tag(T::zit) && t.text.starts_with('w') {
+                t.text.replace_range(..1, "t");
+            }
             p.step("1.3.9")
         }
     }

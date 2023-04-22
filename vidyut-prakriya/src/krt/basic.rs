@@ -593,12 +593,12 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
 
         K::zwran => {
-            let ni_shasa = &[
+            const NI_ADI: &[&str] = &[
                 "nI", "Sas", "yu", "yuj", "stu", "tud", "si", "sic", "mih", "pat", "danS", "nah",
             ];
             if dhatu.has_text("DA") {
                 wrap.try_add("3.2.181", krt);
-            } else if dhatu.has_u("dA\\p") || dhatu.has_text_in(ni_shasa) {
+            } else if dhatu.has_u("dA\\p") || dhatu.has_text_in(NI_ADI) {
                 wrap.try_add("3.2.182", krt);
             } else if dhatu.has_text("pU") {
                 wrap.try_add("3.2.183", krt);
@@ -675,7 +675,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         K::Kal => {}
 
-        K::ktic => {}
+        K::ktic => {
+            wrap.try_add("3.3.174", krt);
+        }
 
         K::ktvA => {
             wrap.try_add("3.4.21", krt);

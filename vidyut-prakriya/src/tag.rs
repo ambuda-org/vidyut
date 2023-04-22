@@ -231,6 +231,8 @@ pub enum Tag {
     FlagSamprasarana,
     // Indicates that ittva was applied.
     FlagIttva,
+    /// Blocks a rule that causes dirgha.
+    FlagNoDirgha,
 
     Sankhya,
     Sat,

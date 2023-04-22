@@ -148,7 +148,9 @@ fn try_get_shatva_niyama(p: &mut Prakriya, i: usize) -> Option<Code> {
     {
         // Based on commentary, this is only for abhi-sidh-nic and pari-sidh-nic
         Some("8.3.113")
-    } else if t.has_text("soQ") {
+    } else if t.has_text("saQ") {
+        // The rule says "soQ" but "soQ" appears only after 8.3.13, which itself can occur only
+        // fater
         Some("8.3.115")
     } else if p.has(i + 1, |t| t.has_u_in(&["sta\\nBu~", "zivu~", "zaha~\\"]))
         && p.has(i + 2, |t| t.has_u("caN"))

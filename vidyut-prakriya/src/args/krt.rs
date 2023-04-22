@@ -180,12 +180,32 @@ pub enum Krt {
     // ===============
     /// -u (kAru)
     uR,
-    /// -u (tAlu)
-    YuR,
     /// -atu (kratu)
     katu,
+    /// -ka
+    kan,
+    /// -Ta
+    kTan,
     /// -vi (jAgfvi)
     kvinUnadi,
+    /// -sara
+    ksaran,
+    /// -si
+    ksi,
+    /// -su
+    ksu,
+    /// -u (tAlu)
+    YuR,
+    /// -ta
+    tan,
+    /// -tu
+    tun,
+    /// -sa
+    sa,
+    /// -sara
+    sara,
+    /// -su
+    suk,
 }
 
 enum_boilerplate!(Krt, {
@@ -275,9 +295,20 @@ enum_boilerplate!(Krt, {
     // unAdi-pratyayas
     // ===============
     uR => "uR",
-    YuR => "YuR",
+    // TODO: why do we keep the initial 'k' here?
+    kan => "a~kan",
     katu => "katu",
+    kTan => "kTan",
     kvinUnadi => "kvin",
+    ksaran => "ksaran",
+    ksi => "ksi",
+    ksu => "ksu",
+    YuR => "YuR",
+    tan => "tan",
+    tun => "tun",
+    sa => "sa",
+    sara => "sara",
+    suk => "suk",
 });
 
 impl Krt {
