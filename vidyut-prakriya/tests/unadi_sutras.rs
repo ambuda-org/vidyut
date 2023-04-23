@@ -19,6 +19,18 @@ fn sutra_1_1() {
     assert_has_krdanta(&[], &d("aSU~\\", Svadi), Krt::uR, &["ASu"]);
 }
 
+#[test]
+fn sutra_1_3() {
+    assert_has_krdanta(&[], &d("dF", Kryadi), Krt::YuR, &["dAru"]);
+    assert_has_krdanta(&[], &d("zaRa~", Bhvadi), Krt::YuR, &["sAnu"]);
+    assert_has_krdanta(&[], &d("zaRu~^", Tanadi), Krt::YuR, &["sAnu"]);
+    // assert_has_krdanta(&[], &d("janI~\\", Divadi), Krt::YuR, &["jAnu"]);
+    // assert_has_krdanta(&[], &d("jana~", Juhotyadi), Krt::YuR, &["jAnU"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::YuR, &["cAru"]);
+    assert_has_krdanta(&[], &d("cawa~", Curadi), Krt::YuR, &["cAwu"]);
+    // assert_has_krdanta(&[], &d("raha~", Curadi), Krt::YuR, &["rAhu"]);
+}
+
 #[ignore]
 #[test]
 fn sutra_1_5() {
