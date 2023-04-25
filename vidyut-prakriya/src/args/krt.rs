@@ -206,6 +206,30 @@ pub enum Krt {
     sara,
     /// -su
     suk,
+    /// -atni,
+    katnic,
+    /// -yatu,
+    yatuc,
+    /// -ali
+    alic,
+    /// -izWu
+    izWuc,
+    /// -izWa
+    izWac,
+    /// -isa
+    isan,
+    /// -sya
+    syan,
+    /// -iTi
+    iTin,
+    /// -uli
+    uli,
+    /// -as (use trailing `_` since `as` is a reserved keyword in Rust.)
+    asa,
+    /// -As,
+    Asa,
+    /// -Anu
+    Anuk,
 }
 
 enum_boilerplate!(Krt, {
@@ -309,6 +333,18 @@ enum_boilerplate!(Krt, {
     sa => "sa",
     sara => "sara",
     suk => "suk",
+    katnic => "katnic",
+    yatuc => "yatuc",
+    alic => "alic",
+    izWuc => "izWuc",
+    izWac => "izWac",
+    isan => "isan",
+    syan => "syan",
+    iTin => "iTin",
+    uli => "uli",
+    asa => "asa",
+    Asa => "Asa",
+    Anuk => "Anuk",
 });
 
 impl Krt {

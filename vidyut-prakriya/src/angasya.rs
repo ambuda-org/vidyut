@@ -1478,7 +1478,7 @@ fn try_pratyaya_adesha_for_dhatu(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_before_dvitva(p: &mut Prakriya) -> Option<()> {
+pub fn run_before_dvitva(_p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 

@@ -8,8 +8,13 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
     use Krt as K;
     use Rule::Unadi;
 
-    let i = p.find_last(T::Dhatu)?;
+    let i = p.find_first(T::Dhatu)?;
     let prev = if i > 0 { p.get(i - 1) } else { None };
+
+    // HACK: avoid kamu~ + Nin so that we derive `kaMsa` but not `kAMsa`.
+    if p.has(i + 1, |t| t.has_u("RiN")) {
+        return None;
+    }
 
     // Pre-calculate some common properties.
     let _upasarge = prev.map_or(false, |t| t.is_upasarga());
@@ -32,7 +37,7 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
         K::YuR => {
             if dhatu.has_u("tF") {
-                wrap.try_add_with("uR.1.5", krt, |p, i| {
+                wrap.try_add_with(Unadi("1.5"), krt, |p, i| {
                     p.set(i, |t| t.set_antya("l"));
                 });
             }
@@ -89,6 +94,62 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             if dhatu.has_u("izu~") {
                 wrap.try_add(Unadi("3.157"), krt);
             }
+        }
+        K::katnic
+        | K::yatuc
+        | K::alic
+        | K::izWuc
+        | K::izWac
+        | K::isan
+        | K::syan
+        | K::iTin
+        | K::uli
+        | K::asa
+        | K::Asa
+        | K::Anuk => {
+            let code = Unadi("4.2");
+            let has_u = |u| dhatu.has_u(u);
+
+            match krt {
+                K::katnic if dhatu.has_u("f\\") => {
+                    wrap.try_add(code, krt);
+                }
+                K::yatuc if dhatu.has_u("tanu~^") => {
+                    wrap.try_add(code, krt);
+                }
+                K::alic if dhatu.has_u("anjU~") => {
+                    wrap.try_add(code, krt);
+                }
+                K::izWuc if dhatu.has_u("vana~") => {
+                    wrap.try_add(code, krt);
+                }
+                K::izWac if dhatu.has_u("anjU~") => {
+                    wrap.try_add(code, krt);
+                }
+                K::isan if dhatu.has_u("f\\") && wrap.p.has(i + 1, |t| t.has_u("Ric")) => {
+                    wrap.try_add(code, krt);
+                }
+                K::syan if dhatu.has_u("madI~") => {
+                    wrap.try_add(code, krt);
+                }
+                K::iTin if dhatu.has_u("ata~") => {
+                    wrap.try_add(code, krt);
+                }
+                K::uli if dhatu.has_u("anga") => {
+                    wrap.try_add(code, krt);
+                }
+                K::asa if dhatu.has_u("ku\\") => {
+                    wrap.try_add(code, krt);
+                }
+                // TODO: kavaca?
+                K::Asa if has_u("yu") => {
+                    wrap.try_add(code, krt);
+                }
+                K::Anuk if has_u("kfSa~") => {
+                    wrap.try_add(code, krt);
+                }
+                _ => (),
+            };
         }
         K::kvinUnadi => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {

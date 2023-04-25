@@ -9,6 +9,10 @@ fn d(u: &str, g: Gana) -> Dhatu {
     Dhatu::new(u, g)
 }
 
+fn nic(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::Nic])
+}
+
 #[test]
 fn sutra_1_1() {
     assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::uR, &["kAru"]);
@@ -111,6 +115,23 @@ fn sutra_3_156() {
 #[test]
 fn sutra_3_157() {
     assert_has_krdanta(&[], &d("izu~", Tudadi), Krt::ksu, &["ikzu"]);
+}
+
+#[test]
+fn sutra_4_2() {
+    assert_has_krdanta(&[], &d("f\\", Juhotyadi), Krt::katnic, &["ratni"]);
+    assert_has_krdanta(&[], &d("tanu~^", Tanadi), Krt::yatuc, &["tanyatu"]);
+    assert_has_krdanta(&[], &d("anjU~", Rudhadi), Krt::alic, &["aYjali"]);
+    assert_has_krdanta(&[], &d("vana~", Bhvadi), Krt::izWuc, &["vanizWu"]);
+    assert_has_krdanta(&[], &d("anjU~", Rudhadi), Krt::izWac, &["aYjizWa"]);
+    assert_has_krdanta(&[], &nic(&d("f\\", Juhotyadi)), Krt::isan, &["arpisa"]);
+    // TODO: why is this aniw?
+    // assert_has_krdanta(&[], &d("madI~", Divadi), Krt::syan, &["matsya"]);
+    assert_has_krdanta(&[], &d("ata~", Bhvadi), Krt::iTin, &["atiTi"]);
+    assert_has_krdanta(&[], &d("anga", Curadi), Krt::uli, &["aNguli"]);
+    assert_has_krdanta(&[], &d("ku\\", Adadi), Krt::asa, &["kavasa"]);
+    assert_has_krdanta(&[], &d("yu", Adadi), Krt::Asa, &["yavAsa"]);
+    assert_has_krdanta(&[], &d("kfSa~", Divadi), Krt::Anuk, &["kfSAnu"]);
 }
 
 #[test]

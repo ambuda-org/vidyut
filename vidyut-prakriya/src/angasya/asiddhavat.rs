@@ -793,7 +793,7 @@ pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
             // being done (e.g. cayyAt)
             // TODO: implement this excluding "ni" from the sandhi rules.
             ac_sandhi::apply_general_ac_sandhi(p);
-            p.op_term("6.4.51", i_ni, op::antya(""));
+            p.op_term("6.4.51", i_ni, op::lopa);
         }
     }
 
