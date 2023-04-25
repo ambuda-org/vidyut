@@ -32,11 +32,8 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
         K::YuR => {
             if dhatu.has_u_in(&[
-                "dF", "zaRa~", "zaRu~^", "janI~\\", "jana~", "cara~", "cawa~", "raha~"
+                "dF", "zaRa~", "zaRu~^", "janI~\\", "jana~", "cara~", "cawa~", "raha~",
             ]) {
-                // wrap.p.debug("This is a debug message.");
-                wrap.p.debug(format!("This is some special data: {}", dhatu.text));
-                wrap.p.dump();
                 wrap.try_add(Unadi("1.3"), krt);
             } else if dhatu.has_u("tF") {
                 wrap.try_add_with("uR.1.5", krt, |p, i| {

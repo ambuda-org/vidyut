@@ -80,8 +80,8 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let is_cin = n.has_u("ciR") || n.has_tag(T::Cinvat);
-    let is_krt_RYit = n.has_tag(T::Krt) && n.has_u_in(&["R", "Y"]);
-    let is_cin_krt_RYit = is_cin || is_krt_RYit;
+    let is_krtRYit = n.has_tag(T::Krt) && n.has_u_in(&["R", "Y"]);
+    let is_cin_krtRYit = is_cin || is_krtRYit;
     let is_cin_krt = is_cin || n.has_tag(T::Krt);
     let has_udatta = !anga.has_tag(T::Anudatta);
     let is_acham = || {
@@ -93,7 +93,7 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
 
     if is_cin_krt && has_udatta && anga.has_antya('m') && !is_acham() {
         p.step("7.3.34");
-    } else if is_cin_krt_RYit && anga.has_text_in(&["jan", "vaD"]) {
+    } else if is_cin_krtRYit && anga.has_text_in(&["jan", "vaD"]) {
         // ajani, avaDi, ...
         p.step("7.3.35");
     } else if is_cin_krt && anga.has_antya('A') {
