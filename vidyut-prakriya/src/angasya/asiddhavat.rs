@@ -564,7 +564,7 @@ fn try_antya_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
             // General case
             if n.has_u("ktic") {
                 // TODO: also prevent 6.4.15;
-                p.step("6.4.39");
+                p.op_term("6.4.39", i, |t| t.add_tag(T::FlagNoDirgha));
             } else {
                 p.op_term("6.4.37", i, op::antya(""));
             }
