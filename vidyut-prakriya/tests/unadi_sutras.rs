@@ -31,8 +31,8 @@ fn sutra_1_3() {
     assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::YuR, &["cAru"]);
     // TODO: ignoring Curadi gana tests as Nic pratyaya is getting added
     // and is considered as dhatu due to sanAdyantA dhAtavaH
-    // assert_has_krdanta(&[], &d("cawa~", Curadi), Krt::YuR, &["cAwu"]);
-    // assert_has_krdanta(&[], &d("raha~", Curadi), Krt::YuR, &["rAhu"]);
+    assert_has_krdanta(&[], &d("cawa~", Curadi), Krt::YuR, &["cAwu"]);
+    assert_has_krdanta(&[], &d("raha~", Curadi), Krt::YuR, &["rAhu"]);
 }
 
 #[ignore]
