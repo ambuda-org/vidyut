@@ -65,7 +65,7 @@ test_tinantas:
 	    --hash "1645ee474a8e370b6cd1a5d487092f2cc84864afd706e2a1ddabea6a8e4c49e3"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-karmani.csv \
-	    --hash "3a057b1b635ff7e83689b1272672b46406a098398418e4dd5bd2c5cb7c624bfc"
+	    --hash "a2bbcd572c04973eee057d58a0caf93ea84fb8eb18845633ce4ef271a0abdffd"
 
 test_krdantas:
 	cargo build --release
