@@ -411,6 +411,22 @@ impl Ashtadhyayi {
 
     /// Returns all possible taddhitanta prakriyas that can be derived with the given initial
     /// conditions.
+    ///
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// # use vidyut_prakriya::Ashtadhyayi;
+    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::args::*;
+    /// let a = Ashtadhyayi::new();
+    /// let pratipadika = Pratipadika::new("nara");
+    /// let args = TaddhitantaArgs::builder()
+    ///     .taddhita(Taddhita::matup)
+    ///     .build()?;
+    /// let prakriyas = a.derive_taddhitantas(&pratipadika, &args);
+    /// # Ok::<(), Error>(())
+    /// ```
     pub fn derive_taddhitantas(
         &self,
         pratipadika: &Pratipadika,

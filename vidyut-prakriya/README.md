@@ -34,7 +34,7 @@ Overview
    that was used as well as its result.
 
 2. *Speed*. On my laptop (a 2.4GHz 8-core CPU with 64 GB of DDR4 RAM), this
-   crate generates almost 100,000 words per second. All else equal, a fast
+   crate generates almost 50,000 words per second. All else equal, a fast
    program is easier to run and test, which means that we can produce a larger
    word list at a higher standard of quality.
 
@@ -126,6 +126,13 @@ that is common on other Ashtadhyayi websites. The encoding foromat for this
 text is SLP1, which is the encoding format we use throughout the crate.
 
 [sv]: https://github.com/drdhaval2785/SanskritVerb
+
+For more details, see the following methods on the `Ashtadhyayi` struct:
+
+- `derive_tinantas` (for verbs)
+- `derive_subantas` (for nominals)
+- `derive_krdantas` (for verbal suffixes)
+- `derive_taddhitantas` (for nominal suffixes)
 
 
 Contributing
