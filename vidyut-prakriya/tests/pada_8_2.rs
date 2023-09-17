@@ -8,10 +8,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
-}
-
 fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
 }
@@ -20,8 +16,16 @@ fn yan(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::Yan])
 }
 
-fn prati(text: &str) -> Pratipadika {
-    Pratipadika::builder().text(text).build().unwrap()
+fn prati_udit(text: &str) -> Pratipadika {
+    Pratipadika::builder()
+        .text(text)
+        .is_udit(true)
+        .build()
+        .unwrap()
+}
+
+pub fn assert_has_krta(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+    assert_has_krdanta(&prefixes, &dhatu, Krt::kta, &expected);
 }
 
 #[test]
@@ -122,6 +126,26 @@ fn sutra_8_2_21() {
     assert_has_krdanta(&["ni"], &gf, Krt::lyuw, &["nigaraRa", "nigalana"]);
     assert_has_krdanta(&["ni"], &gf, Krt::Rvul, &["nigAraka", "nigAlaka"]);
     // TODO: others.
+}
+
+#[test]
+fn sutra_8_2_23() {
+    assert_has_subantas_p(&prati_udit("gomat"), Pum, Prathama, Eka, &["gomAn"]);
+    assert_has_subantas_p(&prati_udit("yavamat"), Pum, Prathama, Eka, &["yavamAn"]);
+    assert_has_subantas_p(&prati_udit("kftavat"), Pum, Prathama, Eka, &["kftavAn"]);
+    assert_has_subantas_p(&prati_udit("hatavat"), Pum, Prathama, Eka, &["hatavAn"]);
+    assert_has_subantas_p(&prati_udit("Sreyas"), Pum, Prathama, Eka, &["SreyAn"]);
+    assert_has_subantas_p(&prati_udit("BUyas"), Pum, Prathama, Eka, &["BUyAn"]);
+    // TODO: others
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_24() {
+    assert_has_subantas("mAtf", Stri, Sasthi, Eka, &["mAtuH"]);
+    assert_has_subantas("pitf", Pum, Sasthi, Eka, &["pituH"]);
+    assert_has_subantas("Urj", Pum, Prathama, Eka, &["Urk"]);
+    assert_has_lan(&[], &d("mfjU~", Adadi), &["amArw"]);
 }
 
 #[test]
@@ -232,12 +256,14 @@ fn sutra_8_2_31() {
     assert_has_krdanta(&[], &sah, Krt::tfc, &["soQf", "sahitf"]);
     assert_has_krdanta(&[], &sah, Krt::tumun, &["soQum", "sahitum"]);
     assert_has_krdanta(&[], &sah, Krt::tavya, &["soQavya", "sahitavya"]);
+    assert_has_subantas("jalAzAh", Pum, Prathama, Eka, &["jalAzAw"]);
 
     let vah = Dhatu::new("va\\ha~^", Bhvadi);
     assert_has_krdanta(&[], &vah, Krt::tfc, &["voQf"]);
     assert_has_krdanta(&[], &vah, Krt::tumun, &["voQum"]);
     assert_has_krdanta(&[], &vah, Krt::tavya, &["voQavya"]);
-    // TODO: jalAzAt, dityavAw
+    assert_has_subantas("prazWavAh", Pum, Prathama, Eka, &["prazWavAw"]);
+    assert_has_subantas("dityavAh", Pum, Prathama, Eka, &["dityavAw"]);
 }
 
 #[test]
@@ -252,11 +278,213 @@ fn sutra_8_2_32() {
     assert_has_krdanta(&[], &duh, Krt::tumun, &["dogDum"]);
     assert_has_krdanta(&[], &duh, Krt::tavya, &["dogDavya"]);
 
-    let lih = Dhatu::new("li\\ha~^", Bhvadi);
+    let lih = Dhatu::new("li\\ha~^", Adadi);
     assert_has_krdanta(&[], &lih, Krt::tfc, &["leQf"]);
     assert_has_krdanta(&[], &lih, Krt::tumun, &["leQum"]);
     assert_has_krdanta(&[], &lih, Krt::tavya, &["leQavya"]);
     // TODO: kAzWaDak, etc.
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_33() {
+    let druh = d("dru\\ha~", Divadi);
+    assert_has_krdanta(&[], &druh, Krt::tfc, &["drogDf", "droQf", "drohitf"]);
+    assert_has_krdanta(&[], &druh, Krt::kvip, &["Druk", "Druw"]);
+    let muh = d("mu\\ha~", Divadi);
+    assert_has_krdanta(&["ud"], &muh, Krt::tfc, &["unmogDf", "unmoQf", "unmohitf"]);
+    // TODO: why muN?
+    // assert_has_krdanta(&[], &muh, Krt::kvip, &["muk", "muN"]);
+    let snuh = d("zRu\\ha~", Divadi);
+    assert_has_krdanta(
+        &["ud"],
+        &snuh,
+        Krt::tfc,
+        &["utsnogDf", "utsnoQf", "utsnohitf"],
+    );
+    assert_has_krdanta(&["ud"], &snuh, Krt::kvip, &["utsnuk", "utsnuw"]);
+    let snih = d("zRi\\ha~", Divadi);
+    assert_has_krdanta(&[], &snih, Krt::tfc, &["snegDf", "sneQf", "snehitf"]);
+    assert_has_krdanta(&[], &snih, Krt::kvip, &["snik", "sniw"]);
+}
+
+#[test]
+fn sutra_8_2_34() {
+    let nah = d("Ra\\ha~^", Divadi);
+    assert_has_krdanta(&[], &nah, Krt::tfc, &["nadDf"]);
+    assert_has_krdanta(&[], &nah, Krt::tumun, &["nadDum"]);
+    assert_has_krdanta(&[], &nah, Krt::tavya, &["nadDavya"]);
+    // TODO: upAnat, etc.
+}
+
+#[test]
+fn sutra_8_2_35() {
+    let bru = d("brUY", Adadi);
+    assert_has_sip(&[], &bru, Lat, &["AtTa", "bravIzi"]);
+    // otherwise --
+    assert_has_tip(&[], &bru, Lat, &["Aha", "bravIti"]);
+    assert_has_tas(&[], &bru, Lat, &["AhatuH", "brUtaH"]);
+    assert_has_jhi(&[], &bru, Lat, &["AhuH", "bruvanti"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_36() {
+    let vrasc = d("o~vrascU~", Tudadi);
+    assert_has_krdanta(&[], &vrasc, Krt::tfc, &["vrazwf", "vraScitf"]);
+    assert_has_krdanta(&[], &vrasc, Krt::tumun, &["vrazwum", "vraScitum"]);
+    assert_has_krdanta(&[], &vrasc, Krt::tavya, &["vrazwavya", "vraScitavya"]);
+    assert_has_krdanta(&[], &vrasc, Krt::kvip, &["vfw"]);
+
+    let bhrasj = d("Bra\\sja~^", Tudadi);
+    assert_has_krdanta(&[], &bhrasj, Krt::tfc, &["Brazwf", "Barzwf"]);
+    assert_has_krdanta(&[], &bhrasj, Krt::tumun, &["Brazwum", "Barzwum"]);
+    assert_has_krdanta(&[], &bhrasj, Krt::tavya, &["Brazwavya", "Barzwavya"]);
+    assert_has_krdanta(&[], &bhrasj, Krt::kvip, &["Bfw"]);
+
+    let sfj = d("sf\\ja~\\", Tudadi);
+    assert_has_krdanta(&[], &sfj, Krt::tfc, &["srazwf"]);
+    assert_has_krdanta(&[], &sfj, Krt::tumun, &["srazwum"]);
+    assert_has_krdanta(&[], &sfj, Krt::tavya, &["srazwavya"]);
+    assert_has_krdanta(&[], &sfj, Krt::kvip, &["sfw"]);
+
+    let mfj = d("mfjU~", Adadi);
+    assert_has_krdanta(&[], &mfj, Krt::tfc, &["mArzwf", "mArjitf"]);
+    assert_has_krdanta(&[], &mfj, Krt::tumun, &["mArzwum", "mArjitum"]);
+    assert_has_krdanta(&[], &mfj, Krt::tavya, &["mArzwavya", "mArjitavya"]);
+    assert_has_krdanta(&[], &mfj, Krt::kvip, &["mfw"]);
+
+    let yaj = d("ya\\ja~^", Bhvadi);
+    assert_has_krdanta(&[], &yaj, Krt::tfc, &["yazwf"]);
+    assert_has_krdanta(&[], &yaj, Krt::tumun, &["yazwum"]);
+    assert_has_krdanta(&[], &yaj, Krt::tavya, &["yazwavya"]);
+
+    let raj = d("rAjf~^", Bhvadi);
+    assert_has_krdanta(&[], &raj, Krt::kvip, &["rAw"]);
+
+    let bhraj = d("BrAjf~\\", Bhvadi);
+    assert_has_krdanta(&[], &bhraj, Krt::kvip, &["BrAw"]);
+
+    let prach = d("pra\\Ca~", Tudadi);
+    assert_has_krdanta(&[], &prach, Krt::tfc, &["prazwf"]);
+    assert_has_krdanta(&[], &prach, Krt::tumun, &["prazwum"]);
+    assert_has_krdanta(&[], &prach, Krt::tavya, &["prazwavya"]);
+
+    let lish = d("li\\Sa~", Tudadi);
+    assert_has_krdanta(&[], &lish, Krt::tfc, &["lezwf"]);
+    assert_has_krdanta(&[], &lish, Krt::tumun, &["lezwum"]);
+    assert_has_krdanta(&[], &lish, Krt::tavya, &["lezwavya"]);
+    assert_has_krdanta(&[], &lish, Krt::kvip, &["liw"]);
+
+    let vish = d("vi\\Sa~", Tudadi);
+    assert_has_krdanta(&[], &vish, Krt::tfc, &["vezwf"]);
+    assert_has_krdanta(&[], &vish, Krt::tumun, &["vezwum"]);
+    assert_has_krdanta(&[], &vish, Krt::tavya, &["vezwavya"]);
+    assert_has_krdanta(&[], &vish, Krt::kvip, &["viw"]);
+
+    // TODO: others
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_37() {
+    let budh = d("bu\\Da~\\", Divadi);
+    assert_has_lrt(&[], &budh, &["Botsyate"]);
+    assert_has_dhvam(&[], &budh, Lun, &["aBudDvam"]);
+    assert_has_krdanta(&[], &budh, Krt::kvip, &["But"]);
+
+    let guh = d("guhU~^", Bhvadi);
+    assert_has_lrt_a(&["ni"], &guh, &["niGokzyate", "nigUhizyate"]);
+    assert_has_dhvam(
+        &["ni"],
+        &guh,
+        Lun,
+        &["nyaGUQvam", "nyaGukzaDvam", "nyagUhiDvam", "nyagUhiQvam"],
+    );
+    assert_has_krdanta(&[], &guh, Krt::kvip, &["Guw"]);
+
+    let duh = d("du\\ha~^", Adadi);
+    assert_has_lrt_a(&[], &duh, &["Dokzyate"]);
+    assert_has_dhvam(&[], &duh, Lun, &["aDugDvam", "aDukzaDvam"]);
+    assert_has_krdanta(&[], &duh, Krt::kvip, &["Duk"]);
+
+    // baS?
+    assert_has_lrt(&[], &d("kru\\Da~", Divadi), &["krotsyati"]);
+
+    // Jazantasya?
+    assert_has_lrt_p(&[], &d("qudA\\Y", Juhotyadi), &["dAsyati"]);
+
+    // sDvoH?
+    assert_has_krdanta(&[], &budh, Krt::tfc, &["bodDf"]);
+    assert_has_krdanta(&[], &budh, Krt::tumun, &["bodDum"]);
+    assert_has_krdanta(&[], &budh, Krt::tavya, &["bodDavya"]);
+
+    // TODO: others
+}
+
+#[test]
+fn sutra_8_2_38() {
+    let dha = d("quDA\\Y", Juhotyadi);
+    assert_has_tas(&[], &dha, Lat, &["DattaH"]);
+    assert_has_thas(&[], &dha, Lat, &["DatTaH"]);
+    assert_has_thaas(&[], &dha, Lat, &["Datse"]);
+    assert_has_dhvam(&[], &dha, Lot, &["DadDvam"]);
+
+    // Jazantasya?
+    assert_has_tip(&[], &dha, Lat, &["daDAti"]);
+}
+
+#[test]
+fn sutra_8_2_40() {
+    let labh = d("qula\\Ba~\\z", Bhvadi);
+    assert_has_krdanta(&[], &labh, Krt::tfc, &["labDf"]);
+    assert_has_krdanta(&[], &labh, Krt::tumun, &["labDum"]);
+    assert_has_krdanta(&[], &labh, Krt::tavya, &["labDavya"]);
+    assert_has_ta(&[], &labh, Lun, &["alabDa"]);
+    assert_has_thaas(&[], &labh, Lun, &["alabDAH"]);
+
+    let duh = Dhatu::new("du\\ha~^", Bhvadi);
+    assert_has_krdanta(&[], &duh, Krt::tfc, &["dogDf"]);
+    assert_has_krdanta(&[], &duh, Krt::tumun, &["dogDum"]);
+    assert_has_krdanta(&[], &duh, Krt::tavya, &["dogDavya"]);
+    assert_has_ta(&[], &duh, Lun, &["adugDa", "aDukzata"]);
+    assert_has_thaas(&[], &duh, Lun, &["adugDAH", "aDukzaTAH"]);
+
+    let lih = Dhatu::new("li\\ha~^", Adadi);
+    assert_has_krdanta(&[], &lih, Krt::tfc, &["leQf"]);
+    assert_has_krdanta(&[], &lih, Krt::tumun, &["leQum"]);
+    assert_has_krdanta(&[], &lih, Krt::tavya, &["leQavya"]);
+    assert_has_ta(&[], &lih, Lun, &["alIQa", "alikzata"]);
+    assert_has_thaas(&[], &lih, Lun, &["alIQAH", "alikzaTAH"]);
+
+    let budh = d("bu\\Da~\\", Divadi);
+    assert_has_krdanta(&[], &budh, Krt::tfc, &["bodDf"]);
+    assert_has_krdanta(&[], &budh, Krt::tumun, &["bodDum"]);
+    assert_has_krdanta(&[], &budh, Krt::tavya, &["bodDavya"]);
+    assert_has_ta(&[], &budh, Lun, &["abudDa"]);
+    assert_has_thaas(&[], &budh, Lun, &["abudDAH"]);
+
+    // aDaH?
+    let dha = d("quDA\\Y", Juhotyadi);
+    assert_has_tas(&[], &dha, Lat, &["DattaH"]);
+    assert_has_thas(&[], &dha, Lat, &["DatTaH"]);
+}
+
+#[test]
+fn sutra_8_2_41() {
+    let pish = Dhatu::new("pi\\zx~", Rudhadi);
+    assert_has_lrt(&[], &pish, &["pekzyati"]);
+    assert_has_lrn(&[], &pish, &["apekzyat"]);
+    assert_has_lat(&[], &san(&pish), &["pipikzati"]);
+
+    let lih = Dhatu::new("li\\ha~^", Adadi);
+    assert_has_lrt_p(&[], &lih, &["lekzyati"]);
+    assert_has_lrn_p(&[], &lih, &["alekzyat"]);
+    assert_has_lat_p(&[], &san(&lih), &["lilikzati"]);
+
+    // si?
+    assert_has_lat_p(&[], &pish, &["pinazwi"]);
+    assert_has_lat_p(&[], &lih, &["leQi"]);
 }
 
 #[test]
@@ -375,6 +603,14 @@ fn sutra_8_2_45() {
     assert_has_krdanta(&[], &vri, Krt::ktavatu, &["vrIRavat"]);
 }
 
+#[ignore]
+#[test]
+fn sutra_8_2_46() {
+    let kshi = Dhatu::new("kzi\\", Bhvadi);
+    assert_has_krdanta(&[], &kshi, Krt::kta, &["kzIRa"]);
+    // TODO: akzita
+}
+
 #[test]
 fn sutra_8_2_51() {
     let sus = Dhatu::new("Su\\za~", Divadi);
@@ -396,12 +632,16 @@ fn sutra_8_2_53() {
     assert_has_krdanta(&[], &kzai, Krt::ktavatu, &["kzAmavat"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_8_2_54() {
     let styai = Dhatu::new("styE\\", Bhvadi);
     assert_has_krdanta(&["pra"], &styai, Krt::kta, &["prastIma", "prastIta"]);
-    assert_has_krdanta(&[], &styai, Krt::ktavatu, &["prastImavat", "prastItavat"]);
+    assert_has_krdanta(
+        &["pra"],
+        &styai,
+        Krt::ktavatu,
+        &["prastImavat", "prastItavat"],
+    );
 }
 
 #[test]
@@ -424,6 +664,66 @@ fn sutra_8_2_55() {
     assert_has_krdanta(&["pra"], &kzib, Krt::kta, &["prakzIbita"]);
     assert_has_krdanta(&["pra"], &kfs, Krt::kta, &["prakfSita"]);
     assert_has_krdanta(&["pra", "ud"], &lagh, Krt::kta, &["prollAGita"]);
+}
+
+#[test]
+fn sutra_8_2_56() {
+    assert_has_krdanta(&[], &d("Ru\\da~^", Tudadi), Krt::kta, &["nunna", "nutta"]);
+    assert_has_krdanta(&[], &d("vi\\da~\\", Rudhadi), Krt::kta, &["vinna", "vitta"]);
+    assert_has_krdanta(
+        &["sam"],
+        &d("undI~", Rudhadi),
+        Krt::kta,
+        &["samunna", "samutta"],
+    );
+    assert_has_krdanta(&[], &d("trE\\N", Bhvadi), Krt::kta, &["trARa", "trAta"]);
+    assert_has_krdanta(&[], &d("GrA\\", Bhvadi), Krt::kta, &["GrARa", "GrAta"]);
+    assert_has_krdanta(&[], &d("hrI\\", Juhotyadi), Krt::kta, &["hrIRa", "hrIta"]);
+    // only for vinatti
+    assert_has_krdanta(&[], &d("vida~", Adadi), Krt::kta, &["vidita"]);
+    assert_has_krdanta(&[], &d("vi\\da~\\", Divadi), Krt::kta, &["vinna"]);
+    assert_has_krdanta(&[], &d("vi\\dx~^", Tudadi), Krt::kta, &["vinna"]);
+}
+
+#[test]
+fn sutra_8_2_57() {
+    let dhyai = d("DyE\\", Bhvadi);
+    assert_has_krdanta(&[], &dhyai, Krt::kta, &["DyAta"]);
+    assert_has_krdanta(&[], &dhyai, Krt::ktavatu, &["DyAtavat"]);
+
+    let khya = d("KyA\\", Adadi);
+    assert_has_krdanta(&[], &khya, Krt::kta, &["KyAta"]);
+    assert_has_krdanta(&[], &khya, Krt::ktavatu, &["KyAtavat"]);
+
+    let pf = d("pF", Kryadi);
+    assert_has_krdanta(&[], &pf, Krt::kta, &["pUrta"]);
+    assert_has_krdanta(&[], &pf, Krt::ktavatu, &["pUrtavat"]);
+
+    let murch = d("murCA~", Bhvadi);
+    assert_has_krdanta(&[], &murch, Krt::kta, &["mUrta"]);
+    assert_has_krdanta(&[], &murch, Krt::ktavatu, &["mUrtavat"]);
+
+    let mad = d("madI~", Divadi);
+    assert_has_krdanta(&[], &mad, Krt::kta, &["matta"]);
+    assert_has_krdanta(&[], &mad, Krt::ktavatu, &["mattavat"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_58() {
+    assert_has_krdanta(&[], &d("vi\\dx~^", Tudadi), Krt::kta, &["vinna", "vitta"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_59() {
+    assert_has_krdanta(&[], &d("Bi\\di~^r", Rudhadi), Krt::kta, &["Binna", "Bitta"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_60() {
+    assert_has_krdanta(&[], &d("f\\", Juhotyadi), Krt::kta, &["fta", "fRa"]);
 }
 
 #[ignore]

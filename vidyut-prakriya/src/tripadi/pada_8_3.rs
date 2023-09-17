@@ -134,6 +134,7 @@ fn try_get_shatva_niyama(p: &mut Prakriya, i: usize) -> Option<Code> {
     let is_liti = || p.has(i + 1, |t| t.has_lakshana("li~w"));
 
     let ra_para = t.get_at(1).map(|x| x == 'r').unwrap_or(false);
+
     // TODO: savanAdi
     if ra_para || t.has_u_in(&["sf\\px", "sf\\ja~", "sf\\ja~\\", "spf\\Sa~", "spfha"]) {
         Some("8.3.110")
@@ -205,8 +206,11 @@ fn run_shatva_rules_at_index(p: &mut Prakriya, i: usize, j: usize) -> Option<()>
             }
         }
     } else {
-        // General case.
-        if !p.has(j, |t| t.has_tag(T::FlagKeepSa)) {
+        if p.has(j, |t| t.has_u("sAti~")) {
+            // agnisAt ...
+            p.step("8.3.111")
+        } else if !p.has(j, |t| t.has_tag(T::FlagKeepSa)) {
+            // General case.
             p.op_term("8.3.59", j, op::adi("z"));
         }
     }

@@ -13,7 +13,7 @@
 //!
 //! All of these rules are found at the end of section 3.4 of the Ashtadhyayi.
 
-use crate::args::{Lakara, Purusha, Vacana};
+use crate::args::{Gana, Lakara, Purusha, Vacana};
 use crate::errors::*;
 use crate::it_samjna;
 use crate::operators as op;
@@ -100,7 +100,7 @@ fn maybe_replace_jhi_with_jus(p: &mut Prakriya, i: usize, la: Lakara) -> Option<
         let i_prev = p.find_prev_where(i, |t| !t.is_empty())?;
         let prev = p.get(i_prev)?;
 
-        let is_vid = prev.has_text("vid") && prev.has_gana_int(2);
+        let is_vid = prev.has_text("vid") && prev.has_gana(Gana::Adadi);
         if prev.has_u("si~c") || prev.has_tag(T::Abhyasta) || is_vid {
             op::adesha("3.4.109", p, i, "jus");
         } else if prev.is_dhatu() {
@@ -119,16 +119,18 @@ fn maybe_replace_jhi_with_jus(p: &mut Prakriya, i: usize, la: Lakara) -> Option<
     Some(())
 }
 
-fn maybe_do_lut_siddhi(p: &mut Prakriya, i_la: usize, la: Lakara, vacana: Vacana) -> bool {
+fn maybe_do_lut_siddhi(p: &mut Prakriya, i_la: usize, la: Lakara) -> bool {
     let tin = match p.get(i_la) {
         Some(t) => t,
         _ => return false,
     };
     if tin.has_tag(T::Prathama) && la == Lakara::Lut {
-        let ending = match vacana {
-            Vacana::Eka => "qA",
-            Vacana::Dvi => "rO",
-            Vacana::Bahu => "ras",
+        let ending = if tin.has_tag(T::Ekavacana) {
+            "qA"
+        } else if tin.has_tag(T::Dvivacana) {
+            "rO"
+        } else {
+            "ras"
         };
         op::adesha("2.4.85", p, i_la, ending);
         true
@@ -273,16 +275,12 @@ fn maybe_do_lot_and_nit_siddhi(p: &mut Prakriya, la: Lakara) {
     }
 }
 
-/// Applies substitutions to the given tin suffix.
-///
-/// Due to rule 3.4.109 ("sic-abhyasta-vidibhyaH ca"), this should run after dvitva and the
-/// insertion of vikaraNas.
-pub fn siddhi(p: &mut Prakriya, la: Lakara, vacana: Vacana) -> Option<()> {
+fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     let i_dhatu = p.find_last(T::Dhatu)?;
     let i = p.find_last(T::Tin)?;
 
     // Special case: handle lut_siddhi first.
-    if maybe_do_lut_siddhi(p, i, la, vacana) {
+    if maybe_do_lut_siddhi(p, i, la) {
         return None;
     }
 
@@ -329,5 +327,24 @@ pub fn siddhi(p: &mut Prakriya, la: Lakara, vacana: Vacana) -> Option<()> {
         p.set(i, |t| t.remove_tag(T::Sit));
     }
 
+    Some(())
+}
+
+/// Applies substitutions to the given tin suffix.
+pub fn try_general_siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
+    if !p.terms().last()?.has_u("Ji") {
+        siddhi(p, la);
+    }
+    Some(())
+}
+
+/// Applies substitutions to the given tin suffix.
+///
+/// Due to rule 3.4.109 ("sic-abhyasta-vidibhyaH ca"), this should run after dvitva and the
+/// insertion of vikaraNas.
+pub fn try_siddhi_for_jhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
+    if p.terms().last()?.has_u("Ji") {
+        siddhi(p, la);
+    }
     Some(())
 }

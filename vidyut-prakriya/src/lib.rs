@@ -59,10 +59,10 @@ mod sanadi;
 mod stem_gana;
 mod stritva;
 mod sup_karya;
-mod taddhita_gana;
-mod taddhita_pratyaya;
+mod taddhita;
 mod tin_pratyaya;
 mod tripadi;
+mod uttarapade;
 mod vikarana;
 
 pub mod wasm;

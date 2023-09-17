@@ -1,9 +1,16 @@
 use crate::args::{Antargana, Gana};
 use crate::sounds;
 use crate::sounds::Pattern;
+use crate::sounds::{s, Set};
 use crate::tag::Tag;
 use compact_str::CompactString;
 use enumset::EnumSet;
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref AC: Set = s("ac");
+}
 
 /// `Term` is a text string with additional metadata. It is a generalized version of an *upadesha*
 /// that also stores abhyAsas and other strings that don't have an upadesha associated with them.
@@ -17,6 +24,11 @@ pub struct Term {
     pub u: Option<CompactString>,
     /// The text of this term. This string contains sound changes such as guna, vrddhi, lopa, etc.
     pub text: CompactString,
+    /// The form of the term to use for sthAnivad-bhAva substitutions, e.g. for dvitva on the
+    /// dhatu. For example, when applying dvitva for BAvi, the abhyasa should be BO, not BAv.
+    ///
+    /// For a complete example in English, see S. C. Vasu's commentary on rule 1.1.59, part (e).
+    sthanivat: CompactString,
     /// Various metadata associated with this term.
     tags: EnumSet<Tag>,
     /// If this term is a dhatu, the dhatu's gana.
@@ -25,7 +37,7 @@ pub struct Term {
     antargana: Option<Antargana>,
     /// All upadeshas that this term has had. This field is called `lakshanas` per rule 1.1.62
     /// (*pratyayalopa pratyaylakshanam*).
-    lakshana: Vec<CompactString>,
+    lakshanas: Vec<CompactString>,
 }
 
 impl Term {
@@ -37,10 +49,11 @@ impl Term {
         Term {
             u: Some(CompactString::from(s)),
             text: CompactString::from(s),
+            sthanivat: CompactString::from(s),
             tags: EnumSet::new(),
             gana: None,
             antargana: None,
-            lakshana: Vec::new(),
+            lakshanas: Vec::new(),
         }
     }
 
@@ -49,10 +62,11 @@ impl Term {
         Term {
             u: None,
             text: CompactString::from(s),
+            sthanivat: CompactString::from(s),
             tags: EnumSet::new(),
             gana: None,
             antargana: None,
-            lakshana: Vec::new(),
+            lakshanas: Vec::new(),
         }
     }
 
@@ -85,6 +99,8 @@ impl Term {
     }
 
     /// Returns the penultimate sound in the term if it exists.
+    ///
+    /// (1.1.65 alo'ntyāt pūrva upadhā)
     pub fn upadha(&self) -> Option<char> {
         self.text.chars().rev().nth(1)
     }
@@ -105,8 +121,8 @@ impl Term {
     }
 
     /// Returns whether the term has a first sound that matches the given pattern.
-    pub fn has_adi(&self, p: impl Pattern) -> bool {
-        self.matches_sound_pattern(self.adi(), p)
+    pub fn has_adi(&self, pattern: impl Pattern) -> bool {
+        self.matches_sound_pattern(self.adi(), pattern)
     }
 
     /// Returns whether the term has a final sound that matches the given pattern.
@@ -120,8 +136,8 @@ impl Term {
     }
 
     /// Returns whether the term has a sound at index `i` that matches the given pattern.
-    pub fn has_at(&self, i: usize, p: impl Pattern) -> bool {
-        self.matches_sound_pattern(self.get_at(i), p)
+    pub fn has_at(&self, i: usize, pattern: impl Pattern) -> bool {
+        self.matches_sound_pattern(self.get_at(i), pattern)
     }
 
     /// Returns whether the term has a specific upadesha.
@@ -141,15 +157,15 @@ impl Term {
     }
 
     pub fn has_any_lakshana(&self) -> bool {
-        !self.lakshana.is_empty()
+        !self.lakshanas.is_empty()
     }
 
     pub fn has_lakshana(&self, u: &str) -> bool {
-        self.lakshana.iter().any(|s| s == &u)
+        self.lakshanas.iter().any(|s| s == &u)
     }
 
     pub fn has_lakshana_in(&self, us: &[&str]) -> bool {
-        self.lakshana.iter().any(|s| us.contains(&s.as_str()))
+        self.lakshanas.iter().any(|s| us.contains(&s.as_str()))
     }
 
     /// Returns whether the term has the provided text.
@@ -157,26 +173,32 @@ impl Term {
         self.text == text
     }
 
-    /// Returns whether the term's text matches any of the strings in `items`.
+    /// Returns whether the term's text is equal to any of the strings in `items`.
     pub fn has_text_in(&self, items: &[&str]) -> bool {
         items.contains(&self.text.as_str())
     }
 
-    pub fn has_prefix_in(&self, terms: &[&str]) -> bool {
-        terms.iter().any(|t| self.text.starts_with(t))
+    /// Returns whether the term's text starts with any of the given `prefixes`.
+    pub fn has_prefix_in(&self, prefixes: &[&str]) -> bool {
+        prefixes.iter().any(|t| self.text.starts_with(t))
     }
 
-    /// Returns whether the term's text ends with the given value.
+    /// Returns whether the term's text ends with any of the given `suffixes`.
+    pub fn has_suffix_in(&self, suffixes: &[&str]) -> bool {
+        suffixes.iter().any(|t| self.text.ends_with(t))
+    }
+
+    /// Returns whether the term's text ends with the given `suffix`.
     pub fn ends_with(&self, suffix: &str) -> bool {
         self.text.ends_with(suffix)
     }
 
-    /// Returns whether the term has the given root gaNa.
-    pub fn has_gana_int(&self, gana: u8) -> bool {
-        self.has_gana(Gana::from_int(gana).expect("valid"))
+    /// Sets the dhatu's gana.
+    pub fn set_gana(&mut self, gana: Gana) {
+        self.gana = Some(gana);
     }
 
-    /// Returns whether the term has the given root gaNa.
+    /// Returns whether the term has the given dhatu gana.
     pub fn has_gana(&self, gana: Gana) -> bool {
         self.gana == Some(gana)
     }
@@ -194,6 +216,17 @@ impl Term {
         self.text.is_empty()
     }
 
+    /// Returns whether the term has exactly one vowel.
+    pub fn is_ekac(&self) -> bool {
+        // TODO: find a way to de-dupe with `is_anekac` in the asiddhavat section.
+        self.num_vowels() == 1
+    }
+
+    /// Returns the number of vowels contained in this term's text.
+    pub fn num_vowels(&self) -> usize {
+        self.text.chars().filter(|c| AC.contains(*c)).count()
+    }
+
     // Tags and Samjnas
     // ----------------
 
@@ -202,12 +235,12 @@ impl Term {
         self.tags.contains(tag)
     }
 
-    /// Returns whether the term has all of the tags provided.
+    /// Returns whether the term has all of the tags in `tags`.
     pub fn has_all_tags(&self, tags: &[Tag]) -> bool {
         tags.iter().all(|t| self.tags.contains(*t))
     }
 
-    /// Returns whether the term has any of the tags provided.
+    /// Returns whether the term has any of the tags in `tags`.
     pub fn has_tag_in(&self, tags: &[Tag]) -> bool {
         tags.iter().any(|t| self.tags.contains(*t))
     }
@@ -254,6 +287,11 @@ impl Term {
         self.has_tag(Tag::Dhatu)
     }
 
+    /// Returns whether the term has the `Pratipadika` samjna.
+    pub fn is_pratipadika(&self) -> bool {
+        self.has_tag(Tag::Pratipadika)
+    }
+
     /// Returns whether the term is an Agama.
     pub fn is_agama(&self) -> bool {
         self.has_tag(Tag::Agama)
@@ -294,13 +332,16 @@ impl Term {
         self.has_tag_in(&[Tag::kit, Tag::Nit])
     }
 
+    /// Returns whether the term is apṛkta.
+    ///
+    /// (1.2.41 apṛkta ekāl pratyayaḥ)
     pub fn is_aprkta(&self) -> bool {
         self.is_pratyaya() && self.text.len() == 1
     }
 
     /// Returns whether the term is the it-Agama.
     pub fn is_it_agama(&self) -> bool {
-        // We must check for `Agama` specifically so that we can exclude the tiN-pratyaya "iw".
+        // We must check `is_agama` specifically so that we can exclude the tiN-pratyaya "iw".
         self.is_agama() && self.has_u("iw")
     }
 
@@ -317,7 +358,7 @@ impl Term {
         sounds::is_samyoganta(&self.text)
     }
 
-    /// Returns whether the last sound of `t` is a short vowel.
+    /// Returns whether the last sound of the term is a short vowel.
     pub fn is_hrasva(&self) -> bool {
         match self.antya() {
             Some(c) => sounds::is_hrasva(c),
@@ -325,7 +366,7 @@ impl Term {
         }
     }
 
-    /// Returns whether the last sound of `t` is a long vowel.
+    /// Returns whether the last sound of the term is a long vowel.
     pub fn is_dirgha(&self) -> bool {
         match self.antya() {
             Some(c) => sounds::is_dirgha(c),
@@ -333,7 +374,27 @@ impl Term {
         }
     }
 
-    /// Returns whether the last syllable of `t` is or could be laghu.
+    /// Returns whether the first syllable of the term is or could be laghu.
+    pub fn is_laghu_adi(&self) -> bool {
+        let mut had_ac = false;
+        let mut num_consonants = 0;
+        for c in self.text.chars() {
+            if sounds::is_ac(c) {
+                if sounds::is_dirgha(c) {
+                    return false;
+                }
+                had_ac = true;
+            } else if had_ac {
+                num_consonants += 1;
+                if num_consonants > 1 {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    /// Returns whether the last syllable of the term is or could be laghu.
     pub fn is_laghu(&self) -> bool {
         // 1.4.10 hrasvaM laghu
         // 1.4.11 saMyoge guru
@@ -355,6 +416,7 @@ impl Term {
         }
     }
 
+    /// Returns whether the last syllable of the term is guru.
     pub fn is_guru(&self) -> bool {
         !self.is_laghu()
     }
@@ -389,7 +451,7 @@ impl Term {
         }
     }
 
-    /// Replaces the character at index `i` with `s`.
+    /// Replaces the character at index `i` with the given value.
     pub fn set_at(&mut self, i: usize, s: &str) {
         self.text.replace_range(i..i + 1, s);
     }
@@ -410,9 +472,42 @@ impl Term {
         self.text = CompactString::from(&alloc);
     }
 
+    pub fn sthanivat(&self) -> &CompactString {
+        &self.sthanivat
+    }
+
+    pub fn maybe_save_sthanivat(&mut self) {
+        // sthani = srO, text = srAv
+        if self.text.is_empty() {
+            // If nothing is stored, always save.
+            self.sthanivat.replace_range(.., &self.text);
+        } else if self.sthanivat.ends_with('a') && !self.text.ends_with('a') {
+            // Don't save at-lopa (e.g. anga).
+            return;
+        } else if self.text.contains('x') {
+            // Don't save asiddha sounds.
+            return;
+        } else {
+            let sthanivat_antya = self.sthanivat.chars().rev().next().expect("ok");
+            let text_antya = self.text.chars().rev().next().expect("ok");
+            if sounds::is_ac(sthanivat_antya) {
+                if text_antya == 'y' || text_antya == 'v' {
+                    // Don't save changes to the final vowel.
+                    return;
+                }
+            }
+            // Default case.
+            self.sthanivat.replace_range(.., &self.text);
+        }
+    }
+
+    pub fn force_save_sthanivat(&mut self) {
+        self.sthanivat.replace_range(.., &self.text);
+    }
+
     pub fn save_lakshana(&mut self) {
         if let Some(u) = &self.u {
-            self.lakshana.push(CompactString::new(u));
+            self.lakshanas.push(CompactString::new(u));
         }
     }
 
@@ -647,6 +742,7 @@ mod tests {
         assert!(!term("BU").is_laghu());
         assert!(!term("uC").is_laghu());
         assert!(!term("IS").is_laghu());
+        assert!(!term("Ikz").is_laghu());
     }
 
     #[test]

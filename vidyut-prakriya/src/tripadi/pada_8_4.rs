@@ -69,7 +69,7 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
         if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
             || (dhatu.has_u("ska\\nBu~") && next.has_u_in(&["SnA", "Snu"]))
             || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
-            || (dhatu.has_text("nft") && next.has_u("yaN"))
+            || (dhatu.has_u("nftI~") && next.has_u("yaN"))
         {
             cp.p.step("8.4.39");
             return None;
@@ -172,7 +172,8 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             }
         }
     } else {
-        // NOTE: condition is `samAnapada`, so upasargas can't cause changes with this rule.
+        // NOTE: condition is `samAnapada`, so:
+        // - upasargas can't cause changes with this rule.
         if !x.is_upasarga() {
             // TODO: track loctaion of rzfF for better rule logging.
             set_at(cp.p, i_n, "R");
@@ -318,6 +319,7 @@ fn try_to_anunasika(p: &mut Prakriya) -> Option<()> {
             // For now, apply the rule to just these sounds.
             if x.has_antya('d') || x.has_antya('t') {
                 // By convention, this rule is always applied in classical Sanskrit.
+                p.dump();
                 p.op_term("8.4.45", i, |t| t.set_antya("n"));
             }
         }

@@ -154,7 +154,7 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         op::adesha("2.4.53", p, i, "va\\ci~");
     } else if dhatu.has_u("aja~") && !n.has_u_in(&["GaY", "ap"]) {
         let mut run = true;
-        if n.has_u("lyuw") {
+        if n.has_u("lyu~w") {
             if p.is_allowed("2.4.57") {
                 run = false;
             } else {
@@ -181,7 +181,8 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         let will_yasut = la == Some(Lakara::AshirLin) && p.has_tag(T::Parasmaipada);
         let is_lit_ajadi = la == Some(Lakara::Lit) && p.terms().last()?.has_adi(&*AC);
         let will_have_valadi = !(will_yasut || is_lit_ajadi);
-        if n.has_adi(&*VAL) && will_have_valadi {
+        if n.has_adi(&*VAL) && will_have_valadi && !n.has_text("vu~") {
+            // HACK: ignore Rvul, since it will be replaced with -aka.
             if p.is_allowed("2.4.56.v2") {
                 p.step("2.4.56.v2");
                 run = false;
@@ -216,6 +217,10 @@ fn dhatu_adesha_after_vikarana(p: &mut Prakriya) -> Option<()> {
                 it_samjna::run(p, i).ok()?;
             }
         }
+    }
+
+    if p.has(i + 1, |t| t.has_u("yaN")) && p.has(i + 2, |t| t.has_u("ac")) {
+        p.op_term("2.4.74", i + 1, op::lopa);
     }
 
     Some(())
@@ -257,7 +262,7 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get(i)?;
     let n = p.view(i + 1)?;
     let ashiti_lyapi = !n.has_tag(T::Sit) || n.has_u("lyap");
-    let nici = n.has_u("Ric");
+    let nau = n.has_u("Ric");
 
     if dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "dI\\N"]) && ashiti_lyapi && will_cause_guna(&n) {
         p.op_term("6.1.50", i, op::antya("A"));
@@ -270,23 +275,26 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
         // līyateriti yakā nirdeśo na tu śyanā. līlīṅorātvaṃ vā syādejviṣaye
         // lyapi ca. (SK)
         p.op_optional("6.1.51", op::t(i, op::antya("A")));
-    } else if dhatu.has_u("sPura~") && nici {
+    } else if dhatu.has_u("sPura~") && nau {
         p.op_optional("6.1.54", op::t(i, op::upadha("A")));
-    } else if dhatu.has_u_in(&["ciY", "ci\\Y"]) && nici {
+    } else if dhatu.has_u_in(&["ciY", "ci\\Y"]) && nau {
         p.op_optional("6.1.54", op::t(i, op::antya("A")));
-    } else if dhatu.has_u("vI\\") && dhatu.has_gana(Gana::Adadi) && nici {
+    } else if dhatu.has_u("vI\\") && dhatu.has_gana(Gana::Adadi) && nau {
         // Check gana to avoid aj -> vI
         p.op_optional("6.1.55", op::t(i, op::antya("A")));
-    } else if dhatu.has_u("YiBI\\") && p.has_tag(T::FlagHetuBhaya) {
-        p.op_optional("6.1.56", op::t(i, op::antya("A")));
-    } else if dhatu.has_text("smi") && n.has_u("Ric") {
-        p.op_optional("6.1.57", op::t(i, op::antya("A")));
+    } else if nau && p.has_tag(T::FlagHetuBhaya) {
+        if dhatu.has_u("YiBI\\") {
+            p.op_optional("6.1.56", op::t(i, op::antya("A")));
+        } else if dhatu.has_text("smi") {
+            p.op_optional("6.1.57", op::t(i, op::antya("A")));
+        }
     }
 
     Some(())
 }
 
-pub fn run_am_agama(p: &mut Prakriya) -> Option<()> {
+/// Runs rules that try adding am-Agama to a dhatu when certain pratyayas follow.
+pub fn try_add_am_agama(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let n = p.view(i + 1)?;
 
@@ -294,8 +302,10 @@ pub fn run_am_agama(p: &mut Prakriya) -> Option<()> {
 
     if n.has_adi(&*JHAL) && !n.has_tag(T::kit) {
         if dhatu.has_text_in(&["sfj", "dfS"]) {
+            // srazwA, drazwA
             p.op_term("6.1.58", i, op::mit("a"));
         } else if dhatu.has_tag(T::Anudatta) && dhatu.has_upadha('f') {
+            // traptA, tarpitA, tarptA
             p.op_optional("6.1.59", op::t(i, op::mit("a")));
         }
     }
@@ -322,7 +332,11 @@ pub fn run_before_vikarana(
 /// Replaces the dhAtu based on the following suffix.
 ///
 /// These rules must run after the vikarana is added and before dvitva.
-pub fn run_before_dvitva(p: &mut Prakriya) {
+pub fn run_before_dvitva(p: &mut Prakriya) -> Option<()> {
     dhatu_adesha_after_vikarana(p);
     try_aa_adesha(p);
+
+    p.maybe_save_sthanivat();
+
+    Some(())
 }

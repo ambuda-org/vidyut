@@ -12,6 +12,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[wasm_bindgen]
 pub enum Krt {
     /// -a
+    a,
+    /// -a
     ac,
     /// -a
     aR,
@@ -41,6 +43,10 @@ pub enum Krt {
     Uka,
     /// -a
     ka,
+    /// -am
+    kamul,
+    /// -as (visfpaH, ...)
+    kasun,
     /// -Ana (cakrARa, ...)
     kAnac,
     /// -i (udaDi, ...)
@@ -87,6 +93,8 @@ pub enum Krt {
     kvin,
     /// (empty suffix)
     kvip,
+    /// -a (priyaMvada, vaSaMvada)
+    Kac,
     /// -a (Izatkara, duzkara, sukara, ...)
     Kal,
     /// -a
@@ -101,8 +109,14 @@ pub enum Krt {
     Nvanip,
     /// -Ana
     cAnaS,
+    /// -anta,
+    Jac,
+    /// -a
+    wa,
     /// -a
     wak,
+    /// -a
+    qa,
     /// -u
     qu,
     /// -a
@@ -115,6 +129,8 @@ pub enum Krt {
     Ryat,
     /// -ana
     Ryuw,
+    /// (empty)
+    Rvi,
     /// -aka
     Rvuc,
     /// -aka
@@ -163,8 +179,10 @@ pub enum Krt {
     lyuw,
     /// -van
     vanip,
-    /// -vaca
+    /// -vara
     varac,
+    /// (empty suffix)
+    vic,
     /// -aka
     vuY,
     /// -aka
@@ -178,6 +196,24 @@ pub enum Krt {
 
     // unAdi-pratyayas
     // ===============
+    /// -ama (praTama)
+    amac,
+    /// -ala (maNgala)
+    alac,
+    /// -Ayya
+    Ayya,
+    /// -itnu
+    itnuc,
+    /// -iTi
+    iTin,
+    /// -iza
+    wizac,
+    /// -izWu
+    izWuc,
+    /// -izWa
+    izWac,
+    /// -isa
+    isan,
     /// -u (kAru)
     uR,
     /// -atu (kratu)
@@ -212,16 +248,8 @@ pub enum Krt {
     yatuc,
     /// -ali
     alic,
-    /// -izWu
-    izWuc,
-    /// -izWa
-    izWac,
-    /// -isa
-    isan,
     /// -sya
     syan,
-    /// -iTi
-    iTin,
     /// -uli
     uli,
     /// -as (use trailing `_` since `as` is a reserved keyword in Rust.)
@@ -233,6 +261,7 @@ pub enum Krt {
 }
 
 enum_boilerplate!(Krt, {
+    a => "a",
     ac => "ac",
     aR => "aR",
     atfn => "atf~n",
@@ -249,6 +278,8 @@ enum_boilerplate!(Krt, {
     Uka => "Uka",
     cAnaS => "cAnaS",
     ka => "ka",
+    kamul => "kamu~l",
+    kasun => "kasu~n",
     kAnac => "kAnac",
     ki => "ki",
     kin => "kin",
@@ -272,19 +303,23 @@ enum_boilerplate!(Krt, {
     kvin => "kvi~n",
     kvip => "kvi~p",
     ksnu => "ksnu",
+    Kac => "Kac",
     Kal => "Kal",
     Ga => "Ga",
     GaY => "GaY",
     GinuR => "Ginu~R",
     Gurac => "Gurac",
     Nvanip => "Nvani~p",
+    wa => "wa",
     wak => "wak",
+    qa => "qa",
     qu => "qu",
     Ra => "Ra",
     Ramul => "Ramu~l",
     Rini => "Rini~",
     Ryat => "Ryat",
     Ryuw => "Ryu~w",
+    Rvi => "Rvi~",
     Rvuc => "Rvu~c",
     Rvul => "Rvu~l",
     tavya => "tavya",
@@ -310,6 +345,7 @@ enum_boilerplate!(Krt, {
     lyuw => "lyu~w",
     vanip => "vani~p",
     varac => "varac",
+    vic => "vi~c",
     vuY => "vu~Y",
     vun => "vu~n",
     zAkan => "zAkan",
@@ -318,6 +354,14 @@ enum_boilerplate!(Krt, {
 
     // unAdi-pratyayas
     // ===============
+    amac => "amac",
+    alac => "alac",
+    Ayya => "Ayya",
+    itnuc => "itnuc",
+    iTin => "iTin",
+    izWuc => "izWuc",
+    izWac => "izWac",
+    isan => "isan",
     uR => "uR",
     // TODO: why do we keep the initial 'k' here?
     kan => "a~kan",
@@ -327,7 +371,9 @@ enum_boilerplate!(Krt, {
     ksaran => "ksaran",
     ksi => "ksi",
     ksu => "ksu",
+    Jac => "Jac",
     YuR => "YuR",
+    wizac => "wizac",
     tan => "tan",
     tun => "tun",
     sa => "sa",
@@ -336,11 +382,7 @@ enum_boilerplate!(Krt, {
     katnic => "katnic",
     yatuc => "yatuc",
     alic => "alic",
-    izWuc => "izWuc",
-    izWac => "izWac",
-    isan => "isan",
     syan => "syan",
-    iTin => "iTin",
     uli => "uli",
     asa => "asa",
     Asa => "Asa",

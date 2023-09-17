@@ -6,10 +6,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
-}
-
 fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
 }
@@ -383,6 +379,17 @@ fn sutra_8_3_79() {
     let kf = Dhatu::new("qukf\\Y", Gana::Tanadi);
     let actual = derive_tinantas(&kf, &lit);
     assert_padas(actual, &["cakfQve"]);
+}
+
+#[test]
+fn sutra_8_3_110() {
+    assert_has_krdanta(&["vi"], &d("sransu~\\", Bhvadi), Krt::Rvul, &["visraMsaka"]);
+    assert_has_krdanta(&["vi"], &d("sranBu~\\", Bhvadi), Krt::kta, &["visrabDa"]);
+    assert_has_krdanta(&["vi"], &d("sf\\px~", Tudadi), Krt::kasun, &["visfpas"]);
+    assert_has_krdanta(&["vi"], &d("sf\\ja~", Tudadi), Krt::lyuw, &["visarjana"]);
+    assert_has_krdanta(&[], &d("spf\\Sa~", Tudadi), Krt::kamul, &["spfSam"]);
+    assert_has_krdanta(&["ni"], &d("spfha", Curadi), Krt::kamul, &["nispfham"]);
+    // TODO: others?
 }
 
 #[ignore]

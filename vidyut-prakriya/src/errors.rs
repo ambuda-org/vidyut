@@ -66,10 +66,6 @@ impl Error {
         Error::ParseError(value.to_string())
     }
 
-    pub(crate) fn gana_parse_error(value: u8) -> Self {
-        Error::GanaParseError(value)
-    }
-
     pub(crate) fn missing_required_field(field: &'static str) -> Self {
         Error::MissingRequiredField(field)
     }
@@ -90,7 +86,7 @@ impl fmt::Display for Error {
             Csv(_) => write!(f, "CSV error"),
             InvalidFile => write!(f, "The input file is invalid."),
             ParseInt(_) => write!(f, "Parse int error"),
-            UnknownIt(c) => write!(f, "`{c}` could not be parsed as an it-samjan."),
+            UnknownIt(c) => write!(f, "`{c}` could not be parsed as an it-samjna."),
             EmptyUpadesha(s) => write!(f, "The term `{s}` unexpectedly has an empty upadesha."),
             MissingRequiredField(s) => write!(f, "Please define the `{s}` field."),
             ParseError(v) => write!(f, "Could not parse `{v}` into an enum value."),

@@ -1,10 +1,11 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Taddhita as T;
-use vidyut_prakriya::args::*;
 
-fn prati(text: &str) -> Pratipadika {
-    Pratipadika::builder().text(text).build().unwrap()
+#[ignore]
+#[test]
+fn sutra_5_3_3() {
+    assert_has_taddhitanta(&prati("idam"), T::ha, &["iha"]);
 }
 
 #[ignore]
@@ -106,4 +107,53 @@ fn sutra_5_3_24() {
 #[test]
 fn sutra_5_3_25() {
     assert_has_taddhitanta(&prati("tad"), T::TAl, &["taTA"]);
+}
+
+#[test]
+fn sutra_5_3_42() {
+    assert_has_taddhitanta(&prati("eka"), T::DA, &["ekaDA"]);
+    assert_has_taddhitanta(&prati("dvi"), T::DA, &["dviDA"]);
+    assert_has_taddhitanta(&prati("tri"), T::DA, &["triDA"]);
+    assert_has_taddhitanta(&prati("catur"), T::DA, &["caturDA"]);
+    assert_has_taddhitanta(&prati("paYcan"), T::DA, &["paYcaDA"]);
+}
+
+#[test]
+fn sutra_5_3_55() {
+    assert_has_taddhitanta(&prati("AQya"), T::tamap, &["AQyatama"]);
+    assert_has_taddhitanta(&prati("darSanIya"), T::tamap, &["darSanIyatama"]);
+    assert_has_taddhitanta(&prati("sukumAra"), T::tamap, &["sukumAratama"]);
+    assert_has_taddhitanta(&prati("pawu"), T::izWan, &["pawizWa"]);
+    assert_has_taddhitanta(&prati("laGu"), T::izWan, &["laGizWa"]);
+    assert_has_taddhitanta(&prati("guru"), T::izWan, &["garizWa"]);
+    assert_has_taddhitanta(&prati("SrezWa"), T::tamap, &["SrezWatama"]);
+}
+
+#[test]
+fn sutra_5_3_57() {
+    assert_has_taddhitanta(&prati("AQya"), T::tarap, &["AQyatara"]);
+    assert_has_taddhitanta(&prati("sukumAra"), T::tarap, &["sukumAratara"]);
+    assert_has_taddhitanta(&prati("pawu"), T::Iyasun, &["pawIyas"]);
+    // TODO: others
+}
+
+#[test]
+fn sutra_5_3_66() {
+    assert_has_taddhitanta(&prati("vEyAkaraRa"), T::rUpap, &["vEyAkaraRarUpa"]);
+    assert_has_taddhitanta(&prati("yAjYika"), T::rUpap, &["yAjYikarUpa"]);
+    assert_has_taddhitanta(&prati("cora"), T::rUpap, &["corarUpa"]);
+    assert_has_taddhitanta(&prati("dasyu"), T::rUpap, &["dasyurUpa"]);
+    // TODO: pacatirUpam, etc.
+}
+
+#[test]
+fn sutra_5_3_67() {
+    assert_has_taddhitanta(&prati("pawu"), T::kalpap, &["pawukalpa"]);
+    assert_has_taddhitanta(&prati("pawu"), T::deSya, &["pawudeSya"]);
+    assert_has_taddhitanta(&prati("pawu"), T::deSIyar, &["pawudeSIya"]);
+
+    assert_has_taddhitanta(&prati("mfdu"), T::kalpap, &["mfdukalpa"]);
+    assert_has_taddhitanta(&prati("mfdu"), T::deSya, &["mfdudeSya"]);
+    assert_has_taddhitanta(&prati("mfdu"), T::deSIyar, &["mfdudeSIya"]);
+    // TODO: pacatikalpam, etc.
 }

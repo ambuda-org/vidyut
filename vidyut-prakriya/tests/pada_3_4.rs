@@ -9,20 +9,43 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
+#[test]
+fn sutra_3_4_12() {
+    assert_has_krdanta(&["vi"], &d("Ba\\ja~^", Tudadi), Krt::Ramul, &["viBAjam"]);
+    assert_has_krdanta(&["apa"], &d("lu\\px~^", Tudadi), Krt::kamul, &["apalupam"]);
 }
 
-fn prati(text: &str) -> Pratipadika {
-    Pratipadika::builder().text(text).build().unwrap()
+#[test]
+fn sutra_3_4_17() {
+    assert_has_krdanta(&["vi"], &d("sf\\px~", Tudadi), Krt::kasun, &["visfpas"]);
+    assert_has_krdanta(&["AN"], &d("u~tfdi~^r", Rudhadi), Krt::kasun, &["Atfdas"]);
 }
 
-fn assert_has_jhi(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara, exp: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, lakara, Prathama, Bahu, exp);
+#[test]
+fn sutra_3_4_21() {
+    assert_has_krdanta(&[], &d("Bu\\ja~", Rudhadi), Krt::ktvA, &["BuktvA"]);
+    assert_has_krdanta(&[], &d("pA\\", Bhvadi), Krt::ktvA, &["pItvA"]);
+    assert_has_krdanta(&[], &d("zRA\\", Adadi), Krt::ktvA, &["snAtvA"]);
 }
 
-pub fn assert_has_lit_p_2s(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, Lit, Madhyama, Eka, expected);
+#[test]
+fn sutra_3_4_70() {
+    let kf = &d("qukf\\Y", Tanadi);
+    let bhuj = &d("Bu\\ja~", Rudhadi);
+    let aas = &d("Asa~\\", Tanadi);
+    let shi = &d("SIN", Adadi);
+    assert_has_krdanta(&[], &kf, Krt::tavya, &["kartavya"]);
+    assert_has_krdanta(&[], &bhuj, Krt::tavya, &["Boktavya"]);
+    assert_has_krdanta(&[], &aas, Krt::tavya, &["Asitavya"]);
+    assert_has_krdanta(&[], &shi, Krt::tavya, &["Sayitavya"]);
+    // kta
+    assert_has_krdanta(&[], &kf, Krt::kta, &["kfta"]);
+    assert_has_krdanta(&[], &bhuj, Krt::kta, &["Bukta"]);
+    assert_has_krdanta(&[], &aas, Krt::kta, &["Asita"]);
+    assert_has_krdanta(&[], &shi, Krt::kta, &["Sayita"]);
+
+    assert_has_krdanta(&[], &kf, Krt::Kal, &["kara"]);
+    assert_has_krdanta(&[], &d("BU", Bhvadi), Krt::Kal, &["Bava"]);
 }
 
 #[test]
@@ -32,16 +55,16 @@ fn sutra_3_4_78() {
     use Vacana::*;
 
     let pac = d("qupa\\ca~^z", Bhvadi);
+    assert_has_tip(&[], &pac, Lat, &["pacati"]);
+    assert_has_tas(&[], &pac, Lat, &["pacataH"]);
+    assert_has_jhi(&[], &pac, Lat, &["pacanti"]);
+    assert_has_sip(&[], &pac, Lat, &["pacasi"]);
+    assert_has_thas(&[], &pac, Lat, &["pacaTaH"]);
+    assert_has_tha(&[], &pac, Lat, &["pacaTa"]);
+    assert_has_mip(&[], &pac, Lat, &["pacAmi"]);
+    assert_has_vas(&[], &pac, Lat, &["pacAvaH"]);
+    assert_has_mas(&[], &pac, Lat, &["pacAmaH"]);
     let items = &[
-        (Prathama, Eka, Parasmai, "pacati"),
-        (Prathama, Dvi, Parasmai, "pacataH"),
-        (Prathama, Bahu, Parasmai, "pacanti"),
-        (Madhyama, Eka, Parasmai, "pacasi"),
-        (Madhyama, Dvi, Parasmai, "pacaTaH"),
-        (Madhyama, Bahu, Parasmai, "pacaTa"),
-        (Uttama, Eka, Parasmai, "pacAmi"),
-        (Uttama, Dvi, Parasmai, "pacAvaH"),
-        (Uttama, Bahu, Parasmai, "pacAmaH"),
         (Prathama, Eka, Atmane, "pacate"),
         (Prathama, Dvi, Atmane, "pacete"),
         (Prathama, Bahu, Atmane, "pacante"),
@@ -76,91 +99,113 @@ fn sutra_3_4_79() {
 #[test]
 fn sutra_3_4_80() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_atmane_tinanta(&[], &pac, Lat, Madhyama, Eka, &["pacase"]);
-    assert_has_atmane_tinanta(&[], &pac, Lit, Madhyama, Eka, &["pecize"]);
-    assert_has_atmane_tinanta(&[], &pac, Lut, Madhyama, Eka, &["paktAse"]);
-    assert_has_atmane_tinanta(&[], &pac, Lrt, Madhyama, Eka, &["pakzyase"]);
+    assert_has_thaas(&[], &pac, Lat, &["pacase"]);
+    assert_has_thaas(&[], &pac, Lit, &["pecize"]);
+    assert_has_thaas(&[], &pac, Lut, &["paktAse"]);
+    assert_has_thaas(&[], &pac, Lrt, &["pakzyase"]);
 }
 
 #[test]
 fn sutra_3_4_81() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_atmane_tinanta(&[], &pac, Lit, Prathama, Eka, &["pece"]);
-    assert_has_atmane_tinanta(&[], &pac, Lit, Prathama, Dvi, &["pecAte"]);
-    assert_has_atmane_tinanta(&[], &pac, Lit, Prathama, Bahu, &["pecire"]);
+    assert_has_ta(&[], &pac, Lit, &["pece"]);
+    assert_has_aataam(&[], &pac, Lit, &["pecAte"]);
+    assert_has_jha(&[], &pac, Lit, &["pecire"]);
     let labh = d("qula\\Ba~\\z", Bhvadi);
-    assert_has_atmane_tinanta(&[], &labh, Lit, Prathama, Eka, &["leBe"]);
-    assert_has_atmane_tinanta(&[], &labh, Lit, Prathama, Dvi, &["leBAte"]);
-    assert_has_atmane_tinanta(&[], &labh, Lit, Prathama, Bahu, &["leBire"]);
+    assert_has_ta(&[], &labh, Lit, &["leBe"]);
+    assert_has_aataam(&[], &labh, Lit, &["leBAte"]);
+    assert_has_jha(&[], &labh, Lit, &["leBire"]);
 }
 
 #[test]
 fn sutra_3_4_82() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Prathama, Eka, &["papAca"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Prathama, Dvi, &["pecatuH"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Prathama, Bahu, &["pecuH"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Madhyama, Eka, &["peciTa", "papakTa"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Madhyama, Dvi, &["pecaTuH"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Madhyama, Bahu, &["peca"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Uttama, Eka, &["papAca", "papaca"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Uttama, Dvi, &["peciva"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lit, Uttama, Bahu, &["pecima"]);
+    assert_has_tip(&[], &pac, Lit, &["papAca"]);
+    assert_has_tas(&[], &pac, Lit, &["pecatuH"]);
+    assert_has_jhi(&[], &pac, Lit, &["pecuH"]);
+    assert_has_sip(&[], &pac, Lit, &["peciTa", "papakTa"]);
+    assert_has_thas(&[], &pac, Lit, &["pecaTuH"]);
+    assert_has_tha(&[], &pac, Lit, &["peca"]);
+    assert_has_mip(&[], &pac, Lit, &["papAca", "papaca"]);
+    assert_has_vas(&[], &pac, Lit, &["peciva"]);
+    assert_has_mas(&[], &pac, Lit, &["pecima"]);
+}
+
+#[test]
+fn sutra_3_4_83() {
+    let vid = d("vida~", Adadi);
+    assert_has_tip(&[], &vid, Lat, &["veda", "vetti"]);
+    assert_has_tas(&[], &vid, Lat, &["vidatuH", "vittaH"]);
+    assert_has_jhi(&[], &vid, Lat, &["viduH", "vidanti"]);
+    assert_has_sip(&[], &vid, Lat, &["vetTa", "vetsi"]);
+    assert_has_thas(&[], &vid, Lat, &["vidaTuH", "vitTaH"]);
+    assert_has_tha(&[], &vid, Lat, &["vida", "vitTa"]);
+    assert_has_mip(&[], &vid, Lat, &["veda", "vedmi"]);
+    assert_has_vas(&[], &vid, Lat, &["vidva", "vidvaH"]);
+    assert_has_mas(&[], &vid, Lat, &["vidma", "vidmaH"]);
+}
+
+#[test]
+fn sutra_3_4_84() {
+    let bru = d("brUY", Adadi);
+    assert_has_tip(&[], &bru, Lat, &["Aha", "bravIti"]);
+    assert_has_tas(&[], &bru, Lat, &["AhatuH", "brUtaH"]);
+    assert_has_jhi(&[], &bru, Lat, &["AhuH", "bruvanti"]);
+    assert_has_sip(&[], &bru, Lat, &["AtTa", "bravIzi"]);
+    assert_has_thas(&[], &bru, Lat, &["AhaTuH", "brUTaH"]);
+    assert_has_tha(&[], &bru, Lat, &["brUTa"]);
+    assert_has_mip(&[], &bru, Lat, &["bravImi"]);
+    assert_has_vas(&[], &bru, Lat, &["brUvaH"]);
+    assert_has_mas(&[], &bru, Lat, &["brUmaH"]);
 }
 
 #[test]
 fn sutra_3_4_85() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Prathama, Dvi, &["pacatAm"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Madhyama, Dvi, &["pacatam"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Madhyama, Bahu, &["pacata"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Uttama, Dvi, &["pacAva"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Uttama, Bahu, &["pacAma"]);
+    assert_has_tas(&[], &pac, Lot, &["pacatAm"]);
+    assert_has_thas(&[], &pac, Lot, &["pacatam"]);
+    assert_has_tha(&[], &pac, Lot, &["pacata"]);
+    assert_has_vas(&[], &pac, Lot, &["pacAva"]);
+    assert_has_mas(&[], &pac, Lot, &["pacAma"]);
     //
-    assert_has_parasmai_tinanta(&[], &d("yA\\", Adadi), Lot, Prathama, Bahu, &["yAntu"]);
-    assert_has_parasmai_tinanta(&[], &d("vA\\", Adadi), Lot, Prathama, Bahu, &["vAntu"]);
+    assert_has_jhi(&[], &d("yA\\", Adadi), Lot, &["yAntu"]);
+    assert_has_jhi(&[], &d("vA\\", Adadi), Lot, &["vAntu"]);
 }
 
 #[test]
 fn sutra_3_4_86() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Prathama, Eka, &["pacatu", "pacatAt"]);
-    assert_has_parasmai_tinanta(&[], &pac, Lot, Prathama, Bahu, &["pacantu"]);
+    assert_has_tip(&[], &pac, Lot, &["pacatu", "pacatAt"]);
+    assert_has_jhi(&[], &pac, Lot, &["pacantu"]);
 }
 
 #[test]
 fn sutra_3_4_87() {
-    let assert_has_lot_madhyama_eka = |dhatu, exp| {
-        assert_has_parasmai_tinanta(&[], &dhatu, Lot, Madhyama, Eka, exp);
-    };
-    assert_has_lot_madhyama_eka(d("lUY", Kryadi), &["lunIhi", "lunItAt"]);
-    assert_has_lot_madhyama_eka(d("pUY", Kryadi), &["punIhi", "punItAt"]);
-    assert_has_lot_madhyama_eka(d("rA\\Da~", Svadi), &["rADnuhi", "rADnutAt"]);
-    assert_has_lot_madhyama_eka(
-        d("takzU~", Bhvadi),
+    assert_has_sip(&[], &d("lUY", Kryadi), Lot, &["lunIhi", "lunItAt"]);
+    assert_has_sip(&[], &d("pUY", Kryadi), Lot, &["punIhi", "punItAt"]);
+    assert_has_sip(&[], &d("rA\\Da~", Svadi), Lot, &["rADnuhi", "rADnutAt"]);
+    assert_has_sip(
+        &[],
+        &d("takzU~", Bhvadi),
+        Lot,
         &["takzRuhi", "takzRutAt", "takza", "takzatAt"],
     );
 }
 
+// 3.4.88 is chAndasa.
+
 #[test]
 fn sutra_3_4_89() {
-    assert_has_parasmai_tinanta(
-        &[],
-        &d("qupa\\ca~^z", Bhvadi),
-        Lot,
-        Uttama,
-        Eka,
-        &["pacAni"],
-    );
-    assert_has_parasmai_tinanta(&[], &d("paWa~", Bhvadi), Lot, Uttama, Eka, &["paWAni"]);
+    assert_has_mip(&[], &d("qupa\\ca~^z", Bhvadi), Lot, &["pacAni"]);
+    assert_has_mip(&[], &d("paWa~", Bhvadi), Lot, &["paWAni"]);
 }
 
 #[test]
 fn sutra_3_4_90() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_atmane_tinanta(&[], &pac, Lot, Prathama, Eka, &["pacatAm"]);
-    assert_has_atmane_tinanta(&[], &pac, Lot, Prathama, Dvi, &["pacetAm"]);
-    assert_has_atmane_tinanta(&[], &pac, Lot, Prathama, Bahu, &["pacantAm"]);
+    assert_has_ta(&[], &pac, Lot, &["pacatAm"]);
+    assert_has_aataam(&[], &pac, Lot, &["pacetAm"]);
+    assert_has_jha(&[], &pac, Lot, &["pacantAm"]);
 }
 
 #[test]
@@ -180,6 +225,8 @@ fn sutra_3_4_92_and_sutra_3_4_93() {
     assert_has_atmane_tinanta(&[], &kf, Lot, Uttama, Dvi, &["karavAvahE"]);
     assert_has_atmane_tinanta(&[], &kf, Lot, Uttama, Bahu, &["karavAmahE"]);
 }
+
+// 3.4.94 - 3.4.98 are for lew.
 
 #[test]
 fn sutra_3_4_99() {
@@ -249,12 +296,9 @@ fn sutra_3_4_104() {
 
 #[test]
 fn sutra_3_4_105() {
-    let assert_has_jha = |dhatu, lakara, exp| {
-        assert_has_atmane_tinanta(&[], &dhatu, lakara, Prathama, Bahu, exp);
-    };
-    assert_has_jha(d("qupa\\ca~^z", Bhvadi), VidhiLin, &["paceran"]);
-    assert_has_jha(d("ya\\ja~^", Bhvadi), VidhiLin, &["yajeran"]);
-    assert_has_jha(d("qukf\\Y", Tanadi), AshirLin, &["kfzIran"]);
+    assert_has_jha(&[], &d("qupa\\ca~^z", Bhvadi), VidhiLin, &["paceran"]);
+    assert_has_jha(&[], &d("ya\\ja~^", Bhvadi), VidhiLin, &["yajeran"]);
+    assert_has_jha(&[], &d("qukf\\Y", Tanadi), AshirLin, &["kfzIran"]);
 }
 
 #[test]
@@ -352,8 +396,8 @@ fn sutra_3_4_114() {
 
 #[test]
 fn sutra_3_4_115() {
-    assert_has_lit_p_2s(&[], &d("qupa\\ca~^z", Adadi), &["peciTa", "papakTa"]);
-    assert_has_lit_p_2s(&[], &d("Sa\\kx~", Adadi), &["SekiTa", "SaSakTa"]);
+    assert_has_sip(&[], &d("qupa\\ca~^z", Adadi), Lit, &["peciTa", "papakTa"]);
+    assert_has_sip(&[], &d("Sa\\kx~", Adadi), Lit, &["SekiTa", "SaSakTa"]);
     assert_has_lit_karmani(&[], &d("glE\\", Bhvadi), &["jagle"]);
     assert_has_lit_karmani(&[], &d("mlE\\", Bhvadi), &["mamle"]);
 }
@@ -369,3 +413,5 @@ fn sutra_3_4_116() {
     assert_has_vidhilin_p(&[], &lu, &["lunIyAt"]);
     assert_has_vidhilin_p(&[], &pu, &["punIyAt"]);
 }
+
+// 3.4.117 is chAndasa.

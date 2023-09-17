@@ -6,14 +6,19 @@ the Siddhanta-kaumudi.
 */
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::Dhatu;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Purusha::*;
+use vidyut_prakriya::args::Sanadi;
 use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
+fn san(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::San])
+}
+
+fn yan(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::Yan])
 }
 
 #[ignore]
@@ -37,5 +42,46 @@ fn sk_2397() {
         Madhyama,
         Eka,
         &["caskandiTa", "caskanTa", "caskantTa"],
+    );
+}
+
+#[test]
+fn sk_2447() {
+    let urnu = d("UrRuY", Adadi);
+    assert_has_parasmai_tinanta(
+        &[],
+        &urnu,
+        Lit,
+        Madhyama,
+        Eka,
+        &["UrRunaviTa", "UrRunuviTa"],
+    );
+}
+
+#[test]
+fn sk_2574() {
+    // ac-Adi dhatus with can-pratyaya and ak-lopa
+    // TODO: why does the SK have AndaDat and not AndiDat?
+    assert_has_lun_p(&[], &d("anDa", Curadi), &["AndaDat"]);
+    assert_has_lun_p(&[], &d("anka", Curadi), &["AYcakat"]);
+    assert_has_lun_p(&[], &d("anga", Curadi), &["AYjagat"]);
+    assert_has_lun_p(&[], &d("vyaya", Curadi), &["avavyayat"]);
+}
+
+#[test]
+fn sk_2630() {
+    assert_has_lit(
+        &[],
+        &yan(&d("BU", Bhvadi)),
+        &["boBUyAYcakre", "boBUyAmAsa", "boBUyAmbaBUva"],
+    );
+}
+
+#[test]
+fn sk_2758() {
+    assert_has_lit(
+        &[],
+        &san(&d("BU", Bhvadi)),
+        &["buBUzAYcakAra", "buBUzAmAsa", "buBUzAmbaBUva"],
     );
 }

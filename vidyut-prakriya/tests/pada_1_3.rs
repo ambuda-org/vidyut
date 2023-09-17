@@ -1,10 +1,15 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Lakara::*;
+use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Taddhita as T;
+use vidyut_prakriya::args::Vacana::*;
+use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
+fn nic(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::Nic])
 }
 
 fn san(dhatu: &Dhatu) -> Dhatu {
@@ -12,10 +17,109 @@ fn san(dhatu: &Dhatu) -> Dhatu {
 }
 
 #[test]
-fn sutra_1_3_1() {
+fn sutra_1_3_1_and_sutra_1_3_2() {
     assert_has_lat(&[], &d("BU", Bhvadi), &["Bavati"]);
     assert_has_lat(&[], &d("eDa~\\", Bhvadi), &["eDate"]);
     assert_has_lat(&[], &d("sparDa~\\", Bhvadi), &["sparDate"]);
+}
+
+#[test]
+fn sutra_1_3_3() {
+    assert_has_krdanta(&[], &d("ci\\Y", Svadi), Krt::kvip, &["cit"]);
+    assert_has_krdanta(&[], &d("zu\\Y", Svadi), Krt::kvip, &["sut"]);
+}
+
+#[test]
+fn sutra_1_3_4() {
+    // t
+    assert_has_subantas("vfkza", Pum, V::Panchami, Eka, &["vfkzAt"]);
+    assert_has_subantas("plakza", Pum, V::Panchami, Eka, &["plakzAt"]);
+    // s
+    let pac = &d("qupa\\ca~^z", Bhvadi);
+    assert_has_subantas("brAhmaRa", Pum, V::Prathama, Bahu, &["brAhmaRAH"]);
+    assert_has_tas(&[], &pac, Lat, &["pacataH"]);
+    assert_has_thas(&[], &pac, Lat, &["pacaTaH"]);
+    // m
+    assert_has_tas(&[], &pac, Lan, &["apacatAm"]);
+    assert_has_thas(&[], &pac, Lan, &["apacatam"]);
+}
+
+#[test]
+fn sutra_1_3_5() {
+    // Yi
+    assert_has_krdanta(&[], &d("YimidA~\\", Bhvadi), Krt::kta, &["minna"]);
+    assert_has_krdanta(&[], &d("YiDfzA~", Svadi), Krt::kta, &["Dfzwa"]);
+    assert_has_krdanta(&[], &d("YikzvidA~", Divadi), Krt::kta, &["kzviRRa"]);
+    assert_has_krdanta(&[], &d("YiinDI~\\", Rudhadi), Krt::kta, &["idDa"]);
+    // wu
+    assert_has_krdanta(&[], &d("wuvepf~\\", Bhvadi), Krt::aTuc, &["vepaTu"]);
+    assert_has_krdanta(&[], &d("wuo~Svi", Bhvadi), Krt::aTuc, &["SvayaTu"]);
+    // qu
+    assert_has_krdanta(&[], &d("qupa\\ca~^z", Bhvadi), Krt::ktri, &["paktrima"]);
+    assert_has_krdanta(&[], &d("quva\\pa~^", Bhvadi), Krt::ktri, &["uptrima"]);
+    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::ktri, &["kftrima"]);
+    // TODO: Adi?
+}
+
+#[test]
+fn sutra_1_3_6() {
+    // TODO: change examples to nartakI, etc.
+    assert_has_krdanta(&[], &d("nftI~", Divadi), Krt::zvun, &["nartaka"]);
+    assert_has_krdanta(&[], &d("ra\\nja~^", Bhvadi), Krt::zvun, &["rajaka"]);
+    // pratyayasya?
+    assert_has_subantas("zoqa", Pum, V::Prathama, Eka, &["zoqaH"]);
+    assert_has_subantas("zaRqa", Pum, V::Prathama, Eka, &["zaRqaH"]);
+    assert_has_subantas("zaqika", Pum, V::Prathama, Eka, &["zaqikaH"]);
+    // AdiH
+    assert_has_krdanta(&[], &d("ava~", Bhvadi), Krt::wizac, &["aviza"]);
+    // TODO: right mah?
+    assert_has_krdanta(&[], &d("maha~", Bhvadi), Krt::wizac, &["mahiza"]);
+}
+
+#[test]
+fn sutra_1_3_7() {
+    // ca
+    assert_has_taddhitanta(&prati("kuYja"), T::cPaY, &["kOYjAyana"]);
+    // ja
+    assert_has_subantas("brAhmaRa", Pum, V::Prathama, Bahu, &["brAhmaRAH"]);
+    // Ya
+    assert_has_taddhitanta(&prati("SaRqika"), T::Yya, &["SARqikya"]);
+    // wa
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::wa, &["cara"]);
+    // qa
+    assert_has_krdanta(&[], &d("janI~\\", Divadi), Krt::qa, &["ja"]);
+    // Ignore Ca, Ja, Wa, Qa,
+    // TODO: others
+}
+
+#[test]
+fn sutra_1_3_8() {
+    // la
+    assert_has_krdanta(&[], &d("ci\\Y", Svadi), Krt::lyuw, &["cayana"]);
+    assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::lyuw, &["jayana"]);
+    // Sa
+    assert_has_lat_p(&[], &d("BU", Bhvadi), &["Bavati"]);
+    assert_has_lat_p(&[], &d("qupa\\ca~^z", Bhvadi), &["pacati"]);
+    // ka
+    let bhuj = d("Bu\\ja~", Rudhadi);
+    assert_has_krdanta(&[], &bhuj, Krt::kta, &["Bukta"]);
+    assert_has_krdanta(&[], &bhuj, Krt::ktavatu, &["Buktavat"]);
+    // Ka
+    assert_has_krdanta(&[], &d("vada~", Bhvadi), Krt::Kac, &["vada"]);
+    // ga
+    assert_has_krdanta(&[], &d("glE\\", Bhvadi), Krt::ksnu, &["glAsnu"]);
+    assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::ksnu, &["jizRu"]);
+    assert_has_krdanta(&[], &d("BU", Bhvadi), Krt::ksnu, &["BUzRu"]);
+    // Ga
+    assert_has_krdanta(&[], &d("Ba\\njo~", Rudhadi), Krt::Gurac, &["BaNgura"]);
+    // Na (Nasi --> At, Nas --> sya)
+    assert_has_subantas("vfkza", Pum, V::Panchami, Eka, &["vfkzAt"]);
+    assert_has_subantas("vfkza", Pum, V::Sasthi, Eka, &["vfkzasya"]);
+    // ataddhite?
+    assert_has_taddhitanta(&prati("cUqA"), T::lac, &["cUqAla"]);
+    assert_has_taddhitanta(&prati("loman"), T::Sa, &["lomaSa"]);
+    // TODO: support kan-pratyaya here
+    // assert_has_taddhitanta(&prati("vfkza"), T::kan, &["vfkzaka"]);
 }
 
 #[test]
@@ -106,20 +210,20 @@ fn sutra_1_3_24() {
 }
 
 #[test]
-fn sutra_1_3_25() {
+fn sutra_1_3_25_and_sutra_1_3_26() {
     let stha = d("zWA\\", Bhvadi);
     assert_has_lat(&["upa"], &stha, &["upatizWati", "upatizWate"]);
 }
 
 #[test]
-fn sutra_1_3_26() {
+fn sutra_1_3_27() {
     let tap = d("ta\\pa~", Bhvadi);
     assert_has_lat(&["ud"], &tap, &["uttapati", "uttapate"]);
     assert_has_lat(&["vi"], &tap, &["vitapati", "vitapate"]);
 }
 
 #[test]
-fn sutra_1_3_27() {
+fn sutra_1_3_28() {
     let yam = d("ya\\ma~", Bhvadi);
     let han = d("ha\\na~", Adadi);
     assert_has_lat(&["AN"], &yam, &["AyacCati", "AyacCate"]);
@@ -127,7 +231,7 @@ fn sutra_1_3_27() {
 }
 
 #[test]
-fn sutra_1_3_28() {
+fn sutra_1_3_29() {
     let d = d;
     assert_has_lat(
         &["sam"],
@@ -160,11 +264,17 @@ fn sutra_1_3_28_v1() {
 
 #[test]
 fn sutra_1_3_30() {
-    let han = d("hve\\Y", Bhvadi);
-    assert_has_lat(&["ni"], &han, &["nihvayate"]);
-    assert_has_lat(&["sam"], &han, &["saMhvayate"]);
-    assert_has_lat(&["upa"], &han, &["upahvayate"]);
-    assert_has_lat(&["vi"], &han, &["vihvayate"]);
+    let hve = d("hve\\Y", Bhvadi);
+    assert_has_lat(&["ni"], &hve, &["nihvayate"]);
+    assert_has_lat(&["sam"], &hve, &["saMhvayate"]);
+    assert_has_lat(&["upa"], &hve, &["upahvayate"]);
+    assert_has_lat(&["vi"], &hve, &["vihvayate"]);
+}
+
+#[test]
+fn sutra_1_3_30_v1() {
+    assert_has_lat(&["nis"], &d("asu~", Divadi), &["nirasyati", "nirasyate"]);
+    assert_has_lat(&["sam"], &d("Uha~\\", Bhvadi), &["samUhati", "samUhate"]);
 }
 
 #[test]
@@ -230,9 +340,53 @@ fn sutra_1_3_42() {
 }
 
 #[test]
+fn sutra_1_3_43() {
+    let kram = d("kramu~", Bhvadi);
+    assert_has_lat(&[], &kram, &["krAmati", "krAmyati", "kramate", "kramyate"]);
+}
+
+#[test]
+fn sutra_1_3_44() {
+    let jna = d("jYA\\", Kryadi);
+    assert_has_lat(&["apa"], &jna, &["apajAnAti", "apajAnIte"]);
+}
+
+#[test]
+fn sutra_1_3_45() {
+    let jna = d("jYA\\", Kryadi);
+    assert_has_lat(&[], &jna, &["jAnAti", "jAnIte"]);
+}
+
+#[test]
+fn sutra_1_3_46() {
+    let jna = d("jYA\\", Kryadi);
+    assert_has_lat(&["sam"], &jna, &["saYjAnAti", "saYjAnIte"]);
+    assert_has_lat(&["prati"], &jna, &["pratijAnAti", "pratijAnIte"]);
+}
+
+#[test]
 fn sutra_1_3_47() {
     let vad = d("vada~", Bhvadi);
     assert_has_lat(&[], &vad, &["vadati", "vadate"]);
+}
+
+#[test]
+fn sutra_1_3_48() {
+    let vad = d("vada~", Bhvadi);
+    assert_has_lat(&["sam", "pra"], &vad, &["sampravadati", "sampravadate"]);
+}
+
+#[test]
+fn sutra_1_3_49() {
+    let vad = d("vada~", Bhvadi);
+    assert_has_lat(&["anu"], &vad, &["anuvadati", "anuvadate"]);
+}
+
+#[test]
+fn sutra_1_3_50() {
+    let vad = d("vada~", Bhvadi);
+    assert_has_jhi(&["vi", "pra"], &vad, Lat, &["vipravadanti"]);
+    assert_has_jha(&["vi", "pra"], &vad, Lat, &["vipravadante"]);
 }
 
 #[test]
@@ -275,7 +429,6 @@ fn sutra_1_3_56() {
     assert_has_lat(&["upa"], &yam, &["upayacCati", "upayacCate"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_1_3_57() {
     let jna = d("jYA\\", Kryadi);
@@ -323,7 +476,6 @@ fn sutra_1_3_61() {
     assert_has_lrn(&[], &mr, &["amarizyat"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_1_3_62() {
     let d = d;
@@ -335,7 +487,7 @@ fn sutra_1_3_62() {
     assert_has_lat(
         &["AN"],
         &san("kramu~", Bhvadi),
-        &["AcikraMsate", "AcikraMsati"],
+        &["AcikraMsate", "Acikramizati"],
     );
 
     // From S. C. Vasu's commentary
@@ -345,7 +497,6 @@ fn sutra_1_3_62() {
     assert_has_lat(&[], &d("baDa~\\", Bhvadi), &["bIBatsate"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_1_3_63() {
     assert_has_lit(
@@ -383,10 +534,84 @@ fn sutra_1_3_66() {
     assert_has_lat(&[], &bhuj, &["Bunakti", "BuNkte"]);
 }
 
+#[ignore]
+#[test]
+fn sutra_1_3_68() {
+    assert_has_lat(
+        &[],
+        &nic(&d("YiBI\\", Juhotyadi)),
+        &["BAyayati", "BAyayate", "BIzayate", "BApayate"],
+    );
+    assert_has_lat(
+        &["vi"],
+        &nic(&d("zmi\\N", Bhvadi)),
+        &["vismAyayati", "vismAyayate", "vismApayate"],
+    );
+}
+
+#[test]
+fn sutra_1_3_69() {
+    assert_has_lat(&[], &nic(&d("gfDU~", Divadi)), &["garDayati", "garDayate"]);
+    assert_has_lat(&[], &nic(&d("vancu~", Bhvadi)), &["vaYcayati", "vaYcayate"]);
+}
+
+#[test]
+fn sutra_1_3_70() {
+    let li = d("lI\\N", Divadi);
+    assert_has_lat(
+        &["AN"],
+        &nic(&li),
+        &[
+            "AlApayati",
+            "AlApayate",
+            "AlAlayati",
+            "AlAlayate",
+            "AlAyayati",
+            "AlAyayate",
+            "AlInayati",
+            "AlInayate",
+        ],
+    );
+    assert_has_lat(
+        &["ud"],
+        &nic(&li),
+        &[
+            "ullApayati",
+            "ullApayate",
+            "ullAlayati",
+            "ullAlayate",
+            "ullAyayati",
+            "ullAyayate",
+            "ullInayati",
+            "ullInayate",
+        ],
+    );
+}
+
+#[test]
+fn sutra_1_3_72() {
+    // svaritet
+    assert_has_lat(&[], &d("ya\\ja~^", Bhvadi), &["yajati", "yajate"]);
+    assert_has_lat(&[], &d("qupa\\ca~^z", Bhvadi), &["pacati", "pacate"]);
+    // Yit
+    assert_has_lat(&[], &d("zu\\Y", Svadi), &["sunoti", "sunute"]);
+    assert_has_lat(&[], &d("qukf\\Y", Tanadi), &["karoti", "kurute"]);
+}
+
 #[test]
 fn sutra_1_3_73() {
     let vad = d("vada~", Bhvadi);
     assert_has_lat(&["apa"], &vad, &["apavadati", "apavadate"]);
+}
+
+#[test]
+fn sutra_1_3_74() {
+    assert_has_lat(
+        &[],
+        &nic(&d("qupa\\ca~^z", Bhvadi)),
+        &["pAcayate", "pAcayati"],
+    );
+    assert_has_lat(&[], &nic(&d("qukf\\Y", Tanadi)), &["kArayate", "kArayati"]);
 }
 
 #[test]
@@ -427,7 +652,7 @@ fn sutra_1_3_80() {
     assert_has_lat(&["aBi"], &ksip, &["aBikzipati"]);
     assert_has_lat(&["prati"], &ksip, &["pratikzipati"]);
     assert_has_lat(&["ati"], &ksip, &["atikzipati"]);
-
+    // abhi-prati-atiByaH?
     assert_has_lat(&["AN"], &ksip, &["Akzipati", "Akzipate"]);
 }
 
@@ -455,7 +680,38 @@ fn sutra_1_3_83() {
 }
 
 #[test]
-fn sutra_1_3_85() {
+fn sutra_1_3_84_and_sutra_1_3_85() {
     let ram = d("ra\\ma~\\", Bhvadi);
     assert_has_lat(&["upa"], &ram, &["uparamati", "uparamate"]);
+}
+
+#[test]
+fn sutra_1_3_91() {
+    let dyut = &d("dyuta~\\", Bhvadi);
+    assert_has_lun(&["vi"], &dyut, &["vyadyutat", "vyadyotizwa"]);
+    assert_has_lun(&[], &d("luWa~\\", Bhvadi), &["aluWat", "aloWizwa"]);
+    // luNi?
+    assert_has_lat(&[], &dyut, &["dyotate"]);
+}
+
+#[test]
+fn sutra_1_3_92() {
+    let dyut = &d("dyuta~\\", Bhvadi);
+    assert_has_lun(&["vi"], &dyut, &["vyadyutat", "vyadyotizwa"]);
+    assert_has_lun(&[], &d("luWa~\\", Bhvadi), &["aluWat", "aloWizwa"]);
+    // luNi?
+    assert_has_lat(&[], &dyut, &["dyotate"]);
+}
+
+#[test]
+fn sutra_1_3_93() {
+    let vft = d("vftu~\\", Bhvadi);
+    assert_has_lrt(&[], &vft, &["vartsyati", "vartizyate"]);
+    assert_has_lrn(&[], &vft, &["avartsyat", "avartizyata"]);
+    assert_has_lat(&[], &san(&vft), &["vivftsati", "vivartizate"]);
+
+    let vfdh = d("vfDu~\\", Bhvadi);
+    assert_has_lrt(&[], &vfdh, &["vartsyati", "varDizyate"]);
+    assert_has_lrn(&[], &vfdh, &["avartsyat", "avarDizyata"]);
+    assert_has_lat(&[], &san(&vfdh), &["vivftsati", "vivarDizate"]);
 }

@@ -15,6 +15,9 @@ pub fn run(p: &mut Prakriya, pratipadika: &Pratipadika, linga: Linga) -> Option<
     if pratipadika.is_dhatu() {
         term.add_tag(T::Dhatu);
     }
+    if pratipadika.is_udit() {
+        term.add_tag(T::udit);
+    }
     if pratipadika.is_pratyaya() {
         term.add_tag(T::Pratyaya);
     }

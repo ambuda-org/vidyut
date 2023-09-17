@@ -22,6 +22,7 @@ lazy_static! {
     static ref EC: Set = s("ec");
     static ref VAL: Set = s("val");
     static ref HAL: Set = s("hal");
+    static ref YAN: Set = s("yaR");
 }
 
 pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
@@ -37,9 +38,11 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             let t = get_at(p, i).expect("should be present");
             // Ignore if it starts an upadesha, otherwise roots like "vraj" would by vyartha.
             // Likewise for roots ending with 'v'.
+            // Likewise for pratipadikas.
+            //
             // For now, just check if the term is a dhatu.
             let is_upadesha_adi = t.is_dhatu() && (t.has_adi('v') || t.has_adi('y'));
-            vyor_vali && !is_upadesha_adi
+            vyor_vali && !is_upadesha_adi && !t.is_pratipadika()
         },
         |p, _, i| {
             set_at(p, i, "");
@@ -92,10 +95,21 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         },
     );
 
+    // HACK: ignore sandhi between upasarga and dhatu so that we can correctly derive prARinat,
+    // etc.
+    fn is_upasarga_sanadi_dhatu(p: &Prakriya, i: usize) -> bool {
+        get_at(p, i).expect("present").is_upasarga()
+            && p.terms().last().expect("present").is_dhatu()
+    }
+
     char_rule(
         p,
         xy(|x, y| AK.contains(x) && AK.contains(y) && al::savarna(x).contains(y)),
         |p, text, i| {
+            if is_upasarga_sanadi_dhatu(p, i) {
+                return false;
+            }
+
             let x = text.as_bytes()[i] as char;
             set_at(p, i, &al::to_dirgha(x).expect("should be ac").to_string());
             set_at(p, i + 1, "");
@@ -165,14 +179,19 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         p,
         xy(|x, y| A.contains(x) && AC.contains(y)),
         |p, text, i| {
+            if is_upasarga_sanadi_dhatu(p, i) {
+                return false;
+            }
+
             let j = i + 1;
             let y = text.as_bytes()[i + 1] as char;
+
             if EC.contains(y) {
-                set_at(p, j, al::to_vrddhi(y).expect("should be set"));
+                set_at(p, j, al::to_vrddhi(y).expect("should have vrddhi"));
                 set_at(p, i, "");
                 p.step("6.1.88");
             } else {
-                set_at(p, j, al::to_guna(y).expect("should be set"));
+                set_at(p, j, al::to_guna(y).expect("should have guna"));
                 set_at(p, i, "");
                 p.step("6.1.87");
             }
@@ -361,7 +380,30 @@ fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_common(p: &mut Prakriya) {
+/// Runs antaranga ac-sandhi rules.
+///
+/// (Example: div -> dyU + sa -> dudyUzati)
+pub fn run_antaranga(p: &mut Prakriya) -> Option<()> {
+    for i in 0..p.terms().len() {
+        let cur = p.get(i)?;
+        if cur.has_upadha(&*IK) && cur.has_antya(&*AC) {
+            let x = cur.upadha()?;
+            let res = match x {
+                'i' | 'I' => "y",
+                'u' | 'U' => "v",
+                'f' | 'F' => "r",
+                'x' | 'X' => "l",
+                _ => panic!("Unexpected res"),
+            };
+            p.op_term("6.1.77", i, |t| t.set_upadha(res));
+        }
+    }
+
+    p.maybe_save_sthanivat();
+    Some(())
+}
+
+pub fn run_common(p: &mut Prakriya) -> Option<()> {
     try_ver_aprktasya(p);
 
     for i in 0..p.terms().len() {
@@ -372,4 +414,6 @@ pub fn run_common(p: &mut Prakriya) {
     hacky_apply_ni_asiddhavat_rules(p);
 
     try_sut_kat_purva(p);
+
+    Some(())
 }

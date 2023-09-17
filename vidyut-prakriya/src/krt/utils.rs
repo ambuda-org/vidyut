@@ -79,13 +79,6 @@ impl<'a> KrtPrakriya<'a> {
         }
     }
 
-    /// If there's a match, adds the given `krt` pratyaya.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: Krt) -> bool {
-        self.try_add_with(rule, krt, |_p, _i| {})
-    }
-
     /// If there's a match, replace the `lakAra` of the dhatu.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
@@ -98,21 +91,6 @@ impl<'a> KrtPrakriya<'a> {
         } else {
             false
         }
-    }
-
-    /// If there's a match, optionally adds the given `krt` pratyaya.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: Krt) -> bool {
-        if krt == self.krt && !self.has_krt {
-            if self.p.is_allowed(rule) {
-                self.try_add_with(rule, krt, |_p, _i| {});
-                return true;
-            } else {
-                self.p.decline(rule);
-            }
-        }
-        false
     }
 
     /// If there's a match, adds the given `krt` pratyaya then runs `func`.
@@ -138,5 +116,40 @@ impl<'a> KrtPrakriya<'a> {
         } else {
             false
         }
+    }
+
+    /// If there's a match, adds the given `krt` pratyaya.
+    ///
+    /// This method does nothing if a krt pratyaya has already been added.
+    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: Krt) -> bool {
+        self.try_add_with(rule, krt, |_p, _i| {})
+    }
+
+    /// If there's a match, optionally adds the given `krt` pratyaya then runs `func`.
+    ///
+    /// This method does nothing if a krt pratyaya has already been added.
+    pub fn optional_try_add_with(
+        &mut self,
+        rule: impl Into<Rule> + Copy,
+        krt: Krt,
+        func: impl Fn(&mut Prakriya, usize),
+    ) -> bool {
+        if krt == self.krt && !self.has_krt {
+            // TODO: resolve inconsistency with TaddhitaPratyaya::optional_try_add_with.
+            if self.p.is_allowed(rule) {
+                self.try_add_with(rule, krt, func);
+                return true;
+            } else {
+                self.p.decline(rule);
+            }
+        }
+        false
+    }
+
+    /// If there's a match, optionally adds the given `krt` pratyaya.
+    ///
+    /// This method does nothing if a krt pratyaya has already been added.
+    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: Krt) -> bool {
+        self.optional_try_add_with(rule, krt, |_p, _i| {})
     }
 }

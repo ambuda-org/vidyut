@@ -278,7 +278,7 @@ fn try_taa_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
     Some(())
 }
 
-pub fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
+fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
     let sup = p.get(i_sup)?;
     let sau = sup.has_u("su~");
@@ -307,6 +307,8 @@ pub fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<(
             // paTA, ...
             p.op_term("7.1.88", i_anga, op::ti(""));
         }
+    } else if anga.has_text("pums") {
+        p.op_term("7.1.89", i_anga, |t| t.set_text("pumas"));
     }
     Some(())
 }
@@ -321,7 +323,9 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
     let is_napumsaka = p.has_tag(T::Napumsaka);
     let is_jas_shas = sup.has_u_in(&["jas", "Sas"]);
 
-    if is_aap(anga) && sup.has_text("O") {
+    if anga.has_tag(T::Sat) && is_jas_shas {
+        p.op_term("7.1.22", i_sup, op::luk);
+    } else if is_aap(anga) && sup.has_text("O") {
         op::adesha("7.1.18", p, i_sup, "SI");
     } else if is_napumsaka && sup.has_text("O") {
         op::adesha("7.1.19", p, i_sup, "SI");
@@ -329,8 +333,6 @@ pub fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
         op::adesha("7.1.20", p, i_sup, "Si");
     } else if anga.has_text("azwA") && anga.has_u("azwan") && is_jas_shas {
         op::adesha("7.1.21", p, i_sup, "OS");
-    } else if anga.has_tag(T::Sat) && is_jas_shas {
-        p.op_term("7.1.22", i_sup, op::luk);
     } else if is_napumsaka && sup.has_u_in(&["su~", "am"]) {
         try_napumsaka_su_am_adesha(p, i_anga, i_sup);
     } else {

@@ -7,6 +7,7 @@ whether a given rule can apply.
 For most use cases, we recommend using the helper methods on `Term`, which have a more readable
 calling convention.
 */
+use crate::args::Gana;
 use crate::sounds::{s, Set};
 use crate::term::Term;
 use lazy_static::lazy_static;
@@ -23,5 +24,5 @@ pub fn is_eka_ac(t: &Term) -> bool {
 
 /// Returns whether this term is the dhAtu `as` in the sense of `asti`.
 pub fn is_asti(t: &Term) -> bool {
-    t.has_u("asa~") && t.has_gana_int(2)
+    t.has_u("asa~") && t.has_gana(Gana::Adadi)
 }

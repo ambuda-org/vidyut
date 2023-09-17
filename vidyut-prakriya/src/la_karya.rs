@@ -7,6 +7,7 @@ use crate::term::Term;
 fn add_la(rule: Code, p: &mut Prakriya, i: usize, la: &str) {
     let mut la = Term::make_upadesha(la);
     la.add_tag(T::Pratyaya);
+    la.add_tag(T::La);
 
     p.insert_after(i, la);
     p.step(rule);

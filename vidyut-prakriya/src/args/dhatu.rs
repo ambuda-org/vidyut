@@ -45,45 +45,6 @@ enum_boilerplate!(Gana, {
     Curadi => "10",
 });
 
-impl Gana {
-    /// Parses the given integer as a `Gana`.
-    pub fn from_int(value: u8) -> Result<Gana, Error> {
-        use Gana::*;
-        let ret = match value {
-            1 => Bhvadi,
-            2 => Adadi,
-            3 => Juhotyadi,
-            4 => Divadi,
-            5 => Svadi,
-            6 => Tudadi,
-            7 => Rudhadi,
-            8 => Tanadi,
-            9 => Kryadi,
-            10 => Curadi,
-            _ => return Err(Error::gana_parse_error(value)),
-        };
-        Ok(ret)
-    }
-}
-
-impl From<Gana> for u8 {
-    fn from(value: Gana) -> u8 {
-        use Gana::*;
-        match value {
-            Bhvadi => 1,
-            Adadi => 2,
-            Juhotyadi => 3,
-            Divadi => 4,
-            Svadi => 5,
-            Tudadi => 6,
-            Rudhadi => 7,
-            Tanadi => 8,
-            Kryadi => 9,
-            Curadi => 10,
-        }
-    }
-}
-
 /// Defines an antargana.
 ///
 /// The dhatus in the Dhatupatha are organized in ten large *gaṇa*s or classes. Within these larger

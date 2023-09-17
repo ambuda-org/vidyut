@@ -1,31 +1,22 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Lakara::*;
+use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
-}
+#[test]
+fn sutra_6_3_43() {
+    assert_has_taddhitanta(&prati("brAhmaRI"), T::tarap, &["brAhmaRitara"]);
+    assert_has_taddhitanta(&prati("brAhmaRI"), T::tamap, &["brAhmaRitama"]);
+    assert_has_taddhitanta(&prati("brAhmaRI"), T::rUpap, &["brAhmaRirUpa"]);
+    assert_has_taddhitanta(&prati("brAhmaRI"), T::kalpap, &["brAhmaRikalpa"]);
 
-fn assert_has_lun_3d(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_parasmai_tinanta(
-        prefixes,
-        dhatu,
-        Lakara::Lun,
-        Purusha::Prathama,
-        Vacana::Dvi,
-        expected,
-    );
-}
-fn assert_has_lun_2d(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_parasmai_tinanta(
-        prefixes,
-        dhatu,
-        Lakara::Lun,
-        Purusha::Madhyama,
-        Vacana::Dvi,
-        expected,
-    );
+    // TODO: others
+    // assert_has_taddhitanta(&prati("brAhmaRI"), T::tamap, &["brAhmaRibruva"]);
+    // assert_has_taddhitanta(&prati("brAhmaRI"), T::tamap, &["brAhmaRigotra"]);
+    // assert_has_taddhitanta(&prati("brAhmaRI"), T::tamap, &["brAhmaRimata"]);
+    // assert_has_taddhitanta(&prati("brAhmaRI"), T::tamap, &["brAhmaRihata"]);
 }
 
 #[test]
@@ -52,6 +43,6 @@ fn sutra_6_3_112() {
     assert_has_krdanta(&[], &vah, Krt::kta, &["UQa"]);
     assert_has_krdanta(&[], &vah, Krt::ktavatu, &["UQavat"]);
 
-    assert_has_lun_3d(&["ud"], &vah, &["udavoQAm"]);
-    assert_has_lun_2d(&["ud"], &vah, &["udavoQam"]);
+    assert_has_tas(&["ud"], &vah, Lun, &["udavoQAm"]);
+    assert_has_thas(&["ud"], &vah, Lun, &["udavoQam"]);
 }

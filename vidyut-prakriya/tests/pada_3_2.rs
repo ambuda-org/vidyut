@@ -3,8 +3,21 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
+#[test]
+fn sutra_3_2_16() {
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::wa, &["cara"]);
+    // TODO: upapadas
+}
+
+#[test]
+fn sutra_3_2_62() {
+    assert_has_krdanta(&["pra"], &d("Ba\\ja~^", Bhvadi), Krt::Rvi, &["praBAj"]);
+}
+
+#[test]
+fn sutra_3_2_97() {
+    assert_has_krdanta(&[], &d("janI~\\", Divadi), Krt::qa, &["ja"]);
+    // TODO: upapadas
 }
 
 #[test]

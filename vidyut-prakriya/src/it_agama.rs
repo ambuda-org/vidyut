@@ -26,6 +26,7 @@ Order of operations:
   a following `sya`, `si~c`, etc.
 */
 
+use crate::args::Gana::*;
 use crate::dhatu_gana as gana;
 use crate::filters as f;
 use crate::it_samjna;
@@ -456,7 +457,7 @@ fn try_ardhadhatuke_2(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
     let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
     let anga = wrap.p.get(i)?;
     let n = wrap.p.view(i + 1)?;
-    let antya_para = wrap.p.terms().last()?.has_tag(T::Parasmaipada);
+    let has_parasmaipada = wrap.p.has_tag(T::Parasmaipada);
     let se = n.has_adi('s');
 
     let krta_crta = &["kft", "cft", "Cfd", "tfd", "nft"];
@@ -481,13 +482,14 @@ fn try_ardhadhatuke_2(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         wrap.optional_anit("7.2.48");
     } else if anga.has_text_in(krta_crta) && se && !n.has_u("si~c") {
         wrap.optional_anit("7.2.57");
-    } else if anga.has_text("gam") && antya_para && se {
+    } else if anga.has_text("gam") && has_parasmaipada && se {
         // gamizyati
         wrap.set("7.2.58", i_n);
-    } else if anga.has_u_in(gana::VRDBHYAH) && anga.has_gana_int(1) && antya_para && se {
+    } else if anga.has_u_in(gana::VRT_ADI) && anga.has_gana(Bhvadi) && has_parasmaipada && se {
         // vartsyati (vfd), vartsyati (vfD), Sftsyati, syantsyati
         wrap.anit("7.2.59");
-    } else if anga.has_u("kfpU~\\") && antya_para && (se || n.has_u("tAsi~")) {
+    } else if anga.has_u("kfpU~\\") && has_parasmaipada && (se || n.has_u("tAsi~")) {
+        // kalpsyati, kalpizyate (but not kalpizyati)
         wrap.anit("7.2.60");
     } else if anga.has_text_in(&["snu", "kram"]) && n.has_adi(&*VAL) {
         // prasnozIzwa, prakraMsIzwa
@@ -628,7 +630,6 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
             p.op_term("7.2.37", i, op::text("I"));
             p.step("cinvat");
         }
-        p.dump();
     } else if dhatu.has_antya('F') || dhatu.has_text("vf") {
         if last.has_lakshana("li~N") {
             p.step("7.2.39");
@@ -668,6 +669,14 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
             if cur.has_tag(T::FlagIttva) {
                 continue;
             }
+
+            // Skip it-Agama rules for Ji-pratyaya, which at this point hasn't been replaced.
+            // But when it is replaced, it will always start with a vowel.
+            let i_n = wrap.p.find_next_where(i, |t| !t.is_empty())?;
+            if wrap.p.has(i_n, |t| t.has_u("Ji")) {
+                continue;
+            }
+
             wrap.p.set(i, |t| t.add_tag(T::FlagIttva));
 
             run_before_attva_for_term(&mut wrap, i);

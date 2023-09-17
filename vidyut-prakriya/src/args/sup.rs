@@ -117,6 +117,11 @@ impl Pratipadika {
         self.tags.contains(Tag::Dhatu)
     }
 
+    /// Returns whether this pratipadika is udit.
+    pub fn is_udit(&self) -> bool {
+        self.tags.contains(Tag::udit)
+    }
+
     /// Returns whether this pratipadika ends in a pratyaya.
     pub fn is_pratyaya(&self) -> bool {
         self.tags.contains(Tag::Pratyaya)
@@ -134,6 +139,7 @@ pub struct PratipadikaBuilder {
     text: Option<String>,
     is_nyap: bool,
     is_dhatu: bool,
+    is_udit: bool,
     is_pratyaya: bool,
 }
 
@@ -153,6 +159,12 @@ impl PratipadikaBuilder {
     /// Sets whether this pratipadika should be treated as ending in a dhatu.
     pub fn is_dhatu(&mut self, yes: bool) -> &mut Self {
         self.is_dhatu = yes;
+        self
+    }
+
+    /// Sets whether this pratipadika should be treated as ending in a dhatu.
+    pub fn is_udit(&mut self, yes: bool) -> &mut Self {
+        self.is_udit = yes;
         self
     }
 
@@ -182,6 +194,9 @@ impl PratipadikaBuilder {
         }
         if self.is_dhatu {
             tags.insert(Tag::Dhatu);
+        }
+        if self.is_udit {
+            tags.insert(Tag::udit);
         }
         if self.is_dhatu {
             tags.insert(Tag::Pratyaya);

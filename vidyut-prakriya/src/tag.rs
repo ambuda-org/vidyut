@@ -24,6 +24,7 @@ pub enum Tag {
     Sarvanama,
     Sarvanamasthana,
     Tin,
+    La,
     Nistha,
     Krt,
     Krtya,
@@ -233,6 +234,8 @@ pub enum Tag {
     FlagIttva,
     /// Blocks a rule that causes dirgha.
     FlagNoDirgha,
+    // Indicates replacement of f/F with f (acIkftat, ...).
+    FlagUrRt,
 
     Sankhya,
     Sat,
@@ -249,6 +252,13 @@ pub enum Tag {
     TrnTrc,
     Pada,
     Bha,
+    YanLuk,
+    Dvitva,
+    Gha,
+
+    // Indicates that a derivation phase is complete, e.g. to avoid running abhyAsa rules
+    // twice.
+    Complete,
 }
 
 impl Tag {

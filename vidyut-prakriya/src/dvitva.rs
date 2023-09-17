@@ -1,9 +1,12 @@
+/// Runs rules that perform `dvitva` (doubling) on the dhAtu.
+///
+/// TODO: the code here is repetitive and can be consolidated with a bit more thought.
+use crate::ac_sandhi;
 use crate::filters as f;
 use crate::operators as op;
 use crate::prakriya::{Code, Prakriya};
 use crate::sounds as al;
 use crate::sounds::{s, Set};
-/// Runs rules that perform `dvitva` (doubling) on the dhAtu.
 use crate::tag::Tag as T;
 use crate::term::Term;
 use compact_str::CompactString;
@@ -12,7 +15,10 @@ use lazy_static::lazy_static;
 lazy_static! {
     static ref AC: Set = s("ac");
     static ref HAL: Set = s("hal");
-    static ref NDR: Set = s("n d r");
+    // As a quick HACK, also allow N, Y, R, and M, since these have been produced by the asiddha
+    // section.
+    static ref NDR: Set = s("n d r N Y R M");
+    static ref HACKY_NASAL: Set = s("N Y R M");
 }
 
 /// Runs dvitva rules for roots that begin with vowels, e.g. UrRu.
@@ -31,7 +37,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<
         None => return None,
     };
     let mut third = Term::make_upadesha(&temp);
-    third.set_text(&dhatu.text[1..]);
+    third.set_text(&dhatu.sthanivat()[1..]);
 
     // 6.1.3 na ndrAH saMyogAdayaH
     while third.is_samyogadi() && NDR.contains(third.adi()?) {
@@ -42,7 +48,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<
     let abhyasa = Term::make_text(&third.text);
     p.set(i, |t| t.text.truncate(t.text.len() - abhyasa.text.len()));
     if p.has(i, |t| t.has_u("UrRuY")) {
-        third.set_text("nu");
+        third.set_adi("n");
     }
 
     p.insert_after(i, abhyasa);
@@ -52,57 +58,11 @@ fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<
 
     p.set(i, |t| t.add_tag(T::Abhyasta));
     p.set(i + 1, |t| t.add_tag(T::Abhyasta));
-    p.set(i + 2, |t| t.add_tag(T::Abhyasta));
+    p.set(i + 2, |t| t.add_tags(&[T::Abhyasta, T::Dvitva]));
     if p.has(i + 3, |t| t.is_ni_pratyaya()) {
         p.set(i + 3, |t| t.add_tag(T::Abhyasta));
     }
     p.step("6.1.5");
-
-    Some(())
-}
-
-/// Runs dvitva rules for roots that begin with vowels and , e.g. anj + i -> AYjijit
-fn try_dvitva_for_ajadi_ni_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
-    // Example:
-    let i_ni = i + 1;
-    let dhatu = p.get(i)?;
-    let ni = p.get(i_ni)?;
-
-    let mut text = CompactString::from("");
-    text.push_str(&dhatu.text[1..]);
-    text.push_str(&ni.text);
-    let mut third = Term::make_text(&text);
-
-    // 6.1.3 na ndrAH saMyogAdayaH
-    while third.is_samyogadi() && NDR.contains(third.adi()?) {
-        third.set_adi("");
-    }
-    // The structure here is workaround for a Rust compile issue.
-    if ni.has_u("Ric") {
-        third.set_u("Ric");
-    } else {
-        third.set_u("RiN");
-    }
-    third.add_tag(T::Dhatu);
-
-    let abhyasa = Term::make_text(&third.text);
-    p.set(i, |t| {
-        t.text.truncate(t.text.len() - abhyasa.text.len() + 1)
-    });
-    third.set_antya("");
-
-    p.insert_after(i, abhyasa);
-    p.insert_after(i + 1, third);
-    p.step(rule);
-    p.op_term("6.1.4", i + 1, op::add_tag(T::Abhyasa));
-
-    p.op("6.1.5", |p| {
-        // Set abhyasta for: first, abhyasa, third, and ni.
-        p.set(i, op::add_tag(T::Abhyasta));
-        p.set(i + 1, op::add_tag(T::Abhyasta));
-        p.set(i + 2, op::add_tag(T::Abhyasta));
-        p.set(i + 3, op::add_tag(T::Abhyasta));
-    });
 
     Some(())
 }
@@ -140,30 +100,38 @@ fn find_abhyasa_span(text: &CompactString) -> Option<(usize, usize)> {
 }
 
 fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
-    let mut text = CompactString::from("");
+    let mut p_text = CompactString::from("");
     for t in p.terms() {
         if t.is_upasarga() {
             continue;
         }
-        text.push_str(&t.text);
+        if !t.sthanivat().is_empty() {
+            p_text.push_str(&t.sthanivat());
+        } else {
+            p_text.push_str(&t.text);
+        }
     }
 
-    let (start, end) = find_abhyasa_span(&text)?;
+    let (start, end) = find_abhyasa_span(&p_text)?;
 
     // debug_assert!(start == 1);
-    let ac = Term::make_text(&text[0..start]);
-    let abhyasa = Term::make_text(&text[start..=end]);
+    let ac = Term::make_text(&p_text[0..start]);
+    let abhyasa = Term::make_text(&p_text[start..=end]);
 
     let i_ac = i_dhatu;
     p.insert_before(i_ac, ac);
     p.insert_after(i_ac, abhyasa);
 
-    // und i za
-    // un di d i za
+    // Example: und i za --> un di d i za
     let i_dhatu = i_ac + 2;
     p.set(i_dhatu, |t| t.set_adi(""));
-    while p.has(i_dhatu, |t| t.is_samyogadi() && t.has_adi(&*NDR)) {
+    while p.has(i_dhatu, |t| {
+        (t.is_samyogadi() && t.has_adi(&*NDR)) || t.has_adi('M')
+    }) {
         p.set(i_dhatu, |t| t.set_adi(""));
+    }
+    if p.has(i_ac, |t| t.has_antya(&*HACKY_NASAL)) {
+        p.set(i_ac, op::antya("n"));
     }
     p.step(rule);
 
@@ -171,7 +139,7 @@ fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> 
     p.op("6.1.5", |p| {
         p.set(i_ac, op::add_tag(T::Abhyasta));
         p.set(i_ac + 1, op::add_tag(T::Abhyasta));
-        p.set(i_dhatu, op::add_tag(T::Abhyasta));
+        p.set(i_dhatu, |t| t.add_tags(&[T::Abhyasta, T::Dvitva]));
         if p.has(i_dhatu, |t| t.has_u("UrRuY")) {
             p.set(i_dhatu, |t| t.set_text("nu"));
         }
@@ -181,6 +149,10 @@ fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> 
 }
 
 fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
+    // First, run ac-sandhi (for div -> dudyUzati, etc.)
+    ac_sandhi::run_antaranga(p);
+    p.maybe_save_sthanivat();
+
     let i_n = p.find_next_where(i, |t| {
         !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
     })?;
@@ -189,17 +161,18 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
 
     if dhatu.has_adi(&*AC)
         && next.last()?.is_pratyaya()
-        && next.last()?.has_u_in(&["san", "Ric", "yaN"])
+        && next.last()?.has_u_in(&["san", "Ric", "yaN", "RiN"])
     {
         try_dvitva_for_sanadi_ajadi(rule, p, i);
-    } else if dhatu.has_adi(&*AC)
-        && dhatu.has_antya(&*HAL)
-        && next.last()?.has_u_in(&["Ric", "RiN"])
-    {
-        try_dvitva_for_ajadi_ni_dhatu(rule, p, i);
     } else if f::is_eka_ac(dhatu) || al::is_hal(dhatu.adi()?) {
+        let mut abhyasa = Term::make_text("");
+        abhyasa.set_text(&dhatu.sthanivat());
+
         // TODO: correctly double jAgR
-        p.insert_before(i, Term::make_text(&dhatu.text));
+        if dhatu.text.starts_with("tC") {
+            abhyasa.set_adi("");
+        }
+        p.insert_before(i, abhyasa);
         p.step(rule);
 
         let i_abhyasa = i;
@@ -207,7 +180,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
         p.op_term("6.1.4", i_abhyasa, op::add_tag(T::Abhyasa));
 
         p.set(i_abhyasa, |t| t.add_tag(T::Abhyasta));
-        p.set(i_dhatu, |t| t.add_tag(T::Abhyasta));
+        p.set(i_dhatu, |t| t.add_tags(&[T::Abhyasta, T::Dvitva]));
         if p.has(i_dhatu + 1, |t| t.is_ni_pratyaya()) {
             p.set(i_dhatu + 1, |t| t.add_tag(T::Abhyasta));
         }
@@ -223,6 +196,9 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// - `i` should point to a dhatu.
 fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    let dhatu = p.get_mut(i)?;
+    debug_assert!(dhatu.is_dhatu());
+
     let jaksh_adi = &[
         "jakza~", "jAgf", "daridrA", "cakAsf~", "SAsu~", "dIDIN", "vevIN",
     ];
@@ -248,7 +224,10 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         } else {
             try_dvitva("6.1.8", p, i);
         }
-    } else if n.last()?.has_u_in(&["san", "yaN"]) {
+    } else if p
+        .find_next_where(i, |t| t.has_u_in(&["san", "yaN"]))
+        .is_some()
+    {
         try_dvitva("6.1.9", p, i);
     } else if n.has_tag(T::Slu) {
         try_dvitva("6.1.10", p, i);
@@ -260,9 +239,39 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
+/// Runs dvitva rule only if the pratyaya that causes dvitva starts with a vowel.
+///
+/// For more details, see rule 1.1.59 ("dvirvacane 'ci").
+pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
+    // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
+    let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Dvitva, T::Pratyaya]);
+
+    // Loop for cases like jihriyAmbaBUva, where dvitva occurs twice.
+    let mut num_loops = 0;
+    let mut i = p.find_first_where(filter)?;
+    loop {
+        let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+
+        // Run only if the next term starts with a vowel.
+        // Check for `Ji` as well, which starts with a vowel.
+        // Exclude it_agama so that we can derive `aririzati` etc.
+        let n = p.get(i_n)?;
+        if (n.has_adi(&*AC) && !n.is_it_agama()) || n.has_text("Ji") {
+            run_at_index(p, i);
+        }
+
+        num_loops += 1;
+        if num_loops > 10 {
+            panic!("Infinite loop {:?}", p.terms());
+        }
+
+        i = p.find_next_where(i, filter)?;
+    }
+}
+
 pub fn run(p: &mut Prakriya) -> Option<()> {
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
-    let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Abhyasta, T::Pratyaya]);
+    let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Dvitva, T::Pratyaya]);
 
     // Loop for cases like jihriyAmbaBUva, where dvitva occurs twice.
     let mut num_loops = 0;

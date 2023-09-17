@@ -4,6 +4,7 @@ use crate::dhatu_gana as gana;
 use crate::filters as f;
 use crate::it_samjna;
 use crate::operators as op;
+use crate::prakriya::Rule;
 use crate::prakriya::{Code, Prakriya};
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
@@ -33,8 +34,23 @@ fn add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
     it_samjna::run(p, i_pratyaya).expect("ok")
 }
 
-// TODO: 3.1.8 - 3.1.21
-pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option<()> {
+/// Runs rules that apply only if using yaN-pratyay with luk.
+fn run_rules_for_yan_luk(p: &mut Prakriya) -> Option<()> {
+    use Rule::Dhatupatha as DP;
+
+    let i_yan = p.find_last_where(|t| t.is_pratyaya() && t.has_u("yaN"))?;
+
+    // Apply luk.
+    p.op_term("2.4.74", i_yan, op::lopa);
+
+    // "carkarItam ca" declares that yan-luk dhatus are part of ad-Adi gaNa.
+    // As a result, we will see lopa of Sap-vikarana per 2.4.72.
+    p.op_term(DP("02.0076"), i_yan, |d| d.set_gana(Gana::Adadi));
+
+    Some(())
+}
+
+pub fn try_add_specific_sanadi_pratyayas(p: &mut Prakriya, is_ardhadhatuka: bool) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let dhatu = p.get(i)?;
 
@@ -98,16 +114,20 @@ pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option
         }
     }
 
-    // General sanAdi-pratyayas
-    // ------------------------
+    Some(())
+}
+
+// TODO: 3.1.8 - 3.1.21
+pub fn try_add_general_sanadi_pratyaya(p: &mut Prakriya, sanadi: Sanadi) -> Option<()> {
     // We skip 3.1.23 because it conditions on the dhatu implying a sense of motion, which
     // we can't easily model.
-    for s in sanadi {
-        let i = p.find_last(T::Dhatu)?;
-        let dhatu = p.get(i)?;
-        if *s == Sanadi::San {
+    let i = p.find_last(T::Dhatu)?;
+    let dhatu = p.get(i)?;
+    match sanadi {
+        Sanadi::San => {
             add_sanadi("3.1.7", p, i, "san");
-        } else if *s == Sanadi::Yan || *s == Sanadi::YanLuk {
+        }
+        Sanadi::Yan | Sanadi::YanLuk => {
             if dhatu.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
                 add_sanadi("3.1.24", p, i, "yaN");
             } else if (i > 0 && p.has(i - 1, |t| t.has_u_in(&["sUca", "sUtra", "mUtra"])))
@@ -117,7 +137,13 @@ pub fn run(p: &mut Prakriya, is_ardhadhatuka: bool, sanadi: &[Sanadi]) -> Option
             } else if f::is_eka_ac(dhatu) && dhatu.has_adi(&*HAL) {
                 add_sanadi("3.1.22", p, i, "yaN");
             }
-        } else if *s == Sanadi::Nic {
+
+            // Extra work for yan-luk.
+            if sanadi == Sanadi::YanLuk {
+                run_rules_for_yan_luk(p);
+            }
+        }
+        Sanadi::Nic => {
             add_sanadi("3.1.26", p, i, "Ric");
         }
     }
@@ -132,19 +158,26 @@ mod tests {
     use crate::dhatu_karya;
     use crate::dhatupatha;
 
-    fn check_sanadi(upadesha: &str, gana: Gana, number: u16, sanadi: &[Sanadi]) -> (Term, Term) {
+    fn check_sanadi(upadesha: &str, gana: Gana, number: u16, sanadi: Sanadi) -> (Term, Term) {
         let mut p = Prakriya::new();
         let dhatu = dhatupatha::create_dhatu(upadesha, gana, number).unwrap();
         dhatu_karya::run(&mut p, &dhatu).unwrap();
 
-        run(&mut p, false, sanadi).unwrap();
+        try_add_general_sanadi_pratyaya(&mut p, sanadi).unwrap();
         let dhatu = p.get(0).unwrap();
         let pratyaya = p.get(1).unwrap();
         (dhatu.clone(), pratyaya.clone())
     }
 
     fn check_basic(upadesha: &str, gana: Gana, number: u16) -> (Term, Term) {
-        check_sanadi(upadesha, gana, number, &[])
+        let mut p = Prakriya::new();
+        let dhatu = dhatupatha::create_dhatu(upadesha, gana, number).unwrap();
+        dhatu_karya::run(&mut p, &dhatu).unwrap();
+        try_add_specific_sanadi_pratyayas(&mut p, false).unwrap();
+
+        let dhatu = p.get(0).unwrap();
+        let pratyaya = p.get(1).unwrap();
+        (dhatu.clone(), pratyaya.clone())
     }
 
     #[test]
@@ -170,7 +203,7 @@ mod tests {
 
     #[test]
     fn test_hetumati() {
-        let (_, nic) = check_sanadi("BU", Gana::Bhvadi, 1, &[Sanadi::Nic]);
+        let (_, nic) = check_sanadi("BU", Gana::Bhvadi, 1, Sanadi::Nic);
         assert_eq!(nic.text, "i");
         assert!(nic.is_pratyaya());
     }

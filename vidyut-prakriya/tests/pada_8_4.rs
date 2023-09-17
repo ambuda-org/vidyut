@@ -8,10 +8,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
-}
-
 fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
 }
@@ -47,9 +43,9 @@ fn sutra_8_4_1() {
 #[ignore]
 #[test]
 fn sutra_8_4_1_v1() {
-    assert_has_subantas_p(&stri("tri"), Stri, V::Sasthi, Bahu, &["tisfRAm"]);
-    assert_has_subantas_p(&stri("catur"), Stri, V::Sasthi, Bahu, &["catasfRAm"]);
-    assert_has_subantas_p(&stri("mAtf"), Stri, V::Sasthi, Bahu, &["mAtFRAm"]);
+    assert_has_subantas_p(&nyap("tri"), Stri, V::Sasthi, Bahu, &["tisfRAm"]);
+    assert_has_subantas_p(&nyap("catur"), Stri, V::Sasthi, Bahu, &["catasfRAm"]);
+    assert_has_subantas_p(&nyap("mAtf"), Stri, V::Sasthi, Bahu, &["mAtFRAm"]);
     assert_has_subantas("pitf", Pum, V::Sasthi, Bahu, &["pitFRAm"]);
 }
 
@@ -91,6 +87,8 @@ fn sutra_8_4_2() {
     assert_has_krdanta(&["pra"], &inv, Krt::lyuw, &["prenvana"]);
     assert_has_krdanta(&["pra"], &inv, Krt::anIyar, &["prenvanIya"]);
 }
+
+// 8.4.3 - 8.4.13 are for a pUrvapada.
 
 #[test]
 fn sutra_8_4_14() {
@@ -248,9 +246,9 @@ fn sutra_8_4_21() {
     let an = d("ana~", Adadi);
     let nic = |d: &Dhatu| d.clone().with_sanadi(&[Sanadi::Nic]);
     assert_has_lat(&["pra"], &san(&an), &["prARiRizati"]);
-    assert_has_lun(&["pra"], &nic(&an), &["prARiRat"]);
+    assert_has_lun_p(&["pra"], &nic(&an), &["prARiRat"]);
     assert_has_lat(&["parA"], &san(&an), &["parARiRizati"]);
-    assert_has_lun(&["parA"], &nic(&an), &["parARiRat"]);
+    assert_has_lun_p(&["parA"], &nic(&an), &["parARiRat"]);
 }
 
 #[test]
@@ -349,6 +347,8 @@ fn sutra_8_4_44() {
     assert_has_krdanta(&[], &d("viCa~", Tudadi), Krt::naN, &["viSna"]);
 }
 
+// 8.4.46 - 8.4.52 are the "dve" rules
+
 #[test]
 fn sutra_8_4_53() {
     let labh = d("qula\\Ba~\\z", Bhvadi);
@@ -375,6 +375,17 @@ fn sutra_8_4_53() {
         Bahu,
         &["daDmaH"],
     );
+}
+
+#[test]
+fn sutra_8_4_54() {
+    assert_has_lat_p(&[], &san(&d("Kanu~^", Bhvadi)), &["ciKanizati"]);
+    assert_has_lat_p(&[], &san(&d("Ci\\di~^r", Rudhadi)), &["cicCitsati"]);
+    assert_has_lat_p(&[], &san(&d("zWA\\", Bhvadi)), &["tizWAsati"]);
+    assert_has_lat(&[], &san(&d("BU", Bhvadi)), &["buBUzati"]);
+    assert_has_lat(&[], &san(&d("a\\da~", Adadi)), &["jiGatsati"]);
+    assert_has_lat(&[], &san(&d("QOkf~\\", Bhvadi)), &["quQOkizate"]);
+    // TODO: others
 }
 
 #[test]

@@ -10,9 +10,9 @@ use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
 /// Creates a krdanta with the given args.
-fn create_krdanta(dhatu: &str, gana: u8, krt: Krt) -> Vec<String> {
+fn create_krdanta(dhatu: &str, gana: &str, krt: Krt) -> Vec<String> {
     let a = Ashtadhyayi::new();
-    let dhatu = Dhatu::new(dhatu, Gana::from_int(gana).unwrap());
+    let dhatu = Dhatu::new(dhatu, gana.parse().expect("ok"));
     let args = KrdantaArgs::builder().krt(krt).build().unwrap();
 
     let prakriyas = a.derive_krdantas(&dhatu, &args);
@@ -27,7 +27,7 @@ fn test_krdanta(cases: &Vec<(&'static str, u8, &'static str)>, krt: Krt) {
         expected.sort();
         expected.dedup();
 
-        let mut actual = create_krdanta(dhatu, *gana, krt);
+        let mut actual = create_krdanta(dhatu, &gana.to_string(), krt);
         actual.sort();
         actual.dedup();
 

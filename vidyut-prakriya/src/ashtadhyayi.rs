@@ -1,15 +1,15 @@
 /*!
 The Ashtadhyayi and its rules.
 
-The main struct here is `Ashtadhyayi`, which accepts different config options that controls how
-words are derived in the system.
+The main struct here is `Ashtadhyayi`. This struct accepts various config options that control how
+words are derived in the system. For details, see `AshtadhyayiBuilder`.
 */
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
-    Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, Sanadi, SubantaArgs,
-    TaddhitantaArgs, TinantaArgs,
+    Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, SubantaArgs, TaddhitantaArgs,
+    TinantaArgs,
 };
 use crate::atidesha;
 use crate::atmanepada;
@@ -28,10 +28,12 @@ use crate::samprasarana;
 use crate::sanadi;
 use crate::stritva;
 use crate::sup_karya;
-use crate::taddhita_pratyaya;
+use crate::taddhita;
 use crate::tag::Tag;
+use crate::term::Term;
 use crate::tin_pratyaya;
 use crate::tripadi;
+use crate::uttarapade;
 use crate::vikarana;
 
 /// Adds a dhatu to the prakriya and runs basic follow-up tasks, such as:
@@ -41,17 +43,23 @@ use crate::vikarana;
 /// - adding any necessary sanAdi-pratyayas.
 fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<()> {
     dhatu_karya::run(p, dhatu)?;
-    sanadi::run(p, is_ardhadhatuka, dhatu.sanadi());
 
-    if dhatu.sanadi() == &[Sanadi::San] || dhatu.sanadi() == &[Sanadi::Yan] {
+    sanadi::try_add_specific_sanadi_pratyayas(p, is_ardhadhatuka);
+    if p.terms().last().expect("ok").is_pratyaya() {
         samjna::run(p);
-        ardhadhatuka::run_before_vikarana(p, None, true);
-        run_various_dhatu_tasks(p);
-        angasya::run_after_dvitva(p);
-        dvitva::run(p);
-        samprasarana::run_for_abhyasa(p);
-        ac_sandhi::run_common(p);
-        tripadi::run(p);
+        run_rules(p, None, false)?;
+    }
+
+    for s in dhatu.sanadi() {
+        sanadi::try_add_general_sanadi_pratyaya(p, *s);
+        samjna::run(p);
+        // Needed for BIzayate, etc.
+        atmanepada::run(p);
+        run_rules(p, None, false)?;
+    }
+
+    if !dhatu.sanadi().is_empty() {
+        p.debug("~~~~~~~~~~~~~~ completed sanadi-dhatu ~~~~~~~~~~~~~~~~~~")
     }
 
     Ok(())
@@ -62,14 +70,6 @@ fn add_lakara_and_decide_pada(p: &mut Prakriya, lakara: Lakara) {
     la_karya::run(p, lakara);
     ardhadhatuka::dhatu_adesha_before_pada(p, lakara);
     atmanepada::run(p);
-}
-
-fn try_add_vikaranas(p: &mut Prakriya, la: Option<Lakara>, is_ardhadhatuka: bool) -> Result<()> {
-    ardhadhatuka::run_before_vikarana(p, la, is_ardhadhatuka);
-    vikarana::run(p)?;
-    samjna::run(p);
-
-    Ok(())
 }
 
 /// Runs rules that potentially add a lakara.
@@ -115,26 +115,72 @@ fn run_various_dhatu_tasks(p: &mut Prakriya) {
     // Now finish it_agama and atidesha
     it_agama::run_after_attva(p);
     atidesha::run_after_attva(p);
-
-    // Converts F to ir/ur
-    angasya::hacky_before_dvitva(p);
 }
 
-/// Runs tasks common to the end of a prakriya. These include:
-/// - sandhi
-/// - various rules within the `angasya` section.
-/// - the tripAdi.
-fn finish_prakriya(p: &mut Prakriya) {
-    // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
-    ardhadhatuka::run_am_agama(p);
+fn run_rules(p: &mut Prakriya, lakara: Option<Lakara>, is_ardhadhatuka: bool) -> Result<()> {
+    p.debug("==== Tin-siddhi ====");
+    // Do lit-siddhi and AzIrlin-siddhi first to support the valAdi vArttika for aj -> vi.
+    let is_lit_or_ashirlin = matches!(lakara, Some(Lakara::Lit) | Some(Lakara::AshirLin));
+    if let Some(lakara) = lakara {
+        if is_lit_or_ashirlin {
+            tin_pratyaya::try_general_siddhi(p, lakara);
+            tin_pratyaya::try_siddhi_for_jhi(p, lakara);
+        }
+    }
 
-    angasya::iit_agama(p);
+    p.debug("==== Vikaranas ====");
+    ardhadhatuka::run_before_vikarana(p, lakara, is_ardhadhatuka);
+    vikarana::run(p)?;
+    samjna::run(p);
+
+    if let Some(lakara) = lakara {
+        if !is_lit_or_ashirlin {
+            tin_pratyaya::try_general_siddhi(p, lakara);
+        }
+    }
+
+    p.debug("==== Dhatu tasks ====");
+    run_various_dhatu_tasks(p);
+
+    // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
+    ardhadhatuka::try_add_am_agama(p);
+
+    p.debug("==== Dvitva (dvirvacane 'ci) ====");
+    dvitva::try_dvirvacane_aci(p);
+    let used_dvirvacane_aci = p.find_last_where(Term::is_abhyasta).is_some();
+    if used_dvirvacane_aci {
+        samprasarana::run_for_abhyasa(p);
+    }
+
+    // If Ji causes dvitva, that dvitva will be performed in `try_dvirvacane_aci` above.
+    // So by this point, it's safe to replace Ji. (See 3.4.109, which replaces Ji if it follows a
+    // term called `abhyasta`.)
+    if let Some(lakara) = lakara {
+        if !is_lit_or_ashirlin {
+            tin_pratyaya::try_siddhi_for_jhi(p, lakara);
+        }
+    }
+    uttarapade::run(p);
+    angasya::maybe_do_jha_adesha(p);
 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
+    angasya::run_before_dvitva(p);
+
+    p.debug("==== Dvitva (default) ====");
+    dvitva::run(p);
+    if !used_dvirvacane_aci {
+        samprasarana::run_for_abhyasa(p);
+    }
+
+    p.debug("==== After dvitva ====");
     angasya::run_after_dvitva(p);
     ac_sandhi::try_sup_sandhi_after_angasya(p);
     ac_sandhi::run_common(p);
+
+    p.debug("==== Tripadi ====");
     tripadi::run(p);
+
+    Ok(())
 }
 
 fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> Result<Prakriya> {
@@ -144,6 +190,7 @@ fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> 
     let purusha = args.purusha();
     let vacana = args.vacana();
     p.add_tags(&[prayoga.as_tag(), purusha.as_tag(), vacana.as_tag()]);
+    p.set_lakara(lakara);
 
     // Prayogas other than kartari will never be sarvadhatuka, since yak-vikarana is not
     // sarvadhatuka.
@@ -155,49 +202,13 @@ fn derive_tinanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &TinantaArgs) -> 
     add_dhatu(p, dhatu, is_ardhadhatuka)?;
     add_lakara_and_decide_pada(p, lakara);
 
+    // Try adding am-pratyaya and the corresponding dhatu before tin-adesha, since doing so affects
+    // the pada.
+    vikarana::try_add_am_pratyaya_for_lit(p);
     tin_pratyaya::adesha(p, purusha, vacana);
     samjna::run(p);
 
-    // Do lit-siddhi and AzIrlin-siddhi first to support the valAdi vArttika for aj -> vi.
-    let is_lit_or_ashirlin = matches!(lakara, Lakara::Lit | Lakara::AshirLin);
-    if is_lit_or_ashirlin {
-        tin_pratyaya::siddhi(p, lakara, vacana);
-    }
-
-    try_add_vikaranas(p, Some(lakara), is_ardhadhatuka)?;
-
-    // --- Code below this line needs to be cleaned up. ---
-
-    if !lakara.is_sarvadhatuka() || dhatu.sanadi().contains(&Sanadi::Yan) {
-        run_various_dhatu_tasks(p)
-    }
-
-    angasya::run_before_dvitva(p);
-
-    dvitva::run(p);
-    samprasarana::run_for_abhyasa(p);
-
-    if !is_lit_or_ashirlin {
-        tin_pratyaya::siddhi(p, lakara, vacana);
-    }
-
-    if lakara.is_sarvadhatuka() {
-        run_various_dhatu_tasks(p)
-    }
-
-    // --- Code above this line needs to be cleaned up. ---
-
-    // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
-    ardhadhatuka::run_am_agama(p);
-
-    angasya::iit_agama(p);
-
-    ac_sandhi::try_sup_sandhi_before_angasya(p);
-    angasya::run_after_dvitva(p);
-
-    ac_sandhi::try_sup_sandhi_after_angasya(p);
-    ac_sandhi::run_common(p);
-    tripadi::run(p);
+    run_rules(p, Some(lakara), is_ardhadhatuka)?;
 
     Ok(prakriya)
 }
@@ -209,14 +220,11 @@ fn derive_subanta(
 ) -> Result<Prakriya> {
     let p = &mut prakriya;
 
-    // Prepare pratipadika
     pratipadika_karya::run(p, pratipadika, args.linga());
     stritva::run(p);
-
-    // Create subanta
     sup_karya::run(p, args);
     samjna::run(p);
-    finish_prakriya(p);
+    run_rules(p, None, false)?;
 
     Ok(prakriya)
 }
@@ -227,6 +235,7 @@ fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> 
 
     add_dhatu(p, dhatu, krt.is_ardhadhatuka())?;
     maybe_add_lakara_for_krt(p, krt);
+    vikarana::try_add_am_pratyaya_for_lit(p);
 
     let added = krt::run(p, krt);
     if !added {
@@ -237,11 +246,7 @@ fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> 
     stritva::run(p);
     samjna::run(p);
 
-    try_add_vikaranas(p, None, true)?;
-    run_various_dhatu_tasks(p);
-    dvitva::run(p);
-    samprasarana::run_for_abhyasa(p);
-    finish_prakriya(p);
+    run_rules(p, None, true)?;
 
     Ok(prakriya)
 }
@@ -257,7 +262,7 @@ fn derive_taddhitanta(
     pratipadika_karya::run(p, pratipadika, Linga::Pum);
     samjna::run(p);
 
-    let added = taddhita_pratyaya::run(p, taddhita);
+    let added = taddhita::run(p, taddhita);
     if !added {
         return Err(Error::Abort(prakriya));
     }
@@ -265,8 +270,8 @@ fn derive_taddhitanta(
     linganushasanam::run(p);
     stritva::run(p);
     samjna::run(p);
-    angasya::try_pratyaya_adesha(p);
-    finish_prakriya(p);
+
+    run_rules(p, None, false)?;
 
     Ok(prakriya)
 }
@@ -304,13 +309,13 @@ pub struct Ashtadhyayi {
     // - `extended` -- if set, enable rare rules that are less useful, such as 8.4.48 (aco
     //   rahAbhyAM dve), which creates words like *kAryyate*, *brahmmA*, etc.
     // - `disable`  -- if set, disable the rules provided. To implement this, we should make
-    //   `Prakriya::step` private and add a check statement with `Prakriya::op`.
+    //   `Prakriya::step` private and add a check statement in `Prakriya::op`.
     log_steps: bool,
 }
 
 // TODO: better error handling.
 impl Ashtadhyayi {
-    /// Creates an interface with sane defaults.
+    /// Creates a basic interface with sane defaults.
     pub fn new() -> Self {
         Ashtadhyayi { log_steps: true }
     }

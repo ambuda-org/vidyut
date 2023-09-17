@@ -4,16 +4,17 @@
 //! Rules to determine parasmaipada/Atmanepada.
 //!
 //! The terms *parasmaipada* and *Atmanepada* properly refer to the substitutions for the various
-//! lakAras. But we haven't made any substitutions yet. So, how can we apply these *pada*
-//! designations at this stage?
+//! lakAras. But at this stage in the prakriya, we haven't made any substitutions yet. So, how can
+//! we apply these *pada* designations at this stage?
 //!
 //! The answer is that we attach these designations *to the prakriyA* to set the derivation
 //! context. Then when we introduce the correct tiN suffix, we will assign *parasmaipada* or
-//! *Atmanepada* to it as appropriate.
+//! *Atmanepada* to that pratyaya as appropriate.
 
 use crate::args::Gana;
-use crate::dhatu_gana::{DYUT_ADI, VRDBHYAH};
-use crate::prakriya::{Code, Prakriya};
+use crate::dhatu_gana::{DYUT_ADI, VRT_ADI};
+use crate::prakriya::Rule::Kaumudi;
+use crate::prakriya::{Code, Prakriya, Rule};
 use crate::tag::Tag as T;
 
 const GAMY_RCCHI: &[(&str, Gana)] = &[
@@ -34,10 +35,15 @@ fn op_parasmaipada(p: &mut Prakriya) {
     p.add_tag(T::Parasmaipada);
 }
 
+/// An extension of `Prakriya` with useful methods specific to deciding atmanepada and
+/// parasmaipada.
 struct PadaPrakriya<'a> {
+    /// The original `Prakriya`.
     p: &'a mut Prakriya,
+    /// The index of the dhatu.
     i_dhatu: usize,
 }
+
 impl<'a> PadaPrakriya<'a> {
     fn new(p: &'a mut Prakriya, i_dhatu: usize) -> Self {
         PadaPrakriya { p, i_dhatu }
@@ -57,8 +63,21 @@ impl<'a> PadaPrakriya<'a> {
         has_dhatu && has_upasarga
     }
 
+    fn has_all_upasargas(&self, upasargas: &[&str]) -> bool {
+        let n = upasargas.len();
+        if self.i_dhatu < n {
+            // Not enough room for upasargas
+            false
+        } else {
+            upasargas
+                .iter()
+                .enumerate()
+                .all(|(i, text)| self.p.has(self.i_dhatu + i - n, |t| t.has_text(text)))
+        }
+    }
+
     /// Checks whether the prakriya has any of the given upasargas and any of the given
-    /// dhatu-upadeshas.
+    /// dhatu-upadeshas + ganas.
     fn is_exactly(&self, upasargas: &[&str], upadeshas: &[(&str, Gana)]) -> bool {
         let i_dhatu = self.i_dhatu;
         let has_dhatu = upadeshas
@@ -79,7 +98,7 @@ impl<'a> PadaPrakriya<'a> {
     }
 
     /// Optionally marks this prakriya as AtmanepadI.
-    fn optional_atma(&mut self, rule: Code) {
+    fn optional_atma(&mut self, rule: impl Into<Rule>) {
         self.p.op_optional(rule, op_atmanepada);
     }
 
@@ -105,7 +124,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last_where(|t| t.is_dhatu() && !t.has_u("san"))?;
     let has_upasargas = p.find_prev_where(i, |t| t.has_tag(T::Upasarga)).is_some();
 
-    if p.any(&[T::Bhave, T::Karmani]) {
+    if p.is_bhave_or_karmani() {
         p.op("1.3.13", op_atmanepada);
         return None;
     }
@@ -113,19 +132,13 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let mut pp = PadaPrakriya::new(p, i);
 
     let la = pp.p.terms().last()?;
-    let vidhi_lin = la.has_u("li~N") && !pp.p.has_tag(T::Ashih);
+    let is_vidhi_lin = la.has_u("li~N") && !pp.p.has_tag(T::Ashih);
     // Needed for rules 1.3.60 and 1.3.61 below.
     // TODO: remove hack for san.
-    let is_sarvadhatuka = (vidhi_lin || la.has_u_in(&["la~w", "lo~w", "la~N"]))
+    let is_sarvadhatuka = (is_vidhi_lin || la.has_u_in(&["la~w", "lo~w", "la~N"]))
         && !pp.p.has(i + 1, |t| t.has_u("san"));
     // Needed for rule 1.3.61 below.
     let is_lun_lin = la.has_u_in(&["lu~N", "li~N"]);
-
-    // Most of these rules can be expressed in a simple shorthand. The last field in each in each
-    // tuple is whether the pada is always Atmanepada (A), always parasmaipada (P), or dependent on
-    // some semantic condition (U).
-    //
-    // Rules that can't easily be modeled in this format are further below.
 
     let has_san =
         pp.p.find_first_where(|t| t.has_u("san") && t.is_pratyaya())
@@ -167,6 +180,13 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.optional_atma("1.3.29.v1");
     } else if pp.is(&["ni", "sam", "upa", "vi"], &["hve\\Y"]) {
         pp.atma("1.3.30");
+    } else if has_upasargas && dhatu.has_u_in(&["asu~", "Uha~\\"]) {
+        let code = "1.3.30.v1";
+        if dhatu.has_u("asu~") {
+            pp.optional_atma(code);
+        } else {
+            pp.optional_para(code);
+        }
     } else if pp.is(&["AN"], &["hve\\Y"]) {
         pp.optional_atma("1.3.31");
         // 1.3.32 - 1.3.37 can be handled with 1.3.72.
@@ -183,7 +203,15 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // TODO: diff between this and 1.3.38?
             pp.optional_atma("1.3.43");
         }
-        // 1.3.44 - 1.3.46 can be handled with 1.3.76.
+    } else if pp.is(&["apa"], &["jYA\\"]) {
+        pp.optional_atma("1.3.44");
+    // 1.3.45 can be handled with 1.3.76.
+    } else if pp.is(&["sam", "prati"], &["jYA\\"]) {
+        pp.optional_atma("1.3.46");
+    } else if pp.has_all_upasargas(&["sam", "pra"]) && dhatu.has_u("vada~") {
+        pp.optional_atma("1.3.48");
+    } else if pp.has_all_upasargas(&["vi", "pra"]) && dhatu.has_u("vada~") {
+        pp.optional_atma("1.3.49");
     } else if pp.is(&[], &["vada~"]) {
         pp.optional_atma("1.3.47");
         // 1.3.48 - 1.3.50 can be handled with 1.3.47.
@@ -224,13 +252,12 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.optional_atma("1.3.66");
     } else if dhatu.has_u("Ric") && i > 0 && pp.p.has(i - 1, |t| t.has_u_in(&["YiBI\\", "zmi\\N"]))
     {
-        let is_atma = pp.p.op_optional("1.3.68", |p| {
+        // If this option is declined, we'll use the general rule below (1.3.74). Thus we get
+        // BAyayati/BAyayate per the normal rules and BApayate/BIzayate if 1.3.68 is accepted.
+        pp.p.op_optional("1.3.68", |p| {
             op_atmanepada(p);
             p.add_tag(T::FlagHetuBhaya);
         });
-        if !is_atma {
-            pp.para("1.3.68");
-        }
     } else if pp.is(&["apa"], &["vad"]) {
         // TODO: 1.3.67 - 1.3.71.
         // 1.3.72 is further below.
@@ -257,7 +284,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.optional_para("1.3.85");
     } else if dhatu.has_u_in(DYUT_ADI) && dhatu.has_gana(Gana::Bhvadi) && la.has_u("lu~N") {
         pp.optional_para("1.3.91");
-    } else if dhatu.has_u_in(VRDBHYAH) && dhatu.has_gana(Gana::Bhvadi) && sya_san() {
+    } else if dhatu.has_u_in(VRT_ADI) && dhatu.has_gana(Gana::Bhvadi) && sya_san() {
         pp.optional_para("1.3.92");
     } else if dhatu.has_u("kfpU~\\") && (sya_san() || la.has_u("lu~w")) {
         pp.optional_para("1.3.93");
@@ -268,7 +295,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let dhatu = pp.p.get(i)?;
     if dhatu.has_text("sasj") {
         // "ayam Atmanepadyapi" (Kaumudi)
-        pp.optional_atma("si-kO.2291");
+        pp.optional_atma(Kaumudi("2291"));
     }
 
     // General rules
@@ -276,13 +303,18 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let dhatu = pp.p.get(i)?;
     if pp.p.any(&[T::Parasmaipada, T::Atmanepada]) {
         // Matched above already
-    } else if dhatu.has_tag_in(&[T::Nit, T::anudattet]) {
+    } else if dhatu.has_tag_in(&[T::Nit, T::anudattet]) && !dhatu.is_empty() {
+        // Check `is_empty` is to skip yaN-luk.
         // eDate
         pp.atma("1.3.12");
     } else if dhatu.has_tag_in(&[T::Yit, T::svaritet]) {
         // karoti, kurute
         pp.optional_atma("1.3.72");
-    } else if pp.p.terms().len() == 3 && pp.p.get(1)?.has_u("Ric") {
+    } else if pp
+        .p
+        .find_last_where(|t| t.is_pratyaya() && t.has_u("Ric"))
+        .is_some()
+    {
         // corayati, corayate
         pp.optional_atma("1.3.74");
     }
@@ -293,7 +325,12 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.para("1.3.78");
     }
 
-    debug_assert!(p.any(&[T::Parasmaipada, T::Atmanepada]));
+    // If the prakriya has a lakAra, check that we have assigned a pada.
+    // Otherwise (e.g. for sanAdi dhatus), skip this check.
+    let la = pp.p.terms().last()?;
+    if la.has_tag(T::La) {
+        debug_assert!(p.any(&[T::Parasmaipada, T::Atmanepada]));
+    }
 
     Some(())
 }

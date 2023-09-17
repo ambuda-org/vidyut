@@ -1,3 +1,4 @@
+use crate::args::Lakara;
 use crate::tag::Tag;
 use crate::term::{Term, TermView};
 use compact_str::CompactString;
@@ -22,6 +23,8 @@ pub enum Rule {
     Unadi(&'static str),
     /// A sutra from the Paniniya-Linganushasanam.
     Linganushasana(&'static str),
+    /// A quotation from the Vaiyakarana-siddhanta-kaumudi.
+    Kaumudi(&'static str),
 }
 
 // Since Ashtadhyayi rules are by far the most common, assume by default that static strings refer
@@ -41,6 +44,7 @@ pub struct Step {
 
 impl Step {
     /// The rule that produced the current step.
+    // TODO: render different `Rule` types differently.
     pub fn rule(&self) -> Code {
         match self.rule {
             Rule::Ashtadhyayi(x) => x,
@@ -48,11 +52,15 @@ impl Step {
             Rule::Dhatupatha(x) => x,
             Rule::Unadi(x) => x,
             Rule::Linganushasana(x) => x,
+            Rule::Kaumudi(x) => x,
         }
     }
 
-    /// The result of this step. This result is a simple string representation and might change in
-    /// the future.
+    /// The result of applying `rule`.
+    ///
+    /// For now, `result` is a simple string. In the future, we might convert this into a richer
+    /// structure with more information about the specific change. For example, we might explicitly
+    /// indicate which term in the result was changed.
     pub fn result(&self) -> &String {
         &self.result
     }
@@ -88,6 +96,7 @@ pub struct Prakriya {
     history: Vec<Step>,
     config: Config,
     rule_decisions: Vec<RuleChoice>,
+    lakara: Option<Lakara>,
 }
 
 /// Public API
@@ -126,6 +135,7 @@ impl Prakriya {
             history: Vec::new(),
             config: Config::new(),
             rule_decisions: Vec::new(),
+            lakara: None,
         }
     }
 
@@ -169,6 +179,8 @@ impl Prakriya {
         self.terms.get_mut(i)
     }
 
+    /// Returns the term at index `i` if it matches the condition in `filter` or `None` if the term
+    /// does not exist or fails the condition.
     pub(crate) fn get_if(&self, i: usize, filter: impl Fn(&Term) -> bool) -> Option<&Term> {
         if let Some(t) = self.get(i) {
             if filter(t) {
@@ -176,6 +188,11 @@ impl Prakriya {
             }
         }
         None
+    }
+
+    /// Returns whether the given prakriya express bhAve/karmani prayoga.
+    pub(crate) fn is_bhave_or_karmani(&self) -> bool {
+        self.any(&[Tag::Bhave, Tag::Karmani])
     }
 
     /// Returns whether the given term can be called "pada".
@@ -280,23 +297,38 @@ impl Prakriya {
         }
     }
 
+    /// Returns whether the prakriya has any of the given `tags`.
     pub(crate) fn any(&self, tags: &[Tag]) -> bool {
         tags.iter().any(|t| self.tags.contains(*t))
     }
 
+    /// Returns whether the prakriya has the given `tag`.
     pub(crate) fn has_tag(&self, tag: Tag) -> bool {
         self.tags.contains(tag)
     }
 
+    pub(crate) fn has_tag_in(&self, tags: &[Tag]) -> bool {
+        tags.iter().any(|t| self.tags.contains(*t))
+    }
+
     // Basic mutators
 
-    pub(crate) fn add_tag(&mut self, t: Tag) {
-        self.tags.insert(t);
+    /// Adds a tag to the prakriya.
+    pub(crate) fn add_tag(&mut self, tag: Tag) {
+        self.tags.insert(tag);
     }
 
     #[allow(unused)]
-    pub(crate) fn remove_tag(&mut self, t: Tag) {
-        self.tags.remove(t);
+    pub(crate) fn remove_tag(&mut self, tag: Tag) {
+        self.tags.remove(tag);
+    }
+
+    pub(crate) fn set_lakara(&mut self, lakara: Lakara) {
+        self.lakara = Some(lakara);
+    }
+
+    pub(crate) fn has_lakara(&self, lakara: Lakara) -> bool {
+        self.lakara == Some(lakara)
     }
 
     pub(crate) fn add_tags(&mut self, tags: &[Tag]) {
@@ -322,6 +354,15 @@ impl Prakriya {
     /// Adds the given term to the end of the term list.
     pub(crate) fn push(&mut self, t: Term) {
         self.terms.push(t);
+    }
+
+    pub(crate) fn maybe_save_sthanivat(&mut self) {
+        for i in 0..self.terms().len() {
+            let t = self.get_mut(i).expect("ok");
+            if t.is_dhatu() {
+                t.maybe_save_sthanivat();
+            }
+        }
     }
 
     // Rule application
@@ -369,7 +410,7 @@ impl Prakriya {
         }
     }
 
-    /// Adds a rule to the history.
+    /// Adds a rule and its result to the history.
     pub(crate) fn step(&mut self, rule: impl Into<Rule>) {
         if self.config.log_steps {
             let state = self.terms.iter().fold(String::new(), |a, b| {

@@ -271,7 +271,7 @@ pub const PHAN_ADI: &[&str] = &[
 ///
 /// For usage, see 7.1.59.
 pub const MUC_ADI: &[&str] = &[
-    "mu\\cx~^", "lu\\px~^", "vidx~^", "li\\pa~^", "zi\\ca~^", "kftI~", "Ki\\da~",
+    "mu\\cx~^", "lu\\px~^", "vi\\dx~^", "li\\pa~^", "zi\\ca~^", "kftI~", "Ki\\da~",
     "piSa~",
     // TODO: include Pul?
     // "Pula~",
@@ -311,7 +311,7 @@ pub const PU_ADI: &[&str] = &[
     "blI\\",
 ];
 
-pub const VRDBHYAH: &[&str] = &["vftu~\\", "vfDu~\\", "SfDu~\\", "SfDu~^", "syandU~\\"];
+pub const VRT_ADI: &[&str] = &["vftu~\\", "vfDu~\\", "SfDu~\\", "SfDu~^", "syandU~\\"];
 
 /// These dhatus use san-pratyaya with a long abhyAsa.
 /// (3.1.6)

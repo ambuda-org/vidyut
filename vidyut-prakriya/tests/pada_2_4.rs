@@ -6,16 +6,24 @@ use vidyut_prakriya::args::Purusha::*;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::*;
 
-fn d(u: &str, g: Gana) -> Dhatu {
-    Dhatu::new(u, g)
-}
-
 fn nic(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::Nic])
 }
 
 fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
+}
+
+#[ignore]
+#[test]
+fn sutra_2_4_35() {
+    let han = d("ha\\na~", Adadi);
+    assert_has_ashirlin(&[], &han, &["vaDyAt"]);
+    assert_has_vidhilin(&[], &han, &["hanyAt"]);
+    // TODO: wait until base substitution before adding krt
+    assert_has_krdanta(&[], &d("asa~", Adadi), Krt::yat, &["Bavya"]);
+    assert_has_krdanta(&["pra"], &d("aja~", Bhvadi), Krt::yat, &["praveya"]);
+    assert_has_krdanta(&["AN"], &d("ca\\kzi~\\N", Adadi), Krt::yat, &["AKyeya"]);
 }
 
 #[test]
@@ -57,6 +65,8 @@ fn sutra_2_4_38() {
     assert_has_krdanta(&[], &ad, Krt::GaY, &["GAsa"]);
     assert_has_krdanta(&["pra"], &ad, Krt::ap, &["praGasa"]);
 }
+
+// 2.4.39 is chAndasa.
 
 #[test]
 fn sutra_2_4_40() {
@@ -141,25 +151,29 @@ fn sutra_2_4_45_v1() {
 #[test]
 fn sutra_2_4_46() {
     let i = d("i\\R", Adadi);
-    assert_has_parasmai_tinanta(&[], &nic(&i), Lat, Prathama, Eka, &["gamayati", "Ayayati"]);
-    assert_has_parasmai_tinanta(
-        &[],
-        &nic(&i),
-        Lat,
-        Prathama,
-        Dvi,
-        &["gamayataH", "AyayataH"],
-    );
-    assert_has_parasmai_tinanta(
-        &[],
-        &nic(&i),
-        Lat,
-        Prathama,
-        Bahu,
-        &["gamayanti", "Ayayanti"],
-    );
+    assert_has_tip(&[], &nic(&i), Lat, &["gamayati", "Ayayati"]);
+    assert_has_tas(&[], &nic(&i), Lat, &["gamayataH", "AyayataH"]);
+    assert_has_jhi(&[], &nic(&i), Lat, &["gamayanti", "Ayayanti"]);
 
     // TODO: iRvad
+}
+
+#[ignore]
+#[test]
+fn sutra_2_4_47() {
+    let i_san = san(&d("i\\R", Adadi));
+    assert_has_tip(&[], &i_san, Lat, &["jigamizati", "Izizati"]);
+    assert_has_tip(&[], &i_san, Lat, &["jigamizataH", "IzizataH"]);
+    assert_has_tip(&[], &i_san, Lat, &["jigamizanti", "Izizanti"]);
+    // TODO: others
+}
+
+#[test]
+fn sutra_2_4_48() {
+    let i_san = san(&d("i\\N", Adadi));
+    assert_has_tinanta(&["aDi"], &i_san, Lat, Prathama, Eka, &["aDijigAMsate"]);
+    assert_has_tinanta(&["aDi"], &i_san, Lat, Prathama, Dvi, &["aDijigAMsete"]);
+    assert_has_tinanta(&["aDi"], &i_san, Lat, Prathama, Bahu, &["aDijigAMsante"]);
 }
 
 #[test]
@@ -282,6 +296,31 @@ fn sutra_2_4_55() {
         Bahu,
         &["AcaKyuH", "AcaKyire", "Acacakzire"],
     );
+}
+
+#[test]
+fn sutra_2_4_56() {
+    let aj = d("aja~", Bhvadi);
+    assert_has_krdanta(&["pra"], &aj, Krt::anIyar, &["pravayaRIya"]);
+    assert_has_krdanta(&["pra"], &aj, Krt::Rvul, &["pravAyaka"]);
+    // aGaYap?
+    assert_has_krdanta(&["sam"], &aj, Krt::GaY, &["samAja"]);
+    assert_has_krdanta(&["ud"], &aj, Krt::GaY, &["udAja"]);
+    assert_has_krdanta(&["sam"], &aj, Krt::ap, &["samaja"]);
+    assert_has_krdanta(&["ud"], &aj, Krt::ap, &["udaja"]);
+}
+
+#[test]
+fn sutra_2_4_56_v2() {
+    let aj = d("aja~", Bhvadi);
+    assert_has_krdanta(&["pra"], &aj, Krt::tfc, &["pravetf", "prAjitf"]);
+    assert_has_krdanta(&["pra"], &aj, Krt::tumun, &["pravetum", "prAjitum"]);
+}
+
+#[test]
+fn sutra_2_4_57() {
+    let aj = d("aja~", Bhvadi);
+    assert_has_krdanta(&["pra"], &aj, Krt::lyuw, &["pravayaRa", "prAjana"]);
 }
 
 #[test]

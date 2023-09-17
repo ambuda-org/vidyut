@@ -122,7 +122,7 @@ can take in the comments on the `Rule` type. We suggest using `ashtadhyayi.com`
 to learn more about these rules.
 
 The right column shows the in-progress prakriya. We use an output convention
-that is common on other Ashtadhyayi websites. The encoding foromat for this
+that is common on other Ashtadhyayi websites. The encoding format for this
 text is SLP1, which is the encoding format we use throughout the crate.
 
 [sv]: https://github.com/drdhaval2785/SanskritVerb

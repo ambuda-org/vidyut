@@ -2,12 +2,11 @@ use vidyut_prakriya::args::*;
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::Ashtadhyayi;
 
-fn derive(upadesha: &str, gana: u8, prayoga: Prayoga) -> Vec<String> {
-    let gana = Gana::from_int(gana).expect("valid");
+fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
     let a = Ashtadhyayi::new();
     let dhatu = Dhatu::builder()
         .upadesha(upadesha)
-        .gana(gana)
+        .gana(gana.parse().expect("ok"))
         .build()
         .unwrap();
 
@@ -34,7 +33,7 @@ fn run_test_cases(cases: &[(&str, u8, &str)], prayoga: Prayoga) {
         let mut expected: Vec<_> = expected.split('|').collect();
         expected.sort();
 
-        let mut actual: Vec<_> = derive(dhatu, *gana, prayoga);
+        let mut actual: Vec<_> = derive(dhatu, &gana.to_string(), prayoga);
         actual.sort();
         actual.dedup();
 

@@ -80,7 +80,11 @@ pub fn create_dhatu(upadesha: impl AsRef<str>, gana: Gana, number: u16) -> Resul
 
 fn create_entry(code: &str, upadesha: &str, artha: &str) -> Result<Entry> {
     let (gana, number) = code.split_once('.').ok_or(Error::InvalidFile)?;
-    let gana = Gana::from_int(gana.parse()?)?;
+    let gana = if let Some(stripped) = gana.strip_prefix('0') {
+        stripped.parse()?
+    } else {
+        gana.parse()?
+    };
     let number = number.parse()?;
     let dhatu = create_dhatu(upadesha, gana, number)?;
 

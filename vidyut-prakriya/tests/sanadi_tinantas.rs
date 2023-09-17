@@ -6,9 +6,9 @@ Test cases marked with *Kale* are from M. R. Kale's *A Higher Sanskrit Grammar*.
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
-fn create_sanadyanta(upadesha: &str, gana: u8, sanadi: Sanadi) -> Vec<String> {
+fn create_sanadyanta(upadesha: &str, gana: &str, sanadi: Sanadi) -> Vec<String> {
     let a = Ashtadhyayi::new();
-    let gana = Gana::from_int(gana).unwrap();
+    let gana = gana.parse().expect("ok");
     let dhatu = Dhatu::builder()
         .upadesha(upadesha)
         .gana(gana)
@@ -34,7 +34,7 @@ fn run_sanadi_test_cases(cases: &[(&str, u8, &str)], sanadi: Sanadi) {
         let mut expected: Vec<_> = expected.split('|').collect();
         expected.sort();
 
-        let mut actual: Vec<_> = create_sanadyanta(dhatu, *gana, sanadi);
+        let mut actual: Vec<_> = create_sanadyanta(dhatu, &gana.to_string(), sanadi);
         if sanadi == Sanadi::Nic {
             // All Nijantas are ubhayapadI, so to simplify the tests, focus on just parasmaipada.
             actual.retain(|x| x.ends_with("ti"));

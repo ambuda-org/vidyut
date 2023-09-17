@@ -320,6 +320,8 @@ pub fn is_samyoganta(text: &str) -> bool {
 
 pub fn to_guna(s: Sound) -> Option<&'static str> {
     let res = match s {
+        // TODO: remove 'a' | 'A' line
+        'a' | 'A' => "a",
         'i' | 'I' => "e",
         'u' | 'U' => "o",
         'f' | 'F' => "ar",
@@ -375,11 +377,11 @@ pub fn to_dirgha(s: Sound) -> Option<Sound> {
     Some(res)
 }
 
-/// Returns the sounds contained the given pratyahara.
+/// Returns the sounds contained in the given pratyahara.
 ///
-/// Since the it letter `R` is duplicated, we disambiguate as follows:
-/// - `R` refers to the first `R`.
-/// - `R2` refers to the second `R`.
+/// Since the it letter `R` appears twice in the Maheshvara sutras, we disambiguate as follows:
+/// - `R` refers to the first `R` (a i u R).
+/// - `R2` refers to the second `R` (la R).
 fn pratyahara(s: &str) -> Set {
     let first = s.as_bytes()[0] as char;
 
@@ -423,12 +425,22 @@ fn pratyahara(s: &str) -> Set {
     Set::from(&res)
 }
 
+/// Parses a list of upadeshas and returns the sound set it corresponds to.
+///
+/// Upadeshas this function accepts:
+/// - pratyaharas ("ac", "hal")
+/// - udit sounds ("ku~", "pu~")
+/// - vowels ("a", "e")
+/// - simple consonants ("h", "k")
+///
+/// `s` is an abbrevation for "sound_set." Since this function is so frequent in the codebase, we
+/// have shortened its name for brevity.
 pub fn s(terms: &str) -> Set {
     let mut ret = String::new();
-    let ak = ["a", "A", "i", "I", "u", "U", "f", "F", "x", "X"];
+    const AK: &[&str] = &["a", "A", "i", "I", "u", "U", "f", "F", "x", "X"];
 
     for term in terms.split_whitespace() {
-        if term.ends_with("u~") || ak.contains(&term) {
+        if term.ends_with("u~") || AK.contains(&term) {
             let first = term.chars().next().expect("non-empty");
             ret += &savarna(first).to_string();
         } else if term.len() == 1 {
@@ -479,6 +491,7 @@ enum Prayatna {
 
 /// Models the phonetic properties of a Sanskrit sound.
 struct Uccarana {
+    // Some sounds have multiple sthanas, e.g. "e" (kantha-talavya) and "va" (dantoshtya).
     sthana: Vec<Sthana>,
     ghosha: Ghosha,
     prana: Prana,
@@ -486,8 +499,11 @@ struct Uccarana {
 }
 
 impl Uccarana {
-    /// Calculates a heuristic distance between this sound and another. The shorter the distance,
-    /// the closer the sounds are.
+    /// Calculates a heuristic distance score between this sound and another. The shorter the
+    /// distance, the closer the sounds are.
+    ///
+    /// TODO: this score is not symmetric -- a.distance(b) != b.distance(a). What are the
+    /// implications of this? Does a symmetric score still work?
     fn distance(&self, other: &Uccarana) -> usize {
         let mut dist = 0;
         if self.ghosha != other.ghosha {
@@ -532,7 +548,7 @@ pub fn is_savarna(x: Sound, y: Sound) -> bool {
     savarna_str(x) == savarna_str(y)
 }
 
-/// Creates a `savarna` set for teh given sound.
+/// Creates a `savarna` set for the given sound.
 pub fn savarna(c: Sound) -> Set {
     Set::from(savarna_str(c))
 }

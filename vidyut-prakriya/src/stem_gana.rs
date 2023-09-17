@@ -8,8 +8,8 @@ pub const SARVA_ADI: &[&str] = &[
     "Bavatu~", "kim",
 ];
 
-pub const LAUKIKA_SAMJNA: &[&str] = &[
-    "eka", "dvi", "tri", "catur", "paYcan", "zaz", "saptan", "azwan", "navan", "daSan",
+pub const LAUKIKA_SANKHYA: &[&str] = &[
+    "eka", "dvi", "tri", "catur", "paYcan", "zaz", "saptan", "azwan", "navan", "daSan", "zoqaSan",
 ];
 
 pub const TYAD_ADI: &[&str] = &["tyad", "tad", "yad", "etad", "idam", "adas", "eka", "dvi"];

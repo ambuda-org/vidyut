@@ -80,6 +80,14 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
 
     if gan_kutadi && !n.has_tag_in(&[T::Rit, T::Yit]) {
         wrap.add_nit("1.2.1", i_n);
+    } else if cur.has_u("vyaca~")
+        && n.last()?.is_krt()
+        && !n.has_tag_in(&[T::Rit, T::Yit])
+        && !n.has_u("asi~")
+    {
+        // vyaceḥ kuṭāditvamanasīti tu neha pravartate, anasīti paryudāsena kṛnmātraviṣayatvāt
+        // -- SK 655
+        wrap.add_nit("1.2.1.v1", i_n);
     } else if cur.has_u_in(&["o~vijI~\\", "o~vijI~"]) && iti {
         // Just for these `vij` dhatus, according to the Kashika.
         wrap.add_nit("1.2.2", i_n);

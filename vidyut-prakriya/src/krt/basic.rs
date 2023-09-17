@@ -62,7 +62,9 @@ own control flow. For details, please see the docs for those functions.
 
 use crate::args::Gana;
 use crate::args::Krt;
+use crate::args::Taddhita;
 use crate::dhatu_gana as gana;
+use crate::it_samjna;
 use crate::krt::utils::KrtPrakriya;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
@@ -82,6 +84,22 @@ fn is_nandi_grahi_pacadi(p: &KrtPrakriya, i: usize) -> bool {
 
     // TODO: add the others.
     const NAND_ADI: &[&str] = &["nand", "jalp", "ram", "dfp"];
+
+    #[allow(unused)]
+    const GRAH_ADI: &[[&str; 2]] = &[
+        ["", "grah"],
+        ["ud", "sah"],
+        ["ud", "das"],
+        ["ud", "BAs"],
+        ["", "sTA"],
+        ["", "mantr"],
+        ["sam", "mard"],
+        ["ni", "rakz"],
+        ["ni", "Sru"],
+        ["ni", "vas"],
+        ["ni", "vap"],
+        ["ni", "SA"],
+    ];
 
     const PAC_ADI: &[&str] = &[
         "pac", "vac", "vap", "vad", "cal", "tap", "pat", "nadaw", "Bazaw", "vas", "garat",
@@ -379,6 +397,10 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             let dhatu = wrap.get(i)?;
             if dhatu.has_antya('u') || dhatu.has_antya('U') {
                 wrap.optional_try_add("3.1.125", K::Ryat);
+            } else if dhatu.has_u("ha\\na~") {
+                wrap.optional_try_add_with("3.1.97.v2", K::yat, |p, i| {
+                    p.set(i, |t| t.set_text("vaD"));
+                });
             }
 
             // General rules (obligatory)
@@ -387,6 +409,8 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 if dhatu.has_upadha('a') && dhatu.has_antya(&*PU) {
                     // Sapya, laBya, japya
                     wrap.try_add("3.1.98", K::yat);
+                } else if dhatu.has_u_in(&["taka~", "Sasu~\\", "cate~^", "yatI~\\", "janI~\\"]) {
+                    wrap.try_add("3.1.97.v1", K::yat);
                 } else if dhatu.has_antya('f') || dhatu.has_antya('F') || dhatu.has_antya(&*HAL) {
                     wrap.try_add("3.1.124", K::Ryat);
                 } else if dhatu.has_antya(&*AC) {
@@ -410,17 +434,23 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         // "a" (3.1.134 - ???)
         K::ac | K::Sa | K::ka | K::Ra => {
+            // These are all bhvAdi dhAtus, so also check for `Bhvadi` to avoid other dhatus.
             let pa_ghra = &["pA\\", "GrA\\", "DmA\\", "De\\w", "df\\Si~r"];
 
-            if dhatu.has_u_in(pa_ghra) && dhatu.has_gana(Gana::Bhvadi) {
-                // These are all bhvAdi dhAtus, so enforce `Bhvadi` to avoid other dhatus.
+            if upasarge && dhatu.has_u_in(pa_ghra) && dhatu.has_gana(Gana::Bhvadi) {
                 wrap.try_add("3.1.137", K::Sa);
+            } else if dhatu.has_u_in(&[
+                "li\\pa~^", "vi\\dx~^", "pF", "vida~", "cita~", "sAti", "zaha~\\",
+            ]) {
+                wrap.try_add("3.1.138", K::Sa);
             } else if dhatu.has_upadha(&*IK) || dhatu.has_u_in(&["JYA\\", "prI\\Y", "kF"]) {
                 // vikzipa, viliKa, buDa
                 wrap.try_add("3.1.135", K::ka);
             } else if upasarge && dhatu.has_antya('A') {
                 wrap.try_add("3.1.136", K::ka);
-            } else if is_nandi_grahi_pacadi(&wrap, i) {
+            } else if krt == K::ac {
+                // ajvidhiḥ sarvadhātubhyaḥ paṭhyante ca pacādayaḥ। aṇbādhanārtham eva
+                // syāt sidhyanti śvapacādayaḥ।
                 wrap.try_add("3.1.134", K::ac);
             } else if dhatu.has_u_in(&["wudu\\", "RI\\Y"]) && !upasarge {
                 wrap.try_add("3.1.142", K::Ra);
@@ -459,6 +489,20 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             }
         }
 
+        K::wa => {
+            if dhatu.has_u("cara~") {
+                // TODO: upapada
+                wrap.try_add("3.2.16", krt);
+            }
+        }
+
+        K::Kac => {
+            if dhatu.has_u("vada~") {
+                // TODO: restrict
+                wrap.try_add("3.2.38", krt);
+            }
+        }
+
         K::kvin => {
             if dhatu.has_text("spfS") {
                 wrap.try_add("3.2.58", krt);
@@ -485,9 +529,25 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             }
         }
 
-        K::manin | K::kvanip | K::vanip => {
+        K::Rvi => {
+            if dhatu.has_u("Ba\\ja~^") {
+                wrap.try_add("3.2.62", krt);
+            }
+        }
+
+        K::manin | K::kvanip | K::vanip | K::vic => {
+            let code = "3.2.75";
             if krt == K::manin && dhatu.has_text("Bas") {
-                wrap.try_add("3.2.75", krt);
+                wrap.try_add(code, krt);
+            } else if krt == K::vic && dhatu.has_text("riz") {
+                wrap.try_add(code, krt);
+            }
+        }
+
+        K::qa => {
+            if dhatu.has_u("janI~\\") {
+                // TODO: upapada
+                wrap.try_add("3.2.97", krt);
             }
         }
 
@@ -619,18 +679,38 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
 
         K::GaY => {
-            // TODO: move with other a-pratyayas?
-            let dhatu = wrap.get(i)?;
-            if dhatu.has_text_in(&["pad", "ruj", "viS", "spfS"]) {
-                wrap.try_add("3.3.16", K::GaY);
-            } else if dhatu.has_text("sf") {
-                wrap.try_add("3.3.17", K::GaY);
+            if wrap.has_prefix("ava") && dhatu.has_u_in(&["tF", "stFY"]) {
+                wrap.try_add("3.3.120", K::GaY);
             } else {
-                wrap.try_add("3.3.18", K::GaY);
+                // TODO: move with other a-pratyayas?
+                let dhatu = wrap.get(i)?;
+                if dhatu.has_text_in(&["pad", "ruj", "viS", "spfS"]) {
+                    wrap.try_add("3.3.16", K::GaY);
+                } else if dhatu.has_text("sf") {
+                    wrap.try_add("3.3.17", K::GaY);
+                } else {
+                    wrap.try_add("3.3.18", K::GaY);
+                }
             }
         }
 
-        K::ktri => {}
+        K::ap => {
+            if dhatu.has_u("aja~") && i > 0 && wrap.p.has(i - 1, |t| t.has_u_in(&["sam", "ud"])) {
+                wrap.try_add("3.3.69", krt);
+            }
+        }
+
+        K::ktri => {
+            if dhatu.has_tag(T::qvit) {
+                if wrap.try_add("3.3.88", krt) {
+                    // TODO: put this somewhere else?
+                    wrap.p.op("4.4.20", |p| {
+                        p.push(Taddhita::map.to_term());
+                    });
+                    it_samjna::run(wrap.p, i + 2).expect("should never fail");
+                }
+            }
+        }
 
         K::aTuc => {
             if dhatu.has_tag(T::wvit) {
@@ -657,6 +737,14 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             wrap.try_add_with("3.3.94", krt, |p, _| p.add_tag(T::Stri));
         }
 
+        K::a => {
+            if dhatu.is_pratyaya() {
+                wrap.try_add_with("3.3.102", krt, |p, _| p.add_tag(T::Stri));
+            } else if dhatu.is_guru() && dhatu.has_antya(&*HAL) {
+                wrap.try_add_with("3.3.103", krt, |p, _| p.add_tag(T::Stri));
+            }
+        }
+
         K::yuc => {
             if dhatu.has_u_in(&["Ric", "Asa~\\", "SranTa~"]) {
                 wrap.try_add_with("3.3.107", krt, |p, _| p.add_tag(T::Stri));
@@ -673,17 +761,29 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         K::Ga => {}
 
-        K::Kal => {}
+        K::Kal => {
+            // TODO: restrict
+            wrap.try_add("3.3.126", krt);
+        }
 
         K::ktic => {
             wrap.try_add("3.3.174", krt);
         }
-
+        K::kamul | K::Ramul => {
+            if krt == K::kamul {
+                wrap.try_add("3.4.12", krt);
+            } else {
+                // TODO: move this rule somewhere else?
+                wrap.try_add("3.4.22", krt);
+            }
+        }
+        K::kasun => {
+            if dhatu.has_u_in(&["sf\\px~", "u~tfdi~^r"]) {
+                wrap.try_add("3.4.17", krt);
+            }
+        }
         K::ktvA => {
             wrap.try_add("3.4.21", krt);
-        }
-        K::Ramul => {
-            wrap.try_add("3.4.22", krt);
         }
         _ => (),
     }

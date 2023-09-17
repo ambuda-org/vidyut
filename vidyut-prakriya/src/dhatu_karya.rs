@@ -201,6 +201,7 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
         // For 8.4.18.
         p.set(0, |t| t.add_tag(T::FlagShanta));
     }
+    p.maybe_save_sthanivat();
 
     try_add_prefixes(p, dhatu);
 
@@ -215,13 +216,13 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::args::Gana;
 
     fn check(text: &str, code: &str) -> Term {
         let (gana, _number) = code.split_once('.').expect("valid");
+        let gana: u8 = gana.parse().expect("ok");
         let dhatu = Dhatu::builder()
             .upadesha(text)
-            .gana(Gana::from_int(gana.parse().expect("defined")).expect("valid"))
+            .gana(gana.to_string().parse().expect("ok"))
             .build()
             .expect("ok");
 
