@@ -1410,12 +1410,15 @@ fn sutra_6_4_120() {
     let ran = d("raRa~", Bhvadi);
     assert_has_tas(&[], &ran, Lit, &["reRatuH"]);
     assert_has_jhi(&[], &ran, Lit, &["reRuH"]);
+
     let yam = d("yama~", Bhvadi);
     assert_has_tas(&[], &yam, Lit, &["yematuH"]);
     assert_has_jhi(&[], &yam, Lit, &["yemuH"]);
+
     let pac = d("qupa\\ca~^z", Bhvadi);
     assert_has_tas(&[], &pac, Lit, &["pecatuH"]);
     assert_has_jhi(&[], &pac, Lit, &["pecuH"]);
+
     let dam = d("damu~", Divadi);
     assert_has_tas(&[], &dam, Lit, &["dematuH"]);
     assert_has_jhi(&[], &dam, Lit, &["demuH"]);
@@ -1435,6 +1438,7 @@ fn sutra_6_4_120() {
     let shram = d("Sramu~", Divadi);
     assert_has_tas(&[], &shram, Lit, &["SaSramatuH"]);
     assert_has_jhi(&[], &shram, Lit, &["SaSramuH"]);
+
     let tsar = d("tsara~", Bhvadi);
     assert_has_tas(&[], &tsar, Lit, &["tatsaratuH"]);
     assert_has_jhi(&[], &tsar, Lit, &["tatsaruH"]);
@@ -1454,6 +1458,7 @@ fn sutra_6_4_120() {
     let nam = d("Ra\\ma~", Bhvadi);
     assert_has_tas(&[], &nam, Lit, &["nematuH"]);
     assert_has_jhi(&[], &nam, Lit, &["nemuH"]);
+
     let sah = d("zaha~\\", Bhvadi);
     assert_has_atmane_tinanta(&[], &sah, Lit, Prathama, Eka, &["sehe"]);
     assert_has_atmane_tinanta(&[], &sah, Lit, Prathama, Dvi, &["sehAte"]);
@@ -1476,6 +1481,120 @@ fn sutra_6_4_121() {
     // anAdezAdi
     assert_has_sip(&[], &d("kaRa~", Bhvadi), Lit, &["cakaRiTa"]);
     assert_has_sip(&[], &d("BaRa~", Bhvadi), Lit, &["baBaRiTa"]);
+}
+
+#[test]
+fn sutra_6_4_122() {
+    let tf = d("tF", Bhvadi);
+    assert_has_tas(&[], &tf, Lit, &["teratuH"]);
+    assert_has_jhi(&[], &tf, Lit, &["teruH"]);
+    assert_has_sip(&[], &tf, Lit, &["teriTa"]);
+
+    let phal = d("YiPalA~", Bhvadi);
+    assert_has_tas(&[], &phal, Lit, &["PelatuH"]);
+    assert_has_jhi(&[], &phal, Lit, &["PeluH"]);
+    assert_has_sip(&[], &phal, Lit, &["PeliTa"]);
+
+    let bhaj = d("Ba\\ja~^", Bhvadi);
+    assert_has_tas(&[], &bhaj, Lit, &["BejatuH"]);
+    assert_has_jhi(&[], &bhaj, Lit, &["BejuH"]);
+    assert_has_sip(&[], &bhaj, Lit, &["BejiTa", "baBakTa"]);
+
+    let trap = d("trapU~\\z", Bhvadi);
+    assert_has_ta(&[], &trap, Lit, &["trepe"]);
+    assert_has_aataam(&[], &trap, Lit, &["trepAte"]);
+    assert_has_jha(&[], &trap, Lit, &["trepire"]);
+}
+
+#[test]
+fn sutra_6_4_122_v1() {
+    // For SaSranTatuH, see 1.2.6.v1.
+    let shranth = d("SranTa~", Kryadi);
+    assert_has_tas(&[], &shranth, Lit, &["SreTatuH", "SaSranTatuH"]);
+    assert_has_jhi(&[], &shranth, Lit, &["SreTuH", "SaSranTuH"]);
+}
+
+#[test]
+fn sutra_6_4_124() {
+    let jf = d("jF", Kryadi);
+    assert_has_tas(&[], &jf, Lit, &["jeratuH", "jajaratuH"]);
+    assert_has_jhi(&[], &jf, Lit, &["jeruH", "jajaruH"]);
+    assert_has_sip(&[], &jf, Lit, &["jeriTa", "jajariTa"]);
+
+    let bhram = d("Bramu~", Bhvadi);
+    assert_has_tas(&[], &bhram, Lit, &["BrematuH", "baBramatuH"]);
+    assert_has_jhi(&[], &bhram, Lit, &["BremuH", "baBramuH"]);
+    assert_has_sip(&[], &bhram, Lit, &["BremiTa", "baBramiTa"]);
+
+    let tras = d("trasI~", Divadi);
+    assert_has_tas(&[], &tras, Lit, &["tresatuH", "tatrasatuH"]);
+    assert_has_jhi(&[], &tras, Lit, &["tresuH", "tatrasuH"]);
+    assert_has_sip(&[], &tras, Lit, &["tresiTa", "tatrasiTa"]);
+}
+
+#[test]
+fn sutra_6_4_125() {
+    let phan = d("PaRa~", Bhvadi);
+    assert_has_tas(&[], &phan, Lit, &["PeRatuH", "paPaRatuH"]);
+    assert_has_jhi(&[], &phan, Lit, &["PeRuH", "paPaRuH"]);
+    assert_has_sip(&[], &phan, Lit, &["PeRiTa", "paPaRiTa"]);
+
+    let raj = d("rAjf~^", Bhvadi);
+    assert_has_tas(&[], &raj, Lit, &["rejatuH", "rarAjatuH"]);
+    assert_has_jhi(&[], &raj, Lit, &["rejuH", "rarAjuH"]);
+    assert_has_sip(&[], &raj, Lit, &["rejiTa", "rarAjiTa"]);
+
+    let bhraj = d("wuBrAjf~\\", Bhvadi);
+    assert_has_ta(&[], &bhraj, Lit, &["Breje", "baBrAje"]);
+    assert_has_aataam(&[], &bhraj, Lit, &["BrejAte", "baBrAjAte"]);
+    assert_has_jha(&[], &bhraj, Lit, &["Brejire", "baBrAjire"]);
+
+    let bhrash = d("wuBrASf~\\", Bhvadi);
+    assert_has_ta(&[], &bhrash, Lit, &["BreSe", "baBrASe"]);
+    assert_has_aataam(&[], &bhrash, Lit, &["BreSAte", "baBrASAte"]);
+    assert_has_jha(&[], &bhrash, Lit, &["BreSire", "baBrASire"]);
+
+    let bhlash = d("wuBlASf~\\", Bhvadi);
+    assert_has_ta(&[], &bhlash, Lit, &["BleSe", "baBlASe"]);
+    assert_has_aataam(&[], &bhlash, Lit, &["BleSAte", "baBlASAte"]);
+    assert_has_jha(&[], &bhlash, Lit, &["BleSire", "baBlASire"]);
+
+    let syam = d("syamu~", Bhvadi);
+    assert_has_tas(&[], &syam, Lit, &["syematuH", "sasyamatuH"]);
+    assert_has_jhi(&[], &syam, Lit, &["syemuH", "sasyamuH"]);
+    assert_has_sip(&[], &syam, Lit, &["syemiTa", "sasyamiTa"]);
+
+    let svan = d("svana~", Bhvadi);
+    assert_has_tas(&[], &svan, Lit, &["svenatuH", "sasvanatuH"]);
+    assert_has_jhi(&[], &svan, Lit, &["svenuH", "sasvanuH"]);
+    assert_has_sip(&[], &svan, Lit, &["sveniTa", "sasvaniTa"]);
+}
+
+#[test]
+fn sutra_6_4_126() {
+    let shas = d("Sasu~", Bhvadi);
+    assert_has_tas(&[], &shas, Lit, &["SaSasatuH"]);
+    assert_has_jhi(&[], &shas, Lit, &["SaSasuH"]);
+    assert_has_sip(&[], &shas, Lit, &["SaSasiTa"]);
+
+    let dad = d("dada~\\", Bhvadi);
+    assert_has_ta(&[], &dad, Lit, &["dadade"]);
+    assert_has_aataam(&[], &dad, Lit, &["dadadAte"]);
+    assert_has_jha(&[], &dad, Lit, &["dadadire"]);
+
+    let vam = d("wuvama~", Bhvadi);
+    assert_has_tas(&[], &vam, Lit, &["vavamatuH"]);
+    assert_has_jhi(&[], &vam, Lit, &["vavamuH"]);
+    assert_has_sip(&[], &vam, Lit, &["vavamiTa"]);
+
+    // "viSaSratuH" etc. come from rule 7.4.12.
+    let shf = d("SF", Kryadi);
+    assert_has_tas(&["vi"], &shf, Lit, &["viSaSaratuH", "viSaSratuH"]);
+    assert_has_jhi(&["vi"], &shf, Lit, &["viSaSaruH", "viSaSruH"]);
+    assert_has_sip(&["vi"], &shf, Lit, &["viSaSariTa"]);
+
+    assert_has_sip(&[], &d("lUY", Kryadi), Lit, &["lulaviTa"]);
+    assert_has_sip(&[], &d("pUY", Kryadi), Lit, &["pupaviTa"]);
 }
 
 #[ignore]

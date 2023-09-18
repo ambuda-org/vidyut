@@ -73,6 +73,16 @@ fn sutra_5_4_39() {
     assert_has_taddhitanta(&prati("mft"), T::tikan, &["mfttikA"]);
 }
 
+#[ignore]
+#[test]
+fn sutra_5_4_43() {
+    assert_has_taddhitanta(&prati("dvi"), T::Sas, &["dviSaH"]);
+    assert_has_taddhitanta(&prati("tri"), T::Sas, &["triSaH"]);
+    assert_has_taddhitanta(&prati("kArzApaRa"), T::Sas, &["kArzApaRaSaH"]);
+    assert_has_taddhitanta(&prati("mAza"), T::Sas, &["mAzaSaH"]);
+    assert_has_taddhitanta(&prati("pAda"), T::Sas, &["pAdaSaH"]);
+}
+
 #[test]
 fn sutra_5_4_44() {
     assert_has_taddhitanta(&prati("vAsudeva"), T::tasi, &["vAsudevatas"]);

@@ -770,6 +770,43 @@ fn sutra_7_1_91() {
 }
 
 #[test]
+fn sutra_7_1_92() {
+    assert_has_subantas("saKi", Pum, Prathama, Dvi, &["saKAyO"]);
+    assert_has_subantas("saKi", Pum, Prathama, Bahu, &["saKAyaH"]);
+    // asambuddhau?
+    assert_has_subantas("saKi", Pum, Sambodhana, Eka, &["saKe"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_7_1_93() {
+    assert_has_subantas("saKi", Pum, Prathama, Eka, &["saKA"]);
+    // asambuddhau?
+    assert_has_subantas("saKi", Pum, Sambodhana, Eka, &["saKe"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_7_1_94() {
+    assert_has_subantas("kartf", Pum, Prathama, Eka, &["kartA"]);
+    assert_has_subantas("hartf", Pum, Prathama, Eka, &["hartA"]);
+    assert_has_subantas("mAtf", Pum, Prathama, Eka, &["mAtA"]);
+    assert_has_subantas("pitf", Pum, Prathama, Eka, &["pitA"]);
+    assert_has_subantas("BrAtf", Pum, Prathama, Eka, &["BrAtA"]);
+    assert_has_subantas("uSanas", Pum, Prathama, Eka, &["uSanA"]);
+    assert_has_subantas("purudaMsas", Pum, Prathama, Eka, &["purudaMsA"]);
+    assert_has_subantas("anehas", Pum, Prathama, Eka, &["anehA"]);
+
+    // asambuddhau?
+    assert_has_subantas("kartf", Pum, Sambodhana, Eka, &["kartaH"]);
+    assert_has_subantas("mAtf", Pum, Sambodhana, Eka, &["mAtaH"]);
+    assert_has_subantas("pitf", Pum, Sambodhana, Eka, &["pitaH"]);
+    assert_has_subantas("purudaMsas", Pum, Sambodhana, Eka, &["purudaMsaH"]);
+    assert_has_subantas("anehas", Pum, Sambodhana, Eka, &["anehaH"]);
+    assert_has_subantas("uSanas", Pum, Sambodhana, Eka, &["uSanaH"]);
+}
+
+#[test]
 fn sutra_7_1_100() {
     assert_has_lat(&[], &d("kF", Tudadi), &["kirati"]);
     assert_has_lat(&[], &d("gF", Tudadi), &["girati", "gilati"]);

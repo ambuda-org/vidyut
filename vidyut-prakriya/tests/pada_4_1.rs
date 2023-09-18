@@ -289,11 +289,32 @@ fn sutra_4_1_49() {
 }
 
 #[test]
+fn sutra_4_1_95() {
+    assert_has_taddhitanta(&prati("dakza"), T::iY, &["dAkzi"]);
+    // TODO: others
+}
+
+#[test]
+fn sutra_4_1_96() {
+    assert_has_taddhitanta(&prati("bAhu"), T::iY, &["bAhavi"]);
+    assert_has_taddhitanta(&prati("upabAhu"), T::iY, &["OpabAhavi"]);
+}
+
+#[test]
 fn sutra_4_1_98() {
     assert_has_taddhitanta(&prati("kuYja"), T::cPaY, &["kOYjAyana"]);
     assert_has_taddhitanta(&prati("braDna"), T::cPaY, &["brADnAyana"]);
     // gotre?
     assert_has_taddhitanta(&prati("kuYja"), T::iY, &["kOYji"]);
+}
+
+#[test]
+fn sutra_4_1_99() {
+    assert_has_taddhitanta(&prati("naqa"), T::Pak, &["nAqAyana"]);
+    assert_has_taddhitanta(&prati("cara"), T::Pak, &["cArAyaRa"]);
+    // gotre?
+    assert_has_taddhitanta(&prati("naqa"), T::iY, &["nAqi"]);
+    // TODO: others
 }
 
 #[test]

@@ -75,6 +75,8 @@ pub enum Taddhita {
     QaY,
     /// -era
     Qrak,
+    /// -in
+    Rini,
     /// -tama
     tamap,
     /// -tara
@@ -120,6 +122,8 @@ pub enum Taddhita {
     /// -maya
     mayaw,
     /// -ya
+    yak,
+    /// -ya
     yaY,
     /// -ya
     yat,
@@ -135,6 +139,8 @@ pub enum Taddhita {
     vini,
     /// -aka
     vuY,
+    /// -aka
+    vun,
     /// -Sa
     Sa,
     /// -Sas
@@ -182,6 +188,7 @@ enum_boilerplate!(Taddhita, {
     Qak => "Qak",
     QaY => "QaY",
     Qrak => "Qrak",
+    Rini => "Rini~",
     tamap => "tamap",
     tarap => "tarap",
     tal => "tal",
@@ -204,6 +211,7 @@ enum_boilerplate!(Taddhita, {
     Pak => "Pak",
     PaY => "PaY",
     PiY => "PiY",
+    yak => "yak",
     yaY => "yaY",
     yat => "yat",
     yus => "yus",
@@ -212,6 +220,7 @@ enum_boilerplate!(Taddhita, {
     rUpap => "rUpap",
     vini => "vini~",
     vuY => "vuY",
+    vun => "vun",
     Sa => "Sa",
     Sas => "Sas",
     zWan => "zWan",

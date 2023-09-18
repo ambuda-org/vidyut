@@ -126,6 +126,29 @@ pub fn try_add_taddhita(p: &mut Prakriya, t: Taddhita) -> Option<bool> {
     let mut wrap = TaddhitaPrakriya::new(p, t);
     let prati = wrap.p.get(i)?;
 
+    // TODO: refactor and move this.
+    let code = "4.3.94";
+    match t {
+        P::Qak if prati.has_text("tUdI") => {
+            wrap.try_add(code, t);
+        }
+        P::CaR if prati.has_text("SAlAtura") => {
+            wrap.try_add(code, t);
+        }
+        P::QaY if prati.has_text("varmatI") => {
+            wrap.try_add(code, t);
+        }
+        P::yak if prati.has_text("kUcavAra") => {
+            wrap.try_add(code, t);
+        }
+        _ => {}
+    }
+    if wrap.has_taddhita {
+        return Some(true);
+    }
+
+    let prati = wrap.p.get(i)?;
+
     match t {
         P::aR => {
             if prati.has_text("ftu") {
@@ -234,6 +257,13 @@ pub fn try_add_taddhita(p: &mut Prakriya, t: Taddhita) -> Option<bool> {
                 wrap.try_add("4.1.132", t);
             } else if prati.has_text("mAtfzvasf") {
                 wrap.try_add("4.1.134", t);
+            } else if prati.has_text_in(&["tittiri", "varatantu", "KaRqika", "uKa"]) {
+                wrap.try_add("4.3.102", t);
+            }
+        }
+        P::Rini => {
+            if prati.has_text_in(&["kASyapa", "kOSika"]) {
+                wrap.try_add("4.3.103", t);
             }
         }
         P::Erak => {
@@ -281,6 +311,11 @@ pub fn try_add_taddhita(p: &mut Prakriya, t: Taddhita) -> Option<bool> {
         P::Cas => {
             if prati.has_text("Bavat") {
                 wrap.try_add("4.2.115", t);
+            }
+        }
+        P::vun => {
+            if prati.has_text_in(&["vAsudeva", "arjuna"]) {
+                wrap.try_add("4.2.114", t);
             }
         }
         P::aY => {
@@ -472,9 +507,8 @@ pub fn try_add_taddhita(p: &mut Prakriya, t: Taddhita) -> Option<bool> {
             }
         }
         P::Sas => {
-            if prati.has_tag(T::Sankhya) {
-                wrap.try_add("5.4.43", t);
-            }
+            // Condition is "sankhya" or ekavacana. So, just accept everything.
+            wrap.try_add("5.4.43", t);
         }
         P::tikan => {
             if prati.has_u("mfd") {

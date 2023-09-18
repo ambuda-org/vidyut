@@ -45,6 +45,39 @@ fn sutra_3_2_104() {
 }
 
 #[test]
+fn sutra_3_2_107() {
+    assert_has_krdanta(
+        &[],
+        &d("a\\da~", Adadi),
+        Krt::kvasu,
+        &["jakzivas", "Adivas"],
+    );
+    assert_has_krdanta(&[], &d("pA\\", Bhvadi), Krt::kvasu, &["papivas"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_3_2_108() {
+    let sad = d("za\\dx~", Bhvadi);
+    assert_has_krdanta(&["upa"], &sad, Krt::kvasu, &["upasedivas"]);
+    assert_has_lun(&["upa"], &sad, &["upAsadat"]);
+    assert_has_lan(&["upa"], &sad, &["upAsIdat"]);
+    assert_has_lit(&["upa"], &sad, &["upasasAda"]);
+
+    let vas = d("va\\sa~", Bhvadi);
+    assert_has_krdanta(&["anu"], &vas, Krt::kvasu, &["anUzivas"]);
+    assert_has_lun(&["anu"], &vas, &["anvavAtsIt"]);
+    assert_has_lan(&["anu"], &vas, &["anvavasat"]);
+    assert_has_lit(&["anu"], &vas, &["anUvAsa"]);
+
+    let shru = d("Sru\\", Bhvadi);
+    assert_has_krdanta(&["upa"], &shru, Krt::kvasu, &["upaSuSruvas"]);
+    assert_has_lun(&["upa"], &shru, &["upASrOzIt"]);
+    assert_has_lan(&["upa"], &shru, &["upASfRot"]);
+    assert_has_lit(&["upa"], &shru, &["upaSuSrAva"]);
+}
+
+#[test]
 fn sutra_3_2_110() {
     assert_has_lun_p(&[], &d("qukf\\Y", Tanadi), &["akArzIt"]);
     assert_has_lun_p(&[], &d("hf\\Y", Bhvadi), &["ahArzIt"]);

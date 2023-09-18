@@ -109,45 +109,27 @@ fn sutra_1_2_6() {
 #[test]
 fn sutra_1_2_6_v1() {
     let sranth = d("SranTa~", Kryadi);
-    assert_has_tinanta(
-        &[],
-        &sranth,
-        Lit,
-        Prathama,
-        Dvi,
-        &["SreTatuH", "SaSranTatuH"],
-    );
-    assert_has_tinanta(&[], &sranth, Lit, Prathama, Bahu, &["SreTuH", "SaSranTuH"]);
+    assert_has_tas(&[], &sranth, Lit, &["SreTatuH", "SaSranTatuH"]);
+    assert_has_jhi(&[], &sranth, Lit, &["SreTuH", "SaSranTuH"]);
 
     let granth = d("granTa~", Kryadi);
-    assert_has_tinanta(
-        &[],
-        &granth,
-        Lit,
-        Prathama,
-        Dvi,
-        &["greTatuH", "jagranTatuH"],
-    );
-    assert_has_tinanta(&[], &granth, Lit, Prathama, Bahu, &["greTuH", "jagranTuH"]);
+    assert_has_tas(&[], &granth, Lit, &["greTatuH", "jagranTatuH"]);
+    assert_has_jhi(&[], &granth, Lit, &["greTuH", "jagranTuH"]);
 
     let danbh = d("danBu~", Svadi);
-    assert_has_tinanta(&[], &danbh, Lit, Prathama, Bahu, &["deBuH", "dadamBuH"]);
+    assert_has_jhi(&[], &danbh, Lit, &["deBuH", "dadamBuH"]);
 
     let svaj = d("zva\\nja~\\", Bhvadi);
-    assert_has_tinanta(
+    assert_has_ta(
         &["pari"],
         &svaj,
         Lit,
-        Prathama,
-        Eka,
         &["parizasvaje", "parizasvaYje", "parisasvaje", "parisasvaYje"],
     );
-    assert_has_tinanta(
+    assert_has_aataam(
         &["pari"],
         &svaj,
         Lit,
-        Prathama,
-        Dvi,
         &[
             "parizasvajAte",
             "parizasvaYjAte",

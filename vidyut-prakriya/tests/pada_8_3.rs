@@ -1,6 +1,7 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
@@ -8,6 +9,10 @@ use vidyut_prakriya::args::*;
 
 fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
+}
+
+fn nic_san(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::Nic, Sanadi::San])
 }
 
 fn yan(dhatu: &Dhatu) -> Dhatu {
@@ -85,14 +90,64 @@ fn sutra_8_3_24() {
 }
 
 #[test]
+fn sutra_8_3_55() {
+    assert_has_lit_p(&[], &d("zi\\ca~^", Tudadi), &["sizeca"]);
+    assert_has_lit_p(&[], &d("Yizva\\pa~", Adadi), &["suzvApa"]);
+    assert_has_subantas("agni", Pum, V::Saptami, Bahu, &["agnizu"]);
+    assert_has_subantas("vAyu", Pum, V::Saptami, Bahu, &["vAyuzu"]);
+
+    let kf = d("qukf\\Y", Tanadi);
+    assert_has_dhvam(&[], &kf, Lun, &["akfQvam"]);
+    assert_has_dhvam(&[], &kf, Lit, &["cakfQve"]);
+
+    // TODO: apadAntasya
+}
+
+#[test]
+fn sutra_8_3_60() {
+    let shas = d("SAsu~", Adadi);
+    assert_has_tip(&["anu"], &shas, Lun, &["anvaSizat"]);
+    assert_has_tas(&["anu"], &shas, Lun, &["anvaSizatAm"]);
+    assert_has_jhi(&["anu"], &shas, Lun, &["anvaSizan"]);
+    assert_has_krdanta(&[], &shas, Krt::kta, &["Sizwa"]);
+    assert_has_krdanta(&[], &shas, Krt::ktavatu, &["Sizwavat"]);
+
+    let vas = d("va\\sa~", Bhvadi);
+    assert_has_krdanta(&[], &vas, Krt::kta, &["uzita"]);
+    assert_has_krdanta(&[], &vas, Krt::ktavatu, &["uzitavat"]);
+    assert_has_krdanta(&[], &vas, Krt::ktvA, &["uzitvA"]);
+
+    let ad = d("a\\da~", Adadi);
+    assert_has_tas(&[], &ad, Lit, &["jakzatuH", "AdatuH"]);
+    assert_has_jhi(&[], &ad, Lit, &["jakzuH", "AduH"]);
+
+    // TODO: others
+}
+
+#[test]
+fn sutra_8_3_61() {
+    let svap = d("Yizva\\pa~", Adadi);
+    let sic = d("zi\\ca~^", Tudadi);
+    assert_has_lat_p(&[], &san(&d("zwu\\Y", Adadi)), &["tuzwUzati"]);
+    assert_has_lat_p(&[], &nic_san(&d("zevf~\\", Bhvadi)), &["sizevayizati"]);
+    assert_has_lat_p(&[], &nic_san(&d("za\\nja~", Bhvadi)), &["sizaYjayizati"]);
+    assert_has_lat_p(&[], &nic_san(&svap), &["suzvApayizati"]);
+    assert_has_lat_p(&[], &san(&sic), &["sisikzati"]);
+    assert_has_lat_p(&[], &san(&d("zu\\", Bhvadi)), &["susUzati"]);
+    // zaRi
+    assert_has_lit_p(&[], &sic, &["sizeca"]);
+    assert_has_lat(&[], &san(&svap), &["suzupsati"]);
+    assert_has_lat_p(&[], &san(&d("zWA\\", Bhvadi)), &["tizWAsati"]);
+    // TODO: others
+}
+
+#[test]
 fn sutra_8_3_63() {
     let su = Dhatu::new("zu\\Y", Gana::Svadi);
-
     assert_has_lat_p(&["aBi"], &su, &["aBizuRoti"]);
     assert_has_lat_p(&["pari"], &su, &["parizuRoti"]);
     assert_has_lat_p(&["vi"], &su, &["vizuRoti"]);
     assert_has_lat_p(&["ni"], &su, &["nizuRoti"]);
-
     assert_has_lan_p(&["aBi"], &su, &["aByazuRot"]);
     assert_has_lan_p(&["pari"], &su, &["paryazuRot"]);
     assert_has_lan_p(&["vi"], &su, &["vyazuRot"]);

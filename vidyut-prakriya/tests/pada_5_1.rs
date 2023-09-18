@@ -23,6 +23,11 @@ fn sutra_5_1_22() {
 }
 
 #[test]
+fn sutra_5_1_105() {
+    assert_has_taddhitanta(&prati("ftu"), T::aR, &["Artava"]);
+}
+
+#[test]
 fn sutra_5_1_106() {
     assert_has_taddhitanta(&prati("ftu"), T::Gas, &["ftviya"]);
 }
