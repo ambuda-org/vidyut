@@ -1,1 +1,2 @@
-www/static/*
+www/static/data/
+www/static/wasm/

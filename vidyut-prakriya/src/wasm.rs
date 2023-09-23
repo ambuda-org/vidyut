@@ -53,6 +53,18 @@ fn to_web_prakriyas(prakriyas: &[Prakriya]) -> Vec<WebPrakriya> {
         .collect()
 }
 
+/// Expands a mula dhatu by adding sanadi-pratyayas and upasargas, as needed.
+fn try_expand_dhatu(dhatu: &Dhatu, sanadi: Option<Sanadi>, upasarga: Option<String>) -> Dhatu {
+    let mut ret = dhatu.clone();
+    if let Some(s) = sanadi {
+        ret = ret.with_sanadi(&[s]);
+    }
+    if let Some(u) = upasarga {
+        ret = ret.with_prefixes(&[u]);
+    }
+    ret
+}
+
 #[wasm_bindgen]
 extern "C" {
     /// Exposes `console.error` in case we need to log anything to the JS console.
@@ -63,6 +75,8 @@ extern "C" {
 /// WebAssembly API for vidyut-prakriya.
 #[wasm_bindgen]
 pub struct Vidyut {
+    /// An internal reference to a dhatupatha.
+    /// (This dhatupatha is sourced from ashtadhyayi.com.)
     dhatupatha: Dhatupatha,
 }
 
@@ -86,7 +100,8 @@ impl Vidyut {
     ///
     /// TODO: how might we reduce the number of arguments here?
     #[allow(clippy::too_many_arguments)]
-    pub fn derive_tinantas(
+    #[allow(non_snake_case)]
+    pub fn deriveTinantas(
         &self,
         code: &str,
         lakara: Lakara,
@@ -95,8 +110,9 @@ impl Vidyut {
         vacana: Vacana,
         pada: Option<Pada>,
         sanadi: Option<Sanadi>,
+        upasarga: Option<String>,
     ) -> JsValue {
-        if let Some(dhatu) = self.dhatupatha.get(code) {
+        if let Some(raw_dhatu) = self.dhatupatha.get(code) {
             let mut args = TinantaArgs::builder()
                 .lakara(lakara)
                 .prayoga(prayoga)
@@ -110,13 +126,8 @@ impl Vidyut {
             let args = args.build().expect("should be well-formed");
 
             let a = Ashtadhyayi::new();
-            let prakriyas = match sanadi {
-                Some(s) => {
-                    let dhatu = dhatu.clone().with_sanadi(&[s]);
-                    a.derive_tinantas(&dhatu, &args)
-                }
-                None => a.derive_tinantas(dhatu, &args),
-            };
+            let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
+            let prakriyas = a.derive_tinantas(&dhatu, &args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
@@ -127,7 +138,8 @@ impl Vidyut {
     }
 
     /// Wrapper for `Ashtadhyayi::derive_subantas`.
-    pub fn derive_subantas(
+    #[allow(non_snake_case)]
+    pub fn deriveSubantas(
         &self,
         pratipadika: &str,
         linga: Linga,
@@ -152,15 +164,23 @@ impl Vidyut {
     /// Wrapper for `Ashtadhyayi::derive_krdantas`.
     ///
     /// TODO: how might we reduce the number of arguments here?
-    pub fn derive_krdantas(&self, code: &str, krt: Krt) -> JsValue {
-        if let Some(dhatu) = self.dhatupatha.get(code) {
+    #[allow(non_snake_case)]
+    pub fn deriveKrdantas(
+        &self,
+        code: &str,
+        krt: Krt,
+        sanadi: Option<Sanadi>,
+        upasarga: Option<String>,
+    ) -> JsValue {
+        if let Some(raw_dhatu) = self.dhatupatha.get(code) {
             let args = KrdantaArgs::builder()
                 .krt(krt)
                 .build()
                 .expect("should be well-formed");
 
             let a = Ashtadhyayi::new();
-            let prakriyas = a.derive_krdantas(dhatu, &args);
+            let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
+            let prakriyas = a.derive_krdantas(&dhatu, &args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")

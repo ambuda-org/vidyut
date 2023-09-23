@@ -51,14 +51,16 @@ function setParam(url, key, value) {
     }
 }
 
-function createKrdantasFrom(vidyut, dhatu, krtList) {
+function createKrdantasFrom(vidyut, dhatu, upasarga, sanadi, krtList) {
     let results = [];
 
     krtList.forEach((krt) => {
         let padas = [];
-        const prakriyas = vidyut.derive_krdantas(
+        const prakriyas = vidyut.deriveKrdantas(
             dhatu.code,
-            krt
+            krt,
+            sanadi,
+            upasarga,
         );
         prakriyas.forEach((p) => {
             padas.push({
@@ -66,6 +68,8 @@ function createKrdantasFrom(vidyut, dhatu, krtList) {
                 type: "krt",
                 dhatu,
                 krt,
+                sanadi,
+                upasarga,
             });
         });
         results.push({
@@ -115,7 +119,7 @@ const App = () => ({
     purushas: Purusha,
     vacanas: Vacana,
 
-    activeTab: 'tin',
+    activeTab: 'dhatu',
 
     // All dhatus.
     dhatus: [],
@@ -130,6 +134,8 @@ const App = () => ({
     // ----------
     // The desired prayoga.
     prayoga: null,
+    // The desired upasarga.
+    upasarga: null,
     // The desired sanAdi pratyaya.
     sanadi: null,
     // A filter to apply to the dhatu list.
@@ -141,6 +147,7 @@ const App = () => ({
 
     async init() {
         const data = await loadVidyut();
+        console.log("init");
         this.vidyut = data.vidyut;
         this.dhatus = data.dhatus;
 
@@ -154,6 +161,15 @@ const App = () => ({
         this.$watch('tab', (value) => {
             this.updateUrlState();
         });
+        this.$watch('sanadi', (value) => {
+            this.updateUrlState();
+        });
+        this.$watch('prayoga', (value) => {
+            this.updateUrlState();
+        });
+        this.$watch('upasarga', (value) => {
+            this.updateUrlState();
+        });
     },
 
     // Mutators
@@ -162,8 +178,22 @@ const App = () => ({
         const params = new URLSearchParams(window.location.search);
         const dhatuCode = params.get('dhatu');
         const tab = params.get('tab');
+        const prayoga = params.get('prayoga');
+        const upasarga = params.get('upasarga');
+        const sanadi = params.get('sanadi');
+
+        console.log(`realUrlState, prayoga=${prayoga}, upasarga=${upasarga}, sanadi=${sanadi}`);
         if (tab) {
             this.setTab(tab);
+        }
+        if (prayoga) {
+            this.prayoga = parseInt(prayoga);
+        }
+        if (upasarga) {
+            this.upasarga = upasarga;
+        }
+        if (sanadi) {
+            this.sanadi = parseInt(sanadi);
         }
         if (dhatuCode) {
             this.setActiveDhatu(dhatuCode);
@@ -178,7 +208,11 @@ const App = () => ({
         }
         setParam(url, "dhatu", dhatuCode);
         setParam(url, "tab", this.activeTab);
-        // TODO: sanadi, prayoga, etc.
+        setParam(url, "prayoga", this.prayoga);
+        setParam(url, "sanadi", this.sanadi);
+        setParam(url, "upasarga", this.upasarga);
+
+        console.log("updateUrlState to: ", url);
 
         history.replaceState(null, document.title, url.toString());
     },
@@ -251,7 +285,7 @@ const App = () => ({
         const pada = this.activePada;
         let allPrakriyas = [];
         if (pada.type === "tin") {
-            allPrakriyas = this.vidyut.derive_tinantas(
+            allPrakriyas = this.vidyut.deriveTinantas(
                 pada.dhatu.code,
                 pada.lakara,
                 pada.prayoga,
@@ -259,11 +293,14 @@ const App = () => ({
                 pada.vacana,
                 null,
                 pada.sanadi,
+                pada.upasarga,
             );
         } else if (pada.type === "krt") {
-            allPrakriyas = this.vidyut.derive_krdantas(
+            allPrakriyas = this.vidyut.deriveKrdantas(
                 pada.dhatu.code,
-                pada.krt
+                pada.krt,
+                pada.sanadi,
+                pada.upasarga,
             );
         }
 
@@ -289,7 +326,7 @@ const App = () => ({
     },
 
     createParadigm(args) {
-        const { dhatu, lakara, prayoga, pada, sanadi } = args;
+        const { dhatu, lakara, prayoga, pada, sanadi, upasarga } = args;
 
         let purushas = Object.values(Purusha).filter(Number.isInteger);
         let vacanas = Object.values(Vacana).filter(Number.isInteger);
@@ -297,7 +334,7 @@ const App = () => ({
         let paradigm = [];
         for (const purusha in purushas) {
             for (const vacana in vacanas) {
-                let prakriyas = this.vidyut.derive_tinantas(
+                let prakriyas = this.vidyut.deriveTinantas(
                     dhatu.code,
                     lakara,
                     prayoga,
@@ -305,6 +342,7 @@ const App = () => ({
                     vacana,
                     pada,
                     sanadi,
+                    upasarga,
                 );
 
                 let pvPadas = [];
@@ -325,6 +363,7 @@ const App = () => ({
                         vacana,
                         pada,
                         sanadi,
+                        upasarga,
                     });
                 });
 
@@ -345,10 +384,12 @@ const App = () => ({
         }
 
         const dhatu = this.activeDhatu;
+        const upasarga = this.upasarga;
+        const sanadi = this.sanadi;
         return [
-            createKrdantasFrom(this.vidyut, dhatu, NOMINAL_KRTS),
-            createKrdantasFrom(this.vidyut, dhatu, PARTICIPLE_KRTS),
-            createKrdantasFrom(this.vidyut, dhatu, AVYAYA_KRTS),
+            createKrdantasFrom(this.vidyut, dhatu, upasarga, sanadi, NOMINAL_KRTS),
+            createKrdantasFrom(this.vidyut, dhatu, upasarga, sanadi, PARTICIPLE_KRTS),
+            createKrdantasFrom(this.vidyut, dhatu, upasarga, sanadi, AVYAYA_KRTS),
         ];
     },
 
@@ -362,7 +403,9 @@ const App = () => ({
         const tinPadas = Object.values(Pada).filter(Number.isInteger);
         const prayoga = this.prayoga !== null ? this.prayoga : Prayoga.Kartari;
         const sanadi = this.sanadi || null;;
+        const upasarga = this.upasarga || null;;
 
+        console.log("createTinantas", prayoga, sanadi, upasarga);
         let results = [];
         for (const lakara in lakaras) {
             let laResults = {
@@ -377,6 +420,7 @@ const App = () => ({
                     prayoga,
                     pada: tinPada,
                     sanadi,
+                    upasarga,
                 });
 
                 if (paradigm.length !== 0) {

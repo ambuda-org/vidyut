@@ -38,11 +38,10 @@
 
 {% macro tabs() %}
 <ul class="flex my-4">
-  <a class="py-2 mr-4" href="#" :class="tab('tin')" @click.prevent="setTab('tin')">{{ 'tiGantAni'|d }}</a>
-  <a class="py-2 mr-4" href="#" :class="tab('krt')" @click.prevent="setTab('krt')">{{ 'kRdantAni'|d }}</a>
-  {# <a class="py-2 mr-4" href="#" :class="tab('sup')" @click.prevent="setTab('sup')">{{ 'subantAni'|d }}</a> #}
+  <a class="py-2 mr-4" href="#" :class="tab('dhatu')" @click.prevent="setTab('dhatu')">{{ 'dhAtavaH'|d }}</a>
   <a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="setTab('about')">About</a>
 </ul>
+<hr class="mb-4">
 {% endmacro %}
 
 
@@ -79,8 +78,11 @@
 {% endmacro %}
 
 
-{% macro dhatu_tinantas() %}
+{% macro dhatu_padas() %}
 <template x-if="activeDhatu">
+<div>
+
+{# Tinantas #}
 <div>
   <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
     &times; <span x-text="devaNoSvara(activeDhatu.upadesha)"></span>
@@ -102,7 +104,35 @@
   </template>
 
   <div x-show="!activePada">
-    <div>
+    <div class="text-center my-4">
+      <label>{{ 'upasargAH'|d }}</label>
+      <select x-model="upasarga" class="p-2 bg-white rounded border">
+        <option value="">(none)</option>
+        <option value="pra" x-text="deva('pra')"></option>
+        <option value="parA" x-text="deva('parA')"></option>
+        <option value="apa" x-text="deva('apa')"></option>
+        <option value="sam" x-text="deva('sam')"></option>
+        <option value="anu" x-text="deva('anu')"></option>
+        <option value="ava" x-text="deva('ava')"></option>
+        <option value="nis" x-text="deva('nis')"></option>
+        <option value="nir" x-text="deva('nir')"></option>
+        <option value="dus" x-text="deva('dus')"></option>
+        <option value="dur" x-text="deva('dur')"></option>
+        <option value="vi" x-text="deva('vi')"></option>
+        <option value="AN" x-text="deva('AN')"></option>
+        <option value="n" x-text="deva('ni')"></option>
+        <option value="aDi" x-text="deva('aDi')"></option>
+        <option value="api" x-text="deva('api')"></option>
+        <option value="ati" x-text="deva('ati')"></option>
+        <option value="su" x-text="deva('su')"></option>
+        <option value="ud" x-text="deva('ud')"></option>
+        <option value="aBi" x-text="deva('aBi')"></option>
+        <option value="prati" x-text="deva('prati')"></option>
+        <option value="pari" x-text="deva('pari')"></option>
+        <option value="upa" x-text="deva('upa')"></option>
+        <option :value="Prayoga.Karmani" x-text="deva('karmaRi')"></option>
+      </select>
+
       <label>{{ 'prayogaH'|d }}</label>
       <select x-model="prayoga" class="p-2 bg-white rounded border">
         <option :value="Prayoga.Kartari" x-text="deva('kartari')"></option>
@@ -164,35 +194,10 @@
       </section>
     </template>
   </div>
-
 </div>
-</template>
-{% endmacro %}
 
-
-{% macro dhatu_krdantas() %}
-<template x-if="activeDhatu">
-<div>
-  <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
-    &times; <span x-text="devaNoSvara(activeDhatu.upadesha)"></span>
-  </button>
-  <template x-if="activePada">
-    <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
-      &times; <span x-text="deva(activePada.text)"></span>
-    </button>
-  </template>
-
-  <header class="text-center">
-    <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.upadesha)"></h1>
-    <p x-text="deva(activeDhatu.artha)"></p>
-  </header>
-
-  <template x-if="prakriya">
-    <div>
-      {{ prakriya_table() }}
-    </div>
-  </template>
-  
+{# Krdantas #}
+<div x-show="!activePada">
   <template x-for="krtType in createKrdantas()">
     <table class="w-full my-4 text-left table-fixed text-xl border">
       <thead>
@@ -219,9 +224,10 @@
     </table>
   </template>
 </div>
+
+</div>
 </template>
 {% endmacro %}
-
 
 
 {% macro dhatu_list() %}
@@ -266,23 +272,15 @@
     </select>
   </div>
 
+  {# Main interface #}
   <div class="max-w-3xl mx-auto my-8">
     {{ tabs() }}
   
-    <section x-show="activeTab === 'tin' || activeTab === 'krt'">
-      <div x-show="activeTab === 'tin'">
-        {{ dhatu_tinantas() }}
-      </div>
-      <div x-show="activeTab === 'krt'">
-        {{ dhatu_krdantas() }}
-      </div>
-
+    <section x-show="activeTab === 'dhatu'">
       {{ dhatu_list() }}
       <p x-show="dhatus.length === 0">Loading &hellip;</p>
-    </section>
 
-    <section x-show="activeTab === 'sup'">
-      <p>Coming soon.</p>
+      {{ dhatu_padas() }}
     </section>
 
     {% set contact = "https://ambuda.org/about/contact" %}
