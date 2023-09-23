@@ -39,8 +39,20 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
 
     let prati = p.get(i_prati)?;
 
-    let is_pada = prati.is_pada() || sup.is_empty();
+    let is_pada = prati.is_pada()
+        || sup.is_empty()
+        || p.has(i_prati + 1, |t| t.has_tag_in(&[T::Upasarga, T::Dhatu]));
     if prati.has_antya('n') && is_pada {
+        if prati.has_u("ahan") {
+            // Special exception for ahan
+            if p.has(i_prati + 1, |t| t.is_empty()) {
+                p.op_term("8.2.69", i_prati, |t| t.set_antya("r"));
+            } else {
+                p.op_term("8.2.68", i_prati, |t| t.set_antya("ru~"));
+            }
+            return None;
+        }
+
         let mut blocked = false;
         if sup.has_tag(T::Sambuddhi) || sup.has_u("Ni") {
             if p.has_tag(T::Napumsaka) {
@@ -258,13 +270,11 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
                 // HACK for dhatus ending in 's' (acakAs + t -> acakAH) so that we preserve the
                 // first 's' of the dhatu.
                 set_at(p, i + 1, "");
-                p.step("8.2.29");
-                true
             } else {
                 set_at(p, i, "");
-                p.step("8.2.29");
-                true
             }
+            p.step("8.2.29");
+            true
         },
     );
 
@@ -275,6 +285,16 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
             if x.is_hrasva() && y.has_u("si~c") && z.has_adi(&*JHAL) && !x.is_agama() {
                 p.op_term("8.2.27", i + 1, op::lopa);
             }
+        }
+    }
+
+    // For now, use separate logic for other padas, e.g. upapadas.
+    // Check "JHAL" to ignore bahiranga changes like "dadhy atra".
+    for i in 0..p.terms().len() {
+        while p.has(i, |t| {
+            t.is_pada() && t.is_samyoganta() && t.has_antya(&*JHAL)
+        }) {
+            p.op_term("8.2.23", i, |t| t.set_antya(""));
         }
     }
 
@@ -313,7 +333,7 @@ fn try_ha_adesha(p: &mut Prakriya) -> Option<()> {
         let jhali_or_ante = match maybe_j {
             Some(j) => p.get(j)?.has_adi(&*JHAL),
             // Check that this is a pada to avoid applying these rules to yan-luk.
-            None => !p.get(i + 1)?.is_dhatu(),
+            None => p.is_pada(i),
         };
 
         if jhali_or_ante {
@@ -446,13 +466,11 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
     // - s for 8.2.66 (sasajuSo ruH)
     for i in 0..p.terms().len() {
         let c = p.get(i)?;
-        let is_anta = p.find_next_where(i, |t| !t.is_empty()).is_none();
-        // TODO: 1.4.14
-        let is_pada = p.is_pada(i);
-        let is_padanta = is_pada && (is_anta || p.has(i + 1, |t| t.is_taddhita()));
+        // HACK to exclude erroneous sandhi on (upa -> up -> ub)
+        let is_pada = p.is_pada(i) && !(c.is_upasarga() && !c.has_u("ud"));
         let has_exception = c.has_antya(&*JHAL_TO_JASH_EXCEPTIONS);
 
-        if c.has_antya(&*JHAL) && !has_exception && is_padanta {
+        if c.has_antya(&*JHAL) && !has_exception && is_pada {
             let key = c.antya()?;
             let sub = JHAL_TO_JASH.get(key)?;
             p.op_term("8.2.39", i, op::antya(&sub.to_string()));
@@ -637,7 +655,17 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    // 6.1.114 is not part of the tripAdi, but it has no scope to apply otherwise.
+    // 6.1.113 and 6.1.114 are not part of the tripAdi, but they have no scope to apply otherwise.
+    xy_rule(
+        p,
+        |x, y| x.ends_with("aru~") && y.has_adi('a'),
+        |p, i, j| {
+            p.op("6.1.113", |p| {
+                p.set(i, |t| t.find_and_replace_text("aru~", "o"));
+                p.set(j, |t| t.set_adi(""));
+            });
+        },
+    );
     xy_rule(
         p,
         |x, y| x.ends_with("aru~") && y.has_adi(&*HASH),

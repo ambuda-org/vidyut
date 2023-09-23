@@ -3,15 +3,43 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::*;
 
-fn san(d: &Dhatu) -> Dhatu {
-    d.clone().with_sanadi(&[Sanadi::San])
+#[test]
+fn sutra_3_3_1() {
+    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::uR, &["kAru"]);
+    assert_has_krdanta(&[], &d("pA\\", Bhvadi), Krt::uR, &["pAyu"]);
+    assert_has_krdanta(&[], &d("vA\\", Adadi), Krt::uR, &["vAyu"]);
+    assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::uR, &["jAyu"]);
+    assert_has_krdanta(&[], &d("qumi\\Y", Svadi), Krt::uR, &["mAyu"]);
+    assert_has_krdanta(&[], &d("zvada~\\", Bhvadi), Krt::uR, &["svAdu"]);
+    assert_has_krdanta(&[], &d("sA\\Da~", Svadi), Krt::uR, &["sADu"]);
+    assert_has_krdanta(&[], &d("aSU~\\", Svadi), Krt::uR, &["ASu"]);
+
+    // For more specific uNAdi tests, see `unadi_sutras.rs`
 }
 
-fn nic(d: &Dhatu) -> Dhatu {
-    d.clone().with_sanadi(&[Sanadi::Nic])
+#[test]
+fn sutra_3_3_2() {
+    assert_has_krdanta(&[], &d("vftu~\\", Bhvadi), Krt::manin, &["vartman"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::manin, &["carman"]);
 }
 
-// For tests on 3.3.1, see `unadi_sutras.rs`
+#[test]
+fn sutra_3_3_3() {
+    use Krt::ini;
+    use Krt::GinuR;
+    use Krt::Rini;
+    let gam = d("ga\\mx~", Bhvadi);
+    assert_has_krdanta(&[], &gam, ini, &["gamin"]);
+    assert_has_krdanta(&["AN"], &gam, ini, &["AgAmin"]);
+    assert_has_krdanta(&["pra"], &d("zWA\\", Bhvadi), ini, &["prasTAyin"]);
+    // per nyAsa, these are from Rini. nyAsa also indicates that prasTAyin comes from Rini, but
+    // this seems like an error given Unadi 4.9.
+    assert_has_krdanta(&["prati"], &d("ru\\Di~^r", Rudhadi), Rini, &["pratiroDin"]);
+    assert_has_krdanta(&["prati"], &d("buDa~", Bhvadi), Rini, &["pratiboDin"]);
+    assert_has_krdanta(&["prati"], &d("yu\\Da~\\", Divadi), Rini, &["pratiyoDin"]);
+    assert_has_krdanta(&["prati"], &d("yu\\ji~^r", Rudhadi), GinuR, &["pratiyogin"]);
+    assert_has_krdanta(&["AN"], &d("yA\\", Adadi), Rini, &["AyAyin"]);
+}
 
 #[test]
 fn sutra_3_3_10() {

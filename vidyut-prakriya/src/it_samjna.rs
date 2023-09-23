@@ -152,16 +152,19 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
 
     let mut temp_slice = &temp[..];
     if let Some(t) = p.get_mut(i) {
-        let mut matched = false;
-        for (it, tag) in [("Yi", T::YIt), ("wu", T::wvit), ("qu", T::qvit)] {
-            if temp.strip_prefix(it).is_some() {
-                temp_slice = &temp_slice[it.len()..];
-                t.add_tag(tag);
-                matched = true;
+        // Apply 1.3.5 only for non-pratyayas. This way, we avoid including qu-pratyaya, etc.
+        if !t.is_pratyaya() {
+            let mut matched = false;
+            for (it, tag) in [("Yi", T::YIt), ("wu", T::wvit), ("qu", T::qvit)] {
+                if temp.strip_prefix(it).is_some() {
+                    temp_slice = &temp_slice[it.len()..];
+                    t.add_tag(tag);
+                    matched = true;
+                }
             }
-        }
-        if matched {
-            p.step("1.3.5");
+            if matched {
+                p.step("1.3.5");
+            }
         }
     }
 
@@ -187,10 +190,10 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
             } else if !t.has_tag(T::Taddhita) && t.has_adi(&*LASHAKU) {
                 // Keep the first "l" of the lakAras.
                 // Otherwise, rule 3.4.77 will become vyartha.
-                let lakara = [
+                const LAKARAS: &[&str] = &[
                     "la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w", "la~N", "li~N", "lu~N", "lf~N",
                 ];
-                if !t.has_u_in(&lakara) {
+                if !t.has_u_in(&LAKARAS) {
                     t.add_tag(T::parse_it(adi)?);
                     temp_slice = &temp_slice[1..];
                     p.step("1.3.8");

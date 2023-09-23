@@ -31,6 +31,8 @@ pub enum Krt {
     Aru,
     /// -itra
     itra,
+    /// -in. The trailing `_` is to avoid colliding with Rust's `in` keyword.
+    in_,
     /// -in
     ini,
     /// -izRu (alaMkarizRu, prajanizRu, ...)
@@ -43,10 +45,14 @@ pub enum Krt {
     Uka,
     /// -a
     ka,
+    /// -a
+    kaY,
     /// -am
     kamul,
     /// -as (visfpaH, ...)
     kasun,
+    /// -a
+    kap,
     /// -Ana (cakrARa, ...)
     kAnac,
     /// -i (udaDi, ...)
@@ -95,8 +101,16 @@ pub enum Krt {
     kvip,
     /// -a (priyaMvada, vaSaMvada)
     Kac,
+    /// -a
+    KaS,
     /// -a (Izatkara, duzkara, sukara, ...)
     Kal,
+    /// -izRu
+    KizRuc,
+    /// -uka
+    KukaY,
+    /// -ana
+    Kyun,
     /// -a
     Ga,
     /// -a
@@ -183,6 +197,8 @@ pub enum Krt {
     varac,
     /// (empty suffix)
     vic,
+    /// (none)
+    viw,
     /// -aka
     vuY,
     /// -aka
@@ -214,6 +230,8 @@ pub enum Krt {
     izWac,
     /// -isa
     isan,
+    /// -is
+    isi,
     /// -u (kAru)
     uR,
     /// -atu (kratu)
@@ -236,6 +254,8 @@ pub enum Krt {
     tan,
     /// -tu
     tun,
+    /// -tra,
+    tran,
     /// -sa
     sa,
     /// -sara
@@ -271,15 +291,18 @@ enum_boilerplate!(Krt, {
     Aluc => "Aluc",
     Aru => "Aru",
     itra => "itra",
-    ini => "ini",
+    in_ => "in",
+    ini => "ini~",
     izRuc => "izRuc",
     u => "u",
     ukaY => "ukaY",
     Uka => "Uka",
     cAnaS => "cAnaS",
     ka => "ka",
+    kaY => "kaY",
     kamul => "kamu~l",
     kasun => "kasu~n",
+    kap => "kap",
     kAnac => "kAnac",
     ki => "ki",
     kin => "kin",
@@ -304,6 +327,10 @@ enum_boilerplate!(Krt, {
     kvip => "kvi~p",
     ksnu => "ksnu",
     Kac => "Kac",
+    KaS => "KaS",
+    KizRuc => "KizRuc",
+    KukaY => "KukaY",
+    Kyun => "Kyu~n",
     Kal => "Kal",
     Ga => "Ga",
     GaY => "GaY",
@@ -346,6 +373,7 @@ enum_boilerplate!(Krt, {
     vanip => "vani~p",
     varac => "varac",
     vic => "vi~c",
+    viw => "vi~w",
     vuY => "vu~Y",
     vun => "vu~n",
     zAkan => "zAkan",
@@ -362,6 +390,7 @@ enum_boilerplate!(Krt, {
     izWuc => "izWuc",
     izWac => "izWac",
     isan => "isan",
+    isi => "isi~",
     uR => "uR",
     // TODO: why do we keep the initial 'k' here?
     kan => "a~kan",
@@ -376,6 +405,7 @@ enum_boilerplate!(Krt, {
     wizac => "wizac",
     tan => "tan",
     tun => "tun",
+    tran => "tran",
     sa => "sa",
     sara => "sara",
     suk => "suk",
@@ -396,19 +426,62 @@ impl Krt {
     /// pratyayas for certain dhAtus. For details, see the implementation of rules 3.1.28 - 3.1.31.
     pub fn is_ardhadhatuka(&self) -> bool {
         use Krt::*;
-        !matches!(self, Sa | Satf | SAnac | SAnan | cAnaS)
+        !matches!(self, Sa | Satf | SAnac | SAnan | cAnaS | KaS)
     }
 }
 
 /// The information required to derive a krdanta in the grammar.
 pub struct KrdantaArgs {
     krt: Krt,
+    upapada: Option<Upapada>,
+}
+
+/// An upapada (dependent word) for a krdanta derivation.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub enum Upapada {
+    /// A generic subanta.
+    Subanta(String),
+    /// An avyaya.
+    Avyaya(String),
+    /// An upasarga.
+    Upasarga(String),
+}
+
+impl Upapada {
+    /// Creates an upapada from a generic subanta.
+    pub fn make_subanta(text: impl AsRef<str>) -> Self {
+        Self::Subanta(text.as_ref().to_string())
+    }
+
+    /// Creates an upapada from an avyaya.
+    pub fn make_avyaya(text: impl AsRef<str>) -> Self {
+        Self::Avyaya(text.as_ref().to_string())
+    }
+
+    /// Creates an upapada from an upasarga.
+    pub fn make_upasarga(text: impl AsRef<str>) -> Self {
+        Self::Upasarga(text.as_ref().to_string())
+    }
+
+    /// Returns the text corresponding to this upapada.
+    pub fn text(&self) -> &str {
+        match self {
+            Self::Subanta(x) => x,
+            Self::Avyaya(x) => x,
+            Self::Upasarga(x) => x,
+        }
+    }
 }
 
 impl KrdantaArgs {
     /// The krt pratyaya to use in the derivation.
     pub fn krt(&self) -> Krt {
         self.krt
+    }
+
+    /// The upapada that conditions the krt pratyaya.
+    pub fn upapada(&self) -> &Option<Upapada> {
+        &self.upapada
     }
 
     /// Returns a new builder for this struct.
@@ -418,15 +491,22 @@ impl KrdantaArgs {
 }
 
 /// Convenience struct for building a `KrdantaArgs` object.
-#[derive(Clone, Default, Hash, Eq, PartialEq)]
+#[derive(Clone, Default, Eq, PartialEq)]
 pub struct KrdantaArgsBuilder {
     krt: Option<Krt>,
+    upapada: Option<Upapada>,
 }
 
 impl KrdantaArgsBuilder {
     /// Sets the krt-pratyaya to use in the derivation.
     pub fn krt(&mut self, val: Krt) -> &mut Self {
         self.krt = Some(val);
+        self
+    }
+
+    /// Sets the upapada to use in the derivation.
+    pub fn upapada(&mut self, upapada: Upapada) -> &mut Self {
+        self.upapada = Some(upapada);
         self
     }
 
@@ -439,6 +519,7 @@ impl KrdantaArgsBuilder {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("krt")),
             },
+            upapada: self.upapada.as_ref().cloned(),
         })
     }
 }

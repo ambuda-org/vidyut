@@ -5,6 +5,7 @@ use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Purusha::*;
 use vidyut_prakriya::args::Taddhita as T;
+use vidyut_prakriya::args::Upapada;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
@@ -34,6 +35,7 @@ fn sutra_3_4_70() {
     let bhuj = &d("Bu\\ja~", Rudhadi);
     let aas = &d("Asa~\\", Tanadi);
     let shi = &d("SIN", Adadi);
+    let bhu = &d("BU", Bhvadi);
     assert_has_krdanta(&[], &kf, Krt::tavya, &["kartavya"]);
     assert_has_krdanta(&[], &bhuj, Krt::tavya, &["Boktavya"]);
     assert_has_krdanta(&[], &aas, Krt::tavya, &["Asitavya"]);
@@ -44,16 +46,34 @@ fn sutra_3_4_70() {
     assert_has_krdanta(&[], &aas, Krt::kta, &["Asita"]);
     assert_has_krdanta(&[], &shi, Krt::kta, &["Sayita"]);
 
-    assert_has_krdanta(&[], &kf, Krt::Kal, &["kara"]);
-    assert_has_krdanta(&[], &d("BU", Bhvadi), Krt::Kal, &["Bava"]);
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("Izat"),
+        &[],
+        &kf,
+        Krt::Kal,
+        &["Izatkara"],
+    );
+    assert_has_upapada_krdanta_raw(Upapada::make_avyaya("su"), &[], &kf, Krt::Kal, &["sukara"]);
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("dur"),
+        &[],
+        &kf,
+        Krt::Kal,
+        &["duzkara"],
+    );
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("dur"),
+        &[],
+        &kf,
+        Krt::Kal,
+        &["duzkara"],
+    );
+    assert_has_krdanta(&["IzadAQya"], bhu, Krt::Kal, &["IzadAQyamBava"]);
+    assert_has_krdanta(&["svAQya"], bhu, Krt::Kal, &["svAQyamBava"]);
 }
 
 #[test]
 fn sutra_3_4_78() {
-    use Pada::*;
-    use Purusha::*;
-    use Vacana::*;
-
     let pac = d("qupa\\ca~^z", Bhvadi);
     assert_has_tip(&[], &pac, Lat, &["pacati"]);
     assert_has_tas(&[], &pac, Lat, &["pacataH"]);
@@ -64,29 +84,15 @@ fn sutra_3_4_78() {
     assert_has_mip(&[], &pac, Lat, &["pacAmi"]);
     assert_has_vas(&[], &pac, Lat, &["pacAvaH"]);
     assert_has_mas(&[], &pac, Lat, &["pacAmaH"]);
-    let items = &[
-        (Prathama, Eka, Atmane, "pacate"),
-        (Prathama, Dvi, Atmane, "pacete"),
-        (Prathama, Bahu, Atmane, "pacante"),
-        (Madhyama, Eka, Atmane, "pacase"),
-        (Madhyama, Dvi, Atmane, "paceTe"),
-        (Madhyama, Bahu, Atmane, "pacaDve"),
-        (Uttama, Eka, Atmane, "pace"),
-        (Uttama, Dvi, Atmane, "pacAvahe"),
-        (Uttama, Bahu, Atmane, "pacAmahe"),
-    ];
-    for (purusha, vacana, pada, expected) in items {
-        let args = TinantaArgs::builder()
-            .prayoga(Prayoga::Kartari)
-            .purusha(*purusha)
-            .vacana(*vacana)
-            .lakara(Lat)
-            .pada(*pada)
-            .build()
-            .unwrap();
-        let actual = derive_tinantas(&pac, &args);
-        assert_padas(actual, &[expected])
-    }
+    assert_has_ta(&[], &pac, Lat, &["pacate"]);
+    assert_has_aataam(&[], &pac, Lat, &["pacete"]);
+    assert_has_jha(&[], &pac, Lat, &["pacante"]);
+    assert_has_thaas(&[], &pac, Lat, &["pacase"]);
+    assert_has_aathaam(&[], &pac, Lat, &["paceTe"]);
+    assert_has_dhvam(&[], &pac, Lat, &["pacaDve"]);
+    assert_has_iw(&[], &pac, Lat, &["pace"]);
+    assert_has_vahi(&[], &pac, Lat, &["pacAvahe"]);
+    assert_has_mahin(&[], &pac, Lat, &["pacAmahe"]);
 }
 
 #[test]

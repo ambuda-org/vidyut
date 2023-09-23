@@ -231,14 +231,14 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let abhyasa = p.get(i)?;
     if abhyasa.has_adi(&*SHAR) && abhyasa.get_at(1).map(|c| KHAY.contains(c)).unwrap_or(false) {
-        let mut abhyasa = &mut p.get_mut(i)?;
+        let abhyasa = &mut p.get_mut(i)?;
         let res = try_shar_purva(&abhyasa.text);
         if res != abhyasa.text {
             abhyasa.text = res;
             p.step("7.4.61");
         }
     } else {
-        let mut abhyasa = &mut p.get_mut(i)?;
+        let abhyasa = &mut p.get_mut(i)?;
         let res = try_haladi(&abhyasa.text);
         if res != abhyasa.text {
             abhyasa.text = res;

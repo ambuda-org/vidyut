@@ -249,7 +249,7 @@ fn try_dirgha_adesha_for_sup(p: &mut Prakriya) -> Option<()> {
 /// (7.1.3 - 7.1.7)
 pub fn maybe_do_jha_adesha(p: &mut Prakriya) -> Option<()> {
     let i = p.terms().len() - 1;
-    let tin = p.get_if(i, |t| t.has_adi('J'))?;
+    let tin = p.get_if(i, |t| t.has_adi('J') && t.is_pratyaya())?;
 
     let i_base = p.find_prev_where(i, |t| !t.is_empty())?;
     let base = p.get(i_base)?;
@@ -311,7 +311,7 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
     }
 
     let i = len - 1;
-    let last = p.terms().last()?;
+    let last = p.get_if(i, |t| t.is_pratyaya())?;
 
     if last.has_text_in(&["yu~", "vu~"]) {
         if last.has_text("yu~") {
@@ -1455,7 +1455,8 @@ fn try_anga_adesha_before_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
             } else {
                 p.op_term("7.2.110", i, |t| t.set_text("iyam"));
             }
-        } else if v.is_vibhakti() {
+        } else if v.is_vibhakti() & &!v.is_empty() {
+            // tyaH, tyO, tye, ...
             p.op_term("7.2.102", i, op::antya("a"));
         }
 

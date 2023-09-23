@@ -23,6 +23,7 @@ closures.
 */
 use crate::it_samjna;
 use crate::prakriya::{Prakriya, Rule};
+use crate::sounds as al;
 use crate::sounds::is_ac;
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -52,6 +53,14 @@ pub fn antya(sub: &str) -> impl Fn(&mut Term) + '_ {
 /// Replaces the penultimate sound in the given term.
 pub fn upadha(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_upadha(sub)
+}
+
+/// Replaces the penultimate vowel in the term with a short vowel.
+pub fn upadha_hrasva(term: &mut Term) {
+    if let Some(sub) = al::to_hrasva(term.upadha().expect("ok")) {
+        // HACK: use `to_string` for char to make the type system happy.
+        term.set_upadha(&sub.to_string());
+    }
 }
 
 /// Inserts some text immediately after the term's last vowel:

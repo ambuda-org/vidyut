@@ -8,28 +8,8 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn nic(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Nic])
-}
-
-fn san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::San])
-}
-
-fn nic_san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Nic, Sanadi::San])
-}
-
-fn yan(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Yan])
-}
-
 fn yan_san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::Yan, Sanadi::San])
-}
-
-fn yan_luk(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::YanLuk])
 }
 
 #[test]
@@ -325,8 +305,6 @@ fn sutra_7_4_27() {
 
 #[test]
 fn sutra_7_4_28() {
-    let d = d;
-
     let kf = d("qukf\\Y", Tanadi);
     let hf = d("hf\\Y", Bhvadi);
     let bhf = d("quBf\\Y", Juhotyadi);

@@ -363,26 +363,31 @@ fn try_rules_for_lit(wrap: &mut ItPrakriya, i: usize) -> Option<()> {
         //   - roots ending in a vowel and roots with a middle 'a' are veT.
         //   - other roots listed in rules explicitly (e.g. in 7.2.66)
         let code = if anga.has_antya(&*AC) {
-            "7.2.61"
+            Some("7.2.61")
+        } else if !anga.has_u("vayi~") {
+            // quick HACK to prevent *uvayTa.
+            Some("7.2.62")
         } else {
-            "7.2.62"
+            None
         };
 
-        // The last root is "vyeY" per siddhAntakaumudI.
-        if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
-            wrap.set("7.2.66", i_n);
-        } else if !anga.has_antya('f') {
-            // 7.2.63 Rto bhAradvAjasya
-            // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
-            // other roots, this condition is optional:
-            if wrap.p.is_allowed(code) {
-                wrap.set(code, i_n);
+        if let Some(code) = code {
+            // The last root is "vyeY" per siddhAntakaumudI.
+            if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
+                wrap.set("7.2.66", i_n);
+            } else if !anga.has_antya('f') {
+                // 7.2.63 Rto bhAradvAjasya
+                // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
+                // other roots, this condition is optional:
+                if wrap.p.is_allowed(code) {
+                    wrap.set(code, i_n);
+                } else {
+                    wrap.p.decline(code);
+                    wrap.anit(code);
+                }
             } else {
-                wrap.p.decline(code);
                 wrap.anit(code);
             }
-        } else {
-            wrap.anit(code);
         }
     } else if anga.has_text_in(&["sfj", "dfS"]) && n.has_u("Tal") {
         // By default, these will be seT. So the option allows aniT.

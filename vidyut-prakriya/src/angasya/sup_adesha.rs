@@ -282,7 +282,7 @@ fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
     let sup = p.get(i_sup)?;
     let sau = sup.has_u("su~");
-    sup.has_tag(T::Sarvanamasthana);
+    let sarvanamasthane = sup.has_tag(T::Sarvanamasthana);
 
     if sau && anga.has_text("div") {
         // dyOH
@@ -293,8 +293,7 @@ fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
             p.op_term("7.1.85", i_anga, op::antya("A"));
         }
 
-        let sup = p.get(i_sup)?;
-        if sup.has_tag(T::Sarvanamasthana) {
+        if sarvanamasthane {
             // panTAnam, ...
             p.op_term("7.1.86", i_anga, |t| t.find_and_replace_text("i", "a"));
             if p.has(i_anga, |t| t.text.contains('T')) {
@@ -307,7 +306,7 @@ fn try_misc_rules(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
             // paTA, ...
             p.op_term("7.1.88", i_anga, op::ti(""));
         }
-    } else if anga.has_text("pums") {
+    } else if anga.has_text("pums") && sarvanamasthane {
         p.op_term("7.1.89", i_anga, |t| t.set_text("pumas"));
     }
     Some(())

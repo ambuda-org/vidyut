@@ -54,6 +54,16 @@ impl<'a> KrtPrakriya<'a> {
         self.p.get(i)
     }
 
+    pub fn has_upasarga(&self, i_dhatu: usize, upa: &str) -> bool {
+        i_dhatu > 0 && self.p.has(i_dhatu - 1, |t| t.has_u(upa))
+    }
+
+    pub fn has_upasarga_dhatu(&self, i_dhatu: usize, upa: &str, dhatu: &str) -> bool {
+        i_dhatu > 0
+            && self.p.has(i_dhatu - 1, |t| t.has_u(upa))
+            && self.p.has(i_dhatu, |t| t.has_u(dhatu))
+    }
+
     pub fn has_prefix(&self, value: &str) -> bool {
         match self.p.find_last_where(|t| !t.is_dhatu()) {
             Some(i) => self.p.terms()[i].has_text(value),
@@ -79,6 +89,13 @@ impl<'a> KrtPrakriya<'a> {
         }
     }
 
+    /// If there's a match, adds the given `krt` pratyaya.
+    ///
+    /// This method does nothing if a krt pratyaya has already been added.
+    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: Krt) -> bool {
+        self.try_add_with(rule, krt, |_p, _i| {})
+    }
+
     /// If there's a match, replace the `lakAra` of the dhatu.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
@@ -86,6 +103,22 @@ impl<'a> KrtPrakriya<'a> {
         self.tried = true;
         if self.krt == krt && !self.has_krt {
             op::adesha(rule, self.p, i_lakara, krt.as_str());
+            self.has_krt = true;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn do_nipatana(&mut self, rule: impl Into<Rule>, sub: &str) {
+        self.p.op(rule, op::nipatana(sub));
+        self.tried = true;
+        self.has_krt = true
+    }
+
+    pub fn optional_do_nipatana(&mut self, rule: impl Into<Rule>, sub: &str) -> bool {
+        self.tried = true;
+        if self.p.op_optional(rule, op::nipatana(sub)) {
             self.has_krt = true;
             true
         } else {
@@ -116,13 +149,6 @@ impl<'a> KrtPrakriya<'a> {
         } else {
             false
         }
-    }
-
-    /// If there's a match, adds the given `krt` pratyaya.
-    ///
-    /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: Krt) -> bool {
-        self.try_add_with(rule, krt, |_p, _i| {})
     }
 
     /// If there's a match, optionally adds the given `krt` pratyaya then runs `func`.

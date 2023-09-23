@@ -309,13 +309,6 @@ fn kvasu() {
     test_krdanta(&cases, Krt::kvasu);
 }
 
-#[test]
-fn kvin() {
-    let cases = vec![("spf\\Sa~", 6, "spfS")];
-
-    test_krdanta(&cases, Krt::kvin);
-}
-
 #[ignore]
 #[test]
 fn kvip() {
@@ -330,13 +323,6 @@ fn kvip() {
     ];
 
     test_krdanta(&cases, Krt::kvip);
-}
-
-#[test]
-fn nyat() {
-    let cases = vec![("BU", 1, "BAvya"), ("qukf\\Y", 8, "kArya")];
-
-    test_krdanta(&cases, Krt::Ryat);
 }
 
 #[test]

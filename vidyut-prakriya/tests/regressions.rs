@@ -6,20 +6,10 @@ the Siddhanta-kaumudi.
 */
 extern crate test_utils;
 use test_utils::*;
-use vidyut_prakriya::args::Dhatu;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Purusha::*;
-use vidyut_prakriya::args::Sanadi;
 use vidyut_prakriya::args::Vacana::*;
-
-fn san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::San])
-}
-
-fn yan(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Yan])
-}
 
 #[ignore]
 #[test]

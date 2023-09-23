@@ -7,10 +7,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 
-fn san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::San])
-}
-
 fn stri(text: &str) -> Pratipadika {
     Pratipadika::builder()
         .text(text)
@@ -385,7 +381,13 @@ fn sutra_7_1_37() {
     let hf = d("hf\\Y", Bhvadi);
     assert_has_krdanta(&["pra"], &kf, Krt::ktvA, &["prakftya"]);
     assert_has_krdanta(&["pra"], &hf, Krt::ktvA, &["prahftya"]);
-    assert_has_krdanta(&["pArSvataH"], &kf, Krt::ktvA, &["pArSvataHkftya"]);
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("pArSvataH"),
+        &[],
+        &kf,
+        Krt::ktvA,
+        &["pArSvataHkftya"],
+    );
     assert_has_krdanta(&["nAnA"], &kf, Krt::ktvA, &["nAnAkftya"]);
     assert_has_krdanta(&["dviDA"], &kf, Krt::ktvA, &["dviDAkftya"]);
 
@@ -616,10 +618,32 @@ fn sutra_7_1_66() {
 #[test]
 fn sutra_7_1_67() {
     let labh = d("qula\\Ba~\\z", Bhvadi);
-    assert_has_krdanta(&["pra"], &labh, Krt::Kal, &["pralamBa"]);
+    // Kal
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("Izat"),
+        &["pra"],
+        &labh,
+        Krt::Kal,
+        &["IzatpralamBa"],
+    );
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("su"),
+        &["pra"],
+        &labh,
+        Krt::Kal,
+        &["supralamBa"],
+    );
+    // GaY
     assert_has_krdanta(&["pra"], &labh, Krt::GaY, &["pralamBa"]);
     assert_has_krdanta(&["vi", "pra"], &labh, Krt::GaY, &["vipralamBa"]);
     // otherwise, ...
+    assert_has_upapada_krdanta_raw(
+        Upapada::make_avyaya("Izat"),
+        &[],
+        &labh,
+        Krt::Kal,
+        &["IzallaBa"],
+    );
     assert_has_krdanta(&[], &labh, Krt::GaY, &["lABa"]);
 }
 

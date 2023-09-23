@@ -32,7 +32,9 @@ lazy_static! {
     static ref JASH_CAR: Set = s("jaS car");
     static ref IK: Set = s("ik");
     static ref YAY: Set = s("yay");
+    static ref JHAY: Set = s("Jay");
     static ref HAL: Set = s("hal");
+    static ref AT: Set = s("aw");
 }
 
 fn find_natva_spans(text: &str) -> Vec<(usize, usize)> {
@@ -172,12 +174,17 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             }
         }
     } else {
-        // NOTE: condition is `samAnapada`, so:
-        // - upasargas can't cause changes with this rule.
-        if !x.is_upasarga() {
+        // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.
+        let is_samana_pada = !cp.p.terms()[i_x..i_y].iter().any(|t| {
+            t.has_tag_in(&[T::Sup, T::Tin]) || (t.has_tag(T::Pada) && !t.has_tag(T::Pratipadika))
+        });
+        if is_samana_pada {
             // TODO: track loctaion of rzfF for better rule logging.
             set_at(cp.p, i_n, "R");
             cp.p.step("8.4.2");
+        } else {
+            cp.p.debug("TWO PADAS");
+            cp.p.dump();
         }
     }
 
@@ -262,7 +269,7 @@ fn try_change_stu_to_parasavarna(p: &mut Prakriya) {
             let x = text.as_bytes()[i] as char;
             let y = text.as_bytes()[i + 1] as char;
             let prev = get_at(p, i).expect("should be defined");
-            if prev.has_tag(T::Pada) {
+            if prev.has_tag(T::Pada) && prev.has_antya(&*SWU) {
                 p.step("8.4.42");
                 false
             } else if TU.contains(x) && y == 'z' {
@@ -317,10 +324,18 @@ fn try_to_anunasika(p: &mut Prakriya) -> Option<()> {
         let y = p.get(i + 1)?;
         if x.is_pada() && x.has_antya(&*YAR) && y.has_adi(&*ANUNASIKA) {
             // For now, apply the rule to just these sounds.
-            if x.has_antya('d') || x.has_antya('t') {
+            let sub = match x.antya().expect("ok") {
+                'k' | 'g' => Some("N"),
+                'c' | 'j' => Some("Y"),
+                'w' | 'q' => Some("R"),
+                't' | 'd' => Some("n"),
+                'p' | 'b' => Some("m"),
+                // TODO: support others.
+                _ => None,
+            };
+            if let Some(sub) = sub {
                 // By convention, this rule is always applied in classical Sanskrit.
-                p.dump();
-                p.op_term("8.4.45", i, |t| t.set_antya("n"));
+                p.op_term("8.4.45", i, |t| t.set_antya(sub));
             }
         }
     }
@@ -450,6 +465,33 @@ fn try_to_savarna(p: &mut Prakriya) {
             });
             true
         },
+    );
+
+    char_rule(p, xy(|x, y| JHAY.contains(x) && y == 'h'), |p, text, i| {
+        p.op_optional("8.4.62", |p| {
+            let sub = match text.as_bytes().get(i).map(|x| *x as char) {
+                Some('k') => Some("G"),
+                Some('g') => Some("G"),
+                Some('c') => Some("J"),
+                Some('j') => Some("J"),
+                Some('w') => Some("Q"),
+                Some('q') => Some("Q"),
+                Some('t') => Some("D"),
+                Some('d') => Some("D"),
+                Some('p') => Some("B"),
+                Some('b') => Some("B"),
+                _ => None,
+            };
+            if let Some(sub) = sub {
+                set_at(p, i + 1, sub)
+            }
+        })
+    });
+
+    char_rule(
+        p,
+        xyz(|x, y, z| JHAY.contains(x) && y == 'S' && AT.contains(z)),
+        |p, _, i| p.op_optional("8.4.63", |p| set_at(p, i + 1, "C")),
     );
 
     char_rule(

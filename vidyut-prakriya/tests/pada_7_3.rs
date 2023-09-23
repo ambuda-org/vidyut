@@ -9,12 +9,9 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn nic(u: &str, g: Gana) -> Dhatu {
-    d(u, g).with_sanadi(&[Sanadi::Nic])
-}
-
-fn yan_luk(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::YanLuk])
+/// Shorthand for creating a nijanta dhAtu.
+fn nic_d(u: &str, g: Gana) -> Dhatu {
+    nic(&d(u, g))
 }
 
 #[test]
@@ -49,9 +46,8 @@ fn sutra_7_3_4() {
 #[test]
 fn sutra_7_3_32() {
     let han = d("ha\\na~", Adadi);
-    let han_nic = han.clone().with_sanadi(&[Sanadi::Nic]);
 
-    assert_has_lat_p(&[], &han_nic, &["GAtayati"]);
+    assert_has_lat_p(&[], &nic(&han), &["GAtayati"]);
     assert_has_krdanta(&[], &han, Krt::Rvul, &["GAtaka"]);
     assert_has_krdanta(&[], &han, Krt::GaY, &["GAta"]);
     assert_has_krdanta(&[], &han, Krt::Rini, &["GAtin"]);
@@ -119,82 +115,86 @@ fn sutra_7_3_35() {
 
 #[test]
 fn sutra_7_3_36() {
-    assert_has_lat_p(&[], &nic("f\\", Bhvadi), &["arpayati"]);
-    assert_has_lat_p(&[], &nic("f\\", Juhotyadi), &["arpayati"]);
-    assert_has_lat_p(&[], &nic("hrI\\", Juhotyadi), &["hrepayati"]);
-    assert_has_lat_p(&[], &nic("vlI\\", Kryadi), &["vlepayati"]);
-    assert_has_lat_p(&[], &nic("rI\\N", Divadi), &["repayati"]);
-    assert_has_lat_p(&[], &nic("rI\\", Kryadi), &["repayati"]);
-    assert_has_lat_p(&[], &nic("knUyI~\\", Bhvadi), &["knopayati"]);
-    assert_has_lat_p(&[], &nic("kzmAyI~\\", Bhvadi), &["kzmApayati"]);
-    assert_has_lat_p(&[], &nic("qudA\\Y", Bhvadi), &["dApayati"]);
-    assert_has_lat_p(&[], &nic("quDA\\Y", Bhvadi), &["DApayati"]);
+    assert_has_lat_p(&[], &nic_d("f\\", Bhvadi), &["arpayati"]);
+    assert_has_lat_p(&[], &nic_d("f\\", Juhotyadi), &["arpayati"]);
+    assert_has_lat_p(&[], &nic_d("hrI\\", Juhotyadi), &["hrepayati"]);
+    assert_has_lat_p(&[], &nic_d("vlI\\", Kryadi), &["vlepayati"]);
+    assert_has_lat_p(&[], &nic_d("rI\\N", Divadi), &["repayati"]);
+    assert_has_lat_p(&[], &nic_d("rI\\", Kryadi), &["repayati"]);
+    assert_has_lat_p(&[], &nic_d("knUyI~\\", Bhvadi), &["knopayati"]);
+    assert_has_lat_p(&[], &nic_d("kzmAyI~\\", Bhvadi), &["kzmApayati"]);
+    assert_has_lat_p(&[], &nic_d("qudA\\Y", Bhvadi), &["dApayati"]);
+    assert_has_lat_p(&[], &nic_d("quDA\\Y", Bhvadi), &["DApayati"]);
 }
 
 #[test]
 fn sutra_7_3_37() {
-    assert_has_lat_p(&[], &nic("So\\", Divadi), &["SAyayati"]);
-    assert_has_lat_p(&["ava"], &nic("Co\\", Divadi), &["avacCAyayati"]);
-    assert_has_lat_p(&["ava"], &nic("zE\\", Bhvadi), &["avasAyayati"]);
-    assert_has_lat_p(&[], &nic("hve\\Y", Kryadi), &["hvAyayati"]);
-    assert_has_lat_p(&["sam"], &nic("vye\\Y", Divadi), &["saMvyAyayati"]);
-    assert_has_lat_p(&[], &nic("pA\\", Bhvadi), &["pAyayati"]);
-    assert_has_lat_p(&[], &nic("pE\\", Bhvadi), &["pAyayati"]);
+    assert_has_lat_p(&[], &nic_d("So\\", Divadi), &["SAyayati"]);
+    assert_has_lat_p(&["ava"], &nic_d("Co\\", Divadi), &["avacCAyayati"]);
+    assert_has_lat_p(&["ava"], &nic_d("zE\\", Bhvadi), &["avasAyayati"]);
+    assert_has_lat_p(&[], &nic_d("hve\\Y", Kryadi), &["hvAyayati"]);
+    assert_has_lat_p(&["sam"], &nic_d("vye\\Y", Divadi), &["saMvyAyayati"]);
+    assert_has_lat_p(&[], &nic_d("pA\\", Bhvadi), &["pAyayati"]);
+    assert_has_lat_p(&[], &nic_d("pE\\", Bhvadi), &["pAyayati"]);
 }
 
 #[test]
 fn sutra_7_3_37_v1() {
-    assert_has_lat_p(&[], &nic("pA\\", Adadi), &["pAlayati"]);
+    assert_has_lat_p(&[], &nic_d("pA\\", Adadi), &["pAlayati"]);
 }
 
 #[test]
 fn sutra_7_3_37_v2() {
-    assert_has_lat_p(&[], &nic("DUY", Svadi), &["DUnayati", "DAvayati"]);
-    assert_has_lat_p(&[], &nic("prI\\Y", Kryadi), &["prIRayati", "prAyayati"]);
+    assert_has_lat_p(&[], &nic_d("DUY", Svadi), &["DUnayati", "DAvayati"]);
+    assert_has_lat_p(&[], &nic_d("prI\\Y", Kryadi), &["prIRayati", "prAyayati"]);
 }
 
 #[test]
 fn sutra_7_3_38() {
-    assert_has_lat_p(&[], &nic("vA\\", Adadi), &["vAjayati", "vApayati"]);
+    assert_has_lat_p(&[], &nic_d("vA\\", Adadi), &["vAjayati", "vApayati"]);
 }
 
 #[test]
 fn sutra_7_3_39() {
     assert_has_lat_p(
         &["vi"],
-        &nic("lI\\N", Divadi),
+        &nic_d("lI\\N", Divadi),
         &["vilInayati", "vilAyayati", "vilAlayati", "vilApayati"],
     );
     assert_has_lat_p(
         &["vi"],
-        &nic("lI\\", Kryadi),
+        &nic_d("lI\\", Kryadi),
         &["vilInayati", "vilAyayati", "vilAlayati", "vilApayati"],
     );
-    assert_has_lat_p(&["vi"], &nic("lA\\", Adadi), &["vilAlayati", "vilApayati"]);
+    assert_has_lat_p(
+        &["vi"],
+        &nic_d("lA\\", Adadi),
+        &["vilAlayati", "vilApayati"],
+    );
 }
 
 #[test]
 fn sutra_7_3_40() {
     assert_has_lat(
         &[],
-        &nic("YiBI\\", Juhotyadi),
+        &nic_d("YiBI\\", Juhotyadi),
         &["BIzayate", "BApayate", "BAyayati", "BAyayate"],
     );
 }
 
 #[test]
 fn sutra_7_3_41() {
-    assert_has_lat_p(&[], &nic("sPAyI~\\", Bhvadi), &["sPAvayati"]);
+    assert_has_lat_p(&[], &nic_d("sPAyI~\\", Bhvadi), &["sPAvayati"]);
 }
 
 #[test]
 fn sutra_7_3_42() {
-    assert_has_lat_p(&[], &nic("Sa\\dx~", Bhvadi), &["SAtayati", "SAdayati"]);
+    assert_has_lat_p(&[], &nic_d("Sa\\dx~", Bhvadi), &["SAtayati", "SAdayati"]);
 }
 
 #[test]
 fn sutra_7_3_43() {
-    assert_has_lat_p(&[], &nic("ru\\ha~", Bhvadi), &["ropayati", "rohayati"]);
+    assert_has_lat_p(&[], &nic_d("ru\\ha~", Bhvadi), &["ropayati", "rohayati"]);
 }
 
 #[test]
@@ -221,8 +221,7 @@ fn sutra_7_3_54() {
     let han = d("ha\\na~", Adadi);
     assert_has_jhi(&[], &han, Lat, &["Gnanti"]);
 
-    let han_nic = han.clone().with_sanadi(&[Sanadi::Nic]);
-    assert_has_lat_p(&[], &han_nic, &["GAtayati"]);
+    assert_has_lat_p(&[], &nic(&han), &["GAtayati"]);
     assert_has_krdanta(&[], &han, Krt::Rvul, &["GAtaka"]);
     assert_has_krdanta(&[], &han, Krt::Rini, &["GAtin"]);
     assert_has_krdanta(&[], &han, Krt::Ramul, &["GAtam"]);
@@ -238,10 +237,8 @@ fn sutra_7_3_54() {
 #[test]
 fn sutra_7_3_55() {
     let han = d("ha\\na~", Adadi);
-    let han_san = han.clone().with_sanadi(&[Sanadi::San]);
-    let han_yan = han.clone().with_sanadi(&[Sanadi::Yan]);
-    assert_has_lat(&[], &han_san, &["jiGAMsati"]);
-    assert_has_lat(&[], &han_yan, &["jaNGanyate"]);
+    assert_has_lat(&[], &san(&han), &["jiGAMsati"]);
+    assert_has_lat(&[], &yan(&han), &["jaNGanyate"]);
     assert_has_mip(&[], &han, Lit, &["jaGana", "jaGAna"]);
     // TODO: hananIyitum
 }
@@ -249,25 +246,20 @@ fn sutra_7_3_55() {
 #[test]
 fn sutra_7_3_56() {
     let hi = d("hi\\", Svadi);
-    let hi_san = hi.clone().with_sanadi(&[Sanadi::San]);
-    let hi_yan = hi.clone().with_sanadi(&[Sanadi::Yan]);
-    let hi_nic = hi.clone().with_sanadi(&[Sanadi::Nic]);
-    assert_has_lat(&["pra"], &hi_san, &["prajiGIzati"]);
-    assert_has_lat(&["pra"], &hi_yan, &["prajeGIyate"]);
+    assert_has_lat(&["pra"], &san(&hi), &["prajiGIzati"]);
+    assert_has_lat(&["pra"], &yan(&hi), &["prajeGIyate"]);
     assert_has_lit(&["pra"], &hi, &["prajiGAya"]);
     // acaNi
-    assert_has_lun_p(&["pra"], &hi_nic, &["prAjIhayat"]);
+    assert_has_lun_p(&["pra"], &nic(&hi), &["prAjIhayat"]);
 }
 
 #[test]
 fn sutra_7_3_57() {
     let ji = d("ji\\", Bhvadi);
-    let ji_san = ji.clone().with_sanadi(&[Sanadi::San]);
-    let ji_yan = ji.clone().with_sanadi(&[Sanadi::Yan]);
-    assert_has_lat(&[], &ji_san, &["jigIzati"]);
+    assert_has_lat(&[], &san(&ji), &["jigIzati"]);
     assert_has_lit(&[], &ji, &["jigAya"]);
     // sanlitoH
-    assert_has_lat(&[], &ji_yan, &["jejIyate"]);
+    assert_has_lat(&[], &yan(&ji), &["jejIyate"]);
     // exclude jyA -> ji
     let jya = d("jyA\\", Kryadi);
     assert_has_tas(&[], &jya, Lit, &["jijyatuH"]);
@@ -276,12 +268,10 @@ fn sutra_7_3_57() {
 #[test]
 fn sutra_7_3_58() {
     let ci = d("ci\\Y", Svadi);
-    let ci_san = ci.clone().with_sanadi(&[Sanadi::San]);
-    let ci_yan = ci.clone().with_sanadi(&[Sanadi::Yan]);
-    assert_has_lat_p(&[], &ci_san, &["cicIzati", "cikIzati"]);
+    assert_has_lat_p(&[], &san(&ci), &["cicIzati", "cikIzati"]);
     assert_has_lit_p(&[], &ci, &["cikAya", "cicAya"]);
     // sanlitoH
-    assert_has_lat(&[], &ci_yan, &["cecIyate"]);
+    assert_has_lat(&[], &yan(&ci), &["cecIyate"]);
 }
 
 #[test]
@@ -540,11 +530,7 @@ fn sutra_7_3_84() {
 fn sutra_7_3_85() {
     let jagf = d("jAgf", Adadi);
 
-    assert_has_lat_p(
-        &[],
-        &jagf.clone().with_sanadi(&[Sanadi::Nic]),
-        &["jAgarayati"],
-    );
+    assert_has_lat_p(&[], &nic(&jagf), &["jAgarayati"]);
     assert_has_krdanta(&[], &jagf, Krt::Rvul, &["jAgaraka"]);
     assert_has_krdanta(&[], &jagf, Krt::GaY, &["jAgara"]);
     assert_has_krdanta(&[], &jagf, Krt::kta, &["jAgarita"]);
@@ -562,11 +548,9 @@ fn sutra_7_3_85() {
 
 #[test]
 fn sutra_7_3_86() {
-    let nic = |u, g| d(u, g).with_sanadi(&[Sanadi::Nic]);
-
-    assert_has_lat_p(&[], &nic("vlI\\", Kryadi), &["vlepayati"]);
-    assert_has_lat_p(&[], &nic("hrI\\", Juhotyadi), &["hrepayati"]);
-    assert_has_lat_p(&[], &nic("knUyI~\\", Bhvadi), &["knopayati"]);
+    assert_has_lat_p(&[], &nic_d("vlI\\", Kryadi), &["vlepayati"]);
+    assert_has_lat_p(&[], &nic_d("hrI\\", Juhotyadi), &["hrepayati"]);
+    assert_has_lat_p(&[], &nic_d("knUyI~\\", Bhvadi), &["knopayati"]);
 
     let bhid = d("Bi\\di~^r", Rudhadi);
     let chid = d("Ci\\di~^r", Rudhadi);

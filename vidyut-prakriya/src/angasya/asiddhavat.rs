@@ -729,7 +729,7 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i: usize) -> Option<()> {
     let is_asamyogapurva = !is_samyogapurva(p, i);
     let anga = p.get(i)?;
     let n = p.view(j)?;
-    if anga.has_text("strI") {
+    if anga.has_text("strI") && n.last()?.is_pratyaya() {
         if n.last()?.has_u_in(&["am", "Sas"]) {
             p.op_optional("6.4.80", op::t(i, op::antya("iy")));
         } else {
@@ -827,11 +827,31 @@ pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
     }
 
     let dhatu = p.get(i_dhatu)?;
+    let n = p.view(i_ni + 1)?;
     let ni = p.get(i_ni)?;
-    if dhatu.has_tag(T::mit) && ni.has_u("Ric") && dhatu.has_upadha(&*AC) {
-        let dhatu = p.get(i_dhatu)?;
-        if let Some(sub) = al::to_hrasva(dhatu.upadha()?) {
-            p.op_term("6.4.92", i_dhatu, op::upadha(&sub.to_string()));
+    if ni.has_u("Ric") {
+        if n.has_u("Kac") {
+            p.op_term("6.4.94", i_dhatu, op::upadha_hrasva);
+        } else if dhatu.has_u("hlAdI~\\") && n.has_tag(T::Nistha) {
+            p.op_term("6.4.95", i_dhatu, op::upadha_hrasva);
+        } else if dhatu.has_u("Cada~") {
+            let num_upasargas = p.terms()[..i_dhatu]
+                .iter()
+                .filter(|t| t.is_upasarga())
+                .count();
+            if n.has_u("Ga") && num_upasargas < 2 {
+                p.op_term("6.4.96", i_dhatu, op::upadha_hrasva);
+            } else if n.has_u_in(&["isi~", "mani~n", "zwran", "kvi~p"]) {
+                p.op_term("6.4.97", i_dhatu, op::upadha_hrasva);
+            }
+        } else if dhatu.has_tag(T::mit) && dhatu.has_upadha(&*AC) {
+            let mut run = true;
+            if n.has_u_in(&["ciR", "Ramu~l"]) {
+                run = p.op_optional("6.4.93", |_| {});
+            }
+            if run {
+                p.op_term("6.4.92", i_dhatu, op::upadha_hrasva);
+            }
         }
     }
 

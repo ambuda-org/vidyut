@@ -67,9 +67,11 @@ use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::krt::utils::KrtPrakriya;
 use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::prakriya::{Prakriya, Rule};
 use crate::sounds::{s, Set};
+use crate::stem_gana::TYAD_ADI;
 use crate::tag::Tag as T;
+use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -77,6 +79,7 @@ lazy_static! {
     static ref IK: Set = s("ik");
     static ref PU: Set = s("pu~");
     static ref HAL: Set = s("hal");
+    static ref EMPTY_TERM: Term = Term::make_text("");
 }
 
 fn is_nandi_grahi_pacadi(p: &KrtPrakriya, i: usize) -> bool {
@@ -113,6 +116,372 @@ fn is_nandi_grahi_pacadi(p: &KrtPrakriya, i: usize) -> bool {
     dhatu.has_text_in(NAND_ADI) || dhatu.has_text_in(PAC_ADI)
 }
 
+fn try_add_upapada_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
+    use Krt::*;
+
+    const DIVA_ADI: &[&str] = &[
+        "divA", "viBA", "niSA", "praBA", "BAs", "kAra", "anta", "ananta", "Adi", "bahu", "nAndI",
+        "kim", "lipi", "libi", "bali", "Bakti", "kartf", "citra", "kzetra", "jaNGA", "bAhu",
+        "ahas", "yat", "tat", "Danus", "arus",
+    ];
+    const ADHYA_ADI: &[&str] = &[
+        "AQya", "suBaga", "sTUla", "palita", "nagna", "anDa", "priya",
+    ];
+
+    // For convenience below, wrap `Prakriya` in a new `KrtPrakriya` type that contains `krt` and
+    // records whether or not any of these rules were applied.
+    let mut wrap = KrtPrakriya::new(p, krt);
+    let i_dhatu = wrap.p.find_first_where(|t| t.is_dhatu())?;
+    let dhatu = wrap.get(i_dhatu)?;
+
+    let upapada = match wrap.p.get_if(0, |t| t.has_tag(T::Pratipadika)) {
+        Some(t) => t,
+        None => &EMPTY_TERM,
+    };
+
+    let nau = wrap.p.has(i_dhatu + 1, |t| t.has_u("Ric"));
+    let upasarge = i_dhatu > 0 && wrap.p.has(i_dhatu - 1, |t| t.is_upasarga());
+
+    match krt {
+        aR | ka | ac | wa | wak => {
+            if upapada.has_text_in(&["kzema", "priya", "madre"]) && dhatu.has_u("qukf\\Y") {
+                // Also repeated for khac below.
+                wrap.try_add("3.2.44", aR);
+            } else if dhatu.has_u_in(&["hve\\Y", "ve\\Y", "mA\\N"]) {
+                wrap.try_add("3.2.2", aR);
+            } else if dhatu.has_u("zWA\\") {
+                // Also 3.2.77
+                wrap.try_add("3.2.4", ka);
+            } else if dhatu.has_u("KyAY") {
+                // gosaNKya
+                wrap.try_add("3.2.7", ka);
+            } else if !upasarge && dhatu.has_u("gE\\") {
+                // for pA, see 3.2.8.v1 below.
+                wrap.try_add("3.2.8", wak);
+            } else if upapada.has_text_in(&["surA", "SIDu"])
+                && !upasarge
+                && dhatu.has_u("pA\\")
+                && dhatu.has_gana(Gana::Bhvadi)
+            {
+                wrap.try_add("3.2.8.v1", wak);
+            } else if dhatu.has_u("hf\\Y") {
+                if wrap.has_upasarga(i_dhatu, "AN") {
+                    // tAcCIlye
+                    wrap.optional_try_add("3.2.11", ac);
+                } else {
+                    // an-udyamane, vayasi
+                    wrap.optional_try_add("3.2.9", ac);
+                }
+            } else if dhatu.has_u("graha~^") {
+                if upapada.has_text_in(&[
+                    "Sakti", "lANgala", "aNkuSa", "yazwi", "tomara", "Gawa", "GaWI", "Danus",
+                ]) {
+                    wrap.try_add("3.2.9.v1", ac);
+                } else if upapada.has_text("sUtra") {
+                    // dhAri-arthe
+                    wrap.optional_try_add("3.2.9.v2", ac);
+                }
+            } else if !upasarge && dhatu.has_antya('A') {
+                wrap.try_add("3.2.3", ka);
+            } else if wrap.has_upasarga_dhatu(i_dhatu, "pari", "mfjU~")
+                || wrap.has_upasarga_dhatu(i_dhatu, "apa", "Ru\\da~^")
+            {
+                wrap.try_add("3.2.5", ka);
+            } else if wrap.has_upasarga(i_dhatu, "pra") && dhatu.has_u_in(&["qudA\\Y", "jYA\\"]) {
+                wrap.try_add("3.2.6", ka);
+            } else if wrap.has_upasarga(i_dhatu, "AN") && dhatu.has_u("hf\\Y") {
+                wrap.try_add("3.2.11", ac);
+            } else if dhatu.has_u("arha~") {
+                wrap.try_add("3.2.12", ac);
+            } else if upapada.has_text("Sam") {
+                wrap.try_add("3.2.14", ac);
+            } else if dhatu.has_u("SIN") {
+                wrap.try_add("3.2.15", ac);
+            } else if dhatu.has_u("cara~") {
+                if upapada.has_text_in(&["BikzA", "senA", "AdAya"]) {
+                    wrap.try_add("3.2.17", wa);
+                } else {
+                    wrap.try_add("3.2.16", wa);
+                }
+            } else if dhatu.has_u("sf\\") {
+                if upapada.has_text_in(&["puraH", "agrataH", "agre"]) {
+                    wrap.try_add("3.2.18", wa);
+                } else if upapada.has_text("pUrva") {
+                    wrap.try_add("3.2.19", wa);
+                }
+            } else if dhatu.has_u("qukf\\Y") {
+                if upapada.has_text_in(&DIVA_ADI) || upapada.has_tag(T::Sankhya) {
+                    wrap.try_add("3.2.21", wa);
+                } else if upapada.has_text("karman") {
+                    wrap.optional_try_add("3.2.22", wa);
+                } else if upapada.has_text_in(&[
+                    "Sabda", "Sloka", "kalaha", "gATA", "vEra", "cAwu", "sUtra", "mantra", "pada",
+                ]) {
+                    wrap.p.step("3.2.23");
+                } else {
+                    wrap.try_add("3.2.20", wa);
+                }
+            } else if dhatu.has_u("ha\\na~") {
+                if upapada.has_text_in(&["jAyA", "pati"]) {
+                    // Sense is "lakshane".
+                    wrap.optional_try_add("3.2.52", krt);
+                } else if upapada.has_text_in(&["hastin", "kapAwa"]) {
+                    // Sense is "shaktau".
+                    wrap.optional_try_add("3.2.54", krt);
+                } else if upapada.has_text_in(&["pARi", "tAqa"]) && krt == ka {
+                    let sub = if upapada.has_text("pARi") {
+                        "pARiGa"
+                    } else {
+                        "tAqaGa"
+                    };
+                    wrap.optional_do_nipatana("3.2.55", sub);
+                } else {
+                    // Sense is "a-manuSya-kartrke".
+                    wrap.optional_try_add("3.2.53", krt);
+                }
+            }
+
+            // (base case)
+            if !wrap.has_krt {
+                // kumBakAra, ...
+                wrap.try_add("3.2.1", aR);
+            }
+        }
+
+        in_ => {
+            if upapada.has_text_in(&["stamba", "Sakft"]) && dhatu.has_u("qukf\\Y") {
+                wrap.try_add("3.2.24", krt);
+            } else if dhatu.has_u("hf\\Y") {
+                if upapada.has_text_in(&["dfti", "nATa"]) {
+                    wrap.try_add("3.2.25", krt);
+                }
+            } else if (upapada.has_text("Pala") && dhatu.has_u("graha~^"))
+                || (upapada.has_text("Atman") && dhatu.has_u("quBf\\Y"))
+            {
+                let sub = if upapada.has_text("Pala") {
+                    "Palegrahi"
+                } else {
+                    "AtmamBari"
+                };
+                wrap.do_nipatana("3.2.26", sub);
+            }
+        }
+        KaS => {
+            let nasika = upapada.has_text("nAsikA");
+            let stana = upapada.has_text("stana");
+            let dhma = dhatu.has_u("DmA\\");
+            let dhe = dhatu.has_u("De\\w");
+            if dhatu.has_text("ej") && nau {
+                wrap.try_add("3.2.28", krt);
+            } else if (nasika && (dhma || dhe)) || (stana && dhe) {
+                wrap.try_add("3.2.29", krt);
+            } else if (dhma || dhe) && upapada.has_text_in(&["nAqI", "muzwi"]) {
+                wrap.try_add("3.2.30", krt);
+            } else if upapada.has_text("kUla")
+                && wrap.has_upasarga(i_dhatu, "ud")
+                && dhatu.has_u_in(&["ru\\jo~", "va\\ha~^"])
+            {
+                wrap.try_add("3.2.31", krt);
+            } else if upapada.has_text_in(&["vaha", "aBra"]) && dhatu.has_u("li\\ha~^") {
+                wrap.try_add("3.2.32", krt);
+            } else if dhatu.has_u("qupa\\ca~^z") {
+                if upapada.has_text_in(&["mita", "naKa"]) {
+                    wrap.try_add("3.2.34", krt);
+                } else {
+                    wrap.try_add("3.2.33", krt);
+                }
+            } else if upapada.has_text_in(&["viDu", "arus"]) && dhatu.has_u("tu\\da~^") {
+                wrap.try_add("3.2.35", krt);
+            } else if (upapada.has_text("asUrya") && dhatu.has_u("df\\Si~r"))
+                || (upapada.has_text("lalAwa") && dhatu.has_u("ta\\pa~"))
+            {
+                wrap.try_add("3.2.36", krt);
+            } else if (upapada.has_text("ugra") && dhatu.has_u("df\\Si~r"))
+                || (upapada.has_text("irA") && dhatu.has_u("madI~"))
+                || (upapada.has_text("pARi") && dhatu.has_u("DmA\\"))
+            {
+                let sub = if upapada.has_text("ugra") {
+                    "ugrampaSya"
+                } else if upapada.has_text("irA") {
+                    "irammada"
+                } else {
+                    "pARinDama"
+                };
+                wrap.do_nipatana("3.2.37", sub);
+            } else if dhatu.has_u("ma\\na~\\") {
+                wrap.try_add("3.2.83", krt);
+            }
+        }
+
+        Kac => {
+            if upapada.has_text_in(&["priya", "vaSa"]) && dhatu.has_u("vada~") {
+                wrap.try_add("3.2.38", krt);
+            } else if upapada.has_text_in(&["dvizat", "para"]) && dhatu.has_text("tAp") && nau {
+                wrap.try_add("3.2.39", krt);
+            } else if upapada.has_text("vAc") && dhatu.has_text("yam") {
+                wrap.try_add("3.2.40", krt);
+            } else if upapada.has_text_in(&["pur", "sarva"])
+                && ((dhatu.has_text("dAr") && nau) || dhatu.has_text("sah"))
+            {
+                wrap.try_add("3.2.41", krt);
+            } else if upapada.has_text_in(&["sarva", "kUla", "aBra", "karIza"])
+                && dhatu.has_text("kaz")
+            {
+                wrap.try_add("3.2.42", krt);
+            } else if dhatu.has_u("qukf\\Y") {
+                if upapada.has_text_in(&["meGa", "fti", "Baya"]) {
+                    wrap.try_add("3.2.43", krt);
+                } else if upapada.has_text_in(&["kzema", "priya", "madra"]) {
+                    wrap.try_add("3.2.44", krt);
+                }
+            } else if upapada.has_text("ASita") && dhatu.has_u("BU") {
+                wrap.try_add("3.2.45", krt);
+            }
+        }
+
+        qa => {
+            if dhatu.has_u("ga\\mx~") {
+                if upapada.has_text_in(&[
+                    "anta", "atyanta", "aDvan", "dUra", "pAra", "sarva", "ananta",
+                ]) {
+                    wrap.try_add("3.2.48", krt);
+                }
+            } else if dhatu.has_u("ha\\na~") {
+                if upapada.has_text_in(&["kleSa", "tamas"]) && wrap.has_upasarga(i_dhatu, "apa") {
+                    wrap.try_add("3.2.50", krt);
+                } else {
+                    wrap.try_add("3.2.49", krt);
+                }
+            } else if dhatu.has_u("janI~\\") {
+                // TODO: upapada
+                wrap.try_add("3.2.97", krt);
+            }
+        }
+
+        Rini => {
+            if upapada.has_text_in(&["kumAra", "Sirza"]) && dhatu.has_u("ha\\na~") {
+                wrap.try_add("3.2.51", krt);
+            } else if upapada.has_text("vrata") {
+                wrap.try_add("3.2.80", krt);
+            } else if dhatu.has_u("ma\\na~\\") {
+                wrap.try_add("3.2.82", krt);
+            } else if dhatu.has_u("ya\\ja~^") {
+                wrap.try_add("3.2.85", krt);
+            } else if dhatu.has_u("ha\\na~") {
+                wrap.try_add("3.2.86", krt);
+            } else {
+                wrap.try_add("3.2.78", krt);
+            }
+        }
+
+        Kyun => {
+            if upapada.has_text_in(&ADHYA_ADI) && dhatu.has_u("qukf\\Y") {
+                wrap.try_add("3.2.56", krt);
+            }
+        }
+
+        KizRuc | KukaY => {
+            if upapada.has_text_in(&ADHYA_ADI) && dhatu.has_u("BU") {
+                wrap.try_add("3.2.57", krt);
+            }
+        }
+
+        kvin | kaY => {
+            if upapada.has_text_in(TYAD_ADI) && dhatu.has_u("df\\Si~r") {
+                wrap.try_add("3.2.60", krt);
+            } else if krt == kvin {
+                if !upapada.has_text("udaka") && dhatu.has_text("spfS") {
+                    wrap.try_add("3.2.58", kvin);
+                } else {
+                    let code = "3.2.59";
+                    if upapada.has_text("ftu") && dhatu.has_u("ya\\ja~^") {
+                        wrap.do_nipatana(code, "ftvij");
+                    } else if dhatu.has_u("YiDfzA~") {
+                        wrap.do_nipatana(code, "daDfz");
+                    } else if dhatu.has_u("sf\\ja~") {
+                        wrap.do_nipatana(code, "sraj");
+                    } else if dhatu.has_u("di\\Sa~^") {
+                        wrap.do_nipatana(code, "diS");
+                    } else if wrap.has_upasarga(i_dhatu, "ud") && dhatu.has_u("zRi\\ha~") {
+                        wrap.do_nipatana(code, "uzRih");
+                    } else if dhatu.has_u("ancu~") {
+                        wrap.p.op_term(code, i_dhatu, |t| {
+                            t.set_text("aYc");
+                            t.add_tag(T::Krt);
+                        });
+                        // HACK: update bookkeeping here.
+                        wrap.has_krt = true;
+                        wrap.tried = true;
+                    } else if dhatu.has_u("yu\\ji~^r") {
+                        wrap.do_nipatana(code, "yuj");
+                    } else if dhatu.has_u("krunca~") {
+                        wrap.do_nipatana(code, "kruYc");
+                    }
+                }
+            }
+        }
+
+        viw => {
+            if dhatu.has_u("a\\da~") {
+                if upapada.has_text("kravya") {
+                    wrap.try_add("3.2.69", krt);
+                } else if !upapada.has_text("anna") {
+                    wrap.try_add("3.2.68", krt);
+                }
+            }
+        }
+
+        kap => {
+            if dhatu.has_u("du\\ha~^") {
+                wrap.try_add_with("3.2.70", krt, |p, i| {
+                    p.set(i, |t| t.set_antya("G"));
+                });
+            }
+        }
+
+        kvip => {
+            if dhatu.has_u("ha\\na~") {
+                if upapada.has_text_in(&["brahman", "BrURa", "vftra"]) {
+                    wrap.try_add("3.2.87", krt);
+                }
+            } else if dhatu.has_u("zWA\\") {
+                wrap.try_add("3.2.77", krt);
+            } else if upapada.has_text("soma") && dhatu.has_u("zu\\Y") {
+                wrap.try_add("3.2.90", krt);
+            } else if upapada.has_text("agni") && dhatu.has_u("ci\\Y") {
+                wrap.try_add("3.2.91", krt);
+            } else {
+                wrap.try_add("3.2.76", krt);
+            }
+        }
+
+        ini => {
+            if wrap.has_upasarga(i_dhatu, "vi") && dhatu.has_u("qukrI\\Y") {
+                if upapada.has_text("DAnya") {
+                    wrap.p.step(Rule::Kashika("3.2.93"));
+                } else {
+                    wrap.try_add("3.2.93", krt);
+                }
+            }
+        }
+
+        kvanip => {
+            if dhatu.has_u("df\\Si~r") {
+                wrap.try_add("3.2.94", krt);
+            } else if dhatu.has_u_in(&["qukf\\Y", "yu\\Da~\\"]) {
+                if upapada.has_text("rAjan") {
+                    wrap.try_add("3.2.95", krt);
+                } else if upapada.has_text("saha") {
+                    wrap.try_add("3.2.96", krt);
+                }
+            }
+        }
+        _ => {}
+    }
+
+    Some(wrap.has_krt)
+}
+
 /// Runs rules that try to add `krt` in one of three specific senses. (3.2.134 - 3.2.179)
 ///
 /// The three senses of these pratyayas are:
@@ -138,6 +507,8 @@ fn is_nandi_grahi_pacadi(p: &KrtPrakriya, i: usize) -> bool {
 /// That said, there are some minor exceptions here and there where multiple pratyayas can apply.
 fn try_add_krt_for_tacchila_etc(p: &mut KrtPrakriya, i: usize, krt: Krt) -> Option<()> {
     use Krt as K;
+
+    // `i` is the index of the last item called dhatu.
     let dhatu = p.get(i)?;
 
     let prev = if i > 0 { p.get(i - 1) } else { None };
@@ -252,7 +623,8 @@ fn try_add_krt_for_tacchila_etc(p: &mut KrtPrakriya, i: usize, krt: Krt) -> Opti
         }
     } else if dhatu.has_text_in(&["sTA", "IS", "BAs", "pis", "kas"]) {
         p.try_add("3.2.175", K::varac);
-    } else if dhatu.has_text("yA") && has_yan {
+    } else if i > 0 && p.p.has(i - 1, |t| t.has_text("yA")) && has_yan {
+        // yAyAvara
         p.try_add("3.2.176", K::varac);
     } else if dhatu.has_text_in(&["BrAj", "BAs", "Durv", "dyut", "Urj", "pF", "ju"]) {
         // TODO: grAva-stut
@@ -451,7 +823,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             } else if krt == K::ac {
                 // ajvidhiḥ sarvadhātubhyaḥ paṭhyante ca pacādayaḥ। aṇbādhanārtham eva
                 // syāt sidhyanti śvapacādayaḥ।
-                wrap.try_add("3.1.134", K::ac);
+                wrap.try_add(Rule::Kashika("3.1.134"), K::ac);
             } else if dhatu.has_u_in(&["wudu\\", "RI\\Y"]) && !upasarge {
                 wrap.try_add("3.1.142", K::Ra);
             } else if dhatu.has_u("graha~^") {
@@ -486,26 +858,6 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 wrap.try_add("3.1.146", krt);
             } else if dhatu.has_text("hA") {
                 wrap.try_add("3.1.148", krt);
-            }
-        }
-
-        K::wa => {
-            if dhatu.has_u("cara~") {
-                // TODO: upapada
-                wrap.try_add("3.2.16", krt);
-            }
-        }
-
-        K::Kac => {
-            if dhatu.has_u("vada~") {
-                // TODO: restrict
-                wrap.try_add("3.2.38", krt);
-            }
-        }
-
-        K::kvin => {
-            if dhatu.has_text("spfS") {
-                wrap.try_add("3.2.58", krt);
             }
         }
 
@@ -544,13 +896,6 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             }
         }
 
-        K::qa => {
-            if dhatu.has_u("janI~\\") {
-                // TODO: upapada
-                wrap.try_add("3.2.97", krt);
-            }
-        }
-
         K::kta | K::ktavatu => {
             if dhatu.has_tag(T::YIt) {
                 wrap.try_add("3.2.187", Krt::kta);
@@ -558,7 +903,8 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             wrap.try_add("3.2.102", krt);
 
             if wrap.has_krt {
-                wrap.p.op_term("1.1.26", i + 1, op::add_tag(T::Nistha));
+                let i_last = wrap.p.terms().len() - 1;
+                wrap.p.op_term("1.1.26", i_last, op::add_tag(T::Nistha));
             }
         }
 
@@ -593,7 +939,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             // > sarvāṇyadhijagmuṣaste ityādi ॥
             // -- Siddhanta Kaumudi on 3.2.107.
             if !wrap.has_krt {
-                let i_la = i + 1;
+                let i_la = wrap.p.terms().len() - 1;
                 if krt == K::kvasu && dhatu.has_text_in(&["sad", "vas", "Sru"]) {
                     wrap.try_replace_lakara("3.2.108", i_la, krt);
                 } else {
@@ -627,7 +973,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
             // 3.2.125 and 3.2.126 define other semantics conditions for Satf and SAnac.
             if has_pada_match && !wrap.has_krt {
-                let i_la = i + 1;
+                let i_la = wrap.p.terms().len() - 1;
                 wrap.try_replace_lakara("3.2.128", i_la, krt);
                 wrap.p.op_term("3.2.127", i_la, op::add_tag(T::Sat));
             }
@@ -653,12 +999,24 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
 
         K::zwran => {
-            const NI_ADI: &[&str] = &[
-                "nI", "Sas", "yu", "yuj", "stu", "tud", "si", "sic", "mih", "pat", "danS", "nah",
+            // TODO: move others over
+            const DAP_ADI: &[&str] = &[
+                "dA\\p",
+                "RI\\Y",
+                "Sasu~",
+                "yu",
+                "yu\\ji~^r",
+                "zwu\\Y",
+                "tu\\da~^",
+                "zi\\Y",
+                "zi\\ca~^",
+                "mi\\ha~",
+                "da\\nSa~",
+                "Ra\\ha~^",
             ];
-            if dhatu.has_text("DA") {
+            if dhatu.has_u("De\\w") {
                 wrap.try_add("3.2.181", krt);
-            } else if dhatu.has_u("dA\\p") || dhatu.has_text_in(NI_ADI) {
+            } else if dhatu.has_u_in(DAP_ADI) {
                 wrap.try_add("3.2.182", krt);
             } else if dhatu.has_text("pU") {
                 wrap.try_add("3.2.183", krt);
@@ -738,7 +1096,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
 
         K::a => {
-            if dhatu.is_pratyaya() {
+            if wrap.p.has(i, |t| t.is_pratyaya()) {
                 wrap.try_add_with("3.3.102", krt, |p, _| p.add_tag(T::Stri));
             } else if dhatu.is_guru() && dhatu.has_antya(&*HAL) {
                 wrap.try_add_with("3.3.103", krt, |p, _| p.add_tag(T::Stri));
@@ -759,7 +1117,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             wrap.try_add("3.3.115", krt);
         }
 
-        K::Ga => {}
+        K::Ga => {
+            wrap.try_add("3.3.118", krt);
+        }
 
         K::Kal => {
             // TODO: restrict
@@ -799,6 +1159,9 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
 /// Runs the rules that add a krt-pratyaya to a given dhatu. Returns whether a pratyaya was added.
 pub fn run(p: &mut Prakriya, krt: Krt) -> bool {
+    if try_add_upapada_krt(p, krt).unwrap_or(false) {
+        return true;
+    }
     try_add_krt(p, krt).unwrap_or(false)
 }
 

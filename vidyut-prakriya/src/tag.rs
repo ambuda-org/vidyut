@@ -15,8 +15,10 @@ use enumset::EnumSetType;
 pub enum Tag {
     // Morpheme types
     Upasarga,
+    Gati,
     Dhatu,
     Ghu,
+    Avyaya,
     Agama,
     Pratyaya,
     Pratipadika,
@@ -259,6 +261,9 @@ pub enum Tag {
     // Indicates that a derivation phase is complete, e.g. to avoid running abhyAsa rules
     // twice.
     Complete,
+
+    /// Indicates use of ru-Adesha.
+    Ru,
 }
 
 impl Tag {

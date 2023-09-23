@@ -97,9 +97,18 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 wrap.try_add(Unadi("1.77"), krt);
             }
         }
+        K::manin => {
+            wrap.try_add(Unadi("1.144"), krt);
+        }
         K::kTan => {
             if dhatu.has_u_in(&["ha\\na~", "kuza~", "RI\\Y", "ama~", "kASf~"]) {
                 wrap.try_add(Unadi("2.2"), krt);
+            }
+        }
+        K::isi => {
+            if dhatu.has_u_in(&["arca~", "I~Suci~^r", "hu\\", "sf\\px~", "Cada~", "Carda~"]) {
+                wrap.try_add(Unadi("2.108"), krt);
+                // TODO: id-antaH api
             }
         }
         K::kan => {
@@ -224,6 +233,33 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 }
                 _ => (),
             };
+        }
+        K::ini => {
+            let set_nit = |p: &mut Prakriya, i: usize| p.set(i + 1, |t| t.add_tag(T::Rit));
+            let set_kit = |p: &mut Prakriya, i: usize| p.set(i + 1, |t| t.add_tag(T::kit));
+            if dhatu.has_u("ga\\mx~") {
+                if wrap.has_upasarga(i, "AN") {
+                    wrap.try_add_with(Unadi("4.7"), krt, set_nit);
+                } else {
+                    wrap.try_add(Unadi("4.6"), krt);
+                }
+            } else if dhatu.has_u("BU") {
+                wrap.try_add_with(Unadi("4.8"), krt, set_nit);
+            } else if dhatu.has_u("zWA\\") {
+                if wrap.has_upasarga(i, "pra") {
+                    // prasTAyin
+                    wrap.try_add_with(Unadi("4.9"), krt, set_nit);
+                } else {
+                    // paramezWin
+                    wrap.try_add_with(Unadi("4.10"), krt, set_kit);
+                }
+            } else if dhatu.has_u("maTi~") {
+                // maTin
+                wrap.try_add_with(Unadi("4.11"), krt, set_kit);
+            } else if dhatu.has_u("patx~") {
+                // paTin
+                wrap.try_add_with(Unadi("4.12"), krt, |p, i| p.set(i, |t| t.set_antya("T")));
+            }
         }
         K::kvinUnadi => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {

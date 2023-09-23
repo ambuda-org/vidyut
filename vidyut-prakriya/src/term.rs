@@ -262,6 +262,16 @@ impl Term {
         self.has_tag(Tag::Sup)
     }
 
+    /// Returns whether the term has the `Avyaya` samjna.
+    pub fn is_avyaya(&self) -> bool {
+        self.has_tag(Tag::Avyaya)
+    }
+
+    /// Returns whether the term has the `Sarvanama` samjna.
+    pub fn is_sarvanama(&self) -> bool {
+        self.has_tag(Tag::Sarvanama)
+    }
+
     /// Returns whether the term has the `Vibhakti` samjna.
     pub fn is_vibhakti(&self) -> bool {
         self.has_tag(Tag::Vibhakti)

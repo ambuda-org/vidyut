@@ -7,6 +7,7 @@ words are derived in the system. For details, see `AshtadhyayiBuilder`.
 use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
+use crate::args::Upapada;
 use crate::args::{
     Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, SubantaArgs, TaddhitantaArgs,
     TinantaArgs,
@@ -59,7 +60,7 @@ fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Result<(
     }
 
     if !dhatu.sanadi().is_empty() {
-        p.debug("~~~~~~~~~~~~~~ completed sanadi-dhatu ~~~~~~~~~~~~~~~~~~")
+        p.debug("~~~~~~~~~~~~~~ completed dhatu ~~~~~~~~~~~~~~~~~~")
     }
 
     Ok(())
@@ -229,15 +230,31 @@ fn derive_subanta(
     Ok(prakriya)
 }
 
+/// Derives a single krdanta from the given conditions.
 fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result<Prakriya> {
-    let krt = args.krt();
     let p = &mut prakriya;
 
+    if let Some(upa) = args.upapada() {
+        let mut upapada = Term::make_upadesha(upa.text());
+        upapada.add_tag(Tag::Pratipadika);
+        match upa {
+            Upapada::Avyaya(_) => upapada.add_tag(Tag::Avyaya),
+            _ => (),
+        }
+        p.push(upapada);
+
+        let mut su = Term::make_text("");
+        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup, Tag::Pada]);
+        p.push(su);
+        samjna::run(p);
+    }
+
+    let krt = args.krt();
     add_dhatu(p, dhatu, krt.is_ardhadhatuka())?;
     maybe_add_lakara_for_krt(p, krt);
     vikarana::try_add_am_pratyaya_for_lit(p);
 
-    let added = krt::run(p, krt);
+    let added = krt::run(p, args);
     if !added {
         return Err(Error::Abort(prakriya));
     }
@@ -270,6 +287,24 @@ fn derive_taddhitanta(
     linganushasanam::run(p);
     stritva::run(p);
     samjna::run(p);
+
+    run_rules(p, None, false)?;
+
+    Ok(prakriya)
+}
+
+fn derive_vakya(
+    mut prakriya: Prakriya,
+    first: impl AsRef<str>,
+    second: impl AsRef<str>,
+) -> Result<Prakriya> {
+    let p = &mut prakriya;
+    let mut pada1 = Term::make_text(&first.as_ref());
+    let mut pada2 = Term::make_text(&second.as_ref());
+    pada1.add_tag(Tag::Pada);
+    pada2.add_tag(Tag::Pada);
+    p.push(pada1);
+    p.push(pada2);
 
     run_rules(p, None, false)?;
 
@@ -439,6 +474,13 @@ impl Ashtadhyayi {
     ) -> Vec<Prakriya> {
         let mut stack = PrakriyaStack::new();
         stack.find_all(|p| derive_taddhitanta(p, pratipadika, args), self.log_steps);
+        stack.prakriyas()
+    }
+
+    /// Returns all possible sandhi results that follow from the given initial conditions.
+    pub fn derive_vakyas(&self, first: impl AsRef<str>, second: impl AsRef<str>) -> Vec<Prakriya> {
+        let mut stack = PrakriyaStack::new();
+        stack.find_all(|p| derive_vakya(p, &first, &second), self.log_steps);
         stack.prakriyas()
     }
 }

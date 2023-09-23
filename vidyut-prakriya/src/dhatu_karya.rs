@@ -1,3 +1,13 @@
+/*
+Adds a dhatu to the prakriya.
+
+Operations here include:
+- natva
+- satva
+- mittva
+- inserting upasargas
+- applying gana sutras
+*/
 use crate::args::Antargana;
 use crate::args::Dhatu;
 use crate::args::Gana;
@@ -10,14 +20,13 @@ use crate::stem_gana::PRA_ADI;
 use crate::tag::Tag as T;
 use crate::term::Term;
 
-fn add_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
-    // The root enters the prakriyA
-    p.push(Term::make_dhatu(
-        dhatu.upadesha(),
-        dhatu.gana(),
-        dhatu.antargana(),
-    ));
-    p.op_term("1.3.1", 0, op::add_tag(T::Dhatu));
+/// Adds the mula-dhatu to the prakriya.
+fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
+    p.op("1.3.1", |p| {
+        let mut dhatu = Term::make_dhatu(dhatu.upadesha(), dhatu.gana(), dhatu.antargana());
+        dhatu.add_tag(T::Dhatu);
+        p.push(dhatu);
+    });
 }
 
 fn add_samjnas(p: &mut Prakriya, i: usize) {
@@ -165,46 +174,62 @@ fn try_add_num_agama(p: &mut Prakriya, i: usize) {
     }
 }
 
-/// Adds upasargas from `dhatu` into the prakriya.
+/// Adds prefixes from `dhatu` into the prakriya.
 fn try_add_prefixes(p: &mut Prakriya, dhatu: &Dhatu) -> Option<()> {
+    let i_offset = p.find_first(T::Dhatu)?;
+
     // TODO: prefixes that aren't upasargas?
     for (i, prefix) in dhatu.prefixes().iter().enumerate() {
+        let i_upasarga = i + i_offset;
         let mut t = Term::make_upadesha(prefix);
 
         if PRA_ADI.contains(&prefix.as_str()) {
             t.add_tag(T::Upasarga);
-            p.insert_before(i, t);
+            p.insert_before(i_upasarga, t);
             p.step("1.4.80");
         } else {
-            p.insert_before(i, t);
+            p.insert_before(i_upasarga, t);
         }
 
         // Don't run it-samjna-prakarana for other upasargas (e.g. sam, ud)
         // TODO: why run only for AN?
         if prefix == "AN" {
-            it_samjna::run(p, i).ok()?;
+            it_samjna::run(p, i_upasarga).ok()?;
         }
     }
 
     Some(())
 }
 
+/// Adds a dhatu to the prakriya and runs various follow-up rules on it.
 pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
-    add_dhatu(p, dhatu);
-    it_samjna::run(p, 0)?;
-    add_samjnas(p, 0);
+    add_mula_dhatu(p, dhatu);
+    let i_dhatu = p.terms().len() - 1;
 
-    try_satva_and_natva(p, 0);
-    try_add_num_agama(p, 0);
+    if p.has(i_dhatu, |t| t.has_u("CadiH")) {
+        // Handle an anomalous root from our dhatupatha.
+        p.set(i_dhatu, |t| {
+            t.set_text("Cad");
+            t.add_tag(T::mit);
+        });
+    } else {
+        // Standard dhatus.
+        it_samjna::run(p, i_dhatu)?;
+        add_samjnas(p, i_dhatu);
+    }
 
-    if p.get(0).expect("valid").has_antya('z') {
-        // For 8.4.18.
-        p.set(0, |t| t.add_tag(T::FlagShanta));
+    try_satva_and_natva(p, i_dhatu);
+    try_add_num_agama(p, i_dhatu);
+
+    // For rule 8.4.18.
+    if p.get(i_dhatu).expect("valid").has_antya('z') {
+        p.set(i_dhatu, |t| t.add_tag(T::FlagShanta));
     }
     p.maybe_save_sthanivat();
 
     try_add_prefixes(p, dhatu);
 
+    // Update `i_dhatu` because we added upasargas above.
     let i_dhatu = p.terms().len() - 1;
     try_run_bhvadi_gana_sutras(p);
     try_run_divadi_gana_sutras(p);

@@ -9,10 +9,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 
-fn nic(d: &Dhatu) -> Dhatu {
-    d.clone().with_sanadi(&[Sanadi::Nic])
-}
-
 fn dhatu_prati(text: &str) -> Pratipadika {
     Pratipadika::builder()
         .text(text)
@@ -201,4 +197,34 @@ fn sutra_1_4_59() {
 fn sutra_1_4_80() {
     assert_has_lat(&["vi"], &d("liKa~", Tudadi), &["viliKati"]);
     assert_has_lat_p(&["tiras"], &d("qukf\\Y", Tanadi), &["tiraskaroti"]);
+}
+
+#[test]
+fn sutra_1_4_105() {
+    let pac = d("qupa\\ca~^z", Bhvadi);
+    assert_has_sip(&[], &pac, Lat, &["pacasi"]);
+    assert_has_thas(&[], &pac, Lat, &["pacaTaH"]);
+    assert_has_tha(&[], &pac, Lat, &["pacaTa"]);
+}
+
+#[test]
+fn sutra_1_4_107() {
+    let pac = d("qupa\\ca~^z", Bhvadi);
+    assert_has_mip(&[], &pac, Lat, &["pacAmi"]);
+    assert_has_vas(&[], &pac, Lat, &["pacAvaH"]);
+    assert_has_mas(&[], &pac, Lat, &["pacAmaH"]);
+}
+
+#[test]
+fn sutra_1_4_108() {
+    let pac = d("qupa\\ca~^z", Bhvadi);
+    assert_has_tip(&[], &pac, Lat, &["pacati"]);
+    assert_has_tas(&[], &pac, Lat, &["pacataH"]);
+    assert_has_jhi(&[], &pac, Lat, &["pacanti"]);
+}
+
+#[test]
+fn sutra_1_4_109() {
+    assert_has_sandhi("daDi", "atra", &["daDyatra"]);
+    assert_has_sandhi("maDu", "atra", &["maDvatra"]);
 }

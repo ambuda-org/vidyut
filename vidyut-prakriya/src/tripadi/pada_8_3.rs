@@ -1,5 +1,5 @@
 use crate::args::Gana;
-use crate::char_view::{char_rule, set_at, xy};
+use crate::char_view::{get_term_and_offset_indices, set_at, xy, CharPrakriya};
 use crate::it_samjna;
 use crate::iterators::{xy_rule, xy_rule_rev};
 use crate::operators as op;
@@ -20,19 +20,28 @@ lazy_static! {
     static ref SHAR: Set = s("Sar");
     static ref HAL: Set = s("hal");
     static ref AC: Set = s("ac");
+    static ref AA: Set = s("a");
+    static ref ASH: Set = s("aS");
 }
 
 fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let c = p.get(i)?;
-        let is_avasana = p.find_next_where(i, |t| !t.is_empty()).is_none();
+        let is_avasane = p.find_next_where(i, |t| !t.is_empty()).is_none();
+        let is_khari = if let Some(j) = p.find_next_where(i, |t| !t.is_empty()) {
+            p.has(j, |t| t.has_adi(&*KHAR))
+        } else {
+            false
+        };
 
         // Quick HACK to remove `u~`
         if c.ends_with("ru~") {
             p.set(i, |t| {
                 t.set_antya("");
                 t.set_antya("");
+                t.add_tag(T::Ru);
             });
+            p.step("1.3.2");
         }
 
         // 8.3.15
@@ -50,7 +59,7 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
                     // this rule.
                     p.op_term("6.3.111", i, op::antya(&sub.to_string()));
                 }
-            } else if p.is_pada(i) && (is_avasana || p.has(i + 1, |t| t.has_adi(&*KHAR))) {
+            } else if p.is_pada(i) && (is_avasane || is_khari) {
                 p.op_term("8.3.15", i, |t| {
                     t.set_antya("");
                     t.text += "H";
@@ -58,6 +67,26 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
             }
         }
     }
+
+    xy_rule(
+        p,
+        |x, y| {
+            x.has_antya('r')
+                && x.has_tag(T::Ru)
+                && (x.has_text_in(&["Bo", "Bago", "aGo"]) || x.has_upadha(&*AA))
+                && y.has_adi(&*ASH)
+        },
+        |p, i, j| {
+            p.op_term("8.3.17", i, |t| t.set_antya("y"));
+            if p.has(j, |t| t.has_adi(&*AC)) {
+                // Though technically optional, avoid including other rules to prevent creating
+                // noisy output.
+                p.op_term("8.3.19", i, |t| t.set_antya(""));
+            } else {
+                p.op_term("8.3.22", i, |t| t.set_antya(""));
+            }
+        },
+    );
 
     Some(())
 }
@@ -67,19 +96,32 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
 /// Example: Sankate -> SaMkate
 fn try_mn_to_anusvara(p: &mut Prakriya) {
     for i in 0..p.terms().len() {
-        if p.has(i, |t| t.has_antya('m')) && p.is_pada(i) && p.has(i + 1, |t| t.has_adi(&*HAL)) {
-            p.op_term("8.3.23", i, |t| t.set_antya("M"));
+        if p.has(i, |t| t.has_antya('m')) && p.is_pada(i) {
+            if let Some(i_next) = p.find_next_where(i, |t| !t.is_empty()) {
+                if p.has(i_next, |t| t.has_adi(&*HAL)) {
+                    p.op_term("8.3.23", i, |t| t.set_antya("M"));
+                }
+            }
         }
     }
 
     // TODO: a-padAnta
-    char_rule(
-        p,
+    let mut cp = CharPrakriya::new(p);
+    cp.char_rule(
         xy(|x, y| (x == 'm' || x == 'n') && JHAL.contains(y)),
         |p, _, i| {
-            set_at(p, i, "M");
-            p.step("8.3.24");
-            true
+            if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
+                let t = p.get(i_term).expect("ok");
+                if t.is_pada() && i_offset + 1 == t.text.len() {
+                    false
+                } else {
+                    set_at(p, i, "M");
+                    p.step("8.3.24");
+                    true
+                }
+            } else {
+                false
+            }
         },
     );
 }
@@ -98,26 +140,45 @@ fn try_add_dhut_agama(p: &mut Prakriya) {
 
 /// Runs rules that modify the visarjanIya (visarga).
 /// (8.3.34 - 8.3.54)
-fn try_visarjaniyasya(p: &mut Prakriya) {
+fn try_visarjaniyasya(p: &mut Prakriya) -> Option<()> {
     let is_it_ut_upadha = |x: &Term| x.has_upadha('i') || x.has_upadha('u');
+    let is_samasa = |p: &Prakriya, i_x| p.has(i_x + 1, |t| t.is_empty() && t.is_pada());
 
-    xy_rule(
-        p,
-        |x, y| x.has_antya('H') && y.has_adi(&*SHAR),
-        |p, i, _| {
-            p.op_optional("8.3.36", op::t(i, |t| t.set_antya("s")));
-        },
-    );
+    for i_x in 0..p.terms().len() {
+        let x = p.get_if(i_x, |t| t.has_antya('H'))?;
+        let i_y = p.find_next_where(i_x, |t| !t.is_empty())?;
+        let y = p.get(i_y)?;
 
-    xy_rule(
-        p,
-        |x, y| {
-            x.has_antya('H') && is_it_ut_upadha(x) && !x.has_tag(T::Pratyaya) && y.has_adi(&*KU_PU)
-        },
-        |p, i, _| {
-            p.op_term("8.3.41", i, |t| t.set_antya("z"));
-        },
-    );
+        if y.has_adi(&*SHAR) {
+            p.op_optional("8.3.36", op::t(i_x, |t| t.set_antya("s")));
+        } else if y.has_at(1, &*SHAR) {
+            p.op_term("8.3.35", i_x, |_| {});
+        } else if y.has_adi(&*KU_PU) {
+            if x.has_text_in(&["namas", "puras"]) && x.has_tag(T::Gati) {
+                p.op_term("8.3.40", i_x, |t| t.set_antya("s"));
+            } else if is_it_ut_upadha(x) && !x.is_pratyaya() {
+                p.op_term("8.3.41", i_x, |t| t.set_antya("z"));
+            } else if x.has_text("tiras") && x.has_tag(T::Gati) {
+                p.op_optional("8.3.42", op::t(i_x, |t| t.set_antya("s")));
+            } else if x.text.ends_with("aH")
+                && is_samasa(p, i_x)
+                && !x.is_avyaya()
+                && y.has_u("qukf\\Y")
+            {
+                p.op_term("8.3.46", i_x, |t| t.set_antya("s"));
+            } else if x.has_text("BAH") && y.has_text("kar") {
+                // TODO: rest of kaskAdi
+                p.op_term("8.3.48", i_x, |t| t.set_antya("s"));
+            } else {
+                // TODO: jihvamuliya and upadhmaniya
+                p.op_term("8.3.37", i_x, |t| t.set_antya("H"));
+            }
+        } else {
+            p.op_term("8.3.34", i_x, |t| t.set_antya("s"));
+        }
+    }
+
+    Some(())
 }
 
 /// Checks if there are any rules that block shatva. If such a rule exists, return it so that we

@@ -349,6 +349,8 @@ pub fn try_add_taddhita(p: &mut Prakriya, t: Taddhita) -> Option<bool> {
             ];
             if prati.has_text_in(&["rAjan", "Svasura"]) {
                 wrap.try_add("4.1.137", t);
+            } else if prati.has_text_in(&["nO", "vayas", "Darma", "viza", "mUla", "sItA", "tulA"]) {
+                wrap.try_add("4.4.91", t);
             } else if prati.has_antya('u') || prati.has_antya('U') || prati.has_text_in(&GO_ADI) {
                 wrap.try_add("5.1.2", t);
             } else if prati.has_text_in(&["yava", "yavaka", "zazwika"]) {

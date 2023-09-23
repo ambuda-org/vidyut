@@ -5,10 +5,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::*;
 
-fn nic(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Nic])
-}
-
 #[test]
 fn sutra_1_1() {
     assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::uR, &["kAru"]);
@@ -37,15 +33,16 @@ fn sutra_1_45() {
 
 #[test]
 fn sutra_1_69() {
-    assert_has_krdanta(&[], &d("zi\\Y", Svadi), Krt::tun, &["setu"]);
-    assert_has_krdanta(&[], &d("tanu~^", Tanadi), Krt::tun, &["tantu"]);
-    assert_has_krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::tun, &["gantu"]);
-    assert_has_krdanta(&[], &d("masI~", Divadi), Krt::tun, &["mastu"]);
-    assert_has_krdanta(&[], &d("zaca~\\", Bhvadi), Krt::tun, &["saktu"]);
+    use Krt::tun;
+    assert_has_krdanta(&[], &d("zi\\Y", Svadi), tun, &["setu"]);
+    assert_has_krdanta(&[], &d("tanu~^", Tanadi), tun, &["tantu"]);
+    assert_has_krdanta(&[], &d("ga\\mx~", Bhvadi), tun, &["gantu"]);
+    assert_has_krdanta(&[], &d("masI~", Divadi), tun, &["mastu"]);
+    assert_has_krdanta(&[], &d("zaca~\\", Bhvadi), tun, &["saktu"]);
     // TODO: return to this later
     // assert_has_krdanta(&[], &d("ava~", Bhvadi), Krt::tun, &["otu"]);
-    assert_has_krdanta(&[], &d("quDA\\Y", Juhotyadi), Krt::tun, &["DAtu"]);
-    assert_has_krdanta(&[], &d("kru\\Sa~", Bhvadi), Krt::tun, &["krozwu"]);
+    assert_has_krdanta(&[], &d("quDA\\Y", Juhotyadi), tun, &["DAtu"]);
+    assert_has_krdanta(&[], &d("kru\\Sa~", Bhvadi), tun, &["krozwu"]);
 }
 
 #[test]
@@ -54,11 +51,34 @@ fn sutra_1_77() {
 }
 
 #[test]
+fn sutra_1_144() {
+    use Krt::manin;
+    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), manin, &["karman"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), manin, &["carman"]);
+    assert_has_krdanta(&[], &d("Basa~", Juhotyadi), manin, &["Basman"]);
+    assert_has_krdanta(&[], &d("janI~\\", Divadi), manin, &["janman"]);
+    assert_has_krdanta(&[], &d("SF", Kryadi), manin, &["Sarman"]);
+    assert_has_krdanta(&[], &d("Cada~", Curadi), manin, &["Cadman"]);
+    // TODO: sutrAman
+}
+
+#[test]
 fn sutra_2_2() {
     assert_has_krdanta(&[], &d("ha\\na~", Adadi), Krt::kTan, &["haTa"]);
     assert_has_krdanta(&[], &d("kuza~", Kryadi), Krt::kTan, &["kuzWa"]);
     assert_has_krdanta(&[], &d("RI\\Y", Tanadi), Krt::kTan, &["nITa"]);
     assert_has_krdanta(&[], &d("kASf~", Bhvadi), Krt::kTan, &["kAzWa"]);
+}
+
+#[test]
+fn sutra_2_108() {
+    assert_has_krdanta(&[], &d("arca~", Bhvadi), Krt::isi, &["arcis"]);
+    assert_has_krdanta(&[], &d("I~Suci~^r", Divadi), Krt::isi, &["Socis"]);
+    assert_has_krdanta(&[], &d("hu\\", Juhotyadi), Krt::isi, &["havis"]);
+    assert_has_krdanta(&[], &d("sf\\px~", Bhvadi), Krt::isi, &["sarpis"]);
+    assert_has_krdanta(&[], &d("Cada~", Curadi), Krt::isi, &["Cadis"]);
+    assert_has_krdanta(&[], &d("Carda~", Curadi), Krt::isi, &["Cardis"]);
+    // TODO: id-anta?
 }
 
 #[test]
@@ -163,6 +183,43 @@ fn sutra_4_2() {
     assert_has_krdanta(&[], &d("ku\\", Adadi), Krt::asa, &["kavasa"]);
     assert_has_krdanta(&[], &d("yu", Adadi), Krt::Asa, &["yavAsa"]);
     assert_has_krdanta(&[], &d("kfSa~", Divadi), Krt::Anuk, &["kfSAnu"]);
+}
+
+#[test]
+fn sutra_4_6() {
+    assert_has_krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::ini, &["gamin"]);
+}
+
+#[test]
+fn sutra_4_7() {
+    assert_has_krdanta(&["AN"], &d("ga\\mx~", Bhvadi), Krt::ini, &["AgAmin"]);
+}
+
+#[test]
+fn sutra_4_8() {
+    assert_has_krdanta(&[], &d("BU", Bhvadi), Krt::ini, &["BAvin"]);
+}
+
+#[test]
+fn sutra_4_9() {
+    assert_has_krdanta(&["pra"], &d("zWA\\", Bhvadi), Krt::ini, &["prasTAyin"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_4_10() {
+    assert_has_krdanta(&["parama"], &d("zWA\\", Bhvadi), Krt::ini, &["paramezWin"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_4_11() {
+    assert_has_krdanta(&[], &d("maTi~", Bhvadi), Krt::ini, &["maTin"]);
+}
+
+#[test]
+fn sutra_4_12() {
+    assert_has_krdanta(&[], &d("patx~", Bhvadi), Krt::ini, &["paTin"]);
 }
 
 #[test]

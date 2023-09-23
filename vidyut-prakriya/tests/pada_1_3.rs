@@ -8,14 +8,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
-fn nic(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Nic])
-}
-
-fn san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::San])
-}
-
 #[test]
 fn sutra_1_3_1_and_sutra_1_3_2() {
     assert_has_lat(&[], &d("BU", Bhvadi), &["Bavati"]);
@@ -85,9 +77,13 @@ fn sutra_1_3_7() {
     // Ya
     assert_has_taddhitanta(&prati("SaRqika"), T::Yya, &["SARqikya"]);
     // wa
-    assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::wa, &["cara"]);
+    let car = &d("cara~", Bhvadi);
+    assert_has_upapada_krdanta("kuru", &[], &car, Krt::wa, &["kurucara"]);
+    assert_has_upapada_krdanta("madra", &[], &car, Krt::wa, &["madracara"]);
     // qa
-    assert_has_krdanta(&[], &d("janI~\\", Divadi), Krt::qa, &["ja"]);
+    let jan = d("janI~\\", Divadi);
+    assert_has_upapada_krdanta("upasara", &[], &jan, Krt::qa, &["upasaraja"]);
+    assert_has_upapada_krdanta("mandura", &[], &jan, Krt::qa, &["manduraja"]);
     // Ignore Ca, Ja, Wa, Qa,
     // TODO: others
 }
@@ -105,7 +101,9 @@ fn sutra_1_3_8() {
     assert_has_krdanta(&[], &bhuj, Krt::kta, &["Bukta"]);
     assert_has_krdanta(&[], &bhuj, Krt::ktavatu, &["Buktavat"]);
     // Ka
-    assert_has_krdanta(&[], &d("vada~", Bhvadi), Krt::Kac, &["vada"]);
+    let vad = d("vada~", Bhvadi);
+    assert_has_upapada_krdanta("priya", &[], &vad, Krt::Kac, &["priyaMvada"]);
+    assert_has_upapada_krdanta("vaSa", &[], &vad, Krt::Kac, &["vaSaMvada"]);
     // ga
     assert_has_krdanta(&[], &d("glE\\", Bhvadi), Krt::ksnu, &["glAsnu"]);
     assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::ksnu, &["jizRu"]);
@@ -232,7 +230,6 @@ fn sutra_1_3_28() {
 
 #[test]
 fn sutra_1_3_29() {
-    let d = d;
     assert_has_lat(
         &["sam"],
         &d("ga\\mx~", Bhvadi),
@@ -478,7 +475,6 @@ fn sutra_1_3_61() {
 
 #[test]
 fn sutra_1_3_62() {
-    let d = d;
     let san = |u, gana| d(u, gana).with_sanadi(&[Sanadi::San]);
 
     assert_has_lat(&[], &san("Asa~\\", Adadi), &["Asisizate"]);

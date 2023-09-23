@@ -45,14 +45,14 @@ pub struct Step {
 impl Step {
     /// The rule that produced the current step.
     // TODO: render different `Rule` types differently.
-    pub fn rule(&self) -> Code {
+    pub fn rule(&self) -> String {
         match self.rule {
-            Rule::Ashtadhyayi(x) => x,
-            Rule::Kashika(x) => x,
-            Rule::Dhatupatha(x) => x,
-            Rule::Unadi(x) => x,
-            Rule::Linganushasana(x) => x,
-            Rule::Kaumudi(x) => x,
+            Rule::Ashtadhyayi(x) => x.to_string(),
+            Rule::Kashika(x) => format!("Kashika {x}"),
+            Rule::Dhatupatha(x) => format!("Dhatu {x}"),
+            Rule::Unadi(x) => format!("Unadi {x}"),
+            Rule::Linganushasana(x) => format!("Linga {x}"),
+            Rule::Kaumudi(x) => format!("Kaumudi {x}"),
         }
     }
 
@@ -195,15 +195,26 @@ impl Prakriya {
         self.any(&[Tag::Bhave, Tag::Karmani])
     }
 
-    /// Returns whether the given term can be called "pada".
+    /// Returns whether the term at the given index can be called "pada".
+    ///
+    /// A term can be called `pada` iff:
+    /// - it has the pada-samjna;
+    /// - it is followed by one or more consecutive empty terms, the last of which is a pada.
     pub(crate) fn is_pada(&self, i: usize) -> bool {
         if let Some(t) = self.get(i) {
             if t.is_pada() {
                 true
             } else {
-                let all_following_are_empty = self.terms[i + 1..].iter().all(|t| t.is_empty());
-                let last_is_pada = self.terms.last().expect("ok").is_pada();
-                all_following_are_empty && last_is_pada
+                for t in &self.terms[i + 1..] {
+                    if t.is_empty() {
+                        if t.is_pada() {
+                            return true;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+                false
             }
         } else {
             false

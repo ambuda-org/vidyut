@@ -37,11 +37,15 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             let vyor_vali = (x == 'v' || x == 'y') && VAL.contains(y);
             let t = get_at(p, i).expect("should be present");
             // Ignore if it starts an upadesha, otherwise roots like "vraj" would by vyartha.
-            // Likewise for roots ending with 'v'.
-            // Likewise for pratipadikas.
+            // - Likewise for roots ending with 'v'.
+            // - Likewise for pratipadikas.
+            //
+            // But:
+            // - Exclude pratyayas (yAyA[y]vara -> yAyAvara).
             //
             // For now, just check if the term is a dhatu.
-            let is_upadesha_adi = t.is_dhatu() && (t.has_adi('v') || t.has_adi('y'));
+            let is_mula_dhatu = t.is_dhatu() && !t.is_pratyaya();
+            let is_upadesha_adi = is_mula_dhatu && (t.has_adi('v') || t.has_adi('y'));
             vyor_vali && !is_upadesha_adi && !t.is_pratipadika()
         },
         |p, _, i| {
@@ -68,7 +72,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         // HACK: clean up
         let i_x = get_index_at(p, i).expect("valid");
         let i_y = get_index_at(p, i + 1).expect("valid");
-        if i_x != i_y && p.get(i_x).expect("valid").has_tag(T::Upasarga) {
+        if i_x != i_y && (p.is_pada(i_x) || p.has(i_x, |t| t.is_upasarga())) {
             false
         } else {
             set_at(p, i, "");
@@ -201,75 +205,70 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
 }
 
 pub fn try_sup_sandhi_before_angasya(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Sup)?;
-    if i == 0 {
-        return None;
-    };
-
-    let sup = p.get(i)?;
-    let purva = p.get(i - 1)?;
-    if purva.has_antya('o') && sup.has_u_in(&["am", "Sas"]) {
-        p.op("6.1.93", |p| {
-            p.set(i - 1, op::antya("A"));
-            p.set(i, op::adi(""));
-        });
+    for i in 1..p.terms().len() {
+        let sup = p.get(i)?;
+        if sup.is_sup() {
+            let purva = p.get(i - 1)?;
+            if purva.has_antya('o') && sup.has_u_in(&["am", "Sas"]) {
+                p.op("6.1.93", |p| {
+                    p.set(i - 1, op::antya("A"));
+                    p.set(i, op::adi(""));
+                });
+            }
+        }
     }
 
     Some(())
 }
 
-fn try_sup_sandhi_for_nasi_nas(p: &mut Prakriya) -> Option<()> {
-    let i_anga = p.find_last(T::Pratipadika)?;
-    let i_sup = i_anga + 1;
+/// Helper function for `try_sup_sandhi_after_angasya` to avoid too much nesting.
+fn try_sup_sandhi_after_angasya_for_term(p: &mut Prakriya, i_sup: usize) -> Option<()> {
+    let i_anga = i_sup - 1;
     let anga = p.get(i_anga)?;
-    let _sup = p.get_if(i_sup, |t| t.has_u_in(&["Nasi~", "Nas"]))?;
-
-    if anga.has_antya(&*EN) {
-        // muneH, guroH
-        p.op_term("6.1.110", i_sup, op::adi(""));
-    } else if anga.has_antya('f') {
-        // pituH
-        p.op("6.1.111", |p| {
-            p.set(i_anga, op::antya("ur"));
-            p.set(i_sup, op::adi(""));
-        });
-    } else if anga.has_text("saKi") || anga.has_text("pati") {
-        // saKyuH, patyuH
-        p.op_term("6.1.112", i_sup, op::text("us"));
-    }
-    p.step("khyatya");
-
-    Some(())
-}
-
-pub fn try_sup_sandhi_after_angasya(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Sup)?;
-    if i == 0 {
-        return None;
-    };
-
-    let anga = p.get(i - 1)?;
-    let sup = p.get(i)?;
+    let sup = p.get(i_sup)?;
 
     if anga.has_antya(&*AK) && sup.has_tag_in(&[T::V1, T::V2]) {
         if sup.has_text("am") {
-            p.op_term("6.1.107", i, op::adi(""));
+            p.op_term("6.1.107", i_sup, op::adi(""));
         } else if anga.has_antya('a') && sup.has_adi(&*IC) {
             p.step("6.1.104");
         } else if anga.is_dirgha() && (sup.has_adi(&*IC) || sup.has_u("jas")) {
             p.step("6.1.105");
         } else if sup.has_adi(&*AC) {
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.op_term("6.1.102", i, op::adi(&sub.to_string()));
+            p.op_term("6.1.102", i_sup, op::adi(&sub.to_string()));
 
-            let sup = p.get(i)?;
+            let sup = p.get(i_sup)?;
             if p.has_tag(T::Pum) && sup.has_u("Sas") {
-                p.op_term("6.1.103", i, op::antya("n"));
+                p.op_term("6.1.103", i_sup, op::antya("n"));
             }
         }
+    } else if sup.has_u_in(&["Nasi~", "Nas"]) {
+        if anga.has_antya(&*EN) {
+            // muneH, guroH
+            p.op_term("6.1.110", i_sup, op::adi(""));
+        } else if anga.has_antya('f') {
+            // pituH
+            p.op("6.1.111", |p| {
+                p.set(i_anga, op::antya("ur"));
+                p.set(i_sup, op::adi(""));
+            });
+        } else if anga.has_text("saKi") || anga.has_text("pati") {
+            // saKyuH, patyuH
+            p.op_term("6.1.112", i_sup, op::text("us"));
+        }
     }
-    try_sup_sandhi_for_nasi_nas(p);
 
+    Some(())
+}
+
+pub fn try_sup_sandhi_after_angasya(p: &mut Prakriya) -> Option<()> {
+    for i in 1..p.terms().len() {
+        let sup = p.get(i)?;
+        if sup.is_sup() {
+            try_sup_sandhi_after_angasya_for_term(p, i);
+        }
+    }
     Some(())
 }
 
