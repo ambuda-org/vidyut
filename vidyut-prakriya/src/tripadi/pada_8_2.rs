@@ -171,7 +171,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         if x.has_antya('r') && y.has_text("s") && j == p.terms().len() - 1 {
             // Urj -> Urk
             p.op_term("8.2.24", j, op::adi(""));
-        } else if x.has_antya('s') && y.has_adi('D') {
+        } else if x.has_antya('s') && y.has_adi('D') && !x.is_pada() {
             // Per kAzikA, applies only to s of si~c. But this seems to cause
             // problems e.g. for tAs + Dve.
             p.op_term("8.2.25", i, op::antya(""));

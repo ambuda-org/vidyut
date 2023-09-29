@@ -135,6 +135,21 @@ fn sutra_1_1_6() {
 }
 
 #[test]
+fn sutra_1_1_9() {
+    let tfp = d("tf\\pa~", Divadi);
+    assert_has_krdanta(&[], &tfp, Krt::tfc, &["traptf", "tarptf", "tarpitf"]);
+    assert_has_krdanta(&[], &tfp, Krt::tumun, &["traptum", "tarptum", "tarpitum"]);
+}
+
+#[test]
+fn sutra_1_1_10() {
+    assert_has_sandhi("daRqa", "hasta", &["daRqahasta"]);
+    assert_has_sandhi("daDi", "SItam", &["daDiSItam"]);
+    assert_has_taddhitanta(&prati("vipASa"), T::aR, &["vEpASa"]);
+    // TODO: anaquham
+}
+
+#[test]
 fn sutra_1_1_20() {
     assert_has_lat_p(&["pra", "ni"], &d("qudA\\Y", Juhotyadi), &["praRidadAti"]);
     assert_has_krdanta(

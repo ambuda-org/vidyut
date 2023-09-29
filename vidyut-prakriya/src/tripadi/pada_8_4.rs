@@ -176,15 +176,14 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
     } else {
         // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.
         let is_samana_pada = !cp.p.terms()[i_x..i_y].iter().any(|t| {
-            t.has_tag_in(&[T::Sup, T::Tin]) || (t.has_tag(T::Pada) && !t.has_tag(T::Pratipadika))
+            t.has_tag_in(&[T::Sup, T::Tin]) || (t.has_tag(T::Pada) && !t.is_pratipadika())
         });
-        if is_samana_pada {
+        // Allow "carman -> carmaRA" but disallow "sruGna -> *sruGRa"
+        let is_exempt_pratipadika = cp.p.has(i_x, |t| t.text.starts_with("srOGn"));
+        if is_samana_pada && !is_exempt_pratipadika {
             // TODO: track loctaion of rzfF for better rule logging.
             set_at(cp.p, i_n, "R");
             cp.p.step("8.4.2");
-        } else {
-            cp.p.debug("TWO PADAS");
-            cp.p.dump();
         }
     }
 

@@ -38,6 +38,7 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     static ref AC: Set = s("ac");
+    static ref UK: Set = s("uk");
     static ref DANTYA: Set = s("tu~ v");
     static ref OSHTHYA: Set = s("pu~ v");
     static ref II: Set = s("i");
@@ -312,6 +313,7 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
 
     let i = len - 1;
     let last = p.get_if(i, |t| t.is_pratyaya())?;
+    let prev = p.get(i - 1)?;
 
     if last.has_text_in(&["yu~", "vu~"]) {
         if last.has_text("yu~") {
@@ -322,13 +324,16 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
     } else if let Some(sub) = replace_pha_dha_and_others(last) {
         p.op_term("7.1.2", i, op::adi(sub));
     } else if last.has_adi('W') {
-        // Run 7.3.50 because it has no clear place otherwise.
-        p.op_term("7.3.50", i, |t| t.set_adi("ik"));
+        // Run 7.3.50 and 7.3.51 because they have no clear place otherwise.
+        if prev.has_suffix_in(&["is", "us", "t"]) || prev.has_antya(&*UK) {
+            p.op_term("7.3.51", i, |t| t.set_adi("k"));
+        } else {
+            p.op_term("7.3.50", i, |t| t.set_adi("ik"));
+        }
 
     // 7.1.34 (daDyA -> daDyO) happens later on after the dhatu's vowel change (DyE -> DyA)
-
-    // -tAt substitution needs to occur early because it conditions samprasarana.
     } else if p.has(i, |t| t.has_tag(T::Tin) && t.has_text_in(&["tu", "hi"])) {
+        // -tAt substitution needs to occur early because it conditions samprasarana.
         // N is to block pit-guNa, not for replacement of the last letter.
         op::optional_adesha("7.1.35", p, i, "tAta~N");
     }
@@ -671,35 +676,36 @@ fn try_sarvadhatuke(p: &mut Prakriya) -> Option<()> {
 }
 
 /// (7.4.21 - 7.4.31)
-fn try_change_dhatu_before_y(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_first(T::Dhatu)?;
+fn try_change_anga_before_y(p: &mut Prakriya) -> Option<()> {
+    p.debug("try_change");
+    let i = p.find_first_where(|t| t.is_dhatu() || t.is_pratipadika())?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
-    let dhatu = p.get(i)?;
+    let anga = p.get(i)?;
     let n = p.view(i_n)?;
 
     let mut temp = CompactString::new("");
-    temp.replace_range(.., &dhatu.text);
+    temp.replace_range(.., &anga.text);
 
     let akrt_sarva = !n.has_tag_in(&[T::Sarvadhatuka, T::Krt]);
     let has_upasarga = i > 0 && p.has(i - 1, |t| t.has_tag(T::Upasarga));
     let yi_kniti = n.has_adi('y') && n.is_knit();
 
-    if dhatu.has_u("SIN") && n.has_tag(T::Sarvadhatuka) {
+    if anga.has_u("SIN") && n.has_tag(T::Sarvadhatuka) {
         p.op_term("7.4.21", i, op::text("Se"));
-    } else if dhatu.has_u("SIN") && yi_kniti {
+    } else if anga.has_u("SIN") && yi_kniti {
         p.op_term("7.4.22", i, op::text("Say"));
         p.set(i, |t| t.force_save_sthanivat());
-    } else if has_upasarga && yi_kniti && dhatu.has_u("Uha~\\") {
+    } else if has_upasarga && yi_kniti && anga.has_u("Uha~\\") {
         // Example: sam[u]hyate
         p.op_term("7.4.23", i, op::adi("u"));
     } else if has_upasarga
         && yi_kniti
-        && dhatu.has_u("i\\R")
+        && anga.has_u("i\\R")
         && p.terms().last()?.has_lakshana("li~N")
     {
         // Example: ud[i]yAt
         p.op_term("7.4.24", i, op::adi("i"));
-    } else if dhatu.has_antya('f') {
+    } else if anga.has_antya('f') {
         let dhatu = p.get(i)?;
         let n = p.view(i_n)?;
         let is_sha_or_yak = n.has_u_in(&["Sa", "yak"]);
@@ -726,10 +732,10 @@ fn try_change_dhatu_before_y(p: &mut Prakriya) -> Option<()> {
             // mantrIyati
             p.op_term("7.4.27", i, op::antya("rI"));
         }
-    } else if dhatu.has_u_in(&["GrA\\", "DmA\\"]) && n.has_u("yaN") {
+    } else if anga.has_u_in(&["GrA\\", "DmA\\"]) && n.has_u("yaN") {
         p.op_term("7.4.31", i, op::antya("I"));
     } else if n.has_adi('y') {
-        let sub = al::to_dirgha(dhatu.antya()?)?;
+        let sub = al::to_dirgha(anga.antya()?)?;
         if n.has_u("cvi") {
             p.op_term("7.4.26", i, op::antya(&sub.to_string()));
         } else if akrt_sarva && n.is_knit() {
@@ -1589,7 +1595,7 @@ pub fn run_before_dvitva(p: &mut Prakriya) -> Option<()> {
     p.debug("==== Guna-vrddhi ====");
     guna_vrddhi::run(p);
 
-    try_change_dhatu_before_y(p);
+    try_change_anga_before_y(p);
     try_cchvoh(p);
 
     // Must precede ft-AdeSa (f -> ir)

@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Purusha as P;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
@@ -133,8 +132,8 @@ fn sutra_1_4_13() {
     assert_has_lan(&["ni"], &d("vi\\Sa~", Tudadi), &["nyaviSata"]);
     assert_has_lan(&["vi"], &d("qukrI\\Y", Kryadi), &["vyakrIRIta"]);
 
-    assert_has_parasmai_tinanta(&[], &kf, Lrt, P::Uttama, Dvi, &["karizyAvaH"]);
-    assert_has_parasmai_tinanta(&[], &kf, Lrt, P::Uttama, Bahu, &["karizyAmaH"]);
+    assert_has_vas(&[], &kf, Lrt, &["karizyAvaH"]);
+    assert_has_mas(&[], &kf, Lrt, &["karizyAmaH"]);
     assert_has_subantas("kuRqa", Napumsaka, Prathama, Bahu, &["kuRqAni"]);
     // TODO: others;
 }
@@ -164,24 +163,17 @@ fn sutra_1_4_19() {
 #[test]
 fn sutra_1_4_21() {
     assert_has_subantas("brAhmaRa", Pum, Prathama, Bahu, &["brAhmaRAH"]);
-    assert_has_parasmai_tinanta(
-        &[],
-        &d("paWa~", Bhvadi),
-        Lat,
-        P::Prathama,
-        Bahu,
-        &["paWanti"],
-    );
+    assert_has_jhi(&[], &d("paWa~", Bhvadi), Lat, &["paWanti"]);
 }
 
 #[test]
 fn sutra_1_4_22() {
     let path = d("paWa~", Bhvadi);
     assert_has_subantas("brAhmaRa", Pum, Prathama, Dvi, &["brAhmaRO"]);
-    assert_has_parasmai_tinanta(&[], &path, Lat, P::Prathama, Dvi, &["paWataH"]);
+    assert_has_tas(&[], &path, Lat, &["paWataH"]);
 
     assert_has_subantas("brAhmaRa", Pum, Prathama, Eka, &["brAhmaRaH"]);
-    assert_has_parasmai_tinanta(&[], &path, Lat, P::Prathama, Eka, &["paWati"]);
+    assert_has_tip(&[], &path, Lat, &["paWati"]);
 }
 
 #[test]

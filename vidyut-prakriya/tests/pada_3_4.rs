@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Purusha::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Upapada;
 use vidyut_prakriya::args::Vacana::*;
@@ -217,8 +216,8 @@ fn sutra_3_4_90() {
 #[test]
 fn sutra_3_4_91() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_atmane_tinanta(&[], &pac, Lot, Madhyama, Eka, &["pacasva"]);
-    assert_has_atmane_tinanta(&[], &pac, Lot, Madhyama, Bahu, &["pacaDvam"]);
+    assert_has_thaas(&[], &pac, Lot, &["pacasva"]);
+    assert_has_dhvam(&[], &pac, Lot, &["pacaDvam"]);
 }
 
 #[test]
@@ -227,9 +226,9 @@ fn sutra_3_4_92_and_sutra_3_4_93() {
     assert_has_mip(&[], &kf, Lot, &["karavARi"]);
     assert_has_vas(&[], &kf, Lot, &["karavAva"]);
     assert_has_mas(&[], &kf, Lot, &["karavAma"]);
-    assert_has_atmane_tinanta(&[], &kf, Lot, Uttama, Eka, &["karavE"]);
-    assert_has_atmane_tinanta(&[], &kf, Lot, Uttama, Dvi, &["karavAvahE"]);
-    assert_has_atmane_tinanta(&[], &kf, Lot, Uttama, Bahu, &["karavAmahE"]);
+    assert_has_iw(&[], &kf, Lot, &["karavE"]);
+    assert_has_vahi(&[], &kf, Lot, &["karavAvahE"]);
+    assert_has_mahin(&[], &kf, Lot, &["karavAmahE"]);
 }
 
 // 3.4.94 - 3.4.98 are for lew.
@@ -246,8 +245,8 @@ fn sutra_3_4_100() {
     let pac = d("qupa\\ca~^z", Bhvadi);
     assert_has_tip(&[], &pac, Lan, &["apacat"]);
     assert_has_tip(&[], &pac, Lun, &["apAkzIt"]);
-    assert_has_atmane_tinanta(&[], &pac, Lan, Uttama, Dvi, &["apacAvahi"]);
-    assert_has_atmane_tinanta(&[], &pac, Lan, Uttama, Bahu, &["apacAmahi"]);
+    assert_has_vahi(&[], &pac, Lan, &["apacAvahi"]);
+    assert_has_mahin(&[], &pac, Lan, &["apacAmahi"]);
 }
 
 #[test]
@@ -266,12 +265,12 @@ fn sutra_3_4_101() {
 #[test]
 fn sutra_3_4_102() {
     let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_atmane_tinanta(&[], &pac, VidhiLin, Prathama, Eka, &["paceta"]);
-    assert_has_atmane_tinanta(&[], &pac, VidhiLin, Prathama, Dvi, &["paceyAtAm"]);
-    assert_has_atmane_tinanta(&[], &pac, VidhiLin, Prathama, Bahu, &["paceran"]);
-    assert_has_atmane_tinanta(&[], &pac, AshirLin, Prathama, Eka, &["pakzIzwa"]);
-    assert_has_atmane_tinanta(&[], &pac, AshirLin, Prathama, Dvi, &["pakzIyAstAm"]);
-    assert_has_atmane_tinanta(&[], &pac, AshirLin, Prathama, Bahu, &["pakzIran"]);
+    assert_has_ta(&[], &pac, VidhiLin, &["paceta"]);
+    assert_has_aataam(&[], &pac, VidhiLin, &["paceyAtAm"]);
+    assert_has_jha(&[], &pac, VidhiLin, &["paceran"]);
+    assert_has_ta(&[], &pac, AshirLin, &["pakzIzwa"]);
+    assert_has_aataam(&[], &pac, AshirLin, &["pakzIyAstAm"]);
+    assert_has_jha(&[], &pac, AshirLin, &["pakzIran"]);
 }
 
 #[test]
@@ -310,7 +309,7 @@ fn sutra_3_4_105() {
 #[test]
 fn sutra_3_4_106() {
     let assert_has_iw = |dhatu, lakara, exp| {
-        assert_has_atmane_tinanta(&[], &dhatu, lakara, Uttama, Eka, exp);
+        assert_has_iw(&[], &dhatu, lakara, exp);
     };
     assert_has_iw(d("qupa\\ca~^z", Bhvadi), VidhiLin, &["paceya"]);
     assert_has_iw(d("ya\\ja~^", Bhvadi), VidhiLin, &["yajeya"]);
@@ -321,10 +320,10 @@ fn sutra_3_4_106() {
 #[test]
 fn sutra_3_4_107() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_atmane_tinanta(&[], &kf, AshirLin, Prathama, Eka, &["kfzIzwa"]);
-    assert_has_atmane_tinanta(&[], &kf, AshirLin, Prathama, Dvi, &["kfzIyAstAm"]);
-    assert_has_atmane_tinanta(&[], &kf, AshirLin, Madhyama, Eka, &["kfzIzWAH"]);
-    assert_has_atmane_tinanta(&[], &kf, AshirLin, Madhyama, Dvi, &["kfzIyAsTAm"]);
+    assert_has_ta(&[], &kf, AshirLin, &["kfzIzwa"]);
+    assert_has_aataam(&[], &kf, AshirLin, &["kfzIyAstAm"]);
+    assert_has_thaas(&[], &kf, AshirLin, &["kfzIzWAH"]);
+    assert_has_aathaam(&[], &kf, AshirLin, &["kfzIyAsTAm"]);
 }
 
 #[test]

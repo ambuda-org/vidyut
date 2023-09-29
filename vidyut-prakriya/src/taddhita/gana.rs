@@ -1,3 +1,65 @@
+/// Various lists (ganas) for the taddhita-prakarana.
+///
+/// Unless otherwise mentioned, all lists come from the Kashika Vrtti.
+
+/// For 4.1.84.
+pub const ASHVAPATI_ADI: &[&str] = &[
+    "aSvapati",
+    "Satapati",
+    "Danapati",
+    "gaRapati",
+    "rAzwrapati",
+    "kulapati",
+    "gfhapati",
+    "DAnyapati",
+    "paSupati",
+    "Darmapati",
+    "saBApati",
+    "prARapati",
+    "kzetrapati",
+];
+
+/// For 4.1.86.
+pub const UTSA_ADI: &[&str] = &[
+    "utsa",
+    "udapAna",
+    "vikara",
+    "vinoda",
+    "mahAnada",
+    "mahAnasa",
+    "mahAprARa",
+    "taruRa",
+    "taluna",
+    "bazkayAse",
+    "Denu",
+    "pfTivI",
+    "paNkti",
+    "jagatI",
+    "trizwuB",
+    "anuzwuB",
+    "janapada",
+    "Barata",
+    "uSInara",
+    "grIzma",
+    "pIlu",
+    "kula",
+    "udasTAna",
+    "pfzadaMSe",
+    "BallakIya",
+    "raTantara",
+    "maDyandina",
+    "bfhat",
+    "mahat",
+    "sattvat",
+    "kuru",
+    "paYcAla",
+    "indrAvasAna",
+    "uzRih",
+    "kakuB",
+    "suvarRa",
+    "deva",
+];
+
 /// For 4.1.96.
 pub const BAHU_ADI: &[&str] = &[
     "bAhu",
@@ -54,6 +116,12 @@ pub const BAHU_ADI: &[&str] = &[
     "pradyumna",
     "rAma",
     "udaNku",
+];
+
+/// For 4.1.98.
+pub const KUNJA_ADI: &[&str] = &[
+    "kuYja", "braDna", "SaNKa", "Basman", "gaRa", "loman", "SaWa", "SAka", "SAkawa", "SuRqA",
+    "SuBa", "vipASa", "skanda", "stamBa",
 ];
 
 /// For 4.1.99.
@@ -128,6 +196,54 @@ pub const NADA_ADI: &[&str] = &[
     "SoRa",
     "aloha",
     "daRqa",
+];
+
+/// For 4.1.104.
+pub const BIDA_ADI: &[&str] = &[
+    "bida",
+    "urva",
+    "kaSyapa",
+    "kuSika",
+    "BaradvAja",
+    "upamanyu",
+    "kilAlapa",
+    "kidarBa",
+    "viSvAnara",
+    "fzwizeRa",
+    "ftaBAga",
+    "haryaSva",
+    "priyaka",
+    "Apastamba",
+    "kUcavAra",
+    "Saradvat",
+    "Sunaka",
+    "Denu",
+    "gopavana",
+    "Sigru",
+    "bindu",
+    "BAjana",
+    "aSvAvatAna",
+    "SyAmAka",
+    "SyamAka",
+    "SyAparRa",
+    "harita",
+    "kindAsa",
+    "vahraska",
+    "arkalUza",
+    "vaDyoza",
+    "vizRuvfdDa",
+    "pratiboDa",
+    "raTAntara",
+    "raTItara",
+    "gavizWira",
+    "nizAda",
+    "maWara",
+    "mfda",
+    "punarBU",
+    "putra",
+    "duhitf",
+    "nanAndf",
+    "parastrI",
 ];
 
 /// For 4.1.105.
@@ -296,6 +412,79 @@ pub const ASHVA_ADI: &[&str] = &[
     "BAradvAja",
 ];
 
+/// For 4.1.112.
+pub const SHIVA_ADI: &[&str] = &[
+    "Siva",
+    "prOzWa",
+    "prOzWika",
+    "caRqa",
+    "jamBa",
+    "muni",
+    "sanDi",
+    "BUri",
+    "kuWAra",
+    "anaBimlAna",
+    "kakutsTa",
+    "kahoqa",
+    "leKa",
+    "roDa",
+    "KaYjana",
+    "kohaqa",
+    "pizwa",
+    "hehaya",
+    "KaYjAra",
+    "KaYjAla",
+    "surohikA",
+    "parRa",
+    "kahUza",
+    "parila",
+    "vataRqa",
+    "tfRa",
+    "karRa",
+    "kzIrahfda",
+    "jalahfda",
+    "parizika",
+    "jawilika",
+    "goPilika",
+    "baDirikA",
+    "maYjIraka",
+    "vfzRika",
+    "reKa",
+    "AleKana",
+    "viSravaRa",
+    "ravaRa",
+    "vartanAkza",
+    "piwaka",
+    "piwAka",
+    "tfkzAka",
+    "naBAka",
+    "UrRanABa",
+    "jaratkAru",
+    "utkzipA",
+    "rohitika",
+    "AryaSveta",
+    "supizwa",
+    "KarjUrakarRa",
+    "masUrakarRa",
+    "tURakarRa",
+    "mayUrakarRa",
+    "Kaqaraka",
+    "takzan",
+    "fzwizeRa",
+    "gaNgA",
+    "vipASa",
+    "yaska",
+    "lahra",
+    "druhyu",
+    "ayaHsTURa",
+    "Balandana",
+    "virUpAkza",
+    "BUmi",
+    "ilA",
+    "sapatnI",
+    "dvyaca",
+];
+
 /// For 4.1.123.
 pub const SHUBHRA_ADI: &[&str] = &[
     "SuBra",
@@ -335,9 +524,430 @@ pub const REVATI_ADI: &[&str] = &[
     "cAmaragrAha",
 ];
 
+/// For 4.2.38.
+pub const BHIKSHA_ADI: &[&str] = &[
+    "BikzA", "garBiRI", "kzetra", "karIza", "aNgAra", "carmin", "Darmin", "sahasra", "yuvati",
+    "padAti", "padDati", "aTarvan", "dakziRA", "BUta",
+];
+
+/// For 4.2.45.
+pub const KHANDIKA_ADI: &[&str] = &[
+    "KaRqikA",
+    "vaqavA",
+    "kzudrakamAla",
+    "Bikzuka",
+    "Suka",
+    "ulUka",
+    "Svan",
+    "yuga",
+    "ahan",
+    "varatrA",
+    "halabanDa",
+];
+
+/// For 4.2.49.
+pub const PASHA_ADI: &[&str] = &[
+    "pASa", "tfRa", "DUma", "vAta", "aNgAra", "pota", "bAlaka", "piwaka", "piwAka", "Sakawa",
+    "hala", "naqa", "vana",
+];
+
+/// For 4.2.75.
+pub const SANKALA_ADI: &[&str] = &[
+    "saNkala",
+    "puzkala",
+    "udvapa",
+    "uqupa",
+    "utpuwa",
+    "kumBa",
+    "viDAna",
+    "sudakza",
+    "sudatta",
+    "suBUta",
+    "sunetra",
+    "supiNgala",
+    "sikatA",
+    "pUtIkI",
+    "pUlasa",
+    "kUlAsa",
+    "palASa",
+    "niveSa",
+    "gaveza",
+    "gamBIra",
+    "itara",
+    "Sarman",
+    "ahan",
+    "loman",
+    "veman",
+    "varuRa",
+    "bahula",
+    "sadyoja",
+    "aBizikta",
+    "goBft",
+    "rAjaBft",
+    "gfha",
+    "Bfta",
+    "Balla",
+    "mAla",
+    "vft",
+];
+
+/// For 4.2.77.
+pub const SUVASTA_ADI: &[&str] = &[
+    "suvAstu",
+    "varRu",
+    "BaRqu",
+    "KaRqu",
+    "secAlin",
+    "karpUrin",
+    "SiKaRdin",
+    "garta",
+    "karkaSa",
+    "SawIkarRa",
+    "kfzRa",
+    "karka",
+    "karNkaDU matI",
+    "gohra",
+    "ahisakTa",
+    "vft",
+];
+
+/// For 4.2.86.
+pub const MADHU_ADI: &[&str] = &[
+    "maDu",
+    "bisa",
+    "sTARu",
+    "muzwi",
+    "ikzu",
+    "veRu",
+    "ramya",
+    "fkza",
+    "karkanDu",
+    "SamI",
+    "kirIra",
+    "hima",
+    "kiSarA",
+    "SarpaRA",
+    "marut",
+    "maruva",
+    "dArvAGAwa",
+    "Sara",
+    "izwakA",
+    "takzaSilA",
+    "Sakti",
+    "AsandI",
+    "Asuti",
+    "SalAkA",
+    "AmiDI",
+    "KaqA",
+    "vewA",
+    "maDvAdiH",
+];
+
+/// For 4.2.95.
+pub const KATRI_ADI: &[&str] = &[
+    "katri",
+    "umBi",
+    "puzkara",
+    "modana",
+    "kumBI",
+    "kuRqina",
+    "nagara",
+    "vaYjI",
+    "Bakti",
+    "mAhizmatI",
+    "carmaRvatI",
+    "grAma",
+    "uKyA",
+    // kuqyA takes ya-lopa
+    "kuqyA",
+    "katryAdiH",
+];
+
+/// For 4.2.97.
+pub const NADI_ADI: &[&str] = &[
+    "nadI",
+    "mahI",
+    "vArARasI",
+    "SrAvastI",
+    "kOSAmbI",
+    "navakOSAmbI",
+    "kASaParI",
+    "KAdirI",
+    "pUrvanagarI",
+    "pAvA",
+    "mAvA",
+    "sAlvA",
+    "dArvA",
+    "dAlvA",
+    "vAsenakI",
+    "vaqavA",
+];
+
+/// For 4.2.86.
+pub const KASHI_ADI: &[&str] = &[
+    "kASi",
+    "cedi",
+    "bedi",
+    "saMjYA",
+    "saMvAha",
+    "acyuta",
+    "mohamAna",
+    "SakulAda",
+    "hastikarzU",
+    "kudAman",
+    "hiraRya",
+    "karaRa",
+    "goDASana",
+    "BOriki",
+    "BOliNgi",
+    "arindama",
+    "sarvamitra",
+    "devadatta",
+    "sADumitra",
+    "dAsamitra",
+    "dAsagrAma",
+    "sODAvatAna",
+    "yuvarAja",
+    "uparAja",
+    "sinDumitra",
+    "devarAja",
+    // ApadAdipUrvapadAt kAlAt
+    "ApatkAla",
+    "UrDvakAla",
+    "tatkAla",
+];
+
+/// For 4.2.133.
+pub const KACCHA_ADI: &[&str] = &[
+    "kacCa",
+    "sinDu",
+    "varRu",
+    "ganDAra",
+    "maDumat",
+    "kamboja",
+    "kaSmIra",
+    "sAlva",
+    "kuru",
+    "raNku",
+    "aRu",
+    "KaRqa",
+    "dvIpa",
+    "anUpa",
+    "ajavAha",
+    "vijApakaH",
+    "kulUna",
+];
+
+/// For 4.2.138.
+pub const GAHA_ADI: &[&str] = &[
+    "gaha",
+    "antaHsTa",
+    "sama",
+    "vizama",
+    "maDya",
+    "maDyama",
+    "uttama",
+    "aNga",
+    "vaNga",
+    "magaDa",
+    "pUrvapkza",
+    "aparapakza",
+    "aDamaSAKa",
+    "uttamaSAKa",
+    "samAnaSAKa",
+    "ekagrAma",
+    "ekavfkza",
+    "ekapalASa",
+    "ezvagra",
+    "izvanI",
+    "avasyandI",
+    "kAmaprasTa",
+    "KAqAyani",
+    "kAveraRi",
+    "SONgi",
+    "Asuri",
+    "AhiMsi",
+    "Amitri",
+    "vyAqi",
+    "vEdaji",
+    "BOji",
+    "AQyaSvi",
+    "AnfSaMsi",
+    "sOvi",
+    "pAraki",
+    "agniSarman",
+    "devaSarman",
+    "SrOti",
+    "Arawaki",
+    "vAlmIki",
+    "kzemavfdDin",
+    "uttara",
+    "antara",
+    // TODO: remainder
+    "jana",
+    "para",
+    "deva",
+    "veRukA",
+];
+
+/// For 4.3.16.
+pub const SANDHIVELA_ADI: &[&str] = &[];
+
+/// For 4.3.54.
+pub const DIG_ADI: &[&str] = &[
+    "diS", "varga", "pUga", "gaRa", "pakza", "DAyyA", "mitra", "meDA", "antara", "paTin", "rahas",
+    "alIka", "uKA", "sAkzin", "Adi", "anta", "muKa", "jaGna", "meGa", "yUTa", "udaka", "nyAya",
+    "vaMSa", "anuvaMSa", "viSa", "kAla", "ap", "AkASa", "digAdiH",
+];
+
+/// For 4.3.76.
+pub const SHUNDIKA_ADI: &[&str] = &[
+    "SuRqika", "kfkaRa", "sTaRqila", "udapAna", "upala", "tIrTa", "BUmi", "tfRa", "parRa",
+];
+
+/// For 4.3.92.
+pub const SHANDIKA_ADI: &[&str] = &[
+    "SaRqika",
+    "sarvasena",
+    "sarvakeSa",
+    "Saka",
+    "sawa",
+    "raka",
+    "SaNKa",
+    "boDa",
+];
+
+/// For 4.3.93.
+pub const SINDHU_ADI: &[&str] = &[
+    "sinDu", "varRu", "ganDAra", "maDumat", "kamboja", "kaSmIra", "sAlva", "kizkinDA", "gadikA",
+    "urasa", "darat",
+];
+
+/// For 4.3.93.
+pub const TAKSHASHILA_ADI: &[&str] = &[
+    "takzaSilA",
+    "vatsodDaraRa",
+    "kOmedura",
+    "kaRqavAraRa",
+    "grAmaRI",
+    "sarAlaka",
+    "kaMsa",
+    "kinnara",
+    "saMkucita",
+    "siMhakozWa",
+    "karRakozWa",
+    "barbara",
+    "avasAna",
+];
+
+/// For 4.3.131.
+pub const RAIVATIKA_ADI: &[&str] = &[
+    "rEvatika",
+    "svApiSi",
+    "kzEmavfdDi",
+    "gOragrIvi",
+    "Odameyi",
+    "OdavAhi",
+    "bEjavApi",
+];
+
+/// For 4.4.10.
+pub const PARPA_ADI: &[&str] = &[
+    "parpa", "aSva", "aSvatTa", "raTa", "jAla", "nyAsa", "vyAla", "pAda", "paYca", "padika",
+];
+
+/// For 4.3.118.
+pub const KULALA_ADI: &[&str] = &[
+    "kulAla",
+    "varuqa",
+    "caRqAla",
+    "nizAda",
+    "karmAra",
+    "senA",
+    "siraGra",
+    "sendriya",
+    "devarAja",
+    "parizat",
+    "vaDU",
+    "ruru",
+    "Druva",
+    "rudra",
+    "anaquH",
+    "brahman",
+    "kumBakAra",
+    "SvapAka",
+];
+
+/// For 4.3.164.
+pub const PLAKSHA_ADI: &[&str] = &[
+    "plakza", "nyagroDa", "aSvatTa", "iNgudI", "Sigru", "kakarnDu", "vuhatI",
+];
+
+/// For 4.4.12.
+pub const VETANA_ADI: &[&str] = &[
+    "vetana",
+    "vAha",
+    "arDavAha",
+    "DanurdaRqa",
+    "jAla",
+    "vesa",
+    "upavesa",
+    "prezana",
+    "upasti",
+    "suKa",
+    "SayyA",
+    "Sakti",
+    "upanizad",
+    "upaveza",
+    "sraj",
+    "pAda",
+    "upasTAna",
+];
+
+/// For 4.4.19.
+pub const AKSHADYUTA_ADI: &[&str] = &[
+    "akzadyUta",
+    "jAnuprahfta",
+    "jaNGAprahfta",
+    "pAdasvedana",
+    "kaRwakamardana",
+    "gatAgata",
+    "yAtopayAta",
+    "anugata",
+];
+
+pub const CHATRA_ADI: &[&str] = &[
+    "Catra", "buBukzA", "SikzA", "puroha", "sTA", "curA", "upasTAna", "fzi", "karman", "viSvaDA",
+    "tapas", "satya", "anfta", "SibikA",
+];
+
 /// For 5.1.122.
 pub const PRTHU_ADI: &[&str] = &[
     "pfTu", "mfdu", "mahat", "pawu", "tanu", "laGu", "bahu", "sADu", "veRu", "ASu", "bahula",
     "guru", "daRqa", "uru", "KaRqa", "caRqa", "bAla", "akiYcana", "hoqa", "pAka", "vatsa", "manda",
     "svAdu", "hrasva", "dIrGa", "priya", "vfza", "fju", "kzipra", "kzupra", "kzudra",
+];
+
+/// For 5.4.3.
+pub const STHULA_ADI: &[&str] = &[
+    "sTUla",
+    "aRu",
+    "mAza",
+    "izu",
+    "kfzRa",
+    "yava",
+    "ikzu",
+    "tila",
+    "pAdya",
+    "kAla",
+    "avadAta",
+    "gomUtra",
+    "surA",
+    "jIrRa",
+    "patra",
+    "mUla",
+    "kumArIputra",
+    "kumAra",
+    "SvaSura",
+    "maRi",
 ];

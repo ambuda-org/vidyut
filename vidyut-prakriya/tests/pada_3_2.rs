@@ -1133,14 +1133,46 @@ fn sutra_3_2_144() {
 
 #[test]
 fn sutra_3_2_145() {
-    assert_has_krdanta(&["pra"], &d("lapa~", Bhvadi), Krt::GinuR, &["pralApin"]);
-    assert_has_krdanta(&["pra"], &d("sf\\", Bhvadi), Krt::GinuR, &["prasArin"]);
-    assert_has_krdanta(&["pra"], &d("dru\\", Bhvadi), Krt::GinuR, &["pradrAvin"]);
-    assert_has_krdanta(&["pra"], &d("maTe~", Bhvadi), Krt::GinuR, &["pramATin"]);
-    assert_has_krdanta(&["pra"], &d("vada~", Bhvadi), Krt::GinuR, &["pravAdin"]);
-    assert_has_krdanta(&["pra"], &d("va\\sa~", Bhvadi), Krt::GinuR, &["pravAsin"]);
+    use Krt::GinuR;
+    assert_has_krdanta(&["pra"], &d("lapa~", Bhvadi), GinuR, &["pralApin"]);
+    assert_has_krdanta(&["pra"], &d("sf\\", Bhvadi), GinuR, &["prasArin"]);
+    assert_has_krdanta(&["pra"], &d("dru\\", Bhvadi), GinuR, &["pradrAvin"]);
+    assert_has_krdanta(&["pra"], &d("maTe~", Bhvadi), GinuR, &["pramATin"]);
+    assert_has_krdanta(&["pra"], &d("vada~", Bhvadi), GinuR, &["pravAdin"]);
+    assert_has_krdanta(&["pra"], &d("va\\sa~", Bhvadi), GinuR, &["pravAsin"]);
     // vas-bhvAdi only
-    assert_has_krdanta(&["pra"], &d("vasa~\\", Adadi), Krt::GinuR, &[]);
+    assert_has_krdanta(&["pra"], &d("vasa~\\", Adadi), GinuR, &[]);
+}
+
+#[test]
+fn sutra_3_2_160() {
+    assert_has_krdanta(&[], &d("sf\\", Bhvadi), Krt::kmarac, &["sfmara"]);
+    assert_has_krdanta(&[], &d("Gasx~", Bhvadi), Krt::kmarac, &["Gasmara"]);
+    assert_has_krdanta(&[], &d("a\\da~", Adadi), Krt::kmarac, &["admara"]);
+}
+
+#[test]
+fn sutra_3_2_161() {
+    assert_has_krdanta(&[], &d("Ba\\njo~", Rudhadi), Krt::Gurac, &["BaNgura"]);
+    assert_has_krdanta(&[], &d("BAsf~\\", Bhvadi), Krt::Gurac, &["BAsura"]);
+    assert_has_krdanta(&[], &d("YimidA~", Divadi), Krt::Gurac, &["medura"]);
+}
+
+#[test]
+fn sutra_3_2_162() {
+    assert_has_krdanta(&[], &d("vida~", Adadi), Krt::kurac, &["vidura"]);
+    assert_has_krdanta(&[], &d("Bi\\di~^r", Rudhadi), Krt::kurac, &["Bidura"]);
+    assert_has_krdanta(&[], &d("Ci\\di~^r", Rudhadi), Krt::kurac, &["Cidura"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_3_2_163() {
+    use Krt::kvarap;
+    assert_has_krdanta(&[], &d("i\\R", Adadi), kvarap, &["itvara"]);
+    assert_has_krdanta(&[], &d("Ra\\Sa~", Divadi), kvarap, &["naSvara"]);
+    assert_has_krdanta(&[], &d("ji\\", Bhvadi), kvarap, &["jitvara"]);
+    assert_has_krdanta(&[], &d("sf\\", Bhvadi), kvarap, &["sftvara"]);
 }
 
 #[test]

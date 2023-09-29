@@ -72,14 +72,7 @@ fn sutra_2_4_40() {
 fn sutra_2_4_41() {
     let ve = d("ve\\Y", Bhvadi);
     assert_has_tip(&[], &ve, Lit, &["uvAya", "vavO"]);
-    assert_has_parasmai_tinanta(
-        &[],
-        &ve,
-        Lit,
-        Prathama,
-        Dvi,
-        &["UyatuH", "UvatuH", "vavatuH"],
-    );
+    assert_has_tas(&[], &ve, Lit, &["UyatuH", "UvatuH", "vavatuH"]);
     assert_has_jhi(&[], &ve, Lit, &["UyuH", "UvuH", "vavuH"]);
 }
 
@@ -102,23 +95,9 @@ fn sutra_2_4_43() {
 #[test]
 fn sutra_2_4_44() {
     let han = d("ha\\na~", Adadi);
-    assert_has_atmane_tinanta(&["AN"], &han, Lun, Prathama, Eka, &["AvaDizwa", "Ahata"]);
-    assert_has_atmane_tinanta(
-        &["AN"],
-        &han,
-        Lun,
-        Prathama,
-        Dvi,
-        &["AvaDizAtAm", "AhasAtAm"],
-    );
-    assert_has_atmane_tinanta(
-        &["AN"],
-        &han,
-        Lun,
-        Prathama,
-        Bahu,
-        &["AvaDizata", "Ahasata"],
-    );
+    assert_has_ta(&["AN"], &han, Lun, &["AvaDizwa", "Ahata"]);
+    assert_has_aataam(&["AN"], &han, Lun, &["AvaDizAtAm", "AhasAtAm"]);
+    assert_has_jha(&["AN"], &han, Lun, &["AvaDizata", "Ahasata"]);
 }
 
 #[test]
@@ -361,10 +340,10 @@ fn sutra_2_4_78() {
 #[test]
 fn sutra_2_4_79() {
     let assert_has_ta = |prefixes, dhatu, expected| {
-        assert_has_atmane_tinanta(prefixes, dhatu, Lun, Prathama, Eka, expected);
+        assert_has_ta(prefixes, dhatu, Lun, expected);
     };
     let assert_has_thas = |prefixes, dhatu, expected| {
-        assert_has_atmane_tinanta(prefixes, dhatu, Lun, Madhyama, Eka, expected);
+        assert_has_thaas(prefixes, dhatu, Lun, expected);
     };
 
     let tan = d("tanu~^", Tanadi);

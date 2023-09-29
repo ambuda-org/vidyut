@@ -100,3 +100,9 @@ fn sutra_5_4_54() {
     assert_has_taddhitanta(&prati("agni"), T::sAti, &["agnisAt"]);
     assert_has_taddhitanta(&prati("udaka"), T::sAti, &["udakasAt"]);
 }
+
+#[test]
+fn sutra_5_4_78() {
+    assert_has_taddhitanta(&prati("brahmavarcas"), T::ac, &["brahmavarcasa"]);
+    assert_has_taddhitanta(&prati("hastivarcas"), T::ac, &["hastivarcasa"]);
+}

@@ -979,6 +979,8 @@ pub fn bhasya(p: &mut Prakriya) -> Option<()> {
                 }
             } else if ani && bha.ends_with("an") {
                 p.step("6.4.167");
+            } else if bha.has_text_in(&["Atman", "aDvan"]) && next.has_u("Ka") {
+                p.step("6.4.169");
             } else if bha.has_text("ahan") {
                 if next.has_u_in(&["wac", "KA"]) {
                     p.op_term("6.4.145", i, op::ti(""));
@@ -1005,6 +1007,43 @@ pub fn bhasya(p: &mut Prakriya) -> Option<()> {
         }
     } else if bha.has_antya('A') && bha.is_dhatu() {
         p.op_term("6.4.140", i, op::antya(""));
+    } else if (bha.has_u("daRqin") && next.has_u("Pak"))
+        || (bha.has_u("hastin") && next.has_u("Pak"))
+        || (bha.has_u("aTarvan") && next.has_u("Wak"))
+        || (bha.has_u("jihmASin") && next.has_u("Qak"))
+        || (bha.has_u("vAsin") && next.has_u("PiY"))
+        || (bha.has_u("BrURahan") && next.has_u("zyaY"))
+        || (bha.has_u("DIvat") && next.has_u("zyaY"))
+        || (bha.has_u("sarayU") && next.has_u("aR"))
+        || (bha.has_u("ikzvAku") && next.has_u_in(&["aY", "aR"]))
+        || (bha.has_u("mitrayu") && next.has_u("QaY"))
+        || (bha.has_u("hiraRya") && next.has_u("mayaw"))
+    {
+        let code = "6.4.174";
+        let sub = if bha.has_u("daRqin") {
+            "daRqinAyana"
+        } else if bha.has_u("hastin") {
+            "hAstinAyana"
+        } else if bha.has_u("aTarvan") {
+            "aTarvaRika"
+        } else if bha.has_u("jihmASin") {
+            "jEhmASineya"
+        } else if bha.has_u("vAsin") {
+            "vAsinAyani"
+        } else if bha.has_u("BrURahan") {
+            "BrORahatya"
+        } else if bha.has_u("DIvat") {
+            "DEvatya"
+        } else if bha.has_u("sarayU") {
+            "sArava"
+        } else if bha.has_u("ikzvAku") {
+            "EkzvAka"
+        } else if bha.has_u("mitrayu") {
+            "mEtreya"
+        } else {
+            "hiraRmaya"
+        };
+        p.op(code, op::nipatana(sub));
     } else if bha.has_antya(&*UU) && taddhita {
         if next.has_tag(T::Qit) && !bha.has_text("kadrU") {
             p.op_term("6.4.147", i, |t| t.set_antya(""));

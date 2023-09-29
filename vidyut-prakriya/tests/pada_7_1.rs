@@ -7,14 +7,6 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 
-fn stri(text: &str) -> Pratipadika {
-    Pratipadika::builder()
-        .text(text)
-        .is_nyap(true)
-        .build()
-        .unwrap()
-}
-
 #[test]
 fn sutra_7_1_1() {
     let nand = d("wunadi~", Bhvadi);
@@ -35,8 +27,8 @@ fn sutra_7_1_2() {
     use Taddhita as T;
     assert_has_taddhitanta(&prati("naqa"), T::Pak, &["nAqAyana"]);
     assert_has_taddhitanta(&prati("cara"), T::Pak, &["cArAyaRa"]);
-    assert_has_taddhitanta(&stri("suparRA"), T::Qak, &["sOparReya"]);
-    assert_has_taddhitanta(&stri("vinatA"), T::Qak, &["vEnateya"]);
+    assert_has_taddhitanta(&nyap("suparRA"), T::Qak, &["sOparReya"]);
+    assert_has_taddhitanta(&nyap("vinatA"), T::Qak, &["vEnateya"]);
     assert_has_taddhitanta(&prati("kula"), T::Ka, &["kulIna"]);
     assert_has_taddhitanta(&prati("gArga"), T::Ca, &["gArgIya"]);
     assert_has_taddhitanta(&prati("vAtsa"), T::Ca, &["vAtsIya"]);
@@ -225,8 +217,8 @@ fn sutra_7_1_17() {
 
 #[test]
 fn sutra_7_1_18() {
-    assert_has_subantas_p(&stri("KawvA"), Stri, Prathama, Dvi, &["Kawve"]);
-    assert_has_subantas_p(&stri("KawvA"), Stri, Dvitiya, Dvi, &["Kawve"]);
+    assert_has_subantas_p(&nyap("KawvA"), Stri, Prathama, Dvi, &["Kawve"]);
+    assert_has_subantas_p(&nyap("KawvA"), Stri, Dvitiya, Dvi, &["Kawve"]);
     // TODO: more
 }
 
@@ -573,33 +565,33 @@ fn sutra_7_1_62() {
 #[test]
 fn sutra_7_1_63() {
     let rabh = d("ra\\Ba~\\", Bhvadi);
-    assert_has_lat_p(
-        &["AN"],
-        &rabh.clone().with_sanadi(&[Sanadi::Nic]),
-        &["AramBayati"],
-    );
+    assert_has_lat_p(&["AN"], &nic(&rabh), &["AramBayati"]);
     assert_has_krdanta(&["AN"], &rabh, Krt::Rvul, &["AramBaka"]);
+    assert_has_krdanta(&["AN"], &rabh, Krt::Rini, &["AramBin"]);
+    assert_has_krdanta(&["AN"], &rabh, Krt::Ramul, &["AramBam"]);
     assert_has_krdanta(&["AN"], &rabh, Krt::GaY, &["AramBa"]);
+
+    // a-Sap-liwoH?
     assert_has_lat(&["AN"], &rabh, &["AraBate"]);
     assert_has_lit(&["AN"], &rabh, &["AreBe"]);
+    // aci?
     assert_has_krdanta(&["AN"], &rabh, Krt::tfc, &["ArabDf"]);
-    // TODO: other rabh padas
 }
 
 #[test]
 fn sutra_7_1_64() {
     let labh = d("qula\\Ba~\\z", Bhvadi);
-    assert_has_lat_p(
-        &[],
-        &labh.clone().with_sanadi(&[Sanadi::Nic]),
-        &["lamBayati"],
-    );
+    assert_has_lat_p(&[], &nic(&labh), &["lamBayati"]);
     assert_has_krdanta(&[], &labh, Krt::Rvul, &["lamBaka"]);
-    // TODO: lamBa?
+    assert_has_krdanta(&[], &labh, Krt::Rini, &["lamBin"]);
+    assert_has_krdanta(&[], &labh, Krt::Ramul, &["lamBam", "lABam"]);
+    assert_has_krdanta(&[], &labh, Krt::ac, &["lamBa"]);
+
+    // a-Sap-liwoH
     assert_has_lat(&[], &labh, &["laBate"]);
     assert_has_lit(&[], &labh, &["leBe"]);
+    // aci
     assert_has_krdanta(&[], &labh, Krt::tfc, &["labDf"]);
-    // TODO: other labh padas
 }
 
 #[test]

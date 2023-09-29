@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::Artha::*;
 use vidyut_prakriya::args::Taddhita as T;
 
 #[ignore]
@@ -107,6 +108,20 @@ fn sutra_5_3_24() {
 #[test]
 fn sutra_5_3_25() {
     assert_has_taddhitanta(&prati("tad"), T::TAl, &["taTA"]);
+}
+
+#[test]
+fn sutra_5_3_28() {
+    assert_has_artha_taddhita("dakziRa", DigDeshaKala, T::atasuc, &["dakziRatas"]);
+    assert_has_artha_taddhita("uttara", DigDeshaKala, T::atasuc, &["uttaratas"]);
+}
+
+#[test]
+fn sutra_5_3_29() {
+    assert_has_artha_taddhita("para", DigDeshaKala, T::atasuc, &["paratas"]);
+    assert_has_artha_taddhita("para", DigDeshaKala, T::astAti, &["parastAt"]);
+    assert_has_artha_taddhita("avara", DigDeshaKala, T::atasuc, &["avaratas"]);
+    assert_has_artha_taddhita("avara", DigDeshaKala, T::astAti, &["avarastAt"]);
 }
 
 #[test]

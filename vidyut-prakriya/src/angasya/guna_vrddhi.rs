@@ -60,43 +60,43 @@ fn try_taddhita_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
     let n = p.get_if(i + 1, |t| t.is_taddhita())?;
 
+    let rule = if n.has_tag_in(&[T::Yit, T::Rit]) {
+        "7.2.117"
+    } else if n.has_tag(T::kit) {
+        "7.2.118"
+    } else {
+        return None;
+    };
+
     if anga.has_text_in(&["devikA", "SiMSapA", "dityavAh", "dIrGasatra", "Sreyas"]) {
         // dAvikA, ...
         let adi_ac = anga.text.find(al::is_ac)?;
-        p.op_term("7.3.1", i, |t| {
-            t.set_at(adi_ac, "A");
+        p.op_term("7.3.1", i, |t| t.set_at(adi_ac, "A"));
+    } else if anga.has_text_in(&["kekaya", "mitrayu", "pralaya"]) {
+        p.op_term("7.3.2", i, |t| t.find_and_replace_text("y", "iy"));
+    } else if anga.text.starts_with("vy") {
+        // HACK: should properly be only with vi-upasarga.
+        // TODO: also apply for sv-, .etc.
+        p.op_term("7.3.3", i, |t| t.text.replace_range(..2, "vEy"));
+    } else if anga.has_u_in(DVARA_ADI) {
+        // dvAra -> dOvArika, ...
+        p.op_term("7.3.4", i, |t| {
+            let i_yan = t.text.rfind(|c| c == 'y' || c == 'v').expect("ok");
+            if t.text.get(i_yan..i_yan + 1) == Some("y") {
+                t.text.insert(i_yan, 'E');
+            } else {
+                t.text.insert(i_yan, 'O');
+            }
         });
-
-        return Some(());
-    }
-
-    let rule = if n.has_tag_in(&[T::Yit, T::Rit]) {
-        Some("7.2.117")
-    } else if n.has_tag(T::kit) {
-        Some("7.2.118")
+    } else if anga.has_text("nyagroDa") {
+        p.op_term("7.3.5", i, |t| t.text.replace_range(..2, "nEy"));
     } else {
-        None
-    };
-
-    if let Some(rule) = rule {
-        if anga.has_u_in(DVARA_ADI) {
-            // dvAra -> dOvArika, ...
-            p.op_term("7.3.4", i, |t| {
-                let i_yan = t.text.rfind(|c| c == 'y' || c == 'v').expect("ok");
-                if t.text.get(i_yan..i_yan + 1) == Some("y") {
-                    t.text.insert(i_yan, 'E');
-                } else {
-                    t.text.insert(i_yan, 'O');
-                }
-            });
-        } else {
-            let adi_ac = anga.text.find(al::is_ac)?;
-            let ac = anga.get_at(adi_ac)?;
-            let vrddhi = al::to_vrddhi(ac)?;
-            p.op_term(rule, i, |t| {
-                t.set_at(adi_ac, vrddhi);
-            });
-        }
+        let adi_ac = anga.text.find(al::is_ac)?;
+        let ac = anga.get_at(adi_ac)?;
+        let vrddhi = al::to_vrddhi(ac)?;
+        p.op_term(rule, i, |t| {
+            t.set_at(adi_ac, vrddhi);
+        });
     }
 
     Some(())

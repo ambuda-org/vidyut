@@ -211,17 +211,6 @@ impl Term {
         }
     }
 
-    /// Returns whether the term's text is empty.
-    pub fn is_empty(&self) -> bool {
-        self.text.is_empty()
-    }
-
-    /// Returns whether the term has exactly one vowel.
-    pub fn is_ekac(&self) -> bool {
-        // TODO: find a way to de-dupe with `is_anekac` in the asiddhavat section.
-        self.num_vowels() == 1
-    }
-
     /// Returns the number of vowels contained in this term's text.
     pub fn num_vowels(&self) -> usize {
         self.text.chars().filter(|c| AC.contains(*c)).count()
@@ -243,6 +232,17 @@ impl Term {
     /// Returns whether the term has any of the tags in `tags`.
     pub fn has_tag_in(&self, tags: &[Tag]) -> bool {
         tags.iter().any(|t| self.tags.contains(*t))
+    }
+
+    /// Returns whether the term's text is empty.
+    pub fn is_empty(&self) -> bool {
+        self.text.is_empty()
+    }
+
+    /// Returns whether the term has exactly one vowel.
+    pub fn is_ekac(&self) -> bool {
+        // TODO: find a way to de-dupe with `is_anekac` in the asiddhavat section.
+        self.num_vowels() == 1
     }
 
     /// Returns whether the term could be called a `pada`.
@@ -325,6 +325,11 @@ impl Term {
     /// Returns whether the term is an abhyasta.
     pub fn is_abhyasta(&self) -> bool {
         self.has_tag(Tag::Abhyasta)
+    }
+
+    /// Returns whether the term is vrddha.
+    pub fn is_vrddha(&self) -> bool {
+        self.has_tag(Tag::Vrddha)
     }
 
     /// Returns whether the term has the `Atmanepada` samjna.

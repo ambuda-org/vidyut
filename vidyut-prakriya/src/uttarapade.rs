@@ -1,6 +1,7 @@
 //! Adhyaya 6.3 of the Ashtadhyayi concerns itself with changes caused by a following word
 //! (*uttarpada*). For now, we keep those rule here.
 
+use crate::args::Artha;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
@@ -35,6 +36,12 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let purva = p.get(i_purva)?;
     let uttara = p.get(i_uttara)?;
 
+    if purva.has_text("pAda") && uttara.has_u("yat") && !p.has_artha(Artha::Tadarthye) {
+        p.op_term("6.3.53", i_purva, |t| t.set_text("pad"));
+    }
+
+    let purva = p.get(i_purva)?;
+    let uttara = p.get(i_uttara)?;
     if purva.is_sarvanama() && uttara.has_text_in(&["dfS"]) {
         p.op_term("6.3.91", i_purva, |t| t.set_antya("A"));
     } else if !purva.is_avyaya() {

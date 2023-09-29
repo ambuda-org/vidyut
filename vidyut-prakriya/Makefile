@@ -59,7 +59,7 @@ test_tinantas:
     --hash "409c5efa5dbcebba7375732a64867f7212ee43d3b112c8c8c494099158e68a0a"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-kartari.csv \
-		--hash "da47a054b8f909c9496f042975b0311d77b106208eb1402d2bb81c7a35da2305"
+		--hash "ec5acedd0e7a5ca478c9ede25ce69daa1f1acaeb7d161c1565e7c505cd843c55"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-kartari.csv \
 		--hash "71cf9817679767971c06bcb806b61f91d29402f27f158837425e02a67a5c0a01"
@@ -79,6 +79,9 @@ test_krdantas:
 test_subantas:
 	cargo run --bin test_subantas -- \
 		--test-cases test-files/subantas.csv
+
+check_rule_coverage:
+	./scripts/check_rule_coverage.py > report.log 
 
 
 # Performance

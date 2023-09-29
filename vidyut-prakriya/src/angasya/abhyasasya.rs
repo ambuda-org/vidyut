@@ -117,7 +117,7 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
     Some(())
 }
 
-/// `i` is the index of an abhyasa..
+/// `i` is the index of an abhyasa.
 fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     const SMR_DR: &[&str] = &[
         "smf",
@@ -161,7 +161,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
                 p.op_term("7.4.79", i, op::antya("i"));
             } else if abhyasa.has_antya(&*UU) && anga.has_adi(&*PU_YAN_J) && anga.has_at(1, &*AA) {
                 p.op_term("7.4.80", i, op::antya("i"));
-            } else if anga.has_u_in(SRU_ADI) && anga.has_upadha('a') {
+            } else if anga.has_u_in(SRU_ADI) && p.has(i + 2, |t| !t.has_u("san")) {
                 // Example: sru -> sisrAvayizyati
                 // Note that this rule must run after guna for the upadha check to be meaningful.
                 p.op_optional("7.4.81", op::t(i, op::antya("i")));
@@ -260,7 +260,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     if al::is_dirgha(abhyasa.antya()?) {
         let val = al::to_hrasva(abhyasa.antya()?)?;
-        p.op_term("7.4.60", i, op::antya(&val.to_string()));
+        p.op_term("7.4.59", i, op::antya(&val.to_string()));
     }
 
     if p.has(i, |t| t.has_antya('f')) {

@@ -605,7 +605,7 @@ fn try_add_krt_for_tacchila_etc(p: &mut KrtPrakriya, i: usize, krt: Krt) -> Opti
         p.try_add("3.2.165", K::Uka);
     } else if dhatu.has_text_in(&["yaj", "jap", "daS"]) && has_yan {
         p.try_add("3.2.166", K::Uka);
-    } else if dhatu.has_text_in(&["nam", "kamp", "smi", "jas", "kam", "hins", "dIp"]) {
+    } else if dhatu.has_text_in(&["nam", "kanp", "smi", "jas", "kam", "hins", "dIp"]) {
         p.try_add("3.2.167", K::ra);
     } else if has_san || has_prefix_and_text("A", "Sans") || dhatu.has_text("Bikz") {
         p.try_add("3.2.168", K::u);

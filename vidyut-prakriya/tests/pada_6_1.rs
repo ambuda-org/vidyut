@@ -206,14 +206,7 @@ fn sutra_6_1_16() {
     assert_has_lat_a(&[], &yan(&jya), &["jejIyate"]);
 
     let ve = d("ve\\Y", Bhvadi);
-    assert_has_parasmai_tinanta(
-        &[],
-        &ve,
-        Lit,
-        Prathama,
-        Dvi,
-        &["UyatuH", "UvatuH", "vavatuH"],
-    );
+    assert_has_tas(&[], &ve, Lit, &["UyatuH", "UvatuH", "vavatuH"]);
     assert_has_jhi(&[], &ve, Lit, &["UyuH", "UvuH", "vavuH"]);
 
     let vyadh = d("vya\\Da~", Divadi);
@@ -310,7 +303,7 @@ fn sutra_6_1_17() {
 #[test]
 fn sutra_6_1_18() {
     let svap_nic = d("Yizva\\pa~", Adadi).with_sanadi(&[Sanadi::Nic]);
-    assert_has_parasmai_tinanta(&[], &svap_nic, Lun, Prathama, Eka, &["asUzupat"]);
+    assert_has_tip(&[], &svap_nic, Lun, &["asUzupat"]);
     assert_has_tas(&[], &svap_nic, Lun, &["asUzupatAm"]);
     assert_has_jhi(&[], &svap_nic, Lun, &["asUzupan"]);
     // caNi
@@ -477,7 +470,7 @@ fn sutra_6_1_45() {
 fn sutra_6_1_46() {
     let vye = d("vye\\Y", Bhvadi);
     assert_has_lit_p(&["sam"], &vye, &["saMvivyAya"]);
-    assert_has_parasmai_tinanta(&["sam"], &vye, Lit, Madhyama, Eka, &["saMvivyayiTa"]);
+    assert_has_sip(&["sam"], &vye, Lit, &["saMvivyayiTa"]);
 }
 
 #[test]

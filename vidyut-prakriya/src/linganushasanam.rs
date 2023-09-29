@@ -10,7 +10,6 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     use Rule::Linganushasana as L;
 
     let last = p.terms().last()?;
-
     if last.is_taddhita() && last.has_u("tal") {
         p.add_tag(T::Stri);
         p.step(L("17"));

@@ -276,6 +276,12 @@ fn derive_taddhitanta(
     let taddhita = args.taddhita();
     let p = &mut prakriya;
 
+    // If defined, set the meaning condition that this prakriya must follow.
+    if let Some(artha) = args.artha() {
+        p.set_artha(artha);
+    }
+
+    // Begin the derivation.
     pratipadika_karya::run(p, pratipadika, Linga::Pum);
     samjna::run(p);
 

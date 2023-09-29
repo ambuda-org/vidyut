@@ -1,4 +1,4 @@
-use crate::args::Lakara;
+use crate::args::{Artha, Lakara};
 use crate::tag::Tag;
 use crate::term::{Term, TermView};
 use compact_str::CompactString;
@@ -94,6 +94,7 @@ pub struct Prakriya {
     terms: Vec<Term>,
     tags: EnumSet<Tag>,
     history: Vec<Step>,
+    artha: Option<Artha>,
     config: Config,
     rule_decisions: Vec<RuleChoice>,
     lakara: Option<Lakara>,
@@ -123,6 +124,12 @@ impl Prakriya {
     pub fn history(&self) -> &Vec<Step> {
         &self.history
     }
+
+    /// [experimental] Returns the semantic condition (artha) under which this prakriya was
+    /// created.
+    pub fn artha(&self) -> Option<Artha> {
+        self.artha
+    }
 }
 
 /// Crate-only API
@@ -133,6 +140,7 @@ impl Prakriya {
             terms: Vec::new(),
             tags: EnumSet::new(),
             history: Vec::new(),
+            artha: None,
             config: Config::new(),
             rule_decisions: Vec::new(),
             lakara: None,
@@ -327,6 +335,16 @@ impl Prakriya {
     /// Adds a tag to the prakriya.
     pub(crate) fn add_tag(&mut self, tag: Tag) {
         self.tags.insert(tag);
+    }
+
+    /// Returns whether the prakriya has the given artha.
+    pub(crate) fn has_artha(&mut self, artha: Artha) -> bool {
+        self.artha == Some(artha)
+    }
+
+    /// Sets the artha corresponding to this prakriya.
+    pub(crate) fn set_artha(&mut self, artha: Artha) {
+        self.artha = Some(artha);
     }
 
     #[allow(unused)]

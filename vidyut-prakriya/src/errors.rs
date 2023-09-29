@@ -31,7 +31,7 @@ pub enum Error {
     GanaParseError(u8),
 
     /// A term has an empty upadesha.
-    EmptyUpadesha(String),
+    InvalidUpadesha(String),
 
     /// A generic error.
     Generic(&'static str),
@@ -71,7 +71,7 @@ impl Error {
     }
 
     pub(crate) fn invalid_upadesha(value: &str) -> Self {
-        Error::EmptyUpadesha(value.to_string())
+        Error::InvalidUpadesha(value.to_string())
     }
 }
 
@@ -87,7 +87,7 @@ impl fmt::Display for Error {
             InvalidFile => write!(f, "The input file is invalid."),
             ParseInt(_) => write!(f, "Parse int error"),
             UnknownIt(c) => write!(f, "`{c}` could not be parsed as an it-samjna."),
-            EmptyUpadesha(s) => write!(f, "The term `{s}` unexpectedly has an empty upadesha."),
+            InvalidUpadesha(s) => write!(f, "The term `{s}` unexpectedly has an empty upadesha."),
             MissingRequiredField(s) => write!(f, "Please define the `{s}` field."),
             ParseError(v) => write!(f, "Could not parse `{v}` into an enum value."),
             GanaParseError(v) => write!(f, "Could not parse `{v}` as a dhatu gana."),

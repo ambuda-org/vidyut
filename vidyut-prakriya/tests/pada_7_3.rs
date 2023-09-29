@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Purusha::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
@@ -369,9 +368,9 @@ fn sutra_7_3_71() {
 #[test]
 fn sutra_7_3_72() {
     let duh = d("du\\ha~^", Adadi);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Prathama, Dvi, &["aDukzAtAm"]);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Madhyama, Dvi, &["aDukzATAm"]);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Uttama, Eka, &["aDukzi"]);
+    assert_has_aataam(&[], &duh, Lun, &["aDukzAtAm"]);
+    assert_has_aathaam(&[], &duh, Lun, &["aDukzATAm"]);
+    assert_has_iw(&[], &duh, Lun, &["aDukzi"]);
     // aci
     assert_has_tip(&[], &duh, Lun, &["aDukzat"]);
     assert_has_tas(&[], &duh, Lun, &["aDukzatAm"]);
@@ -381,10 +380,10 @@ fn sutra_7_3_72() {
 #[test]
 fn sutra_7_3_73() {
     let duh = d("du\\ha~^", Adadi);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Prathama, Eka, &["adugDa", "aDukzata"]);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Madhyama, Eka, &["adugDAH", "aDukzaTAH"]);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Madhyama, Bahu, &["aDugDvam", "aDukzaDvam"]);
-    assert_has_atmane_tinanta(&[], &duh, Lun, Uttama, Dvi, &["aduhvahi", "aDukzAvahi"]);
+    assert_has_ta(&[], &duh, Lun, &["adugDa", "aDukzata"]);
+    assert_has_thaas(&[], &duh, Lun, &["adugDAH", "aDukzaTAH"]);
+    assert_has_dhvam(&[], &duh, Lun, &["aDugDvam", "aDukzaDvam"]);
+    assert_has_vahi(&[], &duh, Lun, &["aduhvahi", "aDukzAvahi"]);
     assert_has_lun_a(&[], &d("di\\ha~^", Adadi), &["adigDa", "aDikzata"]);
     assert_has_lun_a(&[], &d("li\\ha~^", Adadi), &["alIQa", "alikzata"]);
     assert_has_lun_a(
@@ -592,9 +591,9 @@ fn sutra_7_3_88() {
     assert_has_mip(&[], &bhu, Lun, &["aBUvam"]);
 
     let su = d("zUN", Adadi);
-    assert_has_atmane_tinanta(&[], &su, Lot, Uttama, Eka, &["suvE"]);
-    assert_has_atmane_tinanta(&[], &su, Lot, Uttama, Dvi, &["suvAvahE"]);
-    assert_has_atmane_tinanta(&[], &su, Lot, Uttama, Bahu, &["suvAmahE"]);
+    assert_has_iw(&[], &su, Lot, &["suvE"]);
+    assert_has_vahi(&[], &su, Lot, &["suvAvahE"]);
+    assert_has_mahin(&[], &su, Lot, &["suvAmahE"]);
 
     assert_has_lat(&[], &bhu, &["Bavati"]);
 
@@ -706,7 +705,7 @@ fn sutra_7_3_95() {
 
     let stu = d("zwu\\Y", Adadi);
     assert_has_lat_p(&["upa"], &stu, &["upastOti", "upastavIti"]);
-    assert_has_atmane_tinanta(&[], &stu, VidhiLin, Prathama, Eka, &["stuvIta"]);
+    assert_has_ta(&[], &stu, VidhiLin, &["stuvIta"]);
 
     // Sam and am are chAndasa.
 }

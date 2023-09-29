@@ -25,27 +25,13 @@ fn sk_2308() {
 fn sk_2397() {
     // akAravAn dhatus with Tal-pratyaya
     let skand = d("ska\\ndi~r", Bhvadi);
-    assert_has_parasmai_tinanta(
-        &[],
-        &skand,
-        Lit,
-        Madhyama,
-        Eka,
-        &["caskandiTa", "caskanTa", "caskantTa"],
-    );
+    assert_has_sip(&[], &skand, Lit, &["caskandiTa", "caskanTa", "caskantTa"]);
 }
 
 #[test]
 fn sk_2447() {
     let urnu = d("UrRuY", Adadi);
-    assert_has_parasmai_tinanta(
-        &[],
-        &urnu,
-        Lit,
-        Madhyama,
-        Eka,
-        &["UrRunaviTa", "UrRunuviTa"],
-    );
+    assert_has_sip(&[], &urnu, Lit, &["UrRunaviTa", "UrRunuviTa"]);
 }
 
 #[test]

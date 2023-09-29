@@ -3,6 +3,7 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
@@ -323,11 +324,17 @@ fn sutra_8_4_40() {
     assert_has_lat_p(&[], &d("o~vrascU~", Tudadi), &["vfScati"]);
     assert_has_krdanta(&[], &d("ya\\ja~^", Tudadi), Krt::naN, &["yajYa"]);
     assert_has_krdanta(&[], &d("quyAcf~^", Tudadi), Krt::naN, &["yAcYA"]);
-    // TODO: multi-pada tests
 }
 
 #[test]
 fn sutra_8_4_41() {
+    assert_has_sandhi("vfkzas", "zaRqe", &["vfkzaz zaRqe", "vfkzaH zaRqe"]);
+    assert_has_sandhi("plakzas", "zaRqe", &["plakzaz zaRqe", "plakzaH zaRqe"]);
+    assert_has_sandhi("vfkzas", "wIkate", &["vfkzaz wIkate"]);
+    assert_has_sandhi("plakzas", "wIkate", &["plakzaz wIkate"]);
+    assert_has_sandhi("vfkzas", "WakAraH", &["vfkzaz WakAraH"]);
+    assert_has_sandhi("plakzas", "WakAraH", &["plakzaz WakAraH"]);
+
     let pish = d("pi\\zx~", Rudhadi);
     assert_has_krdanta(&[], &pish, Krt::tfc, &["pezwf"]);
     assert_has_krdanta(&[], &pish, Krt::tumun, &["pezwum"]);
@@ -336,7 +343,31 @@ fn sutra_8_4_41() {
     assert_has_ashirlin_a(&[], &kf, &["kfzIzwa"]);
     assert_has_thaas(&[], &kf, AshirLin, &["kfzIzWAH"]);
 
-    // TODO: multi-pada tests
+    assert_has_sandhi("agnicit", "wIkate", &["agniciw wIkate"]);
+    assert_has_sandhi("somasut", "wIkate", &["somasuw wIkate"]);
+    assert_has_sandhi("agnicit", "WakAraH", &["agniciw WakAraH"]);
+    assert_has_sandhi("somasut", "WakAraH", &["somasuw WakAraH"]);
+    assert_has_sandhi("agnicit", "qInaH", &["agniciq qInaH"]);
+    assert_has_sandhi("somasut", "qInaH", &["somasuq qInaH"]);
+    assert_has_sandhi("agnicit", "QOkate", &["agniciq QOkate"]);
+    assert_has_sandhi("somasut", "QOkate", &["somasuq QOkate"]);
+    assert_has_sandhi("agnicit", "RakAraH", &["agniciR RakAraH"]);
+    assert_has_sandhi("somasut", "RakAraH", &["somasuR RakAraH"]);
+
+    // TODO: awwati, aqqati
+}
+
+#[ignore]
+#[test]
+fn sutra_8_4_42() {
+    assert_has_sandhi("Svaliw", "sAye", &["Svaliw sAye", "Svaliw tsAye"]);
+    assert_has_sandhi("maDuliw", "tarati", &["maDuliw tarati"]);
+    // padAntAt?
+    assert_has_lat_a(&[], &d("Iqa~\\", Adadi), &["Iwwe"]);
+    // woH?
+    assert_has_taddhitanta(&prati("sarpis"), T::tamap, &["sarpizwama"]);
+    // // an-Am?
+    assert_has_subantas("zaz", Pum, V::Sasthi, Bahu, &["zaRRAm"]);
 }
 
 #[test]

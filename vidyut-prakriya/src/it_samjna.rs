@@ -31,7 +31,7 @@ fn run_1_3_2(p: &mut Prakriya, i_term: usize, before: &mut CompactString) -> Opt
 
     // If the text contains `yu~` or `vu~`, skip lopa of nasal vowels so that rule 7.1.1
     // (yuvoranAkau) can apply.
-    if term.has_tag(T::Krt) && (term.text.contains("yu~") || term.text.contains("vu~")) {
+    if term.is_pratyaya() && (term.text.contains("yu~") || term.text.contains("vu~")) {
         return None;
     }
 
@@ -101,6 +101,11 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
         Some(t) => t,
         None => return Ok(()),
     };
+
+    // Ignore empty terms if they were deleted by luk, etc.
+    if t.is_empty() && t.has_tag(T::Luk) {
+        return Ok(());
+    }
 
     // All it sounds are removed at once by 1.3.9 "tasya lopaH". Before then, keep the text in the
     // term unchanged. Instead, mutate a new temporary string and copy it over as part of 1.3.9.

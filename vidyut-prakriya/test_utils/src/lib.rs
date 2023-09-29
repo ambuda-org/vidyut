@@ -45,8 +45,16 @@ fn derive_krdantas(dhatu: &Dhatu, args: KrdantaArgs) -> Vec<Prakriya> {
 }
 
 /// Derives taddhitantas from the given initial conditions.
-fn derive_taddhitantas(p: &Pratipadika, t: Taddhita) -> Vec<Prakriya> {
-    let args = TaddhitantaArgs::builder().taddhita(t).build().unwrap();
+fn derive_taddhitantas(p: &Pratipadika, t: Taddhita, a: Option<Artha>) -> Vec<Prakriya> {
+    let args = if let Some(a) = a {
+        TaddhitantaArgs::builder()
+            .taddhita(t)
+            .artha(a)
+            .build()
+            .unwrap()
+    } else {
+        TaddhitantaArgs::builder().taddhita(t).build().unwrap()
+    };
     let a = Ashtadhyayi::new();
     let results = a.derive_taddhitantas(p, &args);
     sanitize_results(results)
@@ -164,7 +172,7 @@ pub fn assert_has_tinanta(
 }
 
 /// Checks parasmaipada + the given lakara/purusha/vacana
-pub fn assert_has_parasmai_tinanta(
+fn assert_has_parasmai_tinanta(
     prefixes: &[&str],
     dhatu: &Dhatu,
     lakara: Lakara,
@@ -185,7 +193,7 @@ pub fn assert_has_parasmai_tinanta(
 }
 
 /// Checks atmanepada + the given lakara/purusha/vacana
-pub fn assert_has_atmane_tinanta(
+fn assert_has_atmane_tinanta(
     prefixes: &[&str],
     dhatu: &Dhatu,
     lakara: Lakara,
@@ -600,7 +608,25 @@ pub fn assert_has_upapada_krdanta_raw(
 // -------------------
 
 pub fn assert_has_taddhitanta(prati: &Pratipadika, t: Taddhita, expected: &[&str]) {
-    assert_padas(derive_taddhitantas(prati, t), expected);
+    assert_padas(derive_taddhitantas(prati, t, None), expected);
+}
+
+pub fn assert_has_artha_taddhita(
+    prati: &str,
+    requested_artha: Artha,
+    t: Taddhita,
+    expected: &[&str],
+) {
+    let pratipadika = Pratipadika::new(prati);
+    let mut prakriyas = derive_taddhitantas(&pratipadika, t, Some(requested_artha));
+    prakriyas.retain(|p| {
+        if let Some(prakriya_artha) = p.artha() {
+            requested_artha.is_type_of(prakriya_artha)
+        } else {
+            false
+        }
+    });
+    assert_padas(prakriyas, expected);
 }
 
 // Subanta helpers
