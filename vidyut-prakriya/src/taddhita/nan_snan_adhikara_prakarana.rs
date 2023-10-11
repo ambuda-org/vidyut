@@ -1,5 +1,5 @@
-use crate::args::Artha::*;
 use crate::args::Taddhita::*;
+use crate::args::TaddhitaArtha::*;
 use crate::taddhita::gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
 

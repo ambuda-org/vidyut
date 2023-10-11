@@ -69,7 +69,7 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
         let dhatu = cp.p.get(i)?;
         let next = cp.p.get(i + 1)?;
         if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
-            || (dhatu.has_u("ska\\nBu~") && next.has_u_in(&["SnA", "Snu"]))
+            || (dhatu.has_u("skanBu~") && next.has_u_in(&["SnA", "Snu"]))
             || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
             || (dhatu.has_u("nftI~") && next.has_u("yaN"))
         {
@@ -92,7 +92,8 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
     } else if i_n == cp.text.len() - 1 {
         // akurvan, caran, ...
         cp.p.step("8.4.37");
-    } else if x.has_tag(T::Upasarga) {
+    } else if x.is_upasarga() || x.has_u("antar") {
+        // Allow "antar" per 1.4.65.v1.
         // Check !is_pratyaya to allow nirvAna -> nirvARa
         const GAD_ADI: &[(&str, Gana)] = &[
             ("gada~", Gana::Bhvadi),
@@ -133,11 +134,19 @@ fn try_natva_for_span(cp: &mut CharPrakriya, i_rs: usize, i_n: usize) -> Option<
             // prahiRoti
             cp.set_at(i_n, "R");
             cp.p.step("8.4.15");
-        } else if y.has_u("Ani") && y.has_lakshana("lo~w") {
-            // pravapARi
-            cp.set_at(i_n, "R");
-            cp.p.step("8.4.16");
-        } else if y.has_u("ni") {
+        } else if y.has_lakshana("lo~w") && y.has_u("ni") {
+            if x.has_u("dur") {
+                // TODO: extend
+                cp.p.step("1.4.60.v3");
+            } else if x.has_u("antar") {
+                // TODO: extend
+                cp.p.step("1.4.65.v1");
+            } else {
+                // pravapARi
+                cp.set_at(i_n, "R");
+                cp.p.step("8.4.16");
+            }
+        } else if y.is_upasarga() && y.has_u("ni") {
             if dhatu_in(dhatu, GAD_ADI) || dhatu.has_tag(T::Ghu) {
                 cp.set_at(i_n, "R");
                 cp.p.step("8.4.17");
@@ -466,25 +475,33 @@ fn try_to_savarna(p: &mut Prakriya) {
         },
     );
 
+    for i in 1..p.terms().len() {
+        if p.has(i - 1, |t| t.is_upasarga() && t.has_u("ud"))
+            && p.has(i, |t| t.has_u_in(&["zWA\\", "zwaBi~\\"]))
+        {
+            p.op_term("8.4.61", i, |t| t.set_adi("t"));
+        }
+    }
+
     char_rule(p, xy(|x, y| JHAY.contains(x) && y == 'h'), |p, text, i| {
-        p.op_optional("8.4.62", |p| {
-            let sub = match text.as_bytes().get(i).map(|x| *x as char) {
-                Some('k') => Some("G"),
-                Some('g') => Some("G"),
-                Some('c') => Some("J"),
-                Some('j') => Some("J"),
-                Some('w') => Some("Q"),
-                Some('q') => Some("Q"),
-                Some('t') => Some("D"),
-                Some('d') => Some("D"),
-                Some('p') => Some("B"),
-                Some('b') => Some("B"),
-                _ => None,
-            };
-            if let Some(sub) = sub {
-                set_at(p, i + 1, sub)
-            }
-        })
+        let sub = match text.as_bytes().get(i).map(|x| *x as char) {
+            Some('k') => Some("G"),
+            Some('g') => Some("G"),
+            Some('c') => Some("J"),
+            Some('j') => Some("J"),
+            Some('w') => Some("Q"),
+            Some('q') => Some("Q"),
+            Some('t') => Some("D"),
+            Some('d') => Some("D"),
+            Some('p') => Some("B"),
+            Some('b') => Some("B"),
+            _ => None,
+        };
+        if let Some(sub) = sub {
+            p.op_optional("8.4.62", |p| set_at(p, i + 1, sub))
+        } else {
+            false
+        }
     });
 
     char_rule(

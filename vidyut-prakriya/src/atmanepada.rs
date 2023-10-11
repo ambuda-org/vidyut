@@ -23,6 +23,7 @@ const GAMY_RCCHI: &[(&str, Gana)] = &[
     ("pra\\Ca~", Gana::Tudadi),
     ("svf", Gana::Bhvadi),
     ("f\\", Gana::Bhvadi),
+    ("f\\", Gana::Juhotyadi),
     ("Sru\\", Gana::Bhvadi),
     ("vida~", Gana::Adadi),
 ];
@@ -122,7 +123,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     // Exclude "san" per 1.3.62.
     // TODO: handle this better.
     let i = p.find_last_where(|t| t.is_dhatu() && !t.has_u("san"))?;
-    let has_upasargas = p.find_prev_where(i, |t| t.has_tag(T::Upasarga)).is_some();
+    let has_upasargas = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
 
     if p.is_bhave_or_karmani() {
         p.op("1.3.13", op_atmanepada);

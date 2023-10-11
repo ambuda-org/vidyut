@@ -3,9 +3,9 @@ Implements the taddhita rules in the "prAg dIvyato 'R" section of pada 4.1.
 
 (4.1.83 - 4.3.168)
 */
-use crate::args::Artha::*;
 use crate::args::Taddhita;
 use crate::args::Taddhita::*;
+use crate::args::TaddhitaArtha::*;
 use crate::it_samjna;
 use crate::operators as op;
 use crate::sounds::{s, Set};

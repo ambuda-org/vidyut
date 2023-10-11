@@ -6,7 +6,9 @@ manage the boilerplate required for these assertions.
 */
 extern crate vidyut_prakriya;
 
+use vidyut_prakriya::args::Antargana;
 use vidyut_prakriya::args::Vacana::*;
+use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
@@ -23,7 +25,10 @@ fn sanitize_results(mut results: Vec<Prakriya>) -> Vec<Prakriya> {
         .into_iter()
         .filter(|p| {
             let text = p.text();
-            !text.ends_with('d') && !text.ends_with('q') && !text.ends_with('g')
+            !text.ends_with('d')
+                && !text.ends_with('q')
+                && !text.ends_with('g')
+                && !text.ends_with('b')
         })
         .collect()
 }
@@ -41,11 +46,13 @@ fn derive_krdantas(dhatu: &Dhatu, args: KrdantaArgs) -> Vec<Prakriya> {
     let mut results = a.derive_krdantas(dhatu, &args);
     results.sort_by_key(|p| p.text());
     results.dedup_by_key(|p| p.text());
+    // Allowed in pada sandhi, but noisy here.
+    results.retain(|p| !p.text().contains("cS"));
     results
 }
 
 /// Derives taddhitantas from the given initial conditions.
-fn derive_taddhitantas(p: &Pratipadika, t: Taddhita, a: Option<Artha>) -> Vec<Prakriya> {
+fn derive_taddhitantas(p: &Pratipadika, t: Taddhita, a: Option<TaddhitaArtha>) -> Vec<Prakriya> {
     let args = if let Some(a) = a {
         TaddhitantaArgs::builder()
             .taddhita(t)
@@ -275,6 +282,10 @@ pub fn d(u: &str, g: Gana) -> Dhatu {
     Dhatu::new(u, g)
 }
 
+pub fn d_kutadi(u: &str, g: Gana) -> Dhatu {
+    Dhatu::new(u, g).with_antargana(Some(Antargana::Kutadi))
+}
+
 /// Marks a dhatu as taking san-pratyaya.
 pub fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::San])
@@ -288,6 +299,11 @@ pub fn yan(dhatu: &Dhatu) -> Dhatu {
 /// Marks a dhatu as taking Ric-pratyaya.
 pub fn nic(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::Nic])
+}
+
+/// Marks a dhatu as taking san-pratyaya followed by Nic-pratyaya.
+pub fn san_nic(dhatu: &Dhatu) -> Dhatu {
+    dhatu.clone().with_sanadi(&[Sanadi::San, Sanadi::Nic])
 }
 
 /// Marks a dhatu as taking Nic-pratyaya followed by san-pratyaya.
@@ -390,6 +406,42 @@ pub fn assert_has_vahi(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &
 
 pub fn assert_has_mahin(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
     assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Uttama, Bahu, expected);
+}
+
+pub fn assert_has_ta_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Prathama, Eka, expected);
+}
+
+pub fn assert_has_aataam_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Prathama, Dvi, expected);
+}
+
+pub fn assert_has_jha_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Prathama, Bahu, expected);
+}
+
+pub fn assert_has_thaas_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Eka, expected);
+}
+
+pub fn assert_has_aathaam_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Dvi, expected);
+}
+
+pub fn assert_has_dhvam_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Bahu, expected);
+}
+
+pub fn assert_has_iw_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Uttama, Eka, expected);
+}
+
+pub fn assert_has_vahi_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Uttama, Dvi, expected);
+}
+
+pub fn assert_has_mahin_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Uttama, Bahu, expected);
 }
 
 // Tinanta helpers (based on lakara suffix)
@@ -568,6 +620,30 @@ pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: 
     );
 }
 
+pub fn assert_has_artha_krdanta(
+    upapadas: &[&str],
+    dhatu: &Dhatu,
+    requested_artha: KrtArtha,
+    krt: Krt,
+    expected: &[&str],
+) {
+    let args = KrdantaArgs::builder()
+        .krt(krt)
+        .artha(requested_artha)
+        .build()
+        .unwrap();
+    let mut prakriyas = derive_krdantas(&dhatu.clone().with_prefixes(upapadas), args);
+
+    prakriyas.retain(|p| {
+        if let Some(Artha::Krt(prakriya_artha)) = p.artha() {
+            requested_artha == prakriya_artha
+        } else {
+            false
+        }
+    });
+    assert_padas(prakriyas, expected);
+}
+
 pub fn assert_has_upapada_krdanta(
     upapada: &str,
     prefixes: &[&str],
@@ -613,14 +689,14 @@ pub fn assert_has_taddhitanta(prati: &Pratipadika, t: Taddhita, expected: &[&str
 
 pub fn assert_has_artha_taddhita(
     prati: &str,
-    requested_artha: Artha,
+    requested_artha: TaddhitaArtha,
     t: Taddhita,
     expected: &[&str],
 ) {
     let pratipadika = Pratipadika::new(prati);
     let mut prakriyas = derive_taddhitantas(&pratipadika, t, Some(requested_artha));
     prakriyas.retain(|p| {
-        if let Some(prakriya_artha) = p.artha() {
+        if let Some(Artha::Taddhita(prakriya_artha)) = p.artha() {
             requested_artha.is_type_of(prakriya_artha)
         } else {
             false
@@ -684,4 +760,100 @@ pub fn assert_has_subantas_raw(
     results.dedup_by_key(|p| p.text());
     let actual: Vec<_> = results.into_iter().collect();
     assert_padas(actual, expected);
+}
+
+pub fn assert_has_sup_1s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Prathama, Eka, &expected);
+}
+
+pub fn assert_has_sup_1d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Prathama, Dvi, &expected);
+}
+
+pub fn assert_has_sup_1p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Prathama, Bahu, &expected);
+}
+
+pub fn assert_has_sup_2s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Dvitiya, Eka, &expected);
+}
+
+pub fn assert_has_sup_2d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Dvitiya, Dvi, &expected);
+}
+
+pub fn assert_has_sup_2p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Dvitiya, Bahu, &expected);
+}
+
+pub fn assert_has_sup_3s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Trtiya, Eka, &expected);
+}
+
+pub fn assert_has_sup_3d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Trtiya, Dvi, &expected);
+}
+
+pub fn assert_has_sup_3p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Trtiya, Bahu, &expected);
+}
+
+pub fn assert_has_sup_4s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Caturthi, Eka, &expected);
+}
+
+pub fn assert_has_sup_4d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Caturthi, Dvi, &expected);
+}
+
+pub fn assert_has_sup_4p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Caturthi, Bahu, &expected);
+}
+
+pub fn assert_has_sup_5d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Caturthi, Dvi, &expected);
+}
+
+pub fn assert_has_sup_5p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Caturthi, Bahu, &expected);
+}
+
+pub fn assert_has_sup_5s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Panchami, Eka, &expected);
+}
+
+pub fn assert_has_sup_6s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Sasthi, Eka, &expected);
+}
+
+pub fn assert_has_sup_6d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Sasthi, Dvi, &expected);
+}
+
+pub fn assert_has_sup_6p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Sasthi, Bahu, &expected);
+}
+
+pub fn assert_has_sup_7s(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Saptami, Eka, &expected);
+}
+
+pub fn assert_has_sup_7d(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Saptami, Dvi, &expected);
+}
+
+pub fn assert_has_sup_7p(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Saptami, Bahu, &expected);
+}
+
+pub fn assert_has_sup_ss(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Sambodhana, Eka, &expected);
+}
+
+pub fn assert_has_sup_sd(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Sambodhana, Dvi, &expected);
+}
+
+pub fn assert_has_sup_sp(prati: &str, linga: Linga, expected: &[&str]) {
+    assert_has_subantas(prati, linga, Sambodhana, Bahu, &expected);
 }

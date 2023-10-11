@@ -52,6 +52,7 @@ mod it_samjna;
 mod krt;
 mod la_karya;
 mod linganushasanam;
+mod misc;
 mod pratipadika_karya;
 mod samjna;
 mod samprasarana;

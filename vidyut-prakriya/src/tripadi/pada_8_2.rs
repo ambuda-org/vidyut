@@ -121,7 +121,15 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
         let y = p.get(j)?;
 
         if x.has_u_in(&["kfpU~\\", "kfpa~\\", "kfpa~"]) {
-            p.op("8.2.18", op::t(i, do_ra_la));
+            p.op("8.2.18", |p| {
+                if let Some(t) = p.get_mut(i) {
+                    do_ra_la(t);
+                }
+                if i > 0 && p.has(i - 1, |t| t.has_text("rI")) {
+                    // For calIkxpyate
+                    p.set(i - 1, |t| t.set_text("lI"));
+                }
+            });
         } else if y.has_u("aya~\\") {
             if x.has_upadha('r') || x.has_antya('r') {
                 p.op("8.2.19", op::t(i, do_ra_la));
@@ -150,7 +158,9 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         |p, _, i| {
             let t = get_at(p, i + 1).expect("valid");
             // "ayamapi sica eva lopaḥ, tena iha na bhavati, somasut stotā, dṛṣṭsthānam iti" (KV)
-            if t.has_u("si~c") {
+            // But, also part of bapsati?
+            // TODO: clean up this rule
+            if t.has_u("si~c") || t.has_u("Basa~") {
                 set_at(p, i + 1, "");
                 p.step("8.2.26");
                 true
@@ -735,8 +745,9 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) -> Option<()> {
     };
     let before_upadha = |t: &Term| t.text.chars().rev().nth(2);
 
+    // karotereva tatra grahaRAd ityAhuH (SK 2536)
     // TODO: bha
-    if dhatu.has_text_in(&["kur", "Cur"]) {
+    if dhatu.has_text("Cur") || (dhatu.has_text("kur") && dhatu.has_u("qukf\\Y")) {
         p.step("8.2.79");
     } else if is_ik(dhatu.upadha()) && is_rv(dhatu.antya()) {
         let sub = al::to_dirgha(dhatu.upadha()?)?;

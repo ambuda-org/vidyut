@@ -9,8 +9,8 @@ use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::Upapada;
 use crate::args::{
-    Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, SubantaArgs, TaddhitantaArgs,
-    TinantaArgs,
+    Artha, Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, SubantaArgs,
+    TaddhitantaArgs, TinantaArgs,
 };
 use crate::atidesha;
 use crate::atmanepada;
@@ -21,6 +21,7 @@ use crate::it_agama;
 use crate::krt;
 use crate::la_karya;
 use crate::linganushasanam;
+use crate::misc;
 use crate::prakriya::Prakriya;
 use crate::prakriya_stack::PrakriyaStack;
 use crate::pratipadika_karya;
@@ -119,6 +120,8 @@ fn run_various_dhatu_tasks(p: &mut Prakriya) {
 }
 
 fn run_rules(p: &mut Prakriya, lakara: Option<Lakara>, is_ardhadhatuka: bool) -> Result<()> {
+    misc::run_pad_adi(p);
+
     p.debug("==== Tin-siddhi ====");
     // Do lit-siddhi and AzIrlin-siddhi first to support the valAdi vArttika for aj -> vi.
     let is_lit_or_ashirlin = matches!(lakara, Some(Lakara::Lit) | Some(Lakara::AshirLin));
@@ -139,6 +142,11 @@ fn run_rules(p: &mut Prakriya, lakara: Option<Lakara>, is_ardhadhatuka: bool) ->
             tin_pratyaya::try_general_siddhi(p, lakara);
         }
     }
+
+    // Constraints:
+    // - should run before atidesha rules because of Rittva.
+    // - should also run for subantas.
+    angasya::try_add_or_remove_nit(p);
 
     p.debug("==== Dhatu tasks ====");
     run_various_dhatu_tasks(p);
@@ -175,6 +183,7 @@ fn run_rules(p: &mut Prakriya, lakara: Option<Lakara>, is_ardhadhatuka: bool) ->
 
     p.debug("==== After dvitva ====");
     angasya::run_after_dvitva(p);
+    uttarapade::run_after_guna(p);
     ac_sandhi::try_sup_sandhi_after_angasya(p);
     ac_sandhi::run_common(p);
 
@@ -234,6 +243,11 @@ fn derive_subanta(
 fn derive_krdanta(mut prakriya: Prakriya, dhatu: &Dhatu, args: &KrdantaArgs) -> Result<Prakriya> {
     let p = &mut prakriya;
 
+    // If defined, set the meaning condition that this prakriya must follow.
+    if let Some(artha) = args.artha() {
+        p.set_artha(Artha::Krt(artha));
+    }
+
     if let Some(upa) = args.upapada() {
         let mut upapada = Term::make_upadesha(upa.text());
         upapada.add_tag(Tag::Pratipadika);
@@ -278,7 +292,7 @@ fn derive_taddhitanta(
 
     // If defined, set the meaning condition that this prakriya must follow.
     if let Some(artha) = args.artha() {
-        p.set_artha(artha);
+        p.set_artha(Artha::Taddhita(artha));
     }
 
     // Begin the derivation.
@@ -345,20 +359,24 @@ pub struct Ashtadhyayi {
     // Options we hope to add in the future:
     // - `nlp_mode` -- if set, preserve the final `s` and `r` of a pada, since these are important
     //   to preserve for certain NLP use cases.
-    // - `chandasa` -- if set, also generate chaandasa forms.
     // - `svara`    -- if set, enable accent rules.
     // - `extended` -- if set, enable rare rules that are less useful, such as 8.4.48 (aco
     //   rahAbhyAM dve), which creates words like *kAryyate*, *brahmmA*, etc.
     // - `disable`  -- if set, disable the rules provided. To implement this, we should make
     //   `Prakriya::step` private and add a check statement in `Prakriya::op`.
     log_steps: bool,
+    // If set, also generate chaandasa forms.
+    is_chandasa: bool,
 }
 
 // TODO: better error handling.
 impl Ashtadhyayi {
     /// Creates a basic interface with sane defaults.
     pub fn new() -> Self {
-        Ashtadhyayi { log_steps: true }
+        Ashtadhyayi {
+            log_steps: true,
+            is_chandasa: false,
+        }
     }
 
     /// Returns a builder that exposes configuration options for how the engine runs rules and
@@ -399,7 +417,11 @@ impl Ashtadhyayi {
         // TODO: to avoid wasting time on deriving words that we'll just throw out, push this
         // further into `derive_tinanta`.
         if let Some(pada) = args.pada() {
-            prakriyas.retain(|p| p.has_tag(pada.as_tag()));
+            use crate::args::Pada;
+            prakriyas.retain(|p| match pada {
+                Pada::Parasmai => p.has_tag(pada.as_tag()) && !p.has_tag(Tag::AmAtmanepada),
+                Pada::Atmane => p.has_tag_in(&[pada.as_tag(), Tag::AmAtmanepada]),
+            });
         }
 
         prakriyas
@@ -514,6 +536,16 @@ impl AshtadhyayiBuilder {
     ///   underlying derivation.
     pub fn log_steps(mut self, value: bool) -> Self {
         self.a.log_steps = value;
+        self
+    }
+
+    /// *(default: folse)* Controls whether or not to allow rules marked "chandasi," "mantre," etc..
+    ///
+    /// - If `true`, each `Prakriya` will have access to chAndasa rules.
+    ///
+    /// - If `false`, each `Prakriya` will use a standard ruleset.
+    pub fn is_chandasa(mut self, value: bool) -> Self {
+        self.a.is_chandasa = value;
         self
     }
 

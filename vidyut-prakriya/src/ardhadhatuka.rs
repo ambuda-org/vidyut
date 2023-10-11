@@ -220,7 +220,8 @@ fn dhatu_adesha_after_vikarana(p: &mut Prakriya) -> Option<()> {
     }
 
     if p.has(i + 1, |t| t.has_u("yaN")) && p.has(i + 2, |t| t.has_u("ac")) {
-        p.op_term("2.4.74", i + 1, op::lopa);
+        p.op_term("2.4.74", i + 1, op::luk);
+        p.set(i + 1, |t| t.add_tag(T::FlagAtLopa));
     }
 
     Some(())

@@ -73,6 +73,8 @@ pub enum Taddhita {
     Gas,
     /// -Ayana
     cPaY,
+    /// --
+    cvi,
     /// -Iya
     Ca,
     /// -Iya,
@@ -109,6 +111,8 @@ pub enum Taddhita {
     Wan,
     /// -ika
     Wap,
+    /// -pa
+    qupac,
     /// -mat
     qmatup,
     /// -vala
@@ -119,6 +123,8 @@ pub enum Taddhita {
     Qak,
     /// -eyaka
     QakaY,
+    /// -eya
+    Qa,
     /// -eya
     QaY,
     /// -eyin
@@ -151,6 +157,8 @@ pub enum Taddhita {
     tyap,
     /// -tra
     tral,
+    /// -trA
+    trA,
     /// -tva
     tva,
     /// -Tam
@@ -229,6 +237,8 @@ pub enum Taddhita {
     Sa,
     /// -Sas
     Sas,
+    /// -tra
+    zwarac,
     /// -ika
     zWac,
     /// -ika
@@ -279,6 +289,7 @@ enum_boilerplate!(Taddhita, {
     Gan => "Gan",
     Gas => "Gas",
     cPaY => "cPaY",
+    cvi => "cvi~",
     Ca => "Ca",
     CaR => "CaR",
     Cas => "Cas",
@@ -297,11 +308,13 @@ enum_boilerplate!(Taddhita, {
     WaY => "WaY",
     Wan => "Wan",
     Wap => "Wap",
+    qupac => "qupac",
     qmatup => "qmatu~p",
     qvalac => "qvalac",
     qvun => "qvu~n",
     Qak => "Qak",
     QakaY => "QakaY",
+    Qa => "Qa",
     QaY => "QaY",
     Qinuk => "Qinu~k",
     Qrak => "Qrak",
@@ -318,6 +331,7 @@ enum_boilerplate!(Taddhita, {
     tyak => "tyak",
     tyap => "tyap",
     tral => "tral",
+    trA => "trA",
     tva => "tva",
     Tamu => "Tamu~",
     Tyan => "Tyan",
@@ -357,6 +371,7 @@ enum_boilerplate!(Taddhita, {
     vyan => "vyan",
     Sa => "Sa",
     Sas => "Sas",
+    zwarac => "zwarac",
     zWac => "zWac",
     zWan => "zWan",
     zWal => "zWal",
@@ -372,7 +387,7 @@ enum_boilerplate!(Taddhita, {
 /// Generally, taddhitas are available only in specific senses. A given taddhita might be allowed
 /// in one sense but blocked in another. To model and test this behavior, we use the enum below.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
-pub enum Artha {
+pub enum TaddhitaArtha {
     /// Descendant. (4.1.92)
     TasyaApatyam,
     /// Patronymic lineage. (4.1.98)
@@ -514,15 +529,39 @@ pub enum Artha {
     TadAsyaAstiAsmin,
     /// Words meaning direction, location, or time. (5.3.27)
     DigDeshaKala,
+    /// Not known. (5.3.73)
+    Ajnate,
+    /// Contempt. (5.3.75)
+    Kutsite,
+    /// TODO
+    Anukampayam,
+    /// Slenderness. (5.3.91)
+    Tanutve,
+    /// Derision. (5.3.95)
+    Avakshepane,
+    /// TODO
+    Alpe,
+    /// TODO
+    Hrasve,
+    /// TODO
+    IvePratikrtau,
+    /// TODO
+    Svarthe,
+    /// TODO
+    Matsye,
+    /// TODO
+    KriyaAbhyavrttiGanana,
     /// Expressing manner. (5.4.3)
     PrakaraVacane,
     /// What one is made of. (5.4.21)
     TatPrakrtaVacane,
     /// For the sake of which. (5.4.24)
     Tadarthye,
+    /// Becoming what one was not. (5.4.50)
+    AbhutaTadbhava,
 }
 
-impl Artha {
+impl TaddhitaArtha {
     /// Returns whether `self` is either identical to `other` or falls under `other` as a subtype.
     pub fn is_type_of(&self, parent: Self) -> bool {
         match self {
@@ -535,7 +574,7 @@ impl Artha {
 /// The information required to derive a taddhitanta in the grammar.
 pub struct TaddhitantaArgs {
     taddhita: Taddhita,
-    artha: Option<Artha>,
+    artha: Option<TaddhitaArtha>,
 }
 
 impl TaddhitantaArgs {
@@ -545,7 +584,7 @@ impl TaddhitantaArgs {
     }
 
     /// The artha condition to use in the derivation. If not set, any artha is allowed.
-    pub fn artha(&self) -> Option<Artha> {
+    pub fn artha(&self) -> Option<TaddhitaArtha> {
         self.artha
     }
 
@@ -559,7 +598,7 @@ impl TaddhitantaArgs {
 #[derive(Clone, Default, Hash, Eq, PartialEq)]
 pub struct TaddhitantaArgsBuilder {
     taddhita: Option<Taddhita>,
-    artha: Option<Artha>,
+    artha: Option<TaddhitaArtha>,
 }
 
 impl TaddhitantaArgsBuilder {
@@ -570,7 +609,7 @@ impl TaddhitantaArgsBuilder {
     }
 
     /// Sets the artha to use in the derivation.
-    pub fn artha(&mut self, val: Artha) -> &mut Self {
+    pub fn artha(&mut self, val: TaddhitaArtha) -> &mut Self {
         self.artha = Some(val);
         self
     }
@@ -595,7 +634,7 @@ mod tests {
 
     #[test]
     fn artha_includes() {
-        use Artha::*;
+        use TaddhitaArtha::*;
         // Child relationship --> true
         assert!(Gotra.is_type_of(TasyaApatyam));
         // Equality --> true

@@ -487,6 +487,11 @@ impl Prakriya {
 
     // Optional rules
 
+    /// Returns whether the prakriya allows chAndasa rules.
+    pub(crate) fn is_chandasi(&self) -> bool {
+        false
+    }
+
     pub(crate) fn is_allowed(&mut self, r: impl Into<Rule>) -> bool {
         let r = r.into();
         for option in &self.config.rule_choices {

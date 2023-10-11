@@ -29,8 +29,6 @@ fn is_grahi_jya(t: &Term) -> bool {
             "o~vrascU~",
             "pra\\Ca~",
             "Bra\\sja~^",
-            // not sure how to handle "vay" root
-            "vaya~\\",
         ])
 }
 

@@ -57,9 +57,9 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
 }
 
 fn try_ver_aprktasya(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Krt)?;
-    let krt = p.get(i)?;
-    if krt.has_text("v") {
+    let i = p.find_last(T::Pratyaya)?;
+    let last = p.get(i)?;
+    if last.has_text("v") {
         p.op_term("6.1.67", i, op::lopa);
     }
 
@@ -143,7 +143,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     // upa + fcCati -> upArcCati
     xy_rule(
         p,
-        |x, y| x.has_tag(T::Upasarga) && x.has_antya(&*A) && y.is_dhatu() && y.has_adi('f'),
+        |x, y| x.is_upasarga() && x.has_antya(&*A) && y.is_dhatu() && y.has_adi('f'),
         |p, i, j| {
             p.set(i, |t| t.set_antya(""));
             p.set(j, |t| t.set_adi("Ar"));
@@ -155,7 +155,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     xy_rule(
         p,
         |x, y| {
-            x.has_tag(T::Upasarga)
+            x.is_upasarga()
                 && x.has_antya(&*A)
                 && y.has_u_in(&["i\\R", "eDa~\\"])
                 && y.has_adi(&*EN)
@@ -168,10 +168,19 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         },
     );
 
+    // HACK for KOnAti
+    xy_rule(
+        p,
+        |x, _| x.has_text("KaU"),
+        |p, i, _| {
+            p.op_term("6.1.89", i, |t| t.set_text("KO"));
+        },
+    );
+
     // upa + elayati -> upelayati
     xy_rule(
         p,
-        |x, y| x.has_tag(T::Upasarga) && x.has_antya(&*A) && y.is_dhatu() && y.has_adi(&*EN),
+        |x, y| x.is_upasarga() && x.has_antya(&*A) && y.is_dhatu() && y.has_adi(&*EN),
         |p, i, _j| {
             p.set(i, |t| t.set_antya(""));
             p.step("6.1.94");
@@ -357,6 +366,9 @@ fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
         } else if prev.has_u("apa") {
             optional_add_sut("6.1.142", p, i_dhatu);
         }
+    } else if prev.has_u("pra") && dhatu.has_u("tunpa~") {
+        optional_add_sut("6.1.157", p, i_dhatu);
+        // TODO: implement others.
     }
     Some(())
 }

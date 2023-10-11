@@ -151,6 +151,8 @@ pub enum Tag {
     Parasmaipada,
     Atmanepada,
 
+    AmAtmanepada,
+
     // Artha (semantic conditions)
     Ashih,
     Sanartha,

@@ -3,8 +3,8 @@ Implements the taddhita rules in the "prAg vahatez Wak" section of pada 4.4.
 
 (4.4.1 - 4.4.74)
 */
-use crate::args::Artha::*;
 use crate::args::Taddhita;
+use crate::args::TaddhitaArtha::*;
 use crate::operators as op;
 use crate::prakriya::Rule;
 use crate::taddhita::gana;

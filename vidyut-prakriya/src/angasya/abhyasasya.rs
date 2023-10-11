@@ -214,6 +214,13 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let i_dhatu = i + 1;
 
     let dhatu = p.get(i_dhatu)?;
+    if dhatu.has_u("zWivu~") {
+        p.op_optional(Rule::Kashika("6.1.64"), |p| {
+            p.set(i, |t| t.find_and_replace_text("zW", "zT"))
+        });
+    }
+
+    let dhatu = p.get(i_dhatu)?;
     let last = p.terms().last()?;
     if dhatu.has_u("dyuta~\\") || dhatu.has_text("svAp") {
         // Hacky samprasArana.
@@ -230,7 +237,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let abhyasa = p.get(i)?;
-    if abhyasa.has_adi(&*SHAR) && abhyasa.get_at(1).map(|c| KHAY.contains(c)).unwrap_or(false) {
+    if abhyasa.has_adi(&*SHAR) && abhyasa.has_at(1, &*KHAY) {
         let abhyasa = &mut p.get_mut(i)?;
         let res = try_shar_purva(&abhyasa.text);
         if res != abhyasa.text {
@@ -366,6 +373,11 @@ fn try_rules_for_slu(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if dhatu.has_u_in(&["f\\", "pf", "pF"]) && dhatu.has_gana(Gana::Juhotyadi) {
         // iyarti, piparti (allowed by both `pf` and `pF`)
         p.op_term("7.4.77", i, op::antya("i"));
+    } else if dhatu.has_u("gA\\") && dhatu.has_gana(Gana::Juhotyadi) {
+        // jigAti
+        // (This is a chAndasa rule, but the SK applies it to derive jigAti from gA, which is a
+        // Vedic root.)
+        p.op_term("7.4.78", i, op::antya("i"));
     }
 
     Some(())
@@ -421,7 +433,9 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
 
     if dhatu.has_u_in(VANCU_SRANSU) {
         add_agama("7.4.84", p, i_dhatu, "nIk");
-    } else if abhyasa.has_antya('a') && dhatu.has_antya(&*ANUNASIKA) {
+    } else if abhyasa.has_antya('a') && dhatu.has_antya(&*ANUNASIKA) && !dhatu.has_upadha('A') {
+        // Per commentaries, this rule applies only if the abhyasa ended with "A" before being shortened by 7.4.59. Here, we check for that condition by seeing if the dhatu has an A.
+
         // Should treat as anusvAra per commentaries, otherwise we can't derive yaMyamyate.
         add_agama("7.4.85", p, i_dhatu, "Mu~k");
     } else if dhatu.has_u_in(JAPA_JABHA) {
@@ -434,7 +448,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
             p.set(i_dhatu, |t| t.set_text("daS"));
         }
         add_agama("7.4.86", p, i_dhatu, "nu~k");
-    } else if dhatu.has_u_in(&["cara~", "Pala~"]) {
+    } else if dhatu.has_u_in(&["cara~", "Pala~", "YiPalA~"]) {
         add_agama("7.4.87", p, i_dhatu, "nu~k");
 
         // Use `i_dhatu + 1` because 7.4.87 above shifted the index.
@@ -445,7 +459,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
         }
     } else if dhatu.text.contains('f') {
         // varIvfScyate, ...
-        // (Check for "contains and not antya" to allow pfcC, vfSc, ...)
+        // (Check for "contains" and not "antya" to allow pfcC, vfSc, ...)
         let mut added = false;
         if is_yan_luk {
             added = optional_add_agama("7.4.91:ruk", p, i_dhatu, "ru~k");

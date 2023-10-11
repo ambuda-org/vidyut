@@ -45,7 +45,7 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get(i)?;
     let is_bhvadi = dhatu.has_gana(Gana::Bhvadi);
 
-    let has_upasarga = p.find_prev_where(i, |t| t.has_tag(T::Upasarga)).is_some();
+    let has_upasarga = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
 
     // Exceptions to the general mittva rules below.
     let mut is_mit_blocked = false;
@@ -155,6 +155,10 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
         p.op_term("6.1.65", i, |t| {
             t.add_tag(T::FlagAdeshadi);
             t.set_adi("n");
+        });
+    } else if dhatu.has_u("DraRa~") {
+        p.op_term(Rule::Kaumudi("2318"), i, |t| {
+            t.set_text("Dran");
         });
     }
 

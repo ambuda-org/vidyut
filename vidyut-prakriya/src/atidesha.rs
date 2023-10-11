@@ -68,10 +68,10 @@ impl<'a> AtideshaPrakriya<'a> {
 
 /// Tries rules that add `Nit` to a term.
 fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
-    let mut wrap = AtideshaPrakriya::new(p);
+    let mut ap = AtideshaPrakriya::new(p);
 
-    let cur = wrap.p.get(i)?;
-    let n = wrap.p.view(i + 1)?;
+    let cur = ap.p.get(i)?;
+    let n = ap.p.view(i + 1)?;
 
     let apit = !n.has_tag(T::pit);
     let iti = n.first()?.is_it_agama();
@@ -79,7 +79,7 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
     let i_n = n.end();
 
     if gan_kutadi && !n.has_tag_in(&[T::Rit, T::Yit]) {
-        wrap.add_nit("1.2.1", i_n);
+        ap.add_nit("1.2.1", i_n);
     } else if cur.has_u("vyaca~")
         && n.last()?.is_krt()
         && !n.has_tag_in(&[T::Rit, T::Yit])
@@ -87,14 +87,14 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
     {
         // vyaceḥ kuṭāditvamanasīti tu neha pravartate, anasīti paryudāsena kṛnmātraviṣayatvāt
         // -- SK 655
-        wrap.add_nit("1.2.1.v1", i_n);
+        ap.add_nit("1.2.1.v1", i_n);
     } else if cur.has_u_in(&["o~vijI~\\", "o~vijI~"]) && iti {
         // Just for these `vij` dhatus, according to the Kashika.
-        wrap.add_nit("1.2.2", i_n);
+        ap.add_nit("1.2.2", i_n);
     } else if cur.has_text("UrRu") && iti {
-        wrap.optional_add_nit("1.2.3", i_n);
+        ap.optional_add_nit("1.2.3", i_n);
     } else if n.has_tag(T::Sarvadhatuka) && apit {
-        wrap.add_nit("1.2.4", i_n);
+        ap.add_nit("1.2.4", i_n);
     }
 
     Some(())

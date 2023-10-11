@@ -42,13 +42,22 @@ for path in glob.glob("**/*.rs", root_dir=tests, recursive=True):
                 tested_rules.add(m.group(1).replace('_', '.'))
 
 print_legend()
+num_ok = 0
+num_untested = 0
+num_missing = 0
 for rule in all_rules:
     status = None
     if rule in tested_rules:
         status = RULE_OK
+        num_ok += 1
     elif rule in implemented_rules:
         status = RULE_UNTESTED
+        num_untested += 1
     else:
         status = RULE_MISSING
+        num_missing += 1
     print(f"{status}\t\t{rule}")
 print_legend()
+print(f"Num tested   : {num_ok}")
+print(f"Num untested : {num_untested}")
+print(f"Num missing  : {num_missing}")

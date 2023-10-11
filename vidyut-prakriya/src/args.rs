@@ -22,3 +22,12 @@ pub use krt::*;
 pub use sup::*;
 pub use taddhita::*;
 pub use tin::*;
+
+/// Models a semantic condition that applies to the prakriya.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Artha {
+    /// A semantic condition for a krdanta derivation.
+    Krt(KrtArtha),
+    /// A semantic condition for a taddhitanta derivation.
+    Taddhita(TaddhitaArtha),
+}

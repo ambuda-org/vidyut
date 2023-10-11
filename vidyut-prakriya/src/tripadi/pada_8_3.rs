@@ -1,7 +1,7 @@
 use crate::args::Gana;
 use crate::char_view::{get_term_and_offset_indices, set_at, xy, CharPrakriya};
 use crate::it_samjna;
-use crate::iterators::{xy_rule, xy_rule_rev};
+use crate::iterators::xy_rule;
 use crate::operators as op;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
@@ -94,11 +94,18 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
 /// Converts "m" and "n" to the anusvara when a consonant follows.
 ///
 /// Example: Sankate -> SaMkate
-fn try_mn_to_anusvara(p: &mut Prakriya) {
+fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
+    // Disable certain sandhi changes if deriving a dhatu since we'll run these rules again when
+    // deriving the final word.
+    //
+    // Example: sam + cekrIya should not become saYcekrIya so that we can later derive
+    // samacekrIyata, etc.
+    let is_dhatu_prakriya = p.terms().last()?.is_dhatu();
+
     for i in 0..p.terms().len() {
         if p.has(i, |t| t.has_antya('m')) && p.is_pada(i) {
             if let Some(i_next) = p.find_next_where(i, |t| !t.is_empty()) {
-                if p.has(i_next, |t| t.has_adi(&*HAL)) {
+                if p.has(i_next, |t| t.has_adi(&*HAL)) && !is_dhatu_prakriya {
                     p.op_term("8.3.23", i, |t| t.set_antya("M"));
                 }
             }
@@ -124,6 +131,8 @@ fn try_mn_to_anusvara(p: &mut Prakriya) {
             }
         },
     );
+
+    Some(())
 }
 
 fn try_add_dhut_agama(p: &mut Prakriya) {
@@ -181,265 +190,356 @@ fn try_visarjaniyasya(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-/// Checks if there are any rules that block shatva. If such a rule exists, return it so that we
-/// can mark it on the prakriya.
-///
-/// (8.3.110 - 8.3.118)
-fn try_get_shatva_niyama(p: &mut Prakriya, i: usize) -> Option<Code> {
-    // TODO: 8.3.114, 8.3.119
+#[derive(Debug)]
+struct ShaPrakriya<'a> {
+    p: &'a mut Prakriya,
+    i_term: usize,
+    done: bool,
+}
 
-    let t = p.get_if(i, |t| t.has_adi('s'))?;
+impl<'a> ShaPrakriya<'a> {
+    fn new(p: &'a mut Prakriya, i_dhatu: usize) -> Self {
+        Self {
+            p,
+            i_term: i_dhatu,
+            done: false,
+        }
+    }
 
-    // Term is padAdi if it is at the beginning or if it follows a pada.
-    let is_padadi = || i == 0 || p.get(i - 1).expect("valid").is_pratyaya();
-    let is_liti = || p.has(i + 1, |t| t.has_lakshana("li~w"));
+    fn prev(&self) -> Option<&Term> {
+        let i_prev = self.p.find_prev_where(self.i_term, |t| !t.is_empty())?;
+        self.p.get(i_prev)
+    }
 
-    let ra_para = t.get_at(1).map(|x| x == 'r').unwrap_or(false);
+    /// Returns a reference to the current term.
+    fn term(&self) -> &Term {
+        self.p.get(self.i_term).expect("ok")
+    }
 
-    // TODO: savanAdi
-    if ra_para || t.has_u_in(&["sf\\px", "sf\\ja~", "sf\\ja~\\", "spf\\Sa~", "spfha"]) {
-        Some("8.3.110")
-    } else if (t.has_u("sAt") && t.is_pratyaya()) || is_padadi() {
-        Some("8.3.111")
-    } else if t.has_u("zi\\ca~^") && p.has(i + 1, |t| t.has_u("yaN")) {
-        Some("8.3.112")
-    } else if t.has_u_in(&["ziDa~", "ziDU~"])
-        && i > 0
-        && p.has(i - 1, |t| t.has_u_in(&["pari", "aBi"]))
-        && p.has(i + 1, |t| t.is_ni_pratyaya())
-    {
-        // Based on commentary, this is only for abhi-sidh-nic and pari-sidh-nic
-        Some("8.3.113")
+    fn has_upasarga_in(&self, text: &[&str]) -> bool {
+        self.i_term > 0 && self.p.has(self.i_term - 1, |t| t.has_text_in(text))
+    }
+
+    fn try_block(&mut self, rule: Code) {
+        if !self.done {
+            self.p.step(rule);
+        }
+        self.done = true;
+    }
+
+    fn try_shatva(&mut self, rule: Code) {
+        if !self.done {
+            self.p.op_term(rule, self.i_term, |t| t.set_adi("z"));
+        }
+        self.done = true;
+    }
+
+    fn try_run_with(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
+        if !self.done {
+            self.p.op(rule, func);
+        }
+        self.done = true;
+    }
+
+    fn optional_try_shatva(&mut self, rule: Code) -> bool {
+        if !self.done {
+            let done = self
+                .p
+                .op_optional(rule, op::t(self.i_term, |t| t.set_adi("z")));
+            self.done = done;
+            done
+        } else {
+            false
+        }
+    }
+}
+
+fn run_shatva_rules_at_index(sp: &mut ShaPrakriya) -> Option<()> {
+    use Gana::*;
+
+    let i = sp.i_term;
+    let t = sp.term();
+
+    // Skip if not s-Adi.
+    // Also skip abhyasas since we handle these as part of the dhatu rules.
+    if !t.has_adi('s') || t.is_abhyasa() {
+        return None;
+    }
+
+    // Various niyamas on shatva
+    // -------------------------
+    let maybe_i_upasarga = sp.p.find_prev_where(sp.i_term, |t| t.is_upasarga());
+    let inku = if let Some(i) = maybe_i_upasarga {
+        let upasarga = sp.p.get(i).expect("ok");
+        upasarga.has_antya(&*IN_KU)
+    } else {
+        false
+    };
+
+    if t.has_at(1, 'r') || t.has_u_in(&["sf\\px", "sf\\ja~", "sf\\ja~\\", "spf\\Sa~", "spfha"]) {
+        // visfpa
+        // TODO: savanAdi
+        sp.try_block("8.3.110");
+    } else if (t.has_u("sAt") && t.is_pratyaya()) || i == 0 {
+        // daDisAt, daDi siYcati
+        sp.try_block("8.3.111");
+    } else if t.has_u("zi\\ca~^") && sp.p.has(i + 1, |t| t.has_u("yaN")) {
+        // aBisesicyate
+        sp.try_block("8.3.112");
+    } else if t.has_u_in(&["ziDa~", "ziDU~"]) && sp.has_upasarga_in(&["pari", "aBi", "vi"]) {
+        // Based on commentary, this seems to apply only for abhi-sidh and
+        // pari-sidh. SK has vi-sidh.
+        sp.try_block("8.3.113");
     } else if t.has_text("saQ") {
-        // The rule says "soQ" but "soQ" appears only after 8.3.13, which itself can occur only
-        // fater
-        Some("8.3.115")
-    } else if p.has(i + 1, |t| t.has_u_in(&["sta\\nBu~", "zivu~", "zaha~\\"]))
-        && p.has(i + 2, |t| t.has_u("caN"))
+        // parisoQa, parisoQum, ...
+        //
+        // The rule says "soQ" but "soQ" appears only after rule 8.3.13, which itself can occur
+        // only after rule 8.4.41.
+        sp.try_block("8.3.115");
+    } else if inku
+        && t.has_u_in(&["stanBu~", "zivu~", "zaha~\\"])
+        && sp.p.has(i + 1, |t| t.has_u("caN"))
     {
+        // paryatasTabat, paryazIsivat, ...
+        //
         // Per varttika, this is specifically for the abhyasa, not the dhatu.
-        Some("8.3.116")
-    } else if t.has_u("zu\\Y") && p.has(i + 1, |t| t.has_u_in(&["sya", "syan"])) {
-        Some("8.3.117")
-    } else if t.has_u("za\\dx~") && is_liti() {
-        Some("8.3.118")
-    } else if t.has_u("zva\\nja~\\") && is_liti() {
-        Some("8.3.118.v1")
-    } else {
-        None
-    }
-}
-
-/// A helper function for `try_shatva`.
-///
-/// `j` is the index that might receive adesha.
-fn run_shatva_rules_at_index(p: &mut Prakriya, i: usize, j: usize) -> Option<()> {
-    let _x = p.get(i)?;
-    let y = p.get(j)?;
-    debug_assert!(y.has_adi('s'));
-
-    // Use `find_next_where` to find `san` because position of `san` is uncertain due to iw-Agama
-    // and ni-pratyaya. `z` is part of the rule.
-    let shan = p.find_next_where(j, |t| t.has_u("san") && t.has_adi('z'));
-
-    if shan.is_some() {
-        let nau = p.has(j + 1, |t| t.is_ni_pratyaya());
-        if y.has_u("zwu\\Y") || nau {
-            // Prefer `has_u_in` over `has_text_in` because `has_u_in` is more reliable and doesn't
-            // include sound changes.
-            // TODO: does this overgenerate?
-            if nau
-                && y.has_u_in(&[
-                    "YizvidA~\\",
-                    "YizvidA~",
-                    "zvi\\dA~",
-                    "zvada~\\",
-                    "zvada~",
-                    "zaha~",
-                    "zaha~\\",
-                ])
-            {
-                p.step("8.3.62");
-            } else {
-                // stu -> tuzwUsati
-                // siv -> sizevayizati
-                p.op_term("8.3.61", j, op::adi("z"));
-            }
-        }
-    } else {
-        if p.has(j, |t| t.has_u("sAti~")) {
-            // agnisAt ...
-            p.step("8.3.111")
-        } else if !p.has(j, |t| t.has_tag(T::FlagKeepSa)) {
-            // General case.
-            p.op_term("8.3.59", j, op::adi("z"));
+        sp.try_block("8.3.116");
+    } else if t.has_u("zu\\Y") && sp.p.has(i + 1, |t| t.has_u_in(&["sya", "san"])) {
+        // aBisozyati, ...
+        sp.try_block("8.3.117");
+    } else if inku && sp.p.terms().last()?.has_lakshana("li~w") && sp.i_term > 0 {
+        let i_abhyasa = sp.i_term - 1;
+        let has_abhyasa = sp.p.has(i_abhyasa, |t| t.is_abhyasa() && !t.is_empty());
+        if t.has_u("za\\dx~") && has_abhyasa {
+            // nizasAda, ...
+            sp.try_run_with("8.3.118", |p| p.set(i_abhyasa, |t| t.set_adi("z")));
+        } else if t.has_u("zva\\nja~\\") && has_abhyasa {
+            // parizasvaje, ...
+            sp.try_run_with("8.3.118.v1", |p| p.set(i_abhyasa, |t| t.set_adi("z")));
         }
     }
-    Some(())
-}
 
-/// Runs rules that replace the initial "s" of a dhatu after certain upasargas.
-///
-/// (8.3.63 - 8.3.77)
-fn run_shatva_rules_after_upasarga(p: &mut Prakriya) -> Option<()> {
-    let i_dhatu = p.find_first(T::Dhatu)?;
-
-    // Rules condition on the *last* upasarga, and we can ignore all others.
-    //
+    // Rules that condition on an upasarga
+    // -----------------------------------
     // In general, various terms might intervene between the upasarga and the dhatu. Examples:
     //
     // 1. an abhyAsa (upa-sa-sAra)
     // 2. aw-Agama (sam-a-smarat)
     // 3. suw-Agama (pari-z-karoti, pary-a-z-karot)
-    let i_upasarga = p.find_prev_where(i_dhatu, |t| t.has_tag(T::Upasarga))?;
+    //
+    // The terms here have three main sections:
+    //
+    // a. All terms -- no vyayAya
+    // b. Up to sita -- aw-vyavAya OK
+    // c. stha to sita -- abhyAsa-vyavAya and aw-vyavAya OK
 
-    let dhatu = p.get(i_dhatu)?;
-    let upasarga = p.get(i_upasarga)?;
-    let inku = upasarga.has_antya(&*IN_KU);
+    let term = sp.term();
+    let maybe_i_upasarga = sp.p.find_prev_where(sp.i_term, |t| t.is_upasarga());
+    if maybe_i_upasarga.is_some() {
+        let i_upasarga = maybe_i_upasarga?;
 
-    // If the aw-Agama is used, it immediately follows the last upasarga.
-    let _has_aw_agama = if i_upasarga + 1 != i_dhatu {
-        p.has(i_upasarga + 1, |t| t.has_u("aw") && t.is_agama())
-    } else {
-        false
-    };
-    let i_abhyasa = p.find_next_where(i_upasarga, |t| t.is_abhyasa());
+        // No gap between upasarga and dhatu.
+        let no_vyavaya = i_upasarga + 1 == sp.i_term;
+        // Gap between upasarga and dhatu is just an abhyasa.
+        let at_vyavaya = i_upasarga + 2 == sp.i_term
+            && sp.p.has(i_upasarga + 1, |t| t.is_agama() && t.has_u("aw"));
+        let abhyasa_vyavaya =
+            i_upasarga + 2 == sp.i_term && sp.p.has(i_upasarga + 1, |t| t.is_abhyasa());
 
-    // Check both upadesha and gana to avoid matching dhatus in other ganas.
-    const ITEMS_8_3_65: &[(&str, Gana)] = &[
-        ("zu\\Y", Gana::Svadi),
-        ("zU", Gana::Tudadi),
-        ("zo\\", Gana::Divadi),
-        ("zwu\\Y", Gana::Adadi),
-        ("zwuBu~\\", Gana::Bhvadi),
-        ("zWA\\", Gana::Bhvadi),
-        // TODO: senaya -- but, not listed in our dhatupatha?
-        ("ziDa~", Gana::Bhvadi),
-        ("ziDU~", Gana::Bhvadi),
-        ("zi\\ca~^", Gana::Tudadi),
-        ("za\\nja~", Gana::Bhvadi),
-        ("zva\\nja~\\", Gana::Bhvadi),
-    ];
-    const STHA_INDEX: usize = 5;
-    assert!(ITEMS_8_3_65[STHA_INDEX].0 == "zWA\\");
+        // Check both upadesha and gana to avoid matching dhatus in other ganas.
+        const SU_TO_STUBH: &[(&str, Gana)] = &[
+            ("zu\\Y", Svadi),
+            ("zU", Tudadi),
+            ("zo\\", Divadi),
+            ("zwu\\Y", Adadi),
+            ("zwuBu~\\", Bhvadi),
+        ];
+        const SU_ADI: &[(&str, Gana)] = &[
+            ("zu\\Y", Svadi),
+            ("zU", Tudadi),
+            ("zo\\", Divadi),
+            ("zwu\\Y", Adadi),
+            ("zwuBu~\\", Bhvadi),
+            ("zWA\\", Bhvadi),
+            // TODO: senaya -- but, not listed in our dhatupatha?
+            ("ziDa~", Bhvadi),
+            ("ziDU~", Bhvadi),
+            ("zi\\ca~^", Tudadi),
+            ("za\\nja~", Bhvadi),
+            ("zva\\nja~\\", Bhvadi),
+        ];
+        const SEV_ADI: &[(&str, Gana)] = &[
+            ("zevf~\\", Bhvadi),
+            // TODO: sita, saya
+            ("zivu~", Divadi),
+            ("zaha~\\", Bhvadi),
+            // TODO: suw-Agama
+            ("zwu\\Y", Adadi),
+            ("zva\\nja~\\", Bhvadi),
+        ];
 
-    const ITEMS_8_3_70: &[(&str, Gana)] = &[
-        ("zevf~\\", Gana::Bhvadi),
-        // TODO: sita, saya
-        ("zivu~", Gana::Divadi),
-        ("zaha~\\", Gana::Bhvadi),
-        // TODO: suw-Agama
-        ("zwu\\Y", Gana::Adadi),
-        ("zva\\nja~\\", Gana::Bhvadi),
-    ];
+        let upasarga = sp.p.get(i_upasarga)?;
+        let inku = upasarga.has_antya(&*IN_KU);
+        let has_dhatu_in = |d: &Term, items: &[(&str, Gana)]| {
+            items.iter().any(|(u, g)| d.has_gana(*g) && d.has_u(u))
+        };
 
-    let dhatu_in =
-        |d: &Term, items: &[(&str, Gana)]| items.iter().any(|(u, g)| d.has_gana(*g) && d.has_u(u));
+        // By 8.3.64, zatva also occurs for the abhyasa of dhatus starting with sthA in 8.3.65 and
+        // ending with 8.3.70 inclusive.
+        if no_vyavaya || at_vyavaya || abhyasa_vyavaya {
+            if has_dhatu_in(term, SEV_ADI) || term.has_u("su~w") {
+                // Rules 8.3.70 and 8.3.71 take priority over 8.3.65 so that we can handle `stu` correctly.
+                if upasarga.has_u_in(&["pari", "ni", "vi"]) {
+                    // TODO: also exclude sita
+                    let is_siv_adi = !term.has_u("zevf~\\");
+                    if is_siv_adi {
+                        // "siv" follows "sita" which means we lose "at_vyavaya" and
+                        // "abhyava_vyavaya". But 8.3.71 allows "at_vyavaya" again.
+                        //
+                        // The rule says "aw-vyavAye 'pi" but the KV heavily implies this is
+                        // optional strictly for "aw" and mandatory otherwise.
+                        if at_vyavaya {
+                            sp.optional_try_shatva("8.3.71");
+                            sp.done = true;
+                        } else if no_vyavaya {
+                            sp.try_shatva("8.3.70");
+                        }
+                    } else {
+                        // Other terms (sev, sita) are allowed in any condition.
+                        sp.try_shatva("8.3.70");
+                    }
+                }
+            }
 
-    let try_shatva_for_dhatu_and_abhyasa = |p: &mut Prakriya| {
-        if let Some(i_abhyasa) = i_abhyasa {
-            if p.has(i_abhyasa, |t| t.has_adi('s')) {
-                if let Some(rule) = try_get_shatva_niyama(p, i_abhyasa) {
-                    p.step(rule)
+            // Avoid `else if` here so we can match svanj again (pratyazvaNkta)
+            let term = sp.term();
+            let upasarga = sp.p.get(i_upasarga)?;
+            if inku && has_dhatu_in(term, SU_ADI) {
+                let is_stha_adi = !has_dhatu_in(term, SU_TO_STUBH);
+                if no_vyavaya || at_vyavaya || (abhyasa_vyavaya && is_stha_adi) {
+                    sp.try_shatva("8.3.65");
+                }
+            } else if inku && term.has_u("za\\dx~") {
+                let code = "8.3.66";
+                if upasarga.has_u("prati") {
+                    sp.try_block(code);
                 } else {
-                    p.set(i_abhyasa, op::adi("z"));
+                    sp.try_shatva(code);
+                }
+            } else if term.has_u("stanBu~") {
+                if upasarga.has_u("ava") {
+                    sp.optional_try_shatva("8.3.68");
+                } else if inku {
+                    // > aprateḥ ityetadiha na anuvartate, tena etadapi bhavati, pratiṣṭabhnāti,
+                    // > prayaṣṭabhnāt, pratitaṣṭambha
+                    // -- Kashika on 8.3.67
+                    sp.try_shatva("8.3.67");
+                }
+            } else if term.has_u("svana~") && upasarga.has_u_in(&["ava", "vi"]) {
+                // vizvanati, visvanati
+                sp.optional_try_shatva("8.3.69");
+            }
+
+            let dhatu = sp.term();
+            if sp.done && dhatu.has_adi('z') {
+                let i_abhyasa = sp.i_term - 1;
+                let is_stha_adi = !has_dhatu_in(dhatu, SU_TO_STUBH);
+                if sp.p.has(i_abhyasa, |t| t.is_abhyasa() && t.has_adi('s')) && is_stha_adi {
+                    sp.p.op_term("8.3.64", i_abhyasa, |t| t.set_adi("z"));
                 }
             }
         }
 
-        if p.has(i_dhatu, |t| t.has_adi('s')) {
-            if let Some(rule) = try_get_shatva_niyama(p, i_dhatu) {
-                p.step(rule)
-            } else {
-                p.set(i_dhatu, op::adi("z"));
+        if no_vyavaya || at_vyavaya {
+            let dhatu = sp.term();
+            let upasarga = sp.p.get(i_upasarga)?;
+            if upasarga.has_u_in(&["anu", "vi", "pari", "aBi", "ni"]) && dhatu.has_u("syandU~\\") {
+                sp.optional_try_shatva("8.3.72");
+                sp.done = true;
+            } else if upasarga.has_u_in(&["vi", "pari"]) && dhatu.has_u("ska\\ndi~r") {
+                if upasarga.has_u("vi") {
+                    if !sp.p.has(sp.i_term + 1, |t| t.is_nistha()) {
+                        sp.optional_try_shatva("8.3.73");
+                    }
+                } else {
+                    sp.optional_try_shatva("8.3.74");
+                }
+            } else if upasarga.has_u_in(&["nis", "ni", "vi"])
+                && dhatu.has_u_in(&["sPura~", "sPula~"])
+            {
+                sp.optional_try_shatva("8.3.76");
+            } else if upasarga.has_u("vi") && dhatu.has_u("skanBu~") {
+                sp.try_shatva("8.3.77");
             }
         }
-    };
-
-    // By 8.3.64, zatva also occurs for the abhyasa of dhatus starting with sthA in 8.3.65 and
-    // ending with 8.3.70 inclusive.
-
-    if dhatu_in(dhatu, ITEMS_8_3_70) {
-        // 8.3.70+71 take priority over 8.3.65 so that we can handle `stu` correctly.
-        if upasarga.has_u_in(&["pari", "ni", "vi"]) {
-            if !dhatu.has_u("zevf~\\") {
-                // TODO: also exclude sita, saya
-                p.op_optional("8.3.71", try_shatva_for_dhatu_and_abhyasa);
-            } else {
-                p.op("8.3.70", try_shatva_for_dhatu_and_abhyasa);
-            }
+        let term = sp.term();
+        if term.has_tag(T::FlagAdeshadi) && !abhyasa_vyavaya {
+            sp.try_block("8.3.111");
         }
-    } else if inku && dhatu_in(dhatu, ITEMS_8_3_65) {
-        if i_abhyasa.is_some() && dhatu_in(dhatu, &ITEMS_8_3_65[STHA_INDEX..]) {
-            p.op("8.3.65", try_shatva_for_dhatu_and_abhyasa);
-        } else {
-            // TODO: remove guard.
-            if p.has(i_dhatu, |t| t.has_adi('s')) {
-                p.op_term("8.3.65", i_dhatu, op::adi("z"));
-            }
-        }
-    } else if inku && dhatu.has_u("za\\dx~") {
-        let code = "8.3.66";
-        if upasarga.has_u("prati") {
-            p.set(i_dhatu, |t| t.add_tag(T::FlagKeepSa));
-            if let Some(i) = i_abhyasa {
-                p.set(i, |t| t.add_tag(T::FlagKeepSa));
-            }
-            p.step(code);
-        } else {
-            p.op(code, try_shatva_for_dhatu_and_abhyasa);
-        }
-    } else if dhatu.has_u("sta\\nBu~") {
-        if upasarga.has_u("ava") {
-            p.op_optional("8.3.68", try_shatva_for_dhatu_and_abhyasa);
-        } else if inku {
-            // > aprateḥ ityetadiha na anuvartate, tena etadapi bhavati, pratiṣṭabhnāti,
-            // > prayaṣṭabhnāt, pratitaṣṭambha
-            // -- Kashika on 8.3.67
-            p.op("8.3.67", try_shatva_for_dhatu_and_abhyasa);
-        }
-    } else if dhatu.has_u("svana~") && upasarga.has_u_in(&["ava", "vi"]) {
-        // vizvanati, visvanati
-        p.op_optional("8.3.69", try_shatva_for_dhatu_and_abhyasa);
-    } else if upasarga.has_u_in(&["anu", "vi", "pari", "aBi", "ni"]) && dhatu.has_u("syandU~\\") {
-        if !p.op_optional("8.3.72", op::t(i_dhatu, op::adi("z"))) {
-            p.set(i_dhatu, |t| t.add_tag(T::FlagKeepSa));
-        }
-    } else if upasarga.has_u_in(&["vi", "pari"]) && dhatu.has_u("ska\\ndi~r") {
-        if upasarga.has_u("vi") {
-            if !p.has(i_dhatu + 1, |t| t.has_tag(T::Nistha)) {
-                p.op_optional("8.3.73", op::t(i_dhatu, op::adi("z")));
-            }
-        } else {
-            // TODO: implement 8.3.75
-            p.op_optional("8.3.74", op::t(i_dhatu, op::adi("z")));
-        }
-    } else if upasarga.has_u_in(&["nis", "ni", "vi"]) && dhatu.has_u_in(&["sPura~", "sPula~"]) {
-        p.op_optional("8.3.76", op::t(i_dhatu, op::adi("z")));
-    } else if upasarga.has_u("vi") && dhatu.has_u("ska\\nBu~") {
-        p.op_term("8.3.77", i_dhatu, op::adi("z"));
     }
+
+    // General rules
+    // -------------
+
+    let term_view = sp.p.view(sp.i_term)?;
+    let prev = sp.prev()?;
+
+    let is_apadanta = !term_view.is_empty();
+    // HACK: added Agama here. We should exclude it.
+    let adesha_pratyaya = term_view.has_tag_in(&[T::Pratyaya, T::FlagAdeshadi]);
+    if prev.has_antya(&*IN_KU) && is_apadanta && adesha_pratyaya && term_view.has_adi('s') {
+        let term = sp.term();
+        // Use `find_next_where` to find `san` because position of `san` is uncertain due to iw-Agama
+        // and ni-pratyaya. `z` is part of the rule.
+        let shan =
+            sp.p.find_next_where(sp.i_term, |t| t.has_u("san") && t.has_adi('z'));
+
+        if shan.is_some() {
+            let nau = sp.p.has(sp.i_term + 1, |t| t.is_ni_pratyaya());
+            if term.has_u("zwu\\Y") || nau {
+                // Prefer `has_u_in` over `has_text_in` because `has_u_in` is more reliable and doesn't
+                // include sound changes.
+                // TODO: does this overgenerate?
+                if nau
+                    && term.has_u_in(&[
+                        "YizvidA~\\",
+                        "YizvidA~",
+                        "zvi\\dA~",
+                        "zvada~\\",
+                        "zvada~",
+                        "zaha~",
+                        "zaha~\\",
+                    ])
+                {
+                    sp.p.step("8.3.62");
+                } else {
+                    // stu -> tuzwUsati
+                    // siv -> sizevayizati
+                    sp.try_shatva("8.3.61");
+                }
+            }
+        } else {
+            if term.has_u("sAti~") {
+                // agnisAt ...
+                sp.try_block("8.3.111")
+            } else {
+                // General case.
+                sp.try_shatva("8.3.59");
+            }
+        }
+    }
+
     Some(())
 }
 
 fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
-    // Run these rules first since they can block the general rule (8.3.59).
-    run_shatva_rules_after_upasarga(p);
-
     // Iterate in reverse order so that we can produce `san` -> `zan`, which can then trigger
     // 8.3.61.
-    xy_rule_rev(
-        p,
-        |x, y| {
-            let apadanta = !y.text.is_empty();
-            // HACK: don't include Agama.
-            let adesha_pratyaya = y.has_tag_in(&[T::Pratyaya, T::FlagAdeshadi, T::Agama]);
-            x.has_antya(&*IN_KU) && apadanta && adesha_pratyaya && y.has_adi('s')
-        },
-        |p, i, j| {
-            run_shatva_rules_at_index(p, i, j);
-        },
-    );
+    for i in (0..p.terms().len()).rev() {
+        let mut sp = ShaPrakriya::new(p, i);
+        run_shatva_rules_at_index(&mut sp);
+    }
+
     // HACK for ezaH
     if p.get(0)?.has_text("esa") && p.get(0)?.has_tag(T::Sarvanama) {
         p.op_term("8.3.59", 0, |t| t.set_text("eza"));
@@ -480,9 +580,20 @@ fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
     let shidhvam_lun_lit = p.get(i - 1)?.has_text("zI") || tin.has_lakshana_in(&["lu~N", "li~w"]);
 
     let i_anga = p.find_prev_where(i, |t| !t.is_empty() && !t.is_agama())?;
-    let anga = p.get(i_anga)?;
+    let allow_it_agama_as_in = if shidhvam_lun_lit && dha {
+        false // p.op_optional(Rule::Kaumudi("2258"), |_| {})
+    } else {
+        false
+    };
 
-    if anga.has_antya(&*IN2) && shidhvam_lun_lit && dha {
+    let inah = if allow_it_agama_as_in {
+        p.find_prev_where(i, |t| t.is_it_agama()).is_some()
+    } else {
+        let anga = p.get(i_anga)?;
+        anga.has_antya(&*IN2)
+    };
+
+    if inah && shidhvam_lun_lit && dha {
         if p.has(i_anga + 1, |t| t.is_it_agama()) {
             p.op_optional("8.3.79", op::t(i, op::adi("Q")));
         } else {

@@ -928,6 +928,71 @@ pub const PRTHU_ADI: &[&str] = &[
     "svAdu", "hrasva", "dIrGa", "priya", "vfza", "fju", "kzipra", "kzupra", "kzudra",
 ];
 
+/// For 5.3.101.
+pub const SHAKHA_ADI: &[&str] = &[
+    "SAKA", "muKa", "jaGana", "SfNga", "meGa", "caraRa", "skanDa", "Siras", "uras", "agra",
+    "Sarana",
+];
+
+/// For 5.3.107.
+pub const SHARKARA_ADI: &[&str] = &[
+    "SarkarA",
+    "kapAlikA",
+    "pizwika",
+    "puRqarIka",
+    "Satapatra",
+    "goloman",
+    "gopucCa",
+    "narAcI ",
+    "nakulA",
+    "sikatA",
+];
+
+/// For 5.3.108.
+pub const ANGULI_ADI: &[&str] = &[
+    "aNguli", "Baruja", "baBru", "valgu", "maRqara", "maRqala", "Sazkula", "kapi", "udaSvit",
+    "goRI", "uras", "SiKara", "kuliSa",
+];
+
+/// For 5.3.117. (part 1)
+pub const PARSHU_ADI: &[&str] = &[
+    "parSu",
+    "asura",
+    "rakzas",
+    "bAhlIka",
+    "vayas",
+    "marut",
+    "daSArha",
+    "piSAca",
+    "viSAla",
+    "aSani",
+    "kArzApaRa",
+    "satvat",
+    "vasu",
+    "parSvAdiH",
+];
+
+/// For 5.3.116.
+pub const DAMANI_ADI: &[&str] = &[
+    "dAmanI",
+    "Olapi",
+    "AkidantI",
+    "kAkaranti",
+    "kAkadanti",
+    "Satruntapi",
+    "sArvaseni",
+    "bindu",
+    "mOYjAyana",
+    "ulaBa",
+    "sAvitrIputra",
+];
+
+/// For 5.3.117. (part 2)
+pub const YAUDHEYA_ADI: &[&str] = &[
+    "yODeya", "kOSeya", "krOSeya", "SOkreya", "SOBreya", "DArteya", "vArteya", "jAbAleya",
+    "trigarta", "Barata", "uSInara",
+];
+
 /// For 5.4.3.
 pub const STHULA_ADI: &[&str] = &[
     "sTUla",

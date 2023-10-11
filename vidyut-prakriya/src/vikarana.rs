@@ -78,13 +78,8 @@ fn maybe_replace_cli_with_ksa(p: &mut Prakriya, i: usize) -> Option<()> {
         return None;
     }
 
-    // The vArttika doesn't say this specifically, but the commentator examples
-    // imply that this holds only for parasmaipada.
     let sprs = &["spfS", "mfS", "kfz", "tfp", "dfp"];
-    if xyz(p, i, |x, _, z| {
-        x.has_text_in(sprs) && z.has_tag(T::Parasmaipada)
-    }) {
-        //
+    if xyz(p, i, |x, _, _| x.has_text_in(sprs)) {
         if p.op_optional("3.1.44.v1", |p| op::upadesha_no_it(p, i + 1, "si~c")) {
             return None;
         }
@@ -200,8 +195,13 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
     let tin = p.get(i + 2)?;
     let is_parasmai = tin.is_parasmaipada();
     if has_cli(p, i) {
-        if dhatu.has_u_in(&["sf\\", "SAsu~", "f\\"]) {
-            // SAsu~\\ (ASAste) is not part of the rule.
+        if (dhatu.has_u("sf\\") && dhatu.has_gana(Juhotyadi))
+            || (dhatu.has_u("f\\") && dhatu.has_gana(Juhotyadi))
+            || dhatu.has_u_in(&["SAsu~"])
+        {
+            // sf\\ (sarati) is not part of the rule. (SK)
+            // f\\ (fcCati) is not part of the rule. (SK)
+            // SAsu~\\ (ASAste) is not part of the rule. (KV)
             p.op("3.1.56", to_an);
         } else if is_parasmai && dhatu.has_tag(T::irit) {
             p.op_optional("3.1.57", to_an);
@@ -235,6 +235,7 @@ fn maybe_replace_cli_with_cin(p: &mut Prakriya, i: usize) -> Option<()> {
             "dIpI~\\",
             "janI~\\",
             "buDa~",
+            "bu\\Da~\\",
             "pUrI~\\",
             "tAyf~\\",
             "o~pyAyI~\\",
@@ -265,10 +266,11 @@ fn add_lun_vikarana(p: &mut Prakriya) {
     assert!(n >= 3);
     let i = n - 3;
 
+    // Check ciN first because rule 3.1.66 ("ciN bhAvakarmaNoH") blocks other vikaranas.
+    maybe_replace_cli_with_cin(p, i);
     maybe_replace_cli_with_ksa(p, i);
     maybe_replace_cli_with_can(p, i);
     maybe_replace_cli_with_an(p, i);
-    maybe_replace_cli_with_cin(p, i);
     maybe_replace_cli_with_sic(p, i);
 }
 
@@ -293,7 +295,10 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
             p.insert_before(i_tin, dhatu);
 
             if !p.is_bhave_or_karmani() {
-                p.remove_tag(T::Atmanepada);
+                if p.has_tag(T::Atmanepada) {
+                    p.add_tag(T::AmAtmanepada);
+                    p.remove_tag(T::Atmanepada);
+                }
                 p.add_tag(T::Parasmaipada);
             }
         });
@@ -308,7 +313,10 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
             p.insert_before(i_tin, dhatu);
 
             if !p.is_bhave_or_karmani() {
-                p.remove_tag(T::Atmanepada);
+                if p.has_tag(T::Atmanepada) {
+                    p.add_tag(T::AmAtmanepada);
+                    p.remove_tag(T::Atmanepada);
+                }
                 p.add_tag(T::Parasmaipada);
             }
         });
@@ -418,7 +426,7 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
     let has_upasarga = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
 
     // Optional cases
-    let stanbhu_stunbhu = ["sta\\nBu~", "stu\\nBu~", "ska\\nBu~", "sku\\nBu~", "sku\\Y"];
+    let stanbhu_stunbhu = ["stanBu~", "stunBu~", "skanBu~", "skunBu~", "sku\\Y"];
     let mut divadi_declined = false;
     if dhatu.has_text_in(&[
         "BrAS", "BlAS", "Bram", "kram", "klam", "tras", "truw", "laz",

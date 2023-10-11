@@ -69,6 +69,8 @@ pub const GHAT_ADI: &[&str] = &[
     "yama~",
     "sKadi~\\r",
     "svana~",
+    // TODO: why include PaR here?
+    "PaRa~",
 ];
 
 /// Dhatus that are `mit` per DP.10.0493.

@@ -3,8 +3,8 @@ Implements the taddhita rules in the "prAg GitAd yat" section of pada 4.4.
 
 (4.4.75 - 4.4.144)
 */
-use crate::args::Artha::*;
 use crate::args::Taddhita;
+use crate::args::TaddhitaArtha::*;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
 pub fn run(tp: &mut TaddhitaPrakriya) {

@@ -3,8 +3,8 @@ Implements the taddhita rules in the "prAk krItAc CaH" section of pada 5.1.
 
 (5.1.1 - 5.1.17)
 */
-use crate::args::Artha::*;
 use crate::args::Taddhita::*;
+use crate::args::TaddhitaArtha::*;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
 fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {

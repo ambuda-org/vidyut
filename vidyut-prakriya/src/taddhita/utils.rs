@@ -1,5 +1,4 @@
-use crate::args::Artha;
-use crate::args::Taddhita;
+use crate::args::{Artha, Taddhita, TaddhitaArtha};
 use crate::it_samjna;
 use crate::prakriya::{Prakriya, Rule};
 use crate::tag::Tag as T;
@@ -28,7 +27,7 @@ pub struct TaddhitaPrakriya<'a> {
     pub taddhita: Taddhita,
     /// If set, the meaning that the taddhita must have.
     pub i_prati: usize,
-    pub artha_context: Option<Artha>,
+    pub rule_artha: Option<TaddhitaArtha>,
     pub had_match: bool,
     pub has_taddhita: bool,
 }
@@ -41,7 +40,7 @@ impl<'a> TaddhitaPrakriya<'a> {
             p,
             taddhita,
             i_prati,
-            artha_context: None,
+            rule_artha: None,
             had_match: false,
             has_taddhita: false,
         }
@@ -54,8 +53,8 @@ impl<'a> TaddhitaPrakriya<'a> {
     /// Runs the rules in `closure` under the meaning condition defined in `artha`.
     ///
     /// Calls to `with_context` can be nested.
-    pub fn with_context(&mut self, artha: Artha, closure: impl Fn(&mut Self)) {
-        let has_artha_match = if let Some(prakriya_artha) = self.p.artha() {
+    pub fn with_context(&mut self, artha: TaddhitaArtha, closure: impl Fn(&mut Self)) {
+        let has_artha_match = if let Some(Artha::Taddhita(prakriya_artha)) = self.p.artha() {
             // The prakriya has an explicit artha, so the rule must have an artha that is
             // compatible with it, i.e. that is either the same type or a parent type. Both of
             // these conditions are checked in `is_type_of`.
@@ -69,8 +68,8 @@ impl<'a> TaddhitaPrakriya<'a> {
         }
 
         // Initialize the starting conditions for `closure`.
-        let old_context = self.artha_context;
-        self.artha_context = Some(artha);
+        let old_context = self.rule_artha;
+        self.rule_artha = Some(artha);
         self.had_match = false;
 
         if !self.has_taddhita {
@@ -78,7 +77,7 @@ impl<'a> TaddhitaPrakriya<'a> {
         }
 
         // Clean up state after `closure` completes.
-        self.artha_context = old_context;
+        self.rule_artha = old_context;
         self.had_match = false;
     }
 
@@ -99,13 +98,15 @@ impl<'a> TaddhitaPrakriya<'a> {
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         // If the prakriya requests a specific context, run only if that context is available.
-        if self.p.artha().is_some() && self.artha_context.is_none() {
+        if self.p.artha().is_some() && self.rule_artha.is_none() {
             return false;
         }
 
         let rule = rule.into();
         let prati = &self.prati().text;
-        println!("Try: {rule:?} {prati} + {taddhita:?}");
+        if cfg!(debug_assertions) {
+            println!("Try: {rule:?} {prati} + {taddhita:?}");
+        }
 
         self.had_match = true;
         if taddhita == self.taddhita && !self.has_taddhita {
@@ -113,8 +114,8 @@ impl<'a> TaddhitaPrakriya<'a> {
                 p.push(taddhita.to_term());
                 func(p);
             });
-            if let Some(a) = self.artha_context {
-                self.p.set_artha(a);
+            if let Some(a) = self.rule_artha {
+                self.p.set_artha(Artha::Taddhita(a));
             }
 
             let i_last = self.p.terms().len() - 1;

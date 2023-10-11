@@ -19,6 +19,8 @@ pub enum Krt {
     aR,
     /// -at (jarat)
     atfn,
+    /// -aTu (vepaTu). Allowed only for dhatus that are `qvit`.
+    aTuc,
     /// -ani
     ani,
     /// -anIya (gamanIya, BavanIya, ...)
@@ -161,8 +163,6 @@ pub enum Krt {
     tfn,
     /// -Taka (gATaka)
     Takan,
-    /// -Tu (vepaTu). Allowed only for dhatus that are `qvit`.
-    aTuc,
     /// -na
     naN,
     /// -naj
@@ -285,6 +285,7 @@ enum_boilerplate!(Krt, {
     ac => "ac",
     aR => "aR",
     atfn => "atf~n",
+    aTuc => "aTuc",
     ani => "ani",
     anIyar => "anIyar",
     ap => "ap",
@@ -355,7 +356,6 @@ enum_boilerplate!(Krt, {
     tfc => "tfc",
     tfn => "tfn",
     Takan => "Takan",
-    aTuc => "aTuc",
     naN => "naN",
     najiN => "naji~N",
     nan => "nan",
@@ -419,6 +419,26 @@ enum_boilerplate!(Krt, {
     Anuk => "Anuk",
 });
 
+/// Models the meaning of a krt-pratyaya.
+///
+/// krts are often available only in specific senses. A given krta might be allowed in one sense
+/// but blocked in another. To model and test this behavior, we use the enum below.
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub enum KrtArtha {
+    /// Agent. (3.4.67)
+    Karta,
+    /// Existence. (3.3.18)
+    Bhava,
+    /// Having a habit, nature, or skill.
+    TacchilaTaddharmaTatsadhukara,
+    /// Designation. (3.3.118)
+    Samjna,
+    /// Solidity. (3.3.77)
+    Murti,
+    /// Location. (3.3.78)
+    Desha,
+}
+
 impl Krt {
     /// Returns whether the krt suffix is an ArdhadhAtuka suffix.
     ///
@@ -428,12 +448,6 @@ impl Krt {
         use Krt::*;
         !matches!(self, Sa | Satf | SAnac | SAnan | cAnaS | KaS)
     }
-}
-
-/// The information required to derive a krdanta in the grammar.
-pub struct KrdantaArgs {
-    krt: Krt,
-    upapada: Option<Upapada>,
 }
 
 /// An upapada (dependent word) for a krdanta derivation.
@@ -473,6 +487,13 @@ impl Upapada {
     }
 }
 
+/// The information required to derive a krdanta in the grammar.
+pub struct KrdantaArgs {
+    krt: Krt,
+    artha: Option<KrtArtha>,
+    upapada: Option<Upapada>,
+}
+
 impl KrdantaArgs {
     /// The krt pratyaya to use in the derivation.
     pub fn krt(&self) -> Krt {
@@ -482,6 +503,11 @@ impl KrdantaArgs {
     /// The upapada that conditions the krt pratyaya.
     pub fn upapada(&self) -> &Option<Upapada> {
         &self.upapada
+    }
+
+    /// The artha condition to use in the derivation. If not set, any artha is allowed.
+    pub fn artha(&self) -> Option<KrtArtha> {
+        self.artha
     }
 
     /// Returns a new builder for this struct.
@@ -495,6 +521,7 @@ impl KrdantaArgs {
 pub struct KrdantaArgsBuilder {
     krt: Option<Krt>,
     upapada: Option<Upapada>,
+    artha: Option<KrtArtha>,
 }
 
 impl KrdantaArgsBuilder {
@@ -510,6 +537,12 @@ impl KrdantaArgsBuilder {
         self
     }
 
+    /// Sets the upapada to use in the derivation.
+    pub fn artha(&mut self, artha: KrtArtha) -> &mut Self {
+        self.artha = Some(artha);
+        self
+    }
+
     /// Converts the arguments in this builder into a `TinantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
@@ -520,6 +553,7 @@ impl KrdantaArgsBuilder {
                 _ => return Err(Error::missing_required_field("krt")),
             },
             upapada: self.upapada.as_ref().cloned(),
+            artha: self.artha,
         })
     }
 }

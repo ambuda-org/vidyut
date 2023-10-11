@@ -30,8 +30,22 @@ fn add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
 
     let i_pratyaya = i_dhatu + 1;
     p.op_term("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
-
     it_samjna::run(p, i_pratyaya).expect("ok")
+}
+
+/// Optionally adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
+fn optional_add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
+    let added = p.op_optional(rule, |p| {
+        let mut pratyaya = Term::make_upadesha(upadesha);
+        pratyaya.add_tags(&[T::Pratyaya]);
+        p.insert_after(i_dhatu, pratyaya);
+    });
+
+    if added {
+        let i_pratyaya = i_dhatu + 1;
+        p.op_term("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
+        it_samjna::run(p, i_pratyaya).expect("ok")
+    }
 }
 
 /// Runs rules that apply only if using yaN-pratyay with luk.
@@ -41,7 +55,7 @@ fn run_rules_for_yan_luk(p: &mut Prakriya) -> Option<()> {
     let i_yan = p.find_last_where(|t| t.is_pratyaya() && t.has_u("yaN"))?;
 
     // Apply luk.
-    p.op_term("2.4.74", i_yan, op::lopa);
+    p.op_term("2.4.74", i_yan, op::luk);
 
     // "carkarItam ca" declares that yan-luk dhatus are part of ad-Adi gaNa.
     // As a result, we will see lopa of Sap-vikarana per 2.4.72.
@@ -77,12 +91,12 @@ pub fn try_add_specific_sanadi_pratyayas(p: &mut Prakriya, is_ardhadhatuka: bool
     } else if dhatu.has_u_in(gana::KANDU_ADI) {
         add_sanadi("3.1.27", p, i, "yak");
     } else if dhatu.has_u_in(AYADAYA) {
-        let mut add_pratyaya = true;
+        let mut can_add_pratyaya = true;
 
         let code = "3.1.31";
         if is_ardhadhatuka {
             if p.is_allowed(code) {
-                add_pratyaya = false;
+                can_add_pratyaya = false;
                 // TODO: not sure where to do this.
                 if p.has(i, |t| t.has_u("fti")) {
                     p.set(i, |t| t.set_text("ft"));
@@ -93,10 +107,18 @@ pub fn try_add_specific_sanadi_pratyayas(p: &mut Prakriya, is_ardhadhatuka: bool
             }
         }
 
-        if add_pratyaya {
+        if can_add_pratyaya {
             let dhatu = p.get(i)?;
             if dhatu.has_u_in(&["gupU~", "DUpa~", "viCa~", "paRa~\\", "pana~\\"]) {
-                add_sanadi("3.1.28", p, i, "Aya");
+                let code = "3.1.28";
+                if dhatu.has_u("paRa~\\") {
+                    // > stutyarthena paninā sāhacaryāt tadarthaḥ paṇiḥ pratyayamutpādayati na
+                    // > vyavahārārthaḥ. śatasya paṇate. sahasrasaya paṇate
+                    // -- KV on 3.1.28
+                    optional_add_sanadi(code, p, i, "Aya");
+                } else {
+                    add_sanadi(code, p, i, "Aya");
+                }
             } else if dhatu.has_u("fti") {
                 // ftIyate
                 //
@@ -131,9 +153,9 @@ pub fn try_add_general_sanadi_pratyaya(p: &mut Prakriya, sanadi: Sanadi) -> Opti
             if dhatu.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
                 add_sanadi("3.1.24", p, i, "yaN");
             } else if (i > 0 && p.has(i - 1, |t| t.has_u_in(&["sUca", "sUtra", "mUtra"])))
-                || dhatu.has_u_in(&["awa~", "f\\", "aSa~", "UrRuY"])
+                || dhatu.has_u_in(&["awa~", "f\\", "aSa~", "aSU~\\", "UrRuY"])
             {
-                add_sanadi("3.1.24.v1", p, i, "yaN");
+                add_sanadi("3.1.22.v1", p, i, "yaN");
             } else if f::is_eka_ac(dhatu) && dhatu.has_adi(&*HAL) {
                 add_sanadi("3.1.22", p, i, "yaN");
             }

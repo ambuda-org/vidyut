@@ -3,8 +3,8 @@ Implements the taddhita rules in the "prAg vatez Wan" section of pada 5.1.
 
 (5.1.18 - 5.1.114)
 */
-use crate::args::Artha::*;
 use crate::args::Taddhita;
+use crate::args::TaddhitaArtha::*;
 use crate::taddhita::utils::TaddhitaPrakriya;
 use crate::tag::Tag as T;
 

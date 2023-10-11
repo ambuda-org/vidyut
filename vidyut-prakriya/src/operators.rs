@@ -168,6 +168,7 @@ pub fn optional_adesha(rule: impl Into<Rule> + Copy, p: &mut Prakriya, i: usize,
 }
 
 pub fn yatha<'a>(needle: &str, old: &[&'a str], new: &[&'a str]) -> Option<&'a str> {
+    debug_assert_eq!(old.len(), new.len());
     for (i, o) in old.iter().enumerate() {
         if needle == *o {
             return Some(new[i]);
@@ -177,7 +178,7 @@ pub fn yatha<'a>(needle: &str, old: &[&'a str], new: &[&'a str]) -> Option<&'a s
 }
 
 pub fn upadesha_yatha(p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
-    assert_eq!(old.len(), new.len());
+    debug_assert_eq!(old.len(), new.len());
     if let Some(t) = p.get_mut(i) {
         if t.u.is_some() {
             t.save_lakshana();
@@ -189,7 +190,6 @@ pub fn upadesha_yatha(p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
                     return;
                 }
             }
-            panic!("Should not have reached here {:?} {:?} {:?}", old, new, t.u);
         }
     }
 }

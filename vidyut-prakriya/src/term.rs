@@ -193,11 +193,6 @@ impl Term {
         self.text.ends_with(suffix)
     }
 
-    /// Sets the dhatu's gana.
-    pub fn set_gana(&mut self, gana: Gana) {
-        self.gana = Some(gana);
-    }
-
     /// Returns whether the term has the given dhatu gana.
     pub fn has_gana(&self, gana: Gana) -> bool {
         self.gana == Some(gana)
@@ -216,8 +211,8 @@ impl Term {
         self.text.chars().filter(|c| AC.contains(*c)).count()
     }
 
-    // Tags and Samjnas
-    // ----------------
+    // Tags
+    // ----
 
     /// Returns whether the term has the given tag.
     pub fn has_tag(&self, tag: Tag) -> bool {
@@ -245,77 +240,8 @@ impl Term {
         self.num_vowels() == 1
     }
 
-    /// Returns whether the term could be called a `pada`.
-    pub fn is_pada(&self) -> bool {
-        // TODO: create and use `T::Pada` instead.
-        // TODO: avoid `Upasarga` hack.
-        self.has_tag_in(&[Tag::Pada, Tag::Tin, Tag::Sup, Tag::Upasarga])
-    }
-
-    /// Returns whether the term has the `Pratyaya` samjna.
-    pub fn is_pratyaya(&self) -> bool {
-        self.has_tag(Tag::Pratyaya)
-    }
-
-    /// Returns whether the term has the `Sup` samjna.
-    pub fn is_sup(&self) -> bool {
-        self.has_tag(Tag::Sup)
-    }
-
-    /// Returns whether the term has the `Avyaya` samjna.
-    pub fn is_avyaya(&self) -> bool {
-        self.has_tag(Tag::Avyaya)
-    }
-
-    /// Returns whether the term has the `Sarvanama` samjna.
-    pub fn is_sarvanama(&self) -> bool {
-        self.has_tag(Tag::Sarvanama)
-    }
-
-    /// Returns whether the term has the `Vibhakti` samjna.
-    pub fn is_vibhakti(&self) -> bool {
-        self.has_tag(Tag::Vibhakti)
-    }
-
-    /// Returns whether the term is `Ric` or `RiN`.
-    pub fn is_ni_pratyaya(&self) -> bool {
-        self.has_u_in(&["Ric", "RiN"])
-    }
-
-    /// Returns whether the term has the `Krt` samjna.
-    pub fn is_krt(&self) -> bool {
-        self.has_tag(Tag::Krt)
-    }
-
-    /// Returns whether the term has the `Taddhita` samjna.
-    pub fn is_taddhita(&self) -> bool {
-        self.has_tag(Tag::Taddhita)
-    }
-
-    /// Returns whether the term has the `Dhatu` samjna.
-    pub fn is_dhatu(&self) -> bool {
-        self.has_tag(Tag::Dhatu)
-    }
-
-    /// Returns whether the term has the `Pratipadika` samjna.
-    pub fn is_pratipadika(&self) -> bool {
-        self.has_tag(Tag::Pratipadika)
-    }
-
-    /// Returns whether the term is an Agama.
-    pub fn is_agama(&self) -> bool {
-        self.has_tag(Tag::Agama)
-    }
-
-    /// Returns whether the term is an upasarga.
-    pub fn is_upasarga(&self) -> bool {
-        self.has_tag(Tag::Upasarga)
-    }
-
-    /// Returns whether the term is a nistha.
-    pub fn is_nistha(&self) -> bool {
-        self.has_tag(Tag::Nistha)
-    }
+    // Samjna properties
+    // -----------------
 
     /// Returns whether the term is an abhyAsa.
     pub fn is_abhyasa(&self) -> bool {
@@ -327,9 +253,14 @@ impl Term {
         self.has_tag(Tag::Abhyasta)
     }
 
-    /// Returns whether the term is vrddha.
-    pub fn is_vrddha(&self) -> bool {
-        self.has_tag(Tag::Vrddha)
+    /// Returns whether the term is an Agama.
+    pub fn is_agama(&self) -> bool {
+        self.has_tag(Tag::Agama)
+    }
+
+    /// Returns whether the term is an ardhadhatuka pratyaya.
+    pub fn is_ardhadhatuka(&self) -> bool {
+        self.has_tag(Tag::Ardhadhatuka)
     }
 
     /// Returns whether the term has the `Atmanepada` samjna.
@@ -337,14 +268,91 @@ impl Term {
         self.has_tag(Tag::Atmanepada)
     }
 
-    /// Returns whether the term has the `Atmanepada` samjna.
-    pub fn is_parasmaipada(&self) -> bool {
-        self.has_tag(Tag::Parasmaipada)
+    /// Returns whether the term has the `Avyaya` samjna.
+    pub fn is_avyaya(&self) -> bool {
+        self.has_tag(Tag::Avyaya)
+    }
+
+    /// Returns whether the term has the `Dhatu` samjna.
+    pub fn is_dhatu(&self) -> bool {
+        self.has_tag(Tag::Dhatu)
     }
 
     /// Returns whether the term is kit or Nit.
     pub fn is_knit(&self) -> bool {
         self.has_tag_in(&[Tag::kit, Tag::Nit])
+    }
+
+    /// Returns whether the term has the `Krt` samjna.
+    pub fn is_krt(&self) -> bool {
+        self.has_tag(Tag::Krt)
+    }
+
+    /// Returns whether the term is `Ric` or `RiN`.
+    pub fn is_ni_pratyaya(&self) -> bool {
+        self.has_u_in(&["Ric", "RiN"])
+    }
+
+    /// Returns whether the term is a nistha.
+    pub fn is_nistha(&self) -> bool {
+        self.has_tag(Tag::Nistha)
+    }
+
+    /// Returns whether the term could be called a `pada`.
+    pub fn is_pada(&self) -> bool {
+        // TODO: create and use `T::Pada` instead.
+        // TODO: avoid `Upasarga` hack.
+        self.has_tag_in(&[Tag::Pada, Tag::Tin, Tag::Sup, Tag::Upasarga])
+    }
+
+    /// Returns whether the term has the `Atmanepada` samjna.
+    pub fn is_parasmaipada(&self) -> bool {
+        self.has_tag(Tag::Parasmaipada)
+    }
+
+    /// Returns whether the term has the `Pratipadika` samjna.
+    pub fn is_pratipadika(&self) -> bool {
+        self.has_tag(Tag::Pratipadika)
+    }
+
+    /// Returns whether the term has the `Pratyaya` samjna.
+    pub fn is_pratyaya(&self) -> bool {
+        self.has_tag(Tag::Pratyaya)
+    }
+
+    /// Returns whether the term has the `Sarvanama` samjna.
+    pub fn is_sarvanama(&self) -> bool {
+        self.has_tag(Tag::Sarvanama)
+    }
+
+    /// Returns whether the term has the `Sarvanamasthana` samjna.
+    pub fn is_sarvanamasthana(&self) -> bool {
+        self.has_tag(Tag::Sarvanamasthana)
+    }
+
+    /// Returns whether the term has the `Sup` samjna.
+    pub fn is_sup(&self) -> bool {
+        self.has_tag(Tag::Sup)
+    }
+
+    /// Returns whether the term has the `Taddhita` samjna.
+    pub fn is_taddhita(&self) -> bool {
+        self.has_tag(Tag::Taddhita)
+    }
+
+    /// Returns whether the term is an upasarga.
+    pub fn is_upasarga(&self) -> bool {
+        self.has_tag(Tag::Upasarga)
+    }
+
+    /// Returns whether the term has the `Vibhakti` samjna.
+    pub fn is_vibhakti(&self) -> bool {
+        self.has_tag(Tag::Vibhakti)
+    }
+
+    /// Returns whether the term is vrddha.
+    pub fn is_vrddha(&self) -> bool {
+        self.has_tag(Tag::Vrddha)
     }
 
     /// Returns whether the term is apṛkta.
@@ -436,6 +444,10 @@ impl Term {
         !self.is_laghu()
     }
 
+    pub fn sthanivat(&self) -> &CompactString {
+        &self.sthanivat
+    }
+
     // Mutators
     // --------
 
@@ -481,14 +493,15 @@ impl Term {
         self.text.replace_range(.., s);
     }
 
+    /// Sets the dhatu's gana.
+    pub fn set_gana(&mut self, gana: Gana) {
+        self.gana = Some(gana);
+    }
+
     pub fn find_and_replace_text(&mut self, needle: &str, sub: &str) {
         // Ugly, but it works
         let alloc = self.text.replace(needle, sub);
         self.text = CompactString::from(&alloc);
-    }
-
-    pub fn sthanivat(&self) -> &CompactString {
-        &self.sthanivat
     }
 
     pub fn maybe_save_sthanivat(&mut self) {

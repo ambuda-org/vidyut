@@ -31,7 +31,10 @@ fn can_use_guna_or_vrddhi_opt(p: &Prakriya, i_anga: usize) -> Option<bool> {
 
     if anga.has_tag_in(&[T::FlagAtLopa, T::FlagGunaApavada]) {
         Some(false)
-    } else if p.has(i_anga + 1, |t| t.is_dhatu() && t.is_empty()) && n.has_tag(T::Ardhadhatuka) {
+    } else if p.has(i_anga + 1, |t| {
+        t.is_dhatu() && t.is_empty() && t.has_tag(T::FlagAtLopa)
+    }) && n.has_tag(T::Ardhadhatuka)
+    {
         // 1.1.4 na DAtulopa ArDaDAtuke
         Some(false)
     } else if n.is_knit() {
@@ -108,7 +111,8 @@ fn try_taddhita_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
 /// Taddhita rules: 7.2.117 - 7.3.31
 fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
-    let n = p.view(i + 1)?;
+    let i_next = p.find_next_where(i, |t| !t.is_empty())?;
+    let n = p.view(i_next)?;
 
     if !n.has_tag_in(&[T::Yit, T::Rit]) || !can_use_guna_or_vrddhi(p, i) {
         // Allow RiN even though it is Nit. Without this check, RiN will be excluded by
@@ -121,14 +125,16 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
     let is_cin = n.has_u("ciR") || n.has_tag(T::Cinvat);
     let is_cin_krt = is_cin || n.has_tag(T::Krt);
     let has_udatta = !anga.has_tag(T::Anudatta);
-    let is_acham = || {
-        anga.has_u("camu~")
+
+    let is_aacam_adi = {
+        let is_aacam = anga.has_u("camu~")
             && anga.has_gana(Gana::Bhvadi)
-            && i > 0
-            && p.has(i - 1, |t| t.has_u("AN"))
+            && p.find_prev_where(i, |t| t.is_upasarga() && t.has_u("AN"))
+                .is_some();
+        is_aacam || anga.has_u_in(&["kamu~\\", "wuvama~"])
     };
 
-    if is_cin_krt && has_udatta && anga.has_antya('m') && !is_acham() {
+    if is_cin_krt && has_udatta && anga.has_antya('m') && !is_aacam_adi {
         p.step("7.3.34");
     } else if is_cin_krt && anga.has_text_in(&["jan", "vaD"]) {
         // ajani, avaDi, ...
@@ -150,6 +156,11 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i: usize) -> Option<()> {
             p.op_term("7.2.115", i, op::antya(sub));
         }
     } else if anga.has_upadha('a') {
+        if anga.has_u_in(&["kamu~\\", "wuvama~"]) {
+            // akAmi, avAmi
+            p.step("7.3.34.v1")
+        }
+
         // pAcayati
         p.op_term("7.2.116", i, op::upadha("A"));
     }
@@ -190,6 +201,9 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
     let piti_sarvadhatuke = n.all(&[T::pit, T::Sarvadhatuka]);
     let is_ik = anga.has_antya(&*IK);
 
+    let anga = p.get_if(i, |t| !t.is_agama() && !t.has_tag(T::FlagGunaApavada))?;
+    let n = p.view(j)?;
+
     if anga.has_u_in(&["Divi~", "kfvi~"]) {
         // Per commentary on 3.1.81, these roots don't take guna.
     } else if anga.has_text("mid") && n.has_tag(T::Sit) {
@@ -206,8 +220,6 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
         // HACK: check for absence of `Nit` on first term to prevent tfnhyAt -> tfRihyAt
         p.op_term("7.3.92", i, op::mit("i"));
     } else if is_sarva_ardha {
-        let anga = p.get(i)?;
-        let n = p.view(j)?;
         let can_use_guna = can_use_guna_or_vrddhi(p, i);
 
         // Exceptions
@@ -228,7 +240,12 @@ fn try_guna_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
                     // If vrddhi is declined, UrRu will take guna by 7.3.84 below.
                     p.op_optional("7.3.90", op::t(i, op::antya(sub)));
                 }
-            } else if p.get(i + 1)?.has_tag(T::Luk) {
+            } else if p.get(i + 1)?.has_tag(T::Luk) && !anga.has_tag(T::Abhyasta) {
+                // Why check for abhyasta?
+                //
+                // > na abhyastasya ityetadiha anuvartate, yoyoti, roroti ityevamādyartham.
+                //
+                // -- KV on 7.3.89.
                 p.op_term("7.3.89", i, op::antya(sub));
             };
         }
