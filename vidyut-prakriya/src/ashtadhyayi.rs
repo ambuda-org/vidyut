@@ -230,8 +230,14 @@ fn derive_subanta(
 ) -> Result<Prakriya> {
     let p = &mut prakriya;
 
+    // First, create the pratipadika.
     pratipadika_karya::run(p, pratipadika, args.linga());
     stritva::run(p);
+    if p.terms().len() > 1 {
+        run_rules(p, None, false)?;
+    }
+
+    // Then, add the sup-pratyaya.
     sup_karya::run(p, args);
     samjna::run(p);
     run_rules(p, None, false)?;

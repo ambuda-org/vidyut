@@ -64,10 +64,9 @@ fn sutra_3_2_4() {
 #[test]
 fn sutra_3_2_5() {
     let mfj = d("mfjU~", Adadi);
-    let _nud = d("Ru\\da~^", Tudadi);
+    let nud = d("Ru\\da~^", Tudadi);
     assert_has_upapada_krdanta("tunda", &["pari"], &mfj, Krt::ka, &["tundaparimfja"]);
-    // TODO: fix sandhi
-    // assert_has_upapada_krdanta("Soka", &["apa"], &nud, Krt::ka, &["SokApanuda"]);
+    assert_has_upapada_krdanta("Soka", &["apa"], &nud, Krt::ka, &["SokApanuda"]);
 }
 
 #[test]

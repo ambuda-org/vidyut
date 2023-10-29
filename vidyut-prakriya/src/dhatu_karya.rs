@@ -22,7 +22,7 @@ use crate::term::Term;
 
 /// Adds the mula-dhatu to the prakriya.
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
-    p.op("1.3.1", |p| {
+    p.run("1.3.1", |p| {
         let mut dhatu = Term::make_dhatu(dhatu.upadesha(), dhatu.gana(), dhatu.antargana());
         dhatu.add_tag(T::Dhatu);
         p.push(dhatu);
@@ -33,7 +33,7 @@ fn add_samjnas(p: &mut Prakriya, i: usize) {
     if p.has(i, |t| {
         t.has_text_in(&["dA", "de", "do", "DA", "De"]) && !t.has_u("dA\\p")
     }) {
-        p.op_term("1.1.20", i, op::add_tag(T::Ghu));
+        p.run_at("1.1.20", i, op::add_tag(T::Ghu));
     };
 }
 
@@ -54,9 +54,9 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
             p.step(DP("01.0937"));
             is_mit_blocked = true;
         } else if dhatu.has_u("Samo~") {
-            is_mit_blocked = p.op_optional(DP("01.0938"), |_| {})
+            is_mit_blocked = p.run_optional(DP("01.0938"), |_| {})
         } else if dhatu.has_text("yam") && is_bhvadi {
-            is_mit_blocked = p.op_optional(DP("01.0939"), |_| {})
+            is_mit_blocked = p.run_optional(DP("01.0939"), |_| {})
         } else if dhatu.has_u("sKadi~\\r")
             && i > 0
             && p.has(i - 1, |t| t.has_u_in(&["ava", "pari"]))
@@ -71,16 +71,16 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     if is_mit_blocked {
         // Do nothing.
     } else if is_bhvadi && dhatu.has_text_in(&["jval", "hval", "hmal", "nam"]) && !has_upasarga {
-        p.op_optional(DP("01.0935"), op::t(i, op::add_tag(T::mit)));
+        p.run_optional_at(DP("01.0935"), i, op::add_tag(T::mit));
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
-        p.op_optional(DP("01.0936"), op::t(i, op::add_tag(T::mit)));
+        p.run_optional_at(DP("01.0936"), i, op::add_tag(T::mit));
     } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"])
         && dhatu.has_gana(Gana::Divadi))
         || (is_bhvadi && dhatu.ends_with("am"))
     {
-        p.op_term(DP("01.0934"), i, op::add_tag(T::mit));
+        p.run_at(DP("01.0934"), i, op::add_tag(T::mit));
     } else if is_bhvadi && dhatu.has_u_in(gana::GHAT_ADI) {
-        p.op_term(DP("01.0933"), i, op::add_tag(T::mit));
+        p.run_at(DP("01.0933"), i, op::add_tag(T::mit));
     }
 
     Some(())
@@ -96,7 +96,7 @@ fn try_run_divadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
         "zUN", "dUN", "dI\\N", "qIN", "DI\\N", "mI\\N", "rI\\N", "lI\\N", "vrI\\N",
     ]) {
         // sUna, dUna, dIna, ...
-        p.op_term(DP("04.0162"), i, op::add_tag(T::odit));
+        p.run_at(DP("04.0162"), i, op::add_tag(T::odit));
     }
 
     Some(())
@@ -108,14 +108,14 @@ fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get_if(i, |t| t.has_gana(Gana::Curadi))?;
 
     if dhatu.has_u_in(gana::JNAP_ADI) {
-        p.op_term(DP("10.0493"), i, op::add_tag(T::mit));
+        p.run_at(DP("10.0493"), i, op::add_tag(T::mit));
     }
 
     let dhatu = p.get(i)?;
     if dhatu.has_antargana(Antargana::Akusmiya) {
-        p.op(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
+        p.run(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
     } else if dhatu.has_u_in(gana::AAGARVIYA) {
-        p.op(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
+        p.run(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
     }
 
     Some(())
@@ -129,7 +129,7 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
             p.step("6.1.64.v1");
         } else if dhatu.has_prefix_in(&["zw", "zW", "zR", "zaR"]) {
             // Varttika -- also change the next sound
-            p.op_term("6.1.64.v2", i, |t| {
+            p.run_at("6.1.64.v2", i, |t| {
                 match &t.text[..2] {
                     "zw" => t.text.replace_range(..2, "st"),
                     "zW" => t.text.replace_range(..2, "sT"),
@@ -145,19 +145,19 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
             });
         } else {
             // zah -> sah
-            p.op_term("6.1.64", i, |t| {
+            p.run_at("6.1.64", i, |t| {
                 t.add_tag(T::FlagAdeshadi);
                 t.set_adi("s");
             });
         }
     } else if dhatu.has_adi('R') {
         // RI -> nI
-        p.op_term("6.1.65", i, |t| {
+        p.run_at("6.1.65", i, |t| {
             t.add_tag(T::FlagAdeshadi);
             t.set_adi("n");
         });
     } else if dhatu.has_u("DraRa~") {
-        p.op_term(Rule::Kaumudi("2318"), i, |t| {
+        p.run_at(Rule::Kaumudi("2318"), i, |t| {
             t.set_text("Dran");
         });
     }
@@ -174,7 +174,7 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
 // TODO: why exception for cakz?
 fn try_add_num_agama(p: &mut Prakriya, i: usize) {
     if p.has(i, |t| t.has_tag(T::idit) && !t.has_u("ca\\kzi~\\N")) {
-        p.op_term("7.1.58", i, op::mit("n"));
+        p.run_at("7.1.58", i, op::mit("n"));
     }
 }
 

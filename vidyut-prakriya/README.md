@@ -239,13 +239,13 @@ fn rules(p: &mut Prakriya, i: usize) -> Option<()> {
 
     if base.has_tag(T::Abhyasta) {
         // juhvati
-        p.op_term("7.1.4", i, op::adi("at"));
+        p.run_at("7.1.4", i, op::adi("at"));
     } else if !base.has_antya('a') && tin.has_tag(T::Atmanepada) {
         // kurvate
-        p.op_term("7.1.5", i, op::adi("at"));
+        p.run_at("7.1.5", i, op::adi("at"));
     } else {
         // Bavanti
-        p.op_term("7.1.3", i, op::adi("ant"));
+        p.run_at("7.1.3", i, op::adi("ant"));
     }
 
     Some(())
@@ -266,7 +266,7 @@ they don't sacrifice readability. Some notes on our naming conventions:
 
 Notes on our API:
 
-- `p.op_term("my-rule", i, fn)` applies the `fn` function to the term at index `i`
+- `p.run_at("my-rule", i, fn)` applies the `fn` function to the term at index `i`
   of `p` and associates that operation with `"my-rule"`.
 - `op::adi(s)` returns a function. The returned function accepts a `Term` and
   replaces its first sound with `s`. If you haven't worked with [first-class

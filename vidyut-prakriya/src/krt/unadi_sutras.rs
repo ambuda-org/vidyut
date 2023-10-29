@@ -99,9 +99,6 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 kp.try_add(Unadi("1.77"), krt);
             }
         }
-        K::manin => {
-            kp.try_add(Unadi("1.144"), krt);
-        }
         K::kTan => {
             if dhatu.has_u_in(&["ha\\na~", "kuza~", "RI\\Y", "ama~", "kASf~"]) {
                 kp.try_add(Unadi("2.2"), krt);
@@ -111,6 +108,19 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             if dhatu.has_u_in(&["arca~", "I~Suci~^r", "hu\\", "sf\\px~", "Cada~", "Carda~"]) {
                 kp.try_add(Unadi("2.108"), krt);
                 // TODO: id-antaH api
+            }
+        }
+        K::usi => {
+            if dhatu.has_u("janI~\\") {
+                kp.try_add(Unadi("2.115"), krt);
+            } else if dhatu.has_text_in(&["f", "pF", "vap", "yaj", "tan", "Dan", "tap"]) {
+                kp.try_add_with(Unadi("2.117"), krt, |p| p.set(i + 1, |t| t.add_tag(T::nit)));
+            } else if dhatu.has_u("i\\R") {
+                kp.try_add_with(Unadi("2.118"), krt, |p| p.set(i + 1, |t| t.add_tag(T::Rit)));
+            } else if dhatu.has_u("ca\\kzi~\\N") {
+                kp.try_add_with(Unadi("2.119"), krt, |p| p.set(i + 1, |t| t.add_tag(T::Sit)));
+            } else if dhatu.has_text("muh") {
+                kp.try_add_with(Unadi("2.120"), krt, |p| p.set(i + 1, |t| t.add_tag(T::kit)));
             }
         }
         K::itnuc => {
@@ -280,8 +290,21 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 kp.try_add(Unadi("4.54"), krt);
             }
         }
+        K::in_ => {
+            kp.try_add(Unadi("4.117"), krt);
+        }
+        K::manin => {
+            kp.try_add(Unadi("4.144"), krt);
+        }
         K::zwran => {
             kp.try_add(Unadi("4.158"), krt);
+        }
+        K::asun => {
+            if dhatu.has_text("rap") {
+                kp.try_add_with(Unadi("4.189"), krt, |p| p.set(i, |t| t.set_upadha("e")));
+            } else {
+                kp.try_add(Unadi("4.188"), krt);
+            }
         }
         K::amac => {
             if dhatu.has_u("praTa~\\") {

@@ -12,6 +12,7 @@ JavaScript callers can use them more idiomatically.
 */
 use crate::args::*;
 use crate::dhatupatha::Dhatupatha;
+use crate::prakriya::Rule;
 use crate::prakriya::{Prakriya, Step};
 use serde::Serialize;
 extern crate console_error_panic_hook;
@@ -19,30 +20,59 @@ extern crate console_error_panic_hook;
 use crate::Ashtadhyayi;
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
-/// A lightweight `Step` that exposes fewer private fields.
+#[wasm_bindgen]
+extern "C" {
+    /// Exposes `console.error` in case we need to log anything to the JS console.
+    #[wasm_bindgen(js_namespace = console, js_name = error)]
+    fn error(s: &str);
+}
+
+/// A lightweight `Step` that exposes fewer private fields than the native `Step` struct.
 #[derive(Serialize)]
 pub struct WebStep {
+    /// The rule that was applied for this step of the derivation.
     rule: String,
+    /// The result of applying the given rule.
     result: String,
 }
 
-/// A lightweight `Prakriya` that exposes fewer private fields.
+/// A lightweight `Prakriya` that exposes fewer private fields than the native `Prakriya` struct.
 #[derive(Serialize)]
 pub struct WebPrakriya {
+    /// The final text produced by this prakriya.
     text: String,
+    /// The list of steps that was applied to produce `text`.
     history: Vec<WebStep>,
 }
 
+impl Rule {
+    /// Converts a `Rule` to a string suitable for web display.
+    ///
+    /// We return SLP1 strings, which the frontend will transliterate to the user's chosen script.
+    fn as_web_string(&self) -> String {
+        match self {
+            Self::Ashtadhyayi(s) => s.to_string(),
+            Self::Dhatupatha(s) => format!("DAtupATa {s}"),
+            Self::Kashika(s) => format!("kAzikA {s}"),
+            Self::Linganushasana(s) => format!("liNgA {s}"),
+            Self::Kaumudi(s) => format!("kOmudI {s}"),
+            Self::Unadi(s) => format!("uRAdi {s}"),
+        }
+    }
+}
+
+/// Converts the native `Step` array to a format that wasm_bindgen can serialize.
 fn to_web_history(history: &[Step]) -> Vec<WebStep> {
     history
         .iter()
         .map(|x| WebStep {
-            rule: x.rule(),
+            rule: x.rule().as_web_string(),
             result: x.result().clone(),
         })
         .collect()
 }
 
+/// Converts the native `Prakriya` struct to a format that wasm_bindgen can serialize.
 fn to_web_prakriyas(prakriyas: &[Prakriya]) -> Vec<WebPrakriya> {
     prakriyas
         .iter()
@@ -65,14 +95,10 @@ fn try_expand_dhatu(dhatu: &Dhatu, sanadi: Option<Sanadi>, upasarga: Option<Stri
     ret
 }
 
-#[wasm_bindgen]
-extern "C" {
-    /// Exposes `console.error` in case we need to log anything to the JS console.
-    #[wasm_bindgen(js_namespace = console, js_name = error)]
-    fn error(s: &str);
-}
-
 /// WebAssembly API for vidyut-prakriya.
+///
+/// Within reason, we have tried to mimic a native JavaScript API. At some point, we wish to
+/// support optional arguments, perhaps by using `Reflect`.
 #[wasm_bindgen]
 pub struct Vidyut {
     /// An internal reference to a dhatupatha.
@@ -91,8 +117,7 @@ impl Vidyut {
         console_error_panic_hook::set_once();
 
         Vidyut {
-            #[allow(clippy::unwrap_used)]
-            dhatupatha: Dhatupatha::from_text(dhatupatha).unwrap(),
+            dhatupatha: Dhatupatha::from_text(dhatupatha).expect("should be well-formed"),
         }
     }
 
@@ -113,20 +138,18 @@ impl Vidyut {
         upasarga: Option<String>,
     ) -> JsValue {
         if let Some(raw_dhatu) = self.dhatupatha.get(code) {
+            let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
             let mut args = TinantaArgs::builder()
                 .lakara(lakara)
                 .prayoga(prayoga)
                 .purusha(purusha)
                 .vacana(vacana);
-
             if let Some(pada) = pada {
                 args = args.pada(pada);
             }
-
             let args = args.build().expect("should be well-formed");
 
             let a = Ashtadhyayi::new();
-            let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
             let prakriyas = a.derive_tinantas(&dhatu, &args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
@@ -162,8 +185,6 @@ impl Vidyut {
     }
 
     /// Wrapper for `Ashtadhyayi::derive_krdantas`.
-    ///
-    /// TODO: how might we reduce the number of arguments here?
     #[allow(non_snake_case)]
     pub fn deriveKrdantas(
         &self,

@@ -320,6 +320,15 @@ impl Term {
         self.has_tag(Tag::Pratyaya)
     }
 
+    pub fn is_nyap_pratyaya(&self) -> bool {
+        self.has_tag(Tag::Pratyaya) && self.has_u_in(&["wAp", "cAp", "dAp", "NIp", "NIz"])
+    }
+
+    /// Returns whether the term has the `Sarvanama` samjna.
+    pub fn is_sarvadhatuka(&self) -> bool {
+        self.has_tag(Tag::Sarvadhatuka)
+    }
+
     /// Returns whether the term has the `Sarvanama` samjna.
     pub fn is_sarvanama(&self) -> bool {
         self.has_tag(Tag::Sarvanama)

@@ -216,6 +216,8 @@ pub enum Krt {
     amac,
     /// -ala (maNgala)
     alac,
+    /// -as (cetaH)
+    asun,
     /// -Ayya
     Ayya,
     /// -itnu
@@ -234,6 +236,8 @@ pub enum Krt {
     isi,
     /// -u (kAru)
     uR,
+    /// -us (Danus)
+    usi,
     /// -atu (kratu)
     katu,
     /// -ka
@@ -384,6 +388,7 @@ enum_boilerplate!(Krt, {
     // ===============
     amac => "amac",
     alac => "alac",
+    asun => "asu~n",
     Ayya => "Ayya",
     itnuc => "itnuc",
     iTin => "iTin",
@@ -392,6 +397,7 @@ enum_boilerplate!(Krt, {
     isan => "isan",
     isi => "isi~",
     uR => "uR",
+    usi => "usi~",
     // TODO: why do we keep the initial 'k' here?
     kan => "a~kan",
     katu => "katu",

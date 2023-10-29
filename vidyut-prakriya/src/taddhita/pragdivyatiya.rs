@@ -174,7 +174,7 @@ fn try_shaishika_rules(tp: &mut TaddhitaPrakriya, rule: &'static str) {
     if prati.has_text_in(&["yuzmad", "asmad"])
         && tp.p.has(i_prati + 1, |t| t.has_u_in(&["KaY", "aR"]))
     {
-        tp.p.op_term("4.3.2", i_prati, |t| {
+        tp.p.run_at("4.3.2", i_prati, |t| {
             if t.has_text("yuzmad") {
                 t.set_text("yuzmAka");
             } else {
@@ -310,7 +310,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
                 let putra_anta = prati.ends_with("putra");
                 let added = tp.optional_try_add("4.1.157", PiY);
                 if added && putra_anta {
-                    tp.p.op_optional("4.1.159", op::t(i_prati, |t| t.text += "k"));
+                    tp.p.run_optional_at("4.1.159", i_prati, |t| t.text += "k");
                 }
             }
         }
@@ -328,7 +328,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             }) {
                 it_samjna::run(tp.p, i_prati + 1).expect("ok");
             }
-        } else if prati.has_text_in(&gana::KALYANI_ADI) {
+        } else if prati.has_text_in(gana::KALYANI_ADI) {
             tp.try_add_with("4.1.126", Qak, |p| p.set(i_prati, |t| t.set_antya("in")));
         } else if prati.has_text("kulawA") {
             tp.optional_try_add_with("4.1.127", Qak, |p| p.set(i_prati, |t| t.set_antya("in")));
@@ -434,7 +434,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
         let prati = tp.prati();
         if tp.has_taddhita && prati.has_text("kamboja") {
-            tp.p.op_term("4.1.175", i_prati + 1, op::luk);
+            tp.p.run_at("4.1.175", i_prati + 1, op::luk);
         }
     });
 
@@ -520,7 +520,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
         let prati = tp.prati();
         if prati.has_text("ka") {
-            tp.p.op_term("4.2.25", i_prati, |t| t.set_antya("i"));
+            tp.p.run_at("4.2.25", i_prati, |t| t.set_antya("i"));
         }
     });
 
@@ -560,7 +560,9 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             tp.try_add("4.2.43.v1", tal);
         } else if prati.has_text_in(gana::KHANDIKA_ADI) {
             tp.try_add("4.2.45", aY);
-        } else if true || prati.has_text_in(&["hastin", "Denu"]) {
+        } else if true
+        /* || prati.has_text_in(&["hastin", "Denu"]) */
+        {
             // TODO: a-citta and remove `true`
             tp.optional_try_add("4.2.45", Wak);
         }
@@ -659,7 +661,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             "azAQa",
             "bahulA",
         ]) {
-            tp.p.op_term("4.3.34", i_prati + 1, op::luk);
+            tp.p.run_at("4.3.34", i_prati + 1, op::luk);
         }
     });
 

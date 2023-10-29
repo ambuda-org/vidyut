@@ -23,7 +23,7 @@ pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
 
     if is_shas_prabhrti {
         if let Some(sub) = op::yatha(&prati.text, PADA_ADI, PAD_ADI) {
-            p.op_optional("6.1.63", op::t(i_prati, |t| t.set_text(sub)));
+            p.run_optional_at("6.1.63", i_prati, |t| t.set_text(sub));
         }
     }
 

@@ -27,7 +27,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         && (last.has_tag(T::Gha) || last.has_u_in(&["rUpap", "kalpap"]))
     {
         // TODO; check for bhASitapuMsvat
-        p.op_term("6.3.43", 0, |t| {
+        p.run_at("6.3.43", 0, |t| {
             // Rule only applies for NI, so just change `I`.
             t.set_antya("i");
         });
@@ -43,13 +43,13 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         && uttara.has_u("yat")
         && !p.has_artha(Artha::Taddhita(TaddhitaArtha::Tadarthye))
     {
-        p.op_term("6.3.53", i_purva, |t| t.set_text("pad"));
+        p.run_at("6.3.53", i_purva, |t| t.set_text("pad"));
     }
 
     let purva = p.get(i_purva)?;
     let uttara = p.get(i_uttara)?;
     if purva.is_sarvanama() && uttara.has_text_in(&["dfS"]) {
-        p.op_term("6.3.91", i_purva, |t| t.set_antya("A"));
+        p.run_at("6.3.91", i_purva, |t| t.set_antya("A"));
     } else if !purva.is_avyaya() && p.find_last(T::Kit).is_some() {
         let ajanta = al::is_ac(purva.antya()?);
         let i_khit = p.find_last_where(|t| t.has_tag(T::Kit))?;
@@ -57,14 +57,14 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
 
         if purva.has_text_in(&["vAc", "pur"]) {
             // vAcaMyama, purandara
-            p.op("6.3.69", |p| {
+            p.run("6.3.69", |p| {
                 let mut am = Term::make_upadesha("am");
                 am.add_tags(&[T::Pratyaya, T::Vibhakti, T::Sup, T::V2, T::Pada]);
                 p.insert_after(i_purva, am);
                 p.set(i_purva, |t| t.remove_tag(T::Pada));
             });
         } else if purva.num_vowels() == 1 && purva.has_antya(&*AC) && !purva.has_antya(&*AA) {
-            p.op("6.3.68", |p| {
+            p.run("6.3.68", |p| {
                 let mut am = Term::make_upadesha("am");
                 am.add_tags(&[T::Pratyaya, T::Vibhakti, T::Sup, T::V2, T::Pada]);
                 p.insert_after(i_purva, am);
@@ -72,13 +72,13 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         } else if purva.has_u_in(&["arus", "dvizat"]) || ajanta {
             if al::is_dirgha(purva.antya()?) && !purva.is_avyaya() {
                 let sub = al::to_hrasva(purva.antya()?)?;
-                p.op_term("6.3.66", i_purva, |t| {
+                p.run_at("6.3.66", i_purva, |t| {
                     t.set_antya(&sub.to_string());
                 });
             }
 
             // aruntuda, dvizantapa
-            p.op_term("6.3.67", i_purva, |t| {
+            p.run_at("6.3.67", i_purva, |t| {
                 op::mit("m")(t);
                 // HACK: add `pada` for m -> M (8.3.23).
                 t.add_tag(T::Pada);
@@ -99,22 +99,22 @@ pub fn run_after_guna(p: &mut Prakriya) -> Option<()> {
             // rule is "bahulam"
             if purva.has_u("ni") && uttara.has_u_in(&["vfN", "vfY"]) {
                 // nIvAra
-                p.op_term("6.3.122", i_purva, |t| t.set_antya("I"));
+                p.run_at("6.3.122", i_purva, |t| t.set_antya("I"));
             }
         } else if purva.has_antya(&*IK) {
             if uttara.has_text("kAS") && p.has(i_uttara + 1, |t| t.has_u("ac")) {
                 // nIkASa, vIkASa, anUkASa
                 let sub = al::to_dirgha(purva.antya()?)?;
-                p.op_term("6.3.123", i_purva, |t| t.set_antya(&sub.to_string()));
+                p.run_at("6.3.123", i_purva, |t| t.set_antya(&sub.to_string()));
             } else if uttara.has_tag(T::Ghu) && uttara.has_text("t") {
                 // nItta, vItta, parItta
                 let sub = al::to_dirgha(purva.antya()?)?;
-                p.op_term("6.3.124", i_purva, |t| t.set_antya(&sub.to_string()));
+                p.run_at("6.3.124", i_purva, |t| t.set_antya(&sub.to_string()));
             }
         }
     } else if uttara.has_text("citi") && p.has(i_uttara + 1, |t| t.has_u("kap")) {
         // citIka
-        p.op_term("6.3.125", i_uttara, |t| t.set_antya("I"));
+        p.run_at("6.3.125", i_uttara, |t| t.set_antya("I"));
     }
 
     Some(())

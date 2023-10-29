@@ -3,8 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::Vibhakti;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -461,11 +459,10 @@ fn sutra_1_2_41() {
 
 #[test]
 fn sutra_1_2_45() {
-    use Vibhakti::*;
-    assert_has_subantas("qitTa", Pum, Prathama, Eka, &["qitTaH"]);
-    assert_has_subantas("kapitTa", Pum, Prathama, Eka, &["kapitTaH"]);
-    assert_has_subantas("kuRqa", Napumsaka, Prathama, Eka, &["kuRqam"]);
-    assert_has_subantas("pIWa", Napumsaka, Prathama, Eka, &["pIWam"]);
+    assert_has_sup_1s("qitTa", Pum, &["qitTaH"]);
+    assert_has_sup_1s("kapitTa", Pum, &["kapitTaH"]);
+    assert_has_sup_1s("kuRqa", Napumsaka, &["kuRqam"]);
+    assert_has_sup_1s("pIWa", Napumsaka, &["pIWam"]);
     // a-dhAtu?
     assert_has_lan(&[], &d("ha\\na~", Adadi), &["ahan"]);
     // TODO: others
@@ -473,11 +470,10 @@ fn sutra_1_2_45() {
 
 #[test]
 fn sutra_1_2_47() {
-    use Vibhakti::*;
-    assert_has_subantas("atirE", Napumsaka, Prathama, Eka, &["atiri"]);
-    assert_has_subantas("atinO", Napumsaka, Prathama, Eka, &["atinu"]);
+    assert_has_sup_1s("atirE", Napumsaka, &["atiri"]);
+    assert_has_sup_1s("atinO", Napumsaka, &["atinu"]);
     // napuMsake
-    assert_has_subantas("grAmaRI", Pum, Prathama, Eka, &["grAmaRIH"]);
+    assert_has_sup_1s("grAmaRI", Pum, &["grAmaRIH"]);
     // prAtipadikasya
-    assert_has_subantas("kuRqa", Napumsaka, Prathama, Dvi, &["kuRqe"]);
+    assert_has_sup_1d("kuRqa", Napumsaka, &["kuRqe"]);
 }

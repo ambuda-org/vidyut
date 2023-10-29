@@ -120,7 +120,7 @@
         <option value="dur" x-text="deva('dur')"></option>
         <option value="vi" x-text="deva('vi')"></option>
         <option value="AN" x-text="deva('AN')"></option>
-        <option value="n" x-text="deva('ni')"></option>
+        <option value="ni" x-text="deva('ni')"></option>
         <option value="aDi" x-text="deva('aDi')"></option>
         <option value="api" x-text="deva('api')"></option>
         <option value="ati" x-text="deva('ati')"></option>
@@ -150,7 +150,7 @@
 
     <template x-for="la in createTinantas()">
       <section>
-        <h1 x-text="la.title"></h1>
+        <h1 class="text-2xl font-bold my-4" x-text="la.title"></h1>
 
         <template x-if="la.Parasmai">
           <table class="w-full my-4 text-left table-fixed text-xl border">

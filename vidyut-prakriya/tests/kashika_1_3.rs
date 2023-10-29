@@ -4,8 +4,6 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
-use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -24,11 +22,11 @@ fn sutra_1_3_3() {
 #[test]
 fn sutra_1_3_4() {
     // t
-    assert_has_subantas("vfkza", Pum, V::Panchami, Eka, &["vfkzAt"]);
-    assert_has_subantas("plakza", Pum, V::Panchami, Eka, &["plakzAt"]);
+    assert_has_sup_5s("vfkza", Pum, &["vfkzAt"]);
+    assert_has_sup_5s("plakza", Pum, &["plakzAt"]);
     // s
     let pac = &d("qupa\\ca~^z", Bhvadi);
-    assert_has_subantas("brAhmaRa", Pum, V::Prathama, Bahu, &["brAhmaRAH"]);
+    assert_has_sup_1p("brAhmaRa", Pum, &["brAhmaRAH"]);
     assert_has_tas(&[], &pac, Lat, &["pacataH"]);
     assert_has_thas(&[], &pac, Lat, &["pacaTaH"]);
     // m
@@ -59,9 +57,9 @@ fn sutra_1_3_6() {
     assert_has_krdanta(&[], &d("nftI~", Divadi), Krt::zvun, &["nartaka"]);
     assert_has_krdanta(&[], &d("ra\\nja~^", Bhvadi), Krt::zvun, &["rajaka"]);
     // pratyayasya?
-    assert_has_subantas("zoqa", Pum, V::Prathama, Eka, &["zoqaH"]);
-    assert_has_subantas("zaRqa", Pum, V::Prathama, Eka, &["zaRqaH"]);
-    assert_has_subantas("zaqika", Pum, V::Prathama, Eka, &["zaqikaH"]);
+    assert_has_sup_1s("zoqa", Pum, &["zoqaH"]);
+    assert_has_sup_1s("zaRqa", Pum, &["zaRqaH"]);
+    assert_has_sup_1s("zaqika", Pum, &["zaqikaH"]);
     // AdiH
     assert_has_krdanta(&[], &d("ava~", Bhvadi), Krt::wizac, &["aviza"]);
     // TODO: right mah?
@@ -73,7 +71,7 @@ fn sutra_1_3_7() {
     // ca
     assert_has_taddhitanta(&prati("kuYja"), T::cPaY, &["kOYjAyana"]);
     // ja
-    assert_has_subantas("brAhmaRa", Pum, V::Prathama, Bahu, &["brAhmaRAH"]);
+    assert_has_sup_1p("brAhmaRa", Pum, &["brAhmaRAH"]);
     // Ya
     assert_has_taddhitanta(&prati("SaRqika"), T::Yya, &["SARqikya"]);
     // wa
@@ -111,8 +109,8 @@ fn sutra_1_3_8() {
     // Ga
     assert_has_krdanta(&[], &d("Ba\\njo~", Rudhadi), Krt::Gurac, &["BaNgura"]);
     // Na (Nasi --> At, Nas --> sya)
-    assert_has_subantas("vfkza", Pum, V::Panchami, Eka, &["vfkzAt"]);
-    assert_has_subantas("vfkza", Pum, V::Sasthi, Eka, &["vfkzasya"]);
+    assert_has_sup_5s("vfkza", Pum, &["vfkzAt"]);
+    assert_has_sup_6s("vfkza", Pum, &["vfkzasya"]);
     // ataddhite?
     assert_has_taddhitanta(&prati("cUqA"), T::lac, &["cUqAla"]);
     assert_has_taddhitanta(&prati("loman"), T::Sa, &["lomaSa"]);

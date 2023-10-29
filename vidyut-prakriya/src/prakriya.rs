@@ -27,6 +27,20 @@ pub enum Rule {
     Kaumudi(&'static str),
 }
 
+impl Rule {
+    /// The string reprentation of this rule.
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::Ashtadhyayi(x) => x,
+            Self::Kashika(x) => x,
+            Self::Dhatupatha(x) => x,
+            Self::Unadi(x) => x,
+            Self::Linganushasana(x) => x,
+            Self::Kaumudi(x) => x,
+        }
+    }
+}
+
 // Since Ashtadhyayi rules are by far the most common, assume by default that static strings refer
 // to rules in the Ashtadhyayi.
 impl From<&'static str> for Rule {
@@ -44,16 +58,8 @@ pub struct Step {
 
 impl Step {
     /// The rule that produced the current step.
-    // TODO: render different `Rule` types differently.
-    pub fn rule(&self) -> String {
-        match self.rule {
-            Rule::Ashtadhyayi(x) => x.to_string(),
-            Rule::Kashika(x) => format!("Kashika {x}"),
-            Rule::Dhatupatha(x) => format!("Dhatu {x}"),
-            Rule::Unadi(x) => format!("Unadi {x}"),
-            Rule::Linganushasana(x) => format!("Linga {x}"),
-            Rule::Kaumudi(x) => format!("Kaumudi {x}"),
-        }
+    pub fn rule(&self) -> Rule {
+        self.rule
     }
 
     /// The result of applying `rule`.
@@ -125,7 +131,7 @@ impl Prakriya {
         &self.history
     }
 
-    /// [experimental] Returns the semantic condition (artha) under which this prakriya was
+    /// (experimental) Returns the semantic condition (artha) under which this prakriya was
     /// created.
     pub fn artha(&self) -> Option<Artha> {
         self.artha
@@ -305,6 +311,33 @@ impl Prakriya {
         None
     }
 
+    /// Finds the term that contains the char at index `i_char` in `self.text()`.
+    pub fn find_for_char_at(&self, i_char: usize) -> Option<usize> {
+        let mut cur = 0;
+        for (i, t) in self.terms().iter().enumerate() {
+            let delta = t.text.len();
+            if (cur..cur + delta).contains(&i_char) {
+                return Some(i);
+            }
+            cur += delta;
+        }
+        None
+    }
+
+    /// Replaces character `i` of the current prakriya with the given substitute.
+    pub fn set_char_at(&mut self, i_char: usize, substitute: &str) {
+        let mut cur = 0;
+        for t in self.terms_mut() {
+            let delta = t.text.len();
+            if (cur..cur + delta).contains(&i_char) {
+                let i_offset = i_char - cur;
+                t.text.replace_range(i_offset..=i_offset, substitute);
+                return;
+            }
+            cur += delta;
+        }
+    }
+
     // Filters
 
     /// Returns whether a term exists at `index` and matches the condition in `filter`.
@@ -396,15 +429,15 @@ impl Prakriya {
 
     // Rule application
 
-    /// Applies the given operator.
-    pub(crate) fn op(&mut self, code: impl Into<Rule>, operator: impl Fn(&mut Prakriya)) -> bool {
+    /// Runs the given operator.
+    pub(crate) fn run(&mut self, code: impl Into<Rule>, operator: impl Fn(&mut Prakriya)) -> bool {
         operator(self);
         self.step(code);
         true
     }
 
     /// Applies the given operator to the given term.
-    pub(crate) fn op_term(
+    pub(crate) fn run_at(
         &mut self,
         rule: impl Into<Rule>,
         index: usize,
@@ -423,16 +456,30 @@ impl Prakriya {
     ///
     /// Returns: whether the operation was applied. This return value is required for certain
     /// complex conditions (e.g. 6.4.116 & 117; "if this rule was not applied, ...").
-    pub(crate) fn op_optional(
+    pub(crate) fn run_optional(
         &mut self,
         rule: impl Into<Rule>,
         operator: impl Fn(&mut Prakriya),
     ) -> bool {
         let rule = rule.into();
         if self.is_allowed(rule) {
-            operator(self);
-            self.step(rule);
-            true
+            self.run(rule, operator)
+        } else {
+            self.decline(rule);
+            false
+        }
+    }
+
+    /// Applies the given operator to the given term.
+    pub(crate) fn run_optional_at(
+        &mut self,
+        rule: impl Into<Rule>,
+        index: usize,
+        operator: impl Fn(&mut Term),
+    ) -> bool {
+        let rule = rule.into();
+        if self.is_allowed(rule) {
+            self.run_at(rule, index, operator)
         } else {
             self.decline(rule);
             false

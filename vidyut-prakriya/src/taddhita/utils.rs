@@ -110,7 +110,7 @@ impl<'a> TaddhitaPrakriya<'a> {
 
         self.had_match = true;
         if taddhita == self.taddhita && !self.has_taddhita {
-            self.p.op(rule, |p| {
+            self.p.run(rule, |p| {
                 p.push(taddhita.to_term());
                 func(p);
             });

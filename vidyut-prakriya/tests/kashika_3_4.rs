@@ -5,8 +5,6 @@ use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Upapada;
-use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -394,8 +392,8 @@ fn sutra_3_4_114() {
     // DAtoH
     assert_has_taddhitanta(&prati("vfkza"), T::tva, &["vfkzatva"]);
     assert_has_taddhitanta(&prati("vfkza"), T::tal, &["vfkzatA"]);
-    assert_has_subantas("lU", Pum, V::Trtiya, Dvi, &["lUByAm"]);
-    assert_has_subantas("lU", Pum, V::Trtiya, Bahu, &["lUBiH"]);
+    assert_has_sup_3d("lU", Pum, &["lUByAm"]);
+    assert_has_sup_3p("lU", Pum, &["lUBiH"]);
     assert_has_lat(&[], &d("gupa~\\", Bhvadi), &["jugupsate"]);
 }
 

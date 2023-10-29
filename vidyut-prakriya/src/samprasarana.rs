@@ -1,10 +1,9 @@
-use crate::dhatu_gana as gana;
-use crate::operators as op;
 /// Applies samprasarana changes as needed.
 ///
 /// Order of operations:
 /// - Must follow atidesha so that suffixes have the kit/Nit annotations necessary to cause
 ///   samprasanara.
+use crate::dhatu_gana as gana;
 use crate::prakriya::{Code, Prakriya};
 use crate::tag::Tag as T;
 use crate::term::Term;
@@ -86,7 +85,7 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
 /// TODO: properly annotate 6.1.108 and related rules here.
 fn do_samprasarana(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     let after = find_samprasarana_match(p, i_dhatu)?;
-    p.op_term(rule, i_dhatu, |t| {
+    p.run_at(rule, i_dhatu, |t| {
         t.set_text(after);
         t.add_tag(T::FlagSamprasarana);
     });
@@ -96,7 +95,7 @@ fn do_samprasarana(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
 fn do_samprasarana_for_abhyasa(rule: Code, p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
     let i_dhatu = i_abhyasa + 1;
     let after = find_samprasarana_match(p, i_dhatu)?;
-    p.op_term(rule, i_abhyasa, |t| {
+    p.run_at(rule, i_abhyasa, |t| {
         t.set_text(after);
         t.add_tag(T::FlagSamprasarana);
     });
@@ -120,20 +119,17 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     let n_will_be_abhyasta = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
-        p.op_term(rule, i, |t| {
+        p.run_at(rule, i, |t| {
             t.set_text(text);
             t.add_tag(T::FlagSamprasarana);
         });
     };
 
     let optional_set_text = |rule, p: &mut Prakriya, text| {
-        p.op_optional(
-            rule,
-            op::t(i, |t| {
-                t.set_text(text);
-                t.add_tag(T::FlagSamprasarana);
-            }),
-        );
+        p.run_optional_at(rule, i, |t| {
+            t.set_text(text);
+            t.add_tag(T::FlagSamprasarana);
+        });
     };
 
     let is_ve = dhatu.has_u("ve\\Y");

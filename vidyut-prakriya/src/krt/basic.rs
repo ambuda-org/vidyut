@@ -598,7 +598,7 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                     kp.try_add("3.2.19", wa);
                 }
             } else if dhatu.has_u("qukf\\Y") {
-                if upapada.has_text_in(&DIVA_ADI) || upapada.has_tag(T::Sankhya) {
+                if upapada.has_text_in(DIVA_ADI) || upapada.has_tag(T::Sankhya) {
                     kp.try_add("3.2.21", wa);
                 } else if upapada.has_text("karman") {
                     kp.optional_try_add("3.2.22", wa);
@@ -763,13 +763,13 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
         }
 
         Kyun => {
-            if upapada.has_text_in(&ADHYA_ADI) && dhatu.has_u("qukf\\Y") {
+            if upapada.has_text_in(ADHYA_ADI) && dhatu.has_u("qukf\\Y") {
                 kp.try_add("3.2.56", krt);
             }
         }
 
         KizRuc | KukaY => {
-            if upapada.has_text_in(&ADHYA_ADI) && dhatu.has_u("BU") {
+            if upapada.has_text_in(ADHYA_ADI) && dhatu.has_u("BU") {
                 kp.try_add("3.2.57", krt);
             }
         }
@@ -793,7 +793,7 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                     } else if kp.has_upapada("ud") && dhatu.has_u("zRi\\ha~") {
                         kp.do_nipatana(code, "uzRih");
                     } else if dhatu.has_u("ancu~") {
-                        kp.p.op_term(code, i_dhatu, |t| {
+                        kp.p.run_at(code, i_dhatu, |t| {
                             t.set_text("aYc");
                             t.add_tag(T::Krt);
                         });
@@ -922,7 +922,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             let added = kp.try_add("3.1.96", krt);
             if added && krt == K::tavyat && kp.dhatu().has_u("va\\sa~") {
                 // vAstavya
-                kp.p.op_optional("3.1.96.v1", op::t(i + 1, |t| t.add_tag(T::Rit)));
+                kp.p.run_optional_at("3.1.96.v1", i + 1, |t| t.add_tag(T::Rit));
             }
         }
 
@@ -954,11 +954,11 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                     kp.optional_try_add("3.1.120", K::kyap);
                 } else {
                     // This rule makes rule 3.1.110 optional for vfz.
-                    skip_3_1_110 = kp.p.op_optional("3.1.120", |_| {});
+                    skip_3_1_110 = kp.p.run_optional("3.1.120", |_| {});
                 }
             } else if dhatu.has_text("mfj") {
                 // This rule makes rule 3.1.110 optional for mfj.
-                skip_3_1_110 = kp.p.op_optional("3.1.113", |_| {});
+                skip_3_1_110 = kp.p.run_optional("3.1.113", |_| {});
             }
 
             // Specific rules (required)
@@ -1137,7 +1137,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
             if kp.has_krt {
                 let i_last = kp.p.terms().len() - 1;
-                kp.p.op_term("1.1.26", i_last, op::add_tag(T::Nistha));
+                kp.p.run_at("1.1.26", i_last, op::add_tag(T::Nistha));
             }
         }
 
@@ -1208,7 +1208,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             if has_pada_match && !kp.has_krt {
                 let i_la = kp.p.terms().len() - 1;
                 kp.try_replace_lakara("3.2.128", i_la, krt);
-                kp.p.op_term("3.2.127", i_la, op::add_tag(T::Sat));
+                kp.p.run_at("3.2.127", i_la, op::add_tag(T::Sat));
             }
         }
 
@@ -1273,7 +1273,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
             if dhatu.has_tag(T::qvit) {
                 if kp.try_add("3.3.88", krt) {
                     // TODO: put this somewhere else?
-                    kp.p.op("4.4.20", |p| {
+                    kp.p.run("4.4.20", |p| {
                         p.push(Taddhita::map.to_term());
                     });
                     it_samjna::run(kp.p, i + 2).expect("should never fail");

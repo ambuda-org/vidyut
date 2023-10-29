@@ -6,7 +6,6 @@ use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Purusha::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
 fn yan_san(dhatu: &Dhatu) -> Dhatu {
@@ -436,10 +435,10 @@ fn sutra_7_4_47() {
 
 #[test]
 fn sutra_7_4_48() {
-    assert_has_subantas("ap", Pum, V::Trtiya, Bahu, &["adBiH"]);
-    assert_has_subantas("ap", Pum, V::Caturthi, Bahu, &["adByaH"]);
+    assert_has_sup_3p("ap", Pum, &["adBiH"]);
+    assert_has_sup_4p("ap", Pum, &["adByaH"]);
     // BiH?
-    assert_has_subantas("ap", Pum, V::Saptami, Bahu, &["apsu"]);
+    assert_has_sup_7p("ap", Pum, &["apsu"]);
 }
 
 #[test]

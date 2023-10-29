@@ -31,38 +31,38 @@ impl<'a> AtideshaPrakriya<'a> {
     }
 
     fn optional(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
-        self.added = self.p.op_optional(rule, func);
+        self.added = self.p.run_optional(rule, func);
     }
 
     fn optional_block(&mut self, rule: Code) {
-        self.added = self.p.op_optional(rule, |_| {});
+        self.added = self.p.run_optional(rule, |_| {});
     }
 
     fn add_nit(&mut self, rule: Code, i: usize) {
-        self.p.op_term(rule, i, op::add_tag(T::Nit));
+        self.p.run_at(rule, i, op::add_tag(T::Nit));
         self.added = true;
     }
 
     fn optional_add_nit(&mut self, rule: Code, i: usize) {
-        self.added = self.p.op_optional(rule, op::t(i, |t| t.add_tag(T::Nit)));
+        self.added = self.p.run_optional_at(rule, i, |t| t.add_tag(T::Nit));
     }
 
     fn add_kit(&mut self, rule: Code, i: usize) {
-        self.p.op_term(rule, i, op::add_tag(T::kit));
+        self.p.run_at(rule, i, op::add_tag(T::kit));
         self.added = true;
     }
 
     fn optional_add_kit(&mut self, rule: Code, i: usize) {
-        self.added = self.p.op_optional(rule, op::t(i, |t| t.add_tag(T::kit)));
+        self.added = self.p.run_optional_at(rule, i, |t| t.add_tag(T::kit));
     }
 
     fn remove_kit(&mut self, rule: Code, i: usize) {
-        self.p.op_term(rule, i, |t| t.remove_tag(T::kit));
+        self.p.run_at(rule, i, |t| t.remove_tag(T::kit));
         self.added = true;
     }
 
     fn optional_remove_kit(&mut self, rule: Code, i: usize) {
-        self.added = self.p.op_optional(rule, op::t(i, |t| t.remove_tag(T::kit)));
+        self.added = self.p.run_optional_at(rule, i, |t| t.remove_tag(T::kit));
     }
 }
 
@@ -158,7 +158,7 @@ fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
 
     if (cur.has_text("sTA") || cur.has_tag(T::Ghu)) && sic && atmanepadesu {
         // upAsTita, aDita, ...
-        wrap.p.op("1.2.17", |p| {
+        wrap.p.run("1.2.17", |p| {
             p.set(i, |t| t.set_antya("i"));
             p.set(i_n, |t| t.add_tag(T::kit));
         });
@@ -293,7 +293,7 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
     let stha_ghu = dhatu.has_text("sTA") || dhatu.has_tag(T::Ghu);
     if stha_ghu && tin.is_atmanepada() && n.has_u("si~c") {
         let i_n_end = n.end();
-        p.op("1.2.17", |p| {
+        p.run("1.2.17", |p| {
             p.set(i, op::antya("i"));
             p.set(i_n_end, op::add_tag(T::kit));
         });

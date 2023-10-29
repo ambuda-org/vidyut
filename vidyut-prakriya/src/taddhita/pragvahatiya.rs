@@ -283,7 +283,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         let prati = tp.prati();
         if prati.has_text("lavaRa") {
             tp.optional_try_add("4.4.52", P::WaY);
-        } else if prati.has_text_in(&KISHARA_ADI) {
+        } else if prati.has_text_in(KISHARA_ADI) {
             tp.try_add("4.4.53", P::zWan);
         } else if prati.has_text("SalAlu") {
             let added = tp.optional_try_add("4.4.54", P::zWan);

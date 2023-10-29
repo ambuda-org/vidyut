@@ -140,7 +140,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         tp.try_add("5.4.27", tal);
     } else if prati.has_text("avi") {
         tp.try_add("5.4.28", ka);
-    } else if prati.has_text_in(&YAVA_ADI) {
+    } else if prati.has_text_in(YAVA_ADI) {
         tp.try_add("5.4.29", kan);
     } else if prati.has_text("lohita") {
         tp.try_add("5.4.30", kan);
@@ -148,7 +148,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         tp.try_add("5.4.32", kan);
     } else if prati.has_text("kAla") {
         tp.try_add("5.4.33", kan);
-    } else if prati.has_text_in(&VINAYA_ADI) {
+    } else if prati.has_text_in(VINAYA_ADI) {
         tp.try_add_with("5.4.34", Wak, |p| {
             p.set(i_prati, |t| {
                 if t.has_text("upAya") {

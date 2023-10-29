@@ -26,11 +26,11 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TadAsyaAstiAsmin, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(&RASA_ADI) {
+        if prati.has_text_in(RASA_ADI) {
             tp.try_add("5.2.95", matup);
         } else if prati.has_antya('A') {
             tp.optional_try_add("5.2.96", lac);
-        } else if prati.has_text_in(&SIDHMA_ADI) {
+        } else if prati.has_text_in(SIDHMA_ADI) {
             tp.optional_try_add("5.2.97", lac);
         } else if prati.has_text_in(&["vatsa", "aMsa"]) {
             tp.optional_try_add("5.2.98", lac);

@@ -1,14 +1,14 @@
 use crate::args::Gana;
-use crate::char_view::{get_term_and_offset_indices, set_at, xy, CharPrakriya};
+use crate::char_view::{get_term_and_offset_indices, xy, CharPrakriya};
 use crate::it_samjna;
 use crate::iterators::xy_rule;
 use crate::operators as op;
+use crate::prakriya::Code;
 use crate::prakriya::Prakriya;
 use crate::sounds as al;
 use crate::sounds::{s, Set};
 use crate::tag::Tag as T;
 use crate::term::Term;
-use crate::Code;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -51,16 +51,16 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
         let has_ru = c.has_antya('r') && !c.has_upadha(&*HAL);
         if has_ru {
             if p.has(i + 1, |t| t.has_adi('r')) {
-                p.op_term("8.3.14", i, op::antya(""));
+                p.run_at("8.3.14", i, op::antya(""));
                 let c = p.get(i)?;
                 if c.is_hrasva() {
                     let sub = al::to_dirgha(p.get(i)?.antya()?)?;
                     // Placed here, otherwise this is vyartha. See `8.3.13` for the Qa case of
                     // this rule.
-                    p.op_term("6.3.111", i, op::antya(&sub.to_string()));
+                    p.run_at("6.3.111", i, op::antya(&sub.to_string()));
                 }
             } else if p.is_pada(i) && (is_avasane || is_khari) {
-                p.op_term("8.3.15", i, |t| {
+                p.run_at("8.3.15", i, |t| {
                     t.set_antya("");
                     t.text += "H";
                 });
@@ -77,13 +77,13 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
                 && y.has_adi(&*ASH)
         },
         |p, i, j| {
-            p.op_term("8.3.17", i, |t| t.set_antya("y"));
+            p.run_at("8.3.17", i, |t| t.set_antya("y"));
             if p.has(j, |t| t.has_adi(&*AC)) {
                 // Though technically optional, avoid including other rules to prevent creating
                 // noisy output.
-                p.op_term("8.3.19", i, |t| t.set_antya(""));
+                p.run_at("8.3.19", i, |t| t.set_antya(""));
             } else {
-                p.op_term("8.3.22", i, |t| t.set_antya(""));
+                p.run_at("8.3.22", i, |t| t.set_antya(""));
             }
         },
     );
@@ -106,7 +106,7 @@ fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
         if p.has(i, |t| t.has_antya('m')) && p.is_pada(i) {
             if let Some(i_next) = p.find_next_where(i, |t| !t.is_empty()) {
                 if p.has(i_next, |t| t.has_adi(&*HAL)) && !is_dhatu_prakriya {
-                    p.op_term("8.3.23", i, |t| t.set_antya("M"));
+                    p.run_at("8.3.23", i, |t| t.set_antya("M"));
                 }
             }
         }
@@ -114,7 +114,7 @@ fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
 
     // TODO: a-padAnta
     let mut cp = CharPrakriya::new(p);
-    cp.char_rule(
+    cp.for_chars(
         xy(|x, y| (x == 'm' || x == 'n') && JHAL.contains(y)),
         |p, _, i| {
             if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
@@ -122,8 +122,7 @@ fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
                 if t.is_pada() && i_offset + 1 == t.text.len() {
                     false
                 } else {
-                    set_at(p, i, "M");
-                    p.step("8.3.24");
+                    p.run("8.3.24", |p| p.set_char_at(i, "M"));
                     true
                 }
             } else {
@@ -140,7 +139,7 @@ fn try_add_dhut_agama(p: &mut Prakriya) {
         p,
         |x, y| x.has_tag(T::Pada) && x.has_antya('q') && y.has_adi('s'),
         |p, _, j| {
-            if p.op_optional("8.3.29", |p| op::insert_agama_before(p, j, "Du~w")) {
+            if p.run_optional("8.3.29", |p| op::insert_agama_before(p, j, "Du~w")) {
                 it_samjna::run(p, j).ok();
             }
         },
@@ -159,31 +158,31 @@ fn try_visarjaniyasya(p: &mut Prakriya) -> Option<()> {
         let y = p.get(i_y)?;
 
         if y.has_adi(&*SHAR) {
-            p.op_optional("8.3.36", op::t(i_x, |t| t.set_antya("s")));
+            p.run_optional_at("8.3.36", i_x, |t| t.set_antya("s"));
         } else if y.has_at(1, &*SHAR) {
-            p.op_term("8.3.35", i_x, |_| {});
+            p.run_at("8.3.35", i_x, |_| {});
         } else if y.has_adi(&*KU_PU) {
             if x.has_text_in(&["namas", "puras"]) && x.has_tag(T::Gati) {
-                p.op_term("8.3.40", i_x, |t| t.set_antya("s"));
+                p.run_at("8.3.40", i_x, |t| t.set_antya("s"));
             } else if is_it_ut_upadha(x) && !x.is_pratyaya() {
-                p.op_term("8.3.41", i_x, |t| t.set_antya("z"));
+                p.run_at("8.3.41", i_x, |t| t.set_antya("z"));
             } else if x.has_text("tiras") && x.has_tag(T::Gati) {
-                p.op_optional("8.3.42", op::t(i_x, |t| t.set_antya("s")));
+                p.run_optional_at("8.3.42", i_x, |t| t.set_antya("s"));
             } else if x.text.ends_with("aH")
                 && is_samasa(p, i_x)
                 && !x.is_avyaya()
                 && y.has_u("qukf\\Y")
             {
-                p.op_term("8.3.46", i_x, |t| t.set_antya("s"));
+                p.run_at("8.3.46", i_x, |t| t.set_antya("s"));
             } else if x.has_text("BAH") && y.has_text("kar") {
                 // TODO: rest of kaskAdi
-                p.op_term("8.3.48", i_x, |t| t.set_antya("s"));
+                p.run_at("8.3.48", i_x, |t| t.set_antya("s"));
             } else {
                 // TODO: jihvamuliya and upadhmaniya
-                p.op_term("8.3.37", i_x, |t| t.set_antya("H"));
+                p.run_at("8.3.37", i_x, |t| t.set_antya("H"));
             }
         } else {
-            p.op_term("8.3.34", i_x, |t| t.set_antya("s"));
+            p.run_at("8.3.34", i_x, |t| t.set_antya("s"));
         }
     }
 
@@ -229,14 +228,14 @@ impl<'a> ShaPrakriya<'a> {
 
     fn try_shatva(&mut self, rule: Code) {
         if !self.done {
-            self.p.op_term(rule, self.i_term, |t| t.set_adi("z"));
+            self.p.run_at(rule, self.i_term, |t| t.set_adi("z"));
         }
         self.done = true;
     }
 
     fn try_run_with(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
         if !self.done {
-            self.p.op(rule, func);
+            self.p.run(rule, func);
         }
         self.done = true;
     }
@@ -245,7 +244,7 @@ impl<'a> ShaPrakriya<'a> {
         if !self.done {
             let done = self
                 .p
-                .op_optional(rule, op::t(self.i_term, |t| t.set_adi("z")));
+                .run_optional_at(rule, self.i_term, |t| t.set_adi("z"));
             self.done = done;
             done
         } else {
@@ -445,7 +444,7 @@ fn run_shatva_rules_at_index(sp: &mut ShaPrakriya) -> Option<()> {
                 let i_abhyasa = sp.i_term - 1;
                 let is_stha_adi = !has_dhatu_in(dhatu, SU_TO_STUBH);
                 if sp.p.has(i_abhyasa, |t| t.is_abhyasa() && t.has_adi('s')) && is_stha_adi {
-                    sp.p.op_term("8.3.64", i_abhyasa, |t| t.set_adi("z"));
+                    sp.p.run_at("8.3.64", i_abhyasa, |t| t.set_adi("z"));
                 }
             }
         }
@@ -542,7 +541,7 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
 
     // HACK for ezaH
     if p.get(0)?.has_text("esa") && p.get(0)?.has_tag(T::Sarvanama) {
-        p.op_term("8.3.59", 0, |t| t.set_text("eza"));
+        p.run_at("8.3.59", 0, |t| t.set_text("eza"));
     }
 
     // Other s -> z rules
@@ -558,9 +557,9 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
             let x = p.get(i).expect("present");
             let code = "8.3.60";
             if x.has_text("s") {
-                p.op_term(code, i, op::text("z"));
+                p.run_at(code, i, op::text("z"));
             } else {
-                p.op_term(code, i, op::antya("z"));
+                p.run_at(code, i, op::antya("z"));
             }
         },
     );
@@ -595,23 +594,13 @@ fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
 
     if inah && shidhvam_lun_lit && dha {
         if p.has(i_anga + 1, |t| t.is_it_agama()) {
-            p.op_optional("8.3.79", op::t(i, op::adi("Q")));
+            p.run_optional_at("8.3.79", i, op::adi("Q"));
         } else {
-            p.op_term("8.3.78", i, op::adi("Q"));
+            p.run_at("8.3.78", i, op::adi("Q"));
         }
     }
 
     Some(())
-}
-
-/// Runs rules that make a sound mUrdhanya when certain sounds precede.
-///
-/// Example: `nesyati -> nezyati`
-///
-/// (8.3.55 - 8.3.119)
-fn try_murdhanya(p: &mut Prakriya) {
-    run_shatva_rules(p);
-    try_murdhanya_for_dha_in_tinanta(p);
 }
 
 pub fn run(p: &mut Prakriya) {
@@ -619,5 +608,12 @@ pub fn run(p: &mut Prakriya) {
     try_mn_to_anusvara(p);
     try_add_dhut_agama(p);
     try_visarjaniyasya(p);
-    try_murdhanya(p);
+
+    // Runs rules that make a sound mUrdhanya when certain sounds precede.
+    //
+    // Example: `nesyati -> nezyati`
+    //
+    // (8.3.55 - 8.3.119)
+    run_shatva_rules(p);
+    try_murdhanya_for_dha_in_tinanta(p);
 }

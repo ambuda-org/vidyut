@@ -1,5 +1,5 @@
 use crate::args::Gana;
-use crate::char_view::{char_rule, get_at, get_term_and_offset_indices, set_at, xyz};
+use crate::char_view::{get_at, get_term_and_offset_indices, xyz, CharPrakriya};
 use crate::dhatu_gana;
 use crate::iterators::xy_rule;
 use crate::operators as op;
@@ -46,9 +46,9 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
         if prati.has_u("ahan") {
             // Special exception for ahan
             if p.has(i_prati + 1, |t| t.is_empty()) {
-                p.op_term("8.2.69", i_prati, |t| t.set_antya("r"));
+                p.run_at("8.2.69", i_prati, |t| t.set_antya("r"));
             } else {
-                p.op_term("8.2.68", i_prati, |t| t.set_antya("ru~"));
+                p.run_at("8.2.68", i_prati, |t| t.set_antya("ru~"));
             }
             return None;
         }
@@ -58,7 +58,7 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
             if p.has_tag(T::Napumsaka) {
                 // "vA napuMsakAnAm"
                 // (nAman, nAma)
-                blocked = p.op_optional("8.2.8.v1", |_| {});
+                blocked = p.run_optional("8.2.8.v1", |_| {});
             } else {
                 // sambuddhi: yogin, Atman
                 // ni: vyoman, Sarman, etc. (vedic)
@@ -70,7 +70,7 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
         if !blocked {
             // rAjA, rAjaByAm, ...
             // (these can be called `pada` by 1.4.17.
-            p.op_term("8.2.7", i_prati, op::antya(""));
+            p.run_at("8.2.7", i_prati, op::antya(""));
         }
     }
 
@@ -95,9 +95,9 @@ fn try_matup_to_vatup(p: &mut Prakriya) -> Option<()> {
             let mat_upadha = x.has_antya(&*MA) || x.has_upadha(&*MA);
             let yavadi = x.has_u_in(YAVA_ADI);
             if mat_upadha && !yavadi {
-                p.op_term("8.2.9", i, |t| t.set_adi("v"));
+                p.run_at("8.2.9", i, |t| t.set_adi("v"));
             } else if x.has_antya(&*JHAY) {
-                p.op_term("8.2.10", i, |t| t.set_adi("v"));
+                p.run_at("8.2.10", i, |t| t.set_adi("v"));
             }
         }
     }
@@ -121,7 +121,7 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
         let y = p.get(j)?;
 
         if x.has_u_in(&["kfpU~\\", "kfpa~\\", "kfpa~"]) {
-            p.op("8.2.18", |p| {
+            p.run("8.2.18", |p| {
                 if let Some(t) = p.get_mut(i) {
                     do_ra_la(t);
                 }
@@ -132,14 +132,14 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
             });
         } else if y.has_u("aya~\\") {
             if x.has_upadha('r') || x.has_antya('r') {
-                p.op("8.2.19", op::t(i, do_ra_la));
+                p.run_at("8.2.19", i, do_ra_la);
             }
         } else if x.has_u("gF") {
             if y.has_u("yaN") {
-                p.op("8.2.20", op::t(i, do_ra_la));
+                p.run_at("8.2.20", i, do_ra_la);
             } else if x.has_gana(Gana::Tudadi) && y.has_adi(&*AC) {
                 // TODO: why only gana 6?
-                p.op_optional("8.2.21", op::t(i, do_ra_la));
+                p.run_optional_at("8.2.21", i, do_ra_la);
             }
         }
     }
@@ -152,8 +152,8 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
 /// (8.2.23 - 8.2.29)
 fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
     // Exception to 8.2.23.
-    char_rule(
-        p,
+    let mut cp = CharPrakriya::new(p);
+    cp.for_chars(
         xyz(|x, y, z| JHAL.contains(x) && y == 's' && JHAL.contains(z)),
         |p, _, i| {
             let t = get_at(p, i + 1).expect("valid");
@@ -161,8 +161,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
             // But, also part of bapsati?
             // TODO: clean up this rule
             if t.has_u("si~c") || t.has_u("Basa~") {
-                set_at(p, i + 1, "");
-                p.step("8.2.26");
+                p.run("8.2.26", |p| p.set_char_at(i + 1, ""));
                 true
             } else {
                 false
@@ -180,22 +179,22 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         let y = p.get(j)?;
         if x.has_antya('r') && y.has_text("s") && j == p.terms().len() - 1 {
             // Urj -> Urk
-            p.op_term("8.2.24", j, op::adi(""));
+            p.run_at("8.2.24", j, op::adi(""));
         } else if x.has_antya('s') && y.has_adi('D') && !x.is_pada() {
             // Per kAzikA, applies only to s of si~c. But this seems to cause
             // problems e.g. for tAs + Dve.
-            p.op_term("8.2.25", i, op::antya(""));
+            p.run_at("8.2.25", i, op::antya(""));
         }
     }
 
     for i in 0..p.terms().len() {
         if let (Some(x), Some(y), Some(z)) = (p.get(i), p.get(i + 1), p.get(i + 2)) {
             if x.has_u("iw") && y.has_u("si~c") && z.has_u("Iw") {
-                p.op_term("8.2.28", i + 1, op::lopa);
+                p.run_at("8.2.28", i + 1, op::lopa);
 
                 // sic-lopa is siddha with respect to prior rules (8.2.3 vArttika)
                 // Therefore, apply ac-sandhi:
-                p.op("6.1.101", |p| {
+                p.run("6.1.101", |p| {
                     p.set(i, op::antya("I"));
                     p.set(i + 2, op::adi(""));
                 });
@@ -203,8 +202,8 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    char_rule(
-        p,
+    let mut cp = CharPrakriya::new(p);
+    cp.for_chars(
         |p, text, i| {
             let bytes = text.as_bytes();
             if let Some(x) = bytes.get(i) {
@@ -279,9 +278,9 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
             if let (Some(b's'), Some(b's')) = (bytes.get(i), bytes.get(i + 1)) {
                 // HACK for dhatus ending in 's' (acakAs + t -> acakAH) so that we preserve the
                 // first 's' of the dhatu.
-                set_at(p, i + 1, "");
+                p.set_char_at(i + 1, "");
             } else {
-                set_at(p, i, "");
+                p.set_char_at(i, "");
             }
             p.step("8.2.29");
             true
@@ -293,7 +292,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         if let (Some(x), Some(y), Some(z)) = (p.get(i), p.get(i + 1), p.get(i + 2)) {
             // "ayamapi sica eva lopaḥ, tena iha na bhavati, dviṣṭarām, dviṣṭamām iti" (KV)
             if x.is_hrasva() && y.has_u("si~c") && z.has_adi(&*JHAL) && !x.is_agama() {
-                p.op_term("8.2.27", i + 1, op::lopa);
+                p.run_at("8.2.27", i + 1, op::lopa);
             }
         }
     }
@@ -304,17 +303,16 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         while p.has(i, |t| {
             t.is_pada() && t.is_samyoganta() && t.has_antya(&*JHAL)
         }) {
-            p.op_term("8.2.23", i, |t| t.set_antya(""));
+            p.run_at("8.2.23", i, |t| t.set_antya(""));
         }
     }
 
     if !p.terms().last().expect("ok").is_dhatu() {
-        char_rule(
-            p,
+        let mut cp = CharPrakriya::new(p);
+        cp.for_chars_rev(
             |_, text, i| al::is_samyoganta(text) && i == text.len() - 1,
             |p, _, i| {
-                set_at(p, i, "");
-                p.step("8.2.23");
+                p.run("8.2.23", |p| p.set_char_at(i, ""));
                 true
             },
         );
@@ -350,18 +348,18 @@ fn try_ha_adesha(p: &mut Prakriya) -> Option<()> {
             if is_dhatu {
                 let dhatu = p.get(i)?;
                 if dhatu.has_u_in(DRUHA_ADI) {
-                    p.op_optional("8.2.33", |p| p.set(i, op::antya("G")));
+                    p.run_optional("8.2.33", |p| p.set(i, op::antya("G")));
                 } else if dhatu.has_u("Ra\\ha~^") {
-                    p.op_term("8.2.34", i, op::antya("D"));
+                    p.run_at("8.2.34", i, op::antya("D"));
                 } else if dhatu.has_text("Ah") {
-                    p.op_term("8.2.35", i, op::antya("T"));
+                    p.run_at("8.2.35", i, op::antya("T"));
                 } else if dhatu.has_adi('d') && dhatu.has_antya('h') {
-                    p.op_term("8.2.32", i, op::antya("G"));
+                    p.run_at("8.2.32", i, op::antya("G"));
                 }
             }
             // If no change was made, use the default.
             if p.has(i, |t| t.has_antya('h')) {
-                p.op_term("8.2.31", i, op::antya("Q"));
+                p.run_at("8.2.31", i, op::antya("Q"));
             }
         }
     }
@@ -409,14 +407,14 @@ fn try_ch_to_s(p: &mut Prakriya) {
         if let Some(prefix) = x.text.strip_suffix("tC") {
             // TODO: seems implied, not sure.
             let n = prefix.len();
-            p.op_term("8.2.36", i, |t| {
+            p.run_at("8.2.36", i, |t| {
                 t.text.replace_range(n.., "z");
             });
         } else if !x.has_antya('k') {
             // HACK: check for explicit k to avoid errors with `yaj -> yiyakza -> yiyakzati`. The
             // more principled fix might be to disable the tripAdi for the dhAtu after the first
             // round, but that will require extensive updates elsewhere.
-            p.op_term("8.2.36", i, op::antya("z"));
+            p.run_at("8.2.36", i, op::antya("z"));
         }
 
         Some(())
@@ -438,7 +436,7 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
         if x.has_antya(&*CU) && (x.is_pada() || jhali_or_ante) {
             if let Some(c) = x.antya() {
                 let sub = CU_TO_KU.get(c)?;
-                p.op_term("8.2.30", i, |t| {
+                p.run_at("8.2.30", i, |t| {
                     // TODO: what is the rule that allows this change?
                     if t.has_upadha('Y') {
                         t.set_upadha("N");
@@ -465,7 +463,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
 
         if x.has_adi(&*BASH) && x.has_antya(&*JHAZ) && x.is_ekac() && x.is_dhatu() && if_y {
             let sub = BASH_TO_BHAZ.get(x.adi()?)?;
-            p.op_term("8.2.37", i, |t| {
+            p.run_at("8.2.37", i, |t| {
                 t.set_adi(&sub.to_string());
             });
         }
@@ -483,7 +481,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         if c.has_antya(&*JHAL) && !has_exception && is_pada {
             let key = c.antya()?;
             let sub = JHAL_TO_JASH.get(key)?;
-            p.op_term("8.2.39", i, op::antya(&sub.to_string()));
+            p.run_at("8.2.39", i, op::antya(&sub.to_string()));
         }
     }
 
@@ -500,7 +498,7 @@ fn run_misc_rules_1(p: &mut Prakriya) -> Option<()> {
                 && (y.has_adi('t') || y.has_adi('T'))
         },
         |p, _, j| {
-            p.op_term("8.2.40", j, op::adi("D"));
+            p.run_at("8.2.40", j, op::adi("D"));
         },
     );
 
@@ -508,7 +506,7 @@ fn run_misc_rules_1(p: &mut Prakriya) -> Option<()> {
         p,
         |x, y| (x.has_antya('z') || x.has_antya('Q')) && y.has_adi('s'),
         |p, i, _| {
-            p.op_term("8.2.41", i, op::antya("k"));
+            p.run_at("8.2.41", i, op::antya("k"));
         },
     );
 
@@ -537,16 +535,16 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
         if dhatu.has_u("YiPalA~") && !has_upasarga {
             // "ktavatvantasya apyetal latvam iṣyate, phullaḥ, phullavāniti" (KV)
             if k.has_u("kta") {
-                p.op(code, op::nipatana("Pulla"));
+                p.run(code, op::nipatana("Pulla"));
             } else {
-                p.op(code, op::nipatana("Pullavat"));
+                p.run(code, op::nipatana("Pullavat"));
             }
         } else if dhatu.has_text("kzIb") && !has_upasarga {
-            p.op(code, op::nipatana("kzIba"));
+            p.run(code, op::nipatana("kzIba"));
         } else if dhatu.has_text("kfS") && !has_upasarga {
-            p.op(code, op::nipatana("kfSa"));
+            p.run(code, op::nipatana("kfSa"));
         } else if dhatu.has_text("lAG") && i_d == 1 && p.has(0, |t| t.has_u("ud")) {
-            p.op(code, op::nipatana("ullAGa"));
+            p.run(code, op::nipatana("ullAGa"));
         }
 
         return Some(());
@@ -570,10 +568,10 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
         let code = "8.2.56";
         if dhatu.has_u("hrI\\") {
             // By default, hrI takes -ta. So, this rule allows -na.
-            p.op_optional(code, op::t(i_k, op::adi("n")));
+            p.run_optional_at(code, i_k, op::adi("n"));
         } else {
             // By default, these dhatus take -na. So, this rule allows -ta.
-            blocked = p.op_optional(code, |_| {});
+            blocked = p.run_optional(code, |_| {});
         }
     } else if dhatu.has_u("vi\\dx~^") {
         // TODO: think through the rules below. They all work correctly, but most users won't
@@ -591,7 +589,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
 
     let dhatu = p.get(i_d)?;
     if dhatu.has_antya('r') || dhatu.has_antya('d') && ti {
-        p.op("8.2.42", |p| {
+        p.run("8.2.42", |p| {
             if p.has(i_d, |t| t.has_antya('d')) {
                 p.set(i_d, op::antya("n"));
             }
@@ -599,9 +597,9 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
         });
     }
 
-    let set_adi = |rule, p: &mut Prakriya, s| p.op_term(rule, i_k, op::adi(s));
+    let set_adi = |rule, p: &mut Prakriya, s| p.run_at(rule, i_k, op::adi(s));
     let to_n = |rule, p: &mut Prakriya| set_adi(rule, p, "n");
-    let optional_to_n = |rule, p: &mut Prakriya| p.op_optional(rule, op::t(i_k, op::adi("n")));
+    let optional_to_n = |rule, p: &mut Prakriya| p.run_optional_at(rule, i_k, op::adi("n"));
 
     let dhatu = p.get(i_d)?;
     if dhatu.is_samyogadi() && dhatu.has_at(1, &*YAN) && dhatu.has_antya('A') {
@@ -637,7 +635,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
         // kzAma
         set_adi("8.2.53", p, "m");
     } else if dhatu.has_text("stI") && i_d > 0 && p.has(i_d - 1, |t| t.has_u("pra")) {
-        p.op_optional("8.2.54", op::t(i_k, |t| t.set_adi("m")));
+        p.run_optional_at("8.2.54", i_k, |t| t.set_adi("m"));
     }
 
     Some(())
@@ -648,7 +646,7 @@ fn run_misc_rules_2(p: &mut Prakriya) -> Option<()> {
         p,
         |x, y| x.is_dhatu() && x.has_antya('m') && (y.has_adi('m') || y.has_adi('v')),
         |p, i, _| {
-            p.op_term("8.2.65", i, op::antya("n"));
+            p.run_at("8.2.65", i, op::antya("n"));
         },
     );
 
@@ -661,7 +659,7 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
     // TODO: sajuS
     for i in 0..p.terms().len() {
         if p.is_pada(i) && p.has(i, |t| t.has_antya('s')) {
-            p.op_term("8.2.66", i, op::antya("ru~"));
+            p.run_at("8.2.66", i, op::antya("ru~"));
         }
     }
 
@@ -670,7 +668,7 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
         p,
         |x, y| x.ends_with("aru~") && y.has_adi('a'),
         |p, i, j| {
-            p.op("6.1.113", |p| {
+            p.run("6.1.113", |p| {
                 p.set(i, |t| t.find_and_replace_text("aru~", "o"));
                 p.set(j, |t| t.set_adi(""));
             });
@@ -680,7 +678,7 @@ fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
         p,
         |x, y| x.ends_with("aru~") && y.has_adi(&*HASH),
         |p, i, _| {
-            p.op_term("6.1.114", i, |t| {
+            p.run_at("6.1.114", i, |t| {
                 t.find_and_replace_text("aru~", "o");
             });
         },
@@ -711,14 +709,14 @@ fn try_add_final_r_with_final_tin(p: &mut Prakriya) -> Option<()> {
 
     // FIXME: sloppy. Also, exclude "asti" for Vedic "AH".
     if dhatu.has_antya('s') && tin.has_u("tip") {
-        p.op_term("8.2.73", i_dhatu, op::antya("d"));
+        p.run_at("8.2.73", i_dhatu, op::antya("d"));
     } else if (dhatu.has_antya('s') || dhatu.has_antya('d')) && tin.has_u("sip") {
         if dhatu.has_antya('s') {
             // acakAs + s -> acakAH, acakAt, acakAd
-            p.op_optional("8.2.74", op::t(i_dhatu, op::antya("d")));
+            p.run_optional_at("8.2.74", i_dhatu, op::antya("d"));
         } else {
             // aruRad + s -> aruRaH, aruRat, aruRad
-            p.op_optional("8.2.75", op::t(i_dhatu, op::antya("ru~")));
+            p.run_optional_at("8.2.75", i_dhatu, op::antya("ru~"));
         }
     }
 
@@ -752,7 +750,7 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) -> Option<()> {
     } else if is_ik(dhatu.upadha()) && is_rv(dhatu.antya()) {
         let sub = al::to_dirgha(dhatu.upadha()?)?;
         if p.has(i_n, |t| t.has_adi(&*HAL)) {
-            p.op_term("8.2.77", i, op::upadha(&sub.to_string()));
+            p.run_at("8.2.77", i, op::upadha(&sub.to_string()));
         } else {
             // TODO: only applies to padas.
             // p.op_term("8.2.76", i, op::upadha(&sub.to_string()));
@@ -760,7 +758,7 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) -> Option<()> {
     } else if is_ik(before_upadha(dhatu)) && is_rv(dhatu.upadha()) && is_hal(dhatu.antya()) {
         let pre_upadha = before_upadha(dhatu)?;
         let sub = al::to_dirgha(pre_upadha)?.to_string();
-        p.op("8.2.78", |p| {
+        p.run("8.2.78", |p| {
             let dhatu = &p.terms()[i];
             let n = dhatu.text.len();
             p.set(i, |t| {
@@ -781,7 +779,7 @@ fn try_rules_for_adas(p: &mut Prakriya) -> Option<()> {
     // "s" might become "ru~" above, so check for "ru~" as well as final "s".
     if !adas.has_antya('~') && !adas.has_antya('s') {
         if (adas.has_antya('e') || sup.has_adi('e')) && sup.has_tag(T::Bahuvacana) {
-            p.op("8.2.81", |p| {
+            p.run("8.2.81", |p| {
                 let t = p.get_mut(i).expect("ok");
                 t.find_and_replace_text("d", "m");
                 if t.has_antya('e') {
@@ -791,7 +789,7 @@ fn try_rules_for_adas(p: &mut Prakriya) -> Option<()> {
                 }
             });
         } else if adas.text.contains('d') {
-            p.op("8.2.80", |p| {
+            p.run("8.2.80", |p| {
                 let t = p.get_mut(i).expect("ok");
                 if t.has_antya('d') {
                     t.set_antya("m");

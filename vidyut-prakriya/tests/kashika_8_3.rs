@@ -3,8 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::Vibhakti as V;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -30,8 +28,8 @@ fn sutra_8_3_15() {
     assert_has_sandhi("vfkzas", "tarati", &["vfkzas tarati"]);
     assert_has_sandhi("plakzas", "tarati", &["plakzas tarati"]);
     // avasAne
-    assert_has_subantas("vfkza", Pum, V::Prathama, Eka, &["vfkzaH"]);
-    assert_has_subantas("plakza", Pum, V::Prathama, Eka, &["plakzaH"]);
+    assert_has_sup_1s("vfkza", Pum, &["vfkzaH"]);
+    assert_has_sup_1s("plakza", Pum, &["plakzaH"]);
 
     // khar-avasAnayoH?
     assert_has_sandhi("agnis", "nayati", &["agnir nayati"]);
@@ -41,25 +39,13 @@ fn sutra_8_3_15() {
 #[ignore]
 #[test]
 fn sutra_8_3_16() {
-    assert_has_subantas(
-        "payas",
-        Napumsaka,
-        V::Saptami,
-        Bahu,
-        &["payaHsu", "payassu"],
-    );
+    assert_has_sup_7p("payas", Napumsaka, &["payaHsu", "payassu"]);
     // TODO: sarpizzu?
-    // assert_has_subantas("sarpis", Napumsaka, V::Saptami, Bahu, &["sarpiHzu"]);
-    assert_has_subantas(
-        "yaSas",
-        Napumsaka,
-        V::Saptami,
-        Bahu,
-        &["yaSaHsu", "yaSassu"],
-    );
+    // assert_has_sup_7p("sarpis", Napumsaka, &["sarpiHzu"]);
+    assert_has_sup_7p("yaSas", Napumsaka, &["yaSaHsu", "yaSassu"]);
     // ruH
-    assert_has_subantas("gir", Napumsaka, V::Saptami, Bahu, &["gIrzu"]);
-    assert_has_subantas("Dur", Napumsaka, V::Saptami, Bahu, &["DUrzu"]);
+    assert_has_sup_7p("gir", Napumsaka, &["gIrzu"]);
+    assert_has_sup_7p("Dur", Napumsaka, &["DUrzu"]);
 }
 
 #[test]
@@ -92,10 +78,10 @@ fn sutra_8_3_23() {
 #[ignore]
 #[test]
 fn sutra_8_3_24() {
-    assert_has_subantas("payas", Napumsaka, V::Prathama, Bahu, &["payAMsi"]);
-    assert_has_subantas("yaSas", Napumsaka, V::Prathama, Bahu, &["yaSAMsi"]);
+    assert_has_sup_1p("payas", Napumsaka, &["payAMsi"]);
+    assert_has_sup_1p("yaSas", Napumsaka, &["yaSAMsi"]);
 
-    assert_has_subantas("sarpis", Napumsaka, V::Prathama, Bahu, &["sarpIMzi"]);
+    assert_has_sup_1p("sarpis", Napumsaka, &["sarpIMzi"]);
 
     // makArasya
     let kram = d("kramu~", Bhvadi);
@@ -146,8 +132,8 @@ fn sutra_8_3_36() {
 fn sutra_8_3_55() {
     assert_has_lit_p(&[], &d("zi\\ca~^", Tudadi), &["sizeca"]);
     assert_has_lit_p(&[], &d("Yizva\\pa~", Adadi), &["suzvApa"]);
-    assert_has_subantas("agni", Pum, V::Saptami, Bahu, &["agnizu"]);
-    assert_has_subantas("vAyu", Pum, V::Saptami, Bahu, &["vAyuzu"]);
+    assert_has_sup_7p("agni", Pum, &["agnizu"]);
+    assert_has_sup_7p("vAyu", Pum, &["vAyuzu"]);
 
     let kf = d("qukf\\Y", Tanadi);
     assert_has_dhvam(&[], &kf, Lun, &["akfQvam"]);

@@ -12,6 +12,7 @@ use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
+use vidyut_prakriya::Rule;
 
 // Derivation helpers
 // ------------------
@@ -109,11 +110,22 @@ fn derive_karmani(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Prakr
     derive_tinantas(&dhatu, &args)
 }
 
+fn debug_text(rule: Rule) -> String {
+    match rule {
+        Rule::Ashtadhyayi(x) => x.to_string(),
+        Rule::Dhatupatha(x) => format!("DA {x}"),
+        Rule::Kashika(x) => format!("kA {x}"),
+        Rule::Kaumudi(x) => format!("kO {x}"),
+        Rule::Linganushasana(x) => format!("Li {x}"),
+        Rule::Unadi(x) => format!("uRA {x}"),
+    }
+}
+
 /// Nicely prints out the given prakriyas.
 fn print_all_prakriyas(prakriyas: &[Prakriya]) {
     for p in prakriyas {
         for step in p.history() {
-            println!("{} --> {}", step.rule(), step.result());
+            println!("{} --> {}", debug_text(step.rule()), step.result());
         }
         println!("{:?}", p.rule_choices());
         println!();
@@ -319,16 +331,25 @@ pub fn yan_luk(dhatu: &Dhatu) -> Dhatu {
 // Pratipadika helpers
 // -------------------
 
-// Shorthand for building a pratipadika.
+/// Shorthand for building a pratipadika.
 pub fn prati(text: &str) -> Pratipadika {
     Pratipadika::new(text)
 }
 
-// Shorthand for building a pratipadika that ends with NI/Ap.
+/// Shorthand for building a pratipadika that ends with NI/Ap.
 pub fn nyap(text: &str) -> Pratipadika {
     Pratipadika::builder()
         .text(text)
         .is_nyap(true)
+        .build()
+        .unwrap()
+}
+
+/// Shorthand for building a pratipadika from a dhatu.
+pub fn dhatu_prati(text: &str) -> Pratipadika {
+    Pratipadika::builder()
+        .text(text)
+        .is_dhatu(true)
         .build()
         .unwrap()
 }
@@ -708,7 +729,7 @@ pub fn assert_has_artha_taddhita(
 // Subanta helpers
 // ---------------
 
-pub fn assert_has_subantas_p(
+fn assert_has_subantas_p(
     pratipadika: &Pratipadika,
     linga: Linga,
     vibhakti: Vibhakti,
@@ -724,17 +745,6 @@ pub fn assert_has_subantas_p(
 
     let actual = derive_subantas(pratipadika, args);
     assert_padas(actual, expected);
-}
-
-pub fn assert_has_subantas(
-    pratipadika_text: &str,
-    linga: Linga,
-    vibhakti: Vibhakti,
-    vacana: Vacana,
-    expected: &[&str],
-) {
-    let pratipadika = Pratipadika::new(pratipadika_text);
-    assert_has_subantas_p(&pratipadika, linga, vibhakti, vacana, expected);
 }
 
 /// Like `assert_has_subantas_p` but without any filtering on the last sound.
@@ -762,98 +772,114 @@ pub fn assert_has_subantas_raw(
     assert_padas(actual, expected);
 }
 
-pub fn assert_has_sup_1s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Prathama, Eka, &expected);
+pub trait Prati {
+    fn to_p(self) -> Pratipadika;
 }
 
-pub fn assert_has_sup_1d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Prathama, Dvi, &expected);
+impl Prati for &Pratipadika {
+    fn to_p(self) -> Pratipadika {
+        self.clone()
+    }
 }
 
-pub fn assert_has_sup_1p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Prathama, Bahu, &expected);
+impl Prati for &str {
+    fn to_p(self) -> Pratipadika {
+        Pratipadika::new(self)
+    }
 }
 
-pub fn assert_has_sup_2s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Dvitiya, Eka, &expected);
+pub fn assert_has_sup_1s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Prathama, Eka, &expected);
 }
 
-pub fn assert_has_sup_2d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Dvitiya, Dvi, &expected);
+pub fn assert_has_sup_1d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Prathama, Dvi, &expected);
 }
 
-pub fn assert_has_sup_2p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Dvitiya, Bahu, &expected);
+pub fn assert_has_sup_1p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Prathama, Bahu, &expected);
 }
 
-pub fn assert_has_sup_3s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Trtiya, Eka, &expected);
+pub fn assert_has_sup_2s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Dvitiya, Eka, &expected);
 }
 
-pub fn assert_has_sup_3d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Trtiya, Dvi, &expected);
+pub fn assert_has_sup_2d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Dvitiya, Dvi, &expected);
 }
 
-pub fn assert_has_sup_3p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Trtiya, Bahu, &expected);
+pub fn assert_has_sup_2p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Dvitiya, Bahu, &expected);
 }
 
-pub fn assert_has_sup_4s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Caturthi, Eka, &expected);
+pub fn assert_has_sup_3s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Trtiya, Eka, &expected);
 }
 
-pub fn assert_has_sup_4d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Caturthi, Dvi, &expected);
+pub fn assert_has_sup_3d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Trtiya, Dvi, &expected);
 }
 
-pub fn assert_has_sup_4p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Caturthi, Bahu, &expected);
+pub fn assert_has_sup_3p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Trtiya, Bahu, &expected);
 }
 
-pub fn assert_has_sup_5d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Caturthi, Dvi, &expected);
+pub fn assert_has_sup_4s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Caturthi, Eka, &expected);
 }
 
-pub fn assert_has_sup_5p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Caturthi, Bahu, &expected);
+pub fn assert_has_sup_4d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Caturthi, Dvi, &expected);
 }
 
-pub fn assert_has_sup_5s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Panchami, Eka, &expected);
+pub fn assert_has_sup_4p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Caturthi, Bahu, &expected);
 }
 
-pub fn assert_has_sup_6s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Sasthi, Eka, &expected);
+pub fn assert_has_sup_5s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Panchami, Eka, &expected);
 }
 
-pub fn assert_has_sup_6d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Sasthi, Dvi, &expected);
+pub fn assert_has_sup_5d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Panchami, Dvi, &expected);
 }
 
-pub fn assert_has_sup_6p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Sasthi, Bahu, &expected);
+pub fn assert_has_sup_5p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Panchami, Bahu, &expected);
 }
 
-pub fn assert_has_sup_7s(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Saptami, Eka, &expected);
+pub fn assert_has_sup_6s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Sasthi, Eka, &expected);
 }
 
-pub fn assert_has_sup_7d(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Saptami, Dvi, &expected);
+pub fn assert_has_sup_6d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Sasthi, Dvi, &expected);
 }
 
-pub fn assert_has_sup_7p(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Saptami, Bahu, &expected);
+pub fn assert_has_sup_6p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Sasthi, Bahu, &expected);
 }
 
-pub fn assert_has_sup_ss(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Sambodhana, Eka, &expected);
+pub fn assert_has_sup_7s(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Saptami, Eka, &expected);
 }
 
-pub fn assert_has_sup_sd(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Sambodhana, Dvi, &expected);
+pub fn assert_has_sup_7d(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Saptami, Dvi, &expected);
 }
 
-pub fn assert_has_sup_sp(prati: &str, linga: Linga, expected: &[&str]) {
-    assert_has_subantas(prati, linga, Sambodhana, Bahu, &expected);
+pub fn assert_has_sup_7p(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Saptami, Bahu, &expected);
+}
+
+pub fn assert_has_sup_ss(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Sambodhana, Eka, &expected);
+}
+
+pub fn assert_has_sup_sd(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Sambodhana, Dvi, &expected);
+}
+
+pub fn assert_has_sup_sp(prati: impl Prati, linga: Linga, expected: &[&str]) {
+    assert_has_subantas_p(&prati.to_p(), linga, Sambodhana, Bahu, &expected);
 }

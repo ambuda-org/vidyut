@@ -183,8 +183,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
 
     if dhatu.has_text("grah") {
         if !n.has_tag(T::Cinvat) {
-            p.op_term("7.2.37", i, op::text("I"));
-            p.step("cinvat");
+            p.run_at("7.2.37", i, op::text("I"));
         }
     } else if dhatu.has_antya('F') || dhatu.has_text("vf") {
         if last.has_lakshana("li~N") {
@@ -192,7 +191,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
         } else if n.slice().iter().any(|t| t.has_u("si~c")) && last.is_parasmaipada() {
             p.step("7.2.40");
         } else {
-            p.op_optional("7.2.38", op::t(i, op::text("I")));
+            p.run_optional_at("7.2.38", i, op::text("I"));
         }
     }
 
@@ -434,7 +433,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             let mut can_run = true;
             // TODO: Adikarmani.
             if ip.p.any(&[T::Bhave]) {
-                can_run = ip.p.op_optional("7.2.17", |_| {});
+                can_run = ip.p.run_optional("7.2.17", |_| {});
             }
             if can_run {
                 ip.try_block("7.2.16");
@@ -556,8 +555,7 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
     let rudh_adi = &["rudi~r", "Yizva\\pa~", "Svasa~", "ana~", "jakza~"];
     let is_aprkta = n.slice().iter().map(|t| t.text.len()).sum::<usize>() == 1;
     if anga.has_u("a\\da~") && is_aprkta {
-        ip.p.op("7.3.100", |p| op::insert_agama_before(p, i_n, "aw"));
-        it_samjna::run(ip.p, i_n).expect("ok");
+        op::insert_agama_at("7.3.100", ip.p, i_n, "aw");
     } else if anga.has_u_in(rudh_adi) {
         // First, check if we should use It-agama instead.
         //
@@ -571,9 +569,9 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
         let is_pit = n.has_tag(T::pit) && !n.has_tag(T::Nit);
         if n.has_adi(&*HAL) && n.has_tag(T::Sarvadhatuka) && is_pit && is_aprkta {
             let use_at =
-                ip.p.op_optional("7.3.99", |p| op::insert_agama_before(p, i_n, "aw"));
+                ip.p.run_optional("7.3.99", |p| op::insert_agama_before(p, i_n, "aw"));
             if !use_at {
-                ip.p.op("7.3.98", |p| op::insert_agama_before(p, i_n, "Iw"));
+                ip.p.run("7.3.98", |p| op::insert_agama_before(p, i_n, "Iw"));
             }
             it_samjna::run(ip.p, i_n).ok()?;
         } else {
@@ -643,7 +641,7 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
         let dhatu = p.get(i)?;
         let is_para = p.terms().last()?.has_tag(T::Parasmaipada);
         if is_para && dhatu.has_antya('A') && n.has_adi(&*VAL) {
-            p.op("7.2.73", |p| {
+            p.run("7.2.73", |p| {
                 p.set(i, |t| t.text.push('s'));
                 op::insert_agama_after(p, i, "iw");
                 it_samjna::run(p, i + 1).ok();

@@ -39,7 +39,21 @@ fn sk_2685() {
 }
 
 #[test]
+fn sk_2696_to_sk_2697() {
+    let han = d("ha\\na~", Adadi);
+    assert_has_ta(&["AN"], &han, Lun, &["Ahata", "AvaDizwa"]);
+    assert_has_aataam(&["AN"], &han, Lun, &["AhasAtAm", "AvaDizAtAm"]);
+    assert_has_jha(&["AN"], &han, Lun, &["Ahasata", "AvaDizata"]);
+}
+
+#[test]
 fn sk_2699() {
     let gam = d("ga\\mx~", Bhvadi);
     assert_has_ta(&["sam"], &gam, Lat, &["saNgacCate"]);
+}
+
+#[test]
+fn sk_2703() {
+    let hve = d("hve\\Y", Bhvadi);
+    assert_has_ta(&["ni"], &hve, Lat, &["nihvayate"]);
 }

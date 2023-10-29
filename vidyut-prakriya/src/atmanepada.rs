@@ -95,22 +95,22 @@ impl<'a> PadaPrakriya<'a> {
 
     /// Marks this prakriya as AtmanepadI.
     fn atma(&mut self, rule: Code) {
-        self.p.op(rule, op_atmanepada);
+        self.p.run(rule, op_atmanepada);
     }
 
     /// Optionally marks this prakriya as AtmanepadI.
     fn optional_atma(&mut self, rule: impl Into<Rule>) {
-        self.p.op_optional(rule, op_atmanepada);
+        self.p.run_optional(rule, op_atmanepada);
     }
 
     /// Marks this prakriya as parasmaipadI.
     fn para(&mut self, rule: Code) {
-        self.p.op(rule, op_parasmaipada);
+        self.p.run(rule, op_parasmaipada);
     }
 
     /// Marks this prakriya as parasmaipadI.
     fn optional_para(&mut self, rule: Code) {
-        self.p.op_optional(rule, op_parasmaipada);
+        self.p.run_optional(rule, op_parasmaipada);
     }
 }
 
@@ -126,7 +126,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let has_upasargas = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
 
     if p.is_bhave_or_karmani() {
-        p.op("1.3.13", op_atmanepada);
+        p.run("1.3.13", op_atmanepada);
         return None;
     }
 
@@ -255,7 +255,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     {
         // If this option is declined, we'll use the general rule below (1.3.74). Thus we get
         // BAyayati/BAyayate per the normal rules and BApayate/BIzayate if 1.3.68 is accepted.
-        pp.p.op_optional("1.3.68", |p| {
+        pp.p.run_optional("1.3.68", |p| {
             op_atmanepada(p);
             p.add_tag(T::FlagHetuBhaya);
         });

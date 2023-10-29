@@ -1,44 +1,42 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Vacana::*;
-use vidyut_prakriya::args::Vibhakti::*;
 
 #[test]
 fn sutra_2_3_28() {
-    assert_has_subantas("vfka", Pum, Panchami, Bahu, &["vfkeByaH"]);
-    assert_has_subantas("aDyayana", Napumsaka, Panchami, Eka, &["aDyayanAt"]);
+    assert_has_sup_5p("vfka", Pum, &["vfkeByaH"]);
+    assert_has_sup_5s("aDyayana", Napumsaka, &["aDyayanAt"]);
     // lyap-lopa
-    assert_has_subantas("prAsAda", Napumsaka, Panchami, Eka, &["prAsAdAt"]);
+    assert_has_sup_5s("prAsAda", Napumsaka, &["prAsAdAt"]);
     // adhikarana
-    assert_has_subantas("Asana", Napumsaka, Panchami, Eka, &["AsanAt"]);
-    assert_has_subantas("Sayana", Napumsaka, Panchami, Eka, &["SayanAt"]);
+    assert_has_sup_5s("Asana", Napumsaka, &["AsanAt"]);
+    assert_has_sup_5s("Sayana", Napumsaka, &["SayanAt"]);
     // prashna
-    assert_has_subantas("pAwaliputra", Napumsaka, Panchami, Eka, &["pAwaliputrAt"]);
+    assert_has_sup_5s("pAwaliputra", Napumsaka, &["pAwaliputrAt"]);
     // TODO: tas-pratyaya
 }
 
 #[test]
 fn sutra_2_3_30() {
-    assert_has_subantas("grAma", Pum, Panchami, Eka, &["grAmAt"]);
+    assert_has_sup_5s("grAma", Pum, &["grAmAt"]);
 }
 
 #[test]
 fn sutra_2_3_47() {
-    assert_has_subantas("devadatta", Pum, Sambodhana, Eka, &["devadatta"]);
-    assert_has_subantas("devadatta", Pum, Sambodhana, Dvi, &["devadattO"]);
-    assert_has_subantas("devadatta", Pum, Sambodhana, Bahu, &["devadattAH"]);
+    assert_has_sup_ss("devadatta", Pum, &["devadatta"]);
+    assert_has_sup_sd("devadatta", Pum, &["devadattO"]);
+    assert_has_sup_sp("devadatta", Pum, &["devadattAH"]);
 }
 
 #[test]
 fn sutra_2_3_49() {
-    assert_has_subantas("pawu", Pum, Sambodhana, Eka, &["pawo"]);
-    assert_has_subantas("devadatta", Pum, Sambodhana, Eka, &["devadatta"]);
+    assert_has_sup_ss("pawu", Pum, &["pawo"]);
+    assert_has_sup_ss("devadatta", Pum, &["devadatta"]);
 }
 
 #[test]
 fn sutra_2_3_50() {
-    assert_has_subantas("rAjan", Pum, Sasthi, Eka, &["rAjYaH"]);
-    assert_has_subantas("paSu", Pum, Sasthi, Eka, &["paSoH"]);
-    assert_has_subantas("pitf", Pum, Sasthi, Eka, &["pituH"]);
+    assert_has_sup_6s("rAjan", Pum, &["rAjYaH"]);
+    assert_has_sup_6s("paSu", Pum, &["paSoH"]);
+    assert_has_sup_6s("pitf", Pum, &["pituH"]);
 }

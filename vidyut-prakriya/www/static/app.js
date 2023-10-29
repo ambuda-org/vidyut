@@ -1,3 +1,23 @@
+/**
+ * A simple demo interface for vidyut-prakriya.
+ *
+ *
+ * Outline
+ * =======
+ *
+ * Focus on `App`, which contains the main code. We use the Alpine framework,
+ * which you can think of as a lightweight version of Vue.
+ *
+ *
+ * Constraints
+ * ===========
+ * - This demo is served on GitHub pages. So, no databases -- everything should
+ *   be done client side!
+ * - This demo should use our wasm build's public API.
+ * - Although this is a production site, the stakes are low -- do things the
+ *   hacky way if that fixes the problem.
+ */
+
 import init, { Krt, Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, Pada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
 
 // Krts that create ordinary nouns.
@@ -5,8 +25,8 @@ const NOMINAL_KRTS = [
     Krt.GaY,
     Krt.lyuw,
     Krt.Rvul,
+    Krt.tfc,
     Krt.kvip,
-    Krt.kvin,
 ];
 
 // Krts that are generally called *participles*.
@@ -30,7 +50,17 @@ const PARTICIPLE_KRTS = [
 const AVYAYA_KRTS = [
     Krt.tumun,
     Krt.ktvA,
+    Krt.Ramul,
 ];
+
+const Params = {
+    Dhatu: "dhatu",
+    Tab: "tab",
+    Pada: "pada",
+    Prayoga: "prayoga",
+    Sanadi: "sanadi",
+    ActivePada: "activePada",
+}
 
 // Turn the TSV file sutrapatha.tsv into a map.
 function parseSutras(tsv) {
@@ -84,6 +114,7 @@ function removeSlpSvaras(s) {
     return s.replaceAll(/[\^\\]/g, '');
 }
 
+// Parse a dhatupatha string into separate objects.
 function parseDhatus(text) {
     let dhatus = [];
     text.split(/\r?\n/).forEach((line) => {
@@ -100,6 +131,7 @@ function parseDhatus(text) {
     return dhatus;
 }
 
+// Load and initialize the Vidyut API.
 async function loadVidyut() {
     await init();
 
@@ -107,18 +139,14 @@ async function loadVidyut() {
     const text = await resp.text();
 
     return {
+        // Vidyut needs its own copy of the dhatupatha.
         vidyut: Vidyut.init(text),
+        // For JS use
         dhatus: parseDhatus(text),
     }
 }
 
 const App = () => ({
-    ganas: Gana,
-    lakaras: Lakara,
-    prayogas: Prayoga,
-    purushas: Purusha,
-    vacanas: Vacana,
-
     activeTab: 'dhatu',
 
     // All dhatus.
@@ -142,7 +170,6 @@ const App = () => ({
     dhatuFilter: null,
 
     // Transliteration script (devanagari, iast, telugu, etc.)
-    // devanagari is default
     script: 'devanagari',
 
     async init() {
@@ -155,6 +182,7 @@ const App = () => ({
         // wait for the dhatus to load so that we can set activeDhatu.
         this.readUrlState();
 
+        // Save important properties to the URL when they change.
         this.$watch('activeDhatu', (value) => {
             this.updateUrlState();
         });
@@ -170,17 +198,22 @@ const App = () => ({
         this.$watch('upasarga', (value) => {
             this.updateUrlState();
         });
+        this.$watch('activePada', (value) => {
+            this.updateUrlState();
+        });
     },
 
     // Mutators
 
+    // Load the application state from the URL, if applicable.
     readUrlState() {
         const params = new URLSearchParams(window.location.search);
-        const dhatuCode = params.get('dhatu');
-        const tab = params.get('tab');
-        const prayoga = params.get('prayoga');
-        const upasarga = params.get('upasarga');
-        const sanadi = params.get('sanadi');
+        const dhatuCode = params.get(Params.Dhatu);
+        const tab = params.get(Params.Tab);
+        const prayoga = params.get(Params.Prayoga);
+        const upasarga = params.get(Params.Upasarga);
+        const sanadi = params.get(Params.Sanadi);
+        const activePada = params.get(Params.ActivePada);
 
         console.log(`realUrlState, prayoga=${prayoga}, upasarga=${upasarga}, sanadi=${sanadi}`);
         if (tab) {
@@ -198,42 +231,56 @@ const App = () => ({
         if (dhatuCode) {
             this.setActiveDhatu(dhatuCode);
         }
+        if (activePada) {
+            this.setActivePada(JSON.parse(activePada));
+        }
     },
 
+    // Encode the current application state in the URL so that it can be
+    // referenced later.
     updateUrlState() {
         const url = new URL(window.location.href);
         let dhatuCode = null;
         if (this.activeDhatu) {
             dhatuCode = this.activeDhatu.code;
         }
-        setParam(url, "dhatu", dhatuCode);
-        setParam(url, "tab", this.activeTab);
-        setParam(url, "prayoga", this.prayoga);
-        setParam(url, "sanadi", this.sanadi);
-        setParam(url, "upasarga", this.upasarga);
+        setParam(url, Params.Dhatu, dhatuCode);
+        setParam(url, Params.Tab, this.activeTab);
+        setParam(url, Params.Prayoga, this.prayoga);
+        setParam(url, Params.Sanadi, this.sanadi);
+        setParam(url, Params.Upasarga, this.upasarga);
+        if (this.activePada) {
+            setParam(url, Params.ActivePada, JSON.stringify(this.activePada));
+        } else {
+            setParam(url, Params.ActivePada, null);
+        }
 
         console.log("updateUrlState to: ", url);
 
         history.replaceState(null, document.title, url.toString());
     },
 
+    // Set the active dhatu (and show its forms)
     setActiveDhatu(s) {
         this.activeDhatu = this.dhatus.find(d => d.code === s);
         // Scroll position might be off if the user has scrolled far down the dhatu list.
         window.scrollTo({ top: 0 });
     },
 
+    // Set the active pada (and show its prakriya)
     setActivePada(p) {
         this.activePada = p;
         this.prakriya = this.createPrakriya();
         window.scrollTo({ top: 0 });
     },
 
+    // Create the active pada (and show all forms for the dhatu)
     clearActivePada() {
         this.activePada = null;
         this.prakriya = null;
     },
 
+    // Clear the active dhatu (and show the full dhatu list).
     clearActiveDhatu() {
         // Breaks if we clear `activeDhatu` last -- not sure why. So, clear it first.
         this.activeDhatu = null;
@@ -243,6 +290,7 @@ const App = () => ({
         this.clearActivePada();
     },
 
+    // Set the app's active tab.
     setTab(s) {
         // Reset the prakriya so that we don't display a krt pratyaya for tin, etc.
         // The proper fix is to have separate prakriyas for each tab.
@@ -307,10 +355,12 @@ const App = () => ({
         return allPrakriyas.find((p) => p.text == pada.text);
     },
 
+    // Render the given SLP1 text in Devanagari.
     deva(s) {
         return Sanscript.t(s, 'slp1', this.script);
     },
 
+    // Render the given SLP1 text in Devanagari without svara marks.
     devaNoSvara(s) {
         return Sanscript.t(removeSlpSvaras(s), 'slp1', this.script);
     },
@@ -325,6 +375,7 @@ const App = () => ({
         return this.deva(str);
     },
 
+    /// Create all tinantas allowed by the given `args`.
     createParadigm(args) {
         const { dhatu, lakara, prayoga, pada, sanadi, upasarga } = args;
 
@@ -378,6 +429,25 @@ const App = () => ({
         return paradigm;
     },
 
+    // Get a nice human-readable name for the given lakara.
+    getLakaraTitle(value) {
+        const mapping = {
+            "Lat": "law",
+            "Lit": "liw",
+            "Lut": "luw",
+            "Lrt": "lfw",
+            "Let": "lew",
+            "Lot": "low",
+            "Lan": "laN",
+            "VidhiLin": "viDi-liN",
+            "AshirLin": "ASIr-liN",
+            "Lun": "luN",
+            "Lrn": "lfN",
+        };
+        const text = mapping[Lakara[value]];
+        return this.deva(text);
+    },
+
     createKrdantas() {
         if (this.activeDhatu === null) {
             return [];
@@ -409,7 +479,7 @@ const App = () => ({
         let results = [];
         for (const lakara in lakaras) {
             let laResults = {
-                title: Lakara[lakara],
+                title: this.getLakaraTitle(lakara),
             };
 
             for (const tinPada in tinPadas) {
@@ -438,6 +508,7 @@ window.Lakara = Lakara;
 window.Prayoga = Prayoga;
 window.Sanadi = Sanadi;
 
+// Initialize the app.
 window.addEventListener('alpine:init', () => {
     Alpine.data("app", App)
 });

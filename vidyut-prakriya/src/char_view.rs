@@ -2,91 +2,153 @@ use crate::prakriya::Prakriya;
 use crate::term::Term;
 use compact_str::CompactString;
 
-/// A Prakriya that caches the `text` property of the prakriya. It also provides utilities for
-/// working with chars in the prakriya text.
+/// A wrapper for `Prakriya` that has stronger support for sound rules that apply within and across
+/// term boundaries.
+///
+/// Internally, `CharPrakriya` saves `prakriya.text()` to an ordinary string, which facilitates
+/// applying character-based rules. `CharPrakriya` ensures that this string is up to date by
+/// rebuilding the string whenever the system adds a new rule to the prakriya.
 pub(crate) struct CharPrakriya<'a> {
-    pub p: &'a mut Prakriya,
-    pub text: CompactString,
+    // The string representation of the prakriya.
+    text: CompactString,
+    // The prakriya that this struct wraps. `p` is private so that callers cannot mutate `p`
+    // without also updating `is_stale`.
+    p: &'a mut Prakriya,
+    // Whether `text` is in sync with the latest state in `p`. If `is_stale` is true, then
+    // `for_chars` will update `text` before beginning execution.
+    is_stale: bool,
 }
+
 impl<'a> CharPrakriya<'a> {
     pub fn new(p: &'a mut Prakriya) -> Self {
-        let text = CompactString::from(p.text());
-        CharPrakriya { p, text }
+        let text = p.compact_text();
+        Self {
+            p,
+            text,
+            is_stale: false,
+        }
     }
 
-    #[allow(unused)]
-    pub fn char_rule(
+    /// Iterates over all characters in the prakriya. If `filter` applies at some index `i`, this
+    /// method applies `operator` to the same index `i`.
+    ///
+    /// For `filter`, we recommend using our `xy` and `xyz` functions, which are easier to manage.
+    ///
+    ///
+    /// ### API design
+    ///
+    /// A more natural way to implement this kind of logic is through a `for` loop over a sliding
+    /// window of characters, which we can call `char_window()` for the sake of this example.
+    /// Unfortunately, we have found this kind of approach difficult to implement in Rust. The
+    /// reason is that `.char_window()` and the body of the `for` loop would both require a mutable
+    /// reference to `CharPrakriya`, which violates Rust's restrictions on mutable memory access.
+    ///
+    /// Therefore, we have opted instead for this closure-based approach, which strictly controls
+    /// access to the mutable `CharPrakriya` struct.
+    pub fn for_chars(
         &mut self,
         filter: impl Fn(&mut Prakriya, &str, usize) -> bool,
         operator: impl Fn(&mut Prakriya, &str, usize) -> bool,
     ) {
-        let mut counter = 0;
-        loop {
-            let text = &self.text;
-            let mut changed_text = false;
+        if self.is_stale {
+            self.text = self.p.compact_text();
+            self.is_stale = false;
+        }
 
-            for i in 0..text.len() {
-                if filter(self.p, text, i) {
-                    changed_text = operator(self.p, &self.text, i);
-                    // Once the text has changed, our indices need to be reset. So, break the loop and
-                    // try again.
-                    if changed_text {
-                        self.text = CompactString::from(self.p.text());
-                        break;
-                    }
-                }
+        let mut change_counter = 0;
+        let mut i = 0;
+        let mut len = self.text.len();
+        while i < len {
+            let mut changed = false;
+            if filter(self.p, &self.text, i) {
+                // TODO: consider checking the state of `self.text` manually instead of requiring a
+                // boolean value from `operator`. In theory, `operator` can change any part of
+                // `text`, so we cannot measure a change unless we make a direct string comparison.
+                changed = operator(self.p, &self.text, i);
             }
 
-            if !changed_text {
-                break;
+            if changed {
+                change_counter += 1;
+                self.text = self.p.compact_text();
+                len = self.text.len();
+            } else {
+                i += 1;
             }
 
-            counter += 1;
             assert!(
-                counter <= 10,
+                change_counter <= 10,
                 "Possible infinite loop: {:?}",
                 self.p.history()
             );
         }
     }
 
-    #[allow(unused)]
-    pub fn char_at(&self, i_char: usize) -> Option<char> {
-        self.text.as_bytes().get(i_char).map(|x| *x as char)
-    }
+    /// Iterates over all characters in the prakriya in reverse order. If `filter` applies at some
+    /// index `i`, this method applies `operator` to the same index `i`.
+    ///
+    /// We have both `for_chars` and `for_chars_rev` because certain rules depend on applying these
+    /// changes in reverse order. For an example, see rule 8.3.61 (stautiṇyoreva ṣaṇyabhyāsāt),
+    /// which conditions ṣatva for the dhatu on ṣatva in san-pratyaya.
+    ///
+    /// TODO: consider standardizing on reverse-order iteration everywhere.
+    pub fn for_chars_rev(
+        &mut self,
+        filter: impl Fn(&mut Prakriya, &str, usize) -> bool,
+        operator: impl Fn(&mut Prakriya, &str, usize) -> bool,
+    ) {
+        if self.is_stale {
+            self.text = self.p.compact_text();
+            self.is_stale = false;
+        }
 
-    /// Replaces character `i` of the current prakriya with the given substitute.
-    pub fn set_at(&mut self, index: usize, substitute: &str) {
-        let mut cur = 0;
-        for t in self.p.terms_mut() {
-            let delta = t.text.len();
-            if (cur..cur + delta).contains(&index) {
-                let t_offset = index - cur;
-                t.text.replace_range(t_offset..=t_offset, substitute);
-                return;
+        let mut change_counter = 0;
+        if self.text.is_empty() {
+            return;
+        }
+        let mut i = self.text.len();
+
+        while i > 0 {
+            let mut changed = false;
+            if filter(self.p, &self.text, i - 1) {
+                changed = operator(self.p, &self.text, i - 1);
             }
-            cur += delta;
-        }
-    }
 
-    #[allow(unused)]
-    pub fn term_at(&self, i_char: usize) -> Option<&Term> {
-        match self.term_index_at(i_char) {
-            Some(i) => self.p.get(i),
-            None => None,
-        }
-    }
-
-    pub fn term_index_at(&self, i_char: usize) -> Option<usize> {
-        let mut cur = 0;
-        for (i, t) in self.p.terms().iter().enumerate() {
-            let delta = t.text.len();
-            if (cur..cur + delta).contains(&i_char) {
-                return Some(i);
+            if changed {
+                change_counter += 1;
+                self.text = self.p.compact_text();
+            } else {
+                i -= 1;
             }
-            cur += delta;
+
+            assert!(
+                change_counter <= 10,
+                "Possible infinite loop: {:?}",
+                self.p.history()
+            );
         }
-        None
+    }
+
+    /// Processes a sliding window of terms, where each term is non-empty.
+    ///
+    /// - `filter` receives two consecutive terms and returns whether the rule should apply.
+    /// - `op` receives the prakriya and the indices of the two terms.
+    pub fn for_terms(
+        &mut self,
+        filter: impl Fn(&Term, &Term) -> bool,
+        op: impl Fn(&mut Prakriya, usize, usize),
+    ) -> Option<()> {
+        let n = self.p.terms().len();
+        for i in 0..n - 1 {
+            let j = self.p.find_next_where(i, |t| !t.is_empty())?;
+            let x = self.p.get(i)?;
+            let y = self.p.get(j)?;
+            if filter(x, y) {
+                op(self.p, i, j);
+                self.is_stale = true;
+            }
+        }
+
+        Some(())
     }
 }
 
@@ -117,55 +179,7 @@ pub fn get_at(p: &Prakriya, index: usize) -> Option<&Term> {
     None
 }
 
-pub(crate) fn get_index_at(p: &mut Prakriya, index: usize) -> Option<usize> {
-    get_term_and_offset_indices(p, index).map(|(i_term, _)| i_term)
-}
-
-/// Replaces character `i` of the current prakriya with the given substitute.
-pub fn set_at(p: &mut Prakriya, index: usize, substitute: &str) {
-    let mut cur = 0;
-    for t in p.terms_mut() {
-        let delta = t.text.len();
-        if (cur..cur + delta).contains(&index) {
-            let t_offset = index - cur;
-            t.text.replace_range(t_offset..=t_offset, substitute);
-            return;
-        }
-        cur += delta;
-    }
-}
-
-/// Applies a sound-based rule to the given prakriya.
-pub fn char_rule(
-    p: &mut Prakriya,
-    filter: impl Fn(&mut Prakriya, &str, usize) -> bool,
-    operator: impl Fn(&mut Prakriya, &str, usize) -> bool,
-) {
-    let mut counter = 0;
-    loop {
-        let text = p.compact_text();
-        let mut changed_text = false;
-
-        for i in 0..text.len() {
-            if filter(p, &text, i) {
-                changed_text = operator(p, &text, i);
-                // Once the text has changed, our indices need to be reset. So, break the loop and
-                // try again.
-                if changed_text {
-                    break;
-                }
-            }
-        }
-
-        if !changed_text {
-            break;
-        }
-
-        counter += 1;
-        assert!(counter <= 10, "Possible infinite loop: {:?}", p.history());
-    }
-}
-
+/// Helper function for iterating over a sliding window that is two characters long.
 pub fn xy(inner: impl Fn(char, char) -> bool) -> impl Fn(&mut Prakriya, &str, usize) -> bool {
     move |_, text, i| {
         let x = text.as_bytes().get(i);
@@ -178,6 +192,7 @@ pub fn xy(inner: impl Fn(char, char) -> bool) -> impl Fn(&mut Prakriya, &str, us
     }
 }
 
+/// Helper function for iterating over a sliding window that is three characters long.
 pub fn xyz(
     inner: impl Fn(char, char, char) -> bool,
 ) -> impl Fn(&mut Prakriya, &str, usize) -> bool {

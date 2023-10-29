@@ -36,7 +36,7 @@ fn pretty_print_prakriya(p: &Prakriya, args: &SubantaArgs) {
     );
     println!("------------------------------");
     for step in p.history() {
-        println!("{:<10} | {}", step.rule(), step.result());
+        println!("{:<10?} | {}", step.rule(), step.result());
     }
     println!("------------------------------");
     for choice in p.rule_choices() {

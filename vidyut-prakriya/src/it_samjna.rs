@@ -144,7 +144,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
 
     if let Some(t) = p.get_mut(i) {
         if HAL.contains(antya) && !irit {
-            let vibhaktau_tusmah = t.has_tag(T::Vibhakti) && TUSMA.contains(antya);
+            let vibhaktau_tusmah = t.is_vibhakti() && TUSMA.contains(antya);
             if !vibhaktau_tusmah {
                 t.add_tag(T::parse_it(antya)?);
                 temp.truncate(temp.len() - 1);

@@ -2,7 +2,7 @@
 //! =========
 //! (6.1.66 - 6.1.101)
 
-use crate::char_view::{char_rule, get_at, get_index_at, set_at, xy};
+use crate::char_view::{get_at, xy, CharPrakriya};
 use crate::it_samjna;
 use crate::iterators::xy_rule;
 use crate::operators as op;
@@ -26,8 +26,8 @@ lazy_static! {
 }
 
 pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
-    char_rule(
-        p,
+    let mut cp = CharPrakriya::new(p);
+    cp.for_chars(
         |p, text, i| {
             let x = text.as_bytes()[i] as char;
             let y = match text.as_bytes().get(i + 1) {
@@ -49,8 +49,7 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             vyor_vali && !is_upadesha_adi && !t.is_pratipadika()
         },
         |p, _, i| {
-            set_at(p, i, "");
-            p.step("6.1.66");
+            p.run("6.1.66", |p| p.set_char_at(i, ""));
             true
         },
     );
@@ -60,7 +59,7 @@ fn try_ver_aprktasya(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last(T::Pratyaya)?;
     let last = p.get(i)?;
     if last.has_text("v") {
-        p.op_term("6.1.67", i, op::lopa);
+        p.run_at("6.1.67", i, op::lopa);
     }
 
     Some(())
@@ -68,36 +67,35 @@ fn try_ver_aprktasya(p: &mut Prakriya) -> Option<()> {
 
 /// Runs various general rules of vowel sandhi.
 pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
-    char_rule(p, xy(|x, y| x == 'a' && al::is_guna(y)), |p, _, i| {
-        // HACK: clean up
-        let i_x = get_index_at(p, i).expect("valid");
-        let i_y = get_index_at(p, i + 1).expect("valid");
-        if i_x != i_y && (p.is_pada(i_x) || p.has(i_x, |t| t.is_upasarga())) {
-            false
-        } else {
-            set_at(p, i, "");
-            p.step("6.1.97");
-            true
-        }
-    });
-
-    char_rule(
-        p,
-        xy(|x, y| EC.contains(x) && AC.contains(y)),
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let sub = match x {
-                'e' => "ay",
-                'E' => "Ay",
-                'o' => "av",
-                'O' => "Av",
-                _ => panic!("Unexpected sub"),
-            };
-            set_at(p, i, sub);
-            p.step("6.1.78");
-            true
+    let mut cp = CharPrakriya::new(p);
+    cp.for_chars(
+        // [dummy comment for rust fmt]
+        xy(|x, y| x == 'a' && al::is_guna(y)),
+        |p, _, i| {
+            // HACK: clean up
+            let i_x = p.find_for_char_at(i).expect("valid");
+            let i_y = p.find_for_char_at(i + 1).expect("valid");
+            if i_x != i_y && (p.is_pada(i_x) || p.has(i_x, |t| t.is_upasarga())) {
+                false
+            } else {
+                p.run("6.1.97", |p| p.set_char_at(i, ""));
+                true
+            }
         },
     );
+
+    cp.for_chars(xy(|x, y| EC.contains(x) && AC.contains(y)), |p, text, i| {
+        let x = text.as_bytes()[i] as char;
+        let sub = match x {
+            'e' => "ay",
+            'E' => "Ay",
+            'o' => "av",
+            'O' => "Av",
+            _ => panic!("Unexpected sub"),
+        };
+        p.run("6.1.78", |p| p.set_char_at(i, sub));
+        true
+    });
 
     // HACK: ignore sandhi between upasarga and dhatu so that we can correctly derive prARinat,
     // etc.
@@ -106,8 +104,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             && p.terms().last().expect("present").is_dhatu()
     }
 
-    char_rule(
-        p,
+    cp.for_chars(
         xy(|x, y| AK.contains(x) && AK.contains(y) && al::savarna(x).contains(y)),
         |p, text, i| {
             if is_upasarga_sanadi_dhatu(p, i) {
@@ -115,34 +112,29 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             }
 
             let x = text.as_bytes()[i] as char;
-            set_at(p, i, &al::to_dirgha(x).expect("should be ac").to_string());
-            set_at(p, i + 1, "");
-            p.step("6.1.101");
+            p.run("6.1.101", |p| {
+                p.set_char_at(i, &al::to_dirgha(x).expect("should be ac").to_string());
+                p.set_char_at(i + 1, "");
+            });
             true
         },
     );
 
-    char_rule(
-        p,
-        xy(|x, y| IK.contains(x) && AC.contains(y)),
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let res = match x {
-                'i' | 'I' => "y",
-                'u' | 'U' => "v",
-                'f' | 'F' => "r",
-                'x' | 'X' => "l",
-                _ => panic!("Unexpected res"),
-            };
-            set_at(p, i, res);
-            p.step("6.1.77");
-            true
-        },
-    );
+    cp.for_chars(xy(|x, y| IK.contains(x) && AC.contains(y)), |p, text, i| {
+        let x = text.as_bytes()[i] as char;
+        let res = match x {
+            'i' | 'I' => "y",
+            'u' | 'U' => "v",
+            'f' | 'F' => "r",
+            'x' | 'X' => "l",
+            _ => panic!("Unexpected res"),
+        };
+        p.run("6.1.77", |p| p.set_char_at(i, res));
+        true
+    });
 
     // upa + fcCati -> upArcCati
-    xy_rule(
-        p,
+    cp.for_terms(
         |x, y| x.is_upasarga() && x.has_antya(&*A) && y.is_dhatu() && y.has_adi('f'),
         |p, i, j| {
             p.set(i, |t| t.set_antya(""));
@@ -152,8 +144,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     );
 
     // upa + eti -> upEti
-    xy_rule(
-        p,
+    cp.for_terms(
         |x, y| {
             x.is_upasarga()
                 && x.has_antya(&*A)
@@ -164,22 +155,20 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             let y = p.get(j).expect("ok");
             let adi = y.adi().expect("ok");
             let sub = al::to_vrddhi(adi).expect("ok");
-            p.op_term("6.1.89", j, |t| t.set_adi(sub));
+            p.run_at("6.1.89", j, |t| t.set_adi(sub));
         },
     );
 
     // HACK for KOnAti
-    xy_rule(
-        p,
+    cp.for_terms(
         |x, _| x.has_text("KaU"),
         |p, i, _| {
-            p.op_term("6.1.89", i, |t| t.set_text("KO"));
+            p.run_at("6.1.89", i, |t| t.set_text("KO"));
         },
     );
 
     // upa + elayati -> upelayati
-    xy_rule(
-        p,
+    cp.for_terms(
         |x, y| x.is_upasarga() && x.has_antya(&*A) && y.is_dhatu() && y.has_adi(&*EN),
         |p, i, _j| {
             p.set(i, |t| t.set_antya(""));
@@ -188,8 +177,8 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     );
 
     // General guna/vrddhi rules.
-    char_rule(
-        p,
+    cp.for_chars(
+        // [dummy comment for cargo fmt]
         xy(|x, y| A.contains(x) && AC.contains(y)),
         |p, text, i| {
             if is_upasarga_sanadi_dhatu(p, i) {
@@ -200,13 +189,15 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             let y = text.as_bytes()[i + 1] as char;
 
             if EC.contains(y) {
-                set_at(p, j, al::to_vrddhi(y).expect("should have vrddhi"));
-                set_at(p, i, "");
-                p.step("6.1.88");
+                p.run("6.1.88", |p| {
+                    p.set_char_at(j, al::to_vrddhi(y).expect("should have vrddhi"));
+                    p.set_char_at(i, "");
+                });
             } else {
-                set_at(p, j, al::to_guna(y).expect("should have guna"));
-                set_at(p, i, "");
-                p.step("6.1.87");
+                p.run("6.1.87", |p| {
+                    p.set_char_at(j, al::to_guna(y).expect("should have guna"));
+                    p.set_char_at(i, "");
+                });
             }
             true
         },
@@ -219,7 +210,7 @@ pub fn try_sup_sandhi_before_angasya(p: &mut Prakriya) -> Option<()> {
         if sup.is_sup() {
             let purva = p.get(i - 1)?;
             if purva.has_antya('o') && sup.has_u_in(&["am", "Sas"]) {
-                p.op("6.1.93", |p| {
+                p.run("6.1.93", |p| {
                     p.set(i - 1, op::antya("A"));
                     p.set(i, op::adi(""));
                 });
@@ -238,33 +229,33 @@ fn try_sup_sandhi_after_angasya_for_term(p: &mut Prakriya, i_sup: usize) -> Opti
 
     if anga.has_antya(&*AK) && sup.has_tag_in(&[T::V1, T::V2]) {
         if sup.has_text("am") {
-            p.op_term("6.1.107", i_sup, op::adi(""));
+            p.run_at("6.1.107", i_sup, op::adi(""));
         } else if anga.has_antya('a') && sup.has_adi(&*IC) {
             p.step("6.1.104");
         } else if anga.is_dirgha() && (sup.has_adi(&*IC) || sup.has_u("jas")) {
             p.step("6.1.105");
         } else if sup.has_adi(&*AC) {
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.op_term("6.1.102", i_sup, op::adi(&sub.to_string()));
+            p.run_at("6.1.102", i_sup, op::adi(&sub.to_string()));
 
             let sup = p.get(i_sup)?;
             if p.has_tag(T::Pum) && sup.has_u("Sas") {
-                p.op_term("6.1.103", i_sup, op::antya("n"));
+                p.run_at("6.1.103", i_sup, op::antya("n"));
             }
         }
     } else if sup.has_u_in(&["Nasi~", "Nas"]) {
         if anga.has_antya(&*EN) {
             // muneH, guroH
-            p.op_term("6.1.110", i_sup, op::adi(""));
+            p.run_at("6.1.110", i_sup, op::adi(""));
         } else if anga.has_antya('f') {
             // pituH
-            p.op("6.1.111", |p| {
+            p.run("6.1.111", |p| {
                 p.set(i_anga, op::antya("ur"));
                 p.set(i_sup, op::adi(""));
             });
         } else if anga.has_text("saKi") || anga.has_text("pati") {
             // saKyuH, patyuH
-            p.op_term("6.1.112", i_sup, op::text("us"));
+            p.run_at("6.1.112", i_sup, op::text("us"));
         }
     }
 
@@ -288,27 +279,30 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
     let x = p.get(i)?;
     let y = p.get(j)?;
 
-    let ni_ap = x.has_tag(T::StriNyap) || x.has_u_in(&["wAp", "cAp", "dAp", "NIp", "NIz"]);
+    // HACK: since we don't support ekaH pUrvaparayoh properly, check for nyAp in either the
+    // current term or the next term.
+    let ni_ap =
+        x.has_tag(T::StriNyap) || x.is_nyap_pratyaya() || p.has(i + 1, |t| t.is_nyap_pratyaya());
     // Check for Agama to avoid lopa on yAs + t.
     let hal_ni_ap_dirgha = x.has_antya(&*HAL) || (ni_ap && x.is_dirgha()) && !x.is_agama();
     if hal_ni_ap_dirgha && y.is_aprkta() && y.has_u_in(&["su~", "tip", "sip"]) {
-        p.op_term("6.1.68", j, op::lopa);
+        p.run_at("6.1.68", j, op::lopa);
     }
 
     let x = p.get(i)?;
     let y = p.get(j)?;
     if (x.is_hrasva() || x.has_antya(&*EN)) && y.has_tag(T::Sambuddhi) {
-        p.op_term("6.1.69", j, op::lopa);
+        p.run_at("6.1.69", j, op::lopa);
     }
 
     let mut had_vrddhi = false;
     let x = p.get(i)?;
     let y = p.get(j)?;
     if (x.has_antya('a') || x.has_antya('A')) && y.has_text("us") {
-        p.op_term("6.1.96", i, op::antya(""));
+        p.run_at("6.1.96", i, op::antya(""));
     } else if x.has_u("Aw") && y.has_adi(&*AC) {
         let sub = al::to_vrddhi(y.adi()?)?;
-        p.op("6.1.90", |p| {
+        p.run("6.1.90", |p| {
             // ekaH pUrvapara (6.1.84)
             p.set(i, op::text(""));
             p.set(j, op::adi(sub));
@@ -329,7 +323,7 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
                     p.step("6.1.80");
                 } else {
                     let sub = if t.has_antya('o') { "av" } else { "Av" };
-                    p.op_term("6.1.79", i, op::antya(sub));
+                    p.run_at("6.1.79", i, op::antya(sub));
                 }
             },
         );
@@ -349,25 +343,25 @@ fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     })?;
     let prev = p.get(i_prev)?;
 
-    let optional_add_sut = |rule, p: &mut Prakriya, i_dhatu: usize| {
-        if p.op_optional(rule, |p| op::insert_agama_before(p, i_dhatu, "su~w")) {
+    let optional_add_sut_agama = |rule, p: &mut Prakriya, i_dhatu: usize| {
+        if p.run_optional(rule, |p| op::insert_agama_before(p, i_dhatu, "su~w")) {
             it_samjna::run(p, i_dhatu).expect("ok");
         }
     };
 
     if prev.has_u_in(&["sam", "pari", "upa"]) && dhatu.has_u("qukf\\Y") {
-        optional_add_sut("6.1.137", p, i_dhatu);
+        optional_add_sut_agama("6.1.137", p, i_dhatu);
         // Ignore 6.1.139, which creates the same result as 6.1.137.
     } else if dhatu.has_u("kF") {
         if prev.has_u("upa") {
-            optional_add_sut("6.1.140", p, i_dhatu);
+            optional_add_sut_agama("6.1.140", p, i_dhatu);
         } else if prev.has_u("prati") {
-            optional_add_sut("6.1.141", p, i_dhatu);
+            optional_add_sut_agama("6.1.141", p, i_dhatu);
         } else if prev.has_u("apa") {
-            optional_add_sut("6.1.142", p, i_dhatu);
+            optional_add_sut_agama("6.1.142", p, i_dhatu);
         }
     } else if prev.has_u("pra") && dhatu.has_u("tunpa~") {
-        optional_add_sut("6.1.157", p, i_dhatu);
+        optional_add_sut_agama("6.1.157", p, i_dhatu);
         // TODO: implement others.
     }
     Some(())
@@ -381,9 +375,9 @@ fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
         // HACK: duplicate 6.4.92 from the asiddhavat section for ci -> cAy, cap
         if x.has_tag(T::mit) && x.has_text_in(&["cAy", "cA"]) && y.has_u_in(&["Ric", "pu~k"]) {
             if x.has_text("cA") {
-                p.op_term("6.4.92", i, op::antya("a"));
+                p.run_at("6.4.92", i, op::antya("a"));
             } else {
-                p.op_term("6.4.92", i, op::upadha("a"));
+                p.run_at("6.4.92", i, op::upadha("a"));
             }
         }
     }
@@ -406,7 +400,7 @@ pub fn run_antaranga(p: &mut Prakriya) -> Option<()> {
                 'x' | 'X' => "l",
                 _ => panic!("Unexpected res"),
             };
-            p.op_term("6.1.77", i, |t| t.set_upadha(res));
+            p.run_at("6.1.77", i, |t| t.set_upadha(res));
         }
     }
 

@@ -14,7 +14,7 @@ fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
 
     // TODO: use `_rule` as well -- this should be simultaneous application.
     let prati = tp.prati();
-    if prati.has_antya('u') || prati.has_antya('U') || prati.has_text_in(&GO_ADI) {
+    if prati.has_antya('u') || prati.has_antya('U') || prati.has_text_in(GO_ADI) {
         tp.try_add("5.1.2", yat);
     } else {
         tp.try_add("5.1.1", Ca);

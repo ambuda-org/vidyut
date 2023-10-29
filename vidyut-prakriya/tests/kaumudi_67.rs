@@ -51,18 +51,6 @@ fn unadi_1_77() {
 }
 
 #[test]
-fn unadi_1_144() {
-    use Krt::manin;
-    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), manin, &["karman"]);
-    assert_has_krdanta(&[], &d("cara~", Bhvadi), manin, &["carman"]);
-    assert_has_krdanta(&[], &d("Basa~", Juhotyadi), manin, &["Basman"]);
-    assert_has_krdanta(&[], &d("janI~\\", Divadi), manin, &["janman"]);
-    assert_has_krdanta(&[], &d("SF", Kryadi), manin, &["Sarman"]);
-    assert_has_krdanta(&[], &d("Cada~", Curadi), manin, &["Cadman"]);
-    // TODO: sutrAman
-}
-
-#[test]
 fn unadi_2_2() {
     assert_has_krdanta(&[], &d("ha\\na~", Adadi), Krt::kTan, &["haTa"]);
     assert_has_krdanta(&[], &d("kuza~", Kryadi), Krt::kTan, &["kuzWa"]);
@@ -79,6 +67,40 @@ fn unadi_2_108() {
     assert_has_krdanta(&[], &d("Cada~", Curadi), Krt::isi, &["Cadis"]);
     assert_has_krdanta(&[], &d("Carda~", Curadi), Krt::isi, &["Cardis"]);
     // TODO: id-anta?
+}
+
+#[test]
+fn unadi_2_115() {
+    assert_has_krdanta(&[], &d("janI~\\", Divadi), Krt::usi, &["janus"]);
+}
+
+#[test]
+fn unadi_2_117() {
+    use Krt::usi;
+    assert_has_krdanta(&[], &d("f\\", Bhvadi), usi, &["arus"]);
+    assert_has_krdanta(&[], &d("pF", Kryadi), usi, &["parus"]);
+    assert_has_krdanta(&[], &d("quva\\pa~^", Bhvadi), usi, &["vapus"]);
+    assert_has_krdanta(&[], &d("ya\\ja~^", Bhvadi), usi, &["yajus"]);
+    assert_has_krdanta(&[], &d("tanu~^", Tanadi), usi, &["tanus"]);
+    assert_has_krdanta(&[], &d("Dana~", Juhotyadi), usi, &["Danus"]);
+    assert_has_krdanta(&[], &d("ta\\pa~", Bhvadi), usi, &["tapus"]);
+    // TODO: tanuzI, tanUMzi
+}
+
+#[test]
+fn unadi_2_118() {
+    assert_has_krdanta(&[], &d("i\\R", Adadi), Krt::usi, &["Ayus"]);
+    // TODO: AyuzI
+}
+
+#[test]
+fn unadi_2_119() {
+    assert_has_krdanta(&[], &d("ca\\kzi~\\N", Adadi), Krt::usi, &["cakzus"]);
+}
+
+#[test]
+fn unadi_2_120() {
+    assert_has_krdanta(&[], &d("mu\\ha~", Divadi), Krt::usi, &["muhus"]);
 }
 
 #[ignore]
@@ -248,11 +270,60 @@ fn unadi_4_54() {
     assert_has_krdanta(&[], &d("jAgf", Adadi), Krt::kvinUnadi, &["jAgfvi"]);
 }
 
+#[ignore]
+#[test]
+fn unadi_4_117() {
+    use Krt::in_;
+    assert_has_krdanta(&[], &d("qupa\\ca~^z", Bhvadi), in_, &["paci"]);
+    assert_has_krdanta(&[], &d("tuqa~", Tudadi), in_, &["tuqi"]);
+    assert_has_krdanta(&[], &d("tuqi~\\", Bhvadi), in_, &["tuRqi"]);
+    assert_has_krdanta(&[], &d("vala~\\", Bhvadi), in_, &["vali"]);
+    assert_has_krdanta(&[], &d("vawa~", Bhvadi), in_, &["vawi"]);
+    assert_has_krdanta(&[], &d("ya\\ja~^", Bhvadi), in_, &["yaji"]);
+    assert_has_upapada_krdanta("deva", &[], &d("ya\\ja~^", Bhvadi), in_, &["devayaji"]);
+    assert_has_krdanta(&[], &d("kASf~\\", Bhvadi), in_, &["kASi"]);
+    assert_has_krdanta(&[], &d("yatI~\\", Bhvadi), in_, &["yati"]);
+    assert_has_krdanta(&[], &d("malla~\\", Bhvadi), in_, &["malli"]);
+    assert_has_krdanta(&[], &d("kila~", Tudadi), in_, &["keli"]);
+    assert_has_krdanta(&[], &d("masI~", Divadi), in_, &["masi"]);
+    assert_has_krdanta(&[], &d("kuwa~", Tudadi), in_, &["kowi"]);
+    assert_has_krdanta(&[], &d("hila~", Tudadi), in_, &["heli"]);
+    assert_has_krdanta(&[], &d("buDa~", Bhvadi), in_, &["boDi"]);
+    assert_has_krdanta(&[], &d("wunadi~", Bhvadi), in_, &["nandi"]);
+    assert_has_krdanta(&[], &d("kala~\\", Bhvadi), in_, &["kali"]);
+}
+
+#[test]
+fn unadi_4_144() {
+    use Krt::manin;
+    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), manin, &["karman"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), manin, &["carman"]);
+    assert_has_krdanta(&[], &d("Basa~", Juhotyadi), manin, &["Basman"]);
+    assert_has_krdanta(&[], &d("janI~\\", Divadi), manin, &["janman"]);
+    assert_has_krdanta(&[], &d("SF", Kryadi), manin, &["Sarman"]);
+    assert_has_krdanta(&[], &d("Cada~", Curadi), manin, &["Cadman"]);
+    // TODO: sutrAman
+}
+
 #[test]
 fn unadi_4_158() {
     assert_has_krdanta(&[], &d("vasa~\\", Adadi), Krt::zwran, &["vastra"]);
     assert_has_krdanta(&[], &d("asu~", Divadi), Krt::zwran, &["astra"]);
     assert_has_krdanta(&[], &d("Sasu~", Bhvadi), Krt::zwran, &["Sastra"]);
+}
+
+#[test]
+fn unadi_4_188() {
+    use Krt::asun;
+    assert_has_krdanta(&[], &d("citI~", Bhvadi), asun, &["cetas"]);
+    assert_has_krdanta(&[], &d("sf\\", Bhvadi), asun, &["saras"]);
+    assert_has_krdanta(&[], &d("pI\\N", Divadi), asun, &["payas"]);
+    assert_has_krdanta(&[], &d("za\\dx~", Bhvadi), asun, &["sadas"]);
+}
+
+#[test]
+fn unadi_4_189() {
+    assert_has_krdanta(&[], &d("rapa~", Bhvadi), Krt::asun, &["repas"]);
 }
 
 #[test]

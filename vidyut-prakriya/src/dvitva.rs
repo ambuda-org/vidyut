@@ -54,7 +54,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<
     p.insert_after(i, abhyasa);
     p.insert_after(i + 1, third);
     p.step(rule);
-    p.op_term("6.1.4", i + 1, op::add_tag(T::Abhyasa));
+    p.run_at("6.1.4", i + 1, op::add_tag(T::Abhyasa));
 
     p.set(i, |t| t.add_tag(T::Abhyasta));
     p.set(i + 1, |t| t.add_tag(T::Abhyasta));
@@ -135,8 +135,8 @@ fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> 
     }
     p.step(rule);
 
-    p.op_term("6.1.4", i_ac + 1, |t| t.add_tag(T::Abhyasa));
-    p.op("6.1.5", |p| {
+    p.run_at("6.1.4", i_ac + 1, |t| t.add_tag(T::Abhyasa));
+    p.run("6.1.5", |p| {
         p.set(i_ac, op::add_tag(T::Abhyasta));
         p.set(i_ac + 1, op::add_tag(T::Abhyasta));
         p.set(i_dhatu, |t| t.add_tags(&[T::Abhyasta, T::Dvitva]));
@@ -177,7 +177,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
 
         let i_abhyasa = i;
         let i_dhatu = i + 1;
-        p.op_term("6.1.4", i_abhyasa, op::add_tag(T::Abhyasa));
+        p.run_at("6.1.4", i_abhyasa, op::add_tag(T::Abhyasa));
 
         p.set(i_abhyasa, |t| t.add_tag(T::Abhyasta));
         p.set(i_dhatu, |t| t.add_tags(&[T::Abhyasta, T::Dvitva]));
@@ -206,7 +206,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         // These are termed abhyasta, but they can still undergo dvitva because
         // the rules below are conditioned specifically on "anabhyAsasya" ("not having an abhyasa")
         // from 6.1.8.
-        p.op_term("6.1.6", i, op::add_tag(T::Abhyasta));
+        p.run_at("6.1.6", i, op::add_tag(T::Abhyasta));
     }
 
     // Use a view to include `iw`-Agama. Skip vu~k and other dhatu-agamas.
@@ -220,7 +220,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         //   dayateḥ iti dīṅo grahaṇaṃ na tu daya dāne ityasya.
         //   digyādeśena dvirvacanasya bādhanam iṣyate.
         if dhatu.has_u("de\\N") {
-            p.op_term("7.4.9", i, op::text("digi"));
+            p.run_at("7.4.9", i, op::text("digi"));
         } else {
             try_dvitva("6.1.8", p, i);
         }

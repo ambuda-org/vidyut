@@ -5,7 +5,7 @@
 pub use crate::ashtadhyayi::{Ashtadhyayi, AshtadhyayiBuilder};
 pub use crate::dhatupatha::Dhatupatha;
 pub use crate::errors::Error;
-pub use crate::prakriya::{Code, Prakriya, RuleChoice, Step};
+pub use crate::prakriya::{Prakriya, Rule, RuleChoice, Step};
 
 // Public modules.
 // - `args` defines the API contract.

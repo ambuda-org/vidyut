@@ -22,20 +22,20 @@ const AYADAYA: &[&str] = &[
 
 /// Adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
 fn add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
-    p.op(rule, |p| {
+    p.run(rule, |p| {
         let mut pratyaya = Term::make_upadesha(upadesha);
         pratyaya.add_tags(&[T::Pratyaya]);
         p.insert_after(i_dhatu, pratyaya);
     });
 
     let i_pratyaya = i_dhatu + 1;
-    p.op_term("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
+    p.run_at("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
     it_samjna::run(p, i_pratyaya).expect("ok")
 }
 
 /// Optionally adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
 fn optional_add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
-    let added = p.op_optional(rule, |p| {
+    let added = p.run_optional(rule, |p| {
         let mut pratyaya = Term::make_upadesha(upadesha);
         pratyaya.add_tags(&[T::Pratyaya]);
         p.insert_after(i_dhatu, pratyaya);
@@ -43,7 +43,7 @@ fn optional_add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &
 
     if added {
         let i_pratyaya = i_dhatu + 1;
-        p.op_term("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
+        p.run_at("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
         it_samjna::run(p, i_pratyaya).expect("ok")
     }
 }
@@ -55,11 +55,11 @@ fn run_rules_for_yan_luk(p: &mut Prakriya) -> Option<()> {
     let i_yan = p.find_last_where(|t| t.is_pratyaya() && t.has_u("yaN"))?;
 
     // Apply luk.
-    p.op_term("2.4.74", i_yan, op::luk);
+    p.run_at("2.4.74", i_yan, op::luk);
 
     // "carkarItam ca" declares that yan-luk dhatus are part of ad-Adi gaNa.
     // As a result, we will see lopa of Sap-vikarana per 2.4.72.
-    p.op_term(DP("02.0076"), i_yan, |d| d.set_gana(Gana::Adadi));
+    p.run_at(DP("02.0076"), i_yan, |d| d.set_gana(Gana::Adadi));
 
     Some(())
 }

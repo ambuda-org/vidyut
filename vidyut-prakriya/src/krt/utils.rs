@@ -155,14 +155,14 @@ impl<'a> KrtPrakriya<'a> {
     }
 
     pub fn do_nipatana(&mut self, rule: impl Into<Rule>, sub: &str) {
-        self.p.op(rule, op::nipatana(sub));
+        self.p.run(rule, op::nipatana(sub));
         self.had_match = true;
         self.has_krt = true
     }
 
     pub fn optional_do_nipatana(&mut self, rule: impl Into<Rule>, sub: &str) -> bool {
         self.had_match = true;
-        if self.p.op_optional(rule, op::nipatana(sub)) {
+        if self.p.run_optional(rule, op::nipatana(sub)) {
             self.has_krt = true;
             true
         } else {
@@ -184,7 +184,7 @@ impl<'a> KrtPrakriya<'a> {
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
             // Insert term with it-samjna-prakarana.
-            self.p.op(rule, |p| {
+            self.p.run(rule, |p| {
                 p.push(krt.to_term());
                 func(p);
             });

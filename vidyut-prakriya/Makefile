@@ -90,7 +90,7 @@ check_rule_coverage:
 # Profiles the program's execution time on OSX. This command will probably not
 # work on other operating systems.
 profile-time-osx:
-	cargo instruments -t time --release --bin create_test_files
+	cargo instruments -t time --release --bin create_test_file
 
 
 # Other

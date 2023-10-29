@@ -25,7 +25,7 @@ pub fn run(p: &mut Prakriya, pratipadika: &Pratipadika, linga: Linga) -> Option<
     p.push(term);
 
     // Add samjnas
-    p.op_term("1.2.45", 0, |t| {
+    p.run_at("1.2.45", 0, |t| {
         t.add_tag(T::Pratipadika);
     });
     p.add_tag(linga.as_tag());
@@ -34,7 +34,7 @@ pub fn run(p: &mut Prakriya, pratipadika: &Pratipadika, linga: Linga) -> Option<
         let prati = p.get(0)?;
         let sub = al::to_hrasva(prati.antya()?)?;
         if !prati.has_antya(sub) {
-            p.op_term("1.2.47", 0, op::antya(&sub.to_string()));
+            p.run_at("1.2.47", 0, op::antya(&sub.to_string()));
         }
     }
 

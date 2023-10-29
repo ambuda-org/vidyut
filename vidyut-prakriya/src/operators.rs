@@ -115,6 +115,13 @@ pub fn insert_agama_after(p: &mut Prakriya, i: usize, u: &str) {
     p.insert_after(i, agama);
 }
 
+/// Inserts `agama` at index `i` of the prakriya then runs the it-samjna-prakarana.
+pub fn insert_agama_at(rule: impl Into<Rule>, p: &mut Prakriya, index: usize, agama: &str) {
+    insert_agama_before(p, index, agama);
+    p.step(rule.into());
+    it_samjna::run(p, index).expect("ok");
+}
+
 // legacy func that marks the rule after it-samjna-prakarana.
 pub fn upadesha(p: &mut Prakriya, i: usize, sub: &str) {
     if let Some(t) = p.get_mut(i) {
