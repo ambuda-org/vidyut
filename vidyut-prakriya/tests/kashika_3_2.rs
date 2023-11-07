@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::*;
@@ -1009,26 +1010,26 @@ fn sutra_3_2_108() {
 
 #[test]
 fn sutra_3_2_110() {
-    assert_has_lun_p(&[], &d("qukf\\Y", Tanadi), &["akArzIt"]);
-    assert_has_lun_p(&[], &d("hf\\Y", Bhvadi), &["ahArzIt"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lun, &["akArzIt"]);
+    assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lun, &["ahArzIt"]);
 }
 
 #[test]
 fn sutra_3_2_111() {
-    assert_has_lan_p(&[], &d("qukf\\Y", Tanadi), &["akarot"]);
-    assert_has_lan_p(&[], &d("hf\\Y", Bhvadi), &["aharat"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lan, &["akarot"]);
+    assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lan, &["aharat"]);
 }
 
 #[test]
 fn sutra_3_2_115() {
-    assert_has_lit_p(&[], &d("qukf\\Y", Tanadi), &["cakAra"]);
-    assert_has_lit_p(&[], &d("hf\\Y", Bhvadi), &["jahAra"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lit, &["cakAra"]);
+    assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lit, &["jahAra"]);
 }
 
 #[test]
 fn sutra_3_2_123() {
-    assert_has_lat_p(&[], &d("qupa\\ca~^z", Bhvadi), &["pacati"]);
-    assert_has_lat_p(&[], &d("paWa~", Bhvadi), &["paWati"]);
+    assert_has_tip(&[], &d("qupa\\ca~^z", Bhvadi), Lat, &["pacati"]);
+    assert_has_tip(&[], &d("paWa~", Bhvadi), Lat, &["paWati"]);
 }
 
 #[ignore]

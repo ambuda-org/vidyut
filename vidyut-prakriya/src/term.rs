@@ -320,6 +320,11 @@ impl Term {
         self.has_tag(Tag::Pratyaya)
     }
 
+    /// Returns whether the term is an unAdi-pratyaya.
+    pub fn is_unadi(&self) -> bool {
+        self.has_tag(Tag::Unadi)
+    }
+
     pub fn is_nyap_pratyaya(&self) -> bool {
         self.has_tag(Tag::Pratyaya) && self.has_u_in(&["wAp", "cAp", "dAp", "NIp", "NIz"])
     }

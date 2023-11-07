@@ -1,11 +1,11 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt;
+use vidyut_prakriya::args::BaseKrt::*;
 use vidyut_prakriya::args::Dhatu;
 use vidyut_prakriya::args::Gana::*;
-use vidyut_prakriya::args::Krt;
-use vidyut_prakriya::args::Krt::*;
 
-fn assert_has_krt(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: &[&str]) {
+fn assert_has_krt(prefixes: &[&str], dhatu: &Dhatu, krt: BaseKrt, expected: &[&str]) {
     assert_has_krdanta(prefixes, dhatu, krt, expected)
 }
 

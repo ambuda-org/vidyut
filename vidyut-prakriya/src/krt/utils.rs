@@ -1,4 +1,4 @@
-use crate::args::{Artha, Krt, KrtArtha};
+use crate::args::{Artha, BaseKrt, Krt, KrtArtha};
 use crate::it_samjna;
 use crate::operators as op;
 use crate::prakriya::{Prakriya, Rule};
@@ -8,18 +8,25 @@ use crate::term::Term;
 impl Krt {
     /// Converts this krt-pratyaya to an appropriate `Term`.
     pub fn to_term(self) -> Term {
-        use Krt as K;
         let mut krt = Term::make_upadesha(self.as_str());
         krt.add_tags(&[T::Pratyaya, T::Krt]);
 
-        // Any rule that adds `krtya` also includes the `krtya` samjna by adhikara from 3.1.95.
-        // Other samjnas, such as `Nistha`, are added in separate rules and are thus modeled
-        // separately.
-        if matches!(
-            self,
-            K::tavyat | K::tavya | K::anIyar | K::yat | K::kyap | K::Ryat
-        ) {
-            krt.add_tag(T::Krtya);
+        if let Krt::Base(b) = self {
+            use BaseKrt as K;
+
+            // Any rule that adds a krtya-pratyaya also includes the `krtya` samjna by adhikara
+            // from 3.1.95. Other samjnas, such as `Nistha`, are added in separate rules and are
+            // thus modeled separately.
+            if matches!(
+                b,
+                K::tavyat | K::tavya | K::anIyar | K::yat | K::kyap | K::Ryat
+            ) {
+                krt.add_tag(T::Krtya);
+            }
+        }
+
+        if let Krt::Unadi(_) = self {
+            krt.add_tag(T::Unadi);
         }
 
         krt
@@ -45,12 +52,12 @@ pub struct KrtPrakriya<'a> {
 
 impl<'a> KrtPrakriya<'a> {
     /// Creates a new `KrtPrakriya` struct.
-    pub fn new(p: &'a mut Prakriya, krt: Krt) -> Self {
+    pub fn new(p: &'a mut Prakriya, krt: impl Into<Krt>) -> Self {
         let i_dhatu = p.find_first_where(|t| t.is_dhatu()).unwrap_or(0);
         KrtPrakriya {
             p,
             i_dhatu,
-            krt,
+            krt: krt.into(),
             rule_artha: None,
             had_match: false,
             has_krt: false,
@@ -85,6 +92,10 @@ impl<'a> KrtPrakriya<'a> {
     /// Returns whether the term before the dhatu has one of the given upapada values.
     pub fn has_upapada_in(&self, upadeshas: &[&str]) -> bool {
         self.i_dhatu > 0 && self.p.has(self.i_dhatu - 1, |t| t.has_u_in(upadeshas))
+    }
+
+    pub fn expects_krt(&self, krt: impl Into<Krt>) -> bool {
+        self.krt == krt.into()
     }
 
     /// Runs the rules in `closure` under the meaning condition defined in `artha`.
@@ -136,14 +147,20 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: Krt) -> bool {
+    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: impl Into<Krt>) -> bool {
         self.try_add_with(rule, krt, |_| {})
     }
 
     /// If there's a match, replace the `lakAra` of the dhatu.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_replace_lakara(&mut self, rule: impl Into<Rule>, i_lakara: usize, krt: Krt) -> bool {
+    pub fn try_replace_lakara(
+        &mut self,
+        rule: impl Into<Rule>,
+        i_lakara: usize,
+        krt: impl Into<Krt>,
+    ) -> bool {
+        let krt = krt.into();
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
             op::adesha(rule, self.p, i_lakara, krt.as_str());
@@ -176,10 +193,11 @@ impl<'a> KrtPrakriya<'a> {
     pub fn try_add_with(
         &mut self,
         rule: impl Into<Rule>,
-        krt: Krt,
+        krt: impl Into<Krt>,
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         let rule = rule.into();
+        let krt = krt.into();
 
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
@@ -208,9 +226,12 @@ impl<'a> KrtPrakriya<'a> {
     pub fn optional_try_add_with(
         &mut self,
         rule: impl Into<Rule> + Copy,
-        krt: Krt,
+        krt: impl Into<Krt>,
         func: impl Fn(&mut Prakriya),
     ) -> bool {
+        let rule = rule.into();
+        let krt = krt.into();
+
         if krt == self.krt && !self.has_krt {
             // TODO: resolve inconsistency with TaddhitaPratyaya::optional_try_add_with.
             if self.p.is_allowed(rule) {
@@ -226,21 +247,21 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, optionally adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: Krt) -> bool {
+    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: BaseKrt) -> bool {
         self.optional_try_add_with(rule, krt, |_| {})
     }
 
     /// Like `optional` but indicates a specific choice of artha. Not sure how to use this yet, but
     /// at some point we should model specific semantic choices as different from an ordinary
     /// option.
-    pub fn try_artha_add(&mut self, rule: impl Into<Rule> + Copy, krt: Krt) -> bool {
+    pub fn try_artha_add(&mut self, rule: impl Into<Rule> + Copy, krt: BaseKrt) -> bool {
         self.optional_try_add(rule, krt)
     }
 
     pub fn try_artha_add_with(
         &mut self,
         rule: impl Into<Rule> + Copy,
-        krt: Krt,
+        krt: BaseKrt,
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         self.optional_try_add_with(rule, krt, func)

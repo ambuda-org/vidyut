@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
@@ -96,8 +97,8 @@ fn sutra_1_4_8() {
 fn sutra_1_4_10() {
     assert_has_krdanta(&[], &d("Bi\\di~^r", Rudhadi), Krt::tfc, &["Bettf"]);
     assert_has_krdanta(&[], &d("Ci\\di~^r", Rudhadi), Krt::tfc, &["Cettf"]);
-    assert_has_lun_p(&[], &nic(&d("qukf\\Y", Tanadi)), &["acIkarat"]);
-    assert_has_lun_p(&[], &nic(&d("hf\\Y", Bhvadi)), &["ajIharat"]);
+    assert_has_tip(&[], &nic(&d("qukf\\Y", Tanadi)), Lun, &["acIkarat"]);
+    assert_has_tip(&[], &nic(&d("hf\\Y", Bhvadi)), Lun, &["ajIharat"]);
 }
 
 #[test]
@@ -114,9 +115,9 @@ fn sutra_1_4_13() {
     let hf = d("hf\\Y", Bhvadi);
     assert_has_krdanta(&[], &kf, Krt::tfc, &["kartf"]);
     assert_has_krdanta(&[], &hf, Krt::tfc, &["hartf"]);
-    assert_has_lrt_p(&[], &kf, &["karizyati"]);
-    assert_has_lrt_p(&[], &hf, &["harizyati"]);
-    assert_has_lrn_p(&[], &kf, &["akarizyat"]);
+    assert_has_tip(&[], &kf, Lrt, &["karizyati"]);
+    assert_has_tip(&[], &hf, Lrt, &["harizyati"]);
+    assert_has_tip(&[], &kf, Lrn, &["akarizyat"]);
     assert_has_taddhitanta(&prati("upagu"), T::aR, &["Opagava"]);
     assert_has_taddhitanta(&prati("kapawu"), T::aR, &["kApawava"]);
 
@@ -171,8 +172,8 @@ fn sutra_1_4_22() {
 #[test]
 fn sutra_1_4_59() {
     let ni = d("RI\\Y", Bhvadi);
-    assert_has_lat_p(&["pra"], &ni, &["praRayati"]);
-    assert_has_lat_p(&["pari"], &ni, &["pariRayati"]);
+    assert_has_tip(&["pra"], &ni, Lat, &["praRayati"]);
+    assert_has_tip(&["pari"], &ni, Lat, &["pariRayati"]);
     assert_has_krdanta(&["pra"], &ni, Krt::Rvul, &["praRAyaka"]);
     assert_has_krdanta(&["pari"], &ni, Krt::Rvul, &["pariRAyaka"]);
 }
@@ -180,7 +181,7 @@ fn sutra_1_4_59() {
 #[test]
 fn sutra_1_4_80() {
     assert_has_lat(&["vi"], &d("liKa~", Tudadi), &["viliKati"]);
-    assert_has_lat_p(&["tiras"], &d("qukf\\Y", Tanadi), &["tiraskaroti"]);
+    assert_has_tip(&["tiras"], &d("qukf\\Y", Tanadi), Lat, &["tiraskaroti"]);
 }
 
 #[test]

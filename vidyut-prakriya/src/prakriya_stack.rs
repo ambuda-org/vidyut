@@ -8,6 +8,11 @@ use crate::prakriya::{Config, Prakriya, RuleChoice};
 /// and exploring the various combinations of optional rules.
 #[derive(Default)]
 pub(crate) struct PrakriyaStack {
+    /// Whether a prakriya should log its steps.
+    log_steps: bool,
+    /// Whether a prakriya should use chAndasa rules.
+    is_chandasi: bool,
+
     /// Completed prakriyas.
     prakriyas: Vec<Prakriya>,
     /// Combinations of optional rules that we have yet to try.
@@ -16,26 +21,32 @@ pub(crate) struct PrakriyaStack {
 
 impl PrakriyaStack {
     /// Creates an empty `PrakriyaStack`.
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(log_steps: bool, is_chandasi: bool) -> Self {
+        Self {
+            prakriyas: Vec::new(),
+            paths: Vec::new(),
+            log_steps,
+            is_chandasi,
+        }
     }
 
     /// Creates a new `Prakriya` according to upstream options.
-    fn new_prakriya(rule_choices: Vec<RuleChoice>, log_steps: bool) -> Prakriya {
+    fn new_prakriya(&self, rule_choices: Vec<RuleChoice>) -> Prakriya {
         Prakriya::with_config(Config {
             rule_choices,
-            log_steps,
+            log_steps: self.log_steps,
+            is_chandasi: self.is_chandasi,
         })
     }
 
     /// Finds all variants of the given derivation function.
     ///
     /// `derive` should accept an empty `Prakriya` and mutate it in-place.
-    pub fn find_all(&mut self, derive: impl Fn(Prakriya) -> Result<Prakriya>, log_steps: bool) {
+    pub fn find_all(&mut self, derive: impl Fn(Prakriya) -> Result<Prakriya>) {
         self.paths.push(vec![]);
 
         while let Some(path) = self.pop_path() {
-            let p_init = Self::new_prakriya(path.clone(), log_steps);
+            let p_init = self.new_prakriya(path.clone());
             match derive(p_init) {
                 Ok(p) => {
                     self.add_new_paths(&p, &path);

@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::*;
@@ -29,8 +30,8 @@ fn sutra_3_1_5() {
 fn sutra_3_1_6() {
     assert_has_lat(&[], &d("mAna~\\", Bhvadi), &["mImAMsate"]);
     assert_has_lat(&[], &d("baDa~\\", Bhvadi), &["bIBatsate"]);
-    assert_has_lat_a(&[], &d("dAna~^", Bhvadi), &["dIdAMsate"]);
-    assert_has_lat_a(&[], &d("SAna~^", Bhvadi), &["SISAMsate"]);
+    assert_has_ta(&[], &d("dAna~^", Bhvadi), Lat, &["dIdAMsate"]);
+    assert_has_ta(&[], &d("SAna~^", Bhvadi), Lat, &["SISAMsate"]);
 
     // TODO: mAnayati, etc.
 }
@@ -41,12 +42,17 @@ fn sutra_3_1_7() {
     let kf = san_d("qukf\\Y", Tanadi);
     let hf = san_d("hf\\Y", Bhvadi);
 
-    assert_has_lat_p(&[], &kf, &["cikIrzati"]);
-    assert_has_lat_p(&[], &hf, &["jihIrzati"]);
-    assert_has_lan_p(&["pra"], &kf, &["prAcikIrzat"]);
+    assert_has_tip(&[], &kf, Lat, &["cikIrzati"]);
+    assert_has_tip(&[], &hf, Lat, &["jihIrzati"]);
+    assert_has_tip(&["pra"], &kf, Lan, &["prAcikIrzat"]);
 
-    assert_has_lat_p(&[], &san_d("patx~", Bhvadi), &["pipatizati", "pitsati"]);
-    assert_has_lat_p(&[], &san_d("mf\\N", Tudadi), &["mumUrzati"]);
+    assert_has_tip(
+        &[],
+        &san_d("patx~", Bhvadi),
+        Lat,
+        &["pipatizati", "pitsati"],
+    );
+    assert_has_tip(&[], &san_d("mf\\N", Tudadi), Lat, &["mumUrzati"]);
 }
 
 #[test]
@@ -88,15 +94,15 @@ fn sutra_3_1_24() {
 
 #[test]
 fn sutra_3_1_25() {
-    assert_has_lat_p(&[], &d("cura~", Curadi), &["corayati"]);
-    assert_has_lat_p(&[], &d("citi~", Curadi), &["cintayati"]);
+    assert_has_tip(&[], &d("cura~", Curadi), Lat, &["corayati"]);
+    assert_has_tip(&[], &d("citi~", Curadi), Lat, &["cintayati"]);
 }
 
 #[test]
 fn sutra_3_1_26() {
     let san = |u, gana| d(u, gana).with_sanadi(&[Sanadi::Nic]);
-    assert_has_lat_p(&[], &san("qukf\\Y", Tanadi), &["kArayati"]);
-    assert_has_lat_p(&[], &san("qupa\\ca~^z", Bhvadi), &["pAcayati"]);
+    assert_has_tip(&[], &san("qukf\\Y", Tanadi), Lat, &["kArayati"]);
+    assert_has_tip(&[], &san("qupa\\ca~^z", Bhvadi), Lat, &["pAcayati"]);
 
     // TODO: add others
 }
@@ -104,22 +110,22 @@ fn sutra_3_1_26() {
 #[test]
 fn sutra_3_1_28() {
     let pan = &d("paRa~\\", Bhvadi);
-    assert_has_lat_p(&[], &d("gupU~", Bhvadi), &["gopAyati"]);
-    assert_has_lat_p(&[], &d("DUpa~", Bhvadi), &["DUpAyati"]);
-    assert_has_lat_p(&[], &d("viCa~", Tudadi), &["vicCAyati"]);
-    assert_has_lat_p(&[], &pan, &["paRAyati"]);
-    assert_has_lat_p(&[], &d("pana~\\", Bhvadi), &["panAyati"]);
-    assert_has_lat_a(&[], &pan, &["paRate"]);
+    assert_has_tip(&[], &d("gupU~", Bhvadi), Lat, &["gopAyati"]);
+    assert_has_tip(&[], &d("DUpa~", Bhvadi), Lat, &["DUpAyati"]);
+    assert_has_tip(&[], &d("viCa~", Tudadi), Lat, &["vicCAyati"]);
+    assert_has_tip(&[], &pan, Lat, &["paRAyati"]);
+    assert_has_tip(&[], &d("pana~\\", Bhvadi), Lat, &["panAyati"]);
+    assert_has_ta(&[], &pan, Lat, &["paRate"]);
 }
 
 #[test]
 fn sutra_3_1_29() {
-    assert_has_lat_a(&[], &d("fti", Bhvadi), &["ftIyate"]);
+    assert_has_ta(&[], &d("fti", Bhvadi), Lat, &["ftIyate"]);
 }
 
 #[test]
 fn sutra_3_1_30() {
-    assert_has_lat_a(&[], &d("kamu~\\", Bhvadi), &["kAmayate"]);
+    assert_has_ta(&[], &d("kamu~\\", Bhvadi), Lat, &["kAmayate"]);
 }
 
 #[test]
@@ -135,8 +141,8 @@ fn sutra_3_1_31() {
 #[test]
 fn sutra_3_1_33() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_lrt_p(&[], &kf, &["karizyati"]);
-    assert_has_lrn_p(&[], &kf, &["akarizyat"]);
+    assert_has_tip(&[], &kf, Lrt, &["karizyati"]);
+    assert_has_tip(&[], &kf, Lrn, &["akarizyat"]);
     assert_has_lut(&[], &kf, &["kartA"]);
     assert_has_lut(&[], &d("ma\\na~\\", Divadi), &["mantA"]);
     assert_has_lut(&["sam"], &d("ga\\mx~", Bhvadi), &["saNgantA"]);
@@ -282,78 +288,89 @@ fn sutra_3_1_41() {
 
 #[test]
 fn sutra_3_1_44() {
-    assert_has_lun_p(&[], &d("qukf\\Y", Tanadi), &["akArzIt"]);
-    assert_has_lun_p(&[], &d("hf\\Y", Bhvadi), &["ahArzIt"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lun, &["akArzIt"]);
+    assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lun, &["ahArzIt"]);
 }
 
 #[test]
 fn sutra_3_1_44_v1() {
-    assert_has_lun_p(
+    assert_has_tip(
         &[],
         &d("spf\\Sa~", Tudadi),
+        Lun,
         &["asprAkzIt", "aspArkzIt", "aspfkzat"],
     );
-    assert_has_lun_p(
+    assert_has_tip(
         &[],
         &d("mf\\Sa~", Tudadi),
+        Lun,
         &["amrAkzIt", "amArkzIt", "amfkzat"],
     );
-    assert_has_lun_p(
+    assert_has_tip(
         &[],
         &d("kf\\za~", Bhvadi),
+        Lun,
         &["akArkzIt", "akrAkzIt", "akfkzat"],
     );
-    assert_has_lun_p(
+    assert_has_tip(
         &[],
         &d("tf\\pa~", Divadi),
+        Lun,
         &["atrApsIt", "atArpsIt", "atfpat", "atarpIt"],
     );
-    assert_has_lun_p(
+    assert_has_tip(
         &[],
         &d("df\\pa~", Divadi),
+        Lun,
         &["adrApsIt", "adArpsIt", "adfpat", "adarpIt"],
     );
 }
 
 #[test]
 fn sutra_3_1_45() {
-    assert_has_lun_p(&[], &d("du\\ha~^", Adadi), &["aDukzat"]);
-    assert_has_lun_p(&[], &d("li\\ha~^", Adadi), &["alikzat"]);
+    assert_has_tip(&[], &d("du\\ha~^", Adadi), Lun, &["aDukzat"]);
+    assert_has_tip(&[], &d("li\\ha~^", Adadi), Lun, &["alikzat"]);
     // SalaH
-    assert_has_lun_p(&[], &d("Bi\\di~^r", Rudhadi), &["aBEtsIt", "aBidat"]);
-    assert_has_lun_p(&[], &d("Ci\\di~^r", Rudhadi), &["acCEtsIt", "acCidat"]);
+    assert_has_tip(&[], &d("Bi\\di~^r", Rudhadi), Lun, &["aBEtsIt", "aBidat"]);
+    assert_has_tip(&[], &d("Ci\\di~^r", Rudhadi), Lun, &["acCEtsIt", "acCidat"]);
     // igupaDAt
-    assert_has_lun_p(&[], &d("da\\ha~", Bhvadi), &["aDAkzIt"]);
+    assert_has_tip(&[], &d("da\\ha~", Bhvadi), Lun, &["aDAkzIt"]);
     // aniwaH
-    assert_has_lun_p(&[], &d("kuza~", Kryadi), &["akozIt"]);
-    assert_has_lun_p(&[], &d("muza~", Kryadi), &["amozIt"]);
+    assert_has_tip(&[], &d("kuza~", Kryadi), Lun, &["akozIt"]);
+    assert_has_tip(&[], &d("muza~", Kryadi), Lun, &["amozIt"]);
 }
 
 #[test]
 fn sutra_3_1_46() {
-    assert_has_lun_p(&["AN"], &d("Sli\\za~", Divadi), &["ASlikzat", "ASlizat"]);
+    assert_has_tip(
+        &["AN"],
+        &d("Sli\\za~", Divadi),
+        Lun,
+        &["ASlikzat", "ASlizat"],
+    );
 }
 
 #[test]
 fn sutra_3_1_47() {
-    assert_has_lun_p(&[], &d("df\\Si~r", Bhvadi), &["adarSat", "adrAkzIt"]);
+    assert_has_tip(&[], &d("df\\Si~r", Bhvadi), Lun, &["adarSat", "adrAkzIt"]);
 }
 
 #[test]
 fn sutra_3_1_48() {
-    assert_has_lun_p(&[], &nic(&d("qukf\\Y", Tanadi)), &["acIkarat"]);
-    assert_has_lun_p(&[], &nic(&d("hf\\Y", Bhvadi)), &["ajIharat"]);
-    assert_has_lun_p(&[], &d("SriY", Bhvadi), &["aSiSriyat"]);
-    assert_has_lun_p(&[], &d("dru\\", Bhvadi), &["adudruvat"]);
-    assert_has_lun_p(&[], &d("sru\\", Bhvadi), &["asusruvat"]);
+    assert_has_tip(&[], &nic(&d("qukf\\Y", Tanadi)), Lun, &["acIkarat"]);
+    assert_has_tip(&[], &nic(&d("hf\\Y", Bhvadi)), Lun, &["ajIharat"]);
+    assert_has_tip(&[], &d("SriY", Bhvadi), Lun, &["aSiSriyat"]);
+    assert_has_tip(&[], &d("dru\\", Bhvadi), Lun, &["adudruvat"]);
+    assert_has_tip(&[], &d("sru\\", Bhvadi), Lun, &["asusruvat"]);
 }
 
 #[test]
 fn sutra_3_1_49() {
-    assert_has_lun_p(&[], &d("De\\w", Bhvadi), &["adaDat", "aDAt", "aDAsIt"]);
-    assert_has_lun_p(
+    assert_has_tip(&[], &d("De\\w", Bhvadi), Lun, &["adaDat", "aDAt", "aDAsIt"]);
+    assert_has_tip(
         &[],
         &d("wuo~Svi", Bhvadi),
+        Lun,
         &["aSiSviyat", "aSvat", "aSvayIt"],
     );
 }
@@ -378,59 +395,60 @@ fn sutra_3_1_52() {
 
 #[test]
 fn sutra_3_1_53() {
-    assert_has_lun_p(&[], &d("li\\pa~^", Tudadi), &["alipat"]);
-    assert_has_lun_p(&[], &d("zi\\ca~^", Tudadi), &["asicat"]);
-    assert_has_lun_p(&[], &d("hve\\Y", Bhvadi), &["ahvat"]);
+    assert_has_tip(&[], &d("li\\pa~^", Tudadi), Lun, &["alipat"]);
+    assert_has_tip(&[], &d("zi\\ca~^", Tudadi), Lun, &["asicat"]);
+    assert_has_tip(&[], &d("hve\\Y", Bhvadi), Lun, &["ahvat"]);
 }
 
 #[test]
 fn sutra_3_1_54() {
-    assert_has_lun_a(&[], &d("li\\pa~^", Tudadi), &["alipata", "alipta"]);
-    assert_has_lun_a(&[], &d("zi\\ca~^", Tudadi), &["asicata", "asikta"]);
-    assert_has_lun_a(&[], &d("hve\\Y", Bhvadi), &["ahvata", "ahvAsta"]);
+    assert_has_ta(&[], &d("li\\pa~^", Tudadi), Lun, &["alipata", "alipta"]);
+    assert_has_ta(&[], &d("zi\\ca~^", Tudadi), Lun, &["asicata", "asikta"]);
+    assert_has_ta(&[], &d("hve\\Y", Bhvadi), Lun, &["ahvata", "ahvAsta"]);
 }
 
 #[test]
 fn sutra_3_1_55() {
-    assert_has_lun_p(&[], &d("pu\\za~", Divadi), &["apuzat"]);
-    assert_has_lun_p(&[], &d("dyuta~\\", Bhvadi), &["adyutat"]);
-    assert_has_lun_p(&[], &d("SvitA~\\", Bhvadi), &["aSvitat"]);
-    assert_has_lun_p(&[], &d("ga\\mx~", Bhvadi), &["agamat"]);
-    assert_has_lun_p(&[], &d("Sa\\kx~", Svadi), &["aSakat"]);
+    assert_has_tip(&[], &d("pu\\za~", Divadi), Lun, &["apuzat"]);
+    assert_has_tip(&[], &d("dyuta~\\", Bhvadi), Lun, &["adyutat"]);
+    assert_has_tip(&[], &d("SvitA~\\", Bhvadi), Lun, &["aSvitat"]);
+    assert_has_tip(&[], &d("ga\\mx~", Bhvadi), Lun, &["agamat"]);
+    assert_has_tip(&[], &d("Sa\\kx~", Svadi), Lun, &["aSakat"]);
     // parasmEpadezu
-    assert_has_lun_a(&["vi"], &d("dyuta~\\", Bhvadi), &["vyadyotizwa"]);
-    assert_has_lun_a(&[], &d("luwa~\\", Bhvadi), &["alowizwa"]);
+    assert_has_ta(&["vi"], &d("dyuta~\\", Bhvadi), Lun, &["vyadyotizwa"]);
+    assert_has_ta(&[], &d("luwa~\\", Bhvadi), Lun, &["alowizwa"]);
 }
 
 #[test]
 fn sutra_3_1_56() {
-    assert_has_lun_p(&[], &d("sf\\", Juhotyadi), &["asarat"]);
-    assert_has_lun_p(&[], &d("SAsu~", Adadi), &["aSizat"]);
-    assert_has_lun_p(&[], &d("f\\", Juhotyadi), &["Arat"]);
-    assert_has_lun_a(&["sam"], &d("f\\", Juhotyadi), &["samArata"]);
+    assert_has_tip(&[], &d("sf\\", Juhotyadi), Lun, &["asarat"]);
+    assert_has_tip(&[], &d("SAsu~", Adadi), Lun, &["aSizat"]);
+    assert_has_tip(&[], &d("f\\", Juhotyadi), Lun, &["Arat"]);
+    assert_has_ta(&["sam"], &d("f\\", Juhotyadi), Lun, &["samArata"]);
 }
 
 #[test]
 fn sutra_3_1_57() {
-    assert_has_lun_p(&[], &d("Bi\\di~^r", Rudhadi), &["aBidat", "aBEtsIt"]);
-    assert_has_lun_p(&[], &d("Ci\\di~^r", Rudhadi), &["acCidat", "acCEtsIt"]);
+    assert_has_tip(&[], &d("Bi\\di~^r", Rudhadi), Lun, &["aBidat", "aBEtsIt"]);
+    assert_has_tip(&[], &d("Ci\\di~^r", Rudhadi), Lun, &["acCidat", "acCEtsIt"]);
     // parasmEpadezu
-    assert_has_lun_a(&[], &d("Bi\\di~^r", Rudhadi), &["aBitta"]);
-    assert_has_lun_a(&[], &d("Ci\\di~^r", Rudhadi), &["acCitta"]);
+    assert_has_ta(&[], &d("Bi\\di~^r", Rudhadi), Lun, &["aBitta"]);
+    assert_has_ta(&[], &d("Ci\\di~^r", Rudhadi), Lun, &["acCitta"]);
 }
 
 #[test]
 fn sutra_3_1_58() {
-    assert_has_lun_p(&[], &d("jF", Kryadi), &["ajarat", "ajArIt"]);
-    assert_has_lun_p(&[], &d("stanBu~", Kryadi), &["astaBat", "astamBIt"]);
-    assert_has_lun_p(&[], &d("mrucu~", Bhvadi), &["amrucat", "amrocIt"]);
-    assert_has_lun_p(&[], &d("mlucu~", Bhvadi), &["amlucat", "amlocIt"]);
-    assert_has_lun_p(&[], &d("grucu~", Bhvadi), &["agrucat", "agrocIt"]);
-    assert_has_lun_p(&[], &d("glucu~", Bhvadi), &["aglucat", "aglocIt"]);
-    assert_has_lun_p(&[], &d("gluncu~", Bhvadi), &["aglucat", "agluYcIt"]);
-    assert_has_lun_p(
+    assert_has_tip(&[], &d("jF", Kryadi), Lun, &["ajarat", "ajArIt"]);
+    assert_has_tip(&[], &d("stanBu~", Kryadi), Lun, &["astaBat", "astamBIt"]);
+    assert_has_tip(&[], &d("mrucu~", Bhvadi), Lun, &["amrucat", "amrocIt"]);
+    assert_has_tip(&[], &d("mlucu~", Bhvadi), Lun, &["amlucat", "amlocIt"]);
+    assert_has_tip(&[], &d("grucu~", Bhvadi), Lun, &["agrucat", "agrocIt"]);
+    assert_has_tip(&[], &d("glucu~", Bhvadi), Lun, &["aglucat", "aglocIt"]);
+    assert_has_tip(&[], &d("gluncu~", Bhvadi), Lun, &["aglucat", "agluYcIt"]);
+    assert_has_tip(
         &[],
         &d("wuo~Svi", Bhvadi),
+        Lun,
         &["aSvat", "aSvayIt", "aSiSviyat"],
     );
 }
@@ -447,28 +465,28 @@ fn sutra_3_1_60() {
 
 #[test]
 fn sutra_3_1_61() {
-    assert_has_lun_karmani(&[], &d("dIpI~\\", Divadi), &["adIpi", "adIpizwa"]);
-    assert_has_lun_karmani(&[], &d("janI~\\", Divadi), &["ajani", "ajanizwa"]);
-    assert_has_lun_karmani(&[], &d("buDa~", Bhvadi), &["aboDi", "aboDizwa"]);
-    assert_has_lun_karmani(&[], &d("pUrI~\\", Divadi), &["apUri", "apUrizwa"]);
-    assert_has_lun_karmani(&[], &d("tAyf~\\", Bhvadi), &["atAyi", "atAyizwa"]);
-    assert_has_lun_karmani(&[], &d("o~pyAyI~\\", Bhvadi), &["apyAyi", "apyAyizwa"]);
+    assert_has_ta_k(&[], &d("dIpI~\\", Divadi), Lun, &["adIpi", "adIpizwa"]);
+    assert_has_ta_k(&[], &d("janI~\\", Divadi), Lun, &["ajani", "ajanizwa"]);
+    assert_has_ta_k(&[], &d("buDa~", Bhvadi), Lun, &["aboDi", "aboDizwa"]);
+    assert_has_ta_k(&[], &d("pUrI~\\", Divadi), Lun, &["apUri", "apUrizwa"]);
+    assert_has_ta_k(&[], &d("tAyf~\\", Bhvadi), Lun, &["atAyi", "atAyizwa"]);
+    assert_has_ta_k(&[], &d("o~pyAyI~\\", Bhvadi), Lun, &["apyAyi", "apyAyizwa"]);
 }
 
 #[test]
 fn sutra_3_1_66() {
-    assert_has_lun_karmani(&[], &d("SE\\", Bhvadi), &["aSAyi"]);
-    assert_has_lun_karmani(&[], &d("qukf\\Y", Tanadi), &["akAri"]);
-    assert_has_lun_karmani(&[], &d("hf\\Y", Bhvadi), &["ahAri"]);
+    assert_has_ta_k(&[], &d("SE\\", Bhvadi), Lun, &["aSAyi"]);
+    assert_has_ta_k(&[], &d("qukf\\Y", Tanadi), Lun, &["akAri"]);
+    assert_has_ta_k(&[], &d("hf\\Y", Bhvadi), Lun, &["ahAri"]);
 }
 
 #[test]
 fn sutra_3_1_67() {
-    assert_has_lat_karmani(&[], &d("Asa~\\", Adadi), &["Asyate"]);
-    assert_has_lat_karmani(&[], &d("SIN", Adadi), &["Sayyate"]);
-    assert_has_lat_karmani(&[], &d("qukf\\Y", Tanadi), &["kriyate"]);
-    assert_has_lat_karmani(&[], &d("ga\\mx~", Bhvadi), &["gamyate"]);
-    assert_has_lat_karmani(&[], &d("qupa\\ca~^z", Bhvadi), &["pacyate"]);
+    assert_has_ta_k(&[], &d("Asa~\\", Adadi), Lat, &["Asyate"]);
+    assert_has_ta_k(&[], &d("SIN", Adadi), Lat, &["Sayyate"]);
+    assert_has_ta_k(&[], &d("qukf\\Y", Tanadi), Lat, &["kriyate"]);
+    assert_has_ta_k(&[], &d("ga\\mx~", Bhvadi), Lat, &["gamyate"]);
+    assert_has_ta_k(&[], &d("qupa\\ca~^z", Bhvadi), Lat, &["pacyate"]);
 }
 
 #[test]
@@ -488,11 +506,11 @@ fn sutra_3_1_70() {
     assert_has_lat(&[], &d("wuBrASf~\\", Bhvadi), &["BrASyate", "BrASate"]);
     assert_has_lat(&[], &d("wuBlASf~\\", Bhvadi), &["BlASyate", "BlASate"]);
     assert_has_lat(&[], &d("Bramu~", Divadi), &["BrAmyati", "Bramati"]);
-    assert_has_lat_p(&[], &d("kramu~", Bhvadi), &["krAmyati", "krAmati"]);
+    assert_has_tip(&[], &d("kramu~", Bhvadi), Lat, &["krAmyati", "krAmati"]);
     assert_has_lat(&[], &d("klamu~", Divadi), &["klAmyati", "klAmati"]);
     assert_has_lat(&[], &d("trasI~", Divadi), &["trasyati", "trasati"]);
     assert_has_lat(&[], &d("truwa~", Tudadi), &["truwyati", "truwati"]);
-    assert_has_lat_p(&[], &d("laza~^", Bhvadi), &["lazyati", "lazati"]);
+    assert_has_tip(&[], &d("laza~^", Bhvadi), Lat, &["lazyati", "lazati"]);
 }
 
 #[test]
@@ -511,45 +529,45 @@ fn sutra_3_1_72() {
 
 #[test]
 fn sutra_3_1_73() {
-    assert_has_lat_p(&[], &d("zu\\Y", Svadi), &["sunoti"]);
-    assert_has_lat_p(&[], &d("zi\\Y", Svadi), &["sinoti"]);
+    assert_has_tip(&[], &d("zu\\Y", Svadi), Lat, &["sunoti"]);
+    assert_has_tip(&[], &d("zi\\Y", Svadi), Lat, &["sinoti"]);
 }
 
 #[test]
 fn sutra_3_1_74() {
-    assert_has_lat_p(&[], &d("Sru\\", Bhvadi), &["SfRoti"]);
+    assert_has_tip(&[], &d("Sru\\", Bhvadi), Lat, &["SfRoti"]);
 }
 
 #[test]
 fn sutra_3_1_75() {
-    assert_has_lat_p(&[], &d("akzU~", Bhvadi), &["akzRoti", "akzati"]);
+    assert_has_tip(&[], &d("akzU~", Bhvadi), Lat, &["akzRoti", "akzati"]);
 }
 
 #[test]
 fn sutra_3_1_76() {
-    assert_has_lat_p(&[], &d("takzU~", Bhvadi), &["takzRoti", "takzati"]);
+    assert_has_tip(&[], &d("takzU~", Bhvadi), Lat, &["takzRoti", "takzati"]);
 }
 
 #[test]
 fn sutra_3_1_77() {
-    assert_has_lat_p(&[], &d("tu\\da~^", Tudadi), &["tudati"]);
-    assert_has_lat_p(&[], &d("Ru\\da~^", Tudadi), &["nudati"]);
+    assert_has_tip(&[], &d("tu\\da~^", Tudadi), Lat, &["tudati"]);
+    assert_has_tip(&[], &d("Ru\\da~^", Tudadi), Lat, &["nudati"]);
 }
 
 #[test]
 fn sutra_3_1_78() {
-    assert_has_lat_p(&[], &d("ru\\Di~^r", Rudhadi), &["ruRadDi"]);
-    assert_has_lat_p(&[], &d("Bi\\di~^r", Rudhadi), &["Binatti"]);
+    assert_has_tip(&[], &d("ru\\Di~^r", Rudhadi), Lat, &["ruRadDi"]);
+    assert_has_tip(&[], &d("Bi\\di~^r", Rudhadi), Lat, &["Binatti"]);
 }
 
 #[test]
 fn sutra_3_1_79() {
-    assert_has_lat_p(&[], &d("tanu~^", Tanadi), &["tanoti"]);
-    assert_has_lat_p(&[], &d("zaRu~^", Tanadi), &["sanoti"]);
-    assert_has_lat_p(&[], &d("kzaRu~^", Tanadi), &["kzaRoti"]);
-    assert_has_lat_p(&[], &d("qukf\\Y", Tanadi), &["karoti"]);
+    assert_has_tip(&[], &d("tanu~^", Tanadi), Lat, &["tanoti"]);
+    assert_has_tip(&[], &d("zaRu~^", Tanadi), Lat, &["sanoti"]);
+    assert_has_tip(&[], &d("kzaRu~^", Tanadi), Lat, &["kzaRoti"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lat, &["karoti"]);
 
-    assert_has_lun_a(&[], &d("qukf\\Y", Tanadi), &["akfta"]);
+    assert_has_ta(&[], &d("qukf\\Y", Tanadi), Lun, &["akfta"]);
 }
 
 #[test]
@@ -560,8 +578,8 @@ fn sutra_3_1_80() {
 
 #[test]
 fn sutra_3_1_81() {
-    assert_has_lat_p(&[], &d("qukfI\\Y", Kryadi), &["krIRAti"]);
-    assert_has_lat_p(&[], &d("prI\\Y", Kryadi), &["prIRAti"]);
+    assert_has_tip(&[], &d("qukfI\\Y", Kryadi), Lat, &["krIRAti"]);
+    assert_has_tip(&[], &d("prI\\Y", Kryadi), Lat, &["prIRAti"]);
 }
 
 #[test]
@@ -570,7 +588,7 @@ fn sutra_3_1_82() {
     assert_has_lat(&[], &d("stunBu~", Kryadi), &["stuBnAti", "stuBnoti"]);
     assert_has_lat(&[], &d("skanBu~", Kryadi), &["skaBnAti", "skaBnoti"]);
     assert_has_lat(&[], &d("skunBu~", Kryadi), &["skuBnAti", "skuBnoti"]);
-    assert_has_lat_p(&[], &d("sku\\Y", Kryadi), &["skunAti", "skunoti"]);
+    assert_has_tip(&[], &d("sku\\Y", Kryadi), Lat, &["skunAti", "skunoti"]);
 }
 
 #[test]
@@ -610,8 +628,8 @@ fn sutra_3_1_93() {
     let kf = d("qukf\\Y", Tanadi);
     assert_has_krdanta(&[], &kf, Krt::tavya, &["kartavya"]);
     assert_has_krdanta(&[], &kf, Krt::anIyar, &["karaRIya"]);
-    assert_has_ashirlin_p(&[], &d("ci\\Y", Svadi), &["cIyAt"]);
-    assert_has_ashirlin_p(&[], &d("zwu\\Y", Adadi), &["stUyAt"]);
+    assert_has_tip(&[], &d("ci\\Y", Svadi), AshirLin, &["cIyAt"]);
+    assert_has_tip(&[], &d("zwu\\Y", Adadi), AshirLin, &["stUyAt"]);
 }
 
 // krt-pratyayas

@@ -21,6 +21,7 @@ pub enum Tag {
     Avyaya,
     Agama,
     Pratyaya,
+    Unadi,
     Pratipadika,
     Vibhakti,
     Sarvanama,

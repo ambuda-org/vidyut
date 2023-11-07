@@ -6,11 +6,12 @@ the standard Sanskrit alphabetical order by the aupadeshika form of the krt prat
 
 Test cases marked with *Kale* are from M. R. Kale's *A Higher Sanskrit Grammar*.
 */
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 
 /// Creates a krdanta with the given args.
-fn create_krdanta(dhatu: &str, gana: &str, krt: Krt) -> Vec<String> {
+fn create_krdanta(dhatu: &str, gana: &str, krt: BaseKrt) -> Vec<String> {
     let a = Ashtadhyayi::new();
     let dhatu = Dhatu::new(dhatu, gana.parse().expect("ok"));
     let args = KrdantaArgs::builder().krt(krt).build().unwrap();
@@ -20,7 +21,7 @@ fn create_krdanta(dhatu: &str, gana: &str, krt: Krt) -> Vec<String> {
 }
 
 /// Tests all of the given test cases against the given krt-pratyaya.
-fn test_krdanta(cases: &Vec<(&'static str, u8, &'static str)>, krt: Krt) {
+fn test_krdanta(cases: &Vec<(&'static str, u8, &'static str)>, krt: BaseKrt) {
     let mut num_errors = 0;
     for (dhatu, gana, expected) in cases {
         let mut expected: Vec<_> = expected.split('|').collect();

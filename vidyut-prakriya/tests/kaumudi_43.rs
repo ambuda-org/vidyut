@@ -1,7 +1,7 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
-use vidyut_prakriya::args::Krt;
 use vidyut_prakriya::args::Lakara::*;
 
 #[test]
@@ -2083,7 +2083,7 @@ fn sk_2313() {
 
     let kf = d("qukf\\Y", Tanadi);
     assert_has_krdanta(&[], &nic(&kf), Krt::Rvul, &["kAraka"]);
-    assert_has_lat_karmani(&[], &nic(&kf), &["kAryate"]);
+    assert_has_ta_k(&[], &nic(&kf), Lat, &["kAryate"]);
 }
 
 #[test]
@@ -3204,7 +3204,7 @@ fn sk_2353() {
     assert_has_tip(&[], &hed, Lat, &["heqati"]);
     assert_has_tip(&[], &hed, Lit, &["jiheqa"]);
     assert_has_tip(&[], &nic(&hed), Lat, &["hiqayati"]);
-    assert_has_lun_karmani(&[], &hed, &["ahiqi", "ahIqi"]);
+    assert_has_ta_k(&[], &hed, Lun, &["ahiqi", "ahIqi"]);
 
     let hed_anadare = d("heqf~", Bhvadi);
     assert_has_tip(&[], &nic(&hed_anadare), Lat, &["heqayati"]);
@@ -3223,7 +3223,7 @@ fn sk_2353() {
 
     let krath = d("kraTa~", Bhvadi);
     assert_has_tip(&[], &nic(&krath), Lat, &["krATayati"]);
-    assert_has_lun_karmani(&[], &krath, &["akraTi", "akrATi"]);
+    assert_has_ta_k(&[], &krath, Lun, &["akraTi", "akrATi"]);
     assert_has_krdanta(&[], &krath, Krt::Ramul, &["kraTam", "krATam"]);
 
     let van = d("vana~", Bhvadi);

@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
@@ -293,8 +294,8 @@ fn sutra_3_4_104() {
     assert_has_tas(&[], &jagf, AshirLin, &["jAgaryAstAm"]);
     assert_has_jhi(&[], &jagf, AshirLin, &["jAgaryAsuH"]);
     // Counterexamples
-    assert_has_vidhilin_p(&[], &d("va\\ca~", Adadi), &["vacyAt"]);
-    assert_has_vidhilin_p(&[], &jagf, &["jAgfyAt"]);
+    assert_has_tip(&[], &d("va\\ca~", Adadi), VidhiLin, &["vacyAt"]);
+    assert_has_tip(&[], &jagf, VidhiLin, &["jAgfyAt"]);
 }
 
 #[test]
@@ -374,10 +375,10 @@ fn sutra_3_4_112() {
 
 #[test]
 fn sutra_3_4_113() {
-    assert_has_lat_p(&[], &d("BU", Bhvadi), &["Bavati"]);
-    assert_has_lat_p(&[], &d("RI\\Y", Bhvadi), &["nayati"]);
-    assert_has_lat_p(&[], &d("Yizva\\pa~", Adadi), &["svapiti"]);
-    assert_has_lat_p(&[], &d("rudi~r", Adadi), &["roditi"]);
+    assert_has_tip(&[], &d("BU", Bhvadi), Lat, &["Bavati"]);
+    assert_has_tip(&[], &d("RI\\Y", Bhvadi), Lat, &["nayati"]);
+    assert_has_tip(&[], &d("Yizva\\pa~", Adadi), Lat, &["svapiti"]);
+    assert_has_tip(&[], &d("rudi~r", Adadi), Lat, &["roditi"]);
     assert_has_krdanta(&[], &d("qupa\\ca~^z", Bhvadi), Krt::SAnac, &["pacamAna"]);
     assert_has_krdanta(&[], &d("ya\\ja~^", Bhvadi), Krt::SAnac, &["yajamAna"]);
 }
@@ -401,8 +402,8 @@ fn sutra_3_4_114() {
 fn sutra_3_4_115() {
     assert_has_sip(&[], &d("qupa\\ca~^z", Adadi), Lit, &["peciTa", "papakTa"]);
     assert_has_sip(&[], &d("Sa\\kx~", Adadi), Lit, &["SekiTa", "SaSakTa"]);
-    assert_has_lit_karmani(&[], &d("glE\\", Bhvadi), &["jagle"]);
-    assert_has_lit_karmani(&[], &d("mlE\\", Bhvadi), &["mamle"]);
+    assert_has_ta_k(&[], &d("glE\\", Bhvadi), Lit, &["jagle"]);
+    assert_has_ta_k(&[], &d("mlE\\", Bhvadi), Lit, &["mamle"]);
 }
 
 #[test]
@@ -410,11 +411,11 @@ fn sutra_3_4_116() {
     let lu = d("lUY", Gana::Kryadi);
     let pu = d("pUY", Gana::Kryadi);
 
-    assert_has_ashirlin_a(&[], &lu, &["lavizIzwa"]);
-    assert_has_ashirlin_a(&[], &pu, &["pavizIzwa"]);
+    assert_has_ta(&[], &lu, AshirLin, &["lavizIzwa"]);
+    assert_has_ta(&[], &pu, AshirLin, &["pavizIzwa"]);
 
-    assert_has_vidhilin_p(&[], &lu, &["lunIyAt"]);
-    assert_has_vidhilin_p(&[], &pu, &["punIyAt"]);
+    assert_has_tip(&[], &lu, VidhiLin, &["lunIyAt"]);
+    assert_has_tip(&[], &pu, VidhiLin, &["punIyAt"]);
 }
 
 // 3.4.117 is chAndasa.

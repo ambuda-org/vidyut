@@ -16,12 +16,14 @@ mod krt;
 mod sup;
 mod taddhita;
 mod tin;
+mod unadi;
 
 pub use dhatu::*;
 pub use krt::*;
 pub use sup::*;
 pub use taddhita::*;
 pub use tin::*;
+pub use unadi::Unadi;
 
 /// Models a semantic condition that applies to the prakriya.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

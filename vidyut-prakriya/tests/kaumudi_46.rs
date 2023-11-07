@@ -408,7 +408,7 @@ fn sk_2513() {
 fn sk_2514() {
     let x = d("Sli\\za~", Divadi);
     // TODO: samAslikzat
-    assert_has_lun_karmani(&[], &x, &["aSlezi"]);
+    assert_has_ta_k(&[], &x, Lun, &["aSlezi"]);
     assert_has_aataam(&[], &x, Lun, &["aSlikzAtAm"]);
     assert_has_jha(&[], &x, Lun, &["aSlikzata"]);
     assert_has_thaas(&[], &x, Lun, &["aSlizWAH"]);
@@ -424,10 +424,8 @@ fn sk_2514() {
     assert_has_ta(&[], &x, Lrt, &["Sakzyate"]);
     assert_has_tip(&[], &x, Lat, &["aSakat"]);
     assert_has_tip(&[], &x, Lat, &["aSakta"]);
-    assert_has_ta(&[], &x, Lit, &["sewko'yamityeke"]);
     assert_has_tip(&[], &x, Lut, &["SakitA"]);
     assert_has_tip(&[], &x, Lrt, &["Sakizyati"]);
-    assert_has_tip(&[], &x, Lat, &["GarmasrutAvityarTaH"]);
     assert_has_tip(&[], &x, Lat, &["svidyati"]);
     assert_has_tip(&[], &x, Lat, &["sizveda"]);
     assert_has_tip(&[], &x, Lat, &["sizvediTa"]);
@@ -439,13 +437,10 @@ fn sk_2514() {
     assert_has_tip(&[], &x, Lat, &["SuDyati"]);
     assert_has_tip(&[], &x, Lat, &["SuSoDa"]);
     assert_has_tip(&[], &x, Lut, &["SodDA"]);
-    assert_has_tip(&[], &x, Lat, &["UditpAWaH"]);
-    assert_has_tip(&[], &x, Lat, &["prAmAdikaH"]);
     assert_has_tip(&[], &x, Lat, &["siDyati"]);
     assert_has_tip(&[], &x, Lut, &["sedDA"]);
     assert_has_tip(&[], &x, Lrt, &["setsyati"]);
     assert_has_tip(&[], &x, Lat, &["asiDat"]);
-    assert_has_tip(&[], &x, Lat, &["saMrIdDirnizpattiH"]);
     assert_has_tip(&[], &x, Lat, &["raDyati"]);
     assert_has_tas(&[], &x, Lit, &["raranDatuH"]);
 }

@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
@@ -35,8 +36,8 @@ fn sutra_7_1_2() {
     // pratyayagrahanam
     assert_has_lat(&[], &d("Pakka~", Bhvadi), &["Pakkati"]);
     assert_has_lat(&[], &d("QOkf~\\", Bhvadi), &["QOkate"]);
-    assert_has_lat_p(&[], &d("Kanu~^", Bhvadi), &["Kanati"]);
-    assert_has_lat_p(&[], &d("Ci\\di~^r", Rudhadi), &["Cinatti"]);
+    assert_has_tip(&[], &d("Kanu~^", Bhvadi), Lat, &["Kanati"]);
+    assert_has_tip(&[], &d("Ci\\di~^r", Rudhadi), Lat, &["Cinatti"]);
     assert_has_lat(&[], &d("GurRa~\\", Bhvadi), &["GUrRate"]);
 
     // TODO: others
@@ -346,17 +347,17 @@ fn sutra_7_1_33() {
 
 #[test]
 fn sutra_7_1_34() {
-    assert_has_lit_p(&[], &d("pE\\", Bhvadi), &["papO"]);
-    assert_has_lit_p(&[], &d("zWA\\", Bhvadi), &["tasTO"]);
-    assert_has_lit_p(&[], &d("glE\\", Bhvadi), &["jaglO"]);
-    assert_has_lit_p(&[], &d("mlE\\", Bhvadi), &["mamlO"]);
+    assert_has_tip(&[], &d("pE\\", Bhvadi), Lit, &["papO"]);
+    assert_has_tip(&[], &d("zWA\\", Bhvadi), Lit, &["tasTO"]);
+    assert_has_tip(&[], &d("glE\\", Bhvadi), Lit, &["jaglO"]);
+    assert_has_tip(&[], &d("mlE\\", Bhvadi), Lit, &["mamlO"]);
 }
 
 #[test]
 fn sutra_7_1_35() {
     assert_has_lot(&[], &d("jIva~", Bhvadi), &["jIvatAt", "jIvatu"]);
     assert_has_sip(&[], &d("jIva~", Bhvadi), Lot, &["jIvatAt", "jIva"]);
-    assert_has_lot_p(&[], &d("brUY", Adadi), &["brUtAt", "bravItu"]);
+    assert_has_tip(&[], &d("brUY", Adadi), Lot, &["brUtAt", "bravItu"]);
 }
 
 #[test]
@@ -457,8 +458,8 @@ fn sutra_7_1_58() {
     assert_has_krdanta(&[], &hund, Krt::a, &["huRqA"]);
 
     // no idit
-    assert_has_lat_p(&[], &d("qupa\\ca~^z", Bhvadi), &["pacati"]);
-    assert_has_lat_p(&[], &d("paWa~", Bhvadi), &["paWati"]);
+    assert_has_tip(&[], &d("qupa\\ca~^z", Bhvadi), Lat, &["pacati"]);
+    assert_has_tip(&[], &d("paWa~", Bhvadi), Lat, &["paWati"]);
 
     // irit is not idit
     assert_has_krdanta(&[], &d("Bi\\di~^r", Rudhadi), Krt::tfc, &["Bettf"]);
@@ -468,21 +469,21 @@ fn sutra_7_1_58() {
 #[test]
 fn sutra_7_1_59() {
     let muc = d("mu\\cx~^", Tudadi);
-    assert_has_lat_p(&[], &muc, &["muYcati"]);
-    assert_has_lat_p(&[], &d("lu\\px~^", Tudadi), &["lumpati"]);
-    assert_has_lat_p(&[], &d("vi\\dx~^", Tudadi), &["vindati"]);
-    assert_has_lat_p(&[], &d("li\\pa~^", Tudadi), &["limpati"]);
-    assert_has_lat_p(&[], &d("zi\\ca~^", Tudadi), &["siYcati"]);
-    assert_has_lat_p(&[], &d("kftI~", Tudadi), &["kfntati"]);
-    assert_has_lat_p(&[], &d("Ki\\da~", Tudadi), &["Kindati"]);
-    assert_has_lat_p(&[], &d("piSa~", Tudadi), &["piMSati"]);
+    assert_has_tip(&[], &muc, Lat, &["muYcati"]);
+    assert_has_tip(&[], &d("lu\\px~^", Tudadi), Lat, &["lumpati"]);
+    assert_has_tip(&[], &d("vi\\dx~^", Tudadi), Lat, &["vindati"]);
+    assert_has_tip(&[], &d("li\\pa~^", Tudadi), Lat, &["limpati"]);
+    assert_has_tip(&[], &d("zi\\ca~^", Tudadi), Lat, &["siYcati"]);
+    assert_has_tip(&[], &d("kftI~", Tudadi), Lat, &["kfntati"]);
+    assert_has_tip(&[], &d("Ki\\da~", Tudadi), Lat, &["Kindati"]);
+    assert_has_tip(&[], &d("piSa~", Tudadi), Lat, &["piMSati"]);
 
     assert_has_krdanta(&[], &muc, Krt::tfc, &["moktf"]);
     assert_has_krdanta(&[], &muc, Krt::tumun, &["moktum"]);
     assert_has_krdanta(&[], &muc, Krt::tavya, &["moktavya"]);
 
-    assert_has_lat_p(&[], &d("tu\\da~^", Tudadi), &["tudati"]);
-    assert_has_lat_p(&[], &d("Ru\\da~^", Tudadi), &["nudati"]);
+    assert_has_tip(&[], &d("tu\\da~^", Tudadi), Lat, &["tudati"]);
+    assert_has_tip(&[], &d("Ru\\da~^", Tudadi), Lat, &["nudati"]);
 
     // TODO: varttika
 }
@@ -510,9 +511,10 @@ fn sutra_7_1_60() {
 fn sutra_7_1_61() {
     let radh = d("ra\\Da~", Divadi);
     let jabh = d("jaBI~\\", Bhvadi);
-    assert_has_lat_p(
+    assert_has_tip(
         &[],
         &radh.clone().with_sanadi(&[Sanadi::Nic]),
+        Lat,
         &["ranDayati"],
     );
     assert_has_krdanta(&[], &radh, Krt::Rvul, &["ranDaka"]);
@@ -520,9 +522,10 @@ fn sutra_7_1_61() {
     assert_has_krdanta(&[], &radh, Krt::Ramul, &["ranDam"]);
     assert_has_krdanta(&[], &radh, Krt::GaY, &["ranDa"]);
 
-    assert_has_lat_p(
+    assert_has_tip(
         &[],
         &jabh.clone().with_sanadi(&[Sanadi::Nic]),
+        Lat,
         &["jamBayati"],
     );
     assert_has_krdanta(&[], &jabh, Krt::Rvul, &["jamBaka"]);
@@ -551,7 +554,7 @@ fn sutra_7_1_62() {
 #[test]
 fn sutra_7_1_63() {
     let rabh = d("ra\\Ba~\\", Bhvadi);
-    assert_has_lat_p(&["AN"], &nic(&rabh), &["AramBayati"]);
+    assert_has_tip(&["AN"], &nic(&rabh), Lat, &["AramBayati"]);
     assert_has_krdanta(&["AN"], &rabh, Krt::Rvul, &["AramBaka"]);
     assert_has_krdanta(&["AN"], &rabh, Krt::Rini, &["AramBin"]);
     assert_has_krdanta(&["AN"], &rabh, Krt::Ramul, &["AramBam"]);
@@ -567,7 +570,7 @@ fn sutra_7_1_63() {
 #[test]
 fn sutra_7_1_64() {
     let labh = d("qula\\Ba~\\z", Bhvadi);
-    assert_has_lat_p(&[], &nic(&labh), &["lamBayati"]);
+    assert_has_tip(&[], &nic(&labh), Lat, &["lamBayati"]);
     assert_has_krdanta(&[], &labh, Krt::Rvul, &["lamBaka"]);
     assert_has_krdanta(&[], &labh, Krt::Rini, &["lamBin"]);
     assert_has_krdanta(&[], &labh, Krt::Ramul, &["lamBam", "lABam"]);
@@ -640,11 +643,11 @@ fn sutra_7_1_68() {
 #[test]
 fn sutra_7_1_69() {
     let labh = d("qula\\Ba~\\z", Bhvadi);
-    assert_has_lun_karmani(&[], &labh, &["alamBi", "alABi"]);
+    assert_has_ta_k(&[], &labh, Lun, &["alamBi", "alABi"]);
     assert_has_krdanta(&[], &labh, Krt::Ramul, &["lABam", "lamBam"]);
 
     // nitya for sopasarga
-    assert_has_lun_karmani(&["pra"], &labh, &["prAlamBi"]);
+    assert_has_ta_k(&["pra"], &labh, Lun, &["prAlamBi"]);
     assert_has_krdanta(&["pra"], &labh, Krt::Ramul, &["pralamBam"]);
 }
 
@@ -818,7 +821,7 @@ fn sutra_7_1_100() {
 
 #[test]
 fn sutra_7_1_101() {
-    assert_has_lat_p(&[], &d("kFta~", Curadi), &["kIrtayati"]);
+    assert_has_tip(&[], &d("kFta~", Curadi), Lat, &["kIrtayati"]);
 }
 
 #[ignore]
@@ -826,7 +829,7 @@ fn sutra_7_1_101() {
 fn sutra_7_1_102() {
     let pf = d("pF", Juhotyadi);
     assert_has_krdanta(&[], &pf, Krt::kta, &["pUrta"]);
-    assert_has_lat_p(&[], &san(&pf), &["pupUrzati"]);
-    assert_has_lat_p(&[], &san(&d("mf\\N", Tudadi)), &["mumUrzati"]);
+    assert_has_tip(&[], &san(&pf), Lat, &["pupUrzati"]);
+    assert_has_tip(&[], &san(&d("mf\\N", Tudadi)), Lat, &["mumUrzati"]);
     // TODO: others
 }

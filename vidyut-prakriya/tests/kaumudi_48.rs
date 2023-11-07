@@ -1,7 +1,7 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
-use vidyut_prakriya::args::Krt;
 use vidyut_prakriya::args::Lakara::*;
 
 #[test]

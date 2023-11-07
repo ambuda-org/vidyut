@@ -9,7 +9,7 @@ use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::Upapada;
 use crate::args::{
-    Artha, Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, SubantaArgs,
+    Artha, BaseKrt, Dhatu, KrdantaArgs, Krt, Lakara, Linga, Pratipadika, Prayoga, SubantaArgs,
     TaddhitantaArgs, TinantaArgs,
 };
 use crate::atidesha;
@@ -79,17 +79,18 @@ fn add_lakara_and_decide_pada(p: &mut Prakriya, lakara: Lakara) {
 /// Certain krt-pratyayas are allowed only if they replace a specific lakara. To accommodate those
 /// rules, first run this check.
 fn maybe_add_lakara_for_krt(p: &mut Prakriya, krt: Krt) {
-    use Krt::*;
-    use Lakara::*;
-
-    if matches!(krt, Satf | SAnac) {
-        // TODO: also support Lrt (gamizyat) and karmani.
-        p.add_tag(Tag::Kartari);
-        add_lakara_and_decide_pada(p, Lat);
-    } else if matches!(krt, kAnac | kvasu) {
-        // TODO: also support karmani.
-        p.add_tag(Tag::Kartari);
-        add_lakara_and_decide_pada(p, Lit);
+    if let Krt::Base(b) = krt {
+        use BaseKrt::*;
+        use Lakara::*;
+        if matches!(b, Satf | SAnac) {
+            // TODO: also support Lrt (gamizyat) and karmani.
+            p.add_tag(Tag::Kartari);
+            add_lakara_and_decide_pada(p, Lat);
+        } else if matches!(b, kAnac | kvasu) {
+            // TODO: also support karmani.
+            p.add_tag(Tag::Kartari);
+            add_lakara_and_decide_pada(p, Lit);
+        }
     }
 }
 
@@ -372,7 +373,7 @@ pub struct Ashtadhyayi {
     //   `Prakriya::step` private and add a check statement in `Prakriya::op`.
     log_steps: bool,
     // If set, also generate chaandasa forms.
-    is_chandasa: bool,
+    is_chandasi: bool,
 }
 
 // TODO: better error handling.
@@ -381,7 +382,7 @@ impl Ashtadhyayi {
     pub fn new() -> Self {
         Ashtadhyayi {
             log_steps: true,
-            is_chandasa: false,
+            is_chandasi: false,
         }
     }
 
@@ -413,9 +414,9 @@ impl Ashtadhyayi {
     /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_tinantas(&self, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
-        let mut stack = PrakriyaStack::new();
+        let mut stack = self.create_prakriya_stack();
         // TODO: handle error properly.
-        stack.find_all(|p| derive_tinanta(p, dhatu, args), self.log_steps);
+        stack.find_all(|p| derive_tinanta(p, dhatu, args));
         let mut prakriyas = stack.prakriyas();
 
         // If the caller specified an explicit pada, keep only the results that match that pada.
@@ -454,8 +455,8 @@ impl Ashtadhyayi {
     /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_subantas(&self, pratipadika: &Pratipadika, args: &SubantaArgs) -> Vec<Prakriya> {
-        let mut stack = PrakriyaStack::new();
-        stack.find_all(|p| derive_subanta(p, pratipadika, args), self.log_steps);
+        let mut stack = self.create_prakriya_stack();
+        stack.find_all(|p| derive_subanta(p, pratipadika, args));
         stack.prakriyas()
     }
 
@@ -478,8 +479,8 @@ impl Ashtadhyayi {
     /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_krdantas(&self, dhatu: &Dhatu, args: &KrdantaArgs) -> Vec<Prakriya> {
-        let mut stack = PrakriyaStack::new();
-        stack.find_all(|p| derive_krdanta(p, dhatu, args), self.log_steps);
+        let mut stack = self.create_prakriya_stack();
+        stack.find_all(|p| derive_krdanta(p, dhatu, args));
         stack.prakriyas()
     }
 
@@ -506,16 +507,20 @@ impl Ashtadhyayi {
         pratipadika: &Pratipadika,
         args: &TaddhitantaArgs,
     ) -> Vec<Prakriya> {
-        let mut stack = PrakriyaStack::new();
-        stack.find_all(|p| derive_taddhitanta(p, pratipadika, args), self.log_steps);
+        let mut stack = self.create_prakriya_stack();
+        stack.find_all(|p| derive_taddhitanta(p, pratipadika, args));
         stack.prakriyas()
     }
 
     /// Returns all possible sandhi results that follow from the given initial conditions.
     pub fn derive_vakyas(&self, first: impl AsRef<str>, second: impl AsRef<str>) -> Vec<Prakriya> {
-        let mut stack = PrakriyaStack::new();
-        stack.find_all(|p| derive_vakya(p, &first, &second), self.log_steps);
+        let mut stack = self.create_prakriya_stack();
+        stack.find_all(|p| derive_vakya(p, &first, &second));
         stack.prakriyas()
+    }
+
+    fn create_prakriya_stack(&self) -> PrakriyaStack {
+        PrakriyaStack::new(self.log_steps, self.is_chandasi)
     }
 }
 
@@ -551,7 +556,7 @@ impl AshtadhyayiBuilder {
     ///
     /// - If `false`, each `Prakriya` will use a standard ruleset.
     pub fn is_chandasa(mut self, value: bool) -> Self {
-        self.a.is_chandasa = value;
+        self.a.is_chandasi = value;
         self
     }
 

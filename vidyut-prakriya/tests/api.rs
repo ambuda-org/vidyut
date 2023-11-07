@@ -1,7 +1,10 @@
-/// Basic tests against our high-level API. These tests verify two important things:
-///
-/// 1. That the API contract hasn't changed unexpectedly.
-/// 2. That the function can handle pathological input without panicking.
+/*!
+Basic tests against our high-level API. These tests verify two important things:
+
+1. That the API contract hasn't changed unexpectedly.
+2. That the function can handle pathological input without panicking.
+*/
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 

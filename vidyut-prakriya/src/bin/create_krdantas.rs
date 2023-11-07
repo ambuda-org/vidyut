@@ -6,14 +6,14 @@ use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{KrdantaArgs, Krt};
+use vidyut_prakriya::args::{KrdantaArgs, BaseKrt};
 use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Args {
     #[arg(long)]
-    krt: Krt,
+    krt: BaseKrt,
 }
 
 #[derive(Debug, Serialize)]

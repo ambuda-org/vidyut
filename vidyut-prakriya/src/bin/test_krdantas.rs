@@ -2,7 +2,7 @@
 use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
-use vidyut_prakriya::args::KrdantaArgs;
+use vidyut_prakriya::args::{BaseKrt, KrdantaArgs};
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::private::check_file_hash;
 use vidyut_prakriya::Ashtadhyayi;
@@ -35,7 +35,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         let number = &r[3];
         let dhatu = dhatupatha::create_dhatu(upadesha, gana.parse()?, number.parse()?)?;
 
-        let krt = r[4].parse()?;
+        let krt: BaseKrt = r[4].parse()?;
 
         let krdanta_args = KrdantaArgs::builder().krt(krt).build()?;
 

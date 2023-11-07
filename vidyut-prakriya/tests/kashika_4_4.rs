@@ -5,6 +5,7 @@
 /// system does not model semantics, we have no easy way to implement apavada tests in practice.
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
@@ -549,4 +550,16 @@ fn sutra_4_4_83() {
     assert_has_artha_taddhita("pAda", TadVidhyati, T::yat, &["padya"]);
     assert_has_artha_taddhita("Uru", TadVidhyati, T::yat, &["Uravya"]);
     // TODO: a-DanuzA
+}
+
+#[test]
+fn sutra_4_4_91() {
+    assert_has_taddhitanta(&prati("nO"), T::yat, &["nAvya"]);
+    assert_has_taddhitanta(&prati("vayas"), T::yat, &["vayasya"]);
+    assert_has_taddhitanta(&prati("Darma"), T::yat, &["Darmya"]);
+    assert_has_taddhitanta(&prati("viza"), T::yat, &["vizya"]);
+    assert_has_taddhitanta(&prati("mUla"), T::yat, &["mUlya"]);
+    assert_has_taddhitanta(&prati("sItA"), T::yat, &["sItya"]);
+    assert_has_taddhitanta(&prati("tulA"), T::yat, &["tulya"]);
+    // TODO: others
 }

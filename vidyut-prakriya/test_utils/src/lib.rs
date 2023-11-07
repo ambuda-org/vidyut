@@ -7,12 +7,369 @@ manage the boilerplate required for these assertions.
 extern crate vidyut_prakriya;
 
 use vidyut_prakriya::args::Antargana;
+use vidyut_prakriya::args::Purusha as P;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Ashtadhyayi;
 use vidyut_prakriya::Prakriya;
 use vidyut_prakriya::Rule;
+
+/// A handy way to manage various assertions.
+///
+/// `Ashtadhyayi` with its default settings will ignore certain rules. Some of these rules are
+/// chAndasa rules, meaning that they apply only in Vedic usage. Other rules are valid options but
+/// will overgenerate, which adds too much noise to our other tests.
+///
+/// To test these ignored rules, we can create a new `Tester` that uses the `Ashtadhyayi` settings we
+/// specify. For convenience, all of these methods have wrapper functions that assume the
+/// default settings for `Ashtadhyayi`.
+pub struct Tester {
+    ashtadhyayi: Ashtadhyayi,
+}
+
+impl Tester {
+    /// Creates a tester with our default settings.
+    pub fn new(ashtadhyayi: Ashtadhyayi) -> Self {
+        Self { ashtadhyayi }
+    }
+
+    /// Creates a tester that enables chAndasa rules.
+    pub fn with_chaandasa() -> Self {
+        Self {
+            ashtadhyayi: Ashtadhyayi::builder().is_chandasa(true).build(),
+        }
+    }
+
+    /// Asserts that the given input conditions produce the tinantas `expected`.
+    fn assert_has_tin(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        lakara: Lakara,
+        purusha: Purusha,
+        vacana: Vacana,
+        expected: &[&str],
+    ) {
+        let args = TinantaArgs::builder()
+            .prayoga(Prayoga::Kartari)
+            .purusha(purusha)
+            .vacana(vacana)
+            .lakara(lakara)
+            .build()
+            .unwrap();
+        let actual = derive_tinantas(
+            &self.ashtadhyayi,
+            &dhatu.clone().with_prefixes(prefixes),
+            &args,
+        );
+        assert_padas(actual, expected);
+    }
+
+    /// Asserts that the given input conditions produce the parasmaipada tinantas in `expected`.
+    fn assert_has_parasmai_tin(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        lakara: Lakara,
+        purusha: Purusha,
+        vacana: Vacana,
+        expected: &[&str],
+    ) {
+        let args = TinantaArgs::builder()
+            .prayoga(Prayoga::Kartari)
+            .purusha(purusha)
+            .vacana(vacana)
+            .lakara(lakara)
+            .pada(Pada::Parasmai)
+            .build()
+            .unwrap();
+        let actual = derive_tinantas(
+            &self.ashtadhyayi,
+            &dhatu.clone().with_prefixes(prefixes),
+            &args,
+        );
+        assert_padas(actual, expected);
+    }
+
+    /// Asserts that the given input conditions produce the Atmanepada tinantas in `expected`.
+    fn assert_has_atmane_tin(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        lakara: Lakara,
+        purusha: Purusha,
+        vacana: Vacana,
+        expected: &[&str],
+    ) {
+        let args = TinantaArgs::builder()
+            .prayoga(Prayoga::Kartari)
+            .purusha(purusha)
+            .vacana(vacana)
+            .lakara(lakara)
+            .pada(Pada::Atmane)
+            .build()
+            .unwrap();
+        let actual = derive_tinantas(
+            &self.ashtadhyayi,
+            &dhatu.clone().with_prefixes(prefixes),
+            &args,
+        );
+        assert_padas(actual, expected);
+    }
+
+    /// Asserts that the given input conditions produce the karmaNi-prayoga tinantas in `expected`.
+    pub fn assert_has_karmani_tin(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        lakara: Lakara,
+        purusha: Purusha,
+        vacana: Vacana,
+        expected: &[&str],
+    ) {
+        let args = TinantaArgs::builder()
+            .prayoga(Prayoga::Karmani)
+            .purusha(purusha)
+            .vacana(vacana)
+            .lakara(lakara)
+            .build()
+            .unwrap();
+        let actual = derive_tinantas(
+            &self.ashtadhyayi,
+            &dhatu.clone().with_prefixes(prefixes),
+            &args,
+        );
+        assert_padas(actual, expected);
+    }
+
+    /// Asserts that the given input conditions produce the prathamA-eka tinantas in `expected`
+    fn assert_has_lakara(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_tin(prefixes, dhatu, la, P::Prathama, Eka, expected);
+    }
+
+    pub fn assert_has_tip(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Prathama, Eka, expected);
+    }
+
+    pub fn assert_has_tas(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Prathama, Dvi, expected);
+    }
+
+    pub fn assert_has_jhi(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Prathama, Bahu, expected);
+    }
+
+    pub fn assert_has_sip(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Madhyama, Eka, expected);
+    }
+
+    pub fn assert_has_thas(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Madhyama, Dvi, expected);
+    }
+
+    pub fn assert_has_tha(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Madhyama, Bahu, expected);
+    }
+
+    pub fn assert_has_mip(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Uttama, Eka, expected);
+    }
+
+    pub fn assert_has_vas(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Uttama, Dvi, expected);
+    }
+
+    pub fn assert_has_mas(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_parasmai_tin(prefixes, dhatu, la, P::Uttama, Bahu, expected);
+    }
+
+    pub fn assert_has_ta(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Prathama, Eka, expected);
+    }
+
+    pub fn assert_has_aataam(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Prathama, Dvi, expected);
+    }
+
+    pub fn assert_has_jha(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Prathama, Bahu, expected);
+    }
+
+    pub fn assert_has_thaas(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Madhyama, Eka, expected);
+    }
+
+    pub fn assert_has_aathaam(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Madhyama, Dvi, expected);
+    }
+
+    pub fn assert_has_dhvam(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Madhyama, Bahu, expected);
+    }
+
+    pub fn assert_has_iw(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Uttama, Eka, expected);
+    }
+
+    pub fn assert_has_vahi(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Uttama, Dvi, expected);
+    }
+
+    pub fn assert_has_mahin(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_atmane_tin(prefixes, dhatu, la, P::Uttama, Bahu, expected);
+    }
+
+    pub fn assert_has_ta_k(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Prathama, Eka, expected);
+    }
+
+    pub fn assert_has_aataam_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Prathama, Dvi, expected);
+    }
+
+    pub fn assert_has_jha_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Prathama, Bahu, expected);
+    }
+
+    pub fn assert_has_thaas_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Madhyama, Eka, expected);
+    }
+
+    pub fn assert_has_aathaam_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Madhyama, Dvi, expected);
+    }
+
+    pub fn assert_has_dhvam_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Madhyama, Bahu, expected);
+    }
+
+    pub fn assert_has_iw_k(&self, prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Uttama, Eka, expected);
+    }
+
+    pub fn assert_has_vahi_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Uttama, Dvi, expected);
+    }
+
+    pub fn assert_has_mahin_k(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        la: Lakara,
+        expected: &[&str],
+    ) {
+        self.assert_has_karmani_tin(prefixes, dhatu, la, P::Uttama, Bahu, expected);
+    }
+
+    fn assert_has_sup(
+        &self,
+        pratipadika: &Pratipadika,
+        linga: Linga,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+        expected: &[&str],
+    ) {
+        let args = SubantaArgs::builder()
+            .linga(linga)
+            .vacana(vacana)
+            .vibhakti(vibhakti)
+            .build()
+            .unwrap();
+
+        let results = self.ashtadhyayi.derive_subantas(pratipadika, &args);
+        let actual = sanitize_results(results);
+        assert_padas(actual, expected);
+    }
+
+    pub fn assert_has_krt(
+        &self,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        krt: impl Into<Krt>,
+        expected: &[&str],
+    ) {
+        let args = KrdantaArgs::builder().krt(krt.into()).build().unwrap();
+        let actual = derive_krdantas(
+            &self.ashtadhyayi,
+            &dhatu.clone().with_prefixes(prefixes),
+            args,
+        );
+        assert_padas(actual, expected);
+    }
+}
+
+impl Default for Tester {
+    fn default() -> Self {
+        Self::new(Ashtadhyayi::new())
+    }
+}
 
 // Derivation helpers
 // ------------------
@@ -35,15 +392,13 @@ fn sanitize_results(mut results: Vec<Prakriya>) -> Vec<Prakriya> {
 }
 
 /// Derives tinantas from the given initial conditions.
-fn derive_tinantas(dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
-    let a = Ashtadhyayi::new();
+fn derive_tinantas(a: &Ashtadhyayi, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
     let results = a.derive_tinantas(dhatu, args);
     sanitize_results(results)
 }
 
 /// Derives krdantas from the given initial conditions.
-fn derive_krdantas(dhatu: &Dhatu, args: KrdantaArgs) -> Vec<Prakriya> {
-    let a = Ashtadhyayi::new();
+fn derive_krdantas(a: &Ashtadhyayi, dhatu: &Dhatu, args: KrdantaArgs) -> Vec<Prakriya> {
     let mut results = a.derive_krdantas(dhatu, &args);
     results.sort_by_key(|p| p.text());
     results.dedup_by_key(|p| p.text());
@@ -68,12 +423,6 @@ fn derive_taddhitantas(p: &Pratipadika, t: Taddhita, a: Option<TaddhitaArtha>) -
     sanitize_results(results)
 }
 
-fn derive_subantas(pratipadika: &Pratipadika, args: SubantaArgs) -> Vec<Prakriya> {
-    let a = Ashtadhyayi::new();
-    let results = a.derive_subantas(pratipadika, &args);
-    sanitize_results(results)
-}
-
 /// Derives vakyas from the given initial conditions.
 fn derive_vakyas(first: &str, second: &str) -> Vec<Prakriya> {
     let a = Ashtadhyayi::new();
@@ -83,33 +432,6 @@ fn derive_vakyas(first: &str, second: &str) -> Vec<Prakriya> {
     results
 }
 
-/// Derives the prathama-eka forms of the given lakara.
-fn derive_lakara(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Prakriya> {
-    let dhatu = dhatu.clone().with_prefixes(prefixes);
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Eka)
-        .lakara(lakara)
-        .build()
-        .unwrap();
-
-    derive_tinantas(&dhatu, &args)
-}
-
-/// Derives the karmani-prathama-eka forms of the given lakara.
-fn derive_karmani(prefixes: &[&str], dhatu: &Dhatu, lakara: Lakara) -> Vec<Prakriya> {
-    let dhatu = dhatu.clone().with_prefixes(prefixes);
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Karmani)
-        .purusha(Purusha::Prathama)
-        .vacana(Eka)
-        .lakara(lakara)
-        .build()
-        .unwrap();
-    derive_tinantas(&dhatu, &args)
-}
-
 fn debug_text(rule: Rule) -> String {
     match rule {
         Rule::Ashtadhyayi(x) => x.to_string(),
@@ -117,7 +439,7 @@ fn debug_text(rule: Rule) -> String {
         Rule::Kashika(x) => format!("kA {x}"),
         Rule::Kaumudi(x) => format!("kO {x}"),
         Rule::Linganushasana(x) => format!("Li {x}"),
-        Rule::Unadi(x) => format!("uRA {x}"),
+        Rule::UP(x) => format!("uRA {x}"),
     }
 }
 
@@ -179,77 +501,8 @@ pub fn assert_has_tinanta(
     vacana: Vacana,
     expected: &[&str],
 ) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Kartari)
-        .purusha(purusha)
-        .vacana(vacana)
-        .lakara(lakara)
-        .build()
-        .unwrap();
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
-    assert_padas(actual, expected);
-}
-
-/// Checks parasmaipada + the given lakara/purusha/vacana
-fn assert_has_parasmai_tinanta(
-    prefixes: &[&str],
-    dhatu: &Dhatu,
-    lakara: Lakara,
-    purusha: Purusha,
-    vacana: Vacana,
-    expected: &[&str],
-) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Kartari)
-        .purusha(purusha)
-        .vacana(vacana)
-        .lakara(lakara)
-        .pada(Pada::Parasmai)
-        .build()
-        .unwrap();
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
-    assert_padas(actual, expected);
-}
-
-/// Checks atmanepada + the given lakara/purusha/vacana
-fn assert_has_atmane_tinanta(
-    prefixes: &[&str],
-    dhatu: &Dhatu,
-    lakara: Lakara,
-    purusha: Purusha,
-    vacana: Vacana,
-    expected: &[&str],
-) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Kartari)
-        .purusha(purusha)
-        .vacana(vacana)
-        .lakara(lakara)
-        .pada(Pada::Atmane)
-        .build()
-        .unwrap();
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
-    assert_padas(actual, expected);
-}
-
-/// Checks karmani + the given lakara/purusha/vacana
-pub fn assert_has_karmani_tinanta(
-    prefixes: &[&str],
-    dhatu: &Dhatu,
-    lakara: Lakara,
-    purusha: Purusha,
-    vacana: Vacana,
-    expected: &[&str],
-) {
-    let args = TinantaArgs::builder()
-        .prayoga(Prayoga::Karmani)
-        .purusha(purusha)
-        .vacana(vacana)
-        .lakara(lakara)
-        .build()
-        .unwrap();
-    let actual = derive_tinantas(&dhatu.clone().with_prefixes(prefixes), &args);
-    assert_padas(actual, expected);
+    let t = Tester::default();
+    t.assert_has_tin(prefixes, dhatu, lakara, purusha, vacana, expected);
 }
 
 pub fn assert_has_sandhi(first: &str, second: &str, expected: &[&str]) {
@@ -354,306 +607,94 @@ pub fn dhatu_prati(text: &str) -> Pratipadika {
         .unwrap()
 }
 
-// Tinanta helpers (based on final suffix)
-// ---------------------------------------
-
-pub fn assert_has_tip(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Prathama, Eka, expected);
+/// Creates a function alias `fn_name` that points to the method of the same name on a default
+/// `Tester` instance.
+macro_rules! test_tin {
+    ($fn_name:ident) => {
+        pub fn $fn_name(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
+            let t = Tester::default();
+            t.$fn_name(prefixes, dhatu, la, expected);
+        }
+    };
 }
 
-pub fn assert_has_tas(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Prathama, Dvi, expected);
+test_tin!(assert_has_tip);
+test_tin!(assert_has_tas);
+test_tin!(assert_has_jhi);
+test_tin!(assert_has_sip);
+test_tin!(assert_has_thas);
+test_tin!(assert_has_tha);
+test_tin!(assert_has_mip);
+test_tin!(assert_has_vas);
+test_tin!(assert_has_mas);
+
+test_tin!(assert_has_ta);
+test_tin!(assert_has_aataam);
+test_tin!(assert_has_jha);
+test_tin!(assert_has_thaas);
+test_tin!(assert_has_aathaam);
+test_tin!(assert_has_dhvam);
+test_tin!(assert_has_iw);
+test_tin!(assert_has_vahi);
+test_tin!(assert_has_mahin);
+
+test_tin!(assert_has_ta_k);
+test_tin!(assert_has_aataam_k);
+test_tin!(assert_has_jha_k);
+test_tin!(assert_has_thaas_k);
+test_tin!(assert_has_aathaam_k);
+test_tin!(assert_has_dhvam_k);
+test_tin!(assert_has_iw_k);
+test_tin!(assert_has_vahi_k);
+test_tin!(assert_has_mahin_k);
+
+macro_rules! test_la {
+    ($fn_name:ident, $la:expr) => {
+        pub fn $fn_name(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
+            let t = Tester::default();
+            t.assert_has_lakara(prefixes, dhatu, $la, expected);
+        }
+    };
 }
 
-pub fn assert_has_jhi(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Prathama, Bahu, expected);
-}
-
-pub fn assert_has_sip(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Eka, expected);
-}
-
-pub fn assert_has_thas(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Dvi, expected);
-}
-
-pub fn assert_has_tha(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Bahu, expected);
-}
-
-pub fn assert_has_mip(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Uttama, Eka, expected);
-}
-
-pub fn assert_has_vas(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Uttama, Dvi, expected);
-}
-
-pub fn assert_has_mas(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_parasmai_tinanta(prefixes, dhatu, la, Purusha::Uttama, Bahu, expected);
-}
-
-pub fn assert_has_ta(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Prathama, Eka, expected);
-}
-
-pub fn assert_has_aataam(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Prathama, Dvi, expected);
-}
-
-pub fn assert_has_jha(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Prathama, Bahu, expected);
-}
-
-pub fn assert_has_thaas(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Eka, expected);
-}
-
-pub fn assert_has_aathaam(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Dvi, expected);
-}
-
-pub fn assert_has_dhvam(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Bahu, expected);
-}
-
-pub fn assert_has_iw(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Uttama, Eka, expected);
-}
-
-pub fn assert_has_vahi(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Uttama, Dvi, expected);
-}
-
-pub fn assert_has_mahin(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_atmane_tinanta(prefixes, dhatu, la, Purusha::Uttama, Bahu, expected);
-}
-
-pub fn assert_has_ta_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Prathama, Eka, expected);
-}
-
-pub fn assert_has_aataam_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Prathama, Dvi, expected);
-}
-
-pub fn assert_has_jha_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Prathama, Bahu, expected);
-}
-
-pub fn assert_has_thaas_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Eka, expected);
-}
-
-pub fn assert_has_aathaam_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Dvi, expected);
-}
-
-pub fn assert_has_dhvam_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Madhyama, Bahu, expected);
-}
-
-pub fn assert_has_iw_k(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Uttama, Eka, expected);
-}
-
-pub fn assert_has_vahi_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Uttama, Dvi, expected);
-}
-
-pub fn assert_has_mahin_karmani(prefixes: &[&str], dhatu: &Dhatu, la: Lakara, expected: &[&str]) {
-    assert_has_karmani_tinanta(prefixes, dhatu, la, Purusha::Uttama, Bahu, expected);
-}
-
-// Tinanta helpers (based on lakara suffix)
-// ----------------------------------------
-
-pub fn assert_has_lat(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lat);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lat_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lat, expected);
-}
-
-pub fn assert_has_lat_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::Lat, expected);
-}
-
-pub fn assert_has_lat_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lat);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lit(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lit);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lit_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lit, expected);
-}
-
-pub fn assert_has_lit_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lit);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lut(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lut);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lut_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lut, expected);
-}
-
-pub fn assert_has_lut_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lut);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrt(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lrt);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrt_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lrt, expected);
-}
-
-pub fn assert_has_lrt_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::Lrt, expected);
-}
-
-pub fn assert_has_lrt_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lrt);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lot(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lot);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lot_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lot, expected);
-}
-
-pub fn assert_has_lot_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::Lot, expected);
-}
-
-pub fn assert_has_lan(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lan);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lan_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lan, expected);
-}
-
-pub fn assert_has_lan_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::Lan, expected);
-}
-
-pub fn assert_has_lan_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lan);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_ashirlin(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::AshirLin);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_ashirlin_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::AshirLin, expected);
-}
-
-pub fn assert_has_ashirlin_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::AshirLin, expected);
-}
-
-pub fn assert_has_ashirlin_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::AshirLin);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_vidhilin(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::VidhiLin);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_vidhilin_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::VidhiLin, expected);
-}
-
-pub fn assert_has_vidhilin_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::VidhiLin, expected);
-}
-
-pub fn assert_has_lun(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lun);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lun_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lun, expected);
-}
-
-pub fn assert_has_lun_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::Lun, expected);
-}
-
-pub fn assert_has_lun_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lun);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrn(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_lakara(prefixes, dhatu, Lakara::Lrn);
-    assert_padas(actual, expected);
-}
-
-pub fn assert_has_lrn_p(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_tip(prefixes, dhatu, Lakara::Lrn, expected);
-}
-
-pub fn assert_has_lrn_a(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    assert_has_ta(prefixes, dhatu, Lakara::Lrn, expected);
-}
-
-pub fn assert_has_lrn_karmani(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
-    let actual = derive_karmani(prefixes, dhatu, Lakara::Lrn);
-    assert_padas(actual, expected);
-}
+test_la!(assert_has_lat, Lakara::Lat);
+test_la!(assert_has_lit, Lakara::Lit);
+test_la!(assert_has_lut, Lakara::Lut);
+test_la!(assert_has_lrt, Lakara::Lrt);
+test_la!(assert_has_lot, Lakara::Lot);
+test_la!(assert_has_lan, Lakara::Lan);
+test_la!(assert_has_ashirlin, Lakara::AshirLin);
+test_la!(assert_has_vidhilin, Lakara::VidhiLin);
+test_la!(assert_has_lun, Lakara::Lun);
+test_la!(assert_has_lrn, Lakara::Lrn);
 
 // Krdanta helpers
 // ---------------
 
-pub fn assert_has_krdanta(prefixes: &[&str], dhatu: &Dhatu, krt: Krt, expected: &[&str]) {
-    let args = KrdantaArgs::builder().krt(krt).build().unwrap();
-    assert_padas(
-        derive_krdantas(&dhatu.clone().with_prefixes(prefixes), args),
-        expected,
-    );
+pub fn assert_has_krdanta(
+    prefixes: &[&str],
+    dhatu: &Dhatu,
+    krt: impl Into<Krt>,
+    expected: &[&str],
+) {
+    let t = Tester::default();
+    t.assert_has_krt(prefixes, dhatu, krt, expected);
 }
 
 pub fn assert_has_artha_krdanta(
     upapadas: &[&str],
     dhatu: &Dhatu,
     requested_artha: KrtArtha,
-    krt: Krt,
+    krt: impl Into<Krt>,
     expected: &[&str],
 ) {
+    let a = Ashtadhyayi::new();
     let args = KrdantaArgs::builder()
-        .krt(krt)
+        .krt(krt.into())
         .artha(requested_artha)
         .build()
         .unwrap();
-    let mut prakriyas = derive_krdantas(&dhatu.clone().with_prefixes(upapadas), args);
+    let mut prakriyas = derive_krdantas(&a, &dhatu.clone().with_prefixes(upapadas), args);
 
     prakriyas.retain(|p| {
         if let Some(Artha::Krt(prakriya_artha)) = p.artha() {
@@ -669,16 +710,17 @@ pub fn assert_has_upapada_krdanta(
     upapada: &str,
     prefixes: &[&str],
     dhatu: &Dhatu,
-    krt: Krt,
+    krt: impl Into<Krt>,
     expected: &[&str],
 ) {
+    let a = Ashtadhyayi::new();
     let args = KrdantaArgs::builder()
-        .krt(krt)
+        .krt(krt.into())
         .upapada(Upapada::make_subanta(upapada))
         .build()
         .unwrap();
     assert_padas(
-        derive_krdantas(&dhatu.clone().with_prefixes(prefixes), args),
+        derive_krdantas(&a, &dhatu.clone().with_prefixes(prefixes), args),
         expected,
     );
 }
@@ -687,16 +729,17 @@ pub fn assert_has_upapada_krdanta_raw(
     upapada: Upapada,
     prefixes: &[&str],
     dhatu: &Dhatu,
-    krt: Krt,
+    krt: impl Into<Krt>,
     expected: &[&str],
 ) {
+    let a = Ashtadhyayi::new();
     let args = KrdantaArgs::builder()
-        .krt(krt)
+        .krt(krt.into())
         .upapada(upapada)
         .build()
         .unwrap();
     assert_padas(
-        derive_krdantas(&dhatu.clone().with_prefixes(prefixes), args),
+        derive_krdantas(&a, &dhatu.clone().with_prefixes(prefixes), args),
         expected,
     );
 }
@@ -728,24 +771,6 @@ pub fn assert_has_artha_taddhita(
 
 // Subanta helpers
 // ---------------
-
-fn assert_has_subantas_p(
-    pratipadika: &Pratipadika,
-    linga: Linga,
-    vibhakti: Vibhakti,
-    vacana: Vacana,
-    expected: &[&str],
-) {
-    let args = SubantaArgs::builder()
-        .linga(linga)
-        .vacana(vacana)
-        .vibhakti(vibhakti)
-        .build()
-        .unwrap();
-
-    let actual = derive_subantas(pratipadika, args);
-    assert_padas(actual, expected);
-}
 
 /// Like `assert_has_subantas_p` but without any filtering on the last sound.
 /// (Needed for 8.4.56.)
@@ -788,98 +813,37 @@ impl Prati for &str {
     }
 }
 
-pub fn assert_has_sup_1s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Prathama, Eka, &expected);
+macro_rules! test_sup {
+    ($fn_name:ident, $vibhakti:expr, $vacana:expr) => {
+        pub fn $fn_name(prati: impl Prati, linga: Linga, expected: &[&str]) {
+            let t = Tester::default();
+            t.assert_has_sup(&prati.to_p(), linga, $vibhakti, $vacana, &expected);
+        }
+    };
 }
 
-pub fn assert_has_sup_1d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Prathama, Dvi, &expected);
-}
-
-pub fn assert_has_sup_1p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Prathama, Bahu, &expected);
-}
-
-pub fn assert_has_sup_2s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Dvitiya, Eka, &expected);
-}
-
-pub fn assert_has_sup_2d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Dvitiya, Dvi, &expected);
-}
-
-pub fn assert_has_sup_2p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Dvitiya, Bahu, &expected);
-}
-
-pub fn assert_has_sup_3s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Trtiya, Eka, &expected);
-}
-
-pub fn assert_has_sup_3d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Trtiya, Dvi, &expected);
-}
-
-pub fn assert_has_sup_3p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Trtiya, Bahu, &expected);
-}
-
-pub fn assert_has_sup_4s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Caturthi, Eka, &expected);
-}
-
-pub fn assert_has_sup_4d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Caturthi, Dvi, &expected);
-}
-
-pub fn assert_has_sup_4p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Caturthi, Bahu, &expected);
-}
-
-pub fn assert_has_sup_5s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Panchami, Eka, &expected);
-}
-
-pub fn assert_has_sup_5d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Panchami, Dvi, &expected);
-}
-
-pub fn assert_has_sup_5p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Panchami, Bahu, &expected);
-}
-
-pub fn assert_has_sup_6s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Sasthi, Eka, &expected);
-}
-
-pub fn assert_has_sup_6d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Sasthi, Dvi, &expected);
-}
-
-pub fn assert_has_sup_6p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Sasthi, Bahu, &expected);
-}
-
-pub fn assert_has_sup_7s(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Saptami, Eka, &expected);
-}
-
-pub fn assert_has_sup_7d(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Saptami, Dvi, &expected);
-}
-
-pub fn assert_has_sup_7p(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Saptami, Bahu, &expected);
-}
-
-pub fn assert_has_sup_ss(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Sambodhana, Eka, &expected);
-}
-
-pub fn assert_has_sup_sd(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Sambodhana, Dvi, &expected);
-}
-
-pub fn assert_has_sup_sp(prati: impl Prati, linga: Linga, expected: &[&str]) {
-    assert_has_subantas_p(&prati.to_p(), linga, Sambodhana, Bahu, &expected);
-}
+// TODO: move these to Tester.
+test_sup!(assert_has_sup_1s, Prathama, Eka);
+test_sup!(assert_has_sup_1d, Prathama, Dvi);
+test_sup!(assert_has_sup_1p, Prathama, Bahu);
+test_sup!(assert_has_sup_2s, Dvitiya, Eka);
+test_sup!(assert_has_sup_2d, Dvitiya, Dvi);
+test_sup!(assert_has_sup_2p, Dvitiya, Bahu);
+test_sup!(assert_has_sup_3s, Trtiya, Eka);
+test_sup!(assert_has_sup_3d, Trtiya, Dvi);
+test_sup!(assert_has_sup_3p, Trtiya, Bahu);
+test_sup!(assert_has_sup_4s, Caturthi, Eka);
+test_sup!(assert_has_sup_4d, Caturthi, Dvi);
+test_sup!(assert_has_sup_4p, Caturthi, Bahu);
+test_sup!(assert_has_sup_5s, Panchami, Eka);
+test_sup!(assert_has_sup_5d, Panchami, Dvi);
+test_sup!(assert_has_sup_5p, Panchami, Bahu);
+test_sup!(assert_has_sup_6s, Sasthi, Eka);
+test_sup!(assert_has_sup_6d, Sasthi, Dvi);
+test_sup!(assert_has_sup_6p, Sasthi, Bahu);
+test_sup!(assert_has_sup_7s, Saptami, Eka);
+test_sup!(assert_has_sup_7d, Saptami, Dvi);
+test_sup!(assert_has_sup_7p, Saptami, Bahu);
+test_sup!(assert_has_sup_ss, Sambodhana, Eka);
+test_sup!(assert_has_sup_sd, Sambodhana, Dvi);
+test_sup!(assert_has_sup_sp, Sambodhana, Bahu);

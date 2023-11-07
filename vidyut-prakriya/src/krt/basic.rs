@@ -58,9 +58,9 @@ are true:
 */
 
 use crate::args::Gana;
-use crate::args::Krt;
 use crate::args::KrtArtha::*;
 use crate::args::Taddhita;
+use crate::args::{BaseKrt, Krt};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::krt::utils::KrtPrakriya;
@@ -84,7 +84,7 @@ lazy_static! {
 
 /// Tries to add various pratyayas that are just "a."
 fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
-    use Krt::*;
+    use BaseKrt::*;
 
     let upapada = kp.upapada();
     let upasarge = upapada.map(|t| t.is_upasarga()).unwrap_or(false);
@@ -214,9 +214,9 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
         } else if dhatu.has_text_in(&["Sf", "vand"]) {
             kp.try_add("3.2.173", Aru);
         } else if dhatu.has_text("BI") {
-            if kp.krt == kruka {
+            if kp.expects_krt(kruka) {
                 kp.try_add("3.2.174.v1", kruka);
-            } else if kp.krt == kru {
+            } else if kp.expects_krt(kru) {
                 kp.try_add("3.2.174", kru);
             } else {
                 kp.try_add("3.2.174", klukan);
@@ -502,8 +502,8 @@ fn is_nandi_grahi_pacadi(kp: &KrtPrakriya) -> bool {
     dhatu.has_text_in(NAND_ADI) || dhatu.has_text_in(PAC_ADI)
 }
 
-fn try_add_upapada_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
-    use Krt::*;
+fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
+    use BaseKrt::*;
 
     const DIVA_ADI: &[&str] = &[
         "divA", "viBA", "niSA", "praBA", "BAs", "kAra", "anta", "ananta", "Adi", "bahu", "nAndI",
@@ -898,8 +898,8 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 /// ("a") if their it letters are removed, and therefore the *ap* rule will block the *ghañ* rule.
 ///
 /// For details, see: <https://ashtadhyayi.com/sutraani/3/1/94>
-fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
-    use Krt as K;
+fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
+    use BaseKrt as K;
 
     let i = p.find_last(T::Dhatu)?;
     let prev = if i > 0 { p.get(i - 1) } else { None };
@@ -1131,7 +1131,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
         K::kta | K::ktavatu => {
             if dhatu.has_tag(T::YIt) {
-                kp.try_add("3.2.187", Krt::kta);
+                kp.try_add("3.2.187", BaseKrt::kta);
             }
             kp.try_add("3.2.102", krt);
 
@@ -1244,6 +1244,7 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
                 "zi\\Y",
                 "zi\\ca~^",
                 "mi\\ha~",
+                "patx~",
                 "da\\nSa~",
                 "Ra\\ha~^",
             ];
@@ -1364,10 +1365,14 @@ fn try_add_krt(p: &mut Prakriya, krt: Krt) -> Option<bool> {
 
 /// Runs the rules that add a krt-pratyaya to a given dhatu. Returns whether a pratyaya was added.
 pub fn run(p: &mut Prakriya, krt: Krt) -> bool {
-    if try_add_upapada_krt(p, krt).unwrap_or(false) {
-        return true;
+    if let Krt::Base(base) = krt {
+        if try_add_upapada_krt(p, base).unwrap_or(false) {
+            return true;
+        }
+        try_add_krt(p, base).unwrap_or(false)
+    } else {
+        false
     }
-    try_add_krt(p, krt).unwrap_or(false)
 }
 
 #[cfg(test)]
@@ -1385,7 +1390,8 @@ mod tests {
         p
     }
 
-    fn allows(dhatu: &str, krt: Krt) -> bool {
+    fn allows(dhatu: &str, krt: impl Into<Krt>) -> bool {
+        let krt = krt.into();
         let mut p = make_prakriya(dhatu);
         run(&mut p, krt);
         p.terms().last().unwrap().has_u(krt.as_str())
@@ -1393,7 +1399,7 @@ mod tests {
 
     #[test]
     fn test_common_pratyayas() {
-        use Krt::*;
+        use BaseKrt::*;
 
         assert!(allows("BU", tavyat));
         assert!(allows("BU", tavya));
@@ -1413,7 +1419,7 @@ mod tests {
 
     #[test]
     fn test_ya_pratyaya() {
-        use Krt::*;
+        use BaseKrt::*;
 
         assert!(allows("BU", yat));
         // Allowed by "or AvAzyake"
@@ -1431,7 +1437,7 @@ mod tests {
 
     #[test]
     fn test_tacchila() {
-        use Krt::*;
+        use BaseKrt::*;
 
         // 3.2.161
         assert!(allows("sf\\", kmarac));

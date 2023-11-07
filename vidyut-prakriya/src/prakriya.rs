@@ -20,7 +20,7 @@ pub enum Rule {
     /// A sutra from the Dhatupatha.
     Dhatupatha(&'static str),
     /// A sutra from the Unadipatha.
-    Unadi(&'static str),
+    UP(&'static str),
     /// A sutra from the Paniniya-Linganushasanam.
     Linganushasana(&'static str),
     /// A quotation from the Vaiyakarana-siddhanta-kaumudi.
@@ -34,7 +34,7 @@ impl Rule {
             Self::Ashtadhyayi(x) => x,
             Self::Kashika(x) => x,
             Self::Dhatupatha(x) => x,
-            Self::Unadi(x) => x,
+            Self::UP(x) => x,
             Self::Linganushasana(x) => x,
             Self::Kaumudi(x) => x,
         }
@@ -86,6 +86,7 @@ pub enum RuleChoice {
 pub struct Config {
     pub rule_choices: Vec<RuleChoice>,
     pub log_steps: bool,
+    pub is_chandasi: bool,
 }
 
 impl Config {
@@ -536,7 +537,7 @@ impl Prakriya {
 
     /// Returns whether the prakriya allows chAndasa rules.
     pub(crate) fn is_chandasi(&self) -> bool {
-        false
+        self.config.is_chandasi
     }
 
     pub(crate) fn is_allowed(&mut self, r: impl Into<Rule>) -> bool {

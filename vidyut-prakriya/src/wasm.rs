@@ -56,7 +56,7 @@ impl Rule {
             Self::Kashika(s) => format!("kAzikA {s}"),
             Self::Linganushasana(s) => format!("liNgA {s}"),
             Self::Kaumudi(s) => format!("kOmudI {s}"),
-            Self::Unadi(s) => format!("uRAdi {s}"),
+            Self::UP(s) => format!("uRAdi {s}"),
         }
     }
 }
@@ -189,7 +189,7 @@ impl Vidyut {
     pub fn deriveKrdantas(
         &self,
         code: &str,
-        krt: Krt,
+        krt: BaseKrt,
         sanadi: Option<Sanadi>,
         upasarga: Option<String>,
     ) -> JsValue {

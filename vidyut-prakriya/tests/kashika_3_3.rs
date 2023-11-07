@@ -1,42 +1,44 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::KrtArtha::*;
+use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::*;
 
-fn assert_has_bhave_krdanta(upapadas: &[&str], dhatu: &Dhatu, krt: Krt, expected: &[&str]) {
+fn assert_has_bhave_krdanta(upapadas: &[&str], dhatu: &Dhatu, krt: BaseKrt, expected: &[&str]) {
     assert_has_artha_krdanta(upapadas, dhatu, KrtArtha::Bhava, krt, expected);
 }
 
-fn assert_krt_blocked(upapadas: &[&str], dhatu: &Dhatu, krt: Krt) {
+fn assert_krt_blocked(upapadas: &[&str], dhatu: &Dhatu, krt: BaseKrt) {
     assert_has_krdanta(upapadas, dhatu, krt, &[]);
 }
 
 #[test]
 fn sutra_3_3_1() {
-    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::uR, &["kAru"]);
-    assert_has_krdanta(&[], &d("pA\\", Bhvadi), Krt::uR, &["pAyu"]);
-    assert_has_krdanta(&[], &d("vA\\", Adadi), Krt::uR, &["vAyu"]);
-    assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::uR, &["jAyu"]);
-    assert_has_krdanta(&[], &d("qumi\\Y", Svadi), Krt::uR, &["mAyu"]);
-    assert_has_krdanta(&[], &d("zvada~\\", Bhvadi), Krt::uR, &["svAdu"]);
-    assert_has_krdanta(&[], &d("sA\\Da~", Svadi), Krt::uR, &["sADu"]);
-    assert_has_krdanta(&[], &d("aSU~\\", Svadi), Krt::uR, &["ASu"]);
+    assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Unadi::uR, &["kAru"]);
+    assert_has_krdanta(&[], &d("pA\\", Bhvadi), Unadi::uR, &["pAyu"]);
+    assert_has_krdanta(&[], &d("vA\\", Adadi), Unadi::uR, &["vAyu"]);
+    assert_has_krdanta(&[], &d("ji\\", Bhvadi), Unadi::uR, &["jAyu"]);
+    assert_has_krdanta(&[], &d("qumi\\Y", Svadi), Unadi::uR, &["mAyu"]);
+    assert_has_krdanta(&[], &d("zvada~\\", Bhvadi), Unadi::uR, &["svAdu"]);
+    assert_has_krdanta(&[], &d("sA\\Da~", Svadi), Unadi::uR, &["sADu"]);
+    assert_has_krdanta(&[], &d("aSU~\\", Svadi), Unadi::uR, &["ASu"]);
 
     // For more specific uNAdi tests, see `kaumudi_67.rs`
 }
 
 #[test]
 fn sutra_3_3_2() {
-    assert_has_krdanta(&[], &d("vftu~\\", Bhvadi), Krt::manin, &["vartman"]);
-    assert_has_krdanta(&[], &d("cara~", Bhvadi), Krt::manin, &["carman"]);
+    assert_has_krdanta(&[], &d("vftu~\\", Bhvadi), Unadi::manin, &["vartman"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), Unadi::manin, &["carman"]);
 }
 
 #[test]
 fn sutra_3_3_3() {
-    use Krt::ini;
     use Krt::GinuR;
     use Krt::Rini;
+    use Unadi::ini;
     let gam = d("ga\\mx~", Bhvadi);
     assert_has_krdanta(&[], &gam, ini, &["gamin"]);
     assert_has_krdanta(&["AN"], &gam, ini, &["AgAmin"]);
@@ -57,14 +59,14 @@ fn sutra_3_3_10() {
 
 #[test]
 fn sutra_3_3_13() {
-    assert_has_lrt_p(&[], &d("qukf\\Y", Tanadi), &["karizyati"]);
-    assert_has_lrt_p(&[], &d("hf\\Y", Bhvadi), &["harizyati"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lrt, &["karizyati"]);
+    assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lrt, &["harizyati"]);
 }
 
 #[test]
 fn sutra_3_3_15() {
-    assert_has_lut_p(&[], &d("qukf\\Y", Tanadi), &["kartA"]);
-    assert_has_lut_p(&[], &d("Bu\\ja~", Rudhadi), &["BoktA"]);
+    assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lut, &["kartA"]);
+    assert_has_tip(&[], &d("Bu\\ja~", Rudhadi), Lut, &["BoktA"]);
 }
 
 #[test]

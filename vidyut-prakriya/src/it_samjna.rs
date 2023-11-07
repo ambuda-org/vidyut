@@ -180,7 +180,9 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
 
     if let Some(t) = p.get_mut(i) {
         if t.is_pratyaya() {
-            if adi == 'z' {
+            if t.is_unadi() && t.has_u_in(&["kan"]) {
+                // Do nothing.
+            } else if adi == 'z' {
                 t.add_tag(T::parse_it(adi)?);
                 temp_slice = &temp_slice[1..];
                 p.step("1.3.6")

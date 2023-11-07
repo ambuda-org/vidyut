@@ -1,8 +1,9 @@
+use crate::args::unadi::Unadi;
 use crate::enum_boilerplate;
 use crate::errors::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The complete list of krt-pratyayas.
+/// The complete list of ordinary krt-pratyayas.
 ///
 /// Rust's naming convention is to start enum values with capital letters. However, we allow mixed
 /// case explicitly here so that we can name pratyayas more concisely with SLP1. Doing so helps us
@@ -10,7 +11,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[allow(dead_code, non_camel_case_types)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 #[wasm_bindgen]
-pub enum Krt {
+pub enum BaseKrt {
     /// -a
     a,
     /// -a
@@ -125,8 +126,6 @@ pub enum Krt {
     Nvanip,
     /// -Ana
     cAnaS,
-    /// -anta,
-    Jac,
     /// -a
     wa,
     /// -a
@@ -209,82 +208,9 @@ pub enum Krt {
     zwran,
     /// -aka
     zvun,
-
-    // unAdi-pratyayas
-    // ===============
-    /// -ama (praTama)
-    amac,
-    /// -ala (maNgala)
-    alac,
-    /// -as (cetaH)
-    asun,
-    /// -Ayya
-    Ayya,
-    /// -itnu
-    itnuc,
-    /// -iTi
-    iTin,
-    /// -iza
-    wizac,
-    /// -izWu
-    izWuc,
-    /// -izWa
-    izWac,
-    /// -isa
-    isan,
-    /// -is
-    isi,
-    /// -u (kAru)
-    uR,
-    /// -us (Danus)
-    usi,
-    /// -atu (kratu)
-    katu,
-    /// -ka
-    kan,
-    /// -Ta
-    kTan,
-    /// -vi (jAgfvi)
-    kvinUnadi,
-    /// -sara
-    ksaran,
-    /// -si
-    ksi,
-    /// -su
-    ksu,
-    /// -u (tAlu)
-    YuR,
-    /// -ta
-    tan,
-    /// -tu
-    tun,
-    /// -tra,
-    tran,
-    /// -sa
-    sa,
-    /// -sara
-    sara,
-    /// -su
-    suk,
-    /// -atni,
-    katnic,
-    /// -yatu,
-    yatuc,
-    /// -ali
-    alic,
-    /// -sya
-    syan,
-    /// -uli
-    uli,
-    /// -as (use trailing `_` since `as` is a reserved keyword in Rust.)
-    asa,
-    /// -As,
-    Asa,
-    /// -Anu
-    Anuk,
 }
 
-enum_boilerplate!(Krt, {
+enum_boilerplate!(BaseKrt, {
     a => "a",
     ac => "ac",
     aR => "aR",
@@ -383,51 +309,32 @@ enum_boilerplate!(Krt, {
     zAkan => "zAkan",
     zwran => "zwran",
     zvun => "zvu~n",
-
-    // unAdi-pratyayas
-    // ===============
-    amac => "amac",
-    alac => "alac",
-    asun => "asu~n",
-    Ayya => "Ayya",
-    itnuc => "itnuc",
-    iTin => "iTin",
-    izWuc => "izWuc",
-    izWac => "izWac",
-    isan => "isan",
-    isi => "isi~",
-    uR => "uR",
-    usi => "usi~",
-    // TODO: why do we keep the initial 'k' here?
-    kan => "a~kan",
-    katu => "katu",
-    kTan => "kTan",
-    kvinUnadi => "kvin",
-    ksaran => "ksaran",
-    ksi => "ksi",
-    ksu => "ksu",
-    Jac => "Jac",
-    YuR => "YuR",
-    wizac => "wizac",
-    tan => "tan",
-    tun => "tun",
-    tran => "tran",
-    sa => "sa",
-    sara => "sara",
-    suk => "suk",
-    katnic => "katnic",
-    yatuc => "yatuc",
-    alic => "alic",
-    syan => "syan",
-    uli => "uli",
-    asa => "asa",
-    Asa => "Asa",
-    Anuk => "Anuk",
 });
+
+/// Models a krt-pratyaya.
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub enum Krt {
+    /// An ordinary krt-pratyaya as declared in the Ashtadhyayi.
+    Base(BaseKrt),
+    /// An unadi-pratyaya as declared in the Unadipatha.
+    Unadi(Unadi),
+}
+
+impl From<BaseKrt> for Krt {
+    fn from(base: BaseKrt) -> Krt {
+        Krt::Base(base)
+    }
+}
+
+impl From<Unadi> for Krt {
+    fn from(unadi: Unadi) -> Krt {
+        Krt::Unadi(unadi)
+    }
+}
 
 /// Models the meaning of a krt-pratyaya.
 ///
-/// krts are often available only in specific senses. A given krta might be allowed in one sense
+/// krts are often available only in specific senses. A given krt might be allowed in one sense
 /// but blocked in another. To model and test this behavior, we use the enum below.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum KrtArtha {
@@ -451,8 +358,22 @@ impl Krt {
     /// We must track this explicitly so that we can "look ahead" and potentially add -Aya or other
     /// pratyayas for certain dhAtus. For details, see the implementation of rules 3.1.28 - 3.1.31.
     pub fn is_ardhadhatuka(&self) -> bool {
-        use Krt::*;
-        !matches!(self, Sa | Satf | SAnac | SAnan | cAnaS | KaS)
+        use BaseKrt::*;
+        match self {
+            Krt::Base(k) => !matches!(k, Sa | Satf | SAnac | SAnan | cAnaS | KaS),
+            Krt::Unadi(_) => true,
+        }
+    }
+
+    /// Returns a simple human-readable string that represents this enum's value.
+    ///
+    /// This mapping is not reversible. This is because some pratyayas are in both `Base` and
+    /// `Unadi`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Krt::Base(b) => b.as_str(),
+            Krt::Unadi(u) => u.as_str(),
+        }
     }
 }
 
@@ -532,8 +453,8 @@ pub struct KrdantaArgsBuilder {
 
 impl KrdantaArgsBuilder {
     /// Sets the krt-pratyaya to use in the derivation.
-    pub fn krt(&mut self, val: Krt) -> &mut Self {
-        self.krt = Some(val);
+    pub fn krt(&mut self, val: impl Into<Krt>) -> &mut Self {
+        self.krt = Some(val.into());
         self
     }
 

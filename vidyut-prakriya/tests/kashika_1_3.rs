@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
@@ -61,9 +62,9 @@ fn sutra_1_3_6() {
     assert_has_sup_1s("zaRqa", Pum, &["zaRqaH"]);
     assert_has_sup_1s("zaqika", Pum, &["zaqikaH"]);
     // AdiH
-    assert_has_krdanta(&[], &d("ava~", Bhvadi), Krt::wizac, &["aviza"]);
+    assert_has_krdanta(&[], &d("ava~", Bhvadi), Unadi::wizac, &["aviza"]);
     // TODO: right mah?
-    assert_has_krdanta(&[], &d("maha~", Bhvadi), Krt::wizac, &["mahiza"]);
+    assert_has_krdanta(&[], &d("maha~", Bhvadi), Unadi::wizac, &["mahiza"]);
 }
 
 #[test]
@@ -92,8 +93,8 @@ fn sutra_1_3_8() {
     assert_has_krdanta(&[], &d("ci\\Y", Svadi), Krt::lyuw, &["cayana"]);
     assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::lyuw, &["jayana"]);
     // Sa
-    assert_has_lat_p(&[], &d("BU", Bhvadi), &["Bavati"]);
-    assert_has_lat_p(&[], &d("qupa\\ca~^z", Bhvadi), &["pacati"]);
+    assert_has_tip(&[], &d("BU", Bhvadi), Lat, &["Bavati"]);
+    assert_has_tip(&[], &d("qupa\\ca~^z", Bhvadi), Lat, &["pacati"]);
     // ka
     let bhuj = d("Bu\\ja~", Rudhadi);
     assert_has_krdanta(&[], &bhuj, Krt::kta, &["Bukta"]);
@@ -143,12 +144,12 @@ fn sutra_1_3_12() {
 
 #[test]
 fn sutra_1_3_13() {
-    assert_has_lat_karmani(&[], &d("glE\\", Bhvadi), &["glAyate"]);
-    assert_has_lat_karmani(&[], &d("Yizva\\pa~", Adadi), &["supyate"]);
-    assert_has_lat_karmani(&[], &d("Asa~\\", Adadi), &["Asyate"]);
-    assert_has_lat_karmani(&[], &d("qukf\\Y", Tanadi), &["kriyate"]);
-    assert_has_lat_karmani(&[], &d("hf\\Y", Bhvadi), &["hriyate"]);
-    assert_has_lat_karmani(&[], &d("lUY", Kryadi), &["lUyate"]);
+    assert_has_ta_k(&[], &d("glE\\", Bhvadi), Lat, &["glAyate"]);
+    assert_has_ta_k(&[], &d("Yizva\\pa~", Adadi), Lat, &["supyate"]);
+    assert_has_ta_k(&[], &d("Asa~\\", Adadi), Lat, &["Asyate"]);
+    assert_has_ta_k(&[], &d("qukf\\Y", Tanadi), Lat, &["kriyate"]);
+    assert_has_ta_k(&[], &d("hf\\Y", Bhvadi), Lat, &["hriyate"]);
+    assert_has_ta_k(&[], &d("lUY", Kryadi), Lat, &["lUyate"]);
 }
 
 #[test]

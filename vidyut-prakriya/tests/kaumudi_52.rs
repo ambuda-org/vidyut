@@ -67,8 +67,8 @@ fn sk_2574() {
 
     // ac-Adi dhatus with can-pratyaya and ak-lopa
     // TODO: why does the SK have AndaDat and not AndiDat?
-    assert_has_lun_p(&[], &d("anDa", Curadi), &["AndaDat"]);
-    assert_has_lun_p(&[], &d("anka", Curadi), &["AYcakat"]);
-    assert_has_lun_p(&[], &d("anga", Curadi), &["AYjagat"]);
-    assert_has_lun_p(&[], &d("vyaya", Curadi), &["avavyayat"]);
+    assert_has_tip(&[], &d("anDa", Curadi), Lun, &["AndaDat"]);
+    assert_has_tip(&[], &d("anka", Curadi), Lun, &["AYcakat"]);
+    assert_has_tip(&[], &d("anga", Curadi), Lun, &["AYjagat"]);
+    assert_has_tip(&[], &d("vyaya", Curadi), Lun, &["avavyayat"]);
 }
