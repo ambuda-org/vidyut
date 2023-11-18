@@ -4,10 +4,10 @@
 //!
 //! The most "core" prakaraṇa is the it-saṁjñā-prakaraṇa, which identifies remove different `it`
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
-use crate::errors::*;
-use crate::prakriya::Prakriya;
+use crate::core::errors::*;
+use crate::core::Prakriya;
+use crate::core::{Tag as T, Term};
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
 
@@ -23,6 +23,10 @@ lazy_static! {
 
 fn get_adi(s: &CompactString) -> Option<char> {
     s.as_bytes().first().map(|u| *u as char)
+}
+
+fn is_cutu_exempt_taddhita(t: &Term) -> bool {
+    t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap"])
 }
 
 /// Runs rule 1.3.2 ("upadeśe janunāsika iṭ").
@@ -145,12 +149,23 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
     if let Some(t) = p.get_mut(i) {
         if HAL.contains(antya) && !irit {
             let vibhaktau_tusmah = t.is_vibhakti() && TUSMA.contains(antya);
-            if !vibhaktau_tusmah {
+
+            // Not sure how this is supposed to work:
+            //
+            // - 5.3.12 introduces at-pratyaya (kim + at --> kva).
+            // - 5.3.1 (prAg diSo viBaktiH) includes 5.3.12 as part of its adhikara.
+            // - So, these pratyayas are in scope for 1.3.4. Example: dAnIm-pratyaya (5.3.18) for
+            //   idAnIm.
+            // - But, at-pratyaya *should* have its final t deleted.
+            //
+            // For now, hard-code an exception.
+            let is_vibhakti_exception = t.has_u("at") && t.is_taddhita();
+            if vibhaktau_tusmah && !is_vibhakti_exception {
+                p.step("1.3.4");
+            } else {
                 t.add_tag(T::parse_it(antya)?);
                 temp.truncate(temp.len() - 1);
                 p.step("1.3.3");
-            } else {
-                p.step("1.3.4");
             }
         }
     }
@@ -186,7 +201,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
                 t.add_tag(T::parse_it(adi)?);
                 temp_slice = &temp_slice[1..];
                 p.step("1.3.6")
-            } else if CUTU.contains(adi) {
+            } else if CUTU.contains(adi) && !is_cutu_exempt_taddhita(t) {
                 // The sounds C, J, W, and Q are replaced later in the grammar.
                 // If we substitute them now, those rules will become vyartha.
                 if !CUTU_EXCEPTION.contains(adi) {
@@ -225,7 +240,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::term::Term;
+    use crate::core::Term;
 
     fn check(t: Term) -> Term {
         let mut p = Prakriya::new();

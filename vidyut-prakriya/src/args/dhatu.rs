@@ -1,8 +1,8 @@
+use crate::core::errors::Error;
 use crate::enum_boilerplate;
-use crate::errors::Error;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// Defines a gaṇa.
+/// Defines a *gaṇa*.
 ///
 /// The dhatus in the Dhatupatha are organized in ten large *gaṇa*s or classes. These gaṇas
 /// add various properties to the dhatu, most notably the specific *vikaraṇa* (stem suffix) we use

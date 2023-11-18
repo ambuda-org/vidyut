@@ -13,9 +13,7 @@ The pratyayas in the Unadipatha enter the Ashtadhyayi through rule 3.3.1:
 
 ### Design notes
 
-Our module below is a work-in-progress sketch and uses the version of the text available [on
-
-For now, we have stored Unadi pratyayas on our `Krt` enum. Points in favor of this decision:
+Should ordinary krt-pratyayas and unadi-pratyayas be stored on the same enum? Points in favor:
 
 - Unadi pratyayas are "just" krt pratyayas, so it makes sense to store them in the same way.
 - Storing all krt pratyayas in the same way is simpler for downstream code. For example, storing
@@ -29,29 +27,28 @@ Points against:
 - Our system cannot distinguish between these two kinds of pratyayas, which affects how
   downstream code interacts with this project.
 
-As this module develops, we will probably split the Unadi pratyayas into their own enum.
-
-[unadi]: https://ashtadhyayi.com/unaadi
+We found the points against more convincing and have stored these pratyayas in two separate enums.
 */
 use crate::args::{Krt, Unadi};
+use crate::core::Tag as T;
+use crate::core::{Prakriya, Rule};
 use crate::krt::utils::KrtPrakriya;
-use crate::prakriya::{Prakriya, Rule};
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
 use lazy_static::lazy_static;
 
 lazy_static! {
     static ref NAM: Set = s("Yam");
 }
 
-/// A helper function that updates the pratyaya by marking it with the given `tag`.
+/// A helper function that marks the pratyaya with the given `tag`.
 fn mark_as(tag: T) -> impl Fn(&mut Prakriya) {
     move |p| {
-        let i_last = p.terms().len() - 1;
-        p.set(i_last, |t| t.add_tag(tag));
+        let i_pratyaya = p.terms().len() - 1;
+        p.set(i_pratyaya, |t| t.add_tag(tag));
     }
 }
 
+/// A helper function that replaces the dhatu's text.
 fn set_text(text: &'static str) -> impl Fn(&mut Prakriya) {
     move |p| {
         let i_dhatu = p.terms().len() - 2;
@@ -59,6 +56,7 @@ fn set_text(text: &'static str) -> impl Fn(&mut Prakriya) {
     }
 }
 
+/// A helper function that replaces the last sound of the dhatu.
 fn set_antya(text: &'static str) -> impl Fn(&mut Prakriya) {
     move |p| {
         let i_dhatu = p.terms().len() - 2;
@@ -66,9 +64,12 @@ fn set_antya(text: &'static str) -> impl Fn(&mut Prakriya) {
     }
 }
 
+/// Tries to add the given unAdi-pratyaya to the prakriya.
+///
+/// Returns: whether the function added a pratyaya.
 pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
     use crate::args::Unadi as U;
-    use Rule::UP;
+    use Rule::Unadipatha as UP;
 
     let i = p.find_first(T::Dhatu)?;
 
@@ -83,9 +84,9 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
     // For convenience below, wrap `Prakriya` in a new `KrtPrakriya` type that contains `krt` and
     // records whether or not any of these rules were applied.
     let mut kp = KrtPrakriya::new(p, krt);
+
     let i_dhatu = kp.i_dhatu;
     let dhatu = kp.dhatu();
-
     let has_upasarga = |text| i > 0 && kp.p.has(i, |t| t.is_upasarga() && t.has_text(text));
 
     // NOTE: some of the older code checks against the aupadeshika form of the dhatu. But since the
@@ -122,8 +123,10 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             ]) {
                 kp.try_add(UP("1.10"), krt);
             } else if dhatu.has_text("syand") {
+                // sinDu
                 kp.try_add_with(UP("1.11"), krt, set_text("sinD"));
             } else if dhatu.has_text("und") {
+                // indu
                 kp.try_add_with(UP("1.12"), krt, set_text("ind"));
             } else if dhatu.has_text("Iz") {
                 kp.try_add_with(UP("1.13"), krt, |p| {
@@ -131,18 +134,37 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                     p.set(i + 1, |t| t.add_tag(T::kit));
                 });
             } else if dhatu.has_text("skand") {
+                // kandu
                 kp.try_add_with(UP("1.14"), krt, set_text("kand"));
             } else if dhatu.has_text("sfj") {
+                // rajju
                 kp.try_add_with(UP("1.15"), krt, set_text("rajj"));
             } else if dhatu.has_text("kft") {
+                // tarku
                 kp.try_add_with(UP("1.16"), krt, set_text("tfk"));
+            } else if dhatu.has_text("val") {
+                // valgu
+                kp.try_add_with(UP("1.19"), krt, set_text("valg"));
+            } else if dhatu.has_u("So\\") {
+                // SiSu
+                kp.try_add_with(UP("1.20"), krt, |p| {
+                    p.set(i, |t| t.set_text("SiS"));
+                    p.set(i + 1, |t| t.add_tag(T::kit));
+                });
             } else if dhatu.has_text("yA") {
+                // yayu
                 kp.try_add_with(UP("1.21"), krt, set_text("yay"));
             }
         }
         U::wizac => {
             if dhatu.has_u_in(&["ava~", "maha~"]) {
                 kp.try_add(UP("1.45"), krt);
+            }
+        }
+        U::qavatu => {
+            if dhatu.has_u("BA\\") {
+                // Bavat
+                kp.try_add(UP("1.63"), krt);
             }
         }
         U::tun => {
@@ -192,6 +214,12 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 kp.try_add_with(UP("1.146"), krt, set_text("Gar"));
             } else if dhatu.has_text("gras") {
                 kp.try_add_with(UP("1.147"), krt, set_text("grIz"));
+            }
+        }
+        // TODO: not in ashtadhyayi.com's Unadipatha, but mentioned in KV 1.1.60.
+        U::radAnuk => {
+            if dhatu.has_u("jIva~") {
+                kp.try_add(UP("1.163"), krt);
             }
         }
         U::eRu => {
@@ -310,8 +338,10 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         }
         U::ksi => {
             if dhatu.has_u_in(&["pluza~", "kuza~", "Su\\za~"]) {
+                // plukzi, kukzi, Sukzi
                 kp.try_add(UP("3.155"), krt);
             } else if dhatu.has_u("aSU~") {
+                // akzi
                 kp.try_add_with(UP("3.156"), krt, mark_as(T::nit));
             }
         }
@@ -455,8 +485,10 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         }
         U::amac => {
             if dhatu.has_u("praTa~\\") {
+                // praTama
                 kp.try_add(UP("5.68"), krt);
             } else if dhatu.has_u("cara~") {
+                // carama
                 kp.try_add(UP("5.69"), krt);
             }
         }

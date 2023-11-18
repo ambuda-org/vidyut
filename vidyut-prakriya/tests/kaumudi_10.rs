@@ -20,29 +20,80 @@ fn sk_311() {
 fn skip_sk_312_to_sk_313() {}
 
 #[test]
-fn sk_315() {
+fn sk_314() {
     assert_has_sup_1p("jYAna", Napumsaka, &["jYAnAni"]);
 }
 
 #[test]
-fn skip_sk_316() {}
+fn skip_sk_315() {}
+
+#[test]
+fn sk_316() {
+    assert_has_sup_1s("katara", Napumsaka, &["katarat"]);
+    assert_has_sup_1d("katara", Napumsaka, &["katare"]);
+    assert_has_sup_1p("katara", Napumsaka, &["katarARi"]);
+    assert_has_sup_ss("katara", Napumsaka, &["katarat"]);
+
+    assert_has_sup_1s("katama", Napumsaka, &["katamat"]);
+    assert_has_sup_1s("anya", Napumsaka, &["anyat"]);
+    assert_has_sup_1s("anyatara", Napumsaka, &["anyatarat"]);
+    assert_has_sup_1s("itara", Napumsaka, &["itarat"]);
+
+    assert_has_sup_1s("ekatara", Napumsaka, &["ekataram"]);
+
+    // TODO: ajaras
+}
+
+#[test]
+fn sk_318() {
+    assert_has_sup_1s("SrIpA", Napumsaka, &["SrIpam"]);
+    assert_has_sup_4s("SrIpA", Napumsaka, &["SrIpAya"]);
+}
 
 #[test]
 fn sk_319() {
     assert_has_sup_1s("vAri", Napumsaka, &["vAri"]);
 }
 
-#[ignore]
 #[test]
 fn sk_320() {
     assert_has_sup_1d("vAri", Napumsaka, &["vAriRI"]);
     assert_has_sup_1p("vAri", Napumsaka, &["vArIRi"]);
-    assert_has_sup_ss("vAri", Napumsaka, &["vAri", "vAre"]);
+    // TODO: how to justify vAre?
+    assert_has_sup_ss("vAri", Napumsaka, &["vAri"]);
     assert_has_sup_3s("vAri", Napumsaka, &["vAriRA"]);
     assert_has_sup_4s("vAri", Napumsaka, &["vAriRe"]);
     assert_has_sup_5s("vAri", Napumsaka, &["vAriRaH"]);
     assert_has_sup_6d("vAri", Napumsaka, &["vAriRoH"]);
     assert_has_sup_6p("vAri", Napumsaka, &["vArIRAm"]);
-    assert_has_sup_7s("vAri", Napumsaka, &["vArIRi"]);
-    assert_has_sup_7d("vAri", Napumsaka, &["vArIRoH"]);
+    assert_has_sup_7s("vAri", Napumsaka, &["vAriRi"]);
+    assert_has_sup_7d("vAri", Napumsaka, &["vAriRoH"]);
+}
+
+#[test]
+fn sk_322() {
+    assert_has_sup_3s("daDi", Napumsaka, &["daDnA"]);
+}
+
+#[ignore]
+#[test]
+fn sk_323() {
+    assert_has_sup_1s("pradyo", Napumsaka, &["pradyu"]);
+    assert_has_sup_1d("pradyo", Napumsaka, &["pradyunI"]);
+    assert_has_sup_1p("pradyo", Napumsaka, &["pradyUni"]);
+    assert_has_sup_3s("pradyo", Napumsaka, &["pradyunA"]);
+
+    assert_has_sup_1s("prarE", Napumsaka, &["prari"]);
+    assert_has_sup_1d("prarE", Napumsaka, &["prariRI"]);
+    assert_has_sup_1p("prarE", Napumsaka, &["prarIRi"]);
+    assert_has_sup_3s("prarE", Napumsaka, &["prariRA"]);
+    assert_has_sup_3d("prarE", Napumsaka, &["prarAByAm"]);
+    assert_has_sup_3p("prarE", Napumsaka, &["prarABiH"]);
+    assert_has_sup_6p("prarE", Napumsaka, &["prarIRAm"]);
+
+    assert_has_sup_1s("sunu", Napumsaka, &["sunu"]);
+    assert_has_sup_1d("sunu", Napumsaka, &["sununI"]);
+    assert_has_sup_1p("sunu", Napumsaka, &["sunUni"]);
+    assert_has_sup_3s("sunu", Napumsaka, &["sununA"]);
+    assert_has_sup_4s("sunu", Napumsaka, &["sunune"]);
 }

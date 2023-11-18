@@ -3,6 +3,7 @@ use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
+use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -1047,6 +1048,14 @@ fn sutra_3_2_124() {
 fn sutra_3_2_128() {
     assert_has_krdanta(&[], &d("pUN", Bhvadi), Krt::SAnan, &["pavamAna"]);
     assert_has_krdanta(&[], &d("ya\\ja~^", Bhvadi), Krt::SAnan, &["yajamAna"]);
+}
+
+#[test]
+fn sutra_3_2_131() {
+    let dvishat = create_krdanta("dvizat", &[], &d("dvi\\za~^", Adadi), Krt::Satf);
+    assert_has_sup_1s(&dvishat, Pum, &["dvizan"]);
+    assert_has_sup_1d(&dvishat, Pum, &["dvizantO"]);
+    assert_has_sup_1p(&dvishat, Pum, &["dvizantaH"]);
 }
 
 #[test]

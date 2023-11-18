@@ -11,14 +11,14 @@ Operations here include:
 use crate::args::Antargana;
 use crate::args::Dhatu;
 use crate::args::Gana;
+use crate::core::errors::*;
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
-use crate::errors::*;
+use crate::ganapatha::PRA_ADI;
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
-use crate::stem_gana::PRA_ADI;
-use crate::tag::Tag as T;
-use crate::term::Term;
 
 /// Adds the mula-dhatu to the prakriya.
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
@@ -33,7 +33,7 @@ fn add_samjnas(p: &mut Prakriya, i: usize) {
     if p.has(i, |t| {
         t.has_text_in(&["dA", "de", "do", "DA", "De"]) && !t.has_u("dA\\p")
     }) {
-        p.run_at("1.1.20", i, op::add_tag(T::Ghu));
+        p.add_tag_at("1.1.20", i, T::Ghu);
     };
 }
 
@@ -54,9 +54,9 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
             p.step(DP("01.0937"));
             is_mit_blocked = true;
         } else if dhatu.has_u("Samo~") {
-            is_mit_blocked = p.run_optional(DP("01.0938"), |_| {})
+            is_mit_blocked = p.optional_run(DP("01.0938"), |_| {})
         } else if dhatu.has_text("yam") && is_bhvadi {
-            is_mit_blocked = p.run_optional(DP("01.0939"), |_| {})
+            is_mit_blocked = p.optional_run(DP("01.0939"), |_| {})
         } else if dhatu.has_u("sKadi~\\r")
             && i > 0
             && p.has(i - 1, |t| t.has_u_in(&["ava", "pari"]))
@@ -71,16 +71,16 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     if is_mit_blocked {
         // Do nothing.
     } else if is_bhvadi && dhatu.has_text_in(&["jval", "hval", "hmal", "nam"]) && !has_upasarga {
-        p.run_optional_at(DP("01.0935"), i, op::add_tag(T::mit));
+        p.optional_run_at(DP("01.0935"), i, op::add_tag(T::mit));
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
-        p.run_optional_at(DP("01.0936"), i, op::add_tag(T::mit));
+        p.optional_run_at(DP("01.0936"), i, op::add_tag(T::mit));
     } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"])
         && dhatu.has_gana(Gana::Divadi))
         || (is_bhvadi && dhatu.ends_with("am"))
     {
-        p.run_at(DP("01.0934"), i, op::add_tag(T::mit));
+        p.add_tag_at(DP("01.0934"), i, T::mit);
     } else if is_bhvadi && dhatu.has_u_in(gana::GHAT_ADI) {
-        p.run_at(DP("01.0933"), i, op::add_tag(T::mit));
+        p.add_tag_at(DP("01.0933"), i, T::mit);
     }
 
     Some(())
@@ -96,7 +96,7 @@ fn try_run_divadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
         "zUN", "dUN", "dI\\N", "qIN", "DI\\N", "mI\\N", "rI\\N", "lI\\N", "vrI\\N",
     ]) {
         // sUna, dUna, dIna, ...
-        p.run_at(DP("04.0162"), i, op::add_tag(T::odit));
+        p.add_tag_at(DP("04.0162"), i, T::odit);
     }
 
     Some(())
@@ -108,7 +108,7 @@ fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get_if(i, |t| t.has_gana(Gana::Curadi))?;
 
     if dhatu.has_u_in(gana::JNAP_ADI) {
-        p.run_at(DP("10.0493"), i, op::add_tag(T::mit));
+        p.add_tag_at(DP("10.0493"), i, T::mit);
     }
 
     let dhatu = p.get(i)?;
@@ -141,19 +141,19 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
                 if t.text == "zaR" {
                     t.text.replace_range(.., "san");
                 }
-                t.add_tag(T::FlagAdeshadi);
+                t.add_tag(T::FlagSaAdeshadi);
             });
         } else {
             // zah -> sah
             p.run_at("6.1.64", i, |t| {
-                t.add_tag(T::FlagAdeshadi);
+                t.add_tag(T::FlagSaAdeshadi);
                 t.set_adi("s");
             });
         }
     } else if dhatu.has_adi('R') {
         // RI -> nI
         p.run_at("6.1.65", i, |t| {
-            t.add_tag(T::FlagAdeshadi);
+            t.add_tag(T::FlagNaAdeshadi);
             t.set_adi("n");
         });
     } else if dhatu.has_u("DraRa~") {
@@ -278,29 +278,29 @@ mod tests {
     fn test_satva() {
         let t = check("zaha~\\", "01.0988");
         assert_eq!(t.text, "sah");
-        assert!(t.has_all_tags(&[T::Dhatu, T::FlagAdeshadi]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::FlagSaAdeshadi]));
 
         let t = check("zWA\\", "01.1077");
         assert_eq!(t.text, "sTA");
-        assert!(t.has_all_tags(&[T::Dhatu, T::FlagAdeshadi]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::FlagSaAdeshadi]));
     }
 
     #[test]
     fn test_satva_blocked() {
         let t = check("zWivu~", "04.0004");
         assert_eq!(t.text, "zWiv");
-        assert!(!t.has_tag(T::FlagAdeshadi));
+        assert!(!t.has_tag(T::FlagSaAdeshadi));
 
         let t = check("zvazka~\\", "01.0105");
         assert_eq!(t.text, "zvazk");
-        assert!(!t.has_tag(T::FlagAdeshadi));
+        assert!(!t.has_tag(T::FlagSaAdeshadi));
     }
 
     #[test]
     fn test_natva() {
         let t = check("RI\\Y", "01.1049");
         assert_eq!(t.text, "nI");
-        assert!(t.has_all_tags(&[T::Dhatu, T::FlagAdeshadi]));
+        assert!(t.has_all_tags(&[T::Dhatu, T::FlagNaAdeshadi]));
     }
 
     #[test]

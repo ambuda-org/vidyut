@@ -1,8 +1,7 @@
 use crate::args::tin::Vacana;
+use crate::core::errors::Error;
+use crate::core::Tag;
 use crate::enum_boilerplate;
-use crate::errors::Error;
-use crate::tag::Tag;
-use enumset::EnumSet;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The gender of some subanta.
@@ -86,126 +85,6 @@ impl Vibhakti {
     }
 }
 
-/// The verb root to use for the derivation.
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct Pratipadika {
-    text: String,
-    tags: EnumSet<Tag>,
-}
-
-impl Pratipadika {
-    /// Creates a new pratipadika.
-    pub fn new(text: impl AsRef<str>) -> Self {
-        Pratipadika::builder()
-            .text(text.as_ref())
-            .build()
-            .expect("should have text")
-    }
-
-    /// The text of this pratipadika.
-    pub fn text(&self) -> &String {
-        &self.text
-    }
-
-    /// Returns whether this pratipadika ends in `NI` or `Ap.`
-    pub fn is_nyap(&self) -> bool {
-        self.tags.contains(Tag::StriNyap)
-    }
-
-    /// Returns whether this pratipadika ends in a dhatu.
-    pub fn is_dhatu(&self) -> bool {
-        self.tags.contains(Tag::Dhatu)
-    }
-
-    /// Returns whether this pratipadika is udit.
-    pub fn is_udit(&self) -> bool {
-        self.tags.contains(Tag::udit)
-    }
-
-    /// Returns whether this pratipadika ends in a pratyaya.
-    pub fn is_pratyaya(&self) -> bool {
-        self.tags.contains(Tag::Pratyaya)
-    }
-
-    /// Returns a new builder for this struct.
-    pub fn builder() -> PratipadikaBuilder {
-        PratipadikaBuilder::default()
-    }
-}
-
-/// Convenience struct for building a `Pratipadika` struct.
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct PratipadikaBuilder {
-    text: Option<String>,
-    is_nyap: bool,
-    is_dhatu: bool,
-    is_udit: bool,
-    is_pratyaya: bool,
-}
-
-impl PratipadikaBuilder {
-    /// Sets the text of the pratipadika.
-    pub fn text(&mut self, value: impl AsRef<str>) -> &mut Self {
-        self.text = Some(String::from(value.as_ref()));
-        self
-    }
-
-    /// Sets whether this pratipadika should be treated as ending in `NI` or `Ap`.
-    pub fn is_nyap(&mut self, yes: bool) -> &mut Self {
-        self.is_nyap = yes;
-        self
-    }
-
-    /// Sets whether this pratipadika should be treated as ending in a dhatu.
-    pub fn is_dhatu(&mut self, yes: bool) -> &mut Self {
-        self.is_dhatu = yes;
-        self
-    }
-
-    /// Sets whether this pratipadika should be treated as ending in a dhatu.
-    pub fn is_udit(&mut self, yes: bool) -> &mut Self {
-        self.is_udit = yes;
-        self
-    }
-
-    /// Sets whether this pratipadika should be treated as ending in a dhatu.
-    pub fn is_pratyaya(&mut self, yes: bool) -> &mut Self {
-        self.is_pratyaya = yes;
-        self
-    }
-
-    /// Converts the arguments in this builder into a `Pratipadika` struct.
-    ///
-    /// `build()` will fail if `text` is missing.
-    pub fn build(&self) -> Result<Pratipadika, Error> {
-        Ok(Pratipadika {
-            text: match &self.text {
-                Some(x) => x.clone(),
-                None => return Err(Error::MissingRequiredField("text")),
-            },
-            tags: self.create_tags()?,
-        })
-    }
-
-    fn create_tags(&self) -> Result<EnumSet<Tag>, Error> {
-        let mut tags = EnumSet::default();
-        if self.is_nyap {
-            tags.insert(Tag::StriNyap);
-        }
-        if self.is_dhatu {
-            tags.insert(Tag::Dhatu);
-        }
-        if self.is_udit {
-            tags.insert(Tag::udit);
-        }
-        if self.is_dhatu {
-            tags.insert(Tag::Pratyaya);
-        }
-
-        Ok(tags)
-    }
-}
-
 /// The information required to derive a subanta in the grammar.
 pub struct SubantaArgs {
     linga: Linga,
@@ -218,10 +97,12 @@ impl SubantaArgs {
     pub fn linga(&self) -> Linga {
         self.linga
     }
+
     /// The vacana to use in the derivation.
     pub fn vacana(&self) -> Vacana {
         self.vacana
     }
+
     /// The vibhakti to use in the derivation.
     pub fn vibhakti(&self) -> Vibhakti {
         self.vibhakti
@@ -247,11 +128,13 @@ impl SubantaArgsBuilder {
         self.linga = Some(val);
         self
     }
+
     /// Sets the vacana to use in the derivation.
     pub fn vacana(&mut self, val: Vacana) -> &mut Self {
         self.vacana = Some(val);
         self
     }
+
     /// Sets the vibhakti to use in the derivation.
     pub fn vibhakti(&mut self, val: Vibhakti) -> &mut Self {
         self.vibhakti = Some(val);
@@ -276,43 +159,5 @@ impl SubantaArgsBuilder {
                 _ => return Err(Error::missing_required_field("vibhakti")),
             },
         })
-    }
-}
-
-#[cfg(test)]
-#[allow(clippy::unwrap_used)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn create_pratipadika() {
-        let deva = Pratipadika::new("deva");
-        assert_eq!(deva.text(), &"deva");
-        assert!(!deva.is_nyap());
-        assert!(!deva.is_dhatu());
-    }
-
-    #[test]
-    fn create_pratipadika_with_nyap() {
-        let mala = Pratipadika::builder()
-            .text("mAlA")
-            .is_nyap(true)
-            .build()
-            .unwrap();
-        assert_eq!(mala.text(), &"mAlA");
-        assert!(mala.is_nyap());
-        assert!(!mala.is_dhatu());
-    }
-
-    #[test]
-    fn create_pratipadika_with_dhatu() {
-        let senani = Pratipadika::builder()
-            .text("senAnI")
-            .is_dhatu(true)
-            .build()
-            .unwrap();
-        assert_eq!(senani.text(), &"senAnI");
-        assert!(senani.is_dhatu());
-        assert!(!senani.is_nyap());
     }
 }

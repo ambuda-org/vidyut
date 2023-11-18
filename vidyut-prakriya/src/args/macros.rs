@@ -13,6 +13,7 @@ macro_rules! enum_boilerplate {
             }
 
             /// Iterates over all values of this enum in order.
+            #[allow(dead_code)]
             pub fn iter() -> impl Iterator<Item = &'static $Enum> {
                 /// In Rust, `const` items are created at compile time.
                 const ITEMS: &[$Enum] = &[
@@ -26,7 +27,7 @@ macro_rules! enum_boilerplate {
 
         impl std::str::FromStr for $Enum {
             type Err = Error;
-            fn from_str(value: &str) -> $crate::errors::Result<Self> {
+            fn from_str(value: &str) -> $crate::core::errors::Result<Self> {
                 let ret = match value {
                     $(
                         $str => $Enum::$variant,

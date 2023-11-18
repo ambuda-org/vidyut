@@ -1,12 +1,12 @@
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Code, Prakriya};
 /// Applies samprasarana changes as needed.
 ///
 /// Order of operations:
 /// - Must follow atidesha so that suffixes have the kit/Nit annotations necessary to cause
 ///   samprasanara.
 use crate::dhatu_gana as gana;
-use crate::prakriya::{Code, Prakriya};
-use crate::tag::Tag as T;
-use crate::term::Term;
 
 fn is_vaci_svapi(t: &Term) -> bool {
     t.is_dhatu()
@@ -113,7 +113,7 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
         return None;
     }
 
-    let n = p.view(i_n)?;
+    let n = p.pratyaya(i_n)?;
     let n_is_yan = n.has_u("yaN");
     let n_is_lit = n.has_lakshana("li~w");
     let n_will_be_abhyasta = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
@@ -126,7 +126,7 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     };
 
     let optional_set_text = |rule, p: &mut Prakriya, text| {
-        p.run_optional_at(rule, i, |t| {
+        p.optional_run_at(rule, i, |t| {
             t.set_text(text);
             t.add_tag(T::FlagSamprasarana);
         });

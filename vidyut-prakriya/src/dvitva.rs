@@ -2,13 +2,12 @@
 ///
 /// TODO: the code here is repetitive and can be consolidated with a bit more thought.
 use crate::ac_sandhi;
-use crate::filters as f;
-use crate::operators as op;
-use crate::prakriya::{Code, Prakriya};
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Code, Prakriya};
 use crate::sounds as al;
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
-use crate::term::Term;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
 
@@ -54,7 +53,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<
     p.insert_after(i, abhyasa);
     p.insert_after(i + 1, third);
     p.step(rule);
-    p.run_at("6.1.4", i + 1, op::add_tag(T::Abhyasa));
+    p.add_tag_at("6.1.4", i + 1, T::Abhyasa);
 
     p.set(i, |t| t.add_tag(T::Abhyasta));
     p.set(i + 1, |t| t.add_tag(T::Abhyasta));
@@ -135,7 +134,7 @@ fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> 
     }
     p.step(rule);
 
-    p.run_at("6.1.4", i_ac + 1, |t| t.add_tag(T::Abhyasa));
+    p.add_tag_at("6.1.4", i_ac + 1, T::Abhyasa);
     p.run("6.1.5", |p| {
         p.set(i_ac, op::add_tag(T::Abhyasta));
         p.set(i_ac + 1, op::add_tag(T::Abhyasta));
@@ -157,14 +156,14 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
         !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
     })?;
     let dhatu = p.get(i)?;
-    let next = p.view(i_n)?;
+    let next = p.pratyaya(i_n)?;
 
     if dhatu.has_adi(&*AC)
-        && next.last()?.is_pratyaya()
-        && next.last()?.has_u_in(&["san", "Ric", "yaN", "RiN"])
+        && next.last().is_pratyaya()
+        && next.last().has_u_in(&["san", "Ric", "yaN", "RiN"])
     {
         try_dvitva_for_sanadi_ajadi(rule, p, i);
-    } else if f::is_eka_ac(dhatu) || al::is_hal(dhatu.adi()?) {
+    } else if dhatu.is_ekac() || al::is_hal(dhatu.adi()?) {
         let mut abhyasa = Term::make_text("");
         abhyasa.set_text(&dhatu.sthanivat());
 
@@ -177,7 +176,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
 
         let i_abhyasa = i;
         let i_dhatu = i + 1;
-        p.run_at("6.1.4", i_abhyasa, op::add_tag(T::Abhyasa));
+        p.add_tag_at("6.1.4", i_abhyasa, T::Abhyasa);
 
         p.set(i_abhyasa, |t| t.add_tag(T::Abhyasta));
         p.set(i_dhatu, |t| t.add_tags(&[T::Abhyasta, T::Dvitva]));
@@ -206,14 +205,14 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         // These are termed abhyasta, but they can still undergo dvitva because
         // the rules below are conditioned specifically on "anabhyAsasya" ("not having an abhyasa")
         // from 6.1.8.
-        p.run_at("6.1.6", i, op::add_tag(T::Abhyasta));
+        p.add_tag_at("6.1.6", i, T::Abhyasta);
     }
 
     // Use a view to include `iw`-Agama. Skip vu~k and other dhatu-agamas.
     let i_n = p.find_next_where(i, |t| {
         !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
     })?;
-    let n = p.view(i_n)?;
+    let n = p.pratyaya(i_n)?;
     if n.has_lakshana("li~w") {
         let dhatu = p.get(i)?;
         // kAshikA:

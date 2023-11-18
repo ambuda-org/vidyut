@@ -1,5 +1,5 @@
+use crate::core::errors::*;
 use crate::enum_boilerplate;
-use crate::errors::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The complete list of taddhita-pratyayas.
@@ -17,6 +17,8 @@ pub enum Taddhita {
     akac,
     /// -a
     ac,
+    /// -aWa
+    aWac,
     /// -a
     aR,
     /// -a
@@ -27,10 +29,16 @@ pub enum Taddhita {
     atasuc,
     /// -astAt
     astAti,
+    /// -Akin,
+    Akinic,
     /// -Ara
     Arak,
     /// -i
     iY,
+    /// -ita
+    itac,
+    /// -ina
+    inac,
     /// -in
     ini,
     /// -iman
@@ -50,15 +58,23 @@ pub enum Taddhita {
     /// -Era
     Erak,
     /// -ka
+    ka,
+    /// -ka
     kak,
+    /// -kawa
+    kawac,
     /// -ka
     kan,
+    /// -ka
+    kap,
     /// -kalpa
     kalpap,
     /// -kftvas
     kftvasuc,
-    /// -ka
-    ka,
+    /// -kuwAra
+    kuwArac,
+    /// -kura,
+    kuRap,
     /// -Ina
     Ka,
     /// -Ina
@@ -71,6 +87,12 @@ pub enum Taddhita {
     Gan,
     /// -iya
     Gas,
+    /// -caRa
+    caRap,
+    /// -cara
+    caraw,
+    /// -cuYcu
+    cuYcup,
     /// -Ayana
     cPaY,
     /// --
@@ -81,6 +103,10 @@ pub enum Taddhita {
     CaR,
     /// -Iya,
     Cas,
+    /// -jAtIya
+    jAtIyar,
+    /// -jAha
+    jAhac,
     /// -a,
     Ya,
     /// -ika
@@ -90,9 +116,13 @@ pub enum Taddhita {
     /// -ya
     Yya,
     /// -a
+    wac,
+    /// -a
     waq,
     /// -iWa
     wiWan,
+    /// -wIwa
+    wIwac,
     /// -ya
     wyaR,
     /// -ana
@@ -115,6 +145,8 @@ pub enum Taddhita {
     qupac,
     /// -mat
     qmatup,
+    /// -ya
+    qyaR,
     /// -vala
     qvalac,
     /// -aka
@@ -153,8 +185,14 @@ pub enum Taddhita {
     tikan,
     /// -tya
     tyak,
+    /// -tyaka
+    tyakan,
     /// -tya
     tyap,
+    /// -tana
+    tyu,
+    /// -tana
+    tyul,
     /// -tra
     tral,
     /// -trA
@@ -167,6 +205,8 @@ pub enum Taddhita {
     Tyan,
     /// -TA
     TAl,
+    /// -daGna
+    daGnac,
     /// -dA
     dA,
     /// -dAnIm
@@ -175,20 +215,32 @@ pub enum Taddhita {
     deSya,
     /// -deSIya
     deSIyar,
+    /// -dvayasa
+    dvayasac,
     /// -dhA
     DA,
     /// -na
     na,
     /// -na
     naY,
+    /// -nAwa
+    nAwac,
     /// -Ayana
     Pak,
     /// -Ayana
     PaY,
     /// -Ayani
     PiY,
+    /// -bahu
+    bahuc,
+    /// -biqa
+    biqac,
+    /// -birIsa
+    birIsac,
     /// -Bakta
     Baktal,
+    /// -Brawa
+    Brawac,
     /// -ma
     ma,
     /// -mat
@@ -197,6 +249,12 @@ pub enum Taddhita {
     map,
     /// -maya
     mayaw,
+    /// -mAtra
+    mAtrac,
+    /// -pASa
+    pASap,
+    /// -piwa
+    piwac,
     /// -ya
     ya,
     /// -ya
@@ -215,8 +273,12 @@ pub enum Taddhita {
     rUpap,
     /// -rhi
     rhil,
+    /// -rUpya
+    rUpya,
     /// -la
     lac,
+    /// -vat
+    vatup,
     /// -vaya
     vaya,
     /// -vin
@@ -235,8 +297,14 @@ pub enum Taddhita {
     vyan,
     /// -Sa
     Sa,
+    /// -SaNkawa
+    SaNkawac,
     /// -Sas
     Sas,
+    /// -SAla
+    SAlac,
+    /// -ka
+    zkan,
     /// -tra
     zwarac,
     /// -ika
@@ -261,13 +329,17 @@ enum_boilerplate!(Taddhita, {
     a => "a",
     akac => "akac",
     ac => "ac",
+    aWac => "aWac",
     aY => "aY",
     aR => "aR",
     at => "at",
     atasuc => "atasu~c",
     astAti => "astAti~",
+    Akinic => "Akini~c",
     Arak => "Arak",
     iY => "iY",
+    itac => "itac",
+    inac => "inac",
     ini => "ini~",
     imanic => "imani~c",
     ila => "ila",
@@ -277,28 +349,39 @@ enum_boilerplate!(Taddhita, {
     Iyasun => "Iyasu~n",
     eRya => "eRya",
     Erak => "Erak",
-    kan => "kan",
+    ka => "ka",
     kak => "kak",
+    kawac => "kawac",
+    kap => "kap",
+    kan => "kan",
     kalpap => "kalpap",
     kftvasuc => "kftvasu~c",
-    ka => "ka",
+    kuwArac => "kuwArac",
+    kuRap => "kuRap",
     Ka => "Ka",
     KaY => "KaY",
     Ga => "Ga",
     Gac => "Gac",
     Gan => "Gan",
     Gas => "Gas",
+    caRap => "caRap",
+    caraw => "caraw",
+    cuYcup => "cuYcup",
     cPaY => "cPaY",
     cvi => "cvi~",
     Ca => "Ca",
     CaR => "CaR",
     Cas => "Cas",
+    jAtIyar => "jAtIyar",
+    jAhac => "jAhac",
     Ya => "Ya",
     YiW => "YiW",
     Yya => "Yya",
     YyaN => "Yyan",
+    wac => "wac",
     waq => "waq",
     wiWan => "wi~Wan",
+    wIwac => "wIwac",
     wyaR => "wyaR",
     wyu => "wyu~",
     wyul => "wyu~l",
@@ -310,6 +393,7 @@ enum_boilerplate!(Taddhita, {
     Wap => "Wap",
     qupac => "qupac",
     qmatup => "qmatu~p",
+    qyaR => "qyaR",
     qvalac => "qvalac",
     qvun => "qvu~n",
     Qak => "Qak",
@@ -329,28 +413,41 @@ enum_boilerplate!(Taddhita, {
     ti => "ti",
     tikan => "tikan",
     tyak => "tyak",
+    tyakan => "tyakan",
     tyap => "tyap",
+    tyu => "tyu~",
+    tyul => "tyu~l",
     tral => "tral",
     trA => "trA",
     tva => "tva",
     Tamu => "Tamu~",
     Tyan => "Tyan",
     TAl => "TAl",
+    daGnac => "daGnac",
+    dvayasac => "dvayasac",
     dA => "dA",
     dAnIm => "dAnIm",
     deSya => "deSya",
     deSIyar => "deSIyar",
     DA => "DA",
     na => "na",
+    nAwac => "nAwac",
     naY => "naY",
     ma => "ma",
     matup => "matu~p",
     map => "map",
     mayaw => "mayaw",
+    pASap => "pASap",
+    piwac => "piwac",
     Pak => "Pak",
     PaY => "PaY",
     PiY => "PiY",
+    bahuc => "bahuc",
+    biqac => "biqac",
+    birIsac => "birIsac",
     Baktal => "Baktal",
+    Brawac => "Brawac",
+    mAtrac => "mAtrac",
     ya => "ya",
     yak => "yak",
     yaY => "yaY",
@@ -359,10 +456,12 @@ enum_boilerplate!(Taddhita, {
     yus => "yus",
     ra => "ra",
     rhil => "rhil",
+    rUpya => "rUpya",
     lac => "lac",
     rUpap => "rUpap",
-    viDal => "viDal",
+    vatup => "vatu~p",
     vaya => "vaya",
+    viDal => "viDal",
     vini => "vini~",
     vuk => "vu~k",
     vuY => "vu~Y",
@@ -370,7 +469,10 @@ enum_boilerplate!(Taddhita, {
     vyat => "vyat",
     vyan => "vyan",
     Sa => "Sa",
+    SaNkawac => "SaNkawac",
+    SAlac => "SAlac",
     Sas => "Sas",
+    zkan => "zkan",
     zwarac => "zwarac",
     zWac => "zWac",
     zWan => "zWan",
@@ -505,6 +607,26 @@ pub enum TaddhitaArtha {
     TadVahati,
     /// What one pierces. (4.4.83)
     TadVidhyati,
+    /// What one has obtained. (4.4.85)
+    Labdha,
+    /// Where one has gone. (4.4.86)
+    Gata,
+    /// In which this is seen. (4.4.87)
+    AsminDrshyam,
+    /// Whose root is removed. (4.4.88)
+    AsyaAbarhi,
+    /// Joined with this. (4.4.90)
+    Samyukta,
+    /// Not deviating from this. (4.4.92)
+    Anapeta,
+    /// Made of this. (4.4.93)
+    Nirmita,
+    /// Dear to this. (4.4.95)
+    Priya,
+    /// Skilled in this. (4.4.98)
+    TatraSadhu,
+    /// Living there. (4.4.107)
+    TatraVasi,
     /// One for whom this is good. (5.1.7)
     TasmaiHitam,
     /// What could be created from this raw material. (5.1.12)
@@ -513,6 +635,14 @@ pub enum TaddhitaArtha {
     TadAsyaTadAsminSyat,
     /// What is bought with this. (5.1.37)
     TenaKritam,
+    /// One deserves this. (5.1.63)
+    TadArhati,
+    /// One performs this. (5.1.72)
+    TadVartayati,
+    /// Fallen into this. (5.1.73)
+    Apanna,
+    /// Who goes. (5.1.75)
+    Gacchati,
     /// The existence of which. (5.1.119)
     TasyaBhava,
     /// A place of growing, when that place is a field. (5.2.1)
@@ -525,6 +655,26 @@ pub enum TaddhitaArtha {
     Vyapnoti,
     /// Obtains. (5.2.8)
     Prapnoti,
+    /// Who witnesses this. (5.2.10)
+    TadAnubhavati,
+    /// Who intends to go. (5.2.11)
+    Gami,
+    /// Fit to go. (5.2.15)
+    AlamGami,
+    /// Formerly this. (5.2.18)
+    BhutaPurva,
+    /// What can be traveled in one day. (5.2.19)
+    EkahaGama,
+    /// The ripening season of this. (5.2.24)
+    TasyaPakamula,
+    /// The root of this. (5.2.25)
+    TasyaMula,
+    /// Celebrated through this. (5.2.26)
+    TenaVitta,
+    /// Measure. (5.2.37)
+    Pramana,
+    /// Volume. (5.2.39)
+    Parimana,
     /// What one has or is in. (5.2.94)
     TadAsyaAstiAsmin,
     /// Words meaning direction, location, or time. (5.3.27)

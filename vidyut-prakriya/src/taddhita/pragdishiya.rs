@@ -4,8 +4,8 @@ Implements the taddhita rules in the "prAg diSo viBaktiH" section of pada 5.3.
 (5.3.1 - 5.3.26)
 */
 use crate::args::Taddhita;
+use crate::core::Tag as T;
 use crate::taddhita::utils::TaddhitaPrakriya;
-use crate::tag::Tag as T;
 
 pub fn run(tp: &mut TaddhitaPrakriya) {
     let i_prati = tp.i_prati;
@@ -14,9 +14,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     let add = |rule, tp: &mut TaddhitaPrakriya, taddhita| {
         tp.try_add_with(rule, taddhita, |p| {
             p.set(i_prati + 1, |t| {
-                if taddhita != Taddhita::at {
-                    t.add_tag(T::Vibhakti);
-                }
+                t.add_tag(T::Vibhakti);
             })
         });
     };
@@ -92,7 +90,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_u("etad") {
             tp.p.run_at("5.3.5", i_prati, |t| t.set_text("a"));
         } else if prati.has_u("sarva") && t.has_adi('d') {
-            tp.p.run_optional_at("5.3.6", i_prati, |t| t.set_text("sa"));
+            tp.p.optional_run_at("5.3.6", i_prati, |t| t.set_text("sa"));
         }
     }
 }

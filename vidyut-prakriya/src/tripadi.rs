@@ -14,7 +14,7 @@ the tripādi applies rules in order and will (generally) never "go back" to app
 mod pada_8_2;
 mod pada_8_3;
 mod pada_8_4;
-use crate::prakriya::Prakriya;
+use crate::core::Prakriya;
 
 /// Runs all rules of the tripadi.
 pub fn run(p: &mut Prakriya) {

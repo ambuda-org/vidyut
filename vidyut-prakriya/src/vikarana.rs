@@ -17,14 +17,14 @@
 // substitutions by lopa that block the prakarana.
 
 use crate::args::Gana::*;
+use crate::core::errors::*;
+use crate::core::operators as op;
+use crate::core::Prakriya;
+use crate::core::Tag as T;
+use crate::core::Term;
 use crate::dhatu_gana::{DYUT_ADI, PUSH_ADI, TAN_ADI};
-use crate::errors::*;
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::Prakriya;
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -80,7 +80,7 @@ fn maybe_replace_cli_with_ksa(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let sprs = &["spfS", "mfS", "kfz", "tfp", "dfp"];
     if xyz(p, i, |x, _, _| x.has_text_in(sprs)) {
-        if p.run_optional("3.1.44.v1", |p| op::upadesha_no_it(p, i + 1, "si~c")) {
+        if p.optional_run("3.1.44.v1", |p| op::upadesha_no_it(p, i + 1, "si~c")) {
             return None;
         }
     }
@@ -103,7 +103,7 @@ fn maybe_replace_cli_with_ksa(p: &mut Prakriya, i: usize) -> Option<()> {
     let to_ksa = replace_with(i + 1, "ksa");
     if dhatu.has_text("Sliz") && dhatu.has_gana(Divadi) {
         // aSlizat, aSlikzat
-        added = p.run_optional("3.1.46", to_ksa);
+        added = p.optional_run("3.1.46", to_ksa);
     }
 
     let to_ksa = replace_with(i + 1, "ksa");
@@ -119,7 +119,7 @@ fn maybe_replace_cli_with_ksa(p: &mut Prakriya, i: usize) -> Option<()> {
         if dhatu.has_text("dfS") {
             p.step("3.1.47")
         } else if dhatu.has_tag(T::Udit) {
-            p.run_optional("3.1.45", |p| {
+            p.optional_run("3.1.45", |p| {
                 to_ksa(p);
                 // Needed if we use "ksa" with a veT root.
                 p.add_tag(T::FlagHasAnitKsa);
@@ -152,7 +152,10 @@ fn maybe_replace_cli_with_can(p: &mut Prakriya, i: usize) -> Option<()> {
         p.run("3.1.48.v1", to_can);
     } else if dhatu.has_text_in(&["De", "Svi"]) {
         // adaDAt, aSiSviyat
-        p.run_optional("3.1.49", to_can);
+        p.optional_run("3.1.49", to_can);
+    } else if dhatu.has_u("gupU~") && p.is_chandasi() {
+        // ajuguputam
+        p.optional_run("3.1.50", to_can);
     }
 
     // TODO: 3.1.50 - 3.1.51
@@ -172,12 +175,7 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if dhatu.has_text_in(&["lip", "sic", "hve"]) {
         let mut skip = false;
         if tin.is_atmanepada() {
-            if p.is_allowed("3.1.54") {
-                p.step("3.1.54");
-                skip = true;
-            } else {
-                p.decline("3.1.54")
-            }
+            skip = p.optional_run("3.1.54", |_| {});
         }
         if !skip {
             p.run("3.1.53", to_an);
@@ -204,13 +202,11 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
             // SAsu~\\ (ASAste) is not part of the rule. (KV)
             p.run("3.1.56", to_an);
         } else if is_parasmai && dhatu.has_tag(T::irit) {
-            p.run_optional("3.1.57", to_an);
+            p.optional_run("3.1.57", to_an);
         } else if is_parasmai && dhatu.has_text_in(&jr_stambhu) {
-            p.run_optional("3.1.58", to_an);
-        } else if is_parasmai
-            && dhatu.has_text_in(&["kf", "mf", "df", "ruh"])
-            && p.has_tag(T::Chandasi)
-        {
+            p.optional_run("3.1.58", to_an);
+        } else if dhatu.has_u_in(&["qukf\\Y", "mf\\N", "dF", "ru\\ha~"]) && p.is_chandasi() {
+            // akarat, amarat, ...
             p.run("3.1.59", to_an);
         }
     }
@@ -241,7 +237,7 @@ fn maybe_replace_cli_with_cin(p: &mut Prakriya, i: usize) -> Option<()> {
             "o~pyAyI~\\",
         ]) {
             // adIpi, ajani, aboDi, ...
-            p.run_optional("3.1.61", to_cin);
+            p.optional_run("3.1.61", to_cin);
         } else if p.has_tag(T::Karmani) {
             p.run("3.1.66", to_cin);
         }
@@ -287,7 +283,7 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
     let mut ran = false;
     if !ran {
         // corayAmbaBUva, ...
-        ran = p.run_optional("3.1.40:BU", |p| {
+        ran = p.optional_run("3.1.40:BU", |p| {
             let mut dhatu = Term::make_dhatu("BU", Bhvadi, None);
             dhatu.set_text("BU");
             dhatu.add_tag(T::Dhatu);
@@ -305,7 +301,7 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
     }
     if !ran {
         // corayAmAsa, ...
-        ran = p.run_optional("3.1.40:as", |p| {
+        ran = p.optional_run("3.1.40:as", |p| {
             let mut dhatu = Term::make_dhatu("asa~", Adadi, None);
             dhatu.set_text("as");
             dhatu.add_tag(T::Dhatu);
@@ -357,7 +353,7 @@ pub fn try_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
         p.run("3.1.37", add_aam);
     } else if dhatu.has_text_in(&["uz", "jAgf"]) || (dhatu.has_text("vid") && dhatu.has_gana(Adadi))
     {
-        let used = p.run_optional("3.1.38", add_aam);
+        let used = p.optional_run("3.1.38", add_aam);
         if used {
             let dhatu = p.get(i)?;
             if dhatu.has_text("vid") {
@@ -373,7 +369,7 @@ pub fn try_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
             aam.add_tags(&[T::Pratyaya, T::Slu]);
             p.insert_after(i, aam);
         };
-        if !p.run_optional("3.1.39", add_sluvat_am) {
+        if !p.optional_run("3.1.39", add_sluvat_am) {
             return None;
         }
     } else {
@@ -397,7 +393,7 @@ fn maybe_add_am_pratyaya_for_lot(p: &mut Prakriya) {
     };
 
     if p.has(i, |t| t.has_text("vid") && t.has_gana(Adadi) && is_lot) {
-        let added_am = p.run_optional("3.1.41", add_aam);
+        let added_am = p.optional_run("3.1.41", add_aam);
 
         if added_am {
             // Derive by nipAtana
@@ -431,7 +427,7 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
     if dhatu.has_text_in(&[
         "BrAS", "BlAS", "Bram", "kram", "klam", "tras", "truw", "laz",
     ]) {
-        let applied = p.run_optional("3.1.70", add_vikarana("Syan"));
+        let applied = p.optional_run("3.1.70", add_vikarana("Syan"));
 
         // Needed to make 3.1.69 available to roots like Bram
         if !applied && p.has(i, |t| t.has_gana(Divadi)) {
@@ -440,19 +436,19 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("yasu~") {
         if !has_upasarga {
             // yasyati, yasati
-            divadi_declined = !p.run_optional("3.1.71", add_vikarana("Syan"));
+            divadi_declined = !p.optional_run("3.1.71", add_vikarana("Syan"));
         } else if i > 0 && p.has(i - 1, |t| t.has_u("sam")) {
             // saMyasyati, saMyasati
-            divadi_declined = !p.run_optional("3.1.72", add_vikarana("Syan"));
+            divadi_declined = !p.optional_run("3.1.72", add_vikarana("Syan"));
         }
     } else if dhatu.has_u("akzU~") {
         // akzRoti, akzati
-        p.run_optional("3.1.75", add_vikarana("Snu"));
+        p.optional_run("3.1.75", add_vikarana("Snu"));
     } else if dhatu.has_u("takzU~") {
         // takzRoti, takzati
-        p.run_optional("3.1.76", add_vikarana("Snu"));
+        p.optional_run("3.1.76", add_vikarana("Snu"));
     } else if dhatu.has_u_in(&stanbhu_stunbhu) {
-        p.run_optional("3.1.82", add_vikarana("Snu"));
+        p.optional_run("3.1.82", add_vikarana("Snu"));
     }
 
     if p.find_first(T::Vikarana).is_some() {
@@ -511,35 +507,25 @@ fn maybe_sic_lopa_before_parasmaipada(
     let dhatu = p.get(i)?;
     if dhatu.has_text_in(&["GrA", "De", "So", "Co", "so"]) {
         let code = "2.4.78";
-        // De takes luk by 2.4.77, so 2.4.78 allows aluk.
         if dhatu.has_text("De") {
-            if p.is_allowed(code) {
-                p.step(code);
+            // De takes luk by 2.4.77, so 2.4.78 allows aluk.
+            if p.optional_run(code, |_| {}) {
                 return None;
-            } else {
-                p.decline(code);
             }
-        } else {
+        } else if p.optional_run_at(code, i_vikarana, op::luk) {
             // The other roots avoid luk by default, so 2.4.78 allows luk.
-            if p.is_allowed(code) {
-                p.run_at(code, i_vikarana, op::luk);
-                return None;
-            } else {
-                p.decline(code);
-            }
+            return None;
         }
     }
 
-    let gati_stha = |t: &Term| {
+    // Run only if aluk was not used above.
+    if p.has(i, |t| {
         (t.has_text("gA") && t.has_gana(Adadi))
             || t.has_text("sTA")
             || t.has_tag(T::Ghu)
             || (t.has_text("pA") && t.has_gana(Bhvadi))
             || t.has_text("BU")
-    };
-
-    // Run only if aluk was not used above.
-    if p.has(i, gati_stha) {
+    }) {
         p.run_at("2.4.77", i_vikarana, op::luk);
     }
 
@@ -556,7 +542,7 @@ fn maybe_sic_lopa_for_tanadi_atmanepada(
     let tin = p.get(i_tin)?;
     if dhatu.has_u_in(TAN_ADI) && tin.has_text_in(&["ta", "TAs"]) {
         // atata, ataTAH
-        p.run_optional_at("2.4.79", i_vikarana, op::luk);
+        p.optional_run_at("2.4.79", i_vikarana, op::luk);
     }
 
     Some(())
@@ -589,6 +575,12 @@ fn try_pratyaya_lopa(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) -> Result<()> {
+    // Skip if a vikarana is already present, e.g. when adding a subanta to a krdanta that has
+    // already been created.
+    if p.find_first(T::Vikarana).is_some() {
+        return Ok(());
+    }
+
     let tin = match p.terms().last() {
         Some(t) => t,
         None => return Ok(()),

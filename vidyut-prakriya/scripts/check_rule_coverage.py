@@ -38,8 +38,8 @@ tested_rules = set()
 for path in glob.glob("**/*.rs", root_dir=tests, recursive=True):
     with open(tests / path) as f:
         for line in f:
-            if m := re.search(r"(\d+_\d+_\d+)", line):
-                tested_rules.add(m.group(1).replace('_', '.'))
+            for match in re.findall(r"(\d+_\d+_\d+)", line):
+                tested_rules.add(match.replace('_', '.'))
 
 print_legend()
 num_ok = 0

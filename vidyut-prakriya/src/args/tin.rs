@@ -1,6 +1,6 @@
+use crate::core::errors::Error;
+use crate::core::Tag;
 use crate::enum_boilerplate;
-use crate::errors::Error;
-use crate::tag::Tag;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The prayoga of some tinanta.
@@ -153,22 +153,22 @@ impl Lakara {
     }
 }
 
-/// The pada of some tinanta.
+/// The pada of some tinanta or krdanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
-pub enum Pada {
+pub enum DhatuPada {
     /// Parasmaipada.
     Parasmai,
     /// Atmanepada.
     Atmane,
 }
 
-enum_boilerplate!(Pada, {
+enum_boilerplate!(DhatuPada, {
     Parasmai => "parasmai",
     Atmane => "atmane",
 });
 
-impl Pada {
+impl DhatuPada {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
             Self::Parasmai => Tag::Parasmaipada,
@@ -193,7 +193,7 @@ pub struct TinantaArgs {
     purusha: Purusha,
     lakara: Lakara,
     vacana: Vacana,
-    pada: Option<Pada>,
+    pada: Option<DhatuPada>,
 }
 
 impl TinantaArgs {
@@ -221,7 +221,7 @@ impl TinantaArgs {
     ///
     /// If unset, the program will use whatever padas are allowed by the Atmanepada section of the
     /// Ashtadhyayi. See the `atmanepada` module for details.
-    pub fn pada(&self) -> Option<Pada> {
+    pub fn pada(&self) -> Option<DhatuPada> {
         self.pada
     }
 
@@ -238,7 +238,7 @@ pub struct TinantaArgsBuilder {
     purusha: Option<Purusha>,
     lakara: Option<Lakara>,
     vacana: Option<Vacana>,
-    pada: Option<Pada>,
+    pada: Option<DhatuPada>,
 }
 
 impl TinantaArgsBuilder {
@@ -270,7 +270,7 @@ impl TinantaArgsBuilder {
     ///
     /// If unset, the program will use whatever padas are allowed by the Atmanepada section of the
     /// Ashtadhyayi. See the `atmanepada` module for details.
-    pub fn pada(mut self, val: Pada) -> Self {
+    pub fn pada(mut self, val: DhatuPada) -> Self {
         self.pada = Some(val);
         self
     }

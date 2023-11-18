@@ -13,6 +13,9 @@ mod macros;
 
 mod dhatu;
 mod krt;
+mod pada;
+mod pratipadika;
+mod samasa;
 mod sup;
 mod taddhita;
 mod tin;
@@ -20,6 +23,9 @@ mod unadi;
 
 pub use dhatu::*;
 pub use krt::*;
+pub use pada::*;
+pub use pratipadika::*;
+pub use samasa::*;
 pub use sup::*;
 pub use taddhita::*;
 pub use tin::*;

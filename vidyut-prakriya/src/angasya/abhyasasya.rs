@@ -7,13 +7,13 @@ Runs rules that modify the abhyāsa.
 */
 
 use crate::args::Gana;
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
-use crate::tag::Tag as T;
 use compact_str::CompactString;
 use lazy_static::lazy_static;
 
@@ -85,7 +85,7 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
             p.run_at(code, i, op::antya("is"));
         }
     } else if dhatu.has_text("rAD") {
-        do_abhyasa_lopa = p.run_optional_at("7.4.54.v1", i, op::upadha("is"));
+        do_abhyasa_lopa = p.optional_run_at("7.4.54.v1", i, op::upadha("is"));
     } else if dhatu.has_u_in(&["A\\px~", "jYapa~", "fDu~"]) {
         // Ipsati, jYIpsati, Irtsati
         let code = "7.4.55";
@@ -96,12 +96,12 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
         }
     } else if dhatu.has_text("danB") {
         // Dipsati, DIpsati
-        if !p.run_optional_at("7.4.56.1", i, |t| t.set_at(1, "i")) {
+        if !p.optional_run_at("7.4.56.1", i, |t| t.set_at(1, "i")) {
             p.run_at("7.4.56.2", i, |t| t.set_at(1, "I"));
         }
     } else if dhatu.has_text("muc") && p.has_tag(T::Atmanepada) {
         // mokzate, mumukzate
-        do_abhyasa_lopa = p.run_optional("7.4.57", |p| {
+        do_abhyasa_lopa = p.optional_run("7.4.57", |p| {
             p.set(i, op::text("moc"));
         });
     } else {
@@ -164,7 +164,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
             } else if anga.has_u_in(SRU_ADI) && p.has(i + 2, |t| !t.has_u("san")) {
                 // Example: sru -> sisrAvayizyati
                 // Note that this rule must run after guna for the upadha check to be meaningful.
-                p.run_optional_at("7.4.81", i, op::antya("i"));
+                p.optional_run_at("7.4.81", i, op::antya("i"));
             }
         }
 
@@ -172,9 +172,9 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
             let abhyasa = p.get(i)?;
             let dhatu = p.get(i + 1)?;
             if has_at_lopa && dhatu.has_u("gaRa") {
-                p.run_optional_at("7.4.97", i, op::antya("I"));
+                p.optional_run_at("7.4.97", i, op::antya("I"));
             } else if dhatu.has_text_in(&["vezw", "cezw"]) {
-                p.run_optional_at("7.4.96", i, op::antya("a"));
+                p.optional_run_at("7.4.96", i, op::antya("a"));
             } else if is_laghu_cani {
                 if !dhatu.is_samyogadi() {
                     if let Some(sub) = al::to_dirgha(abhyasa.antya()?) {
@@ -215,7 +215,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let dhatu = p.get(i_dhatu)?;
     if dhatu.has_u("zWivu~") {
-        p.run_optional(Rule::Kashika("6.1.64"), |p| {
+        p.optional_run(Rule::Kashika("6.1.64"), |p| {
             p.set(i, |t| t.find_and_replace_text("zW", "zT"))
         });
     }
@@ -319,12 +319,9 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
         if dhatu.has_antya(&*HAL) && dhatu.has_upadha(&*F_HAL) {
             // 'A' acepted only by some grammarians
             if dhatu.has_adi('A') {
-                let code = Rule::Kashika("7.4.71.k");
-                if p.is_allowed(code) {
-                    add_nut_agama(code, p, i_dhatu);
-                } else {
-                    p.decline(code);
-                }
+                p.optionally(Rule::Kashika("7.4.71.k"), |rule, p| {
+                    add_nut_agama(rule, p, i_dhatu);
+                });
             } else {
                 add_nut_agama("7.4.71", p, i_dhatu);
             }
@@ -400,7 +397,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
     }
 
     let optional_add_agama = |rule, p: &mut Prakriya, i_dhatu, agama| -> bool {
-        let added = p.run_optional(rule, |p| op::insert_agama_before(p, i_dhatu, agama));
+        let added = p.optional_run(rule, |p| op::insert_agama_before(p, i_dhatu, agama));
         if added {
             it_samjna::run(p, i_dhatu).ok();
         }

@@ -1,6 +1,12 @@
-use crate::args::{Artha, Lakara};
-use crate::tag::Tag;
-use crate::term::{Term, TermView};
+/*!
+Manages the derivation state.
+
+Users interested in understanding this module should start by reading the comments on the
+`Prakriya` struct, which manages a derivation from start to finish.
+*/
+use crate::args::{Artha, Lakara, Pada, Pratipadika};
+use crate::core::Tag;
+use crate::core::{Term, TermView};
 use compact_str::CompactString;
 use enumset::EnumSet;
 
@@ -10,31 +16,35 @@ pub type Code = &'static str;
 /// A rule applied in the prakriya.
 ///
 /// Most of a derivation's rules come directly from the Ashtadhyayi. But, some derivations use
-/// rules from other sources. We use this model to clearly define which are which.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+/// rules from other sources. We use this model to clearly define where different rules come from.
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Rule {
-    /// A sutra from the Ashtadhyayi.
+    /// A sutra from the Ashtadhyayi. The string data here is an adhyaya-pada-sutra string, e.g.
+    /// "3.1.68".
     Ashtadhyayi(&'static str),
-    /// A comment in the Kashika-vrtti on a specific sutra.
+    /// A comment in the Kashika-vrtti on a specific sutra. The string data here is an
+    /// adhyaya-pada-sutra string that describes the sutra being commented on.
     Kashika(&'static str),
-    /// A sutra from the Dhatupatha.
+    /// A sutra from the Dhatupatha. The string data here is a gana-sutra string, e.g. "10.0493".
     Dhatupatha(&'static str),
-    /// A sutra from the Unadipatha.
-    UP(&'static str),
-    /// A sutra from the Paniniya-Linganushasanam.
+    /// A sutra from the Unadipatha. The string here is a gana-sutra string, e.g. "1.1".
+    Unadipatha(&'static str),
+    /// A sutra from the Paniniya-Linganushasanam. The string here is the sutra's position in the
+    /// text, e.g. "40".
     Linganushasana(&'static str),
-    /// A quotation from the Vaiyakarana-siddhanta-kaumudi.
+    /// A quotation from the Vaiyakarana-siddhanta-kaumudi. The string here is the position of the
+    /// sutra being commented on in Kaumudi order, e.g. "446".
     Kaumudi(&'static str),
 }
 
 impl Rule {
-    /// The string reprentation of this rule.
+    /// The string representation of this rule.
     pub fn code(&self) -> &'static str {
         match self {
             Self::Ashtadhyayi(x) => x,
             Self::Kashika(x) => x,
             Self::Dhatupatha(x) => x,
-            Self::UP(x) => x,
+            Self::Unadipatha(x) => x,
             Self::Linganushasana(x) => x,
             Self::Kaumudi(x) => x,
         }
@@ -50,7 +60,13 @@ impl From<&'static str> for Rule {
 }
 
 /// Represents a step of the derivation.
-#[derive(Debug)]
+///
+/// A `Step` records both which rule was applied and the result of applying that rule. As of now,
+/// we record a result as a simple `String`. In the future, we hope to convert `Step` into a richer
+/// structure with more information about the specific change. For example, we might explicitly
+/// indicate which term in the result was changed, which kind of rule was replied, and whether this
+/// rule was optional.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Step {
     rule: Rule,
     result: String,
@@ -63,19 +79,15 @@ impl Step {
     }
 
     /// The result of applying `rule`.
-    ///
-    /// For now, `result` is a simple string. In the future, we might convert this into a richer
-    /// structure with more information about the specific change. For example, we might explicitly
-    /// indicate which term in the result was changed.
     pub fn result(&self) -> &String {
         &self.result
     }
 }
 
 /// Records whether an optional rule was accepted or declined.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RuleChoice {
-    /// Indicates that a rule was applied during the derivation.
+    /// Indicates that a rule was accepted during the derivation.
     Accept(Rule),
     /// Indicates that a rule was declined during the derivation.
     Decline(Rule),
@@ -83,7 +95,7 @@ pub enum RuleChoice {
 
 /// Configuration options that affect how a `Prakriya` behaves during the derivation.
 #[derive(Default, Debug)]
-pub struct Config {
+pub(crate) struct Config {
     pub rule_choices: Vec<RuleChoice>,
     pub log_steps: bool,
     pub is_chandasi: bool,
@@ -96,6 +108,34 @@ impl Config {
 }
 
 /// Models a Paninian derivation.
+///
+/// A derivation has two main parts: a *state* that describes what terms are present in the
+/// derivation and a *history* that records which rules the derivation has used so far.
+///
+///
+/// # State
+///
+/// `Prakriya` manages the derivation state with a `Vec<Term>` that explicitly models all parts of
+/// the derivation. Each `Term` is essentially a string that has been annotated with rich metadata.
+/// `Prakriya` also contains important metadata that applies across the entire derivation (as
+/// opposed to a specific term), such as whether the derivation as a whole expresses a certain
+/// meaning condition.
+///
+/// `Term` has an unstable API and is not ready to be exposed publicly. For details on what `Term`
+/// contains, see the crate-internal `term` module.
+///
+///
+/// # History
+///
+/// `Prakriya` manages the history state with a `Vec<Step>` that record which rules have been
+/// applied and with which results. In addition, it manages a `Vec<RuleChoice>` that records which
+/// optional rules the derivation has encountered and which choices the derivation has made for
+/// those rules.
+///
+/// `Prakriya` also records various config options from the `Ashtadhyayi` object that created it.
+/// For example, we might want the derivation to use *chandasi* rules, or we might wish to block
+/// such rules. Or, we might want to skip history logging so that we can generate words more
+/// quickly.
 #[derive(Default, Debug)]
 pub struct Prakriya {
     terms: Vec<Term>,
@@ -103,14 +143,15 @@ pub struct Prakriya {
     history: Vec<Step>,
     artha: Option<Artha>,
     config: Config,
-    rule_decisions: Vec<RuleChoice>,
+    rule_choices: Vec<RuleChoice>,
     lakara: Option<Lakara>,
 }
 
 /// Public API
+/// ==========
 impl Prakriya {
-    /// Returns the current state of the derivation. If the derivation is complete, `text()` will
-    /// thus represent the derivation's final output, which is a complete Sanskrit *pada*.
+    /// Returns a string representation of the current derivation state. If the derivation is
+    /// complete, `text()` will thus represent the derivation's final output.
     pub fn text(&self) -> String {
         let mut ret = String::from("");
         for t in &self.terms {
@@ -122,7 +163,7 @@ impl Prakriya {
     /// Returns all of the optional rules that were encountered during the derivation and whether
     /// they were accepted or rejected.
     pub fn rule_choices(&self) -> &Vec<RuleChoice> {
-        &self.rule_decisions
+        &self.rule_choices
     }
 
     /// Returns all of the rules that were applied during the derivation and the output of each
@@ -132,14 +173,39 @@ impl Prakriya {
         &self.history
     }
 
-    /// (experimental) Returns the semantic condition (artha) under which this prakriya was
+    /// (experimental) Returns the semantic condition (artha) under which this derivation was
     /// created.
     pub fn artha(&self) -> Option<Artha> {
         self.artha
     }
 }
 
-/// Crate-only API
+/// Private API
+/// ===========
+///
+/// `Prakriya` has a rich API that we have designed under two main constraints:
+///
+/// 1. We want a concise way to model the thousands of rules in the Ashtadhyayi and its related
+///    texts. This API helps not only with our ability to implement rules quickly but also with readability.
+///
+/// 2. We want a compositional API that lets us model various combinations of optionality, scope
+///    (i.e. over a term or over a prakriya), and complexity (i.e. a single rule or a block of
+///    rules).
+///
+/// The main method for mutating the derivation is `run`, which applies an arbitrary change to the
+/// prakriya then record the change in the derivation history. We also provide `run_at` as a
+/// conveninece method to change just one term. We manage optional rules with an `optionally`
+/// method that works as follows:
+///
+/// ```rust,ignore
+/// # use vidyut_prakriya::{Prakriya, Tag};
+/// // Mark that `prakriya` contains a dhatu that should accept an atmanepada-pratyaya.
+/// prakriya.optionally("1.2.3", |rule, p| {
+///     p.run(rule, |p| p.add_tag(Tag::Atmanepada));
+/// })
+/// ```
+///
+/// But for convenience, we have also defined `run_optional` and `run_optional_at`.
 impl Prakriya {
     /// Creates an empty prakriya.
     pub(crate) fn new() -> Self {
@@ -149,12 +215,14 @@ impl Prakriya {
             history: Vec::new(),
             artha: None,
             config: Config::new(),
-            rule_decisions: Vec::new(),
+            rule_choices: Vec::new(),
             lakara: None,
         }
     }
 
-    /// Like `text` but creates a CompactString.
+    /// Like `text` but creates a `CompactString`.
+    ///
+    /// `CompactString` is an implementation detail that we don't wish to expose in the public API.
     pub(crate) fn compact_text(&self) -> CompactString {
         let mut ret = CompactString::from("");
         for t in &self.terms {
@@ -212,9 +280,10 @@ impl Prakriya {
 
     /// Returns whether the term at the given index can be called "pada".
     ///
-    /// A term can be called `pada` iff:
-    /// - it has the pada-samjna;
-    /// - it is followed by one or more consecutive empty terms, the last of which is a pada.
+    /// A term X can be called `pada` iff:
+    /// - X has the pada-samjna;
+    /// - there is a term Y with the pada-samjna such that X comes before Y and all terms between X
+    ///   and Y are empty.
     pub(crate) fn is_pada(&self, i: usize) -> bool {
         if let Some(t) = self.get(i) {
             if t.is_pada() {
@@ -236,8 +305,8 @@ impl Prakriya {
         }
     }
 
-    pub(crate) fn view(&self, i: usize) -> Option<TermView> {
-        TermView::new(self.terms(), i)
+    pub(crate) fn custom_view(&self, start: usize, end: usize) -> Option<TermView> {
+        TermView::new(self.terms(), start, end)
     }
 
     /// Returns the index of the first `Term` that matches the predicate function `f` or `None` if
@@ -292,6 +361,10 @@ impl Prakriya {
         }
     }
 
+    pub(crate) fn find_next_not_empty(&self, index: usize) -> Option<usize> {
+        self.find_next_where(index, |t| !t.is_empty())
+    }
+
     pub(crate) fn find_last_where(&self, f: impl Fn(&Term) -> bool) -> Option<usize> {
         for (i, t) in self.terms.iter().enumerate().rev() {
             if f(t) {
@@ -313,7 +386,7 @@ impl Prakriya {
     }
 
     /// Finds the term that contains the char at index `i_char` in `self.text()`.
-    pub fn find_for_char_at(&self, i_char: usize) -> Option<usize> {
+    pub(crate) fn find_for_char_at(&self, i_char: usize) -> Option<usize> {
         let mut cur = 0;
         for (i, t) in self.terms().iter().enumerate() {
             let delta = t.text.len();
@@ -326,7 +399,7 @@ impl Prakriya {
     }
 
     /// Replaces character `i` of the current prakriya with the given substitute.
-    pub fn set_char_at(&mut self, i_char: usize, substitute: &str) {
+    pub(crate) fn set_char_at(&mut self, i_char: usize, substitute: &str) {
         let mut cur = 0;
         for t in self.terms_mut() {
             let delta = t.text.len();
@@ -336,6 +409,23 @@ impl Prakriya {
                 return;
             }
             cur += delta;
+        }
+    }
+
+    /// Sets the penultimate sound within the range `[start, end]` to the given value.
+    pub(crate) fn set_upadha_within_range(&mut self, start: usize, end: usize, substitute: &str) {
+        debug_assert!(start <= end);
+
+        let mut cur = 0;
+        let nth_rev = 1;
+        for t in self.terms[start..=end].iter_mut().rev() {
+            for (i_char, _) in t.text.bytes().enumerate().rev() {
+                if cur == nth_rev {
+                    t.text.replace_range(i_char..=i_char, substitute);
+                    return;
+                }
+                cur += 1;
+            }
         }
     }
 
@@ -364,6 +454,64 @@ impl Prakriya {
         tags.iter().any(|t| self.tags.contains(*t))
     }
 
+    /// Creates a pada view whose last index is `i_end`.
+    pub(crate) fn pada(&self, i_end: usize) -> Option<TermView> {
+        let t = self.get(i_end)?;
+        if t.is_sup() || t.is_tin() {
+            TermView::new(&self.terms(), 0, i_end)
+        } else {
+            None
+        }
+    }
+
+    /// Creates a nyAp/pratipadika view whose last index is `i_end`.
+    ///
+    /// The pratipadika-samjna technically does not include the nyAp-pratyayas. But, most rules
+    /// that deal with pratipadikas also want access to terms ending in nyAp-pratyayas per rule
+    /// 4.1.2 (NyAp-prAtipadikAt). So, this method returns both pratipadikas and nyAp-antas.
+    pub(crate) fn nyap_pratipadika(&self, i_end: usize) -> Option<TermView> {
+        let t = self.get(i_end)?;
+        if t.is_pratipadika_or_nyap() {
+            TermView::new(&self.terms(), 0, i_end)
+        } else {
+            None
+        }
+    }
+
+    /// Creates a pratyaya view whose first index is `i_start`.
+    ///
+    /// (This is a legacy API.)
+    pub(crate) fn pratyaya(&self, i_start: usize) -> Option<TermView> {
+        TermView::with_start(self.terms(), i_start)
+    }
+
+    /// Returns whether the prakriya contains a pratipadika with value `text` that ends at index `i`.
+    ///
+    /// A simple pratipadika exists in exactly one term, but a more complex pratipadika (krdanta,
+    /// a taddhitanta, or a samasa) can extend over multiple terms. This method is a unified API
+    /// that checks for either type of pratipadika.
+    pub(crate) fn has_pratipadika(&self, index: usize, text: &str) -> bool {
+        // Strategy: iterate backward term by term until we have matched all chars in `text`. If
+        // there is any mismatch, return false.
+        let mut offset = text.len();
+        for i in (0..=index).rev() {
+            let t = self.get(i).expect("present");
+            let slice = &text[0..offset];
+            if slice.ends_with(t.text.as_str()) {
+                // No risk of overflow here because `t.text` is at least as long as `slice`.
+                offset -= t.text.len();
+                if offset == 0 {
+                    return true;
+                }
+            } else {
+                // No match.
+                break;
+            }
+        }
+
+        false
+    }
+
     // Basic mutators
 
     /// Adds a tag to the prakriya.
@@ -372,7 +520,7 @@ impl Prakriya {
     }
 
     /// Returns whether the prakriya has the given artha.
-    pub(crate) fn has_artha(&mut self, artha: Artha) -> bool {
+    pub(crate) fn has_artha(&self, artha: Artha) -> bool {
         self.artha == Some(artha)
     }
 
@@ -419,6 +567,13 @@ impl Prakriya {
         self.terms.push(t);
     }
 
+    /// Adds the given term to the end of the term list.
+    pub(crate) fn extend(&mut self, terms: &[Term]) {
+        for t in terms {
+            self.terms.push(t.clone());
+        }
+    }
+
     pub(crate) fn maybe_save_sthanivat(&mut self) {
         for i in 0..self.terms().len() {
             let t = self.get_mut(i).expect("ok");
@@ -430,22 +585,27 @@ impl Prakriya {
 
     // Rule application
 
-    /// Runs the given operator.
-    pub(crate) fn run(&mut self, code: impl Into<Rule>, operator: impl Fn(&mut Prakriya)) -> bool {
-        operator(self);
-        self.step(code);
+    /// Runs `func` on the `Prakriya` then records `rule` in the derivation history.
+    ///
+    /// `rule` will be recorded regardless of whether or not `operator` caused any changes.
+    ///
+    /// Returns: `true`. We return a boolean value for consistency with functions like
+    /// `run_optional`.
+    pub(crate) fn run(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut Prakriya)) -> bool {
+        func(self);
+        self.step(rule);
         true
     }
 
-    /// Applies the given operator to the given term.
+    /// Runs `func` on the term at `index` then records `rule` in the derivation history.
     pub(crate) fn run_at(
         &mut self,
         rule: impl Into<Rule>,
         index: usize,
-        operator: impl Fn(&mut Term),
+        func: impl Fn(&mut Term),
     ) -> bool {
         if let Some(term) = self.get_mut(index) {
-            operator(term);
+            func(term);
             self.step(rule.into());
             true
         } else {
@@ -453,41 +613,62 @@ impl Prakriya {
         }
     }
 
-    /// Applies the given operator optionally.
+    /// Adds `tag` to the term at `index` then records `rule` in the derivation history.
     ///
-    /// Returns: whether the operation was applied. This return value is required for certain
-    /// complex conditions (e.g. 6.4.116 & 117; "if this rule was not applied, ...").
-    pub(crate) fn run_optional(
+    /// In the future, we might use this method to annotate which rules are samjna rules.
+    pub(crate) fn add_tag_at(&mut self, rule: impl Into<Rule>, index: usize, tag: Tag) {
+        self.run_at(rule.into(), index, |t| t.add_tag(tag));
+    }
+
+    /// Runs `func` optionally and records whether the option was accepted or rejected.
+    ///
+    /// Returns: whether the option was accepted.
+    pub(crate) fn optionally(
         &mut self,
         rule: impl Into<Rule>,
-        operator: impl Fn(&mut Prakriya),
+        func: impl FnOnce(Rule, &mut Prakriya),
     ) -> bool {
         let rule = rule.into();
         if self.is_allowed(rule) {
-            self.run(rule, operator)
+            func(rule, self);
+            true
         } else {
             self.decline(rule);
             false
         }
     }
 
-    /// Applies the given operator to the given term.
-    pub(crate) fn run_optional_at(
+    /// Optionally runs `func` on the `Prakriya`. If `func` was applied, records `rule` in the
+    /// derivation history.
+    ///
+    /// Returns: whether `func` was applied. This return value is required for certain complex
+    /// conditions (e.g. 6.4.116 & 117; "if this rule was not applied, ...").
+    pub(crate) fn optional_run(
+        &mut self,
+        rule: impl Into<Rule>,
+        func: impl Fn(&mut Prakriya),
+    ) -> bool {
+        self.optionally(rule, |rule, p| {
+            p.run(rule, func);
+        })
+    }
+
+    /// Optionally runs `func` on the term at `index`. If `func` was applied, records `rule` in the
+    /// derivation history.
+    ///
+    /// Returns: whether `func` was applied.
+    pub(crate) fn optional_run_at(
         &mut self,
         rule: impl Into<Rule>,
         index: usize,
         operator: impl Fn(&mut Term),
     ) -> bool {
-        let rule = rule.into();
-        if self.is_allowed(rule) {
-            self.run_at(rule, index, operator)
-        } else {
-            self.decline(rule);
-            false
-        }
+        self.optionally(rule, |rule, p| {
+            p.run_at(rule, index, operator);
+        })
     }
 
-    /// Adds a rule and its result to the history.
+    /// Adds `rule` and the current derivation state to the derivation history.
     pub(crate) fn step(&mut self, rule: impl Into<Rule>) {
         if self.config.log_steps {
             let state = self.terms.iter().fold(String::new(), |a, b| {
@@ -523,10 +704,8 @@ impl Prakriya {
     #[cfg(debug_assertions)]
     pub(crate) fn dump(&mut self) {
         let n = self.terms().len();
-        self.debug(format!("p: {:?}", self.tags));
-        for i in 0..n {
-            self.debug(format!("{i}: {:?}", self.terms()[i]));
-        }
+        self.debug(format!("tags: {:?}", self.tags));
+        self.debug(format!("{:#?}", self.terms()));
     }
 
     #[allow(unused)]
@@ -564,10 +743,38 @@ impl Prakriya {
     }
 
     pub(crate) fn accept(&mut self, rule: impl Into<Rule>) {
-        self.rule_decisions.push(RuleChoice::Accept(rule.into()));
+        self.rule_choices.push(RuleChoice::Accept(rule.into()));
     }
 
     pub(crate) fn decline(&mut self, rule: impl Into<Rule>) {
-        self.rule_decisions.push(RuleChoice::Decline(rule.into()));
+        self.rule_choices.push(RuleChoice::Decline(rule.into()));
+    }
+}
+
+impl From<Prakriya> for Option<Pratipadika> {
+    /// (experimental) Converts this prakriya to a `Pratipadika`.
+    fn from(p: Prakriya) -> Self {
+        Pratipadika::from_terms(p.terms)
+    }
+}
+
+impl From<&Prakriya> for Option<Pratipadika> {
+    /// (experimental) Converts this prakriya to a `Pratipadika`.
+    fn from(p: &Prakriya) -> Self {
+        Pratipadika::from_terms(p.terms.clone())
+    }
+}
+
+impl From<Prakriya> for Option<Pada> {
+    /// (experimental) Converts this prakriya to a `Pratipadika`.
+    fn from(p: Prakriya) -> Self {
+        Pada::from_terms(p.terms)
+    }
+}
+
+impl From<&Prakriya> for Option<Pada> {
+    /// (experimental) Converts this prakriya to a `Pratipadika`.
+    fn from(p: &Prakriya) -> Self {
+        Pada::from_terms(p.terms.clone())
     }
 }

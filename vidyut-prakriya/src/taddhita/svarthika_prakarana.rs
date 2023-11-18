@@ -1,33 +1,10 @@
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
-use crate::taddhita::gana;
+use crate::core::Tag as T;
+use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
-use crate::tag::Tag as T;
 
 pub fn run(tp: &mut TaddhitaPrakriya) {
-    // TODO: others
-    const YAVA_ADI: &[&str] = &[
-        "yAva", "maRi", "asTi", "caRqa", "pIta", "stamBa", "ftu", "paSu", "aRu", "putra", "snAta",
-        "SUnya", "dAna", "tanu", "jYAta",
-    ];
-    const VINAYA_ADI: &[&str] = &[
-        "vinaya",
-        "samaya",
-        "upAya",
-        "saNgati",
-        "kaTaYcit",
-        "akasmAt",
-        "samayAcAra",
-        "upacAra",
-        "samAcAra",
-        "vyavahAra",
-        "sampradAna",
-        "samutkarza",
-        "samUha",
-        "viSeza",
-        "atyaya",
-    ];
-
     let i_prati = tp.i_prati;
 
     tp.with_context(IvePratikrtau, |tp| {
@@ -137,18 +114,23 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     let prati = tp.prati();
     if prati.has_text("deva") {
+        // devatA
         tp.try_add("5.4.27", tal);
     } else if prati.has_text("avi") {
+        // avika
         tp.try_add("5.4.28", ka);
-    } else if prati.has_text_in(YAVA_ADI) {
+    } else if prati.has_text_in(gana::YAVA_ADI) {
+        // yAvaka
         tp.try_add("5.4.29", kan);
     } else if prati.has_text("lohita") {
+        // lohitaka
         tp.try_add("5.4.30", kan);
         tp.try_add("5.4.31", kan);
         tp.try_add("5.4.32", kan);
     } else if prati.has_text("kAla") {
+        // kAlaka
         tp.try_add("5.4.33", kan);
-    } else if prati.has_text_in(VINAYA_ADI) {
+    } else if prati.has_text_in(gana::VINAYA_ADI) {
         tp.try_add_with("5.4.34", Wak, |p| {
             p.set(i_prati, |t| {
                 if t.has_text("upAya") {
@@ -157,6 +139,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             });
         });
     } else if prati.has_text("vAc") {
+        // vAcika
         tp.try_add("5.4.35", Wak);
     } else if prati.has_text("mfd") {
         tp.try_add("5.4.39", tikan);

@@ -1,8 +1,8 @@
 use crate::args::{Artha, Taddhita, TaddhitaArtha};
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
-use crate::prakriya::{Prakriya, Rule};
-use crate::tag::Tag as T;
-use crate::term::Term;
 
 impl Taddhita {
     /// Converts this taddhita to a term that can be added to the prakriya.
@@ -20,6 +20,7 @@ impl Taddhita {
 /// - remembers which `taddhita` pratyaya the caller wishes to add.
 /// - records whether a `taddhita` pratyaya has been added or not, which simplifies the control
 ///   flow for optional rules.
+#[derive(Debug)]
 pub struct TaddhitaPrakriya<'a> {
     /// The underlying prakriya.
     pub p: &'a mut Prakriya,
@@ -103,9 +104,13 @@ impl<'a> TaddhitaPrakriya<'a> {
         }
 
         let rule = rule.into();
-        let prati = &self.prati().text;
         if cfg!(debug_assertions) {
-            println!("Try: {rule:?} {prati} + {taddhita:?}");
+            self.p.debug(format!(
+                "Try {}: {} + {:?}",
+                rule.code(),
+                &self.prati().text,
+                taddhita,
+            ));
         }
 
         self.had_match = true;
@@ -127,10 +132,27 @@ impl<'a> TaddhitaPrakriya<'a> {
         }
     }
 
+    /// Prepends the given `taddhita` pratyaya.
+    ///
+    /// This method is used only for bahuc-pratyaya. We keep this method here for readability.
+    pub fn try_prepend(&mut self, rule: impl Into<Rule>, taddhita: Taddhita) -> bool {
+        if taddhita == self.taddhita && !self.has_taddhita {
+            self.p.run(rule, |p| {
+                p.terms_mut().insert(0, taddhita.to_term());
+            });
+
+            it_samjna::run(self.p, 0).expect("should never fail");
+            self.has_taddhita = true;
+            true
+        } else {
+            false
+        }
+    }
+
     /// If there's a match, optionally adds the given `taddhita` pratyaya.
     ///
     /// This method does nothing if a pratyaya has already been added.
-    pub fn optional_try_add(&mut self, rule: &'static str, taddhita: Taddhita) -> bool {
+    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, taddhita: Taddhita) -> bool {
         self.optional_try_add_with(rule, taddhita, |_| {})
     }
 

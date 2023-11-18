@@ -4,6 +4,7 @@ use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -464,6 +465,13 @@ fn sutra_1_2_41() {
 }
 
 #[test]
+fn sutra_1_2_42() {
+    assert_has_karmadharaya("parama", "rAjya", &["paramarAjya"]);
+    assert_has_karmadharaya("uttama", "rAjya", &["uttamarAjya"]);
+    // TODO: others
+}
+
+#[test]
 fn sutra_1_2_45() {
     assert_has_sup_1s("qitTa", Pum, &["qitTaH"]);
     assert_has_sup_1s("kapitTa", Pum, &["kapitTaH"]);
@@ -472,6 +480,38 @@ fn sutra_1_2_45() {
     // a-dhAtu?
     assert_has_lan(&[], &d("ha\\na~", Adadi), &["ahan"]);
     // TODO: others
+}
+
+#[test]
+fn sutra_1_2_46() {
+    let kr = d("qukf\\Y", Tanadi);
+    let hr = d("hf\\Y", Bhvadi);
+
+    // krt
+    let karaka = create_krdanta("kAraka", &[], &kr, Krt::Rvul);
+    assert_has_sup_1s(&karaka, Pum, &["kArakaH"]);
+    let haraka = create_krdanta("hAraka", &[], &hr, Krt::Rvul);
+    assert_has_sup_1s(&haraka, Pum, &["hArakaH"]);
+    let kartr = create_krdanta("kartf", &[], &kr, Krt::tfc);
+    assert_has_sup_1s(&kartr, Pum, &["kartA"]);
+    let hartr = create_krdanta("hartf", &[], &hr, Krt::tfc);
+    assert_has_sup_1s(&hartr, Pum, &["hartA"]);
+
+    // taddhita
+    let aupagava = create_taddhitanta("Opagava", "upagu", T::aR);
+    assert_has_sup_1s(&aupagava, Pum, &["OpagavaH"]);
+    let kapatava = create_taddhitanta("kApawava", "kapawu", T::aR);
+    assert_has_sup_1s(&kapatava, Pum, &["kApawavaH"]);
+
+    // samasa
+    let rajapurusha = create_tatpurusha("rAjapuruza", &["rAjan", "puruza"], Vibhakti::Sasthi);
+    assert_has_sup_1s(&rajapurusha, Pum, &["rAjapuruzaH"]);
+    let brahmanakambala = create_tatpurusha(
+        "brAhmaRakambala",
+        &["brAhmaRa", "kambala"],
+        Vibhakti::Sasthi,
+    );
+    assert_has_sup_1s(&brahmanakambala, Pum, &["brAhmaRakambalaH"]);
 }
 
 #[test]

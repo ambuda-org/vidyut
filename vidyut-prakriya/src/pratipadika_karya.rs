@@ -1,42 +1,106 @@
-use crate::args::{Linga, Pratipadika};
-use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::args::Pratipadika;
+use crate::args::SamasaArgs;
+use crate::args::Vibhakti;
+use crate::core::operators as op;
+use crate::core::Prakriya;
+use crate::core::Tag as T;
+use crate::core::Term;
 use crate::sounds as al;
-use crate::tag::Tag as T;
-use crate::term::Term;
 
-pub fn run(p: &mut Prakriya, pratipadika: &Pratipadika, linga: Linga) -> Option<()> {
-    // The prAtipadika enters the prakriyA
-    let mut term = Term::make_upadesha(pratipadika.text());
-    if pratipadika.is_nyap() {
-        term.add_tag(T::Stri);
-        term.add_tag(T::StriNyap);
-    }
-    if pratipadika.is_dhatu() {
-        term.add_tag(T::Dhatu);
-    }
-    if pratipadika.is_udit() {
-        term.add_tag(T::udit);
-    }
-    if pratipadika.is_pratyaya() {
-        term.add_tag(T::Pratyaya);
+/// Appends a pratipadika to the prakriya.
+///
+/// Scope: subantas, taddhitas
+pub fn add_one(p: &mut Prakriya, pratipadika: &Pratipadika) {
+    p.extend(pratipadika.terms());
+
+    // HACK: Add a dummy pratyaya so rules pass.
+    // TODO: see if we can delete `is_nyap`.
+    if pratipadika.needs_nyap() {
+        let sub = if pratipadika
+            .terms()
+            .last()
+            .map_or(false, |t| t.has_antya('I'))
+        {
+            "NIp"
+        } else {
+            "wAp"
+        };
+        let mut nyap = Term::make_upadesha(sub);
+        nyap.add_tags(&[T::Pratyaya, T::StriNyap]);
+        nyap.set_text("");
+        p.push(nyap);
     }
 
-    p.push(term);
+    add_samjnas(p);
+}
 
-    // Add samjnas
-    p.run_at("1.2.45", 0, |t| {
-        t.add_tag(T::Pratipadika);
-    });
-    p.add_tag(linga.as_tag());
+/// Appends multiple pratipadikas to the prakriya.
+///
+/// Scope: samasas
+pub fn add_all(p: &mut Prakriya, args: &SamasaArgs) {
+    // Initialize the prakriya by adding all items with dummy sup-pratyayas in between.
+    for pada in args.padas() {
+        for t in pada.pratipadika().terms() {
+            p.push(t.clone());
+        }
+        if pada.is_avyaya() {
+            p.terms_mut().last_mut().expect("ok").add_tag(T::Avyaya);
+        }
+        p.push(make_sup_pratyaya(pada.vibhakti()));
+    }
+    // Remove the trailing sup-pratyaya.
+    p.terms_mut().pop();
 
-    if linga == Linga::Napumsaka {
-        let prati = p.get(0)?;
-        let sub = al::to_hrasva(prati.antya()?)?;
-        if !prati.has_antya(sub) {
-            p.run_at("1.2.47", 0, op::antya(&sub.to_string()));
+    add_samjnas(p);
+}
+
+/// Assigns the pratipadika-samjna to all matching terms in the prakriya.
+fn add_samjnas(p: &mut Prakriya) -> Option<()> {
+    for i in 0..p.terms().len() {
+        let t = p.get(i)?;
+
+        if t.is_krt() || t.is_taddhita() || t.is_samasa() {
+            p.add_tag_at("1.2.46", i, T::Pratipadika);
+        } else if !t.is_dhatu() && !t.is_pratyaya() && !t.is_agama() && !t.is_abhyasa() {
+            // 1.2.45 specifies "arthavat", so exclude meaningless terms (agamas and abhyasas).
+            // TODO: is there anything else that's not arthavat?
+            p.add_tag_at("1.2.45", i, T::Pratipadika);
         }
     }
 
     Some(())
+}
+
+/// Runs rurles specific to napumsaka-pratipadikas.
+pub fn run_napumsaka_rules(p: &mut Prakriya) -> Option<()> {
+    if p.has_tag(T::Napumsaka) {
+        let i_last_not_empty = p.find_last_where(|t| !t.is_empty() && !t.is_sup())?;
+        let t = p.get(i_last_not_empty)?;
+        let sub = al::to_hrasva(t.antya()?)?;
+        if !t.has_antya(sub) {
+            p.run_at("1.2.47", i_last_not_empty, op::antya(&sub.to_string()));
+        }
+    }
+    None
+}
+
+/// Creates a dummy sup-pratyaya.
+///
+/// Scope: samasas
+fn make_sup_pratyaya(vibhakti: Vibhakti) -> Term {
+    use Vibhakti::*;
+    let (u, vibhakti) = match vibhakti {
+        Prathama | Sambodhana => ("su~", T::V1),
+        Dvitiya => ("am", T::V2),
+        Trtiya => ("wA", T::V3),
+        Caturthi => ("Ne", T::V4),
+        Panchami => ("Nasi", T::V5),
+        Sasthi => ("Nas", T::V6),
+        Saptami => ("Ni", T::V7),
+    };
+
+    let mut su = Term::make_upadesha(u);
+    su.set_text("");
+    su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::Pada, vibhakti]);
+    su
 }

@@ -1,4 +1,4 @@
-use crate::prakriya::Prakriya;
+use crate::core::Prakriya;
 use std::fmt;
 use std::io;
 use std::num;

@@ -1,5 +1,5 @@
-use crate::errors::*;
-use crate::prakriya::{Config, Prakriya, RuleChoice};
+use crate::core::errors::*;
+use crate::core::{Config, Prakriya, RuleChoice};
 
 /// Explores all optional derivations for some input.
 ///

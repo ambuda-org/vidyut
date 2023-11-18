@@ -1,5 +1,5 @@
-use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::core::operators as op;
+use crate::core::Prakriya;
 
 /// Miscellaneous rules that we should put somewhere else.
 const PADA_ADI: &[&str] = &[
@@ -18,12 +18,15 @@ pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
     let prati = p.get(i_prati)?;
     let is_shas_prabhrti = p.has(i_next, |t| {
         // HACK: exclude None, which is a placeholder form for upapada-krdantas.
-        t.is_vibhakti() && !t.has_u_in(&["su~", "O", "jas", "am", "Ow"]) && t.u != None
+        t.is_vibhakti()
+            && !t.is_lupta()
+            && !t.has_u_in(&["su~", "O", "jas", "am", "Ow"])
+            && t.u != None
     });
 
     if is_shas_prabhrti {
         if let Some(sub) = op::yatha(&prati.text, PADA_ADI, PAD_ADI) {
-            p.run_optional_at("6.1.63", i_prati, |t| t.set_text(sub));
+            p.optional_run_at("6.1.63", i_prati, |t| t.set_text(sub));
         }
     }
 

@@ -21,6 +21,18 @@ fn sutra_6_3_43() {
 }
 
 #[test]
+fn sutra_6_3_46() {
+    assert_has_karmadharaya("mahat", "deva", &["mahAdeva"]);
+    assert_has_karmadharaya("mahat", "brAhmaRa", &["mahAbrAhmaRa"]);
+    assert_has_bahuvrihi("mahat", "bAhu", &["mahAbAhu"]);
+    assert_has_bahuvrihi("mahat", "bala", &["mahAbala"]);
+    assert_has_taddhitanta(&prati("mahat"), T::jAtIyar, &["mahAjAtIya"]);
+
+    // samAnAdhikaraNa?
+    assert_has_sasthi_tatpurusha("mahat", "putra", &["mahatputra"]);
+}
+
+#[test]
 fn sutra_6_3_53() {
     assert_has_artha_taddhita("pAda", TadVidhyati, T::yat, &["padya"]);
     assert_has_artha_taddhita("pAda", Tadarthye, T::yat, &["pAdya"]);

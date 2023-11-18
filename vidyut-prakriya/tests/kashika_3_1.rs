@@ -287,6 +287,9 @@ fn sutra_3_1_41() {
 }
 
 #[test]
+fn skip_sutra_3_1_43() {}
+
+#[test]
 fn sutra_3_1_44() {
     assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lun, &["akArzIt"]);
     assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lun, &["ahArzIt"]);
@@ -376,6 +379,18 @@ fn sutra_3_1_49() {
 }
 
 #[test]
+fn sutra_3_1_50() {
+    let gup = d("gupU~", Bhvadi);
+    let t = Tester::with_chaandasa();
+    t.assert_has_thas(
+        &[],
+        &gup,
+        Lun,
+        &["ajugupatam", "agOptam", "agopizwam", "agopAyizwam"],
+    );
+}
+
+#[test]
 fn sutra_3_1_52() {
     let asu = d("asu~", Divadi);
     assert_has_ta(&["pari"], &asu, Lun, &["paryAsTata"]);
@@ -451,6 +466,16 @@ fn sutra_3_1_58() {
         Lun,
         &["aSvat", "aSvayIt", "aSiSviyat"],
     );
+}
+
+#[ignore]
+#[test]
+fn sutra_3_1_59() {
+    let t = Tester::with_chaandasa();
+    t.assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lun, &["akarat"]);
+    t.assert_has_tip(&[], &d("mf\\N", Tudadi), Lun, &["amarat"]);
+    t.assert_has_tip(&[], &d("dF", Kryadi), Lun, &["adarat"]);
+    t.assert_has_tip(&["AN"], &d("ru\\ha~", Bhvadi), Lun, &["Aruhat"]);
 }
 
 #[test]

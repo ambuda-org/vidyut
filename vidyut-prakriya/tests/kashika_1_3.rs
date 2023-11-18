@@ -120,6 +120,9 @@ fn sutra_1_3_8() {
 }
 
 #[test]
+fn skip_sutra_1_3_9() {}
+
+#[test]
 fn sutra_1_3_10() {
     use vidyut_prakriya::args::TaddhitaArtha::*;
 
@@ -131,6 +134,9 @@ fn sutra_1_3_10() {
 
     // TODO: others
 }
+
+#[test]
+fn skip_sutra_1_3_11() {}
 
 #[test]
 fn sutra_1_3_12() {

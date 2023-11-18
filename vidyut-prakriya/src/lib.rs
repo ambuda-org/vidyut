@@ -3,9 +3,9 @@
 #![deny(clippy::unwrap_used)]
 
 pub use crate::ashtadhyayi::{Ashtadhyayi, AshtadhyayiBuilder};
+pub use crate::core::errors::Error;
+pub use crate::core::{Prakriya, Rule, RuleChoice, Step};
 pub use crate::dhatupatha::Dhatupatha;
-pub use crate::errors::Error;
-pub use crate::prakriya::{Prakriya, Rule, RuleChoice, Step};
 
 // Public modules.
 // - `args` defines the API contract.
@@ -15,8 +15,6 @@ pub use crate::prakriya::{Prakriya, Rule, RuleChoice, Step};
 pub mod args;
 pub mod dhatupatha;
 
-mod errors;
-
 mod binary_only;
 #[doc(hidden)]
 pub mod private {
@@ -24,18 +22,9 @@ pub mod private {
     pub use crate::binary_only::*;
 }
 
-// Data structures
-mod char_view;
-mod prakriya;
-mod prakriya_stack;
+// Data structures and utilities
+mod core;
 mod sounds;
-mod tag;
-mod term;
-
-// Utility functions
-mod filters;
-mod iterators;
-mod operators;
 
 // Rules
 mod ac_sandhi;
@@ -47,6 +36,7 @@ mod atmanepada;
 mod dhatu_gana;
 mod dhatu_karya;
 mod dvitva;
+mod ganapatha;
 mod it_agama;
 mod it_samjna;
 mod krt;
@@ -54,12 +44,14 @@ mod la_karya;
 mod linganushasanam;
 mod misc;
 mod pratipadika_karya;
+mod samasa;
 mod samjna;
 mod samprasarana;
 mod sanadi;
 mod stem_gana;
 mod stritva;
 mod sup_karya;
+mod sutrapatha;
 mod taddhita;
 mod tin_pratyaya;
 mod tripadi;

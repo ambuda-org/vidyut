@@ -14,12 +14,10 @@
 //! All of these rules are found at the end of section 3.4 of the Ashtadhyayi.
 
 use crate::args::{Gana, Lakara, Purusha, Vacana};
-use crate::errors::*;
+use crate::core::errors::Result;
+use crate::core::operators as op;
+use crate::core::{Code, Prakriya, Tag as T, Term};
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::{Code, Prakriya};
-use crate::tag::Tag as T;
-use crate::term::Term;
 
 const TIN_PARA: &[&str] = &["tip", "tas", "Ji", "sip", "Tas", "Ta", "mip", "vas", "mas"];
 const NAL_PARA: &[&str] = &["Ral", "atus", "us", "Tal", "aTus", "a", "Ral", "va", "ma"];
@@ -151,7 +149,7 @@ fn maybe_do_lot_only_siddhi(p: &mut Prakriya, i: usize) -> Option<()> {
         });
 
         if p.has_tag(T::Chandasi) {
-            p.run_optional_at("3.4.88", i, op::add_tag(T::Pit));
+            p.optional_run_at("3.4.88", i, op::add_tag(T::Pit));
         }
     } else if tin.ends_with("mi") {
         // BavAni
@@ -203,10 +201,10 @@ fn maybe_do_lin_siddhi(p: &mut Prakriya, i_tin: usize, la: Lakara) -> Result<()>
 
         if la == Lakara::AshirLin {
             // Add kit to the pratyaya, not the Agama.
-            p.run_at("3.4.104", i, op::add_tag(T::kit));
+            p.add_tag_at("3.4.104", i, T::kit);
         } else {
             // Add Nit to the pratyaya, not the Agama.
-            p.run_at("3.4.103", i, op::add_tag(T::Nit));
+            p.add_tag_at("3.4.103", i, T::Nit);
         }
         it_samjna::run(p, i - 1)?;
     } else {
@@ -240,7 +238,7 @@ fn yatha(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
 }
 
 fn yatha_optional(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
-    if p.run_optional(rule, |p| op::upadesha_yatha(p, i, old, new)) {
+    if p.optional_run(rule, |p| op::upadesha_yatha(p, i, old, new)) {
         it_samjna::run(p, i).ok();
     }
 }
@@ -302,7 +300,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         if dhatu.has_u("vida~") && tin.has_u_in(TIN_PARA) {
             yatha_optional("3.4.83", p, i, TIN_PARA, NAL_PARA);
         } else if dhatu.has_text("brU") && tin.has_u_in(&TIN_PARA[..5]) {
-            p.run_optional("3.4.84", |p| {
+            p.optional_run("3.4.84", |p| {
                 p.set(i_dhatu, |t| t.set_text("Ah"));
                 op::upadesha_yatha(p, i, TIN_PARA, NAL_PARA);
                 it_samjna::run(p, i).ok();

@@ -28,6 +28,28 @@ fn sutra_3_4_21() {
 }
 
 #[test]
+fn sutra_3_4_67() {
+    let kf = d("qukf\\Y", Tanadi);
+    assert_has_krdanta(&[], &kf, Krt::Rvul, &["kAraka"]);
+    assert_has_krdanta(&[], &kf, Krt::tfc, &["kartf"]);
+
+    assert_has_krdanta(&[], &d("wunadi~", Bhvadi), Krt::lyu, &["nandana"]);
+    assert_has_krdanta(&[], &d("graha~^", Kryadi), Krt::Rini, &["grAhin"]);
+    assert_has_krdanta(&[], &d("qupa\\ca~^z", Bhvadi), Krt::ac, &["paca"]);
+}
+
+#[test]
+fn sutra_3_4_69() {
+    let gam = d("ga\\mx~", Bhvadi);
+    assert_has_ta_k(&[], &gam, Lat, &["gamyate"]);
+    assert_has_tip(&[], &gam, Lat, &["gacCati"]);
+
+    let aas = d("Asa~\\", Adadi);
+    assert_has_ta_k(&[], &aas, Lat, &["Asyate"]);
+    assert_has_ta(&[], &aas, Lat, &["Aste"]);
+}
+
+#[test]
 fn sutra_3_4_70() {
     let kf = &d("qukf\\Y", Tanadi);
     let bhuj = &d("Bu\\ja~", Rudhadi);
@@ -220,11 +242,19 @@ fn sutra_3_4_91() {
 }
 
 #[test]
-fn sutra_3_4_92_and_sutra_3_4_93() {
+fn sutra_3_4_92() {
     let kf = d("qukf\\Y", Tanadi);
     assert_has_mip(&[], &kf, Lot, &["karavARi"]);
     assert_has_vas(&[], &kf, Lot, &["karavAva"]);
     assert_has_mas(&[], &kf, Lot, &["karavAma"]);
+    assert_has_iw(&[], &kf, Lot, &["karavE"]);
+    assert_has_vahi(&[], &kf, Lot, &["karavAvahE"]);
+    assert_has_mahin(&[], &kf, Lot, &["karavAmahE"]);
+}
+
+#[test]
+fn sutra_3_4_93() {
+    let kf = d("qukf\\Y", Tanadi);
     assert_has_iw(&[], &kf, Lot, &["karavE"]);
     assert_has_vahi(&[], &kf, Lot, &["karavAvahE"]);
     assert_has_mahin(&[], &kf, Lot, &["karavAmahE"]);

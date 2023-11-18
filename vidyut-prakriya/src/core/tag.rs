@@ -1,4 +1,4 @@
-use crate::errors::*;
+use crate::core::errors::*;
 use enumset::EnumSetType;
 
 /// An annotation on some `Term`.
@@ -7,9 +7,14 @@ use enumset::EnumSetType;
 /// and other long-term dependencies that we need to track during the derivation, such as whether
 /// guna was performed in an earlier rule.
 ///
-/// We use Rust's `enumset` crate to efficiently store tags in an unsigned 128-bit integer. The
-/// constraint of `enumset` is that we are allowed at most 128 tags. For now we are well under that
-/// limit, but if needed, we can explore other options.
+/// We use Rust's `enumset` crate to efficiently store tags in an array of unsigned integers.
+///
+///
+/// # Naming conventions
+///
+/// We allow non-camel-case names so that we can name specific `Tag`s according to SLP1
+/// conventions. Doing so lets us more easily distinguish among `Tag`s like `Nit`, `Yit`, Rit`, and
+/// `nit`.
 #[allow(non_camel_case_types)]
 #[derive(Debug, EnumSetType)]
 pub enum Tag {
@@ -21,6 +26,10 @@ pub enum Tag {
     Avyaya,
     Agama,
     Pratyaya,
+
+    Samasa,
+    Upasarjana,
+
     Unadi,
     Pratipadika,
     Vibhakti,
@@ -28,13 +37,17 @@ pub enum Tag {
     Sarvanamasthana,
     Tin,
     La,
+    Nipata,
     Nistha,
     Krt,
     Krtya,
     Sup,
+    Nyap,
     Taddhita,
     Vikarana,
 
+    // it-samjnas
+    // ==========
     /// Placeholder *it* with no specific meaning.
     adit,
     /// (pratyaya) prevents it-agama for nisthA pratyayas per 7.2.16 but allows it optionally in
@@ -57,8 +70,10 @@ pub enum Tag {
     /// (dhatu) indicates replacement of the "t" of a nistha-pratyaya with "n" per 8.2.45 (lagta ->
     /// lagna).
     odit,
-    /// (pratyaya) prevents guna and vrddhi. Causes samprasarana for vac-Adi roots (vac -> ukta)
-    /// per 6.1.15 and grah-Adi roots (grah -> gfhIta) per 6.1.16.
+    /// (krt) prevents guna and vrddhi. Causes samprasarana for vac-Adi roots (vac -> ukta) per
+    /// 6.1.15 and grah-Adi roots (grah -> gfhIta) per 6.1.16.
+    ///
+    /// (taddhita) causes vrddhi per 7.2.118. Indicates antodAtta per 6.1.165.
     ///
     /// (agama) indicates that the Agama should be added after the term, per 1.1.46.
     kit,
@@ -117,11 +132,10 @@ pub enum Tag {
     ///
     /// (pratyaya) marks the pratyaya as sArvadhAtuka per 3.4.113.
     Sit,
-    /// (pratyaya)
+    /// (pratyaya) uses NIz-pratyaya in strI-linga per 4.1.41.
     zit,
     /// (pratyaya) indicates that the previous term should be called `pada` per 1.4.16.
     sit,
-
     /// (dhatu) indicates the optional use of aN-pratyaya in luN-lakAra per 3.1.57.
     irit,
     /// (dhatu) indicates that kta-pratyaya denotes the present tense as opposed to the past tense.
@@ -186,6 +200,11 @@ pub enum Tag {
     V6,
     V7,
 
+    // Vibhakti conditions
+    Sambodhana,
+    Amantrita,
+    Sambuddhi,
+
     // Linga (subanta)
     Pum,
     Stri,
@@ -195,12 +214,8 @@ pub enum Tag {
     Nadi,
     Ghi,
 
-    // Vibhakti conditions
-    Sambodhana,
-    Amantrita,
-    Sambuddhi,
-
     // Dvitva
+    /// The doubled
     Abhyasa,
     Abhyasta,
 
@@ -218,8 +233,12 @@ pub enum Tag {
     FlagGunaApavada,
     FlagGuna,
 
+    FlagTrjvat,
+
     // Flags on the `Prakriya`.
-    FlagAdeshadi,
+    FlagNaAdeshadi,
+    FlagSaAdeshadi,
+    FlagNum,
     FlagNoArdhadhatuka,
     FlagHasAnitKsa,
     FlagHagSetSic,
@@ -241,9 +260,13 @@ pub enum Tag {
     FlagNoDirgha,
     // Indicates replacement of f/F with f (acIkftat, ...).
     FlagUrRt,
+    /// Indicates use of UW-adesha.
+    FlagUth,
 
     Sankhya,
     Sat,
+    // zRAntA zat
+    zaw,
     /// Indicates the insertion of `na` through the Snam-vikarana.
     Snam,
 
@@ -253,6 +276,14 @@ pub enum Tag {
     /// A sound whose first vowel is vrddhi.
     Vrddha,
 
+    // Compound types (prakriya-only)
+    Avyayibhava,
+    Tatpurusha,
+    Karmadharaya,
+    Bahuvrihi,
+    Dvandva,
+    Samahara,
+
     StriNyap,
     TrnTrc,
     Pada,
@@ -261,9 +292,12 @@ pub enum Tag {
     Dvitva,
     Gha,
 
+    Pragrhya,
+    Complete,
+
     // Indicates that a derivation phase is complete, e.g. to avoid running abhyAsa rules
     // twice.
-    Complete,
+    Final,
 
     /// Indicates use of ru-Adesha.
     Ru,

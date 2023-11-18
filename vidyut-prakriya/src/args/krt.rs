@@ -1,6 +1,7 @@
 use crate::args::unadi::Unadi;
+use crate::args::Lakara;
+use crate::core::errors::*;
 use crate::enum_boilerplate;
-use crate::errors::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// The complete list of ordinary krt-pratyayas.
@@ -418,6 +419,7 @@ impl Upapada {
 pub struct KrdantaArgs {
     krt: Krt,
     artha: Option<KrtArtha>,
+    lakara: Option<Lakara>,
     upapada: Option<Upapada>,
 }
 
@@ -425,6 +427,25 @@ impl KrdantaArgs {
     /// The krt pratyaya to use in the derivation.
     pub fn krt(&self) -> Krt {
         self.krt
+    }
+
+    /// The lakara that this krt-pratyaya will replace.
+    pub fn lakara(&self) -> Option<Lakara> {
+        use BaseKrt::*;
+        use Lakara::*;
+
+        if let Krt::Base(krt) = self.krt {
+            match krt {
+                Satf | SAnac => match self.lakara {
+                    Some(Lat) | Some(Lrt) => self.lakara,
+                    _ => Some(Lat),
+                },
+                kAnac | kvasu => Some(Lit),
+                _ => None,
+            }
+        } else {
+            None
+        }
     }
 
     /// The upapada that conditions the krt pratyaya.
@@ -449,6 +470,7 @@ pub struct KrdantaArgsBuilder {
     krt: Option<Krt>,
     upapada: Option<Upapada>,
     artha: Option<KrtArtha>,
+    lakara: Option<Lakara>,
 }
 
 impl KrdantaArgsBuilder {
@@ -470,6 +492,15 @@ impl KrdantaArgsBuilder {
         self
     }
 
+    /// Sets the lakara to use in the derivation.
+    ///
+    /// This field is necessary for pratyayas like Satf and SAnac, which replace a specific lakara.
+    /// If `lakara` is not specified, prakriyas will default to lat-lakara.
+    pub fn lakara(&mut self, lakara: Lakara) -> &mut Self {
+        self.lakara = Some(lakara);
+        self
+    }
+
     /// Converts the arguments in this builder into a `TinantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
@@ -480,6 +511,7 @@ impl KrdantaArgsBuilder {
                 _ => return Err(Error::missing_required_field("krt")),
             },
             upapada: self.upapada.as_ref().cloned(),
+            lakara: self.lakara,
             artha: self.artha,
         })
     }

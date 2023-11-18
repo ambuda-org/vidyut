@@ -4,7 +4,9 @@ use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::KrtArtha::*;
 use vidyut_prakriya::args::Lakara::*;
+use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::*;
+use vidyut_prakriya::Ashtadhyayi;
 
 fn assert_has_bhave_krdanta(upapadas: &[&str], dhatu: &Dhatu, krt: BaseKrt, expected: &[&str]) {
     assert_has_artha_krdanta(upapadas, dhatu, KrtArtha::Bhava, krt, expected);
@@ -55,12 +57,37 @@ fn sutra_3_3_3() {
 #[test]
 fn sutra_3_3_10() {
     assert_has_krdanta(&[], &d("Bu\\ja~", Rudhadi), Krt::tumun, &["Boktum"]);
+    assert_has_krdanta(&[], &d("Bu\\ja~", Rudhadi), Krt::Rvul, &["Bojaka"]);
 }
 
 #[test]
 fn sutra_3_3_13() {
     assert_has_tip(&[], &d("qukf\\Y", Tanadi), Lrt, &["karizyati"]);
     assert_has_tip(&[], &d("hf\\Y", Bhvadi), Lrt, &["harizyati"]);
+}
+
+#[test]
+fn sutra_3_3_14() {
+    let kr = d("qukf\\Y", Tanadi);
+
+    let create_lrt_sat = |text, dhatu: &Dhatu, krt: BaseKrt| {
+        let a = Ashtadhyayi::new();
+        let args = KrdantaArgs::builder().lakara(Lrt).krt(krt).build().unwrap();
+        let prakriyas = a.derive_krdantas(&dhatu, &args);
+        create_pratipadika(text, &prakriyas)
+    };
+
+    let karishyat = create_lrt_sat("karizyat", &kr, Krt::Satf);
+    let karishyamana = create_lrt_sat("karizyamARa", &kr, Krt::SAnac);
+    assert_has_sup_2s(&karishyat, Pum, &["karizyantam"]);
+    assert_has_sup_2s(&karishyamana, Pum, &["karizyamARam"]);
+    assert_has_sup_ss(&karishyat, Pum, &["karizyan"]);
+    assert_has_sup_ss(&karishyamana, Pum, &["karizyamARa"]);
+    assert_has_sup_1s(&karishyat, Pum, &["karizyan"]);
+    assert_has_sup_1s(&karishyamana, Pum, &["karizyamARaH"]);
+
+    assert_has_tip(&[], &kr, Lrt, &["karizyati"]);
+    assert_has_ta(&[], &kr, Lrt, &["karizyate"]);
 }
 
 #[test]
@@ -631,4 +658,12 @@ fn sutra_3_3_115() {
 fn sutra_3_3_120() {
     assert_has_krdanta(&["ava"], &d("tF", Bhvadi), Krt::GaY, &["avatAra"]);
     assert_has_krdanta(&["ava"], &d("stFY", Kryadi), Krt::GaY, &["avastAra"]);
+}
+
+#[test]
+fn sutra_3_3_137() {
+    let jiv = d("jIva~", Bhvadi);
+    assert_has_tip(&[], &jiv, AshirLin, &["jIvyAt"]);
+    assert_has_tip(&[], &jiv, Lot, &["jIvatu", "jIvatAt"]);
+    assert_has_tip(&[], &jiv, Lat, &["jIvati"]);
 }

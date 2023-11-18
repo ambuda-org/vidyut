@@ -6,12 +6,12 @@ Implements the taddhita rules in the "prAg dIvyato 'R" section of pada 4.1.
 use crate::args::Taddhita;
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::ganapatha as gana;
 use crate::it_samjna;
-use crate::operators as op;
 use crate::sounds::{s, Set};
-use crate::taddhita::gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
-use crate::tag::Tag as T;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -310,7 +310,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
                 let putra_anta = prati.ends_with("putra");
                 let added = tp.optional_try_add("4.1.157", PiY);
                 if added && putra_anta {
-                    tp.p.run_optional_at("4.1.159", i_prati, |t| t.text += "k");
+                    tp.p.optional_run_at("4.1.159", i_prati, |t| t.text += "k");
                 }
             }
         }
@@ -355,7 +355,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             // Atreya, ...
             // TODO: an-iY
             tp.try_add("4.1.122", Qak);
-        } else if prati.has_tag(T::Stri) {
+        } else if prati.has_tag(T::StriNyap) {
             // General case.
             if is_dvi_ac {
                 // dAtteya, ...
@@ -370,7 +370,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         let prati = tp.prati();
         if tp.had_match {
             // Do nothing if any other pratyaya above matches.
-        } else if prati.has_suffix_in(gana::BAHU_ADI) {
+        } else if prati.has_suffix_in(gana::BAAHU_ADI) {
             // HACK: check suffix instead of uttarapada
             tp.try_add("4.1.96", iY);
         } else if prati.has_text("suDAtf") {

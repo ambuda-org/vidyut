@@ -490,6 +490,28 @@ fn sutra_8_4_60() {
 }
 
 #[test]
+fn sutra_8_4_61() {
+    let stha = d("zWA\\", Bhvadi);
+    assert_has_krdanta(&["ud"], &stha, Krt::tfc, &["utTAtf", "utTTAtf"]);
+    assert_has_krdanta(&["ud"], &stha, Krt::tumun, &["utTAtum", "utTTAtum"]);
+    assert_has_krdanta(&["ud"], &stha, Krt::tavya, &["utTAtavya", "utTTAtavya"]);
+
+    let stanbh = d("stanBu~", Kryadi);
+    assert_has_krdanta(&["ud"], &stanbh, Krt::tfc, &["uttamBitf", "utTtamBitf"]);
+    assert_has_krdanta(&["ud"], &stanbh, Krt::tumun, &["uttamBitum", "utTtamBitum"]);
+    assert_has_krdanta(
+        &["ud"],
+        &stanbh,
+        Krt::tavya,
+        &["uttamBitavya", "utTtamBitavya"],
+    );
+
+    // sthA-stambhoH?
+    let snaa = d("zRA\\", Adadi);
+    assert_has_krdanta(&["ud"], &snaa, Krt::tfc, &["utsnAtf"]);
+}
+
+#[test]
 fn sutra_8_4_62() {
     assert_has_sandhi("vAk", "hasati", &["vAg Gasati", "vAg hasati"]);
     assert_has_sandhi("svaliw", "hasati", &["svaliq Qasati", "svaliq hasati"]);

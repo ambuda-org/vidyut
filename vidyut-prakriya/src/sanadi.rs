@@ -1,14 +1,12 @@
 use crate::args::Gana;
 use crate::args::Sanadi;
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
-use crate::filters as f;
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::Rule;
-use crate::prakriya::{Code, Prakriya};
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -21,7 +19,7 @@ const AYADAYA: &[&str] = &[
 ];
 
 /// Adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
-fn add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
+fn add_sanadi(rule: impl Into<Rule>, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
     p.run(rule, |p| {
         let mut pratyaya = Term::make_upadesha(upadesha);
         pratyaya.add_tags(&[T::Pratyaya]);
@@ -29,23 +27,8 @@ fn add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
     });
 
     let i_pratyaya = i_dhatu + 1;
-    p.run_at("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
+    p.add_tag_at("3.1.32", i_pratyaya, T::Dhatu);
     it_samjna::run(p, i_pratyaya).expect("ok")
-}
-
-/// Optionally adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
-fn optional_add_sanadi(rule: Code, p: &mut Prakriya, i_dhatu: usize, upadesha: &str) {
-    let added = p.run_optional(rule, |p| {
-        let mut pratyaya = Term::make_upadesha(upadesha);
-        pratyaya.add_tags(&[T::Pratyaya]);
-        p.insert_after(i_dhatu, pratyaya);
-    });
-
-    if added {
-        let i_pratyaya = i_dhatu + 1;
-        p.run_at("3.1.32", i_pratyaya, op::add_tag(T::Dhatu));
-        it_samjna::run(p, i_pratyaya).expect("ok")
-    }
 }
 
 /// Runs rules that apply only if using yaN-pratyay with luk.
@@ -93,31 +76,30 @@ pub fn try_add_specific_sanadi_pratyayas(p: &mut Prakriya, is_ardhadhatuka: bool
     } else if dhatu.has_u_in(AYADAYA) {
         let mut can_add_pratyaya = true;
 
-        let code = "3.1.31";
         if is_ardhadhatuka {
-            if p.is_allowed(code) {
-                can_add_pratyaya = false;
-                // TODO: not sure where to do this.
-                if p.has(i, |t| t.has_u("fti")) {
-                    p.set(i, |t| t.set_text("ft"));
-                }
-                p.step(code);
-            } else {
-                p.decline(code);
-            }
+            can_add_pratyaya = !p.optionally("3.1.31", |rule, p| {
+                p.run_at(rule, i, |t| {
+                    // TODO: not sure where to do this.
+                    if t.has_u("fti") {
+                        t.set_text("ft")
+                    }
+                });
+            });
         }
 
         if can_add_pratyaya {
             let dhatu = p.get(i)?;
             if dhatu.has_u_in(&["gupU~", "DUpa~", "viCa~", "paRa~\\", "pana~\\"]) {
-                let code = "3.1.28";
+                let rule = "3.1.28";
                 if dhatu.has_u("paRa~\\") {
                     // > stutyarthena paninā sāhacaryāt tadarthaḥ paṇiḥ pratyayamutpādayati na
                     // > vyavahārārthaḥ. śatasya paṇate. sahasrasaya paṇate
                     // -- KV on 3.1.28
-                    optional_add_sanadi(code, p, i, "Aya");
+                    p.optionally(rule, |rule, p| {
+                        add_sanadi(rule, p, i, "Aya");
+                    });
                 } else {
-                    add_sanadi(code, p, i, "Aya");
+                    add_sanadi(rule, p, i, "Aya");
                 }
             } else if dhatu.has_u("fti") {
                 // ftIyate
@@ -156,7 +138,7 @@ pub fn try_add_general_sanadi_pratyaya(p: &mut Prakriya, sanadi: Sanadi) -> Opti
                 || dhatu.has_u_in(&["awa~", "f\\", "aSa~", "aSU~\\", "UrRuY"])
             {
                 add_sanadi("3.1.22.v1", p, i, "yaN");
-            } else if f::is_eka_ac(dhatu) && dhatu.has_adi(&*HAL) {
+            } else if dhatu.is_ekac() && dhatu.has_adi(&*HAL) {
                 add_sanadi("3.1.22", p, i, "yaN");
             }
 

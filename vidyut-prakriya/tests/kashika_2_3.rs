@@ -29,6 +29,9 @@ fn sutra_2_3_47() {
 }
 
 #[test]
+fn skip_sutra_2_3_48() {}
+
+#[test]
 fn sutra_2_3_49() {
     assert_has_sup_ss("pawu", Pum, &["pawo"]);
     assert_has_sup_ss("devadatta", Pum, &["devadatta"]);

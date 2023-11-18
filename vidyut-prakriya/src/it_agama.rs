@@ -27,14 +27,13 @@ Order of operations:
 */
 
 use crate::args::Gana::*;
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::{Code, Prakriya};
+use crate::core::{Term, TermView};
 use crate::dhatu_gana as gana;
-use crate::filters as f;
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::{Code, Prakriya};
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
-use crate::term::{Term, TermView};
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -47,7 +46,7 @@ lazy_static! {
 
 fn is_hacky_eka_ac(t: &Term) -> bool {
     // HACK to have ekac apply for am-Agama
-    f::is_eka_ac(t) || t.text.contains("fa")
+    t.is_ekac() || t.text.contains("fa")
 }
 
 /// Returns whether the given term is vet by 7.2.44.
@@ -98,7 +97,7 @@ impl<'a> ItPrakriya<'a> {
 
     /// Returns the view before which we might add iw-Agama.
     fn next(&self) -> TermView {
-        self.p.view(self.i_next).expect("present")
+        self.p.pratyaya(self.i_next).expect("present")
     }
 
     /// Returns whether the term before the anga has an upasarga with one of the given values.
@@ -174,7 +173,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let dhatu = p.get(i - 1)?;
-    let n = p.view(i)?;
+    let n = p.pratyaya(i)?;
 
     let last = p.terms().last()?;
     if last.has_lakshana("li~w") {
@@ -191,7 +190,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
         } else if n.slice().iter().any(|t| t.has_u("si~c")) && last.is_parasmaipada() {
             p.step("7.2.40");
         } else {
-            p.run_optional_at("7.2.38", i, op::text("I"));
+            p.optional_run_at("7.2.38", i, op::text("I"));
         }
     }
 
@@ -205,7 +204,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         return None;
     }
 
-    let ktvi = n.last()?.has_u("ktvA");
+    let ktvi = n.last().has_u("ktvA");
 
     if n.has_u("kvasu~") {
         let anga = ip.anga();
@@ -353,7 +352,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             // cikarizati, jigarizati, didarizate, diDarizate, papracCizati
             ip.try_add("7.2.75");
         }
-    } else if ktvi || n.last()?.is_nistha() {
+    } else if ktvi || n.last().is_nistha() {
         if anga.has_text("kliS") {
             // kliSitvA, klizwvA
             ip.optional_try_add("7.2.50");
@@ -433,7 +432,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             let mut can_run = true;
             // TODO: Adikarmani.
             if ip.p.any(&[T::Bhave]) {
-                can_run = ip.p.run_optional("7.2.17", |_| {});
+                can_run = ip.p.optional_run("7.2.17", |_| {});
             }
             if can_run {
                 ip.try_block("7.2.16");
@@ -550,7 +549,7 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
 
     let anga = ip.anga();
     let i_n = ip.i_next;
-    let tin = n.last()?;
+    let tin = n.last();
 
     let rudh_adi = &["rudi~r", "Yizva\\pa~", "Svasa~", "ana~", "jakza~"];
     let is_aprkta = n.slice().iter().map(|t| t.text.len()).sum::<usize>() == 1;
@@ -569,7 +568,7 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
         let is_pit = n.has_tag(T::pit) && !n.has_tag(T::Nit);
         if n.has_adi(&*HAL) && n.has_tag(T::Sarvadhatuka) && is_pit && is_aprkta {
             let use_at =
-                ip.p.run_optional("7.3.99", |p| op::insert_agama_before(p, i_n, "aw"));
+                ip.p.optional_run("7.3.99", |p| op::insert_agama_before(p, i_n, "aw"));
             if !use_at {
                 ip.p.run("7.3.98", |p| op::insert_agama_before(p, i_n, "Iw"));
             }
@@ -618,7 +617,7 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
             // Add the `Ittva` tag so that we can skip this term next time.
             p.set(i, |t| t.add_tag(T::FlagIttva));
 
-            if p.view(i_n).is_some() {
+            if p.pratyaya(i_n).is_some() {
                 let mut ip = ItPrakriya::new(p, i, i_n);
                 run_valadau_ardhadhatuke_before_attva_for_term(&mut ip);
                 run_sarvadhatuke_for_term(&mut ip);

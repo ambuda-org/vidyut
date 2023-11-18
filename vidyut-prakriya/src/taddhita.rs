@@ -10,9 +10,8 @@ rules in the Ashtadhyayi. The core types here are:
   derivations with taddhitas.
 */
 use crate::args::Taddhita;
-use crate::prakriya::Prakriya;
+use crate::core::Prakriya;
 
-mod gana;
 mod matvartha_prakarana;
 mod nan_snan_adhikara_prakarana;
 mod panchami_prakarana;
@@ -73,8 +72,11 @@ pub fn run(prakriya: &mut Prakriya, taddhita: Taddhita) -> bool {
     pragiviya::run(tp);
     // 5.3.96 - 5.4.67
     svarthika_prakarana::run(tp);
-    // 5.4.68 - 5.4.160 (end of 5.4)
-    samasanta_prakarana::run(tp);
 
     tp.has_taddhita
+}
+
+pub fn run_for_samasas(prakriya: &mut Prakriya) {
+    // 5.4.68 - 5.4.160 (end of 5.4)
+    samasanta_prakarana::run(prakriya);
 }

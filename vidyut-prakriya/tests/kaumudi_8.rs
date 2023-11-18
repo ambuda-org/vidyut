@@ -1,8 +1,11 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Pratipadika;
+use vidyut_prakriya::args::SamasaType::*;
 
 #[test]
 fn skip_sk_178_to_sk_186() {}
@@ -106,14 +109,16 @@ fn sk_209() {
 #[test]
 fn skip_sk_210_to_sk_211() {}
 
-#[ignore]
 #[test]
 fn sk_212() {
     assert_has_sup_7p("rAma", Pum, &["rAmezu"]);
+    assert_has_sup_6s("rAma", Pum, &["rAmasya"]);
 
-    assert_has_sup_1s("supis", Pum, &["supIH"]);
-    assert_has_sup_1d("supis", Pum, &["supisO"]);
-    assert_has_sup_1p("supis", Pum, &["supisaH"]);
+    let pis = create_krdanta("pis", &[], &d("pisf~", Bhvadi), Krt::kvip);
+    let supis = create_samasa_p("supis", &[Pratipadika::from("su"), pis], Bahuvrihi);
+    assert_has_sup_1s(&supis, Pum, &["supIH"]);
+    assert_has_sup_1d(&supis, Pum, &["supisO"]);
+    assert_has_sup_1p(&supis, Pum, &["supisaH"]);
 }
 
 #[test]
@@ -164,6 +169,14 @@ fn sk_221() {
 }
 
 #[test]
+fn sk_226() {
+    assert_has_sup_1p("praTama", Pum, &["praTame", "praTamAH"]);
+    assert_has_sup_1p("dvitaya", Pum, &["dvitaye", "dvitayAH"]);
+    assert_has_sup_1p("nema", Pum, &["neme", "nemAH"]);
+    assert_has_sup_4s("dvitIya", Pum, &["dvitIyasmE", "dvitIyAya"]);
+}
+
+#[test]
 fn sk_228() {
     assert_has_sup_1s("pAda", Pum, &["pAdaH"]);
     assert_has_sup_1d("pAda", Pum, &["pAdO"]);
@@ -210,10 +223,43 @@ fn sk_237() {
     assert_has_sup_7s("yUzan", Pum, &["yUzRi", "yUzaRi"]);
 }
 
+#[ignore]
+#[test]
+fn sk_238() {
+    let dvyahan = create_samasa("dvyahan", &["dvi", "ahan"], Tatpurusha);
+    assert_has_sup_7s(&dvyahan, Pum, &["dvyahni", "dvyahani", "dvyahne"]);
+
+    let vyahan = create_samasa("vyahan", &["vi", "ahan"], Tatpurusha);
+    assert_has_sup_7s(&vyahan, Pum, &["vyahni", "vyahani", "vyahne"]);
+
+    let sayahan = create_samasa("sAyAhan", &["sAya", "ahan"], Tatpurusha);
+    assert_has_sup_7s(&sayahan, Pum, &["sAyAhni", "sAyAhani", "sAyahne"]);
+
+    let vishvapa = create_upapada_krdanta("viSvapA", "viSva", &[], &d("pA\\", Adadi), Krt::vic);
+    assert_has_sup_1s(&vishvapa, Pum, &["viSvapO"]);
+}
+
 #[test]
 fn sk_239() {
-    assert_has_sup_1d("viSvapA", Pum, &["viSvapO"]);
-    assert_has_sup_1p("viSvapA", Pum, &["viSvapAH"]);
+    let vishvapa = create_upapada_krdanta("viSvapA", "viSva", &[], &d("pA\\", Adadi), Krt::vic);
+    assert_has_sup_1d(&vishvapa, Pum, &["viSvapO"]);
+    assert_has_sup_1p(&vishvapa, Pum, &["viSvapAH"]);
+}
+
+#[test]
+fn sk_240() {
+    let vishvapa = create_upapada_krdanta("viSvapA", "viSva", &[], &d("pA\\", Adadi), Krt::vic);
+    assert_has_sup_2p(&vishvapa, Pum, &["viSvapaH"]);
+
+    assert_has_sup_2p("hAhA", Pum, &["hAhAn"]);
+    assert_has_sup_3s("hAhA", Pum, &["hAhA"]);
+    assert_has_sup_4s("hAhA", Pum, &["hAhE"]);
+    assert_has_sup_5s("hAhA", Pum, &["hAhAH"]);
+    assert_has_sup_6d("hAhA", Pum, &["hAhOH"]);
+    assert_has_sup_7s("hAhA", Pum, &["hAhe"]);
+
+    assert_has_sup_1s("hari", Pum, &["hariH"]);
+    assert_has_sup_1d("hari", Pum, &["harI"]);
 }
 
 #[test]
@@ -229,11 +275,10 @@ fn sk_242() {
     assert_has_sup_2p("hari", Pum, &["harIn"]);
 }
 
-#[ignore]
 #[test]
 fn sk_243() {
     assert_has_sup_4s("mati", Stri, &["mataye", "matyE"]);
-    assert_has_sup_4s("vAtapramI", Stri, &["vAtapramye"]);
+    assert_has_sup_4s(&dhatu_prati("vAtapramI"), Pum, &["vAtapramye"]);
     assert_has_sup_4s("mAtf", Stri, &["mAtre"]);
 }
 
@@ -267,7 +312,6 @@ fn sk_247() {
 #[test]
 fn skip_sk_248_to_sk_251() {}
 
-#[ignore]
 #[test]
 fn sk_252() {
     // counterexamples
@@ -305,7 +349,103 @@ fn sk_255() {
 fn skip_sk_258_to_sk_262() {}
 
 #[test]
+fn sk_263() {
+    assert_has_sup_1p("kati", Pum, &["kati"]);
+    assert_has_sup_2p("kati", Pum, &["kati"]);
+    assert_has_sup_3p("kati", Pum, &["katiBiH"]);
+    assert_has_sup_4p("kati", Pum, &["katiByaH"]);
+    assert_has_sup_5p("kati", Pum, &["katiByaH"]);
+    assert_has_sup_6p("kati", Pum, &["katInAm"]);
+    assert_has_sup_7p("kati", Pum, &["katizu"]);
+
+    assert_has_sup_1p("tri", Pum, &["trayaH"]);
+    assert_has_sup_2p("tri", Pum, &["trIn"]);
+    assert_has_sup_3p("tri", Pum, &["triBiH"]);
+    assert_has_sup_4p("tri", Pum, &["triByaH"]);
+}
+
+#[test]
+fn sk_264() {
+    assert_has_sup_6p("tri", Pum, &["trayARAm"]);
+    // TODO: paramatri, etc.
+    assert_has_sup_7p("tri", Pum, &["trizu"]);
+}
+
+#[test]
+fn skip_sk_266() {}
+
+#[test]
+fn sk_267() {
+    assert_has_sup_ss("bahuSreyasI", Pum, &["bahuSreyasi"]);
+    assert_has_sup_2p("bahuSreyasI", Pum, &["bahuSreyasIn"]);
+}
+
+#[test]
+fn skip_sk_268() {}
+
+#[test]
+fn sk_269() {
+    assert_has_sup_4s("bahuSreyasI", Pum, &["bahuSreyasyE"]);
+    assert_has_sup_6s("bahuSreyasI", Pum, &["bahuSreyasyAH"]);
+    assert_has_sup_6p("bahuSreyasI", Pum, &["bahuSreyasInAm"]);
+}
+
+#[ignore]
+#[test]
+fn sk_270() {
+    assert_has_sup_7s("bahuSreyasI", Pum, &["bahuSreyasyAm"]);
+    assert_has_sup_1s("atilakzmI", Pum, &["atilakzmIH"]);
+    // TODO: kumArI
+}
+
+#[test]
+fn skip_sk_271() {}
+
+#[test]
 fn skip_sk_274_to_sk_276() {}
+
+#[test]
+fn sk_277() {
+    assert_has_sup_1s("krozwu", Pum, &["krozwA"]);
+    assert_has_sup_1d("krozwu", Pum, &["krozwArO"]);
+    assert_has_sup_1p("krozwu", Pum, &["krozwAraH"]);
+    assert_has_sup_2s("krozwu", Pum, &["krozwAram"]);
+    assert_has_sup_2d("krozwu", Pum, &["krozwArO"]);
+    assert_has_sup_2p("krozwu", Pum, &["krozwUn"]);
+}
+
+#[test]
+fn sk_278() {
+    assert_has_sup_3s("krozwu", Pum, &["krozwrA", "krozwunA"]);
+    assert_has_sup_4s("krozwu", Pum, &["krozwre", "krozwave"]);
+}
+
+#[test]
+fn skip_sk_279() {}
+
+#[test]
+fn sk_280() {
+    assert_has_sup_6s("krozwu", Pum, &["krozwuH", "krozwoH"]);
+    assert_has_sup_6p("krozwu", Pum, &["krozwUnAm"]);
+    assert_has_sup_7s("krozwu", Pum, &["krozwari", "krozwO"]);
+    assert_has_sup_7d("krozwu", Pum, &["krozwroH", "krozwvoH"]);
+
+    assert_has_sup_1s("hUhU", Pum, &["hUhUH"]);
+    assert_has_sup_1d("hUhU", Pum, &["hUhvO"]);
+    assert_has_sup_1p("hUhU", Pum, &["hUhvaH"]);
+    assert_has_sup_2s("hUhU", Pum, &["hUhUm"]);
+    assert_has_sup_2d("hUhU", Pum, &["hUhvO"]);
+    assert_has_sup_2p("hUhU", Pum, &["hUhUn"]);
+
+    assert_has_sup_ss("aticamU", Pum, &["aticamu"]);
+    assert_has_sup_4s("aticamU", Pum, &["aticamvE"]);
+    assert_has_sup_5s("aticamU", Pum, &["aticamvAH"]);
+    assert_has_sup_6s("aticamU", Pum, &["aticamvAH"]);
+    assert_has_sup_6p("aticamU", Pum, &["aticamUnAm"]);
+    assert_has_sup_7s("aticamU", Pum, &["aticamvAm"]);
+
+    assert_has_sup_1s("KalapU", Pum, &["KalapUH"]);
+}
 
 #[test]
 fn skip_sk_284() {

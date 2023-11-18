@@ -1,5 +1,5 @@
-use crate::prakriya::Prakriya;
-use crate::term::Term;
+use crate::core::Prakriya;
+use crate::core::Term;
 
 /// Processes a sliding window of terms, where each term is non-empty.
 ///

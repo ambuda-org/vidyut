@@ -408,6 +408,15 @@ fn sutra_6_1_31() {
     assert_has_tip(&[], &nic(&svi), Lat, &["aSUsavat", "aSiSvayat"]);
 }
 
+#[ignore]
+#[test]
+fn sutra_6_1_33() {
+    let hve = d("hve\\Y", Bhvadi);
+    assert_has_tip(&[], &hve, Lit, &["juhAva"]);
+    assert_has_ta(&[], &yan(&hve), Lat, &["johUyate"]);
+    assert_has_tip(&[], &san(&hve), Lat, &["juhUzati"]);
+}
+
 #[test]
 fn sutra_6_1_38_and_sutra_6_1_39_and_sutra_6_1_40() {
     let ve = d("ve\\Y", Bhvadi);
@@ -1028,6 +1037,22 @@ fn sutra_6_1_114() {
     assert_has_sandhi("puruzas", "yAti", &["puruzo yAti"]);
     assert_has_sandhi("puruzas", "hasati", &["puruzo hasati"]);
     assert_has_sandhi("puruzas", "dadAti", &["puruzo dadAti"]);
+}
+
+#[test]
+fn sutra_6_1_125() {
+    let agni = create_sup_1d("agnI", "agni", Pum);
+    let vayu = create_sup_1d("vAyU", "vAyu", Pum);
+    let khatve = create_sup_1d("Kawve", &nyap("KawvA"), Stri);
+    let male = create_sup_1d("mAle", &nyap("mAlA"), Stri);
+    let iti = Pada::from_text("iti");
+
+    assert_has_vakya(&agni, &iti, &["agnI iti"]);
+    assert_has_vakya(&vayu, &iti, &["vAyU iti"]);
+    assert_has_vakya(&khatve, &iti, &["Kawve iti"]);
+    assert_has_vakya(&male, &iti, &["mAle iti"]);
+
+    // TODO: pluta and others
 }
 
 #[ignore]

@@ -1,9 +1,9 @@
 use crate::args::{Artha, BaseKrt, Krt, KrtArtha};
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
-use crate::tag::Tag as T;
-use crate::term::Term;
 
 impl Krt {
     /// Converts this krt-pratyaya to an appropriate `Term`.
@@ -38,7 +38,7 @@ impl Krt {
 /// - remembers which `krt` pratyaya the caller wishes to add, which simplifies the calling API.
 /// - records whether a `krt` pratyaya has been added or not, which simplifies the control flow for
 ///   optional rules.
-pub struct KrtPrakriya<'a> {
+pub(crate) struct KrtPrakriya<'a> {
     /// The underlying prakriya.
     pub p: &'a mut Prakriya,
     /// The first index of the dhatu.
@@ -163,6 +163,11 @@ impl<'a> KrtPrakriya<'a> {
         let krt = krt.into();
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
+            self.p.set(i_lakara, |t| {
+                t.add_tag(T::Krt);
+                // Remove `fdit` from `lf~w` so that we don't trigger 7.1.70 (ugidacAm ...).
+                t.remove_tag(T::fdit);
+            });
             op::adesha(rule, self.p, i_lakara, krt.as_str());
             self.has_krt = true;
             true
@@ -172,14 +177,22 @@ impl<'a> KrtPrakriya<'a> {
     }
 
     pub fn do_nipatana(&mut self, rule: impl Into<Rule>, sub: &str) {
-        self.p.run(rule, op::nipatana(sub));
+        self.p.run(rule, |p| {
+            op::nipatana(sub)(p);
+
+            // For later rules, also push an empty version of the pratyaya.
+            // (Example: 8.2.62 kvin-pratyayasya kuH)
+            let mut t = self.krt.to_term();
+            t.set_text("");
+            p.push(t);
+        });
         self.had_match = true;
         self.has_krt = true
     }
 
     pub fn optional_do_nipatana(&mut self, rule: impl Into<Rule>, sub: &str) -> bool {
         self.had_match = true;
-        if self.p.run_optional(rule, op::nipatana(sub)) {
+        if self.p.optional_run(rule, op::nipatana(sub)) {
             self.has_krt = true;
             true
         } else {
@@ -190,6 +203,8 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, adds the given `krt` pratyaya then runs `func`.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
+    ///
+    /// Returns: whether `krt` was added.
     pub fn try_add_with(
         &mut self,
         rule: impl Into<Rule>,

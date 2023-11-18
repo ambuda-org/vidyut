@@ -1,6 +1,6 @@
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
-use crate::taddhita::gana;
+use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
 pub fn run(tp: &mut TaddhitaPrakriya) {

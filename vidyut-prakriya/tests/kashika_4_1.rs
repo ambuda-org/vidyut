@@ -1,15 +1,18 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
+use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
+use vidyut_prakriya::args::Unadi;
 use vidyut_prakriya::args::*;
 
 fn assert_has_pum(prati: &str, expected: &[&str]) {
     assert_has_sup_1s(prati, Pum, expected);
 }
 
-fn assert_has_stri(prati: &str, expected: &[&str]) {
+fn assert_has_stri(prati: impl IntoPratipadika, expected: &[&str]) {
     assert_has_sup_1s(prati, Stri, expected);
 }
 
@@ -163,7 +166,7 @@ fn sutra_4_1_2() {
     assert_has_sup_7d(&karishagandhya, Stri, &["kArIzaganDyayoH"]);
     assert_has_sup_7p(&karishagandhya, Stri, &["kArIzaganDyAsu"]);
 
-    let drshad = Pratipadika::new("dfzad");
+    let drshad = Pratipadika::from("dfzad");
     assert_has_sup_1s(&drshad, Pum, &["dfzat"]);
     assert_has_sup_1d(&drshad, Pum, &["dfzadO"]);
     assert_has_sup_1p(&drshad, Pum, &["dfzadaH"]);
@@ -236,6 +239,40 @@ fn sutra_4_1_5() {
 }
 
 #[test]
+fn sutra_4_1_6() {
+    let bhavat = create_krdanta("Bavat", &[], &d("BA\\", Adadi), Unadi::qavatu);
+    assert_has_stri(&bhavat, &["BavatI"]);
+
+    let abhibhavat = create_avyaya_tatpurusha("atiBavat", &Pratipadika::from("ati"), &bhavat);
+    assert_has_stri(&abhibhavat, &["atiBavatI"]);
+
+    let pacat = create_krdanta("pacat", &[], &d("qupa\\ca~^z", Bhvadi), Krt::Satf);
+    assert_has_stri(&pacat, &["pacantI"]);
+
+    let yajat = create_krdanta("yajat", &[], &d("ya\\ja~", Bhvadi), Krt::Satf);
+    assert_has_stri(&yajat, &["yajantI"]);
+}
+
+#[test]
+fn sutra_4_1_7() {
+    assert_has_stri("DIvan", &["DIvarI"]);
+    assert_has_stri("pIvan", &["pIvarI"]);
+    assert_has_stri("Sarvan", &["SarvarI"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_4_1_9() {
+    assert_has_sup_1s("dAman", Stri, &["dAmA"]);
+    assert_has_sup_1s("dAman", Stri, &["dAmAnO"]);
+    assert_has_sup_1s("dAman", Stri, &["dAmAnaH"]);
+
+    assert_has_sup_1s("pAman", Stri, &["pAmA"]);
+    assert_has_sup_1s("pAman", Stri, &["pAmAnO"]);
+    assert_has_sup_1s("pAman", Stri, &["pAmAnaH"]);
+}
+
+#[test]
 fn sutra_4_1_10() {
     assert_has_stri("svasf", &["svasA"]);
     assert_has_stri("duhitf", &["duhitA"]);
@@ -243,6 +280,51 @@ fn sutra_4_1_10() {
     assert_has_stri("yAtf", &["yAtA"]);
     assert_has_stri("mAtf", &["mAtA"]);
     // TODO: others
+}
+
+#[ignore]
+#[test]
+fn sutra_4_1_15() {
+    let kurucara = create_upapada_krdanta("kurucara", "kuru", &[], &d("cara~", Bhvadi), Krt::wa);
+    let madracara = create_upapada_krdanta("madracara", "madra", &[], &d("cara~", Bhvadi), Krt::wa);
+    assert_has_stri(&kurucara, &["kurucarI"]);
+    assert_has_stri(&madracara, &["madracarI"]);
+
+    let pacamana = create_krdanta("pacamAna", &[], &d("qupa\\ca~^z", Bhvadi), Krt::SAnac);
+    let yajamana = create_krdanta("yajamAna", &[], &d("ya\\ja~^", Bhvadi), Krt::SAnac);
+    assert_has_stri(&pacamana, &["pacamAnA"]);
+    assert_has_stri(&yajamana, &["yajamAnA"]);
+
+    let sauparneya = create_taddhitanta("sOparReya", &nyap("suparRA"), T::Qak);
+    let vainateya = create_taddhitanta("vEnateya", &nyap("vinatA"), T::Qak);
+    assert_has_stri(&sauparneya, &["sOparReyI"]);
+    assert_has_stri(&vainateya, &["vEnateyI"]);
+
+    let kr = d("qukf\\Y", Tanadi);
+    let kumbhakara = create_upapada_krdanta("kumBakAra", "kumBa", &[], &kr, Krt::aR);
+    let nagarakara = create_upapada_krdanta("nagarakAra", "nagara", &[], &kr, Krt::aR);
+    assert_has_stri(&kumbhakara, &["kumBakArI"]);
+    assert_has_stri(&nagarakara, &["nagarakArI"]);
+
+    let aupagava = create_taddhitanta("Opagava", "upagu", T::aR);
+    assert_has_stri(&aupagava, &["OpagavI"]);
+
+    // TODO: many, many others
+}
+
+#[test]
+fn sutra_4_1_41() {
+    // zit
+    let nartaka = create_krdanta("nartaka", &[], &d("nftI~", Divadi), Krt::zvun);
+    assert_has_stri(&nartaka, &["nartakI"]);
+    let khanaka = create_krdanta("Kanaka", &[], &d("Kanu~^", Bhvadi), Krt::zvun);
+    assert_has_stri(&khanaka, &["KanakI"]);
+    let rajaka = create_krdanta("rajaka", &[], &d("ra\\nja~^", Bhvadi), Krt::zvun);
+    assert_has_stri(&rajaka, &["rajakI"]);
+
+    // gaurAdi
+    assert_has_stri("gOra", &["gOrI"]);
+    assert_has_stri("matsya", &["matsI"]);
 }
 
 #[test]
@@ -263,8 +345,6 @@ fn sutra_4_1_49() {
     assert_has_stri("yava", &["yavAnI"]);
     assert_has_stri("yavana", &["yavanAnI"]);
     assert_has_stri("mAtula", &["mAtulAnI"]);
-
-    // TODO: others;
 }
 
 #[test]
@@ -454,8 +534,8 @@ fn sutra_4_1_117() {
 
 #[test]
 fn sutra_4_1_118() {
-    assert_has_taddhitanta(&nyap("pilA"), T::aR, &["pEla"]);
-    assert_has_taddhitanta(&nyap("pilA"), T::Qak, &["pEleya"]);
+    assert_has_taddhitanta(&nyap("pIlA"), T::aR, &["pEla"]);
+    assert_has_taddhitanta(&nyap("pIlA"), T::Qak, &["pEleya"]);
 }
 
 #[test]

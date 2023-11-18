@@ -1,5 +1,5 @@
 use crate::args::KrdantaArgs;
-use crate::prakriya::Prakriya;
+use crate::core::Prakriya;
 
 mod basic;
 mod unadi_sutras;

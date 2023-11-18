@@ -5,9 +5,9 @@ Implements the taddhita rules in the "prAg vahatez Wak" section of pada 4.4.
 */
 use crate::args::Taddhita;
 use crate::args::TaddhitaArtha::*;
-use crate::operators as op;
-use crate::prakriya::Rule;
-use crate::taddhita::gana;
+use crate::core::operators as op;
+use crate::core::Rule;
+use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
 pub fn run(tp: &mut TaddhitaPrakriya) {

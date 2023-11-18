@@ -1757,7 +1757,8 @@ fn sk_2301() {
 
     let stambh = d("zwaBi~\\", Bhvadi);
     assert_has_ta(&[], &stambh, Lat, &["stamBate"]);
-    assert_has_ta(&["ud"], &stambh, Lat, &["uttamBate", "utttamBate"]);
+    // utTtamBate is justified. See comments on 8.4.61 for why "T" is used.
+    assert_has_ta(&["ud"], &stambh, Lat, &["uttamBate", "utTtamBate"]);
     assert_has_ta(&["vi"], &stambh, Lat, &["vistamBate"]);
 
     // TODO: zwamBate, wazwamBe

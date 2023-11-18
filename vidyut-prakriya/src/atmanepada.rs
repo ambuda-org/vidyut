@@ -12,10 +12,10 @@
 //! *Atmanepada* to that pratyaya as appropriate.
 
 use crate::args::Gana;
+use crate::core::Rule::Kaumudi;
+use crate::core::Tag as T;
+use crate::core::{Code, Prakriya, Rule};
 use crate::dhatu_gana::{DYUT_ADI, VRT_ADI};
-use crate::prakriya::Rule::Kaumudi;
-use crate::prakriya::{Code, Prakriya, Rule};
-use crate::tag::Tag as T;
 
 const GAMY_RCCHI: &[(&str, Gana)] = &[
     ("ga\\mx~", Gana::Bhvadi),
@@ -100,7 +100,7 @@ impl<'a> PadaPrakriya<'a> {
 
     /// Optionally marks this prakriya as AtmanepadI.
     fn optional_atma(&mut self, rule: impl Into<Rule>) {
-        self.p.run_optional(rule, op_atmanepada);
+        self.p.optional_run(rule, op_atmanepada);
     }
 
     /// Marks this prakriya as parasmaipadI.
@@ -110,13 +110,13 @@ impl<'a> PadaPrakriya<'a> {
 
     /// Marks this prakriya as parasmaipadI.
     fn optional_para(&mut self, rule: Code) {
-        self.p.run_optional(rule, op_parasmaipada);
+        self.p.optional_run(rule, op_parasmaipada);
     }
 }
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
     if p.has_tag(T::Atmanepada) {
-        // E.g. if set by gana sutra (see `dhatu_karya`)
+        // E.g. if set by some gana sutra. See `dhatu_karya` for examples of this.
         return None;
     }
 
@@ -255,7 +255,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     {
         // If this option is declined, we'll use the general rule below (1.3.74). Thus we get
         // BAyayati/BAyayate per the normal rules and BApayate/BIzayate if 1.3.68 is accepted.
-        pp.p.run_optional("1.3.68", |p| {
+        pp.p.optional_run("1.3.68", |p| {
             op_atmanepada(p);
             p.add_tag(T::FlagHetuBhaya);
         });

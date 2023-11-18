@@ -7,14 +7,6 @@ use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
 
-fn dhatu_prati(text: &str) -> Pratipadika {
-    Pratipadika::builder()
-        .text(text)
-        .is_dhatu(true)
-        .build()
-        .unwrap()
-}
-
 #[test]
 fn sutra_1_4_3() {
     // IkArAnta
@@ -49,7 +41,7 @@ fn sutra_1_4_4() {
 
 #[test]
 fn sutra_1_4_5() {
-    let shri = dhatu_prati("SrI");
+    let shri = create_krdanta("SrI", &[], &d("SriY", Bhvadi), Krt::kvip);
     assert_has_sup_6p(&shri, Stri, &["SriyAm", "SrIRAm"]);
     assert_has_sup_6p("BrU", Stri, &["BruvAm", "BrURAm"]);
     // astrI
@@ -58,9 +50,11 @@ fn sutra_1_4_5() {
 
 #[test]
 fn sutra_1_4_6() {
+    let shri = create_krdanta("SrI", &[], &d("SriY", Bhvadi), Krt::kvip);
+
     assert_has_sup_4s("kfti", Stri, &["kftyE", "kftaye"]);
     assert_has_sup_4s("Denu", Stri, &["DenvE", "Denave"]);
-    assert_has_sup_4s(&dhatu_prati("SrI"), Stri, &["SriyE", "Sriye"]);
+    assert_has_sup_4s(&shri, Stri, &["SriyE", "Sriye"]);
     assert_has_sup_4s("BrU", Stri, &["BruvE", "Bruve"]);
     // astrI
     assert_has_sup_4s("strI", Stri, &["striyE"]);
@@ -144,6 +138,12 @@ fn sutra_1_4_16() {
 }
 
 #[test]
+fn skip_sutra_1_4_17() {}
+
+#[test]
+fn skip_sutra_1_4_18() {}
+
+#[test]
 fn sutra_1_4_19() {
     assert_has_taddhitanta(&prati("udaSvit"), T::matup, &["udaSvitvat"]);
     assert_has_taddhitanta(&prati("vidyut"), T::matup, &["vidyutvat"]);
@@ -185,6 +185,9 @@ fn sutra_1_4_80() {
 }
 
 #[test]
+fn skip_sutra_1_4_99_to_sutra_1_4_104() {}
+
+#[test]
 fn sutra_1_4_105() {
     let pac = d("qupa\\ca~^z", Bhvadi);
     assert_has_sip(&[], &pac, Lat, &["pacasi"]);
@@ -212,4 +215,13 @@ fn sutra_1_4_108() {
 fn sutra_1_4_109() {
     assert_has_sandhi("daDi", "atra", &["daDyatra"]);
     assert_has_sandhi("maDu", "atra", &["maDvatra"]);
+}
+
+#[test]
+fn sutra_1_4_110() {
+    // TODO: ashtadhyayi.com has daDiM, maDuM -- why?
+    assert_has_sup_1s("daDi", Napumsaka, &["daDi"]);
+    assert_has_sup_1s("maDu", Napumsaka, &["maDu"]);
+    assert_has_sup_1s("vfkza", Pum, &["vfkzaH"]);
+    assert_has_sup_1s("plakza", Pum, &["plakzaH"]);
 }

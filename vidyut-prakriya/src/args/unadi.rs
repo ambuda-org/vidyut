@@ -1,5 +1,5 @@
+use crate::core::errors::*;
 use crate::enum_boilerplate;
-use crate::errors::*;
 
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -19,6 +19,8 @@ pub enum Unadi {
     aknuc,
     /// -aNga
     aNgac,
+    /// -adAnu
+    radAnuk,
     /// -a
     ac,
     /// -aji
@@ -634,6 +636,7 @@ pub enum Unadi {
 enum_boilerplate!(Unadi, {
     aknuc => "aknuc",
     aNgac => "aNgac",
+    radAnuk => "radAnuk",
     ac => "ac",
     aji => "aji",
     awan => "awan",
@@ -845,7 +848,7 @@ enum_boilerplate!(Unadi, {
     qau => "qau",
     qaw => "qaw",
     qati => "qati",
-    qavatu => "qavatu",
+    qavatu => "qavatu~",
     qimi => "qimi",
     qutac => "qutac",
     qun => "qun",

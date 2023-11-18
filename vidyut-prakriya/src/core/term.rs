@@ -1,8 +1,8 @@
-use crate::args::{Antargana, Gana};
+use crate::args::{Antargana, Gana, Unadi};
+use crate::core::Tag;
 use crate::sounds;
 use crate::sounds::Pattern;
 use crate::sounds::{s, Set};
-use crate::tag::Tag;
 use compact_str::CompactString;
 use enumset::EnumSet;
 
@@ -12,18 +12,36 @@ lazy_static! {
     static ref AC: Set = s("ac");
 }
 
-/// `Term` is a text string with additional metadata. It is a generalized version of an *upadesha*
-/// that also stores abhyAsas and other strings that don't have an upadesha associated with them.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// A string with additional metadata.
+///
+/// A typical prakriya uses various kinds of terms. For example, the prakriya for *cakAra* contains
+/// an abhyasa, a dhatu, and a pratyaya. All of these terms likewise have their own metadata. For
+/// example, the *a* at the end of *cakAra* conveys uttama-purusha and eka-vacana, and it is also a
+/// tin-pratyaya that has replaced an earlier *tip*-pratyaya.
+///
+/// `Term` is a general-purpose struct that manages these strings and their associated metadata.
+/// Its main field is `text`, a `CompactString` that is more memory-efficient than a standard
+/// `String`.
+///
+/// Most of a `Term`'s metadata is stored in `tags`, a memory-efficient set of `Tag` values. `Tag`
+/// generalizes the *samjna* concept and also stores other metadata that we have found useful for
+/// deriving words. For details, see the documentation in the `tag` module.
+///
+/// `Term` provides a rich API that is concise yet readable. Almost all mutations to a `Prakriya`
+/// occur through the use of the `Term` API.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Term {
-    /// The *upadesha* of this term, if one exists.
+    /// The *aupadeshika* form of this term, if one exists.
     ///
-    /// The *upadesha* contains anubandhas, accent, and other "meta" terms that define various
-    /// properties in the grammar. This field is changed only when there is a full substitution,
-    /// e.g. substitution of `ktvA` with `lyap`.
-    pub u: Option<CompactString>,
+    /// The *aupadeshka* text contains anubandhas, accent, and other "meta" terms that define
+    /// various properties in the grammar. We store all of this metadata on the `Term`'s `tags`
+    /// field.
+    ///
+    /// This field is changed only when there is a full substitution, e.g. substitution of `ktvA`
+    /// with `lyap`.
+    pub(crate) u: Option<CompactString>,
     /// The text of this term. This string contains sound changes such as guna, vrddhi, lopa, etc.
-    pub text: CompactString,
+    pub(crate) text: CompactString,
     /// The form of the term to use for sthAnivad-bhAva substitutions, e.g. for dvitva on the
     /// dhatu. For example, when applying dvitva for BAvi, the abhyasa should be BO, not BAv.
     ///
@@ -243,12 +261,12 @@ impl Term {
     // Samjna properties
     // -----------------
 
-    /// Returns whether the term is an abhyAsa.
+    /// Returns whether the term has the `abhyAsa` samjna.
     pub fn is_abhyasa(&self) -> bool {
         self.has_tag(Tag::Abhyasa)
     }
 
-    /// Returns whether the term is an abhyasta.
+    /// Returns whether the term has the `abhyasta` samjna.
     pub fn is_abhyasta(&self) -> bool {
         self.has_tag(Tag::Abhyasta)
     }
@@ -273,9 +291,31 @@ impl Term {
         self.has_tag(Tag::Avyaya)
     }
 
-    /// Returns whether the term has the `Dhatu` samjna.
+    /// Returns whether the term is "final," i.e. whether it has been through at least one full
+    /// pass of the grammar.
+    ///
+    /// We track "finality" so that we can avoid re-running rules on terms where doing so makes no
+    /// sense.
+    ///
+    /// Examples:
+    /// - We should not change the Qa of rUQA to eya (7.1.2).
+    /// - We should not change the DO of DOta to DA (6.1.45).
+    pub fn is_final(&self) -> bool {
+        self.has_tag(Tag::Final)
+    }
+
+    pub fn is_ekavacana(&self) -> bool {
+        self.has_tag(Tag::Ekavacana)
+    }
+
+    /// Returns whether the term has the `dhatu` samjna.
     pub fn is_dhatu(&self) -> bool {
         self.has_tag(Tag::Dhatu)
+    }
+
+    /// Returns whether the term has the `Gati` samjna.
+    pub fn is_gati(&self) -> bool {
+        self.has_tag(Tag::Gati)
     }
 
     /// Returns whether the term is kit or Nit.
@@ -288,9 +328,24 @@ impl Term {
         self.has_tag(Tag::Krt)
     }
 
+    /// Returns whether the term has the `Krtya` samjna.
+    pub fn is_krtya(&self) -> bool {
+        self.has_tag(Tag::Krtya)
+    }
+
+    /// Returns whether the term has undergone lopa (1.1.60)
+    pub fn is_lupta(&self) -> bool {
+        self.has_tag_in(&[Tag::Luk, Tag::Slu, Tag::Lup])
+    }
+
     /// Returns whether the term is `Ric` or `RiN`.
     pub fn is_ni_pratyaya(&self) -> bool {
         self.has_u_in(&["Ric", "RiN"])
+    }
+
+    /// Returns whether the term has the `Krt` samjna.
+    pub fn is_nipata(&self) -> bool {
+        self.has_tag(Tag::Nipata)
     }
 
     /// Returns whether the term is a nistha.
@@ -315,9 +370,19 @@ impl Term {
         self.has_tag(Tag::Pratipadika)
     }
 
+    /// Returns whether the term has the `Pratipadika` samjna or is a nyAp-pratyaya.
+    pub fn is_pratipadika_or_nyap(&self) -> bool {
+        self.has_tag(Tag::Pratipadika) || self.is_nyap_pratyaya()
+    }
+
     /// Returns whether the term has the `Pratyaya` samjna.
     pub fn is_pratyaya(&self) -> bool {
         self.has_tag(Tag::Pratyaya)
+    }
+
+    /// Returns whether the term has the `Sankhya` samjna.
+    pub fn is_sankhya(&self) -> bool {
+        self.has_tag(Tag::Sankhya)
     }
 
     /// Returns whether the term is an unAdi-pratyaya.
@@ -325,8 +390,22 @@ impl Term {
         self.has_tag(Tag::Unadi)
     }
 
+    /// Returns whether the term is an unAdi-pratyaya.
+    pub fn has_unadi(&self, unadi: Unadi) -> bool {
+        self.has_tag(Tag::Unadi) && self.has_u(unadi.as_str())
+    }
+
+    pub fn is_aap_pratyaya(&self) -> bool {
+        self.has_tag(Tag::Pratyaya) && self.has_u_in(&["dAp", "wAp", "cAp"])
+    }
+
     pub fn is_nyap_pratyaya(&self) -> bool {
         self.has_tag(Tag::Pratyaya) && self.has_u_in(&["wAp", "cAp", "dAp", "NIp", "NIz"])
+    }
+
+    /// Returns whether the term has the `Taddhita` samjna.
+    pub fn is_samasa(&self) -> bool {
+        self.has_tag(Tag::Samasa)
     }
 
     /// Returns whether the term has the `Sarvanama` samjna.
@@ -352,6 +431,11 @@ impl Term {
     /// Returns whether the term has the `Taddhita` samjna.
     pub fn is_taddhita(&self) -> bool {
         self.has_tag(Tag::Taddhita)
+    }
+
+    /// Returns whether the term has the `Sup` samjna.
+    pub fn is_tin(&self) -> bool {
+        self.has_tag(Tag::Tin)
     }
 
     /// Returns whether the term is an upasarga.
@@ -412,6 +496,7 @@ impl Term {
     }
 
     /// Returns whether the first syllable of the term is or could be laghu.
+    #[allow(dead_code)]
     pub fn is_laghu_adi(&self) -> bool {
         let mut had_ac = false;
         let mut num_consonants = 0;
@@ -575,239 +660,5 @@ impl Term {
         for t in tags {
             self.tags.remove(*t);
         }
-    }
-}
-
-/// A `Term` with its Agamas.
-///
-/// `TermView` bundles a `Term` with its agamas.
-///
-/// # Construction rules
-/// TODO.
-///
-/// # Examples
-/// - isIDvam [i + sIyu~w + Dvam]
-/// - isya [i + sya]
-#[derive(Debug)]
-pub struct TermView<'a> {
-    terms: &'a Vec<Term>,
-    start: usize,
-    end: usize,
-}
-
-impl<'a> TermView<'a> {
-    pub fn new(terms: &'a Vec<Term>, start: usize) -> Option<Self> {
-        if start >= terms.len() {
-            return None;
-        }
-
-        let mut end = start;
-        for (i, t) in terms.iter().enumerate().filter(|(i, _)| *i >= start) {
-            // A `kit` Agama is part of the term it follows, i.e. there is no view available here.
-            // Exception: iw-Agama marked as kit.
-            if i == start && t.has_all_tags(&[Tag::Agama, Tag::kit]) && !t.has_u("iw") {
-                return None;
-            }
-
-            if !t.has_tag(Tag::Agama) {
-                end = i;
-                break;
-            }
-        }
-        Some(TermView { terms, start, end })
-    }
-
-    // Accessors
-
-    pub fn slice(&self) -> &[Term] {
-        &self.terms[self.start..=self.end]
-    }
-
-    pub fn first(&self) -> Option<&Term> {
-        self.terms.get(self.start)
-    }
-
-    pub fn last(&self) -> Option<&Term> {
-        self.terms.get(self.end)
-    }
-
-    pub fn start(&self) -> usize {
-        self.start
-    }
-
-    #[allow(unused)]
-    pub fn get(&self, i: usize) -> Option<&Term> {
-        self.slice().get(i)
-    }
-
-    pub fn end(&self) -> usize {
-        self.end
-    }
-
-    #[allow(unused)]
-    pub fn is_padanta(&self) -> bool {
-        self.is_empty() && self.ends_word()
-    }
-
-    /// Returns whether this view has any text.
-    #[allow(unused)]
-    pub fn is_empty(&self) -> bool {
-        self.slice().iter().all(|t| t.text.is_empty())
-    }
-
-    /// Returns whether this view is at the very end of the given word.
-    #[allow(unused)]
-    pub fn ends_word(&self) -> bool {
-        self.end == self.terms.len() - 1
-    }
-
-    fn matches_sound_pattern(&self, c: Option<char>, pattern: impl Pattern) -> bool {
-        match c {
-            Some(c) => pattern.matches(c),
-            None => false,
-        }
-    }
-
-    pub fn adi(&self) -> Option<char> {
-        for t in self.slice() {
-            match t.adi() {
-                Some(c) => return Some(c),
-                None => continue,
-            }
-        }
-        None
-    }
-
-    #[allow(unused)]
-    pub fn antya(&self) -> Option<char> {
-        for t in self.slice().iter().rev() {
-            match t.antya() {
-                Some(c) => return Some(c),
-                None => continue,
-            }
-        }
-        None
-    }
-
-    pub fn has_adi(&self, pattern: impl Pattern) -> bool {
-        self.matches_sound_pattern(self.adi(), pattern)
-    }
-
-    #[allow(unused)]
-    pub fn has_antya(&self, pattern: impl Pattern) -> bool {
-        self.matches_sound_pattern(self.antya(), pattern)
-    }
-
-    pub fn has_u(&self, u: &str) -> bool {
-        match self.slice().first() {
-            Some(t) => t.has_u(u),
-            None => false,
-        }
-    }
-
-    pub fn has_u_in(&self, us: &[&str]) -> bool {
-        match self.slice().first() {
-            Some(t) => t.has_u_in(us),
-            None => false,
-        }
-    }
-
-    pub fn has_tag(&self, tag: Tag) -> bool {
-        self.slice().iter().any(|t| t.has_tag(tag))
-    }
-
-    pub fn has_lakshana(&self, s: &str) -> bool {
-        self.slice().iter().any(|t| t.has_lakshana(s))
-    }
-
-    pub fn has_lakshana_in(&self, items: &[&str]) -> bool {
-        self.slice().iter().any(|t| t.has_lakshana_in(items))
-    }
-
-    pub fn all(&self, tags: &[Tag]) -> bool {
-        for tag in tags {
-            if self.slice().iter().any(|t| t.has_tag(*tag)) {
-                continue;
-            }
-            return false;
-        }
-        true
-    }
-
-    pub fn has_tag_in(&self, tags: &[Tag]) -> bool {
-        tags.iter()
-            .any(|tag| self.slice().iter().any(|t| t.has_tag(*tag)))
-    }
-
-    pub fn is_knit(&self) -> bool {
-        self.has_tag_in(&[Tag::kit, Tag::Nit])
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn gam() -> Term {
-        let mut t = Term::make_upadesha("gamx~");
-        t.set_text("gam");
-        t
-    }
-
-    #[test]
-    fn test_make_upadesha() {
-        let t = gam();
-        assert!(t.has_u("gamx~"));
-        assert!(t.has_text("gam"));
-    }
-
-    #[test]
-    fn test_sound_selectors() {
-        let t = gam();
-
-        assert_eq!(t.adi(), Some('g'));
-        assert_eq!(t.upadha(), Some('a'));
-        assert_eq!(t.antya(), Some('m'));
-
-        assert_eq!(t.get_at(0), Some('g'));
-        assert_eq!(t.get_at(1), Some('a'));
-        assert_eq!(t.get_at(2), Some('m'));
-        assert_eq!(t.get_at(3), None);
-    }
-
-    #[test]
-    fn is_laghu() {
-        let term = Term::make_text;
-
-        assert!(term("i").is_laghu());
-        assert!(term("vid").is_laghu());
-        assert!(!term("BU").is_laghu());
-        assert!(!term("uC").is_laghu());
-        assert!(!term("IS").is_laghu());
-        assert!(!term("Ikz").is_laghu());
-    }
-
-    #[test]
-    fn test_properties() {
-        let t = gam();
-
-        assert!(t.has_adi('g'));
-        assert!(t.has_upadha('a'));
-        assert!(t.has_antya('m'));
-        assert!(!t.is_empty());
-    }
-
-    #[test]
-    fn test_mutators() {
-        let mut t = gam();
-
-        assert!(t.has_text("gam"));
-        t.set_adi("x");
-        t.set_upadha("y");
-        t.set_antya("z");
-        assert!(t.has_adi('x'));
-        assert!(t.has_upadha('y'));
-        assert!(t.has_antya('z'));
-        assert!(t.has_text("xyz"));
     }
 }

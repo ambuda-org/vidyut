@@ -4,10 +4,10 @@ atidesha (1.2.1 - 1.2.17)
 */
 
 use crate::args::Antargana;
-use crate::operators as op;
-use crate::prakriya::{Code, Prakriya};
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::{Code, Prakriya};
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -31,29 +31,31 @@ impl<'a> AtideshaPrakriya<'a> {
     }
 
     fn optional(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
-        self.added = self.p.run_optional(rule, func);
+        self.added = self.p.optional_run(rule, func);
     }
 
     fn optional_block(&mut self, rule: Code) {
-        self.added = self.p.run_optional(rule, |_| {});
+        self.added = self.p.optional_run(rule, |_| {});
     }
 
     fn add_nit(&mut self, rule: Code, i: usize) {
-        self.p.run_at(rule, i, op::add_tag(T::Nit));
+        self.p.add_tag_at(rule, i, T::Nit);
         self.added = true;
     }
 
     fn optional_add_nit(&mut self, rule: Code, i: usize) {
-        self.added = self.p.run_optional_at(rule, i, |t| t.add_tag(T::Nit));
+        self.added = self.p.optional_run_at(rule, i, |t| t.add_tag(T::Nit));
     }
 
     fn add_kit(&mut self, rule: Code, i: usize) {
-        self.p.run_at(rule, i, op::add_tag(T::kit));
+        self.p.add_tag_at(rule, i, T::kit);
         self.added = true;
     }
 
     fn optional_add_kit(&mut self, rule: Code, i: usize) {
-        self.added = self.p.run_optional_at(rule, i, |t| t.add_tag(T::kit));
+        self.added = self.p.optionally(rule, |rule, p| {
+            p.add_tag_at(rule, i, T::kit);
+        });
     }
 
     fn remove_kit(&mut self, rule: Code, i: usize) {
@@ -62,7 +64,7 @@ impl<'a> AtideshaPrakriya<'a> {
     }
 
     fn optional_remove_kit(&mut self, rule: Code, i: usize) {
-        self.added = self.p.run_optional_at(rule, i, |t| t.remove_tag(T::kit));
+        self.added = self.p.optional_run_at(rule, i, |t| t.remove_tag(T::kit));
     }
 }
 
@@ -71,17 +73,17 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
     let mut ap = AtideshaPrakriya::new(p);
 
     let cur = ap.p.get(i)?;
-    let n = ap.p.view(i + 1)?;
+    let n = ap.p.pratyaya(i + 1)?;
 
     let apit = !n.has_tag(T::pit);
-    let iti = n.first()?.is_it_agama();
+    let iti = n.first().is_it_agama();
     let gan_kutadi = cur.has_u("gAN") || cur.has_antargana(Antargana::Kutadi);
     let i_n = n.end();
 
     if gan_kutadi && !n.has_tag_in(&[T::Rit, T::Yit]) {
         ap.add_nit("1.2.1", i_n);
     } else if cur.has_u("vyaca~")
-        && n.last()?.is_krt()
+        && n.last().is_krt()
         && !n.has_tag_in(&[T::Rit, T::Yit])
         && !n.has_u("asi~")
     {
@@ -105,7 +107,7 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
     let mut wrap = AtideshaPrakriya::new(p);
 
     let cur = wrap.p.get(i)?;
-    let n = wrap.p.view(i + 1)?;
+    let n = wrap.p.pratyaya(i + 1)?;
     if cur.is_agama() {
         return None;
     }
@@ -124,12 +126,12 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
         // Optional per Siddhanta-kaumudi.
         wrap.optional_add_kit("1.2.6.v1", i_n);
     } else if cur.has_text_in(&["mfq", "mfd", "guD", "kuz", "kliS", "vad", "vas"])
-        && n.last()?.has_u("ktvA")
+        && n.last().has_u("ktvA")
     {
         // mfqitvA, mfditvA, ...
         wrap.add_kit("1.2.7", i_n);
     } else if cur.has_text_in(&["rud", "vid", "muz", "grah", "svap", "praC"])
-        && n.last()?.has_u_in(&["ktvA", "san"])
+        && n.last().has_u_in(&["ktvA", "san"])
     {
         // ruditvA, viditvA, ..., rurutizati, vividizati, ...
         wrap.add_kit("1.2.8", i_n);
@@ -148,7 +150,7 @@ fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
     let mut wrap = AtideshaPrakriya::new(p);
 
     let cur = wrap.p.get(i)?;
-    let n = wrap.p.view(i + 1)?;
+    let n = wrap.p.pratyaya(i + 1)?;
     let last = wrap.p.terms().last()?;
     let i_n = n.end();
 
@@ -201,16 +203,16 @@ fn try_remove_kit_for_set_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     let mut wrap = AtideshaPrakriya::new(p);
 
     let cur = wrap.p.get(i)?;
-    let n = wrap.p.view(i + 1)?;
+    let n = wrap.p.pratyaya(i + 1)?;
     let i_n = n.end();
 
-    if !n.first()?.is_it_agama() {
+    if !n.first().is_it_agama() {
         return None;
     }
 
-    let nistha = n.last()?.has_tag(T::Nistha);
-    let ktva = n.last()?.has_u("ktvA");
-    let san = n.last()?.has_u("san");
+    let nistha = n.last().has_tag(T::Nistha);
+    let ktva = n.last().has_u("ktvA");
+    let san = n.last().has_u("san");
 
     // TODO: 1.2.21
     if (nistha || ktva) && cur.has_u("pUN") {
@@ -285,7 +287,7 @@ pub fn run_before_attva(p: &mut Prakriya) {
 /// 4. iT-Agama (A) --> atidesha and samprasarana (A)
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
-    let n = p.view(i + 1)?;
+    let n = p.pratyaya(i + 1)?;
     let i_tin = p.terms().len() - 1;
 
     let dhatu = p.get(i)?;

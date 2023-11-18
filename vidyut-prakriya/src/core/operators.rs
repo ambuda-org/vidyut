@@ -21,21 +21,12 @@ closures. This approach gives us a terse and simple scheme for describing variou
 Rust's zero-cost abstractions ensure that there is no runtime penalty for juggling so many
 closures.
 */
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
-use crate::prakriya::{Prakriya, Rule};
 use crate::sounds as al;
 use crate::sounds::is_ac;
-use crate::tag::Tag as T;
-use crate::term::Term;
-
-/// Wraps a `Term` operator and converts it to a `Prakriya` operator.
-pub fn t(i: usize, f: impl Fn(&mut Term)) -> impl Fn(&mut Prakriya) {
-    move |p| {
-        if let Some(t) = p.get_mut(i) {
-            f(t);
-        }
-    }
-}
 
 // Substitution
 // ============
@@ -71,6 +62,10 @@ pub fn mit(sub: &'static str) -> impl Fn(&mut Term) {
         let text = &t.text;
         if let Some(i) = text.rfind(is_ac) {
             t.text.replace_range(i + 1..i + 1, sub);
+        } else {
+            // If no vowels, place at beginning of text. This is a HACK for when sounds are removed
+            // by "ekaH pUrvaparayoH".
+            t.text.replace_range(0..0, sub);
         }
     }
 }
@@ -94,14 +89,6 @@ pub fn text(sub: &'static str) -> impl Fn(&mut Term) {
     move |t| t.text.replace_range(.., sub)
 }
 
-pub fn upadesha_no_it(p: &mut Prakriya, i: usize, sub: &str) {
-    if let Some(t) = p.get_mut(i) {
-        t.save_lakshana();
-        t.set_u(sub);
-        t.set_text(sub);
-    }
-}
-
 // Insertion of new terms
 // ======================
 
@@ -122,13 +109,11 @@ pub fn insert_agama_at(rule: impl Into<Rule>, p: &mut Prakriya, index: usize, ag
     it_samjna::run(p, index).expect("ok");
 }
 
-// legacy func that marks the rule after it-samjna-prakarana.
-pub fn upadesha(p: &mut Prakriya, i: usize, sub: &str) {
+pub fn upadesha_no_it(p: &mut Prakriya, i: usize, sub: &str) {
     if let Some(t) = p.get_mut(i) {
         t.save_lakshana();
         t.set_u(sub);
         t.set_text(sub);
-        it_samjna::run(p, i).expect("ok");
     }
 }
 
@@ -166,12 +151,15 @@ pub fn adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize, sub: &str) {
     }
 }
 
-pub fn optional_adesha(rule: impl Into<Rule> + Copy, p: &mut Prakriya, i: usize, sub: &str) {
-    if p.is_allowed(rule) {
+pub fn optional_adesha(
+    rule: impl Into<Rule> + Copy,
+    p: &mut Prakriya,
+    i: usize,
+    sub: &str,
+) -> bool {
+    p.optionally(rule, |rule, p| {
         adesha(rule, p, i, sub);
-    } else {
-        p.decline(rule);
-    }
+    })
 }
 
 pub fn yatha<'a>(needle: &str, old: &[&'a str], new: &[&'a str]) -> Option<&'a str> {
@@ -238,7 +226,7 @@ pub fn add_tag(tag: T) -> impl Fn(&mut Term) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::term::Term;
+    use crate::core::Term;
 
     #[test]
     fn test_adi() {

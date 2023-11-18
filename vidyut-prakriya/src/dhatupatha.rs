@@ -4,7 +4,7 @@ comments on the `Dhatupatha` struct.
 */
 
 use crate::args::{Antargana, Dhatu, Gana};
-use crate::errors::*;
+use crate::core::errors::*;
 use std::path::Path;
 
 /// An entry in the Dhatupatha.

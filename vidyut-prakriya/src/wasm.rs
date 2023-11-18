@@ -11,9 +11,9 @@ Although these bindings are usable and reliable, we want to improve their ergono
 JavaScript callers can use them more idiomatically.
 */
 use crate::args::*;
+use crate::core::Rule;
+use crate::core::{Prakriya, Step};
 use crate::dhatupatha::Dhatupatha;
-use crate::prakriya::Rule;
-use crate::prakriya::{Prakriya, Step};
 use serde::Serialize;
 extern crate console_error_panic_hook;
 
@@ -56,7 +56,7 @@ impl Rule {
             Self::Kashika(s) => format!("kAzikA {s}"),
             Self::Linganushasana(s) => format!("liNgA {s}"),
             Self::Kaumudi(s) => format!("kOmudI {s}"),
-            Self::UP(s) => format!("uRAdi {s}"),
+            Self::Unadipatha(s) => format!("uRAdi {s}"),
         }
     }
 }
@@ -133,7 +133,7 @@ impl Vidyut {
         prayoga: Prayoga,
         purusha: Purusha,
         vacana: Vacana,
-        pada: Option<Pada>,
+        pada: Option<DhatuPada>,
         sanadi: Option<Sanadi>,
         upasarga: Option<String>,
     ) -> JsValue {
@@ -177,7 +177,7 @@ impl Vidyut {
             .expect("should be well-formed");
 
         let a = Ashtadhyayi::new();
-        let pratipadika = Pratipadika::new(pratipadika);
+        let pratipadika = Pratipadika::from(pratipadika);
         let prakriyas = a.derive_subantas(&pratipadika, &args);
 
         let web_prakriyas = to_web_prakriyas(&prakriyas);

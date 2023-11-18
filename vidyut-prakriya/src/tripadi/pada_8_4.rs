@@ -1,11 +1,13 @@
 use crate::args::Gana;
-use crate::char_view::{get_at, get_term_and_offset_indices, xy, xyz, CharPrakriya};
-use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::core::char_view::{
+    get_term_and_offset_indices, get_term_index_at, xy, xyz, CharPrakriya,
+};
+use crate::core::operators as op;
+use crate::core::Prakriya;
+use crate::core::Tag as T;
+use crate::core::Term;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
-use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -85,6 +87,16 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
     let x = p.get(i_x)?;
     let y = p.get(i_y)?;
 
+    /*
+    if y.is_samasa() {
+        if x.has_text_in(&["puragA", "miSrakA", "siDrakA", "SArikA", "kowarA", "agre"])
+            && y.has_u("vana")
+        {
+
+        }
+    }
+    */
+
     if i_x != i_y && x.is_pada() && x.has_antya('z') {
         // nizpAna, ...
         p.step("8.4.35");
@@ -128,7 +140,7 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
         let is_hinu = || (dhatu.has_text("hi") && y.has_u("Snu"));
         let is_mina = || (dhatu.has_text("mI") && y.has_u("SnA"));
 
-        if y.has_adi('n') && y.has_tag(T::FlagAdeshadi) {
+        if y.has_adi('n') && y.has_tag(T::FlagNaAdeshadi) {
             p.run("8.4.14", |p| p.set_char_at(i_n, "R"));
         } else if is_hinu() || is_mina() {
             // prahiRoti
@@ -148,7 +160,7 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
             if dhatu_in(dhatu, GAD_ADI) || dhatu.has_tag(T::Ghu) {
                 p.run("8.4.17", |p| p.set_char_at(i_n, "R"));
             } else if !(dhatu.has_adi('k') || dhatu.has_adi('K') || dhatu.has_tag(T::FlagShanta)) {
-                p.run_optional("8.4.18", |p| p.set(i_y, |t| t.set_adi("R")));
+                p.optional_run("8.4.18", |p| p.set(i_y, |t| t.set_adi("R")));
             } else {
                 // pranikaroti, pranikhAdati
             }
@@ -162,7 +174,7 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
         } else if dhatu.has_u("ha\\na~") && dhatu.has_upadha('a') {
             let i_z = p.find_next_where(i_y, |t| !t.is_empty())?;
             if p.has(i_z, |t| t.has_adi('v') || t.has_adi('m')) {
-                p.run_optional("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
+                p.optional_run("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
             } else {
                 p.run_at("8.4.22", i_dhatu, |t| t.set_antya("R"));
             }
@@ -181,7 +193,8 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
     } else {
         // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.
         let is_samana_pada = !p.terms()[i_x..i_y].iter().any(|t| {
-            t.has_tag_in(&[T::Sup, T::Tin]) || (t.has_tag(T::Pada) && !t.is_pratipadika())
+            t.has_tag_in(&[T::Sup, T::Tin])
+                || (t.has_tag(T::Pada) && !t.is_pratipadika() && !t.is_nyap_pratyaya())
         });
         // Allow "carman -> carmaRA" but disallow "sruGna -> *sruGRa"
         let is_exempt_pratipadika = p.has(i_x, |t| t.text.starts_with("srOGn"));
@@ -270,8 +283,9 @@ fn try_change_stu_to_parasavarna(cp: &mut CharPrakriya) {
         |p, text, i| {
             let x = text.as_bytes()[i] as char;
             let y = text.as_bytes()[i + 1] as char;
-            let prev = get_at(p, i).expect("should be defined");
-            if prev.has_tag(T::Pada) && prev.has_antya(&*SWU) {
+            let i_term = get_term_index_at(p, i).expect("defined");
+            let prev = p.get(i_term).expect("defined");
+            if p.is_pada(i_term) && prev.has_antya(&*SWU) {
                 p.step("8.4.42");
                 false
             } else if TU.contains(x) && y == 'z' {
@@ -404,18 +418,12 @@ fn try_jhal_adesha(cp: &mut CharPrakriya) -> Option<()> {
             JHAL.contains(x) && i == text.len() - 1 && p.terms().last().expect("present").is_pada()
         },
         |p, text, i| {
-            let code = "8.4.56";
             let x = text.as_bytes()[i] as char;
             let sub = JHAL_TO_CAR.get(x).expect("present");
             if x != sub {
-                if p.is_allowed(code) {
+                p.optional_run("8.4.56", |p| {
                     p.set_char_at(i, &sub.to_string());
-                    p.step(code);
-                    true
-                } else {
-                    p.decline(code);
-                    false
-                }
+                })
             } else {
                 false
             }
@@ -456,9 +464,16 @@ fn try_to_savarna(cp: &mut CharPrakriya) {
     });
 
     cp.for_terms(
-        |x, y| x.is_upasarga() && x.has_u("ud") && y.has_u_in(&["zWA\\", "zwaBi~\\"]),
+        // TODO: which stanbh-dhAtus should we include?
+        |x, y| {
+            x.is_upasarga()
+                && x.has_u("ud")
+                && y.has_adi('s')
+                && y.has_u_in(&["zWA\\", "zwaBi~\\", "stanBu~"])
+        },
         |p, _, j| {
-            p.run_at("8.4.61", j, |t| t.set_adi("t"));
+            // "atrāghoṣasya sasya tādṛśa eva thakāraḥ" (SK)
+            p.run_at("8.4.61", j, |t| t.set_adi("T"));
         },
     );
 
@@ -477,7 +492,7 @@ fn try_to_savarna(cp: &mut CharPrakriya) {
             _ => None,
         };
         if let Some(sub) = sub {
-            p.run_optional("8.4.62", |p| p.set_char_at(i + 1, sub))
+            p.optional_run("8.4.62", |p| p.set_char_at(i + 1, sub))
         } else {
             false
         }
@@ -485,19 +500,19 @@ fn try_to_savarna(cp: &mut CharPrakriya) {
 
     cp.for_chars(
         xyz(|x, y, z| JHAY.contains(x) && y == 'S' && AT.contains(z)),
-        |p, _, i| p.run_optional("8.4.63", |p| p.set_char_at(i + 1, "C")),
+        |p, _, i| p.optional_run("8.4.63", |p| p.set_char_at(i + 1, "C")),
     );
 
     cp.for_chars(
         xyz(|x, y, z| HAL.contains(x) && YAM.contains(y) && YAM.contains(z) && y == z),
-        |p, _, i| p.run_optional("8.4.64", |p| p.set_char_at(i + 1, "")),
+        |p, _, i| p.optional_run("8.4.64", |p| p.set_char_at(i + 1, "")),
     );
 
     cp.for_chars(
         xyz(|x, y, z| {
             HAL.contains(x) && JHAR.contains(y) && JHAR.contains(z) && al::is_savarna(y, z)
         }),
-        |p, _, i| p.run_optional("8.4.65", |p| p.set_char_at(i + 1, "")),
+        |p, _, i| p.optional_run("8.4.65", |p| p.set_char_at(i + 1, "")),
     );
 }
 
@@ -510,6 +525,18 @@ pub fn run(p: &mut Prakriya) {
     try_to_anunasika(&mut cp);
     try_jhal_adesha(&mut cp);
     try_to_savarna(&mut cp);
+
+    let p = cp.p();
+
+    // a a iti
+    if p.terms().iter().any(|t| t.text.contains('a')) {
+        p.step("8.4.68");
+    }
+
+    // Mark terms as Final so they won't be altered further in future derivations.
+    for t in p.terms_mut() {
+        t.add_tag(T::Final);
+    }
 }
 
 #[cfg(test)]

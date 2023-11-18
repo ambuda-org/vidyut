@@ -6,8 +6,9 @@ immediately before it.
 */
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
+use crate::core::operators as op;
+use crate::core::Tag;
 use crate::taddhita::utils::TaddhitaPrakriya;
-use crate::tag::Tag;
 
 fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
     let prati = tp.prati();
@@ -19,7 +20,7 @@ fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
     }
 }
 
-pub fn run(tp: &mut TaddhitaPrakriya) {
+pub fn run(tp: &mut TaddhitaPrakriya) -> Option<()> {
     tp.with_context(DigDeshaKala, |tp| {
         let prati = tp.prati();
         if prati.has_text_in(&["dakziRa", "uttara"]) {
@@ -37,6 +38,32 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         tp.try_add("5.3.42", DA);
     }
 
+    let last = tp.p.terms().last().expect("present");
+    if last.is_taddhita() && last.has_u("DA") {
+        let i_last = tp.p.terms().len() - 1;
+        let prati = tp.prati();
+        if prati.has_text("eka") {
+            op::optional_adesha("5.3.44", tp.p, i_last, "Dyamu~Y");
+        } else if prati.has_text_in(&["dvi", "tri"]) {
+            let done = op::optional_adesha("5.3.45", tp.p, i_last, "Damu~Y");
+            if !done {
+                op::optional_adesha("5.3.46", tp.p, i_last, "eDAc");
+            }
+        }
+    }
+
+    tp.try_add("5.3.47", pASap);
+    let prati = tp.prati();
+    if prati.has_text("eka") {
+        tp.try_add("5.3.52", Akinic);
+    }
+
+    tp.try_add("5.3.53", caraw);
+
+    let code = "5.3.54";
+    tp.try_add(code, caraw);
+    tp.try_add(code, rUpya);
+
     let code = "5.3.55";
     tp.try_add(code, tamap);
     tp.try_add(code, izWan);
@@ -44,6 +71,33 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     let code = "5.3.57";
     tp.try_add(code, tarap);
     tp.try_add(code, Iyasun);
+
+    if tp.p.terms().last()?.has_u_in(&["Iyasu~n", "izWan"]) {
+        let prati = tp.prati();
+        if prati.has_text("praSasya") && tp.p.terms().last()?.has_u_in(&["Iyasu~n", "izWan"]) {
+            // Sreyas, SrezWa
+            let done =
+                tp.p.optional_run_at("5.3.60", tp.i_prati, |t| t.set_text("Sra"));
+            if !done {
+                // jyAyas, jyezWa
+                tp.p.run_at("5.3.61", tp.i_prati, |t| t.set_text("jya"));
+            }
+        } else if prati.has_text("vfdDa") {
+            // jyAyas, jyezWa
+            // This is optional so that 6.4.157 can produce varzIyas and varzizWa.
+            tp.p.optional_run_at("5.3.62", tp.i_prati, |t| t.set_text("jya"));
+        } else if prati.has_text_in(&["antika", "bAQa"]) {
+            let sub = if prati.has_text("antika") {
+                "neda"
+            } else {
+                "sADa"
+            };
+            tp.p.run_at("5.3.63", tp.i_prati, |t| t.set_text(sub));
+        } else if prati.has_text_in(&["yuvan", "alpa"]) {
+            // kanIyas, kanizWa
+            tp.p.optional_run_at("5.3.64", tp.i_prati, |t| t.set_text("kan"));
+        }
+    }
 
     // vaiyAkaraRarUpa
     tp.try_add("5.3.66", rUpap);
@@ -53,6 +107,14 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     tp.try_add(code, kalpap);
     tp.try_add(code, deSya);
     tp.try_add(code, deSIyar);
+
+    tp.try_prepend("5.3.68", bahuc);
+
+    tp.try_add("5.3.69", jAtIyar);
+
+    // --------------------
+    // 5.3.70 prAg ivAt kaH
+    // --------------------
 
     tp.with_context(Ajnate, |tp| {
         try_base_cases(tp, "5.3.73");
@@ -97,4 +159,6 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     tp.with_context(Avakshepane, |tp| {
         tp.try_add("5.3.95", kan);
     });
+
+    None
 }

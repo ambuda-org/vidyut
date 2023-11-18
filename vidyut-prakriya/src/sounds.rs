@@ -41,7 +41,6 @@ use std::fmt;
 type Sound = char;
 
 lazy_static! {
-    static ref SUTRAS: Vec<Sutra> = create_shiva_sutras();
     static ref SOUND_PROPS: HashMap<Sound, Uccarana> = create_sound_props();
     static ref AC: Set = s("ac");
     static ref HAL: Set = s("hal");
@@ -75,7 +74,7 @@ impl Set {
 }
 
 impl fmt::Display for Set {
-    /// Returns all chars in the given set in the traditional Sanskrit order.
+    /// Returns all chars in this set in their traditional Sanskrit order.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut ret = String::new();
         for c in "aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzsh".chars() {
@@ -160,37 +159,18 @@ impl Pattern for &Set {
     }
 }
 
+/// A shiva sutra.
 struct Sutra {
-    sounds: String,
+    /// The sounds in the sutra.
+    sounds: &'static str,
+    /// The final it letter of the sutra.
     it: Sound,
 }
 
 impl Sutra {
-    fn new(sounds: &str, it: Sound) -> Self {
-        Sutra {
-            sounds: sounds.to_string(),
-            it,
-        }
+    const fn new(sounds: &'static str, it: Sound) -> Self {
+        Sutra { sounds, it }
     }
-}
-
-fn create_shiva_sutras() -> Vec<Sutra> {
-    vec![
-        Sutra::new("aiu", 'R'),
-        Sutra::new("fx", 'k'),
-        Sutra::new("eo", 'N'),
-        Sutra::new("EO", 'c'),
-        Sutra::new("hyvr", 'w'),
-        Sutra::new("l", 'R'),
-        Sutra::new("YmNRn", 'm'),
-        Sutra::new("JB", 'Y'),
-        Sutra::new("GQD", 'z'),
-        Sutra::new("jbgqd", 'S'),
-        Sutra::new("KPCWTcwt", 'v'),
-        Sutra::new("kp", 'y'),
-        Sutra::new("Szs", 'r'),
-        Sutra::new("h", 'l'),
-    ]
 }
 
 fn create_sound_props() -> HashMap<Sound, Uccarana> {
@@ -312,12 +292,15 @@ pub fn is_samyoganta(text: &str) -> bool {
     let mut chars = text.chars().rev();
     if let Some(x) = chars.next() {
         if let Some(y) = chars.next() {
+            // HACK: always treat a string ending with `C` as samyogAnta since it either follows a
+            // consonant or will become cC by 6.1.73.
             return (HAL.contains(x) && HAL.contains(y)) || x == 'C';
         }
     }
     false
 }
 
+/// Converts the sound to its guna replacement, including any "rapara" sounds (1.1.51).
 pub fn to_guna(s: Sound) -> Option<&'static str> {
     let res = match s {
         // TODO: remove 'a' | 'A' line
@@ -331,6 +314,7 @@ pub fn to_guna(s: Sound) -> Option<&'static str> {
     Some(res)
 }
 
+/// Converts the sound to its vrddhi replacement, including any "rapara" sounds (1.1.51).
 pub fn to_vrddhi(s: Sound) -> Option<&'static str> {
     let res = match s {
         'a' | 'A' => "A",
@@ -345,7 +329,9 @@ pub fn to_vrddhi(s: Sound) -> Option<&'static str> {
     Some(res)
 }
 
-// 1.1.48 UkAlojjhrasvadIrghaplutaH
+/// Converts the sound to its hrasva (short) replacement.
+///
+/// 1.1.48 UkAlojjhrasvadIrghaplutaH
 pub fn to_hrasva(s: Sound) -> Option<Sound> {
     let res = match s {
         'a' | 'A' => 'a',
@@ -353,6 +339,7 @@ pub fn to_hrasva(s: Sound) -> Option<Sound> {
         'u' | 'U' => 'u',
         'f' | 'F' => 'f',
         'x' | 'X' => 'x',
+        // 1.1.48 "eca igGrasvAdeSe"
         'e' | 'E' => 'i',
         'o' | 'O' => 'u',
         _ => return None,
@@ -360,7 +347,9 @@ pub fn to_hrasva(s: Sound) -> Option<Sound> {
     Some(res)
 }
 
-// 1.1.48 UkAlojjhrasvadIrghaplutaH
+/// Converts the sound to its dIrgha (long) replacement.
+///
+/// 1.1.48 UkAlojjhrasvadIrghaplutaH
 pub fn to_dirgha(s: Sound) -> Option<Sound> {
     let res = match s {
         'a' | 'A' => 'A',
@@ -383,6 +372,23 @@ pub fn to_dirgha(s: Sound) -> Option<Sound> {
 /// - `R` refers to the first `R` (a i u R).
 /// - `R2` refers to the second `R` (la R).
 fn pratyahara(s: &str) -> Set {
+    const SUTRAS: &[Sutra] = &[
+        Sutra::new("aiu", 'R'),
+        Sutra::new("fx", 'k'),
+        Sutra::new("eo", 'N'),
+        Sutra::new("EO", 'c'),
+        Sutra::new("hyvr", 'w'),
+        Sutra::new("l", 'R'),
+        Sutra::new("YmNRn", 'm'),
+        Sutra::new("JB", 'Y'),
+        Sutra::new("GQD", 'z'),
+        Sutra::new("jbgqd", 'S'),
+        Sutra::new("KPCWTcwt", 'v'),
+        Sutra::new("kp", 'y'),
+        Sutra::new("Szs", 'r'),
+        Sutra::new("h", 'l'),
+    ];
+
     let first = s.as_bytes()[0] as char;
 
     let use_second_n = s.ends_with("R2");
@@ -421,17 +427,18 @@ fn pratyahara(s: &str) -> Set {
         }
     }
 
+    // This function is not part of the public API, so the `assert` is reasonable.
     assert!(!res.is_empty(), "Could not parse pratyahara `{s}`");
     Set::from(&res)
 }
 
-/// Parses a list of upadeshas and returns the sound set it corresponds to.
+/// Parses a list of terms and returns the sound set it specifies.
 ///
-/// Upadeshas this function accepts:
+/// This function accepts the following terms:
 /// - pratyaharas ("ac", "hal")
 /// - udit sounds ("ku~", "pu~")
 /// - vowels ("a", "e")
-/// - simple consonants ("h", "k")
+/// - simple consonants ("h", "k"). Note that these consonants don't have the trailing `a`.
 ///
 /// `s` is an abbrevation for "sound_set." Since this function is so frequent in the codebase, we
 /// have shortened its name for brevity.
@@ -456,36 +463,52 @@ pub fn s(terms: &str) -> Set {
 /// Models the point of articulation of a Sanskrit sound.
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Sthana {
+    /// The base of the throat.
     Kantha,
+    /// The hard palate.
     Talu,
+    /// The roof of the mouth.
     Murdha,
+    /// The teeth.
     Danta,
+    /// The lips.
     Oshtha,
+    /// The nose.
     Nasika,
+    /// The base of the throat and the hard palate.
     KanthaTalu,
+    /// The base of the throat and the lips.
     KanthaOshtha,
+    /// The teeth and the lips.
     DantaOshtha,
 }
 
 /// Models the voicing of a Sanskrit sound.
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Ghosha {
+    /// Voices.
     Ghoshavat,
+    /// Unvoiced.
     Aghosha,
 }
 
 /// Models the aspiration of a Sanskrit sound.
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Prana {
+    /// Aspirated.
     Mahaprana,
+    /// Unaspirated.
     Alpaprana,
 }
 
 /// Models the articulatory effort of a Sanskrit sound.
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum Prayatna {
+    /// Open.
     Vivrta,
+    /// Slightly closed.
     Ishat,
+    /// Closed.
     Sprshta,
 }
 

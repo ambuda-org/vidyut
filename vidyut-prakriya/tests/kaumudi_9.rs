@@ -1,17 +1,19 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as Krt;
+use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Linga::*;
 
 #[test]
 fn sk_287() {
-    let rama = nyap("ramA");
+    let rama = create_stryanta("ramA", "rama");
     assert_has_sup_1d(&rama, Stri, &["rame"]);
     assert_has_sup_1p(&rama, Stri, &["ramAH"]);
 }
 
 #[test]
 fn sk_288() {
-    let rama = nyap("ramA");
+    let rama = create_stryanta("ramA", "rama");
     assert_has_sup_ss(&rama, Stri, &["rame"]);
     assert_has_sup_sd(&rama, Stri, &["rame"]);
     assert_has_sup_sp(&rama, Stri, &["ramAH"]);
@@ -22,7 +24,7 @@ fn sk_288() {
 
 #[test]
 fn sk_289() {
-    let rama = nyap("ramA");
+    let rama = create_stryanta("ramA", "rama");
     assert_has_sup_3s(&rama, Stri, &["ramayA"]);
     assert_has_sup_3d(&rama, Stri, &["ramAByAm"]);
     assert_has_sup_3p(&rama, Stri, &["ramABiH"]);
@@ -30,7 +32,7 @@ fn sk_289() {
 
 #[test]
 fn sk_290() {
-    let rama = nyap("ramA");
+    let rama = create_stryanta("ramA", "rama");
     assert_has_sup_4s(&rama, Stri, &["ramAyE"]);
     assert_has_sup_6s(&rama, Stri, &["ramAyAH"]);
     assert_has_sup_6d(&rama, Stri, &["ramayoH"]);
@@ -81,7 +83,7 @@ fn sk_301() {
 
 #[test]
 fn sk_303() {
-    let shri = dhatu_prati("SrI");
+    let shri = create_krdanta("SrI", &[], &d("SriY", Bhvadi), Krt::kvip);
     assert_has_sup_ss(&shri, Stri, &["SrIH"]);
     assert_has_sup_4s(&shri, Stri, &["Sriye", "SriyE"]);
     assert_has_sup_5s(&shri, Stri, &["SriyAH", "SriyaH"]);
@@ -93,9 +95,9 @@ fn skip_sk_305() {}
 #[ignore]
 #[test]
 fn sk_306() {
-    assert_has_sup_1s("krozwf", Stri, &["krozwrI"]);
-    assert_has_sup_1d("krozwf", Stri, &["krozwryO"]);
-    assert_has_sup_1p("krozwf", Stri, &["krozwryaH"]);
+    assert_has_sup_1s("krozwu", Stri, &["krozwrI"]);
+    assert_has_sup_1d("krozwu", Stri, &["krozwryO"]);
+    assert_has_sup_1p("krozwu", Stri, &["krozwryaH"]);
 
     assert_has_sup_1s("vaDU", Stri, &["vaDUH"]);
     assert_has_sup_1s("BU", Stri, &["BUH"]);

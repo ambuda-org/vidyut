@@ -3,12 +3,12 @@
 
 use crate::args::Artha;
 use crate::args::TaddhitaArtha;
-use crate::operators as op;
-use crate::prakriya::Prakriya;
+use crate::core::operators as op;
+use crate::core::Prakriya;
+use crate::core::Tag as T;
+use crate::core::Term;
 use crate::sounds as al;
 use crate::sounds::{s, Set};
-use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -39,7 +39,16 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let purva = p.get(i_purva)?;
     let uttara = p.get(i_uttara)?;
 
-    if purva.has_text("pAda")
+    if purva.has_text("mahat")
+        && (p.has_tag_in(&[T::Karmadharaya, T::Bahuvrihi]) || uttara.has_text("jAtIya"))
+    {
+        p.run_at("6.3.46", i_purva, |t| t.set_antya("A"));
+    } else if purva.has_text("hfdaya")
+        && (uttara.has_u_in(&["yat", "aR"]) || uttara.has_text_in(&["leKa", "lAsa"]))
+    {
+        // hflleKa, ...
+        p.run_at("6.3.50", i_purva, |t| t.set_text("hfd"));
+    } else if purva.has_text("pAda")
         && uttara.has_u("yat")
         && !p.has_artha(Artha::Taddhita(TaddhitaArtha::Tadarthye))
     {

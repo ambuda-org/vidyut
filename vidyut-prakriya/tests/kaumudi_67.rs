@@ -23,11 +23,80 @@ fn unadi_1_2() {
     t.assert_has_krt(&[], &d("i\\R", Adadi), Unadi::uR, &["Ayu"]);
 }
 
+#[test]
+fn unadi_1_3() {
+    assert_has_krdanta(&[], &d("dF", Kryadi), Unadi::YuR, &["dAru"]);
+    assert_has_krdanta(&[], &d("zaRa~", Bhvadi), Unadi::YuR, &["sAnu"]);
+    assert_has_krdanta(&[], &d("janI~", Divadi), Unadi::YuR, &["jAnu"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), Unadi::YuR, &["cAru"]);
+    assert_has_krdanta(&[], &d("cawe~", Bhvadi), Unadi::YuR, &["cAwu"]);
+}
+
 #[ignore]
 #[test]
 fn unadi_1_5() {
     // TODO: not sure where to apply r --> l
     assert_has_krdanta(&[], &d("tF", Bhvadi), Unadi::YuR, &["tAlu"]);
+}
+
+#[test]
+fn unadi_1_7() {
+    use Unadi::u;
+    assert_has_krdanta(&[], &d("Bf\\Y", Bhvadi), u, &["Baru"]);
+    assert_has_krdanta(&[], &d("quBf\\Y", Juhotyadi), u, &["Baru"]);
+    assert_has_krdanta(&[], &d("mf\\N", Bhvadi), u, &["maru"]);
+    assert_has_krdanta(&[], &d("SIN", Adadi), u, &["Sayu"]);
+    assert_has_krdanta(&[], &d("cara~", Bhvadi), u, &["caru"]);
+    assert_has_krdanta(&[], &d("tsara~", Bhvadi), u, &["tsaru"]);
+    assert_has_krdanta(&[], &d("tanu~^", Bhvadi), u, &["tanu"]);
+    assert_has_krdanta(&[], &d("Dana~", Juhotyadi), u, &["Danu"]);
+    assert_has_krdanta(&[], &d("qumi\\Y", Bhvadi), u, &["mayu"]);
+    assert_has_krdanta(&[], &d("wuma\\sjo~", Tudadi), u, &["madgu"]);
+}
+
+#[test]
+fn unadi_1_11() {
+    assert_has_krdanta(&[], &d("syandU~\\", Bhvadi), Unadi::u, &["sinDu"]);
+}
+
+#[test]
+fn unadi_1_12() {
+    assert_has_krdanta(&[], &d("undI~", Rudhadi), Unadi::u, &["indu"]);
+}
+
+#[test]
+fn unadi_1_13() {
+    assert_has_krdanta(&[], &d("Iza~\\", Adadi), Unadi::u, &["izu"]);
+}
+
+#[test]
+fn unadi_1_14() {
+    assert_has_krdanta(&[], &d("ska\\ndi~r", Bhvadi), Unadi::u, &["kandu"]);
+}
+
+#[test]
+fn unadi_1_15() {
+    assert_has_krdanta(&[], &d("sf\\ja~", Tudadi), Unadi::u, &["rajju"]);
+}
+
+#[test]
+fn unadi_1_16() {
+    assert_has_krdanta(&[], &d("kftI~", Rudhadi), Unadi::u, &["tarku"]);
+}
+
+#[test]
+fn unadi_1_19() {
+    assert_has_krdanta(&[], &d("vala~\\", Bhvadi), Unadi::u, &["valgu"]);
+}
+
+#[test]
+fn unadi_1_20() {
+    assert_has_krdanta(&[], &d("So\\", Divadi), Unadi::u, &["SiSu"]);
+}
+
+#[test]
+fn unadi_1_21() {
+    assert_has_krdanta(&[], &d("yA\\", Adadi), Unadi::u, &["yayu"]);
 }
 
 #[test]

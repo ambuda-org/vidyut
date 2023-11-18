@@ -1,6 +1,6 @@
 //! One of the largest sections of the Ashtadhyayi starts with 6.4.1 and extends to the end of 7.4.
 //! Rule 6.4.1, *angasya*, declares that all rules within its scope apply to an *anga*, i.e. an
-//! inflection base followed by a prefix.
+//! inflectional base followed by a suffix.
 //!
 //! The *angasya* section of the Ashtadhyayi contains the grammar's core operations, such as:
 //!
@@ -14,25 +14,23 @@
 mod abhyasasya;
 mod asiddhavat;
 mod guna_vrddhi;
-mod sup_adesha;
+mod subanta;
 
 use crate::args::Lakara;
+use crate::args::Unadi;
 pub use asiddhavat::try_cinvat_for_bhave_and_karmani_prayoga;
 
 use crate::ac_sandhi;
 use crate::args::Gana::*;
-use crate::char_view::{get_at, xy, CharPrakriya};
+use crate::core::char_view::{get_at, xy, CharPrakriya};
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Code, Prakriya, Rule};
 use crate::dhatu_gana as gana;
-use crate::filters as f;
 use crate::it_samjna;
-use crate::operators as op;
-use crate::prakriya::{Code, Prakriya, Rule};
-use crate::samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set};
-use crate::stem_gana;
-use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -61,6 +59,11 @@ fn maybe_rule(p: &mut Prakriya, rule: Code) -> Option<Code> {
     }
 }
 
+fn add_num(t: &mut Term) {
+    op::mit("n")(t);
+    t.add_tag(T::FlagNum);
+}
+
 /// Runs rules that lengthen a vowel in the anga.
 fn try_do_dirgha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     let anga = p.get_if(i_anga, |t| !t.is_it_agama())?;
@@ -76,7 +79,7 @@ fn try_do_dirgha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         p.run_at("6.4.2", i_anga, |t| t.set_antya(&sub.to_string()));
     } else if anga.has_u("kramu~") && n.has_u("ktvA") {
         // krantvA, krAntvA
-        p.run_optional_at("6.4.18", i_anga, |t| t.set_upadha("A"));
+        p.optional_run_at("6.4.18", i_anga, |t| t.set_upadha("A"));
     } else if (anga.has_antya(&*AC) || anga.has_u_in(&["ha\\na~", "ga\\mx~", "gami~"]))
         && n.has_u("san")
     {
@@ -89,7 +92,7 @@ fn try_do_dirgha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             p.run_at(code, i_anga, |t| t.set_upadha("A"));
         }
     } else if anga.has_u("tanu~^") && n.has_u("san") {
-        p.run_optional_at("6.4.17", i_anga, |t| t.set_upadha("A"));
+        p.optional_run_at("6.4.17", i_anga, |t| t.set_upadha("A"));
     } else if anga.has_antya(&*ANUNASIKA) && (n.has_u("kvi~p") || jhal_knit()) {
         let blocked = anga.has_tag(T::FlagNoDirgha);
         if let Some(sub) = al::to_dirgha(anga.upadha()?) {
@@ -142,7 +145,7 @@ fn try_cchvoh(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
+fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
     p: &mut Prakriya,
     i: usize,
     i_sup: usize,
@@ -150,6 +153,10 @@ pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
     let anga = p.get(i)?;
     let sup = p.get(i_sup)?;
     let sau = sup.has_u("su~");
+
+    if !(sup.is_sarvanamasthana() && !sup.has_tag(T::Sambuddhi)) {
+        return None;
+    }
 
     if anga.has_antya('n') {
         if anga.ends_with("in") || anga.has_text("pUzan") {
@@ -161,7 +168,7 @@ pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
                 // yogI
                 p.run_at("6.4.13", i, op::upadha(&sub.to_string()));
             }
-        } else {
+        } else if !sup.is_lupta() {
             // PalAni
             let sub = al::to_dirgha(anga.upadha()?)?;
             p.run_at("6.4.8", i, op::upadha(&sub.to_string()));
@@ -173,36 +180,18 @@ pub fn try_run_dirgha_for_sarvanamasthane_asambuddhau(
             t.set_at(c, &sub.to_string());
         });
     } else if anga.has_text("ap")
-        || anga.has_tag(T::TrnTrc)
+        || anga.has_tag_in(&[T::TrnTrc, T::FlagTrjvat])
         || anga.has_u_in(&[
             "svasf", "naptf", "nezwf", "tvaswf", "kzawf", "hotf", "potf", "praSAstf",
         ])
     {
         let sub = al::to_dirgha(anga.upadha()?)?;
         p.run_at("6.4.11", i, op::upadha(&sub.to_string()));
-    }
-
-    Some(())
-}
-
-/// Runs various rules that cause dirgha-adesha in the anga.
-/// This specific dirgha-adesha must occur before inserting num-agama.
-///
-/// Example: gomat -> gomAt -> gomAnt -> gomAn
-fn try_dirgha_adesha_before_num_agama(p: &mut Prakriya) -> Option<()> {
-    let i_sup = p.find_last(T::Sup)?;
-    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama())?;
-
-    let anga = p.get(i_anga)?;
-    let sup = p.get(i_sup)?;
-    let sau = sup.has_u("su~");
-    let is_atu = anga.has_tag(T::udit) && anga.ends_with("at");
-
-    if sup.has_tag(T::Sarvanamasthana) && !sup.has_tag(T::Sambuddhi) {
-        if (is_atu || anga.ends_with("as")) && sau && !anga.is_dhatu() {
-            let sub = al::to_dirgha(anga.upadha()?)?;
-            p.run_at("6.4.14", i_anga, op::upadha(&sub.to_string()));
-        }
+    } else if anga.has_text("svanp") {
+        // for svAmpi and svampi (svap + [jas -> Si])
+        p.optional_run_at(Rule::Kaumudi("446"), i, |t| {
+            t.set_at(t.text.len() - 3, "A");
+        });
     }
 
     Some(())
@@ -230,7 +219,7 @@ fn try_dirgha_adesha_for_sup(p: &mut Prakriya) -> Option<()> {
         } else if anga.has_text("nf") {
             // nfRAm, nFRAm
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.run_optional_at("6.4.6", i_anga, op::antya(&sub.to_string()));
+            p.optional_run_at("6.4.6", i_anga, op::antya(&sub.to_string()));
         } else if anga.has_antya('n') {
             let sub = al::to_dirgha(anga.upadha()?)?;
             p.run_at("6.4.7", i_anga, op::upadha(&sub.to_string()));
@@ -238,7 +227,7 @@ fn try_dirgha_adesha_for_sup(p: &mut Prakriya) -> Option<()> {
             let sub = al::to_dirgha(anga.antya()?)?;
             p.run_at("6.4.3", i_anga, op::antya(&sub.to_string()));
         }
-    } else if sup.has_tag(T::Sarvanamasthana) && !sup.has_tag(T::Sambuddhi) {
+    } else {
         try_run_dirgha_for_sarvanamasthane_asambuddhau(p, i_anga, i_sup);
     }
 
@@ -275,7 +264,7 @@ pub fn maybe_do_jha_adesha(p: &mut Prakriya) -> Option<()> {
             it_samjna::run(p, i).ok()?;
         } else if base.has_u("vida~") && base.has_gana(Adadi) {
             // vidate, vidrate
-            if p.run_optional("7.1.7", add_rut) {
+            if p.optional_run("7.1.7", add_rut) {
                 it_samjna::run(p, i).ok()?;
             }
         }
@@ -315,6 +304,10 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
     let last = p.get_if(i, |t| t.is_pratyaya())?;
     let prev = p.get(i - 1)?;
 
+    if last.is_final() {
+        return None;
+    }
+
     if last.has_text_in(&["yu~", "vu~"]) {
         if last.has_text("yu~") {
             p.run_at("7.1.1", i, op::text("ana"));
@@ -346,7 +339,14 @@ pub fn try_pratyaya_adesha(p: &mut Prakriya) -> Option<()> {
             && p.has(i - 1, |t| t.has_u("SnA"))
             && t.has_text("hi")
         {
-            op::adesha("3.1.83", p, i - 1, "SAnac");
+            let mut blocked = false;
+            if p.is_chandasi() {
+                // gfBAya, ...
+                blocked = op::optional_adesha("3.1.84", p, i - 1, "SAyac");
+            }
+            if !blocked {
+                op::adesha("3.1.83", p, i - 1, "SAnac");
+            }
         }
     }
 
@@ -414,7 +414,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
         if anga.has_u("sf\\") {
             // sartervegitāyāṃ gatau dhāvādeśam icchanti। anyatra sarati, anusarati
             // ityeva bhavati. (kAzikA)
-            can_run = !p.run_optional(Rule::Kashika("7.3.78"), |_| {});
+            can_run = !p.optional_run(Rule::Kashika("7.3.78"), |_| {});
         }
         if can_run {
             // pibati, jiGrati, Damati, ...
@@ -447,60 +447,19 @@ fn try_pvadinam_hrasva(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-fn try_add_num_agama_for_sarvanamasthana(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Pratipadika)?;
-    let anga = p.get(i)?;
-    let sup = p.get(i + 1)?;
-    let napum = p.has_tag(T::Napumsaka);
-
-    if sup.has_tag(T::Sarvanamasthana) {
-        if anga.has_tag_in(&[T::udit, T::fdit]) && !anga.is_dhatu() {
-            p.run_at("7.1.70", i, op::mit("n"));
-        } else if napum && (anga.has_antya(&*JHAL) || anga.has_antya(&*AC)) {
-            p.run_at("7.1.72", i, op::mit("n"));
-        }
-    } else if napum && anga.has_antya(&*IK) && sup.has_adi(&*AC) && sup.has_tag(T::Vibhakti) {
-        p.run_at("7.1.73", i, op::mit("n"));
-    }
-
-    Some(())
-}
-
-/// Adds Agamas for words like trayA-R-Am, sarve-z-Am, etc.
-fn try_add_agamas_to_sup(p: &mut Prakriya) -> Option<()> {
-    let last = p.terms().last()?;
-    // Check for `Bahuvacana` explicitly to exclude the `Am`-adesha for mAlAyAm, etc.
-    if last.has_text("Am") && last.has_tag(T::Bahuvacana) && last.has_tag(T::Sup) {
-        let i_last = p.terms().len() - 1;
-        let i_anga = i_last - 1;
-        let anga = p.get(i_last - 1)?;
-        if anga.has_tag(T::Sarvanama) {
-            op::insert_agama_at("7.1.52", p, i_last, "su~w");
-        } else if anga.has_text("tri") {
-            // trayaH
-            p.run_at("7.1.53", i_anga, op::text("traya"));
-        } else if anga.is_hrasva() || anga.has_tag(T::Nadi) || anga.has_tag(T::StriNyap) {
-            op::insert_agama_at("7.1.54", p, i_last, "nu~w");
-        } else if anga.has_tag(T::Sat) || anga.has_text("catur") {
-            op::insert_agama_at("7.1.55", p, i_last, "nu~w");
-        }
-    }
-
-    Some(())
-}
-
 fn try_add_num_agama_for_dhatu_before_asiddhavat(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let anga = p.get(i)?;
-    let n = p.view(i + 1)?;
+    let n = p.pratyaya(i + 1)?;
 
     if anga.has_text_in(&["masj", "naS"]) && n.has_adi(&*JHAL) {
         p.run_at("7.1.60", i, |t| {
             if t.has_text("masj") {
                 // "masjerantyāt pūrva numam icchanti anuṣaṅgādilopārtham।" (KV).
                 t.set_text("masnj");
+                t.add_tag(T::FlagNum);
             } else {
-                op::mit("n")(t);
+                add_num(t);
             }
         });
     }
@@ -518,17 +477,17 @@ fn try_add_num_agama_for_dhatu(p: &mut Prakriya) -> Option<()> {
     // 7.1.58 (idito nuM dhAtoH) is in `dhatu_karya`, so we skip it here.
 
     let anga = p.get(i)?;
-    let n = p.view(i + 1)?;
+    let n = p.pratyaya(i + 1)?;
     if anga.has_u_in(gana::MUC_ADI) && n.has_u("Sa") {
         // muYcati
-        p.run_at("7.1.59", i, op::mit("n"));
+        p.run_at("7.1.59", i, add_num);
     } else if anga.has_u_in(gana::TRMPH_ADI) && n.has_u("Sa") {
         // tfmPati, ...
-        p.run_at("7.1.59.v1", i, op::mit("n"));
+        p.run_at("7.1.59.v1", i, add_num);
     }
 
     let anga = p.get(i)?;
-    let n = p.view(i + 1)?;
+    let n = p.pratyaya(i + 1)?;
     let liti = n.has_lakshana("li~w");
     if anga.has_u("qula\\Ba~\\z") && anga.has_text("laB") {
         let yi = n.has_adi('y');
@@ -540,27 +499,27 @@ fn try_add_num_agama_for_dhatu(p: &mut Prakriya) -> Option<()> {
         } else if n.has_u_in(&["Kal", "GaY"]) {
             if has_upasarga {
                 // pralamBa, ...
-                p.run_at("7.1.67", i, op::mit("n"));
+                p.run_at("7.1.67", i, add_num);
             }
             // Otherwise, we get lABa, etc.
         } else if !has_upasarga && n.has_u_in(&["ciR", "Ramu~l"]) {
-            p.run_optional_at("7.1.69", i, op::mit("n"));
+            p.optional_run_at("7.1.69", i, add_num);
         } else if n.has_adi(&*AC) && !n.has_u("Sap") && !liti {
-            p.run_at("7.1.64", i, op::mit("n"));
+            p.run_at("7.1.64", i, add_num);
         } else if yi && i > 0 && p.has(i - 1, |t| t.has_u("AN")) {
-            p.run_at("7.1.65", i, op::mit("n"));
+            p.run_at("7.1.65", i, add_num);
         } else if yi && i > 0 && p.has(i - 1, |t| t.has_u("upa")) {
-            p.run_optional_at("7.1.66", i, op::mit("n"));
+            p.optional_run_at("7.1.66", i, add_num);
         }
     } else if n.has_adi(&*AC) {
         if anga.has_text("raD") || (anga.has_text("jaB") && anga.has_u("jaBI~\\")) {
-            if anga.has_u("ra\\Da~") && n.first()?.is_it_agama() && !liti {
+            if anga.has_u("ra\\Da~") && n.first().is_it_agama() && !liti {
                 p.step("7.1.62");
             } else {
-                p.run_at("7.1.61", i, op::mit("n"));
+                p.run_at("7.1.61", i, add_num);
             }
         } else if anga.has_u("ra\\Ba~\\") && anga.has_text("raB") && !n.has_u("Sap") && !liti {
-            p.run_at("7.1.63", i, op::mit("n"));
+            p.run_at("7.1.63", i, add_num);
         }
     }
 
@@ -585,30 +544,29 @@ pub fn try_add_iit_agama(p: &mut Prakriya) -> Option<()> {
     let i_pratyaya_start = p.find_next_where(i_anga, |t| !t.is_empty())?;
 
     let anga = p.get(i_anga)?;
-    let n = p.view(i_pratyaya_start)?;
+    let n = p.pratyaya(i_pratyaya_start)?;
     let is_aprkta = n.slice().iter().map(|t| t.text.len()).sum::<usize>() == 1;
 
     if n.has_adi(&*HAL) && n.has_tag(T::Sarvadhatuka) {
         // HACK to avoid yAsut and prevent bruvIyAt, etc.
         let piti = n.has_tag(T::pit) && !n.has_tag(T::Nit);
 
-        let mut rule = None;
         if anga.has_text("brU") && piti {
-            rule = Some("7.3.93");
+            op::insert_agama_at("7.3.93", p, i_pratyaya_start, "Iw");
         } else if p.has(i_anga + 1, |t| t.has_u("yaN")) && piti {
             // HACK: use `i_anga + 1` to point to yaN, which is empty due to luk.
-            rule = maybe_rule(p, "7.3.94");
+            p.optionally("7.3.94", |rule, p| {
+                op::insert_agama_at(rule, p, i_pratyaya_start, "Iw");
+            });
         } else if anga.has_u_in(&["tu\\", "ru", "zwu\\Y", "Samu~", "ama~"]) {
-            rule = maybe_rule(p, "7.3.95");
+            p.optionally("7.3.95", |rule, p| {
+                op::insert_agama_at(rule, p, i_pratyaya_start, "Iw");
+            });
         } else if is_aprkta {
             // 7.3.98 overrides 7.2.76 in the it-Agama section, so it's placed there.
             if anga.has_u_in(&["asa~", "si~c"]) {
-                rule = Some("7.3.96");
+                op::insert_agama_at("7.3.96", p, i_pratyaya_start, "Iw");
             }
-        }
-
-        if let Some(rule) = rule {
-            op::insert_agama_at(rule, p, i_pratyaya_start, "Iw");
         }
     }
 
@@ -677,7 +635,7 @@ fn try_change_anga_before_y(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first_where(|t| t.is_dhatu() || t.is_pratipadika())?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
     let anga = p.get(i)?;
-    let n = p.view(i_n)?;
+    let n = p.pratyaya(i_n)?;
 
     let akrt_sarva = !n.has_tag_in(&[T::Sarvadhatuka, T::Krt]);
     let has_upasarga = i > 0 && p.has(i - 1, |t| t.is_upasarga());
@@ -700,7 +658,7 @@ fn try_change_anga_before_y(p: &mut Prakriya) -> Option<()> {
         p.run_at("7.4.24", i, op::adi("i"));
     } else if anga.has_antya('f') {
         let dhatu = p.get(i)?;
-        let n = p.view(i_n)?;
+        let n = p.pratyaya(i_n)?;
         let is_sha_or_yak = n.has_u_in(&["Sa", "yak"]);
         let is_ardhadhatuka_lin = n.has_lakshana("li~N") && n.has_tag(T::Ardhadhatuka);
         let is_sha_yak_lin = is_sha_or_yak || (n.has_adi('y') && is_ardhadhatuka_lin);
@@ -726,8 +684,9 @@ fn try_change_anga_before_y(p: &mut Prakriya) -> Option<()> {
             p.run_at("7.4.27", i, op::antya("rI"));
         }
     } else if anga.has_u("ha\\na~") && n.has_u("yaN") {
-        p.run_optional_at("7.4.30.v1", i, op::text("GnI"));
+        p.optional_run_at("7.4.30.v1", i, op::text("GnI"));
     } else if anga.has_u_in(&["GrA\\", "DmA\\"]) && n.has_u("yaN") {
+        // jeGrIyate, deDmIyate
         p.run_at("7.4.31", i, op::antya("I"));
     } else if n.has_adi('y') {
         let sub = al::to_dirgha(anga.antya()?)?;
@@ -757,8 +716,8 @@ fn try_anga_changes_to_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
     if anga.is_dhatu() {
         let anga = p.get(i_anga)?;
-        let n = p.view(i_anga + 1)?;
-        if anga.has_antya('s') && n.has_adi('s') && n.last()?.is_ardhadhatuka() {
+        let n = p.pratyaya(i_anga + 1)?;
+        if anga.has_antya('s') && n.has_adi('s') && n.last().is_ardhadhatuka() {
             p.run_at("7.4.49", i_anga, op::antya("t"));
         }
 
@@ -772,7 +731,7 @@ fn try_anga_changes_to_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
                 p.run_at(code, i_anga, op::antya("i"));
             }
         } else if anga.has_text_in(&["SA", "CA"]) {
-            p.run_optional_at("7.4.41", i_anga, op::antya("i"));
+            p.optional_run_at("7.4.41", i_anga, op::antya("i"));
         } else if anga.has_u("quDA\\Y") {
             p.run_at("7.4.42", i_anga, op::text("hi"));
         } else if anga.has_u("o~hA\\k") && next.has_u("ktvA") {
@@ -787,8 +746,10 @@ fn try_anga_changes_to_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         }
     } else {
         let next = p.get(i_anga + 1)?;
-        if anga.has_text("ap") && next.has_adi('B') {
-            p.run_at("7.4.48", i_anga, op::text("at"));
+        // Include terms ending with "ap" per Kaumudi. There aren't many, so to avoid generating,
+        // specify them manually.
+        if anga.has_text_in(&["ap", "svap"]) && next.has_adi('B') {
+            p.run_at("7.4.48", i_anga, |t| t.set_antya("t"));
         }
     }
 
@@ -806,15 +767,13 @@ pub fn try_add_or_remove_nit(p: &mut Prakriya) -> Option<()> {
     let last = p.get(i)?;
 
     if anga.has_text("go") && last.is_sarvanamasthana() {
-        p.run_at("7.1.90", i, op::add_tag(T::Rit));
+        p.add_tag_at("7.1.90", i, T::Rit);
     } else if anga.has_antya('o') && last.is_sarvanamasthana() {
-        p.run_at("7.1.90.v1", i, op::add_tag(T::Rit));
+        p.add_tag_at("7.1.90.v1", i, T::Rit);
     } else if last.has_u("Ral") && last.has_tag(T::Uttama) {
-        p.run_optional_at("7.1.91", i, |t| {
+        p.optional_run_at("7.1.91", i, |t| {
             t.remove_tag(T::Rit);
         });
-    } else if anga.has_text("saKi") && last.is_sarvanamasthana() && !last.has_tag(T::Sambuddhi) {
-        p.run_at("7.1.92", i, op::add_tag(T::Rit));
     }
 
     Some(())
@@ -824,8 +783,10 @@ pub fn try_add_or_remove_nit(p: &mut Prakriya) -> Option<()> {
 ///
 /// (7.4.50 - 7.4.52)
 fn try_tas_asti_lopa(p: &mut Prakriya, i: usize) -> Option<()> {
+    let is_asti = |t: &Term| t.has_u("asa~") && t.has_gana(Adadi);
+
     let term = p.get(i)?;
-    if term.has_text("tAs") || f::is_asti(term) {
+    if term.has_text("tAs") || is_asti(term) {
         let i_n = p.find_next_where(i, |t| !t.is_empty())?;
         let n = p.get(i_n)?;
         if n.has_adi('s') {
@@ -846,7 +807,7 @@ fn try_tas_asti_lopa(p: &mut Prakriya, i: usize) -> Option<()> {
 /// A miscellaneous function that needs to be refactored.
 fn unknown(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
-    let n = p.view(i + 1)?;
+    let n = p.pratyaya(i + 1)?;
 
     if anga.has_u("SIN") && anga.has_text("SI") {
         if n.is_knit() && n.has_adi('y') {
@@ -922,7 +883,7 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let anga = p.get(i)?;
-    let n = p.view(i_n)?;
+    let n = p.pratyaya(i_n)?;
     let has_c_j_antya = anga.has_antya('c') || anga.has_antya('j');
     let sanlitoh = n.has_u("san") || n.has_lakshana("li~w");
     let has_upasarga = |s| i > 0 && p.has(i - 1, |t| t.has_u(s));
@@ -934,7 +895,7 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
         p.step("7.3.60");
         true
     } else if anga.has_u("vancu~") {
-        p.run_optional("7.3.63", |_| {})
+        p.optional_run("7.3.63", |_| {})
     } else if n.has_u("Ryat") {
         if anga.has_u_in(&["ya\\ja~^", "quyAcf~^", "ruca~\\", "fca~"])
             || (anga.has_u("va\\ca~") && has_upasarga("pra"))
@@ -942,13 +903,13 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
             p.step("7.3.66");
             true
         } else if anga.has_u("va\\ca~") {
-            p.run_optional("7.3.67", |_| {})
+            p.optional_run("7.3.67", |_| {})
         } else if anga.has_u("yu\\ji~^r") && (has_upasarga("pra") || has_upasarga("ni")) {
-            p.run_optional("7.3.68", |_| {})
+            p.optional_run("7.3.68", |_| {})
         } else if anga.has_u("Bu\\ja~") {
-            p.run_optional("7.3.69", |_| {})
+            p.optional_run("7.3.69", |_| {})
         } else if has_c_j_antya {
-            p.run_optional("7.3.65", |_| {})
+            p.optional_run("7.3.65", |_| {})
         } else {
             false
         }
@@ -957,24 +918,27 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
     };
 
     let anga = p.get(i)?;
-    let n = p.view(i_n)?;
+    let n = p.pratyaya(i_n)?;
     if blocked {
         // Skip
     } else if has_c_j_antya && (n.has_tag(T::Git) || n.has_u("Ryat")) {
         let sub = convert(anga.antya()?)?;
         p.run_at("7.3.52", i, op::antya(sub));
+    } else if anga.has_text("masj") && n.first().has_unadi(Unadi::u) {
+        let sub = convert(anga.antya()?)?;
+        p.run_at("7.3.53", i, op::antya(sub));
     } else if anga.has_u("ha\\na~") && anga.has_adi('h') {
-        if anga.has_tag(T::Abhyasta) {
+        if anga.is_abhyasta() {
             p.run_at("7.3.55", i, op::adi("G"));
         } else if n.has_tag_in(&[T::Yit, T::Rit]) || anga.has_text("hn") {
             p.run_at("7.3.54", i, op::adi("G"));
         }
-    } else if anga.has_u("hi\\") && anga.has_tag(T::Abhyasta) && !n.has_u("caN") {
+    } else if anga.has_u("hi\\") && anga.is_abhyasta() && !n.has_u("caN") {
         p.run_at("7.3.56", i, op::adi("G"));
     } else if sanlitoh && anga.has_u("ji\\") && anga.has_gana(Bhvadi) {
         p.run_at("7.3.57", i, op::adi("g"));
     } else if sanlitoh && anga.has_u("ci\\Y") {
-        p.run_optional_at("7.3.58", i, op::adi("k"));
+        p.optional_run_at("7.3.58", i, op::adi("k"));
     }
 
     Some(())
@@ -1006,20 +970,24 @@ fn try_dhatu_rt_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
     // HACK: work around lack of support for "ekah pUrvaparayoH" by skipping empty wAp-pratyaya.
     let i_next = p.find_next_where(i, |t| !t.is_empty())?;
+    let n = p.pratyaya(i_next)?;
 
-    let n = p.view(i_next)?;
-
-    let ends_in_a = |t: &Term| t.has_antya('a');
+    // For sanity / predictability, examine a nyAp-anta pratipadika only once. That is, if we have
+    // a pratipadika at index i and a nyap-pratyaya at index i + 1, accept i + 1 but reject i.
+    if p.has(i + 1, |t| t.is_nyap_pratyaya()) {
+        return None;
+    }
 
     if n.has_tag(T::Sarvadhatuka) {
-        if p.has(i, ends_in_a) && n.has_adi(&*YANY) {
+        if p.has(i, |t| t.has_antya('a')) && n.has_adi(&*YANY) {
             p.run_at("7.3.101", i, op::antya("A"));
         }
-    } else if n.has_tag(T::Sup) {
-        let anga = p.get(i)?;
-        let sup = p.view(i_next)?;
-        let is_aap = (anga.has_antya('A') && anga.has_tag(T::StriNyap))
-            || p.has(i + 1, |t| t.has_u_in(&["wAp"]));
+    } else if n.last().is_sup() {
+        let anga = p.nyap_pratipadika(i)?;
+        let is_aap = anga.last().is_aap_pratyaya();
+        let i_last_non_empty = anga.end_non_empty()?;
+
+        let sup = p.pratyaya(i_next)?;
         let is_sambuddhi = sup.has_tag(T::Sambuddhi);
 
         // > bhyamādeśe kṛte śeṣelope ca bahuvacane jhalyet iti etvaṃ prāpnoti, tadaṅgavṛtte
@@ -1032,27 +1000,27 @@ fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
                 p.run_at("7.3.103", i, op::antya("e"));
             } else if sup.has_adi(&*YANY) {
                 p.run_at("7.3.102", i, op::antya("A"));
-            } else if sup.last()?.has_text("os") {
+            } else if sup.last().has_text("os") {
                 // devayoH
                 p.run_at("7.3.104", i, op::antya("e"));
             }
-        } else if is_aap && (sup.last()?.has_text("os") || sup.has_u("wA")) {
+        } else if is_aap && (sup.last().has_text("os") || sup.has_u("wA")) {
             // senayoH
-            p.run_at("7.3.105", i, op::antya("e"));
+            p.run_at("7.3.105", i_last_non_empty, op::antya("e"));
         } else if is_sambuddhi
-            && (anga.has_text_in(&["ambA", "akkA", "allA"]) || anga.has_tag(T::Nadi))
+            && (anga.first().has_text_in(&["ambA", "akkA", "allA"]) || anga.has_tag(T::Nadi))
         {
             // amba, alla, akka, nadi
             let sub = al::to_hrasva(anga.antya()?)?;
-            p.run_at("7.3.107", i, op::antya(&sub.to_string()));
+            p.run_at("7.3.107", i_last_non_empty, op::antya(&sub.to_string()));
         } else if is_sambuddhi && is_aap {
             // sene
-            p.run_at("7.3.106", i, op::antya("e"));
+            p.run_at("7.3.106", i_last_non_empty, op::antya("e"));
         } else {
             let anga = p.get(i)?;
             if al::is_hrasva(anga.antya()?) && !anga.has_antya('a') {
                 let sub = al::to_guna(anga.antya()?)?;
-                if sup.has_tag(T::Sambuddhi) {
+                if is_sambuddhi {
                     // agne, vAyo
                     p.run_at("7.3.108", i, op::antya(sub));
                 } else if sup.has_u("jas") {
@@ -1075,7 +1043,7 @@ fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
 fn try_sic_vrddhi(p: &mut Prakriya) -> Option<()> {
     let i = p.find_last(T::Dhatu)?;
 
-    let vikarana = p.view(i + 1)?;
+    let vikarana = p.pratyaya(i + 1)?;
     let (i_it, i_sic) = match vikarana.slice().len() {
         1 => (None, vikarana.start()),
         2 => (Some(vikarana.start()), vikarana.end()),
@@ -1185,7 +1153,7 @@ fn try_cani_before_guna(p: &mut Prakriya) -> Option<()> {
 
     // 7.4.7 blocks guna.
     if dhatu.has_upadha(&*FF) && is_nici && (is_cani || will_be_cani) {
-        p.run_optional_at("7.4.7", i, |t| {
+        p.optional_run_at("7.4.7", i, |t| {
             t.set_upadha("f");
             t.add_tag(T::FlagGunaApavada);
         });
@@ -1219,7 +1187,7 @@ fn try_cani_after_guna(p: &mut Prakriya) -> Option<()> {
         "pIqa~",
     ]) {
         let sub = al::to_hrasva(dhatu.upadha()?)?;
-        p.run_optional_at("7.4.3", i, op::upadha(&sub.to_string()));
+        p.optional_run_at("7.4.3", i, op::upadha(&sub.to_string()));
         return Some(());
     }
 
@@ -1238,7 +1206,7 @@ fn try_cani_after_guna(p: &mut Prakriya) -> Option<()> {
         done = true;
     } else if i > 0 && dhatu.has_u("GrA\\") {
         // ajiGripat, ajiGrapat
-        done = p.run_optional_at("7.4.6", i, |t| t.set_antya("i"));
+        done = p.optional_run_at("7.4.6", i, |t| t.set_antya("i"));
     }
 
     if done {
@@ -1320,7 +1288,7 @@ fn try_ksa_lopa(p: &mut Prakriya) -> Option<()> {
             && tin.has_adi(&*DANTYA)
         {
             // aduhvahi/aDukzAvahi, adugDA/aDukzata, ...
-            p.run_optional_at("7.3.73", i, op::luk);
+            p.optional_run_at("7.3.73", i, op::luk);
         }
     }
 
@@ -1343,7 +1311,7 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
     }
 
     let optional_append_agama = |rule, p: &mut Prakriya, i, sub| -> bool {
-        if p.run_optional(rule, |p| op::insert_agama_after(p, i, sub)) {
+        if p.optional_run(rule, |p| op::insert_agama_after(p, i, sub)) {
             it_samjna::run(p, i + 1).expect("ok");
             true
         } else {
@@ -1380,171 +1348,10 @@ fn try_add_agama_before_ni(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_text("sPAy") {
         p.run_at("7.3.41", i, op::antya("v"));
     } else if dhatu.has_text("Sad") {
-        p.run_optional_at("7.3.42", i, op::antya("t"));
+        p.optional_run_at("7.3.42", i, op::antya("t"));
     } else if dhatu.has_text("ruh") {
-        p.run_optional_at("7.3.43", i, op::antya("p"));
+        p.optional_run_at("7.3.43", i, op::antya("p"));
     }
-
-    Some(())
-}
-
-/// Runs rules that replace the first sounds of `asmad` and `yuzmad`, up to and including their `m`
-/// sound.
-fn try_maparyanta_for_asmad_and_yusmad(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_first_where(|t| t.has_u_in(&["asmad", "yuzmad"]))?;
-    let sup = p.get_if(i + 1, |t| t.is_vibhakti())?;
-
-    if sup.has_tag(T::Dvivacana) {
-        p.run_at("7.2.92", i, |t| {
-            t.find_and_replace_text("yuzm", "yuva");
-            t.find_and_replace_text("asm", "Ava");
-        });
-    } else if sup.has_lakshana("jas") {
-        p.run_at("7.2.93", i, |t| {
-            t.find_and_replace_text("yuzm", "yUya");
-            t.find_and_replace_text("asm", "vaya");
-        });
-    } else if sup.has_lakshana("su~") {
-        p.run_at("7.2.94", i, |t| {
-            t.find_and_replace_text("yuzm", "tva");
-            t.find_and_replace_text("asm", "aha");
-        });
-    } else if sup.has_lakshana("Ne") {
-        p.run_at("7.2.95", i, |t| {
-            t.find_and_replace_text("yuzm", "tuBya");
-            t.find_and_replace_text("asm", "mahya");
-        });
-    } else if sup.has_lakshana("Nas") {
-        p.run_at("7.2.96", i, |t| {
-            t.find_and_replace_text("yuzm", "tava");
-            t.find_and_replace_text("asm", "mama");
-        });
-    } else if sup.has_tag(T::Ekavacana) {
-        p.run_at("7.2.97", i, |t| {
-            t.find_and_replace_text("yuzm", "tva");
-            t.find_and_replace_text("asm", "ma");
-        });
-    }
-
-    Some(())
-}
-
-/// Applies various rules that change the anga of a pratipadika.
-///
-/// These changes occur *before* we change the vibhakti by making substitutions, adding Agamas,
-/// etc. For changes *after* we change the vibhakti, see `try_anga_adesha_after_vibhakti_changes`.
-fn try_anga_adesha_before_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Pratipadika)?;
-    let anga = p.get(i)?;
-    let v = p.get(i + 1)?;
-
-    if anga.has_text("azwan") && v.is_vibhakti() {
-        // Optional per Kashika.
-        p.run_optional_at("7.2.84", i, |t| {
-            t.set_antya("");
-            t.set_antya("A");
-        });
-    } else if anga.has_text_in(&["tri", "catur"]) && p.has_tag(T::Stri) {
-        p.run_at("7.2.99", i, |t| {
-            t.find_and_replace_text("tri", "tisf");
-            t.find_and_replace_text("catur", "catasf");
-        });
-        let v = p.get(i + 1)?;
-        if v.has_adi(&*AC) {
-            p.run_at("7.2.100", i, op::antya("r"));
-        }
-    } else if anga.has_text("jarA") && v.has_adi(&*AC) {
-        p.run_optional_at("7.2.101", i, op::text("jaras"));
-    } else if anga.has_u_in(stem_gana::TYAD_ADI) {
-        let i_v = i + 1;
-        let anga = p.get(i)?;
-        let v = p.get(i_v)?;
-        let sau = v.has_u("su~");
-
-        if sau && anga.has_u("adas") {
-            // asO
-            p.run("7.2.107", |p| {
-                p.set(i, |t| t.set_antya("O"));
-                p.set(i + 1, op::lopa);
-            });
-        } else if sau && !v.is_empty() && anga.has_u("idam") {
-            // check for `!v.is_empty()` to allow `idam`.
-            p.step("7.2.108");
-            if p.has_tag(T::Pum) {
-                p.run_at("7.2.111", i, |t| t.set_text("ayam"));
-            } else {
-                p.run_at("7.2.110", i, |t| t.set_text("iyam"));
-            }
-        } else if v.is_vibhakti() & &!v.is_empty() {
-            // tyaH, tyO, tye, ...
-            p.run_at("7.2.102", i, op::antya("a"));
-        }
-
-        // 7.2.109 - 7.2.112 are in the other function.
-
-        let anga = p.get(i)?;
-        if sau && !anga.has_antya('d') && !anga.has_antya('t') {
-            p.run_at("7.2.106", i, |t| {
-                t.find_and_replace_text("d", "s");
-                t.find_and_replace_text("t", "s");
-            });
-        }
-    } else if anga.has_text("kim") {
-        if v.has_adi('t') || v.has_adi('h') {
-            p.run_at("7.2.104", i, op::text("ku"));
-        } else if v.has_u("at") {
-            p.run_at("7.2.105", i, op::text("kva"));
-        } else if v.is_vibhakti() && !v.is_empty() {
-            p.run_at("7.2.103", i, op::text("ka"));
-        }
-    }
-
-    Some(())
-}
-
-fn try_anga_adesha_after_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Pratipadika)?;
-
-    let anga = p.get(i)?;
-    let sup = p.view(i + 1)?;
-    if !sup.has_tag(T::Sup) {
-        return None;
-    }
-
-    if anga.has_text("rE") && sup.has_adi(&*HAL) {
-        p.run_at("7.2.85", i, op::antya("A"));
-    } else if anga.has_text_in(&["yuzmad", "asmad"]) {
-        let anadesha = !sup.last()?.has_any_lakshana();
-
-        if sup.has_adi(&*AC) && anadesha {
-            // mayA, tvayA
-            p.run_at("7.2.89", i, op::antya("y"));
-        } else if anadesha {
-            p.run_at("7.2.86", i, op::antya("A"));
-        } else if sup.has_tag(T::V2) {
-            p.run_at("7.2.87", i, op::antya("A"));
-        } else if sup.last()?.has_all_tags(&[T::V1, T::Dvivacana]) {
-            p.run_at("7.2.88", i, op::antya("A"));
-        } else {
-            p.run_at("7.2.90", i, op::antya(""));
-        }
-    } else if anga.has_text("idaa") {
-        if sup.has_tag_in(&[T::V1, T::V2]) {
-            // imam
-            p.run_at("7.2.109", i, |t| t.set_text("ima"));
-        } else {
-            // Other vibhaktis
-            if sup.has_adi(&*HAL) {
-                // asya
-                p.run_at("7.2.113", i, |t| t.find_and_replace_text("id", ""));
-            } else {
-                // anena
-                p.run_at("7.2.112", i, |t| t.set_text("ana"));
-            }
-        }
-    }
-
-    try_maparyanta_for_asmad_and_yusmad(p);
 
     Some(())
 }
@@ -1553,7 +1360,7 @@ fn try_didhi_vevi_lopa(p: &mut Prakriya, i: usize) -> Option<()> {
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
 
     let anga = p.get(i)?;
-    let n = p.view(i_n)?;
+    let n = p.pratyaya(i_n)?;
     if anga.has_u_in(&["dIDIN", "vevIN"]) && (n.has_adi(&*II) || n.has_adi('y')) {
         p.run_at("7.4.53", i, op::antya(""));
     }
@@ -1573,6 +1380,11 @@ fn try_pratyaya_adesha_for_dhatu(p: &mut Prakriya) -> Option<()> {
     } else if n.has_u("ktvA") && i_dhatu > 0 && p.has(i_dhatu - 1, |t| !t.is_dhatu()) {
         op::adesha("7.1.37", p, i_n, "lyap");
     }
+    Some(())
+}
+
+pub fn run_before_stritva(p: &mut Prakriya) -> Option<()> {
+    subanta::run_before_stritva(p);
     Some(())
 }
 
@@ -1632,16 +1444,7 @@ pub fn run_before_dvitva(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
-    // Subanta rules
-    try_anga_adesha_before_vibhakti_changes(p);
-    sup_adesha::run_before_bhasya(p);
-    try_add_agamas_to_sup(p);
-    samjna::try_run_for_pada_or_bha(p);
-    asiddhavat::bhasya(p);
-    try_dirgha_adesha_before_num_agama(p);
-    try_add_num_agama_for_sarvanamasthana(p);
-    sup_adesha::run_after_bhasya(p);
-    try_anga_adesha_after_vibhakti_changes(p);
+    subanta::run(p);
 
     for i in 0..p.terms().len() {
         asiddhavat::run_after_dvitva(p, i);

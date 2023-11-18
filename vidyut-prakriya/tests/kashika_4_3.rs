@@ -44,6 +44,23 @@ fn sutra_4_3_8() {
 }
 
 #[test]
+fn sutra_4_3_14() {
+    assert_has_artha_taddhita("niSA", TatraBhava, T::aR, &["nESa"]);
+    assert_has_artha_taddhita("niSA", TatraBhava, T::WaY, &["nESika"]);
+    assert_has_artha_taddhita("pradoza", TatraBhava, T::aR, &["prAdoza"]);
+    assert_has_artha_taddhita("pradoza", TatraBhava, T::WaY, &["prAdozika"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_4_3_15() {
+    assert_has_artha_taddhita("Svas", TatraBhava, T::WaY, &["SOvastika"]);
+    assert_has_artha_taddhita("Svas", TatraBhava, T::tyap, &["Svastya"]);
+    assert_has_artha_taddhita("Svas", TatraBhava, T::tyu, &["Svastana"]);
+    assert_has_artha_taddhita("Svas", TatraBhava, T::tyul, &["Svastana"]);
+}
+
+#[test]
 fn sutra_4_3_17() {
     assert_has_artha_taddhita("prAvfz", TatraSambhute, T::eRya, &["prAvfzeRya"]);
 }
@@ -484,7 +501,36 @@ fn sutra_4_3_147() {
 }
 
 #[test]
+fn sutra_4_3_157() {
+    assert_has_artha_taddhita("uzwra", TasyaVikara, T::vuY, &["Ozwraka"]);
+}
+
+#[test]
+fn sutra_4_3_158() {
+    assert_has_artha_taddhita("umA", TasyaVikara, T::vuY, &["Omaka"]);
+    assert_has_artha_taddhita("umA", TasyaVikara, T::aR, &["Oma"]);
+    assert_has_artha_taddhita("UrRA", TasyaVikara, T::vuY, &["OrRaka"]);
+    assert_has_artha_taddhita("UrRA", TasyaVikara, T::aY, &["OrRa"]);
+}
+
+#[test]
 fn sutra_4_3_160() {
     assert_has_artha_taddhita("go", TasyaVikara, T::yat, &["gavya"]);
     assert_has_artha_taddhita("payas", TasyaVikara, T::yat, &["payasya"]);
+}
+
+#[test]
+fn sutra_4_3_161() {
+    assert_has_artha_taddhita("dru", TasyaVikara, T::yat, &["dravya"]);
+}
+
+#[test]
+fn sutra_4_3_162() {
+    assert_has_artha_taddhita("dru", TasyaVikara, T::vaya, &["druvaya"]);
+}
+
+#[test]
+fn sutra_4_3_164() {
+    assert_has_artha_taddhita("plakza", TasyaVikara, T::aR, &["plAkza"]);
+    assert_has_artha_taddhita("nyagroDa", TasyaVikara, T::aR, &["nEyagroDa"]);
 }

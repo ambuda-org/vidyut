@@ -1,5 +1,5 @@
-use crate::prakriya::Prakriya;
-use crate::term::Term;
+use crate::core::Prakriya;
+use crate::core::Term;
 use compact_str::CompactString;
 
 /// A wrapper for `Prakriya` that has stronger support for sound rules that apply within and across
@@ -27,6 +27,11 @@ impl<'a> CharPrakriya<'a> {
             text,
             is_stale: false,
         }
+    }
+
+    /// Exits the `CharPrakriya` context and returns a reference to the original prakriya.
+    pub fn p(self) -> &'a mut Prakriya {
+        self.p
     }
 
     /// Iterates over all characters in the prakriya. If `filter` applies at some index `i`, this
@@ -173,6 +178,19 @@ pub fn get_at(p: &Prakriya, index: usize) -> Option<&Term> {
         let delta = t.text.len();
         if (cur..cur + delta).contains(&index) {
             return Some(t);
+        }
+        cur += delta;
+    }
+    None
+}
+
+/// Gets the term corresponding to character `i` of the current prakriya.
+pub fn get_term_index_at(p: &Prakriya, index: usize) -> Option<usize> {
+    let mut cur = 0;
+    for (i, t) in p.terms().iter().enumerate() {
+        let delta = t.text.len();
+        if (cur..cur + delta).contains(&index) {
+            return Some(i);
         }
         cur += delta;
     }

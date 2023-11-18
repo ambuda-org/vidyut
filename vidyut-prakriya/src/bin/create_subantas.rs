@@ -23,7 +23,7 @@ fn dhatu_pratipadika(s: &str) -> Pratipadika {
 
 fn pum(s: &str) -> TestCase {
     TestCase {
-        pratipadika: Pratipadika::new(s),
+        pratipadika: Pratipadika::from(s),
         linga: Linga::Pum,
     }
 }
@@ -60,14 +60,14 @@ fn stri_dhatu(s: &str) -> TestCase {
 
 fn stri_no_nyap(s: &str) -> TestCase {
     TestCase {
-        pratipadika: Pratipadika::new(s),
+        pratipadika: Pratipadika::from(s),
         linga: Linga::Stri,
     }
 }
 
 fn na(s: &str) -> TestCase {
     TestCase {
-        pratipadika: Pratipadika::new(s),
+        pratipadika: Pratipadika::from(s),
         linga: Linga::Napumsaka,
     }
 }
@@ -267,8 +267,8 @@ fn run() -> Result<(), Box<dyn Error>> {
                     linga: linga.as_str(),
                     vibhakti: vibhakti.as_str(),
                     vacana: vacana.as_str(),
-                    pratipadika: pratipadika.text(),
-                    is_nyap: pratipadika.is_nyap(),
+                    pratipadika: &pratipadika.text(),
+                    is_nyap: pratipadika.needs_nyap(),
                     is_dhatu: pratipadika.is_dhatu(),
                 };
 

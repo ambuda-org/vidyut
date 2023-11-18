@@ -61,15 +61,15 @@ use crate::args::Gana;
 use crate::args::KrtArtha::*;
 use crate::args::Taddhita;
 use crate::args::{BaseKrt, Krt};
+use crate::core::operators as op;
+use crate::core::Tag as T;
+use crate::core::Term;
+use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::krt::utils::KrtPrakriya;
-use crate::operators as op;
-use crate::prakriya::{Prakriya, Rule};
 use crate::sounds::{s, Set};
 use crate::stem_gana::TYAD_ADI;
-use crate::tag::Tag as T;
-use crate::term::Term;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -780,6 +780,8 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             } else if krt == kvin {
                 if !upapada.has_text("udaka") && dhatu.has_text("spfS") {
                     kp.try_add("3.2.58", kvin);
+                } else if dhatu.has_u("df\\Si~r") {
+                    kp.try_add("3.2.60", kvin);
                 } else {
                     let code = "3.2.59";
                     if upapada.has_text("ftu") && dhatu.has_u("ya\\ja~^") {
@@ -867,6 +869,15 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
         _ => {}
     }
 
+    if kp.has_krt && krt == kvip {
+        let dhatu = kp.dhatu();
+        if dhatu.has_text("Sri") {
+            // SrI
+            // TODO: others
+            kp.p.run_at("3.2.178.v1", i_dhatu, |t| t.set_antya("I"));
+        }
+    }
+
     Some(kp.has_krt)
 }
 
@@ -922,7 +933,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             let added = kp.try_add("3.1.96", krt);
             if added && krt == K::tavyat && kp.dhatu().has_u("va\\sa~") {
                 // vAstavya
-                kp.p.run_optional_at("3.1.96.v1", i + 1, |t| t.add_tag(T::Rit));
+                kp.p.optional_run_at("3.1.96.v1", i + 1, |t| t.add_tag(T::Rit));
             }
         }
 
@@ -954,11 +965,11 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
                     kp.optional_try_add("3.1.120", K::kyap);
                 } else {
                     // This rule makes rule 3.1.110 optional for vfz.
-                    skip_3_1_110 = kp.p.run_optional("3.1.120", |_| {});
+                    skip_3_1_110 = kp.p.optional_run("3.1.120", |_| {});
                 }
             } else if dhatu.has_text("mfj") {
                 // This rule makes rule 3.1.110 optional for mfj.
-                skip_3_1_110 = kp.p.run_optional("3.1.113", |_| {});
+                skip_3_1_110 = kp.p.optional_run("3.1.113", |_| {});
             }
 
             // Specific rules (required)
@@ -1117,6 +1128,8 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
         K::Rvi => {
             if dhatu.has_u("Ba\\ja~^") {
                 kp.try_add("3.2.62", krt);
+            } else if i > 0 && dhatu.has_u("va\\ha~^") {
+                kp.try_add("3.2.64", krt);
             }
         }
 
@@ -1126,6 +1139,9 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
                 kp.try_add(code, krt);
             } else if krt == K::vic && dhatu.has_text("riz") {
                 kp.try_add(code, krt);
+            } else {
+                // suSarmA, prAtaritvan, vijAvA, rez, ...
+                kp.try_add("3.2.76", krt);
             }
         }
 
@@ -1137,7 +1153,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
 
             if kp.has_krt {
                 let i_last = kp.p.terms().len() - 1;
-                kp.p.run_at("1.1.26", i_last, op::add_tag(T::Nistha));
+                kp.p.add_tag_at("1.1.26", i_last, T::Nistha);
             }
         }
 
@@ -1208,7 +1224,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             if has_pada_match && !kp.has_krt {
                 let i_la = kp.p.terms().len() - 1;
                 kp.try_replace_lakara("3.2.128", i_la, krt);
-                kp.p.run_at("3.2.127", i_la, op::add_tag(T::Sat));
+                kp.p.add_tag_at("3.2.127", i_la, T::Sat);
             }
         }
 
