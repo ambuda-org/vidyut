@@ -1,0 +1,22 @@
+{
+    "comment": ["I have made changes to ganesh.json made by @svat to include ONLY matra based metres",
+        "I also removed the examples field from the json."],
+        "metres": [
+            ["Āryā", {
+                "regex": ["22 4 22", "4 22 121 22 .", "22 4 22", "4 22 1 22 ."],
+                "comment": "The four pādas have 12, 18, 12, and 15 mātrās respectively."
+            }],
+            ["Gīti", {
+                "regex": ["22 4 22", "4 22 121 22 .","22 4 22", "4 22 121 22 ."],
+                "comment": "The four pādas have 12, 18, 12, and 18 mātrās respectively."
+            }],
+            ["Upagīti", {
+                "regex": ["22 4 22", "4 22 L 22 .","22 4 22", "4 22 L 22 ."],
+                "comment": "The four pādas have 12, 15, 12, and 15 mātrās respectively."
+            }],
+            ["Udgīti", {
+                "regex": ["22 4 22", "4 22 L 22 .", "22 4 22", "4 22 121 22."],
+                "comment": "The four pādas have 12, 18, 12, and 15 mātrās respectively."
+            }]
+       ]
+}

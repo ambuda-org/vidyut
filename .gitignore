@@ -2,3 +2,4 @@
 /data/
 /dcs-data/
 *.log
+.vscode

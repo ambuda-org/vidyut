@@ -6,6 +6,7 @@ members = [
     "vidyut-lipi",
     "vidyut-prakriya",
     "vidyut-sandhi",
+    "vidyut-chandas",
 ]
 
 [package]
@@ -25,6 +26,7 @@ vidyut-cheda = { path = "./vidyut-cheda" }
 vidyut-kosha = { path = "./vidyut-kosha" }
 vidyut-lipi = { path = "./vidyut-lipi" }
 vidyut-sandhi = { path = "./vidyut-sandhi" }
+vidyut-chandas = { path = "./vidyut-chandas" }
 log = "0.4.17"
 clap = "4.1.4"
 csv = "1.1.6"
