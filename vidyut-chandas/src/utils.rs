@@ -1,70 +1,6 @@
 use crate::aksharas::{Akshara, Weight};
 use lazy_static::lazy_static;
 
-pub fn to_aksharas(text: impl AsRef<str>, seperator: Option<&str>) -> Vec<Vec<Akshara>> { 
-    todo!("
-        Need to do all these 3 things in one pass....
-
-        1. Break the text down into lines.
-        2. In each line break it down into aksharas.
-        3. While finding the akshara, also find whether it is guru or laghu.
-        4. Keep pushing into result
-    ")
-}
-
-pub fn get_scheme(raw: &str) -> Vec<Weight> {
-    let mut scheme = Vec::new();
-    for i in 0..raw.len() {
-        let curr: char = raw.chars().nth(i).unwrap();
-        //Other than from second last char
-        if i <= raw.len() - 3 {
-            let next: char = raw.chars().nth(i + 1).unwrap();
-            let next_next: char = raw.chars().nth(i + 2).unwrap();
-            if is_dirgha(curr) {
-                scheme.push(Weight::G);
-            } else if is_hrasva(curr) && is_hal(next) && is_hal(next_next) {
-                scheme.push(Weight::G);
-            } else if is_hrasva(curr) && is_special(next) {
-                scheme.push(Weight::G);
-            } else if is_hrasva(curr) {
-                scheme.push(Weight::L);
-            }
-        } else if i == raw.len() - 2 {
-            let next: char = raw.chars().nth(i + 1).unwrap();
-            //From second last character to last character it is Laghu only if
-            //Dirgha vowel and followed by anusvara/visarga.
-            if is_dirgha(curr) {
-                scheme.push(Weight::G);
-            } else if is_hrasva(curr) && is_special(next) {
-                scheme.push(Weight::G);
-            } else if is_hrasva(curr) {
-                scheme.push(Weight::L);
-            }
-        } else {
-            if is_dirgha(curr) {
-                scheme.push(Weight::G);
-            } else if is_hrasva(curr) {
-                scheme.push(Weight::L);
-            }
-        }
-    }
-    
-    scheme
-}
-
-pub fn clean(raw: &str) -> String {
-    let mut cleaned = String::new();
-
-    for i in raw.chars() {
-        if is_sanskrit(i) {
-            cleaned.push(i);
-        }
-    }
-
-    cleaned
-}
-
-
 // A set of Sanskrit sounds.
 //
 // This implementation is copied directly from `vidyut_prakriya::sounds`. For details, see the
@@ -148,4 +84,108 @@ pub fn is_sanskrit(c: char) -> bool {
         static ref CHARS: Set = Set::from(SANSKRIT);
     }
     CHARS.contains(c)
+}
+
+pub fn clean(raw: &str) -> String {
+    let mut cleaned = String::new();
+
+    for i in raw.chars() {
+        if is_sanskrit(i) {
+            cleaned.push(i);
+        }
+    }
+
+    cleaned
+}
+
+pub fn to_aksharas(text: impl AsRef<str>, seperator: Option<&str>) -> Vec<Vec<Akshara>> { 
+    todo!("
+        Need to do all these 3 things in one pass....
+
+        1. Break the text down into lines.
+        2. In each line break it down into aksharas.
+        3. While finding the akshara, also find whether it is guru or laghu.
+        4. Keep pushing into result
+    ")
+}
+
+pub fn get_scheme(raw: &str) -> Vec<Weight> {
+    let mut scheme = Vec::new();
+    let chars: Vec<char> = raw.chars().collect();
+    let len = chars.len();
+    for i in 0..raw.len() {
+        let curr: char = raw.chars().nth(i).unwrap();
+        //Other than from second last char
+        if i <= raw.len() - 3 {
+            let next: char = chars[i+1];
+            let next_next: char = chars[i+2];
+            if is_dirgha(curr) {
+                scheme.push(Weight::G);
+            } else if is_hrasva(curr) && is_hal(next) && is_hal(next_next) {
+                scheme.push(Weight::G);
+            } else if is_hrasva(curr) && is_special(next) {
+                scheme.push(Weight::G);
+            } else if is_hrasva(curr) {
+                scheme.push(Weight::L);
+            }
+        } else if i == raw.len() - 2 {
+            let next: char = chars[i+1];
+            //From second last character to last character it is Laghu only if
+            //Dirgha vowel and followed by anusvara/visarga.
+            if is_dirgha(curr) {
+                scheme.push(Weight::G);
+            } else if is_hrasva(curr) && is_special(next) {
+                scheme.push(Weight::G);
+            } else if is_hrasva(curr) {
+                scheme.push(Weight::L);
+            }
+        } else {
+            if is_dirgha(curr) {
+                scheme.push(Weight::G);
+            } else if is_hrasva(curr) {
+                scheme.push(Weight::L);
+            }
+        }
+    }
+    
+    scheme
+}
+
+#[test]
+fn test_get_scheme_and_clean() {
+    assert!(get_scheme(&clean("tapaHsvADyAyanirataM tapasvI vAgvidAM varam 
+nAradaM paripapracCa vAlmIkirmunipuMgavam  1 "))==vec![
+    Weight::L,
+    Weight::G,
+    Weight::G,
+    Weight::G,
+    Weight::L,
+    Weight::L,
+    Weight::L,
+    Weight::G,
+    Weight::L,
+    Weight::G,
+    Weight::G,
+    Weight::G,
+    Weight::L,
+    Weight::G,
+    Weight::L,
+    Weight::G,
+    Weight::G,
+    Weight::L,
+    Weight::G,
+    Weight::L,
+    Weight::L,
+    Weight::G,
+    Weight::G,
+    Weight::L,
+    Weight::G,
+    Weight::G,
+    Weight::G,
+    Weight::L,
+    Weight::L,
+    Weight::G,
+    Weight::L,
+    Weight::L,
+]);
 }
