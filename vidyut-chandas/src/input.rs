@@ -1,5 +1,5 @@
 use crate::aksharas::{Akshara};
-use crate::utils::get_scheme;
+use crate::utils::{to_aksharas};
 
 #[derive(Debug, Clone)]
 pub struct Input {
@@ -11,7 +11,7 @@ pub struct Input {
 
 impl Input {
     pub fn init_fromtext(text: impl AsRef<str>, seperator: Option<&str>) -> Self {
-        let text_scheme = get_scheme(text, seperator);
+        let text_scheme = to_aksharas(text, seperator);
         let mut text_scheme_iter = text_scheme.iter();
 
         let pada_one = text_scheme_iter.next().cloned();
