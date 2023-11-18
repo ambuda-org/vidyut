@@ -3,3 +3,4 @@
 /dcs-data/
 *.log
 .vscode
+*.bk
