@@ -41,7 +41,8 @@ pub enum StringOrList {
 }
 
 pub fn read_json_vrtta() -> VrttaData {
-    let path = "../data/mishra.json";
+    
+    let path = "./data/vrtta.json";
     let data = fs::read_to_string(path).expect("Unable to read file");
     let my_data: VrttaData = serde_json::from_str(&data).expect("Unable to parse");
 
@@ -52,7 +53,7 @@ pub fn read_json_vrtta() -> VrttaData {
 }
 
 pub fn read_json_matra() -> MatraData {
-    let path = "../data/matra.json";
+    let path = "./data/matra.json";
     let data = fs::read_to_string(path).expect("Unable to read file");
     let my_data: MatraData = serde_json::from_str(&data).expect("Unable to parse");
     return my_data;
