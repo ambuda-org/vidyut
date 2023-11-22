@@ -1,7 +1,7 @@
-use crate::aksharas::{Akshara};
-use crate::utils::{to_aksharas};
+use crate::aksharas::{Akshara, Weight};
+use crate::utils::{to_aksharas, clean};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Input {
     pub pada_one: Option<Vec<Akshara>>,
     pub pada_two: Option<Vec<Akshara>>,
@@ -11,6 +11,7 @@ pub struct Input {
 
 impl Input {
     pub fn init_fromtext(text: impl AsRef<str>, seperator: Option<&str>) -> Self {
+        
         let text_scheme = to_aksharas(text, seperator);
         let mut text_scheme_iter = text_scheme.iter();
 
@@ -23,5 +24,161 @@ impl Input {
 
     }
 
+
+}
+
+/// ----------------------- TESTS -----------------------
+
+#[test]
+fn input_test() {
+
+    let shloka = "
+tapaHsvADyAyanirataM tapasvI vAgvidAM varam
+nAradaM paripapracCa vAlmIkirmunipuMgavam";
+
+    let input_obj = Input::init_fromtext(shloka, None);
+
+    assert_eq!(input_obj, 
+        Input {
+            pada_one: Some(
+                vec![
+                    Akshara {
+                        text: "ta".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "paH".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "svA".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "DyA".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "ya".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "ni".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "ra".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "taM".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "ta".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "pa".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "svI".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "vA".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "gvi".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "dAM".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "va".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "ram".to_string(),
+                        weight: Weight::L,
+                    },
+                ],
+            ),
+            pada_two: Some(
+                vec![
+                    Akshara {
+                        text: "nA".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "ra".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "daM".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "pa".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "ri".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "pa".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "pra".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "cCa".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "vA".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "lmI".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "ki".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "rmu".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "ni".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "puM".to_string(),
+                        weight: Weight::G,
+                    },
+                    Akshara {
+                        text: "ga".to_string(),
+                        weight: Weight::L,
+                    },
+                    Akshara {
+                        text: "vam".to_string(),
+                        weight: Weight::L,
+                    },
+                ],
+            ),
+            pada_three: None,
+            pada_four: None,
+        }
+    );
 
 }
