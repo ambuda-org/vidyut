@@ -5,10 +5,10 @@ pub enum Weight {
     X,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Akshara {
-    text: String,
-    weight: Weight,
+    pub text: String,
+    pub weight: Weight,
 }
 
 impl Akshara {
