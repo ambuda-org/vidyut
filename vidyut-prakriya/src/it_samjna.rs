@@ -26,7 +26,11 @@ fn get_adi(s: &CompactString) -> Option<char> {
 }
 
 fn is_cutu_exempt_taddhita(t: &Term) -> bool {
-    t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap"])
+    t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap", "jAhac", "wIwac"])
+}
+
+fn is_lashaku_exempt(t: &Term) -> bool {
+    t.has_u_in(&["kAmyac"])
 }
 
 /// Runs rule 1.3.2 ("upadeśe janunāsika iṭ").
@@ -90,7 +94,7 @@ fn run_1_3_2(p: &mut Prakriya, i_term: usize, before: &mut CompactString) -> Opt
     if before != &after {
         before.replace_range(.., &after);
         if should_mark_rule {
-            p.step("1.3.2");
+            p.run_at("1.3.2", i_term, |_| {});
         }
     }
 
@@ -163,9 +167,8 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
             if vibhaktau_tusmah && !is_vibhakti_exception {
                 p.step("1.3.4");
             } else {
-                t.add_tag(T::parse_it(antya)?);
+                p.add_tag_at("1.3.3", i, T::parse_it(antya)?);
                 temp.truncate(temp.len() - 1);
-                p.step("1.3.3");
             }
         }
     }
@@ -183,7 +186,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
                 }
             }
             if matched {
-                p.step("1.3.5");
+                p.run_at("1.3.5", i, |_| {});
             }
         }
     }
@@ -198,9 +201,8 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
             if t.is_unadi() && t.has_u_in(&["kan"]) {
                 // Do nothing.
             } else if adi == 'z' {
-                t.add_tag(T::parse_it(adi)?);
                 temp_slice = &temp_slice[1..];
-                p.step("1.3.6")
+                p.add_tag_at("1.3.6", i, T::parse_it(adi)?);
             } else if CUTU.contains(adi) && !is_cutu_exempt_taddhita(t) {
                 // The sounds C, J, W, and Q are replaced later in the grammar.
                 // If we substitute them now, those rules will become vyartha.
@@ -209,16 +211,15 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
                     temp_slice = &temp_slice[1..];
                 }
                 p.step("1.3.7");
-            } else if !t.has_tag(T::Taddhita) && t.has_adi(&*LASHAKU) {
+            } else if !t.has_tag(T::Taddhita) && t.has_adi(&*LASHAKU) && !is_lashaku_exempt(t) {
                 // Keep the first "l" of the lakAras.
                 // Otherwise, rule 3.4.77 will become vyartha.
                 const LAKARAS: &[&str] = &[
                     "la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w", "la~N", "li~N", "lu~N", "lf~N",
                 ];
                 if !t.has_u_in(&LAKARAS) {
-                    t.add_tag(T::parse_it(adi)?);
                     temp_slice = &temp_slice[1..];
-                    p.step("1.3.8");
+                    p.add_tag_at("1.3.8", i, T::parse_it(adi)?);
                 }
             }
         }
@@ -226,11 +227,12 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
 
     if let Some(t) = p.get_mut(i) {
         if temp_slice != t.text {
-            t.text.replace_range(.., temp_slice);
-            if t.has_tag(T::zit) && t.text.starts_with('w') {
-                t.text.replace_range(..1, "t");
-            }
-            p.step("1.3.9")
+            p.run_at("1.3.9", i, |t| {
+                t.set_text(temp_slice);
+                if t.has_tag(T::zit) && t.has_adi('w') {
+                    t.set_adi("t");
+                }
+            });
         }
     }
 

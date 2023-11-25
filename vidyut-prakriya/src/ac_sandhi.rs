@@ -2,7 +2,7 @@
 //! =========
 //! (6.1.66 - 6.1.101)
 
-use crate::core::char_view::{get_at, xy, CharPrakriya};
+use crate::core::char_view::{get_at, get_term_index_at, xy, CharPrakriya};
 use crate::core::iterators::xy_rule;
 use crate::core::operators as op;
 use crate::core::Prakriya;
@@ -34,7 +34,7 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
                 None => return false,
             };
             let vyor_vali = (x == 'v' || x == 'y') && VAL.contains(y);
-            let t = get_at(p, i).expect("should be present");
+            let t_x = get_at(p, i).expect("should be present");
             // Ignore if it starts an upadesha, otherwise roots like "vraj" would by vyartha.
             // - Likewise for roots ending with 'v'.
             // - Likewise for pratipadikas.
@@ -43,9 +43,9 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             // - Exclude pratyayas (yAyA[y]vara -> yAyAvara).
             //
             // For now, just check if the term is a dhatu.
-            let is_mula_dhatu = t.is_dhatu() && !t.is_pratyaya();
-            let is_upadesha_adi = is_mula_dhatu && (t.has_adi('v') || t.has_adi('y'));
-            vyor_vali && !is_upadesha_adi && !t.is_pratipadika()
+            let is_mula_dhatu = t_x.is_dhatu() && !t_x.is_pratyaya();
+            let is_upadesha_adi = is_mula_dhatu && (t_x.has_adi('v') || t_x.has_adi('y'));
+            vyor_vali && !is_upadesha_adi && !(t_x.is_pratipadika() && !t_x.is_pratyaya())
         },
         |p, _, i| {
             p.run("6.1.66", |p| p.set_char_at(i, ""));
@@ -55,10 +55,11 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
 }
 
 fn try_ver_aprktasya(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Pratyaya)?;
-    let last = p.get(i)?;
-    if last.has_text("v") {
-        p.run_at("6.1.67", i, op::lopa);
+    for i in 0..p.terms().len() {
+        let t = p.get(i)?;
+        if t.is_pratyaya() && t.has_text("v") {
+            p.run_at("6.1.67", i, op::lopa);
+        }
     }
 
     Some(())
@@ -91,11 +92,16 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
     }
 
     cp.for_chars(xy(|x, y| AC.contains(x) && AC.contains(y)), |p, text, i| {
-        p.dump();
         let x = text.as_bytes()[i] as char;
         let y = text.as_bytes()[i + 1] as char;
 
-        let t_x = get_at(p, i).expect("ok");
+        let i_x = get_term_index_at(p, i).expect("ok");
+        let i_y = get_term_index_at(p, i + 1).expect("ok");
+        let t_x = p.get(i_x).expect("ok");
+        let t_y = p.get(i_y).expect("ok");
+
+        let eti_edhati = || t_y.has_adi(&*EN) && t_y.has_u_in(&["i\\R", "eDa~\\"]);
+        let is_uth = || t_y.has_adi('U') && t_y.has_tag(T::FlagUth);
 
         if t_x.has_tag(T::Pragrhya) {
             // agnI iti, ...
@@ -131,68 +137,37 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             };
             p.run("6.1.77", |p| p.set_char_at(i, res));
             true
-        } else {
-            false
-        }
-    });
-
-    // upa + fcCati -> upArcCati
-    cp.for_terms(
-        |x, y| x.is_upasarga() && x.has_antya(&*A) && y.is_dhatu() && y.has_adi('f'),
-        |p, i, j| {
-            p.set(i, |t| t.set_antya(""));
-            p.set(j, |t| t.set_adi("Ar"));
-            p.step("6.1.91");
-        },
-    );
-
-    // upa + eti -> upEti
-    cp.for_terms(
-        |x, y| {
-            let eti_edhati = y.has_adi(&*EN) && y.has_u_in(&["i\\R", "eDa~\\"]);
-            let is_uth = y.has_adi('U') && y.has_tag(T::FlagUth);
-            !x.is_agama() && x.has_antya(&*A) && (eti_edhati || is_uth)
-        },
-        |p, _i, j| {
-            let y = p.get(j).expect("ok");
-            let adi = y.adi().expect("ok");
+        } else if t_x.is_upasarga() && t_x.has_antya(&*A) && t_y.is_dhatu() && t_y.has_adi('f') {
+            // upa + fcCati -> upArcCati
+            p.run("6.1.91", |p| {
+                p.set(i_x, |t| t.set_antya(""));
+                p.set(i_y, |t| t.set_adi("Ar"));
+            });
+            true
+        } else if !t_x.is_agama() && t_x.has_antya(&*A) && (eti_edhati() || is_uth()) {
+            // upa + eti -> upEti
+            let adi = t_y.adi().expect("ok");
             let sub = al::to_vrddhi(adi).expect("ok");
-            p.run_at("6.1.89", j, |t| t.set_adi(sub));
-        },
-    );
-
-    // HACK for KOnAti, DOta, and a few others
-    cp.for_terms(
-        |x, _| x.has_suffix_in(&["aU", "AU"]),
-        |p, i, _| {
-            p.run_at("6.1.89", i, |t| {
+            p.run_at("6.1.89", i_y, |t| t.set_adi(sub));
+            true
+        } else if t_x.has_suffix_in(&["aU", "AU"]) {
+            // HACK for KOnAti, DOta, and a few others
+            p.run_at("6.1.89", i_x, |t| {
                 t.set_antya("");
                 t.set_antya("O")
             });
-        },
-    );
-
-    // upa + elayati -> upelayati
-    cp.for_terms(
-        |x, y| x.is_upasarga() && x.has_antya(&*A) && y.is_dhatu() && y.has_adi(&*EN),
-        |p, i, _j| {
-            p.set(i, |t| t.set_antya(""));
-            p.step("6.1.94");
-        },
-    );
-
-    // General guna/vrddhi rules.
-    cp.for_chars(
-        // [dummy comment for cargo fmt]
-        xy(|x, y| A.contains(x) && AC.contains(y)),
-        |p, text, i| {
+            true
+        } else if t_x.is_upasarga() && t_x.has_antya(&*A) && t_y.is_dhatu() && t_y.has_adi(&*EN) {
+            // upa + elayati -> upelayati
+            p.run_at("6.1.94", i_x, |t| t.set_antya(""));
+            true
+        } else if A.contains(x) && AC.contains(y) {
+            // General guna/vrddhi rules.
             if is_upasarga_sanadi_dhatu(p, i) {
                 return false;
             }
 
             let j = i + 1;
-            let y = text.as_bytes()[i + 1] as char;
-
             if EC.contains(y) {
                 p.run("6.1.88", |p| {
                     p.set_char_at(j, al::to_vrddhi(y).expect("should have vrddhi"));
@@ -205,8 +180,10 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
                 });
             }
             true
-        },
-    );
+        } else {
+            false
+        }
+    });
 }
 
 pub fn try_sup_sandhi_before_angasya(p: &mut Prakriya) -> Option<()> {
@@ -279,7 +256,7 @@ pub fn try_sup_sandhi_after_angasya(p: &mut Prakriya) -> Option<()> {
 
 /// Runs vowel sandhi rules that apply between terms (as opposed to between sounds).
 fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
-    let j = p.find_next_where(i, |t| !t.text.is_empty())?;
+    let j = p.find_next_where(i, |t| !t.is_empty())?;
 
     let x = p.get(i)?;
     let y = p.get(j)?;

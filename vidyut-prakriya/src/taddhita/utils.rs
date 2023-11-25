@@ -1,6 +1,7 @@
 use crate::args::{Artha, Taddhita, TaddhitaArtha};
 use crate::core::Tag as T;
 use crate::core::Term;
+use crate::core::TermView;
 use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
 
@@ -49,6 +50,10 @@ impl<'a> TaddhitaPrakriya<'a> {
 
     pub fn prati(&self) -> &Term {
         self.p.get(self.i_prati).expect("present")
+    }
+
+    pub fn nyap_pratipadika(&self) -> TermView {
+        self.p.nyapu_pratipadika(self.i_prati).expect("present")
     }
 
     /// Runs the rules in `closure` under the meaning condition defined in `artha`.
@@ -105,12 +110,14 @@ impl<'a> TaddhitaPrakriya<'a> {
 
         let rule = rule.into();
         if cfg!(debug_assertions) {
+            /*
             self.p.debug(format!(
                 "Try {}: {} + {:?}",
                 rule.code(),
                 &self.prati().text,
                 taddhita,
             ));
+            */
         }
 
         self.had_match = true;

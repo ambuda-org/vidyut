@@ -10,11 +10,15 @@ use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::*;
 
 fn yan_san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Yan, Sanadi::San])
+    dhatu.clone().with_sanadi(&[Sanadi::yaN, Sanadi::san])
 }
 
 fn nic_san(dhatu: &Dhatu) -> Dhatu {
-    dhatu.clone().with_sanadi(&[Sanadi::Nic, Sanadi::San])
+    dhatu.clone().with_sanadi(&[Sanadi::Ric, Sanadi::san])
+}
+
+fn sanadi(p: Pratipadika, s: Sanadi) -> Dhatu {
+    Dhatu::nama(p, Some(s))
 }
 
 #[test]
@@ -397,6 +401,16 @@ fn sutra_7_4_31() {
     assert_has_lat(&[], &yan(&d("DmA\\", Bhvadi)), &["deDmIyate"]);
 }
 
+#[test]
+fn sutra_7_4_33() {
+    let kyac = |prati| sanadi(prati, Sanadi::kyac);
+    let p = |text: &str| Pratipadika::Basic(text.to_string(), false);
+    assert_has_tip(&[], &kyac(p("putra")), Lat, &["putrIyati"]);
+    assert_has_tip(&[], &kyac(p("Gawa")), Lat, &["GawIyati"]);
+    assert_has_tip(&[], &kyac(p("KawvA")), Lat, &["KawvIyati"]);
+    assert_has_tip(&[], &kyac(p("mAlA")), Lat, &["mAlIyati"]);
+}
+
 #[ignore]
 #[test]
 fn sutra_7_4_40() {
@@ -493,19 +507,19 @@ fn sutra_7_4_49() {
 #[test]
 fn sutra_7_4_50() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_tinanta(&[], &kf, Lut, Madhyama, Eka, &["kartAsi", "kartAse"]);
-    assert_has_tinanta(&[], &d("asa~", Adadi), Lat, Madhyama, Eka, &["asi"]);
+    assert_has_tinantas(&[], &kf, Lut, Madhyama, Eka, &["kartAsi", "kartAse"]);
+    assert_has_tinantas(&[], &d("asa~", Adadi), Lat, Madhyama, Eka, &["asi"]);
     // TODO: vyatise
 }
 
 #[test]
 fn sutra_7_4_51() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_tinanta(&[], &kf, Lut, Prathama, Dvi, &["kartArO"]);
-    assert_has_tinanta(&[], &kf, Lut, Prathama, Bahu, &["kartAraH"]);
+    assert_has_tinantas(&[], &kf, Lut, Prathama, Dvi, &["kartArO"]);
+    assert_has_tinantas(&[], &kf, Lut, Prathama, Bahu, &["kartAraH"]);
     let i = d("i\\N", Adadi);
-    assert_has_tinanta(&["aDi"], &i, Lut, Prathama, Dvi, &["aDyetArO"]);
-    assert_has_tinanta(&["aDi"], &i, Lut, Prathama, Bahu, &["aDyetAraH"]);
+    assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Dvi, &["aDyetArO"]);
+    assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Bahu, &["aDyetAraH"]);
 }
 
 #[test]
@@ -656,7 +670,7 @@ fn sutra_7_4_67() {
     assert_has_lat(&["vi"], &yan(&dyut), &["videdyutyate"]);
 
     // TODO
-    let _svap = d("Yizva\\pa~", Adadi).with_sanadi(&[Sanadi::Nic, Sanadi::San]);
+    let _svap = d("Yizva\\pa~", Adadi).with_sanadi(&[Sanadi::Ric, Sanadi::san]);
     // assert_has_tip(&[], &svap, Lat, &["suzvApayizati"]);
 }
 
@@ -712,9 +726,9 @@ fn sutra_7_4_71() {
 #[test]
 fn sutra_7_4_72() {
     let ashnoti = d("aSU~\\", Svadi);
-    assert_has_tinanta(&["vi"], &ashnoti, Lit, Prathama, Eka, &["vyAnaSe"]);
-    assert_has_tinanta(&["vi"], &ashnoti, Lit, Prathama, Dvi, &["vyAnaSAte"]);
-    assert_has_tinanta(&["vi"], &ashnoti, Lit, Prathama, Bahu, &["vyAnaSire"]);
+    assert_has_ta(&["vi"], &ashnoti, Lit, &["vyAnaSe"]);
+    assert_has_aataam(&["vi"], &ashnoti, Lit, &["vyAnaSAte"]);
+    assert_has_jha(&["vi"], &ashnoti, Lit, &["vyAnaSire"]);
     // aSnAti
     let ashnati = d("aSa~", Kryadi);
     assert_has_tip(&[], &ashnati, Lit, &["ASa"]);
@@ -728,6 +742,7 @@ fn sutra_7_4_73() {
     assert_has_tip(&[], &bhu, Lit, &["baBUva"]);
     assert_has_tas(&[], &bhu, Lit, &["baBUvatuH"]);
     assert_has_jhi(&[], &bhu, Lit, &["baBUvuH"]);
+
     assert_has_lat(&[], &san(&bhu), &["buBUzati"]);
     assert_has_lat(&[], &yan(&bhu), &["boBUyate"]);
 }
@@ -777,7 +792,7 @@ fn sutra_7_4_79() {
     // ataH
     assert_has_tip(&[], &san(&d("lUY", Kryadi)), Lat, &["lulUzati"]);
     // taparakaraNa
-    let _pac_yan_san = pac.with_sanadi(&[Sanadi::Yan, Sanadi::San]);
+    let _pac_yan_san = pac.with_sanadi(&[Sanadi::yaN, Sanadi::san]);
     // assert_has_ta(&[], &pac_yan_san, Lat, &["pApacizate"]);
     // TODO: pApacizate
 }

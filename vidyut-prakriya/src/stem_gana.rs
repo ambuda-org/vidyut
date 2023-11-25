@@ -1,8 +1,26 @@
 pub const LAUKIKA_SANKHYA: &[&str] = &[
-    "eka", "dvi", "tri", "catur", "paYcan", "zaz", "saptan", "azwan", "navan", "daSan", "zoqaSan",
+    "eka",
+    "dvi",
+    "tri",
+    "catur",
+    "paYcan",
+    "zaz",
+    "saptan",
+    "azwan",
+    "navan",
+    "daSan",
+    "ekadaSan",
+    "dvAdaSan",
+    "trayodaSan",
+    "zoqaSan",
+    "Sata",
+    "sahasra",
 ];
 
-pub const TYAD_ADI: &[&str] = &["tyad", "tad", "yad", "etad", "idam", "adas", "eka", "dvi"];
+/// A subsection of SARVA_ADI (1).
+pub const TYAD_ADI: &[&str] = &[
+    "tyad", "tad", "yad", "etad", "idam", "adas", "eka", "dvi", "yuzmad", "asmad", "Bavatu~", "kim",
+];
 
 #[allow(unused)]
 pub const USES_DATARA_DATAMA: &[&str] = &[

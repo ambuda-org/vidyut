@@ -23,12 +23,11 @@ fn sutra_8_4_1() {
     assert_has_sandhi("vAyus", "nayati", &["vAyur nayati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_8_4_1_v1() {
-    assert_has_sup_6p(&nyap("tri"), Stri, &["tisfRAm"]);
-    assert_has_sup_6p(&nyap("catur"), Stri, &["catasfRAm"]);
-    assert_has_sup_6p(&nyap("mAtf"), Stri, &["mAtFRAm"]);
+    assert_has_sup_6p("tri", Stri, &["tisfRAm"]);
+    assert_has_sup_6p("catur", Stri, &["catasfRAm"]);
+    assert_has_sup_6p("mAtf", Stri, &["mAtFRAm"]);
     assert_has_sup_6p("pitf", Pum, &["pitFRAm"]);
 }
 
@@ -232,7 +231,7 @@ fn sutra_8_4_19() {
 #[test]
 fn sutra_8_4_21() {
     let an = d("ana~", Adadi);
-    let nic = |d: &Dhatu| d.clone().with_sanadi(&[Sanadi::Nic]);
+    let nic = |d: &Dhatu| d.clone().with_sanadi(&[Sanadi::Ric]);
     assert_has_tip(&["pra"], &san(&an), Lat, &["prARiRizati"]);
     assert_has_tip(&["pra"], &nic(&an), Lun, &["prARiRat"]);
     assert_has_tip(&["parA"], &san(&an), Lat, &["parARiRizati"]);
@@ -361,7 +360,6 @@ fn sutra_8_4_41() {
     // TODO: awwati, aqqati
 }
 
-#[ignore]
 #[test]
 fn sutra_8_4_42() {
     assert_has_sandhi("Svaliw", "sAye", &["Svaliw sAye", "Svaliw tsAye"]);
@@ -369,7 +367,7 @@ fn sutra_8_4_42() {
     // padAntAt?
     assert_has_ta(&[], &d("Iqa~\\", Adadi), Lat, &["Iwwe"]);
     // woH?
-    assert_has_taddhitanta(&prati("sarpis"), T::tamap, &["sarpizwama"]);
+    assert_has_taddhita("sarpis", T::tamap, &["sarpizwama"]);
     // // an-Am?
     assert_has_sup_6p("zaz", Pum, &["zaRRAm"]);
 }

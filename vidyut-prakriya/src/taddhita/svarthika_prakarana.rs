@@ -10,25 +10,52 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     tp.with_context(IvePratikrtau, |tp| {
         let prati = tp.prati();
         if prati.has_text("vasti") {
+            // vAsteya
             tp.try_add("5.3.101", QaY);
         } else if prati.has_text("SilA") {
             tp.try_add("5.3.102", Qa);
         } else if prati.has_text_in(gana::SHAKHA_ADI) {
+            // SAKya, ...
             tp.try_add("5.3.103", yat);
         } else if prati.has_text("kuSAgra") {
+            // kuSAgrIya
             tp.try_add("5.3.105", Ca);
         } else if prati.has_text_in(gana::SHARKARA_ADI) {
             tp.try_add("5.3.107", aR);
         } else if prati.has_text_in(gana::ANGULI_ADI) {
             tp.try_add("5.3.108", Wak);
         } else if prati.has_text("ekaSAlA") {
-            tp.optional_try_add("5.3.109", Wac);
+            // ekaSAlikaH, EkaSAlikaH
+            let code = "5.3.109";
+            tp.try_add(code, Wac);
+            tp.try_add(code, Wak);
         } else if prati.has_text_in(&["karka", "lohita"]) {
             tp.try_add("5.3.110", Ikak);
         } else if tp.p.is_chandasi() && prati.has_text_in(&["pratna", "pUrva", "viSva", "ima"]) {
             tp.try_add("5.3.111", TAl);
         } else {
             tp.try_add("5.3.96", kan);
+        }
+    });
+
+    tp.with_context(AyudhaJiviSangha, |tp| {
+        let prati = tp.prati();
+        if prati.has_text("vfka") {
+            // vArkeRya
+            tp.try_add("5.3.115", weRyaR);
+        } else if prati.has_text_in(gana::DAMANI_ADI)
+            || prati.has_text_in(&[
+                "kORqoparaTa",
+                "dARqaki",
+                "kOzWika",
+                "jAlamAni",
+                "brahmagupta",
+                "jAnaki",
+            ])
+        {
+            tp.try_add("5.3.116", Ca);
+        } else {
+            tp.try_add("5.3.114", Yyaw);
         }
     });
 
@@ -55,14 +82,34 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         let prati = tp.prati();
         if prati.has_text_in(gana::STHULA_ADI) {
             tp.try_add("5.4.3", kan);
-        } else if prati.has_text_in(&["caYcut", "bfhat"]) {
+        } else if prati.has_text_in(&["caYcat", "bfhat"]) {
             tp.try_add("5.4.3.v1", kan);
+        } else {
+            // 5.4.3 is an apavAda to 5.3.69.
+            tp.try_add("5.3.69", jAtIyar);
+        }
+    });
+
+    tp.with_context(AnatyantaGati, |tp| {
+        let prati = tp.prati();
+        if prati.has_u("kta") {
+            tp.try_add("5.4.4", kan);
+        }
+    });
+
+    tp.with_context(Acchadana, |tp| {
+        let prati = tp.prati();
+        if prati.has_text("bfhatI") {
+            tp.try_add("5.4.6", kan);
         }
     });
 
     tp.with_context(Svarthe, |tp| {
         let prati = tp.prati();
-        if prati.has_text("anugAdin") {
+        if prati.has_text_in(&["azaqakza", "ASitaNgu", "alaNkarman", "alampuruza"]) {
+            // TOOD: adhy-uttara
+            tp.try_add("5.4.7", Ka);
+        } else if prati.has_text("anugAdin") {
             tp.try_add("5.4.13", Wak);
         }
     });
@@ -145,6 +192,22 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         tp.try_add("5.4.39", tikan);
     }
 
+    tp.with_context(Prashamsa, |tp| {
+        let prati = tp.prati();
+        if prati.has_text("mfd") {
+            let code = "5.4.41";
+            tp.try_add(code, sa);
+            tp.try_add(code, sna);
+        } else {
+            // 5.4.41 is an apavAda to 5.3.66.
+            tp.try_add("5.3.66", rUpap);
+        }
+    });
+
+    // Condition is "sankhya" or ekavacana. So, just accept everything.
+    tp.try_add("5.4.43", Sas);
+    tp.try_add("5.4.44", tasi);
+
     tp.with_context(AbhutaTadbhava, |tp| {
         tp.optional_try_add("5.4.52", sAti);
         tp.optional_try_add("5.4.55", trA);
@@ -159,8 +222,5 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         }
     });
 
-    // Condition is "sankhya" or ekavacana. So, just accept everything.
-    tp.try_add("5.4.43", Sas);
-    tp.try_add("5.4.44", tasi);
-    tp.try_add("5.4.52", sAti);
+    // 5.4.68 starts the samAsAnta-prakarana.
 }

@@ -4,9 +4,7 @@ A high-level interface to `vidyut-prakriya`.
 The main struct here is `Ashtadhyayi`. This struct accepts various config options that control how
 words are derived in the system. For details, see `AshtadhyayiBuilder`.
 */
-use crate::args::{
-    Dhatu, KrdantaArgs, Pada, Pratipadika, SamasaArgs, SubantaArgs, TaddhitantaArgs, TinantaArgs,
-};
+use crate::args::{Krdanta, Pada, Pratipadika, Samasa, Subanta, Taddhitanta, Tinanta};
 use crate::core::prakriya_stack::PrakriyaStack;
 use crate::core::Prakriya;
 use crate::core::Tag;
@@ -33,7 +31,7 @@ use crate::sutrapatha;
 /// ```no_run
 /// use vidyut_prakriya::Ashtadhyayi;
 ///
-/// let a = Ashtadhyayi::builder().log_steps(false).build();
+/// let a = Ashtadhyayi::builder().log_steps(false).is_chandasi(true).use_svaras(true).build();
 /// ```
 #[derive(Debug, Default)]
 pub struct Ashtadhyayi {
@@ -48,6 +46,8 @@ pub struct Ashtadhyayi {
     log_steps: bool,
     // If set, also generate chaandasa forms.
     is_chandasi: bool,
+    // If set, use svara rules. If unset, output will have no svaras.
+    use_svaras: bool,
 }
 
 // TODO: better error handling.
@@ -57,6 +57,7 @@ impl Ashtadhyayi {
         Ashtadhyayi {
             log_steps: true,
             is_chandasi: false,
+            use_svaras: false,
         }
     }
 
@@ -77,20 +78,21 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
-    /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
-    /// let args = TinantaArgs::builder()
+    /// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
+    /// let args = Tinanta::builder()
+    ///     .dhatu(dhatu)
     ///     .lakara(Lakara::Lat)
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
     ///     .build()?;
-    /// let prakriyas = a.derive_tinantas(&dhatu, &args);
+    /// let prakriyas = a.derive_tinantas(&args);
     /// # Ok::<(), Error>(())
     /// ```
-    pub fn derive_tinantas(&self, dhatu: &Dhatu, args: &TinantaArgs) -> Vec<Prakriya> {
+    pub fn derive_tinantas(&self, args: &Tinanta) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
         // TODO: handle error properly.
-        stack.find_all(|p| sutrapatha::derive_tinanta(p, dhatu, args));
+        stack.find_all(|p| sutrapatha::derive_tinanta(p, args));
         let mut prakriyas = stack.prakriyas();
 
         // If the caller specified an explicit pada, keep only the results that match that pada.
@@ -119,18 +121,18 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
-    /// let pratipadika = Pratipadika::new("nara");
-    /// let args = SubantaArgs::builder()
+    /// let args = Subanta::builder()
+    ///     .pratipadika(Pratipadika::basic("nara"))
     ///     .linga(Linga::Pum)
     ///     .vibhakti(Vibhakti::Trtiya)
     ///     .vacana(Vacana::Eka)
     ///     .build()?;
-    /// let prakriyas = a.derive_subantas(&pratipadika, &args);
+    /// let prakriyas = a.derive_subantas(&args);
     /// # Ok::<(), Error>(())
     /// ```
-    pub fn derive_subantas(&self, pratipadika: &Pratipadika, args: &SubantaArgs) -> Vec<Prakriya> {
+    pub fn derive_subantas(&self, subanta: &Subanta) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
-        stack.find_all(|p| sutrapatha::derive_subanta(p, pratipadika, args));
+        stack.find_all(|p| sutrapatha::derive_subanta(p, subanta));
         stack.prakriyas()
     }
 
@@ -140,21 +142,34 @@ impl Ashtadhyayi {
     ///
     /// ### Example
     ///
+    /// Using a basic krt-pratyaya.
+    ///
     /// ```
     /// # use vidyut_prakriya::Ashtadhyayi;
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
-    /// let dhatu = Dhatu::new("BU", Gana::Bhvadi);
-    /// let args = KrdantaArgs::builder()
-    ///     .krt(BaseKrt::ktvA)
-    ///     .build()?;
-    /// let prakriyas = a.derive_krdantas(&dhatu, &args);
+    /// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
+    /// let args = Krdanta::new(dhatu, BaseKrt::ktvA);
+    /// let prakriyas = a.derive_krdantas(&args);
     /// # Ok::<(), Error>(())
     /// ```
-    pub fn derive_krdantas(&self, dhatu: &Dhatu, args: &KrdantaArgs) -> Vec<Prakriya> {
+    ///
+    /// Using an unadi-pratyaya:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::Ashtadhyayi;
+    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::args::*;
+    /// let a = Ashtadhyayi::new();
+    /// let dhatu = Dhatu::mula("dF", Gana::Kryadi);
+    /// let args = Krdanta::new(dhatu, Unadi::YuR);
+    /// let prakriyas = a.derive_krdantas(&args);
+    /// # Ok::<(), Error>(())
+    /// ```
+    pub fn derive_krdantas(&self, krdanta: &Krdanta) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
-        stack.find_all(|p| sutrapatha::derive_krdanta(p, dhatu, args));
+        stack.find_all(|p| sutrapatha::derive_krdanta(p, krdanta));
         stack.prakriyas()
     }
 
@@ -169,20 +184,16 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
-    /// let pratipadika = Pratipadika::new("nara");
-    /// let args = TaddhitantaArgs::builder()
+    /// let args = Taddhitanta::builder()
+    ///     .pratipadika(Pratipadika::basic("nara"))
     ///     .taddhita(Taddhita::matup)
     ///     .build()?;
-    /// let prakriyas = a.derive_taddhitantas(&pratipadika, &args);
+    /// let prakriyas = a.derive_taddhitantas(&args);
     /// # Ok::<(), Error>(())
     /// ```
-    pub fn derive_taddhitantas(
-        &self,
-        pratipadika: &Pratipadika,
-        args: &TaddhitantaArgs,
-    ) -> Vec<Prakriya> {
+    pub fn derive_taddhitantas(&self, spec: &Taddhitanta) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
-        stack.find_all(|p| sutrapatha::derive_taddhitanta(p, pratipadika, args));
+        stack.find_all(|p| sutrapatha::derive_taddhitanta(p, spec));
         stack.prakriyas()
     }
 
@@ -197,7 +208,7 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
-    /// let pratipadika = Pratipadika::new("nara");
+    /// let pratipadika = Pratipadika::basic("nara");
     /// let prakriyas = a.derive_stryantas(&pratipadika);
     /// # Ok::<(), Error>(())
     /// ```
@@ -218,7 +229,7 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::args::*;
     /// let a = Ashtadhyayi::new();
     /// # Ok::<(), Error>(())
-    pub fn derive_samasas(&self, args: &SamasaArgs) -> Vec<Prakriya> {
+    pub fn derive_samasas(&self, args: &Samasa) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
         stack.find_all(|p| sutrapatha::derive_samasa(p, &args));
         stack.prakriyas()
@@ -233,17 +244,18 @@ impl Ashtadhyayi {
     /// # use vidyut_prakriya::Ashtadhyayi;
     /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::args::*;
+    ///
     /// let a = Ashtadhyayi::new();
     /// # Ok::<(), Error>(())
     pub fn derive_vakyas(&self, padas: &[Pada]) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
-        stack.find_all(|p| sutrapatha::derive_vakya(p, &padas));
+        stack.find_all(|p| sutrapatha::derive_vakya(p, padas));
         stack.prakriyas()
     }
 
     /// Creates a prakriya stack that generates prakriyas according to our derivation options.
     fn create_prakriya_stack(&self) -> PrakriyaStack {
-        PrakriyaStack::new(self.log_steps, self.is_chandasi)
+        PrakriyaStack::new(self.log_steps, self.is_chandasi, self.use_svaras)
     }
 }
 
@@ -278,8 +290,18 @@ impl AshtadhyayiBuilder {
     /// - If `true`, each `Prakriya` will have access to chAndasa rules.
     ///
     /// - If `false`, each `Prakriya` will use a standard ruleset.
-    pub fn is_chandasa(mut self, value: bool) -> Self {
+    pub fn is_chandasi(mut self, value: bool) -> Self {
         self.ashtadhyayi.is_chandasi = value;
+        self
+    }
+
+    /// *(default: folse)* Controls whether or not to run svara rules.
+    ///
+    /// - If `true`, each `Prakriya` will have its svaras marked.
+    ///
+    /// - If `false`, each `Prakriya` will leave svaras unset.
+    pub fn use_svaras(mut self, value: bool) -> Self {
+        self.ashtadhyayi.use_svaras = value;
         self
     }
 

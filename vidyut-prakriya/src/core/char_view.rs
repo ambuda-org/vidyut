@@ -137,7 +137,7 @@ impl<'a> CharPrakriya<'a> {
     ///
     /// - `filter` receives two consecutive terms and returns whether the rule should apply.
     /// - `op` receives the prakriya and the indices of the two terms.
-    pub fn for_terms(
+    pub fn for_non_empty_terms(
         &mut self,
         filter: impl Fn(&Term, &Term) -> bool,
         op: impl Fn(&mut Prakriya, usize, usize),
@@ -154,6 +154,13 @@ impl<'a> CharPrakriya<'a> {
         }
 
         Some(())
+    }
+
+    pub fn for_terms(&mut self, func: impl Fn(&mut Prakriya, usize) -> Option<()>) {
+        for i in 0..self.p.terms().len() {
+            func(self.p, i);
+        }
+        self.is_stale = true;
     }
 }
 

@@ -1,10 +1,11 @@
-use crate::args::SamasaArgs;
+use crate::args::Samasa;
 use crate::args::SamasaType;
 use crate::core::operators as op;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
 use crate::core::{Term, TermView};
 use crate::ganapatha as gana;
+use crate::it_samjna;
 
 // 2.1.3 samAsaH
 // 2.1.4 saha supA
@@ -41,7 +42,7 @@ impl<'a> SamasaPrakriya<'a> {
         self.mark_as_type(rule.into(), T::Bahuvrihi);
     }
 
-    fn mark_dvandva(&mut self, rule: impl Into<Rule>, args: &SamasaArgs) {
+    fn mark_dvandva(&mut self, rule: impl Into<Rule>, args: &Samasa) {
         let is_samahara = args.is_samahara_dvandva();
         self.p.run(rule, |p| {
             p.add_tag(T::Dvandva);
@@ -54,7 +55,7 @@ impl<'a> SamasaPrakriya<'a> {
     }
 }
 
-impl SamasaArgs {
+impl Samasa {
     fn is_avyayibhava(&self) -> bool {
         self.samasa_type() == SamasaType::Avyayibhava
     }
@@ -147,6 +148,24 @@ impl<'a> TermView<'a> {
     }
 }
 
+impl Prakriya {
+    pub(crate) fn is_trtiya_tatpurusha(&self) -> bool {
+        self.has_tag(T::Tatpurusha) && self.find_first(T::V3).is_some()
+    }
+
+    pub(crate) fn is_caturthi_tatpurusha(&self) -> bool {
+        self.has_tag(T::Tatpurusha) && self.find_first(T::V4).is_some()
+    }
+
+    pub(crate) fn is_panchami_tatpurusha(&self) -> bool {
+        self.has_tag(T::Tatpurusha) && self.find_first(T::V5).is_some()
+    }
+
+    pub(crate) fn is_saptami_tatpurusha(&self) -> bool {
+        self.has_tag(T::Tatpurusha) && self.find_first(T::V7).is_some()
+    }
+}
+
 fn make_su_pratyaya() -> Term {
     let mut su = Term::make_upadesha("su~");
     su.set_text("");
@@ -157,7 +176,7 @@ fn make_su_pratyaya() -> Term {
 /// Decides on the samasa type that best applies to `p`.
 ///
 /// Returns: whether or not `p` contains a samasa.
-fn decide_samasa_type(p: &mut Prakriya, args: &SamasaArgs) -> Option<bool> {
+fn decide_samasa_type(p: &mut Prakriya, args: &Samasa) -> Option<bool> {
     let mut sp = SamasaPrakriya::new(p);
 
     let purva = TermView::pratipadika_view(sp.p, 0)?;
@@ -242,7 +261,18 @@ fn decide_samasa_type(p: &mut Prakriya, args: &SamasaArgs) -> Option<bool> {
             } else if uttara.has_text_in(&["apeta", "apoQa", "mukta", "patita", "apatrasta"]) {
                 // suKApeta, ...
                 sp.mark_tatpurusha("2.1.38");
-            } else if purva.has_text_in(&["stoka", "antika", "dUra", "kfcCra"]) && uttara.is_kta() {
+            } else if purva.has_text_in(&[
+                // From the rule
+                "stoka",
+                "antika",
+                "dUra",
+                "kfcCra",
+                // From commentaries
+                "alpa",
+                "aByASa",
+                "viprakfzwa",
+            ]) && uttara.is_kta()
+            {
                 // stokAnmukta, ...
                 sp.mark_tatpurusha("2.1.39");
             }
@@ -261,6 +291,9 @@ fn decide_samasa_type(p: &mut Prakriya, args: &SamasaArgs) -> Option<bool> {
                 } else {
                     sp.mark_tatpurusha("2.1.45");
                 }
+            } else {
+                // TODO: mark samjna
+                sp.mark_tatpurusha("2.1.44");
             }
         } else if args.is_karmadharaya() {
             if purva.has_text_in(&["eka", "sarva", "jarat", "purARa", "nava", "kevala"]) {
@@ -312,7 +345,10 @@ fn decide_samasa_type(p: &mut Prakriya, args: &SamasaArgs) -> Option<bool> {
             } else {
                 sp.mark_tatpurusha("2.1.57");
             }
-        } else if purva.has_text("naY") {
+        } else if uttara.has_text("ahan") {
+            // sAyAhna, ...
+            sp.mark_tatpurusha("2.2.1");
+        } else if purva.has_u("naY") {
             // abrAhmaRa, ...
             sp.mark_tatpurusha("2.2.6");
         } else if purva.has_text("Izat") && !uttara.is_krt() {
@@ -337,7 +373,39 @@ fn decide_samasa_type(p: &mut Prakriya, args: &SamasaArgs) -> Option<bool> {
     Some(sp.done)
 }
 
-pub fn run(p: &mut Prakriya, args: &SamasaArgs) -> bool {
+pub fn try_sup_luk(p: &mut Prakriya) -> Option<()> {
+    let i_end = p.find_last_where(|t| t.is_samasa())?;
+    for i in 0..i_end {
+        let t = p.get(i)?;
+        if t.is_sup() {
+            if t.has_tag(T::Aluk) {
+                it_samjna::run(p, i).expect("ok");
+            } else {
+                p.run_at("2.4.71", i, op::luk);
+            }
+        }
+    }
+
+    Some(())
+}
+
+pub fn run_rules_for_avyayibhava(p: &mut Prakriya) {
+    if p.has_tag(T::Avyayibhava) {
+        p.run("2.4.17", |p| p.add_tag(T::Napumsaka));
+
+        let i_last = p.terms().len() - 1;
+        if p.has(i_last, |t| !t.is_sup()) {
+            p.run("4.1.2", |p| p.push(make_su_pratyaya()));
+            if p.has(i_last, |t| t.has_antya('a')) {
+                p.run_at("2.4.83", i_last + 1, |t| t.set_text("am"));
+            } else {
+                p.run_at("2.4.82", i_last + 1, op::luk);
+            }
+        }
+    }
+}
+
+pub fn run(p: &mut Prakriya, args: &Samasa) -> bool {
     let res = decide_samasa_type(p, args);
     match res {
         Some(true) => (),
@@ -346,25 +414,6 @@ pub fn run(p: &mut Prakriya, args: &SamasaArgs) -> bool {
 
     if p.has_tag(T::Tatpurusha) && args.is_karmadharaya() {
         p.run("1.2.42", |p| p.add_tag(T::Karmadharaya));
-    }
-
-    let i_last = p.terms().len() - 1;
-    for i in 0..=i_last {
-        if p.has(i, |t| t.is_sup()) {
-            p.run_at("2.4.71", i, op::luk);
-        }
-    }
-
-    if p.has_tag(T::Avyayibhava) {
-        p.run("2.4.17", |p| p.add_tag(T::Napumsaka));
-
-        let i_last = p.terms().len() - 1;
-        p.run("4.1.2", |p| p.push(make_su_pratyaya()));
-        if p.has(i_last, |t| t.has_antya('a')) {
-            p.run_at("2.4.83", i_last + 1, |t| t.set_text("am"));
-        } else {
-            p.run_at("2.4.82", i_last + 1, op::luk);
-        }
     }
 
     true

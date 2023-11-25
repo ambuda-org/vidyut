@@ -12,6 +12,7 @@ use crate::sounds::{s, Set};
 use lazy_static::lazy_static;
 
 lazy_static! {
+    static ref IN1: Set = s("iR");
     static ref IN2: Set = s("iR2");
     static ref IN_KU: Set = s("iR2 ku~");
     static ref KU_PU: Set = s("ku~ pu~");
@@ -43,7 +44,7 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
             continue;
         }
 
-        if p.has(i + 1, |t| t.has_adi('r')) {
+        if p.has_next_non_empty(i, |t| t.has_adi('r')) {
             p.run_at("8.3.14", i, op::antya(""));
             let c = p.get(i)?;
             if c.is_hrasva() {
@@ -71,7 +72,7 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
         |x, y| {
             x.has_antya('r')
                 && x.has_tag(T::Ru)
-                && (x.has_text_in(&["Bo", "Bago", "aGo"]) || x.has_upadha(&*AA))
+                && (x.has_u_in(&["Bos", "Bagos", "aGos"]) || x.has_upadha(&*AA))
                 && y.has_adi(&*ASH)
         },
         |p, i, j| {
@@ -117,7 +118,7 @@ fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
         |p, _, i| {
             if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
                 let t = p.get(i_term).expect("ok");
-                if t.is_pada() && i_offset + 1 == t.text.len() {
+                if t.is_pada() && i_offset + 1 == t.len() {
                     false
                 } else if t.has_text("pums") && !p.has(i_term + 1, |t| t.is_pada()) {
                     // Don't make this change for "m" in a pratipadika, so that we can derive
@@ -173,21 +174,26 @@ fn try_visarjaniyasya(p: &mut Prakriya) -> Option<()> {
         } else if y.has_at(1, &*SHAR) {
             p.run_at("8.3.35", i_x, |_| {});
         } else if y.has_adi(&*KU_PU) {
-            if x.has_text_in(&["namas", "puras"]) && x.has_tag(T::Gati) {
+            if x.has_text_in(&["namas", "puras"]) && x.is_gati() {
                 p.run_at("8.3.40", i_x, |t| t.set_antya("s"));
             } else if is_it_ut_upadha(x) && !x.is_pratyaya() {
                 p.run_at("8.3.41", i_x, |t| t.set_antya("z"));
-            } else if x.has_text("tiras") && x.has_tag(T::Gati) {
+            } else if x.has_u("tiras") && x.is_gati() {
                 p.optional_run_at("8.3.42", i_x, |t| t.set_antya("s"));
-            } else if x.text.ends_with("aH")
-                && is_samasa(p, i_x)
-                && !x.is_avyaya()
-                && y.has_u("qukf\\Y")
+            } else if x.ends_with("aH") && is_samasa(p, i_x) && !x.is_avyaya() && y.has_u("qukf\\Y")
             {
                 p.run_at("8.3.46", i_x, |t| t.set_antya("s"));
             } else if x.has_text("BAH") && y.has_text("kar") {
                 // TODO: rest of kaskAdi
                 p.run_at("8.3.48", i_x, |t| t.set_antya("s"));
+            } else if x.has_tag(T::Ru) && y.is_pratyaya() {
+                if x.has_antya(&*IN1) {
+                    // sarpizpASam, ...
+                    p.run_at("8.3.39", i_x, |t| t.set_antya("z"));
+                } else {
+                    // yaSaskAmyati, svaHkAmyati,
+                    p.run_at("8.3.38", i_x, |t| t.set_antya("s"));
+                }
             } else {
                 // TODO: jihvamuliya and upadhmaniya
                 p.run_at("8.3.37", i_x, |t| t.set_antya("H"));
@@ -229,8 +235,16 @@ impl<'a> ShaPrakriya<'a> {
         self.p.get(self.i_term).expect("ok")
     }
 
+    fn i_prev(&self) -> Option<usize> {
+        self.p.find_prev_where(self.i_term, |t| !t.is_empty())
+    }
+
     fn has_upasarga_in(&self, text: &[&str]) -> bool {
-        self.i_term > 0 && self.p.has(self.i_term - 1, |t| t.has_text_in(text))
+        if let Some(i_prev) = self.i_prev() {
+            self.p.has(i_prev, |t| t.has_text_in(text))
+        } else {
+            false
+        }
     }
 
     fn try_block(&mut self, rule: Code) {
@@ -356,12 +370,12 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         let i_upasarga = maybe_i_upasarga?;
 
         // No gap between upasarga and dhatu.
-        let no_vyavaya = i_upasarga + 1 == sp.i_term;
+        let no_vyavaya = i_upasarga + 2 == sp.i_term;
         // Gap between upasarga and dhatu is just an abhyasa.
-        let at_vyavaya = i_upasarga + 2 == sp.i_term
-            && sp.p.has(i_upasarga + 1, |t| t.is_agama() && t.has_u("aw"));
+        let at_vyavaya = i_upasarga + 3 == sp.i_term
+            && sp.p.has(i_upasarga + 2, |t| t.is_agama() && t.has_u("aw"));
         let abhyasa_vyavaya =
-            i_upasarga + 2 == sp.i_term && sp.p.has(i_upasarga + 1, |t| t.is_abhyasa());
+            i_upasarga + 3 == sp.i_term && sp.p.has(i_upasarga + 2, |t| t.is_abhyasa());
 
         // Check both upadesha and gana to avoid matching dhatus in other ganas.
         const SU_TO_STUBH: &[(&str, Gana)] = &[
@@ -567,7 +581,8 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         let shan =
             sp.p.find_next_where(sp.i_term, |t| t.has_u("san") && t.has_adi('z'));
 
-        if shan.is_some() {
+        // Check !is_pratyaya to allow "titik[z]izate"
+        if shan.is_some() && !term.is_pratyaya() {
             let nau = sp.p.has(sp.i_term + 1, |t| t.is_ni_pratyaya());
 
             // Prefer `has_u_in` over `has_text_in` because `has_u_in` is more reliable and doesn't
@@ -617,8 +632,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         let is_first_s_of_term = if sp.i_term == 0 {
             sp.i_char == 0
         } else {
-            let num_chars_before: usize =
-                sp.p.terms()[..sp.i_term].iter().map(|t| t.text.len()).sum();
+            let num_chars_before: usize = sp.p.terms()[..sp.i_term].iter().map(|t| t.len()).sum();
             num_chars_before == sp.i_char
         };
         let t = sp.p.get(sp.i_term)?;
@@ -668,7 +682,7 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
     // 8.3.61.
     //
     // Use a `bytes()` iterator because `chars()` doesn't support `.enumerate().rev()`
-    let text = p.text();
+    let text = p.compact_text();
     for (i, c) in text.bytes().enumerate().rev() {
         if (c as char) == 's' {
             let mut sp = ShaPrakriya::new(p, i);

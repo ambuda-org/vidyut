@@ -18,48 +18,50 @@
  *   hacky way if that fixes the problem.
  */
 
-import init, { Krt, Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, Pada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
+import init, { BaseKrt, Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, DhatuPada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
 
 // Krts that create ordinary nouns.
 const NOMINAL_KRTS = [
-    Krt.GaY,
-    Krt.lyuw,
-    Krt.Rvul,
-    Krt.tfc,
-    Krt.kvip,
+    BaseKrt.GaY,
+    BaseKrt.lyuw,
+    BaseKrt.Rvul,
+    BaseKrt.tfc,
+    BaseKrt.kvip,
 ];
 
 // Krts that are generally called *participles*.
 const PARTICIPLE_KRTS = [
-    Krt.tavya,
-    Krt.anIyar,
-    Krt.yat,
-    Krt.Ryat,
+    BaseKrt.tavya,
+    BaseKrt.anIyar,
+    BaseKrt.yat,
+    BaseKrt.Ryat,
 
-    Krt.Satf,
-    Krt.SAnac,
+    BaseKrt.Satf,
+    BaseKrt.SAnac,
 
-    Krt.kta,
-    Krt.ktavatu,
+    BaseKrt.kta,
+    BaseKrt.ktavatu,
 
-    Krt.kvasu,
-    Krt.kAnac,
+    BaseKrt.kvasu,
+    BaseKrt.kAnac,
 ];
 
 // Krts that create avyayas.
 const AVYAYA_KRTS = [
-    Krt.tumun,
-    Krt.ktvA,
-    Krt.Ramul,
+    BaseKrt.tumun,
+    BaseKrt.ktvA,
+    BaseKrt.Ramul,
 ];
 
+// What to call these params in the URL.
 const Params = {
     Dhatu: "dhatu",
     Tab: "tab",
-    Pada: "pada",
+    DhatuPada: "pada",
     Prayoga: "prayoga",
     Sanadi: "sanadi",
     ActivePada: "activePada",
+    Upasarga: "upasarga",
 }
 
 // Turn the TSV file sutrapatha.tsv into a map.
@@ -103,7 +105,7 @@ function createKrdantasFrom(vidyut, dhatu, upasarga, sanadi, krtList) {
             });
         });
         results.push({
-            title: Krt[krt],
+            title: BaseKrt[krt],
             padas,
         });
     });
@@ -255,7 +257,7 @@ const App = () => ({
             setParam(url, Params.ActivePada, null);
         }
 
-        console.log("updateUrlState to: ", url);
+        console.log("updateUrlState to: ", url.href);
 
         history.replaceState(null, document.title, url.toString());
     },
@@ -470,12 +472,12 @@ const App = () => ({
 
         const dhatu = this.activeDhatu;
         const lakaras = Object.values(Lakara).filter(Number.isInteger);
-        const tinPadas = Object.values(Pada).filter(Number.isInteger);
+        const tinPadas = Object.values(DhatuPada).filter(Number.isInteger);
         const prayoga = this.prayoga !== null ? this.prayoga : Prayoga.Kartari;
         const sanadi = this.sanadi || null;;
         const upasarga = this.upasarga || null;;
 
-        console.log("createTinantas", prayoga, sanadi, upasarga);
+        console.log("createTinantas", prayoga, this.sanadi, upasarga);
         let results = [];
         for (const lakara in lakaras) {
             let laResults = {
@@ -483,7 +485,7 @@ const App = () => ({
             };
 
             for (const tinPada in tinPadas) {
-                const padaKey = Pada[tinPada];
+                const padaKey = DhatuPada[tinPada];
                 const paradigm = this.createParadigm({
                     dhatu,
                     lakara,

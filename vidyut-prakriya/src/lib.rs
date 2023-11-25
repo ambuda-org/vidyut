@@ -26,7 +26,13 @@ pub mod private {
 mod core;
 mod sounds;
 
-// Rules
+/// Other texts.
+mod ganapatha;
+mod linganushasanam;
+mod phit_sutraani;
+mod sutrapatha;
+
+// Components of the sutrapatha.
 mod ac_sandhi;
 mod angasya;
 mod ardhadhatuka;
@@ -36,12 +42,10 @@ mod atmanepada;
 mod dhatu_gana;
 mod dhatu_karya;
 mod dvitva;
-mod ganapatha;
 mod it_agama;
 mod it_samjna;
 mod krt;
 mod la_karya;
-mod linganushasanam;
 mod misc;
 mod pratipadika_karya;
 mod samasa;
@@ -51,7 +55,7 @@ mod sanadi;
 mod stem_gana;
 mod stritva;
 mod sup_karya;
-mod sutrapatha;
+mod svara;
 mod taddhita;
 mod tin_pratyaya;
 mod tripadi;

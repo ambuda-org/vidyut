@@ -244,6 +244,13 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 kp.try_add(UP("2.25"), krt);
             }
         }
+        U::ati => {
+            if dhatu.has_text_in(&["mah"]) {
+                kp.try_add_with(UP("2.84"), krt, |p| {
+                    p.set(i_dhatu + 1, |t| t.add_tags(&[T::Sit, T::fdit]));
+                });
+            }
+        }
         U::isi => {
             if dhatu.has_u_in(&["arca~", "I~Suci~^r", "hu\\", "sf\\px~", "Cada~", "Carda~"]) {
                 kp.try_add(UP("2.108"), krt);
@@ -310,7 +317,7 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 kp.try_add_with(UP("3.127"), krt, mark_as(T::zit));
                 // rohanta, nadanta ...
             } else if dhatu
-                .has_text_in(&["tF", "BU", "vah", "vas", "BAs", "sAD", "gaRq", "maRq", "ji"])
+                .has_text_in(&["tF", "BU", "vah", "vas", "BAs", "sAD", "ganq", "manq", "ji"])
             {
                 // taranta, Bavanta, ...
                 // TODO: nandayanta
@@ -435,6 +442,15 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_u("patx~") {
                 // paTin
                 kp.try_add_with(UP("4.12"), krt, set_antya("T"));
+            }
+        }
+        U::ni => {
+            if dhatu.has_u_in(&["anga"]) {
+                // agni
+                kp.try_add_with(UP("4.50"), krt, |p| {
+                    let i_last = p.terms().len() - 1;
+                    p.set(i_last, |t| t.find_and_replace_text("n", ""))
+                });
             }
         }
         U::kvin => {

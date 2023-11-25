@@ -75,7 +75,6 @@ fn sk_322() {
     assert_has_sup_3s("daDi", Napumsaka, &["daDnA"]);
 }
 
-#[ignore]
 #[test]
 fn sk_323() {
     assert_has_sup_1s("pradyo", Napumsaka, &["pradyu"]);
@@ -83,13 +82,14 @@ fn sk_323() {
     assert_has_sup_1p("pradyo", Napumsaka, &["pradyUni"]);
     assert_has_sup_3s("pradyo", Napumsaka, &["pradyunA"]);
 
-    assert_has_sup_1s("prarE", Napumsaka, &["prari"]);
-    assert_has_sup_1d("prarE", Napumsaka, &["prariRI"]);
-    assert_has_sup_1p("prarE", Napumsaka, &["prarIRi"]);
-    assert_has_sup_3s("prarE", Napumsaka, &["prariRA"]);
-    assert_has_sup_3d("prarE", Napumsaka, &["prarAByAm"]);
-    assert_has_sup_3p("prarE", Napumsaka, &["prarABiH"]);
-    assert_has_sup_6p("prarE", Napumsaka, &["prarIRAm"]);
+    let prari = create_avyaya_tatpurusha("prarE", "pra", "rE");
+    assert_has_sup_1s(&prari, Napumsaka, &["prari"]);
+    assert_has_sup_1d(&prari, Napumsaka, &["prariRI"]);
+    assert_has_sup_1p(&prari, Napumsaka, &["prarIRi"]);
+    assert_has_sup_3s(&prari, Napumsaka, &["prariRA"]);
+    assert_has_sup_3d(&prari, Napumsaka, &["prarAByAm"]);
+    assert_has_sup_3p(&prari, Napumsaka, &["prarABiH"]);
+    assert_has_sup_6p(&prari, Napumsaka, &["prarIRAm"]);
 
     assert_has_sup_1s("sunu", Napumsaka, &["sunu"]);
     assert_has_sup_1d("sunu", Napumsaka, &["sununI"]);

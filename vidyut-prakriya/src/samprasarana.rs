@@ -150,8 +150,7 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
         set_text("6.1.22", p, "sPI");
     } else if dhatu.has_text("styE")
         && n.has_tag(T::Nistha)
-        && i > 0
-        && p.has(i - 1, |t| t.has_u("pra"))
+        && p.has_prev_non_empty(i, |t| t.has_u("pra"))
     {
         // prastIta
         set_text("6.1.23", p, "sti");
@@ -175,7 +174,7 @@ pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("jyA\\") && n.has_u("lyap") {
         p.step("6.1.42");
     } else if dhatu.has_u("vye\\Y") && n.has_u("lyap") {
-        if i > 0 && p.has(i - 1, |t| t.has_u("pari")) {
+        if p.has_prev_non_empty(i, |t| t.has_u("pari")) {
             optional_set_text("6.1.44", p, "vi");
         } else {
             p.step("6.1.43");
@@ -207,7 +206,7 @@ pub fn run_for_abhyasa(p: &mut Prakriya) -> Option<()> {
     if last.has_lakshana("li~w") {
         // yadā ca dhātorna bhavati tadā "liṭyabhyāsasya ubhayeṣām"
         // ityabhyāsasya api na bhavati -- kāśikā.
-        if is_vaci_svapi(dhatu) && !dhatu.text.starts_with("Sv") {
+        if is_vaci_svapi(dhatu) && !dhatu.starts_with("Sv") {
             if dhatu.has_u("ve\\Y") {
                 p.step("6.1.40");
             } else {

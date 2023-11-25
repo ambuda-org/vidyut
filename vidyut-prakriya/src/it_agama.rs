@@ -102,13 +102,8 @@ impl<'a> ItPrakriya<'a> {
 
     /// Returns whether the term before the anga has an upasarga with one of the given values.
     fn has_upasarga_in(&self, values: &[&str]) -> bool {
-        if self.i_anga == 0 {
-            false
-        } else {
-            self.p.has(self.i_anga - 1, |t| {
-                t.has_text_in(values) && t.is_upasarga()
-            })
-        }
+        self.p
+            .has_prev_non_empty(self.i_anga, |t| t.is_upasarga() && t.has_text_in(values))
     }
 
     /// Inserts it-Agama and prevents further rules.
@@ -301,11 +296,12 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         }
 
         if !ip.done {
-            // The effect of 7.2.13 is that all other roots are considerd `sew` by
+            // The effect of 7.2.13 is that all other anudatta roots are considerd `sew` by
             // default.
             ip.p.step("7.2.13");
+            let anga = ip.anga();
             let n = ip.next();
-            if n.has_adi(&*VAL) {
+            if n.has_adi(&*VAL) && anga.has_tag(T::Anudatta) {
                 ip.try_add("7.2.35");
             }
         }
@@ -331,9 +327,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         let rdhu_adi = &[
             "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap",
         ];
-        if anga.text.ends_with("iv")
-            || anga.has_text_in(rdhu_adi)
-            || anga.has_u_in(&["zaRu~^", "zaRa~"])
+        if anga.ends_with("iv") || anga.has_text_in(rdhu_adi) || anga.has_u_in(&["zaRu~^", "zaRa~"])
         {
             // didevizati, dudyUzati;
             // ardiDizati, Irtsati;
@@ -452,7 +446,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     let has_parasmaipada = ip.p.has_tag(T::Parasmaipada);
     let se = n.has_adi('s');
 
-    let krta_crta = &["kft", "cft", "Cfd", "tfd", "nft"];
+    let krta_crta = &["kftI~", "cftI~", "u~Cfdi~^r", "u~tfdi~^r", "nftI~"];
     let ishu_saha = &["izu~", "zaha~\\", "luBa~", "ruza~", "riza~"];
 
     if ip.done {
@@ -469,7 +463,8 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         }
     } else if anga.has_u_in(ishu_saha) && n.has_adi('t') {
         ip.optional_try_block("7.2.48");
-    } else if anga.has_text_in(krta_crta) && se && !n.has_u("si~c") {
+    } else if anga.has_u_in(krta_crta) && se && !n.has_u("si~c") {
+        // kartsyati, kartizyati, ...
         ip.optional_try_block("7.2.57");
     } else if anga.has_text("gam") && has_parasmaipada && se {
         // gamizyati
@@ -552,7 +547,7 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
     let tin = n.last();
 
     let rudh_adi = &["rudi~r", "Yizva\\pa~", "Svasa~", "ana~", "jakza~"];
-    let is_aprkta = n.slice().iter().map(|t| t.text.len()).sum::<usize>() == 1;
+    let is_aprkta = n.slice().iter().map(|t| t.len()).sum::<usize>() == 1;
     if anga.has_u("a\\da~") && is_aprkta {
         op::insert_agama_at("7.3.100", ip.p, i_n, "aw");
     } else if anga.has_u_in(rudh_adi) {

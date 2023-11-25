@@ -21,7 +21,7 @@ pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
         t.is_vibhakti()
             && !t.is_lupta()
             && !t.has_u_in(&["su~", "O", "jas", "am", "Ow"])
-            && t.u != None
+            && t.u.is_some()
     });
 
     if is_shas_prabhrti {

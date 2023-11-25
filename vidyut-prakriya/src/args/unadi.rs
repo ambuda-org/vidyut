@@ -644,7 +644,7 @@ enum_boilerplate!(Unadi, {
     aWa => "aWa",
     aRqan => "aRqan",
     atac => "atac",
-    ati => "ati",
+    ati => "ati~",
     atran => "atran",
     atrin => "atrin",
     aTa => "aTa",

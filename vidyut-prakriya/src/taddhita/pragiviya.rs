@@ -100,7 +100,8 @@ pub fn run(tp: &mut TaddhitaPrakriya) -> Option<()> {
     }
 
     // vaiyAkaraRarUpa
-    tp.try_add("5.3.66", rUpap);
+
+    // 5.3.66 is stated near 5.4.41 -- see that rule for details.
 
     // pawukalpa
     let code = "5.3.67";
@@ -110,7 +111,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) -> Option<()> {
 
     tp.try_prepend("5.3.68", bahuc);
 
-    tp.try_add("5.3.69", jAtIyar);
+    // 5.3.69 is stated near 5.4.3 -- see that rule for details.
 
     // --------------------
     // 5.3.70 prAg ivAt kaH
@@ -146,13 +147,34 @@ pub fn run(tp: &mut TaddhitaPrakriya) -> Option<()> {
             tp.try_add("5.3.90", zwarac);
         }
         tp.optional_try_add("5.3.87", kan);
-        try_base_cases(tp, "5.3.86");
+        if !tp.had_match {
+            try_base_cases(tp, "5.3.86");
+        }
     });
 
     tp.with_context(Tanutve, |tp| {
         let prati = tp.prati();
         if prati.has_text_in(&["vatsa", "ukzan", "aSva", "fzaBa"]) {
             tp.try_add("5.3.91", zwarac);
+        }
+    });
+
+    tp.with_context(DvayorEka, |tp| {
+        let prati = tp.prati();
+        if prati.has_text_in(&["kim", "yad", "tad"]) {
+            tp.try_add("5.3.92", qatarac);
+        } else if prati.has_text("eka") {
+            tp.try_add("5.3.94", qatarac);
+        }
+    });
+
+    tp.with_context(BahunamEka, |tp| {
+        let prati = tp.prati();
+        if prati.has_text_in(&["kim", "yad", "tad"]) {
+            tp.try_add("5.3.93", qatamac);
+        } else if prati.has_text("eka") {
+            // Also appears in DvayorEka above.
+            tp.try_add("5.3.94", qatarac);
         }
     });
 

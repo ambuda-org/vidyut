@@ -150,6 +150,8 @@ pub enum Tag {
     /// (pratyaya) indicates lopa that causes dvitva (hu -> juhoti)
     Slu,
     Lup,
+    /// Indicates that luk is blocked.
+    Aluk,
 
     /// (dhatu) various functions:
     /// - blocks it-agama per 7.2.10.
@@ -172,9 +174,6 @@ pub enum Tag {
     Ashih,
     Sanartha,
     Yanartha,
-
-    // Dialect conditions
-    Chandasi,
 
     // Prayoga
     Kartari,
@@ -285,10 +284,8 @@ pub enum Tag {
     Samahara,
 
     StriNyap,
-    TrnTrc,
     Pada,
     Bha,
-    YanLuk,
     Dvitva,
     Gha,
 

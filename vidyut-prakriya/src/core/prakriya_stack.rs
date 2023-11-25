@@ -12,6 +12,8 @@ pub(crate) struct PrakriyaStack {
     log_steps: bool,
     /// Whether a prakriya should use chAndasa rules.
     is_chandasi: bool,
+    /// Whether svara rules are enabled.
+    use_svaras: bool,
 
     /// Completed prakriyas.
     prakriyas: Vec<Prakriya>,
@@ -21,12 +23,13 @@ pub(crate) struct PrakriyaStack {
 
 impl PrakriyaStack {
     /// Creates an empty `PrakriyaStack`.
-    pub fn new(log_steps: bool, is_chandasi: bool) -> Self {
+    pub fn new(log_steps: bool, is_chandasi: bool, use_svaras: bool) -> Self {
         Self {
             prakriyas: Vec::new(),
             paths: Vec::new(),
             log_steps,
             is_chandasi,
+            use_svaras,
         }
     }
 
@@ -36,6 +39,7 @@ impl PrakriyaStack {
             rule_choices,
             log_steps: self.log_steps,
             is_chandasi: self.is_chandasi,
+            use_svaras: self.use_svaras,
         })
     }
 

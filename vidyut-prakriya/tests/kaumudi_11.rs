@@ -4,8 +4,9 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Pratipadika;
-use vidyut_prakriya::args::SamasaType::*;
+use vidyut_prakriya::args::Samasa;
 use vidyut_prakriya::args::{BaseKrt as Krt, Gana};
+use vidyut_prakriya::args::{Vacana, Vibhakti};
 
 #[test]
 fn sk_324() {
@@ -31,7 +32,7 @@ fn sk_326() {
     assert_has_krdanta(&[], &duh, Krt::kta, &["dugDa"]);
     assert_has_krdanta(&[], &duh, Krt::tfc, &["dogDf"]);
 
-    let duh = dhatu_prati("duh");
+    let duh = krdanta(&[], &d("du\\ha~^", Adadi), Krt::kvip);
     assert_has_sup_1s(&duh, Pum, &["Duk"]);
     assert_has_sup_1d(&duh, Pum, &["duhO"]);
     assert_has_sup_1p(&duh, Pum, &["duhaH"]);
@@ -83,18 +84,20 @@ fn sk_333() {
     assert_has_sup_3s("anaquh", Pum, &["anaquhA"]);
 }
 
-#[ignore]
 #[test]
 fn sk_334() {
+    let vid = d("vida~", Adadi);
+    let vidvas = create_krdanta("vidvas", &[], &vid, Krt::Satf);
+
     assert_has_sup_3d("anaquh", Pum, &["anaqudByAm"]);
-    assert_has_sup_1s("vidvas", Pum, &["vidvAn"]);
+    assert_has_sup_1s(&vidvas, Pum, &["vidvAn"]);
     assert_has_krdanta(&[], &d("sransu~\\", Bhvadi), Krt::kta, &["srasta"]);
     assert_has_krdanta(&[], &d("Dvansu~\\", Bhvadi), Krt::kta, &["Dvasta"]);
 }
 
 #[test]
 fn sk_336() {
-    let sudiv = create_samasa("sudiv", &["su", "div"], Bahuvrihi);
+    let sudiv = bahuvrihi("su", "div");
     assert_has_sup_1s(&sudiv, Pum, &["sudyOH"]);
     assert_has_sup_1d(&sudiv, Pum, &["sudivO"]);
     assert_has_sup_1p(&sudiv, Pum, &["sudivaH"]);
@@ -104,7 +107,7 @@ fn sk_336() {
 
 #[test]
 fn sk_337() {
-    let sudiv = create_samasa("sudiv", &["su", "div"], Bahuvrihi);
+    let sudiv = bahuvrihi("su", "div");
     assert_has_sup_3d(&sudiv, Pum, &["sudyuByAm"]);
     assert_has_sup_3p(&sudiv, Pum, &["sudyuBiH"]);
 
@@ -128,7 +131,7 @@ fn skip_sk_339() {}
 fn sk_340() {
     assert_has_sup_7p("catur", Pum, &["caturzu"]);
 
-    let priyacatur = create_samasa("priyacatur", &["priya", "catur"], Bahuvrihi);
+    let priyacatur = bahuvrihi("priya", "catur");
     assert_has_sup_1s(&priyacatur, Pum, &["priyacatvAH"]);
     assert_has_sup_ss(&priyacatur, Pum, &["priyacatvaH"]);
     assert_has_sup_1d(&priyacatur, Pum, &["priyacatvArO"]);
@@ -244,16 +247,26 @@ fn skip_sk_360() {}
 #[ignore]
 #[test]
 fn sk_361() {
-    assert_has_sup_1s("maGavan", Pum, &["maGavAn"]);
-    assert_has_sup_1s("maGavan", Pum, &["maGavantO"]);
-    assert_has_sup_1s("maGavan", Pum, &["maGavantaH"]);
+    assert_has_sup_1s("maGavan", Pum, &["maGavAn", "maGavA"]);
+    assert_has_sup_1s("maGavan", Pum, &["maGavantO", "maGavAnO"]);
+    assert_has_sup_1s("maGavan", Pum, &["maGavantaH", "maGavAnaH"]);
     assert_has_sup_ss("maGavan", Pum, &["maGavan"]);
-    assert_has_sup_ss("maGavan", Pum, &["maGavantam"]);
-    assert_has_sup_ss("maGavan", Pum, &["maGavantO"]);
-    assert_has_sup_ss("maGavan", Pum, &["maGavataH"]);
-    assert_has_sup_ss("maGavan", Pum, &["maGavatA"]);
-    assert_has_sup_ss("maGavan", Pum, &["maGavadByAm"]);
-    assert_has_sup_ss("maGavan", Pum, &["maGavadByAm"]);
+    assert_has_sup_ss("maGavan", Pum, &["maGavantam", "maGavAnam"]);
+    assert_has_sup_ss("maGavan", Pum, &["maGavantO", "maGavAnO"]);
+    assert_has_sup_ss("maGavan", Pum, &["maGavataH", "maGavAnaH"]);
+    assert_has_sup_ss("maGavan", Pum, &["maGavatA", "maGonA"]);
+    assert_has_sup_ss("maGavan", Pum, &["maGavadByAm", "maGavaByAm"]);
+    assert_has_sup_ss("maGavan", Pum, &["maGavadByAm", "maGavaByAm"]);
+
+    // TODO: others (maGavA?)
+}
+
+#[ignore]
+#[test]
+fn sk_362() {
+    assert_has_sup_6s("maGavan", Pum, &["maGonaH", "maGavataH"]);
+    assert_has_sup_2p("maGavan", Pum, &["maGavataH"]);
+    assert_has_sup_3s("maGavan", Pum, &["maGavatA"]);
 }
 
 #[test]
@@ -309,26 +322,26 @@ fn sk_377() {
     assert_has_sup_3d(&yuj, Pum, &["yugByAm"]);
 }
 
-#[ignore]
 #[test]
 fn sk_378() {
     let yuj = create_krdanta("yuj", &[], &d("yu\\ji~^r", Rudhadi), Krt::kvin);
-    let suyuj = create_samasa_p("suyuj", &[Pratipadika::from("su"), yuj], Bahuvrihi);
+    let suyuj = bahuvrihi(Pratipadika::basic("su"), yuj);
     assert_has_sup_1s(&suyuj, Pum, &["suyuk"]);
     assert_has_sup_1d(&suyuj, Pum, &["suyujO"]);
     assert_has_sup_1p(&suyuj, Pum, &["suyujaH"]);
 
     // TODO: do others here
 
-    let khanj = create_krdanta("KaYj", &[], &d("Kaji~", Bhvadi), Krt::kvip);
+    let khanj = krdanta(&[], &d("Kaji~", Bhvadi), Krt::kvip);
     assert_has_sup_1s(&khanj, Pum, &["Kan"]);
     assert_has_sup_1d(&khanj, Pum, &["KaYjO"]);
     assert_has_sup_1p(&khanj, Pum, &["KaYjaH"]);
 
-    assert_has_sup_1s("rAj", Pum, &["rAw"]);
-    assert_has_sup_1d("rAj", Pum, &["rAjO"]);
-    assert_has_sup_1p("rAj", Pum, &["rAjaH"]);
-    assert_has_sup_7p("rAj", Pum, &["rAwsu", "rAwtsu"]);
+    let raj = krdanta(&[], &d("rAjf~^", Bhvadi), Krt::kvip);
+    assert_has_sup_1s(&raj, Pum, &["rAw"]);
+    assert_has_sup_1d(&raj, Pum, &["rAjO"]);
+    assert_has_sup_1p(&raj, Pum, &["rAjaH"]);
+    assert_has_sup_7p(&raj, Pum, &["rAwsu", "rAwtsu"]);
 }
 
 #[test]
@@ -337,11 +350,19 @@ fn skip_sk_382_to_sk_384() {}
 #[test]
 fn skip_sk_386() {}
 
-#[ignore]
 #[test]
 fn sk_388() {
+    fn sup_1p(args: Samasa) -> Samasa {
+        args.with_sup(Pum, Vibhakti::Prathama, Vacana::Bahu)
+    }
+
     assert_has_sup_1p("yuzmad", Pum, &["yUyam"]);
     assert_has_sup_1p("asmad", Pum, &["vayam"]);
+
+    assert_has_samasas(&sup_1p(karmadharaya("parama", "yuzmad")), &["paramayUyam"]);
+    assert_has_samasas(&sup_1p(karmadharaya("parama", "asmad")), &["paramavayam"]);
+    assert_has_samasas(&sup_1p(karmadharaya("ati", "yuzmad")), &["atiyUyam"]);
+    assert_has_samasas(&sup_1p(karmadharaya("ati", "asmad")), &["ativayam"]);
 }
 
 #[test]
@@ -375,11 +396,22 @@ fn sk_393() {
     assert_has_sup_3p("asmad", Pum, &["asmABiH"]);
 }
 
-#[ignore]
 #[test]
 fn sk_394() {
+    fn sup_4s(args: Samasa) -> Samasa {
+        args.with_sup(Pum, Vibhakti::Caturthi, Vacana::Eka)
+    }
+
     assert_has_sup_4s("yuzmad", Pum, &["tuByam"]);
     assert_has_sup_4s("asmad", Pum, &["mahyam"]);
+
+    assert_has_samasas(&sup_4s(karmadharaya("parama", "yuzmad")), &["paramatuByam"]);
+    assert_has_samasas(&sup_4s(karmadharaya("parama", "asmad")), &["paramamahyam"]);
+    assert_has_samasas(&sup_4s(karmadharaya("ati", "yuzmad")), &["atituByam"]);
+    assert_has_samasas(&sup_4s(karmadharaya("ati", "asmad")), &["atimahyam"]);
+
+    assert_has_sup_4d("yuzmad", Pum, &["yuvAByAm"]);
+    assert_has_sup_4d("asmad", Pum, &["AvAByAm"]);
 }
 
 #[test]
@@ -396,7 +428,6 @@ fn sk_396() {
     assert_has_sup_5d("asmad", Pum, &["AvAByAm"]);
 }
 
-#[ignore]
 #[test]
 fn sk_397() {
     assert_has_sup_5p("yuzmad", Pum, &["yuzmat"]);
@@ -459,11 +490,10 @@ fn sk_428() {
     // let vevyat = create_krdanta("vevyat", &[], &d("vevIN", Adadi), Krt::Satf);
     // assert_has_sup_1s(&vevyat, Pum, &["vevyat"]);
 
-    let gup = create_krdanta("gup", &[], &d("gupU~", Bhvadi), Krt::kvip);
-    assert_has_sup_1s(&gup, Pum, &["gup"]);
-    assert_has_sup_1d(&gup, Pum, &["gupO"]);
-    assert_has_sup_1p(&gup, Pum, &["gupaH"]);
-    assert_has_sup_3d(&gup, Pum, &["gubByAm"]);
+    assert_has_sup_1s("gup", Pum, &["gup"]);
+    assert_has_sup_1d("gup", Pum, &["gupO"]);
+    assert_has_sup_1p("gup", Pum, &["gupaH"]);
+    assert_has_sup_3d("gup", Pum, &["gubByAm"]);
 }
 
 #[test]
@@ -480,7 +510,7 @@ fn skip_sk_431() {
 
 #[test]
 fn sk_433() {
-    let pipathis = create_krdanta("pipaWiz", &[], &san(&d("paWa~", Bhvadi)), Krt::kvip);
+    let pipathis = krdanta(&[], &san(&d("paWa~", Bhvadi)), Krt::kvip);
     assert_has_sup_1s(&pipathis, Pum, &["pipaWIH"]);
     assert_has_sup_1d(&pipathis, Pum, &["pipaWizO"]);
     assert_has_sup_1p(&pipathis, Pum, &["pipaWizaH"]);
@@ -489,7 +519,7 @@ fn sk_433() {
 
 #[test]
 fn sk_434() {
-    let pipathis = create_krdanta("pipaWiz", &[], &san(&d("paWa~", Bhvadi)), Krt::kvip);
+    let pipathis = krdanta(&[], &san(&d("paWa~", Bhvadi)), Krt::kvip);
     assert_has_sup_7p(&pipathis, Pum, &["pipaWIzzu", "pipaWIHzu"]);
 
     let nins = d("Risi~\\", Adadi);
@@ -499,7 +529,7 @@ fn sk_434() {
     assert_has_sup_7p("suhins", Pum, &["suhinsu"]);
     assert_has_sup_7p("pums", Pum, &["puMsu"]);
 
-    let cikirsh = create_krdanta("cikIrz", &[], &san(&d("qukf\\Y", Tanadi)), Krt::kvip);
+    let cikirsh = krdanta(&[], &san(&d("qukf\\Y", Tanadi)), Krt::kvip);
     assert_has_sup_1s(&cikirsh, Pum, &["cikIH"]);
     assert_has_sup_1d(&cikirsh, Pum, &["cikIrzO"]);
     assert_has_sup_1p(&cikirsh, Pum, &["cikIrzaH"]);
@@ -518,7 +548,7 @@ fn sk_434() {
     assert_has_sup_1p(&goraksh, Pum, &["gorakzaH"]);
 
     let pis = create_krdanta("pis", &[], &d("pisf~", Bhvadi), Krt::kvip);
-    let supis = create_samasa_p("supis", &[Pratipadika::from("su"), pis], Bahuvrihi);
+    let supis = bahuvrihi(Pratipadika::basic("su"), pis);
     assert_has_sup_1s(&supis, Pum, &["supIH"]);
     assert_has_sup_1d(&supis, Pum, &["supisO"]);
     assert_has_sup_1p(&supis, Pum, &["supisaH"]);

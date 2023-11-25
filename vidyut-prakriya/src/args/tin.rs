@@ -1,3 +1,4 @@
+use crate::args::dhatu::Dhatu;
 use crate::core::errors::Error;
 use crate::core::Tag;
 use crate::enum_boilerplate;
@@ -188,15 +189,42 @@ impl DhatuPada {
 ///
 /// Since we want to keep these args manageable and don't want to repeatedly break our main API, we
 /// decided to wrap args in this struct and expose its values through accessors.
-pub struct TinantaArgs {
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Tinanta {
+    dhatu: Dhatu,
     prayoga: Prayoga,
-    purusha: Purusha,
     lakara: Lakara,
+    purusha: Purusha,
     vacana: Vacana,
     pada: Option<DhatuPada>,
 }
 
-impl TinantaArgs {
+impl Tinanta {
+    /// Creates a new `Tinanta`.
+    ///
+    /// For more options, see `Tinanta::build()`.
+    pub fn new(
+        dhatu: Dhatu,
+        prayoga: Prayoga,
+        lakara: Lakara,
+        purusha: Purusha,
+        vacana: Vacana,
+    ) -> Self {
+        Self {
+            dhatu,
+            prayoga,
+            lakara,
+            purusha,
+            vacana,
+            pada: None,
+        }
+    }
+
+    /// The dhatu to use in the derivation.
+    pub fn dhatu(&self) -> &Dhatu {
+        &self.dhatu
+    }
+
     /// The linga to use in the derivation.
     pub fn prayoga(&self) -> Prayoga {
         self.prayoga
@@ -225,15 +253,39 @@ impl TinantaArgs {
         self.pada
     }
 
+    /// Returns an updated version of `self` with the given `dhatu`.
+    pub fn with_dhatu(mut self, dhatu: Dhatu) -> Self {
+        self.dhatu = dhatu;
+        self
+    }
+
     /// Returns a new builder for this struct.
+    ///
+    /// For details, see `TinantaArgsBuilder`.
     pub fn builder() -> TinantaArgsBuilder {
         TinantaArgsBuilder::default()
     }
 }
 
 /// Convenience struct for building a `TinantaArgs` object.
+///
+///
+/// ### Example
+///
+/// ````
+/// # use vidyut_prakriya::args::*;
+/// let args = Tinanta::builder()
+///     .dhatu(dhatu)
+///     .lakara(Lakara::Lat)
+///     .prayoga(Prayoga::Kartari)
+///     .purusha(Purusha::Prathama)
+///     .vacana(Vacana::Eka)
+///     .build()?;
+/// # Ok::<(), Error>(())
+/// ````
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct TinantaArgsBuilder {
+    dhatu: Option<Dhatu>,
     prayoga: Option<Prayoga>,
     purusha: Option<Purusha>,
     lakara: Option<Lakara>,
@@ -242,6 +294,12 @@ pub struct TinantaArgsBuilder {
 }
 
 impl TinantaArgsBuilder {
+    /// Sets the dhatu to use in the derivation.
+    pub fn dhatu(mut self, val: Dhatu) -> Self {
+        self.dhatu = Some(val);
+        self
+    }
+
     /// Sets the prayoga to use in the derivation.
     pub fn prayoga(mut self, val: Prayoga) -> Self {
         self.prayoga = Some(val);
@@ -278,8 +336,12 @@ impl TinantaArgsBuilder {
     /// Converts the arguments in this builder into a `TinantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(self) -> Result<TinantaArgs, Error> {
-        Ok(TinantaArgs {
+    pub fn build(self) -> Result<Tinanta, Error> {
+        Ok(Tinanta {
+            dhatu: match self.dhatu {
+                Some(x) => x,
+                _ => return Err(Error::missing_required_field("dhatu")),
+            },
             prayoga: match self.prayoga {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("prayoga")),

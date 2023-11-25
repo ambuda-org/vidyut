@@ -2,7 +2,7 @@
 use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
-use vidyut_prakriya::args::{Dhatu, Sanadi, TinantaArgs};
+use vidyut_prakriya::args::{Dhatu, Sanadi, Tinanta};
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::private::check_file_hash;
 use vidyut_prakriya::Ashtadhyayi;
@@ -54,8 +54,8 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
 
         // TODO: this is very clumsy!
         let mut builder = Dhatu::builder()
-            .upadesha(dhatu.upadesha())
-            .gana(dhatu.gana())
+            .upadesha(dhatu.upadesha().expect("ok"))
+            .gana(dhatu.gana().expect("ok"))
             .prefixes(dhatu.prefixes())
             .sanadi(&sanadi);
 
@@ -65,14 +65,15 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
 
         let dhatu = builder.build()?;
 
-        let tinanta_args = TinantaArgs::builder()
+        let tinanta_args = Tinanta::builder()
+            .dhatu(dhatu.clone())
             .prayoga(prayoga)
             .purusha(purusha)
             .vacana(vacana)
             .lakara(lakara)
             .build()?;
 
-        let prakriyas = a.derive_tinantas(&dhatu, &tinanta_args);
+        let prakriyas = a.derive_tinantas(&tinanta_args);
         let mut actual: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         actual.sort();
         actual.dedup();
@@ -85,7 +86,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             let purusha = &r[6];
             let vacana = &r[7];
             let code = format!("{:0>2}.{:0>4}", gana, number);
-            let upadesha = dhatu.upadesha();
+            let upadesha = dhatu.upadesha().expect("ok");
             println!("[ FAIL ]  {code:<10} {upadesha:<10} {lakara:<10} {purusha:<10} {vacana:<10}");
             println!("          Expected: {:?}", expected);
             println!("          Actual  : {:?}", actual);

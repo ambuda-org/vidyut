@@ -11,12 +11,12 @@ use vidyut_prakriya::args::*;
 fn sutra_1_2_1() {
     assert_has_ta(&["aDi"], &d("i\\N", Adadi), Lun, &["aDyagIzwa", "aDyEzwa"]);
 
-    let kuw = d("kuwa~", Tudadi).with_antargana(Some(Antargana::Kutadi));
+    let kuw = d_kutadi("kuwa~", Tudadi);
     assert_has_krdanta(&[], &kuw, Krt::tfc, &["kuwitf"]);
     assert_has_krdanta(&[], &kuw, Krt::tumun, &["kuwitum"]);
     assert_has_krdanta(&[], &kuw, Krt::tavya, &["kuwitavya"]);
 
-    let puw = d("puwa~", Tudadi).with_antargana(Some(Antargana::Kutadi));
+    let puw = d_kutadi("puwa~", Tudadi);
     assert_has_krdanta(&["ud"], &puw, Krt::tfc, &["utpuwitf"]);
     assert_has_krdanta(&["ud"], &puw, Krt::tumun, &["utpuwitum"]);
     assert_has_krdanta(&["ud"], &puw, Krt::tavya, &["utpuwitavya"]);
@@ -182,7 +182,6 @@ fn sutra_1_2_9() {
     assert_has_tip(&[], &san(&d("jYapa~", Curadi)), Lat, &["jYIpsati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_1_2_10() {
     assert_has_tip(&[], &san(&d("Bi\\di~^r", Rudhadi)), Lat, &["biBitsati"]);
@@ -191,8 +190,13 @@ fn sutra_1_2_10() {
     assert_has_ta(&[], &san(&d("ya\\ja~^", Bhvadi)), Lat, &["yiyakzate"]);
     // Jal
     assert_has_ta(&[], &san(&d("vftu~\\", Bhvadi)), Lat, &["vivartizate"]);
-    // danB also in scope
-    assert_has_tip(&[], &san(&d("danBu~", Svadi)), Lat, &["DIpsati", "Dipsati"]);
+    // danB also in scope.
+    assert_has_tip(
+        &[],
+        &san(&d("danBu~", Svadi)),
+        Lat,
+        &["DIpsati", "Dipsati", "didamBizati"],
+    );
 }
 
 #[test]
@@ -504,13 +508,9 @@ fn sutra_1_2_46() {
     assert_has_sup_1s(&kapatava, Pum, &["kApawavaH"]);
 
     // samasa
-    let rajapurusha = create_tatpurusha("rAjapuruza", &["rAjan", "puruza"], Vibhakti::Sasthi);
+    let rajapurusha = tatpurusha("rAjan", "puruza", Vibhakti::Sasthi);
     assert_has_sup_1s(&rajapurusha, Pum, &["rAjapuruzaH"]);
-    let brahmanakambala = create_tatpurusha(
-        "brAhmaRakambala",
-        &["brAhmaRa", "kambala"],
-        Vibhakti::Sasthi,
-    );
+    let brahmanakambala = tatpurusha("brAhmaRa", "kambala", Vibhakti::Sasthi);
     assert_has_sup_1s(&brahmanakambala, Pum, &["brAhmaRakambalaH"]);
 }
 

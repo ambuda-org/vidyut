@@ -14,18 +14,19 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     static ref CU: Set = s("cu~");
+    static ref JHAY: Set = s("Jay");
 }
 
 impl Prakriya {
-    fn is_bahuvrihi(&self) -> bool {
+    pub(crate) fn is_bahuvrihi(&self) -> bool {
         self.has_tag(T::Bahuvrihi)
     }
 
-    fn is_tatpurusha(&self) -> bool {
+    pub(crate) fn is_tatpurusha(&self) -> bool {
         self.has_tag(T::Tatpurusha)
     }
 
-    fn is_avyayibhava(&self) -> bool {
+    pub(crate) fn is_avyayibhava(&self) -> bool {
         self.has_tag(T::Avyayibhava)
     }
 
@@ -35,20 +36,26 @@ impl Prakriya {
 }
 
 fn add(rule: impl Into<Rule>, p: &mut Prakriya, taddhita: Taddhita) -> bool {
+    let i_antya = p
+        .find_last_where(|t| t.is_pratipadika_or_nyapu())
+        .expect("ok");
     let rule = rule.into();
-
-    p.run(rule, |p| {
-        p.push(taddhita.to_term());
-    });
-    let i_last = p.terms().len() - 1;
-    it_samjna::run(p, i_last).expect("should never fail");
+    // Insert after pratipadika but before any subantas
+    p.run(rule, |p| p.insert_after(i_antya, taddhita.to_term()));
+    it_samjna::run(p, i_antya + 1).expect("should never fail");
 
     true
 }
 
+fn optional_add(rule: impl Into<Rule>, p: &mut Prakriya, taddhita: Taddhita) -> bool {
+    p.optionally(rule.into(), |rule, p| {
+        add(rule, p, taddhita);
+    })
+}
+
 pub fn run(p: &mut Prakriya) -> Option<()> {
-    let i_uttara = p.find_last_where(|t| t.is_pratipadika_or_nyap())?;
-    let i_purva = p.find_prev_where(i_uttara, |t| t.is_pratipadika_or_nyap())?;
+    let i_uttara = p.find_last_where(|t| t.is_pratipadika_or_nyapu())?;
+    let i_purva = p.find_prev_where(i_uttara, |t| t.is_pratipadika_or_nyapu())?;
 
     let purva = p.get(i_purva)?;
     let uttara = p.get(i_uttara)?;
@@ -96,9 +103,46 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         if uttara.ends_with("an") {
             // uparAjam, ...
             add("5.4.108", p, wac);
+        } else if uttara.has_antya(&*JHAY) {
+            // upasamiDa, upasamit, ...
+            optional_add("5.4.111", p, wac);
+        } else if uttara.has_text("giri") {
+            // antargiram, antargiri, ...
+            optional_add("5.4.112", p, wac);
         }
     } else if p.is_bahuvrihi() {
-        if uttara.has_text("Danus") {
+        if purva.has_text_in(&["dvi", "tri"]) && uttara.has_text("mUrDan") {
+            // dvimUrDa, trimUrDa
+            add("5.4.115", p, za);
+        } else if purva.has_text_in(&["antar", "bahis"]) && uttara.has_text("loman") {
+            // antarloma, bahirloma
+            add("5.4.117", p, ap);
+        } else if purva.is_upasarga() && uttara.has_text("nas") {
+            // unnasa, ...
+            add("5.4.119", p, ac);
+        } else if purva.has_text_in(&["a", "dus", "su"]) && uttara.has_text_in(&["hali", "sakTi"]) {
+            // ahala, ahali, ...
+            optional_add("5.4.121", p, ac);
+        } else if purva.has_text_in(&["a", "dus", "su"]) && uttara.has_text_in(&["prajA", "meDas"])
+        {
+            // aprajAH, ...
+            add("5.4.122", p, asic);
+        } else if uttara.has_text("Darma") {
+            // kalyARaDarmA, ...
+            // TODO: kevala
+            add("5.4.124", p, anic);
+        } else if purva.has_text_in(&["su", "harita", "tfRa", "soma"]) && uttara.has_text("jamBa") {
+            // sujamBA, ...
+            p.run_at("5.4.125", i_uttara, |t| t.set_text("jamBan"));
+        } else if uttara.has_text("jAnu") {
+            if purva.has_text_in(&["pra", "sam"]) {
+                // prajYuH, samYjuH
+                p.run_at("5.4.129", i_uttara, |t| t.set_text("jYu"));
+            } else if purva.has_text("UrDva") {
+                // UrDvajAnuH, UrDvajYuH
+                p.optional_run_at("5.4.130", i_uttara, |t| t.set_text("jYu"));
+            }
+        } else if uttara.has_text("Danus") {
             // SArNgaDanvA, ...
             p.run_at("5.4.132", i_uttara, |t| t.set_antya("an"));
         } else if uttara.has_text("jAyA") {
@@ -107,6 +151,9 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         } else if purva.has_text_in(&["ud", "pUti", "su", "suraBi"]) && uttara.has_text("ganDa") {
             // udganDi, ...
             p.run_at("5.4.135", i_uttara, |t| t.set_antya("i"));
+        } else if (purva.is_sankhya() || purva.has_text("su")) && uttara.has_text("pAda") {
+            // dvipAt, ...
+            p.run_at("5.4.140", i_uttara, |t| t.set_text("pAd"));
         } else if uttara.has_text("kAkuda") {
             if purva.has_text_in(&["ud", "vi"]) {
                 // utkAkut, ...

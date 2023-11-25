@@ -130,7 +130,6 @@
         <option value="prati" x-text="deva('prati')"></option>
         <option value="pari" x-text="deva('pari')"></option>
         <option value="upa" x-text="deva('upa')"></option>
-        <option :value="Prayoga.Karmani" x-text="deva('karmaRi')"></option>
       </select>
 
       <label>{{ 'prayogaH'|d }}</label>
@@ -142,9 +141,10 @@
       <label>{{ 'sanAdi'|d }}</label>
       <select x-model="sanadi" class="p-2 bg-white rounded border">
         <option value="">(none)</option>
-        <option :value="Sanadi.San" x-text="deva('sannante')"></option>
-        <option :value="Sanadi.Nic" x-text="deva('Rijante')"></option>
-        <option :value="Sanadi.Yan" x-text="deva('yaNante')"></option>
+        <option :value="Sanadi.san" x-text="deva('sannante')"></option>
+        <option :value="Sanadi.Ric" x-text="deva('Rijante')"></option>
+        <option :value="Sanadi.yaN" x-text="deva('yaNante')"></option>
+        <option :value="Sanadi.yaNLuk" x-text="deva('yaNlugante')"></option>
       </select>
     </div>
 

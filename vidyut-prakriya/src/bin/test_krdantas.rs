@@ -2,7 +2,7 @@
 use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
-use vidyut_prakriya::args::{BaseKrt, KrdantaArgs};
+use vidyut_prakriya::args::{BaseKrt, Krdanta};
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::private::check_file_hash;
 use vidyut_prakriya::Ashtadhyayi;
@@ -37,9 +37,9 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
 
         let krt: BaseKrt = r[4].parse()?;
 
-        let krdanta_args = KrdantaArgs::builder().krt(krt).build()?;
+        let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
 
-        let prakriyas = a.derive_krdantas(&dhatu, &krdanta_args);
+        let prakriyas = a.derive_krdantas(&krdanta);
         let mut actual: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         actual.sort();
         actual.dedup();
@@ -50,7 +50,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
         } else {
             let krt = &r[4];
             let code = format!("{:0>2}.{:0>4}", gana, number);
-            let upadesha = dhatu.upadesha();
+            let upadesha = dhatu.upadesha().expect("ok");
             println!("[ FAIL ]  {code:<10} {upadesha:<10} {krt:<10}");
             println!("          Expected: {:?}", expected);
             println!("          Actual  : {:?}", actual);

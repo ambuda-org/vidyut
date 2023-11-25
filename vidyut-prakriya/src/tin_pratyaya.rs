@@ -148,7 +148,7 @@ fn maybe_do_lot_only_siddhi(p: &mut Prakriya, i: usize) -> Option<()> {
             t.remove_tag(T::pit);
         });
 
-        if p.has_tag(T::Chandasi) {
+        if p.is_chandasi() {
             p.optional_run_at("3.4.88", i, op::add_tag(T::Pit));
         }
     } else if tin.ends_with("mi") {
@@ -162,7 +162,7 @@ fn maybe_do_lot_only_siddhi(p: &mut Prakriya, i: usize) -> Option<()> {
             p.run_at("3.4.93", i, op::antya("E"));
         } else if tin.ends_with("se") || tin.ends_with("ve") {
             p.run_at("3.4.91", i, |t| {
-                let n = t.text.len();
+                let n = t.len();
                 if t.ends_with("se") {
                     t.text.replace_range(n - 2.., "sva");
                 } else {

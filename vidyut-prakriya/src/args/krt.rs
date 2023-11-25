@@ -1,5 +1,7 @@
+use crate::args::dhatu::Dhatu;
 use crate::args::unadi::Unadi;
 use crate::args::Lakara;
+use crate::args::{Linga, Vacana, Vibhakti};
 use crate::core::errors::*;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -33,6 +35,10 @@ pub enum BaseKrt {
     Aluc,
     /// -Aru
     Aru,
+    /// -ika
+    ika,
+    /// -ikavaka
+    ikavaka,
     /// -itra
     itra,
     /// -in. The trailing `_` is to avoid colliding with Rust's `in` keyword.
@@ -133,6 +139,8 @@ pub enum BaseKrt {
     wak,
     /// -a
     qa,
+    /// -ara,
+    qara,
     /// -u
     qu,
     /// -a
@@ -222,6 +230,8 @@ enum_boilerplate!(BaseKrt, {
     ap => "ap",
     Aluc => "Aluc",
     Aru => "Aru",
+    ika => "ika",
+    ikavaka => "ikavaka",
     itra => "itra",
     in_ => "in",
     ini => "ini~",
@@ -272,6 +282,7 @@ enum_boilerplate!(BaseKrt, {
     wa => "wa",
     wak => "wak",
     qa => "qa",
+    qara => "qara",
     qu => "qu",
     Ra => "Ra",
     Ramul => "Ramu~l",
@@ -416,14 +427,44 @@ impl Upapada {
 }
 
 /// The information required to derive a krdanta in the grammar.
-pub struct KrdantaArgs {
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub struct Krdanta {
+    dhatu: Dhatu,
     krt: Krt,
     artha: Option<KrtArtha>,
     lakara: Option<Lakara>,
     upapada: Option<Upapada>,
+    /// The sup-pratyaya to use.
+    sup: Option<(Linga, Vibhakti, Vacana)>,
+    require: Option<String>,
 }
 
-impl KrdantaArgs {
+impl Krdanta {
+    /// Defines a simple `Krdanta`.
+    ///
+    /// For more options, use `Krdanta::builder()` instead.
+    pub fn new(dhatu: Dhatu, krt: impl Into<Krt>) -> Self {
+        Self {
+            dhatu,
+            krt: krt.into(),
+            artha: None,
+            lakara: None,
+            upapada: None,
+            sup: None,
+            require: None,
+        }
+    }
+
+    /// Returns a new builder for this struct.
+    pub fn builder() -> KrdantaBuilder {
+        KrdantaBuilder::default()
+    }
+
+    /// The dhatu to use in the derivation.
+    pub fn dhatu(&self) -> &Dhatu {
+        &self.dhatu
+    }
+
     /// The krt pratyaya to use in the derivation.
     pub fn krt(&self) -> Krt {
         self.krt
@@ -458,22 +499,37 @@ impl KrdantaArgs {
         self.artha
     }
 
-    /// Returns a new builder for this struct.
-    pub fn builder() -> KrdantaArgsBuilder {
-        KrdantaArgsBuilder::default()
+    /// Returns the arguments for the `sup`-pratyaya that the samasa will take. If none, derive the
+    /// samasa as a pratipadika.
+    pub fn sup(&self) -> Option<(Linga, Vibhakti, Vacana)> {
+        self.sup
+    }
+
+    /// The value that the krdanta must match, if defined.
+    pub fn require(&self) -> &Option<String> {
+        &self.require
     }
 }
 
 /// Convenience struct for building a `KrdantaArgs` object.
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct KrdantaArgsBuilder {
+pub struct KrdantaBuilder {
+    dhatu: Option<Dhatu>,
     krt: Option<Krt>,
     upapada: Option<Upapada>,
     artha: Option<KrtArtha>,
     lakara: Option<Lakara>,
+    sup: Option<(Linga, Vibhakti, Vacana)>,
+    require: Option<String>,
 }
 
-impl KrdantaArgsBuilder {
+impl KrdantaBuilder {
+    /// Sets the krt-pratyaya to use in the derivation.
+    pub fn dhatu(&mut self, dhatu: Dhatu) -> &mut Self {
+        self.dhatu = Some(dhatu);
+        self
+    }
+
     /// Sets the krt-pratyaya to use in the derivation.
     pub fn krt(&mut self, val: impl Into<Krt>) -> &mut Self {
         self.krt = Some(val.into());
@@ -501,11 +557,27 @@ impl KrdantaArgsBuilder {
         self
     }
 
+    /// Sets the samasa type to use in the derivation.
+    pub fn sup(&mut self, tuple: (Linga, Vibhakti, Vacana)) -> &mut Self {
+        self.sup = Some(tuple);
+        self
+    }
+
+    /// Sets the value that the krdanta must have.
+    pub fn require(&mut self, text: impl AsRef<str>) -> &mut Self {
+        self.require = Some(text.as_ref().to_string());
+        self
+    }
+
     /// Converts the arguments in this builder into a `TinantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(&self) -> Result<KrdantaArgs> {
-        Ok(KrdantaArgs {
+    pub fn build(&self) -> Result<Krdanta> {
+        Ok(Krdanta {
+            dhatu: match &self.dhatu {
+                Some(x) => x.clone(),
+                _ => return Err(Error::missing_required_field("dhatu")),
+            },
             krt: match self.krt {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("krt")),
@@ -513,6 +585,8 @@ impl KrdantaArgsBuilder {
             upapada: self.upapada.as_ref().cloned(),
             lakara: self.lakara,
             artha: self.artha,
+            sup: self.sup,
+            require: self.require.clone(),
         })
     }
 }

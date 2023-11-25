@@ -13,10 +13,10 @@ use vidyut_prakriya::Ashtadhyayi;
 /// Creates a krdanta with the given args.
 fn create_krdanta(dhatu: &str, gana: &str, krt: BaseKrt) -> Vec<String> {
     let a = Ashtadhyayi::new();
-    let dhatu = Dhatu::new(dhatu, gana.parse().expect("ok"));
-    let args = KrdantaArgs::builder().krt(krt).build().unwrap();
+    let dhatu = Dhatu::mula(dhatu, gana.parse().expect("ok"));
+    let args = Krdanta::builder().dhatu(dhatu).krt(krt).build().unwrap();
 
-    let prakriyas = a.derive_krdantas(&dhatu, &args);
+    let prakriyas = a.derive_krdantas(&args);
     prakriyas.iter().map(|p| p.text()).collect()
 }
 

@@ -1,3 +1,4 @@
+use crate::args::Pratipadika;
 use crate::core::errors::Error;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -90,12 +91,23 @@ enum_boilerplate!(Antargana, {
 /// For details on what these pratyayas mean and what kinds of words they produce, see the comments
 /// below.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[allow(non_camel_case_types)]
 #[wasm_bindgen]
 pub enum Sanadi {
-    /// `san`, which creates desiderative roots per 3.1.7.
+    /// `kAmyac`, which creates nAma-dhAtus per 3.1.9.
+    kAmyac,
+
+    /// `kyaN`, which creates nAma-dhAtus per 3.1.11.
+    kyaN,
+
+    /// `kyac`, which creates nAma-dhAtus per 3.1.8.
+    kyac,
+
+    /// `Nic`, which creates causal roots per 3.1.26.
     ///
-    /// Examples: buBUzati, ninIzati.
-    San,
+    /// Examples: BAvayati, nAyayati.
+    Ric,
+
     /// `yaN`, which creates intensive roots per 3.1.22. For certain dhatus, the semantics are
     /// instead "crooked movement" (by 3.1.23) or "contemptible" action (by 3.1.24).
     ///
@@ -103,28 +115,42 @@ pub enum Sanadi {
     ///
     /// Constraints: can be used only if the dhatu starts with a consonant and has exactly one
     /// vowel. If this constraint is violated, our APIs will return an `Error`.
-    Yan,
+    yaN,
+
     /// `yaN`, with elision per 2.4.74. This is often listed separately due to its rarity and its
     /// very different form.
     ///
     /// Examples: boBavIti, boBoti, nenayIti, neneti.
-    YanLuk,
-    /// `Nic`, which creates causal roots per 3.1.26.
+    yaNLuk,
+
+    /// `san`, which creates desiderative roots per 3.1.7.
     ///
-    /// Examples: BAvayati, nAyayati.
-    Nic,
+    /// Examples: buBUzati, ninIzati.
+    san,
 }
 
 enum_boilerplate!(Sanadi, {
-    San => "san",
-    Yan => "yaN",
-    YanLuk => "yaN-luk",
-    Nic => "Ric",
+    san => "san",
+    kyac => "kyac",
+    kAmyac => "kAmyac",
+    kyaN => "kyaN",
+    yaN => "yaN",
+    yaNLuk => "yaN-luk",
+    Ric => "Ric",
 });
 
 /// The verb root to use for the derivation.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
-pub struct Dhatu {
+pub enum Dhatu {
+    /// Indicates a muladhAtu from the Dhatupatha.
+    Mula(Muladhatu),
+    /// Indicates a nAma-dhAtu created with a sanAdi-pratyaya.
+    Nama(Namadhatu),
+}
+
+/// A dhatu from the Dhatupatha.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub struct Muladhatu {
     upadesha: String,
     gana: Gana,
     antargana: Option<Antargana>,
@@ -132,24 +158,16 @@ pub struct Dhatu {
     prefixes: Vec<String>,
 }
 
-impl Dhatu {
-    /// Creates a new dhatu with its gana.
-    ///
-    /// `upadesha` refers to the dhatu in its *aupadeshka* form. `upadesha` should be an SLP1
-    /// string and include any necessary svaras. For example values, see the `dhatupatha.tsv` file
-    /// included with this crate.
-    ///
-    /// `gana` refers to one of the ten major verb classes.
-    ///
-    /// For more customization, use the `builder()` API instead.
-    ///
-    /// ### Example
-    ///
-    /// ```
-    /// # use vidyut_prakriya::args::{Dhatu, Gana};
-    /// let bhu = Dhatu::new("BU", Gana::Bhvadi);
-    /// let kr = Dhatu::new("qukf\\Y", Gana::Tanadi);
-    /// ```
+/// A dhatu created from a subanta.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub struct Namadhatu {
+    pratipadika: Pratipadika,
+    sanadi: Vec<Sanadi>,
+    pub(crate) prefixes: Vec<String>,
+}
+
+impl Muladhatu {
+    /// Creates a new Muladhatu
     pub fn new(upadesha: &str, gana: Gana) -> Self {
         Self {
             upadesha: String::from(upadesha),
@@ -159,7 +177,6 @@ impl Dhatu {
             prefixes: Vec::new(),
         }
     }
-
     /// The dhatu as stated in its aupadeshka form. `upadesha` should be an SLP1 string that
     /// includes any necessary svaras. For examples, see the `dhatu` column in the
     /// `data/dhatupatha.tsv` file included in this crate.
@@ -192,30 +209,143 @@ impl Dhatu {
         self.gana == gana.into()
     }
 
-    /// Sets the prefixes on the dhatu.
-    pub fn with_prefixes(mut self, values: &[impl AsRef<str>]) -> Self {
-        self.prefixes.clear();
-        self.prefixes
-            .extend(values.iter().map(|x| String::from(x.as_ref())));
+    /// Sets the sanadi-pratyayas on the dhatu.
+    pub fn with_antargana(mut self, antargana: Antargana) -> Self {
+        self.antargana = Some(antargana);
         self
     }
+}
 
-    /// Sets the sanadi-pratyayas on the dhatu.
-    pub fn with_sanadi(mut self, sanadi: &[Sanadi]) -> Self {
-        self.sanadi.clear();
-        self.sanadi.extend(sanadi);
-        self
+impl Namadhatu {
+    /// The pratipadika to use as the basis of this dhatu.
+    pub fn pratipadika(&self) -> &Pratipadika {
+        &self.pratipadika
     }
 
-    /// Sets the sanadi-pratyayas on the dhatu.
-    pub fn with_antargana(mut self, antargana: Option<Antargana>) -> Self {
-        self.antargana = antargana;
-        self
+    /// The sanAdi pratyayas to use with this dhatu.
+    pub fn sanadi(&self) -> &Vec<Sanadi> {
+        &self.sanadi
+    }
+
+    /// The prefixes to use with the dhatu.
+    pub fn prefixes(&self) -> &Vec<String> {
+        &self.prefixes
+    }
+}
+
+impl Dhatu {
+    /// Creates a new dhatu with its gana.
+    ///
+    /// `upadesha` refers to the dhatu in its *aupadeshka* form. `upadesha` should be an SLP1
+    /// string and include any necessary svaras. For example values, see the `dhatupatha.tsv` file
+    /// included with this crate.
+    ///
+    /// `gana` refers to one of the ten major verb classes.
+    ///
+    /// For more customization, use the `builder()` API instead.
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// # use vidyut_prakriya::args::{Dhatu, Gana};
+    /// let bhu = Dhatu::new("BU", Gana::Bhvadi);
+    /// let kr = Dhatu::new("qukf\\Y", Gana::Tanadi);
+    /// ```
+    pub fn mula(upadesha: &str, gana: Gana) -> Self {
+        Self::Mula(Muladhatu::new(upadesha, gana))
+    }
+
+    /// Creates a new namadhatu with its sanadi-pratyaya.
+    ///
+    /// If `sanadi` is `None`, the program will try finding a sanAdi match by appling the
+    /// rules in 3.1. If no match is found, the prakriya will abort.
+    pub fn nama(subanta: Pratipadika, sanadi: Option<Sanadi>) -> Self {
+        let sanadi = match sanadi {
+            Some(x) => vec![x],
+            None => Vec::new(),
+        };
+        Self::Nama(Namadhatu {
+            pratipadika: subanta,
+            sanadi,
+            prefixes: Vec::new(),
+        })
     }
 
     /// Returns a new builder for this struct.
     pub fn builder() -> DhatuBuilder {
         DhatuBuilder::default()
+    }
+
+    /// The sanAdi pratyayas to use with this dhatu.
+    pub fn sanadi(&self) -> &Vec<Sanadi> {
+        match self {
+            Self::Mula(m) => m.sanadi(),
+            Self::Nama(n) => n.sanadi(),
+        }
+    }
+
+    /// The prefixes to use with the dhatu.
+    pub fn prefixes(&self) -> &Vec<String> {
+        match self {
+            Self::Mula(m) => m.prefixes(),
+            Self::Nama(n) => n.prefixes(),
+        }
+    }
+
+    /// The upadesha to use with this dhatu, if defined.
+    pub fn upadesha(&self) -> Option<&String> {
+        match self {
+            Self::Mula(m) => Some(m.upadesha()),
+            _ => None,
+        }
+    }
+
+    /// The gana to use with this dhatu, if defined.
+    pub fn gana(&self) -> Option<Gana> {
+        match self {
+            Self::Mula(m) => Some(m.gana()),
+            _ => None,
+        }
+    }
+
+    /// The antargana to use with this dhatu, if defined.
+    pub fn antargana(&self) -> Option<Antargana> {
+        match self {
+            Self::Mula(m) => m.antargana(),
+            _ => None,
+        }
+    }
+
+    /// Sets the prefixes on the dhatu.
+    pub fn with_prefixes(mut self, values: &[impl AsRef<str>]) -> Self {
+        match self {
+            Self::Mula(ref mut m) => {
+                m.prefixes.clear();
+                m.prefixes
+                    .extend(values.iter().map(|x| String::from(x.as_ref())));
+            }
+            Self::Nama(ref mut n) => {
+                n.prefixes.clear();
+                n.prefixes
+                    .extend(values.iter().map(|x| String::from(x.as_ref())));
+            }
+        }
+        self
+    }
+
+    /// Sets the sanadi-pratyayas on the dhatu.
+    pub fn with_sanadi(mut self, sanadi: &[Sanadi]) -> Self {
+        match self {
+            Self::Mula(ref mut m) => {
+                m.sanadi.clear();
+                m.sanadi.extend(sanadi);
+            }
+            Self::Nama(ref mut n) => {
+                n.sanadi.clear();
+                n.sanadi.extend(sanadi);
+            }
+        }
+        self
     }
 }
 
@@ -230,7 +360,10 @@ pub struct DhatuBuilder {
 }
 
 impl DhatuBuilder {
-    /// Sets the upadesha of the dhatu.
+    /// Sets the aupadeshika form of the dhatu.
+    ///
+    /// - For mula dhatus, this should be the dhatu as listed in the Dhatupatha, including svaras.
+    /// - For namadhatus, this should be the text of the pratipadika.
     pub fn upadesha(mut self, text: &str) -> Self {
         self.upadesha = Some(String::from(text));
         self
@@ -242,7 +375,7 @@ impl DhatuBuilder {
         self
     }
 
-    /// Sets the antargana of the dhatu, if one is necessary.
+    /// Sets whether or not this
     pub fn antargana(mut self, value: Antargana) -> Self {
         self.antargana = Some(value);
         self
@@ -265,7 +398,7 @@ impl DhatuBuilder {
 
     /// Converts the arguments in this builder into a `Dhatu` struct.
     pub fn build(self) -> Result<Dhatu, Error> {
-        Ok(Dhatu {
+        Ok(Dhatu::Mula(Muladhatu {
             upadesha: match self.upadesha {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("upadesha")),
@@ -277,6 +410,6 @@ impl DhatuBuilder {
             antargana: self.antargana,
             sanadi: self.sanadi,
             prefixes: self.prefixes,
-        })
+        }))
     }
 }

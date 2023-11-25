@@ -1,3 +1,4 @@
+use crate::args::Pratipadika;
 use crate::core::errors::*;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -27,6 +28,12 @@ pub enum Taddhita {
     at,
     /// -atas
     atasuc,
+    /// -an
+    anic,
+    /// -a
+    ap,
+    /// -as
+    asic,
     /// -astAt
     astAti,
     /// -Akin,
@@ -111,10 +118,12 @@ pub enum Taddhita {
     Ya,
     /// -ika
     YiW,
+    /// -ya
+    Yya,
     /// -ya,
     YyaN,
     /// -ya
-    Yya,
+    Yyaw,
     /// -a
     wac,
     /// -a
@@ -123,6 +132,8 @@ pub enum Taddhita {
     wiWan,
     /// -wIwa
     wIwac,
+    /// -eRya
+    weRyaR,
     /// -ya
     wyaR,
     /// -ana
@@ -141,6 +152,14 @@ pub enum Taddhita {
     Wan,
     /// -ika
     Wap,
+    /// -a
+    qaw,
+    /// -ati
+    qati,
+    /// -atara
+    qatarac,
+    /// -atama
+    qatamac,
     /// -pa
     qupac,
     /// -mat
@@ -171,6 +190,8 @@ pub enum Taddhita {
     Rya,
     /// -tama
     tamap,
+    /// -taya
+    tayap,
     /// -tara
     tarap,
     /// -ta (becomes -tA)
@@ -183,6 +204,8 @@ pub enum Taddhita {
     ti,
     /// -tika
     tikan,
+    /// -tIya
+    tIya,
     /// -tya
     tyak,
     /// -tyaka
@@ -281,6 +304,8 @@ pub enum Taddhita {
     vatup,
     /// -vaya
     vaya,
+    /// -vala
+    valac,
     /// -vin
     vini,
     /// -viDu
@@ -299,10 +324,12 @@ pub enum Taddhita {
     Sa,
     /// -SaNkawa
     SaNkawac,
-    /// -Sas
-    Sas,
     /// -SAla
     SAlac,
+    /// -Sas
+    Sas,
+    /// -za
+    za,
     /// -ka
     zkan,
     /// -tra
@@ -315,6 +342,10 @@ pub enum Taddhita {
     zWal,
     /// Ayana
     zPak,
+    /// -sa
+    sa,
+    /// -sna
+    sna,
     /// -sAt
     sAti,
     /// -s
@@ -334,6 +365,9 @@ enum_boilerplate!(Taddhita, {
     aR => "aR",
     at => "at",
     atasuc => "atasu~c",
+    anic => "ani~c",
+    ap => "ap",
+    asic => "asi~c",
     astAti => "astAti~",
     Akinic => "Akini~c",
     Arak => "Arak",
@@ -377,11 +411,13 @@ enum_boilerplate!(Taddhita, {
     Ya => "Ya",
     YiW => "YiW",
     Yya => "Yya",
-    YyaN => "Yyan",
+    YyaN => "YyaN",
+    Yyaw => "Yyaw",
     wac => "wac",
     waq => "waq",
     wiWan => "wi~Wan",
     wIwac => "wIwac",
+    weRyaR => "weRyaR",
     wyaR => "wyaR",
     wyu => "wyu~",
     wyul => "wyu~l",
@@ -391,6 +427,10 @@ enum_boilerplate!(Taddhita, {
     WaY => "WaY",
     Wan => "Wan",
     Wap => "Wap",
+    qaw => "qaw",
+    qati => "qati",
+    qatarac => "qatarac",
+    qatamac => "qatamac",
     qupac => "qupac",
     qmatup => "qmatu~p",
     qyaR => "qyaR",
@@ -406,12 +446,14 @@ enum_boilerplate!(Taddhita, {
     Rini => "Rini~",
     Rya => "Rya",
     tamap => "tamap",
+    tayap => "tayap",
     tarap => "tarap",
     tal => "tal",
     tasi => "tasi~",
     tasil => "tasi~l",
     ti => "ti",
     tikan => "tikan",
+    tIya => "tIya",
     tyak => "tyak",
     tyakan => "tyakan",
     tyap => "tyap",
@@ -461,6 +503,7 @@ enum_boilerplate!(Taddhita, {
     rUpap => "rUpap",
     vatup => "vatu~p",
     vaya => "vaya",
+    valac => "valac",
     viDal => "viDal",
     vini => "vini~",
     vuk => "vu~k",
@@ -472,12 +515,15 @@ enum_boilerplate!(Taddhita, {
     SaNkawac => "SaNkawac",
     SAlac => "SAlac",
     Sas => "Sas",
+    za => "za",
     zkan => "zkan",
     zwarac => "zwarac",
     zWac => "zWac",
     zWan => "zWan",
     zWal => "zWal",
     zPak => "zPak",
+    sa => "sa",
+    sna => "sna",
     sAti => "sAti~",
     suc => "su~c",
     snaY => "snaY",
@@ -508,6 +554,8 @@ pub enum TaddhitaArtha {
     TasyaSamuha,
     /// A domain of this. (4.2.52)
     TasyaVishayoDeshe,
+    /// What one studies or knows. (4.2.59)
+    TadAdhiteTadVeda,
     /// Country, by entities present (4.2.67), creator (4.2.68), dwelling place (4.2.69), or nearby
     /// features (4.2.70).
     Caturarthika,
@@ -643,6 +691,8 @@ pub enum TaddhitaArtha {
     Apanna,
     /// Who goes. (5.1.75)
     Gacchati,
+    /// Who deserves approach (5.1.74 vArttika)
+    AbhigamanamArhati,
     /// The existence of which. (5.1.119)
     TasyaBhava,
     /// A place of growing, when that place is a field. (5.2.1)
@@ -671,10 +721,34 @@ pub enum TaddhitaArtha {
     TasyaMula,
     /// Celebrated through this. (5.2.26)
     TenaVitta,
+    /// Of which this is observed. (5.2.36)
+    TadAsyaSamjatam,
     /// Measure. (5.2.37)
-    Pramana,
+    TadAsyaPramanam,
     /// Volume. (5.2.39)
     Parimana,
+    /// Parts of which. (5.2.42)
+    Avasana,
+    /// Given in exchange. (5.2.47)
+    Nimana,
+    /// Making full. (5.2.48)
+    Purana,
+    /// Skilled in this. (5.2.63)
+    TatraKushala,
+    /// A desire for which. (5.2.65)
+    TatraKama,
+    /// Voracious. (5.2.67)
+    TatraAdyuna,
+    /// Supplied richly with. (5.2.68)
+    TatraParijata,
+    /// Who must take this.. (5.2.69)
+    Hari,
+    /// Taken recently. (5.2.70)
+    AciraApahrta,
+    /// Going to work in this manner. (5.2.72)
+    Karin,
+    /// Who strives to gain by this. (5.2.75)
+    Anvicchati,
     /// What one has or is in. (5.2.94)
     TadAsyaAstiAsmin,
     /// Words meaning direction, location, or time. (5.3.27)
@@ -687,6 +761,10 @@ pub enum TaddhitaArtha {
     Anukampayam,
     /// Slenderness. (5.3.91)
     Tanutve,
+    /// One of two. (5.3.92)
+    DvayorEka,
+    /// One of many. (5.3.93)
+    BahunamEka,
     /// Derision. (5.3.95)
     Avakshepane,
     /// TODO
@@ -695,6 +773,12 @@ pub enum TaddhitaArtha {
     Hrasve,
     /// TODO
     IvePratikrtau,
+    /// Those who make a living by arms. (5.3.114)
+    AyudhaJiviSangha,
+    /// TODO
+    AnatyantaGati,
+    /// TODO
+    Acchadana,
     /// TODO
     Svarthe,
     /// TODO
@@ -707,6 +791,8 @@ pub enum TaddhitaArtha {
     TatPrakrtaVacane,
     /// For the sake of which. (5.4.24)
     Tadarthye,
+    /// Praise of this. (5.3.66, 5.4.41)
+    Prashamsa,
     /// Becoming what one was not. (5.4.50)
     AbhutaTadbhava,
 }
@@ -722,12 +808,25 @@ impl TaddhitaArtha {
 }
 
 /// The information required to derive a taddhitanta in the grammar.
-pub struct TaddhitantaArgs {
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Taddhitanta {
+    pratipadika: Pratipadika,
     taddhita: Taddhita,
     artha: Option<TaddhitaArtha>,
+    require: Option<String>,
 }
 
-impl TaddhitantaArgs {
+impl Taddhitanta {
+    /// Returns a new builder for this struct.
+    pub fn builder() -> TaddhitantaBuilder {
+        TaddhitantaBuilder::default()
+    }
+
+    /// The pratipadika to use in the derivation.
+    pub fn pratipadika(&self) -> &Pratipadika {
+        &self.pratipadika
+    }
+
     /// The taddhita-pratyaya to use in the derivation.
     pub fn taddhita(&self) -> Taddhita {
         self.taddhita
@@ -738,20 +837,34 @@ impl TaddhitantaArgs {
         self.artha
     }
 
-    /// Returns a new builder for this struct.
-    pub fn builder() -> TaddhitantaArgsBuilder {
-        TaddhitantaArgsBuilder::default()
+    /// The value that the krdanta must match, if defined.
+    pub fn require(&self) -> &Option<String> {
+        &self.require
+    }
+
+    /// Sets the required value for this taddhitanta.
+    pub fn with_require(mut self, s: impl AsRef<str>) -> Self {
+        self.require = Some(s.as_ref().to_string());
+        self
     }
 }
 
 /// Convenience struct for building a `TaddhitantaArgs` object.
-#[derive(Clone, Default, Hash, Eq, PartialEq)]
-pub struct TaddhitantaArgsBuilder {
+#[derive(Clone, Default, Eq, Hash, PartialEq)]
+pub struct TaddhitantaBuilder {
+    pratipadika: Option<Pratipadika>,
     taddhita: Option<Taddhita>,
     artha: Option<TaddhitaArtha>,
+    require: Option<String>,
 }
 
-impl TaddhitantaArgsBuilder {
+impl TaddhitantaBuilder {
+    /// Sets the pratipadika to use in the derivation.
+    pub fn pratipadika(&mut self, val: Pratipadika) -> &mut Self {
+        self.pratipadika = Some(val);
+        self
+    }
+
     /// Sets the taddhita-pratyaya to use in the derivation.
     pub fn taddhita(&mut self, val: Taddhita) -> &mut Self {
         self.taddhita = Some(val);
@@ -764,16 +877,27 @@ impl TaddhitantaArgsBuilder {
         self
     }
 
+    /// Sets the value that the krdanta must have.
+    pub fn require(&mut self, text: impl AsRef<str>) -> &mut Self {
+        self.require = Some(text.as_ref().to_string());
+        self
+    }
+
     /// Converts the arguments in this builder into a `TaddhitantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(&self) -> Result<TaddhitantaArgs> {
-        Ok(TaddhitantaArgs {
+    pub fn build(&self) -> Result<Taddhitanta> {
+        Ok(Taddhitanta {
+            pratipadika: match &self.pratipadika {
+                Some(x) => x.clone(),
+                _ => return Err(Error::missing_required_field("pratipadika")),
+            },
             taddhita: match self.taddhita {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("taddhita")),
             },
             artha: self.artha,
+            require: self.require.clone(),
         })
     }
 }

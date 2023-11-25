@@ -5,7 +5,7 @@ padas produced by those inputs.
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, TinantaArgs, Vacana};
+use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, Tinanta, Vacana};
 use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
@@ -41,16 +41,17 @@ fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
         for lakara in Lakara::iter() {
             for (purusha, vacana) in TIN_SEMANTICS {
                 let prayoga = Prayoga::Kartari;
-                let tinanta_args = TinantaArgs::builder()
+                let tinanta = Tinanta::builder()
+                    .dhatu(dhatu.clone())
                     .prayoga(prayoga)
                     .purusha(*purusha)
                     .vacana(*vacana)
                     .lakara(*lakara)
                     .build()?;
 
-                let prakriyas = a.derive_tinantas(dhatu, &tinanta_args);
+                let prakriyas = a.derive_tinantas(&tinanta);
 
-                let dhatu_text = &dhatu.upadesha();
+                let dhatu_text = &dhatu.upadesha().expect("ok");
                 let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
                 padas.sort();
                 let padas = padas.join("|");
@@ -58,7 +59,7 @@ fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
                 let row = Row {
                     padas,
                     dhatu: dhatu_text,
-                    gana: dhatu.gana().as_str(),
+                    gana: dhatu.gana().expect("ok").as_str(),
                     number: entry.number(),
                     lakara: lakara.as_str(),
                     purusha: purusha.as_str(),

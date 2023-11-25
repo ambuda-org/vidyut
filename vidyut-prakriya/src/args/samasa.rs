@@ -1,5 +1,4 @@
-use crate::args::sup::Vibhakti;
-use crate::args::Pratipadika;
+use crate::args::{Linga, Subanta, Vacana, Vibhakti};
 use crate::core::errors::Error;
 
 /// A samasa type.
@@ -23,63 +22,27 @@ pub enum SamasaType {
     SamaharaDvandva,
 }
 
-/// Defines a subanta argument for a samasa.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct SamasaPada {
-    pratipadika: Pratipadika,
-    vibhakti: Vibhakti,
-    is_avyaya: bool,
-}
-
-impl SamasaPada {
-    /// Creates a new pada to use when deriving the samasa.
-    pub fn new(pratipadika: Pratipadika, vibhakti: Vibhakti) -> Self {
-        Self {
-            pratipadika,
-            vibhakti,
-            is_avyaya: false,
-        }
-    }
-
-    /// Creates a pada that will be bulit as an avyaya.
-    pub fn avyaya(pratipadika: Pratipadika) -> Self {
-        Self {
-            pratipadika,
-            vibhakti: Vibhakti::Prathama,
-            is_avyaya: true,
-        }
-    }
-
-    /// Returns the pratipadika to use when deriving the samasa.
-    pub fn pratipadika(&self) -> &Pratipadika {
-        &self.pratipadika
-    }
-
-    /// Returns the vibhakti to use when deriving the samasa.
-    ///
-    /// If deriving a tatpurusha, the choice of *vibhakti* here affects which tatpurusha rules are
-    /// available to the derivation.
-    pub fn vibhakti(&self) -> Vibhakti {
-        self.vibhakti
-    }
-
-    pub(crate) fn is_avyaya(&self) -> bool {
-        self.is_avyaya
-    }
-}
-
 /// The information required to derive a samasa in the grammar.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct SamasaArgs {
+pub struct Samasa {
     /// The items to combine in the samasa.
-    padas: Vec<SamasaPada>,
+    padas: Vec<Subanta>,
+    /// The sup-pratyaya to use.
+    sup: Option<(Linga, Vibhakti, Vacana)>,
     /// The samasa type to apply.
     samasa_type: SamasaType,
+    /// Whether to add a stri-pratyaya.
+    stri: bool,
 }
 
-impl SamasaArgs {
+impl Samasa {
+    /// Returns a new builder for this struct.
+    pub fn builder() -> SamasaBuilder {
+        SamasaBuilder::default()
+    }
+
     /// Returns all padas to use in the derivation.
-    pub fn padas(&self) -> &Vec<SamasaPada> {
+    pub fn padas(&self) -> &Vec<Subanta> {
         &self.padas
     }
 
@@ -88,22 +51,41 @@ impl SamasaArgs {
         self.samasa_type
     }
 
-    /// Returns a new builder for this struct.
-    pub fn builder() -> SamasaArgsBuilder {
-        SamasaArgsBuilder::default()
+    /// Returns the arguments for the `sup`-pratyaya that the samasa will take. If none, derive the
+    /// samasa as a pratipadika.
+    pub fn sup(&self) -> Option<(Linga, Vibhakti, Vacana)> {
+        self.sup
+    }
+
+    /// Whether or not to derive this with a strI-pratyaya.
+    pub fn stri(&self) -> bool {
+        self.stri
+    }
+
+    /// TODO
+    pub fn with_sup(mut self, linga: Linga, vibhakti: Vibhakti, vacana: Vacana) -> Self {
+        self.sup = Some((linga, vibhakti, vacana));
+        self
+    }
+
+    /// TODO
+    pub fn with_stri(mut self, val: bool) -> Self {
+        self.stri = val;
+        self
     }
 }
 
 /// Convenience struct for building a `SamasaARgs` struct.
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct SamasaArgsBuilder {
-    padas: Vec<SamasaPada>,
+pub struct SamasaBuilder {
+    padas: Vec<Subanta>,
     samasa_type: Option<SamasaType>,
+    sup: Option<(Linga, Vibhakti, Vacana)>,
 }
 
-impl SamasaArgsBuilder {
+impl SamasaBuilder {
     /// Sets the items to use in the derivation.
-    pub fn padas(&mut self, padas: Vec<SamasaPada>) -> &mut Self {
+    pub fn padas(&mut self, padas: Vec<Subanta>) -> &mut Self {
         self.padas = padas;
         self
     }
@@ -114,20 +96,28 @@ impl SamasaArgsBuilder {
         self
     }
 
+    /// Sets the samasa type to use in the derivation.
+    pub fn sup(&mut self, tuple: (Linga, Vibhakti, Vacana)) -> &mut Self {
+        self.sup = Some(tuple);
+        self
+    }
+
     /// Converts the arguments in this builder into a `SamasaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(&self) -> Result<SamasaArgs, Error> {
-        Ok(SamasaArgs {
+    pub fn build(&self) -> Result<Samasa, Error> {
+        Ok(Samasa {
             padas: if !self.padas.is_empty() {
                 self.padas.clone()
             } else {
                 return Err(Error::missing_required_field("items"));
             },
+            sup: self.sup,
             samasa_type: match self.samasa_type {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("samasa_type")),
             },
+            stri: false,
         })
     }
 }

@@ -1,4 +1,4 @@
-use crate::args::{SubantaArgs, Vacana, Vibhakti};
+use crate::args::{Linga, Vacana, Vibhakti};
 use crate::core::Prakriya;
 use crate::core::Tag as T;
 use crate::core::Term;
@@ -36,20 +36,20 @@ fn find_sup(vibhakti: Vibhakti, vacana: Vacana) -> &'static str {
     }
 }
 
-pub fn run(p: &mut Prakriya, args: &SubantaArgs) -> Option<()> {
-    let sup = find_sup(args.vibhakti(), args.vacana());
+pub fn run(p: &mut Prakriya, linga: Linga, vibhakti: Vibhakti, vacana: Vacana) -> Option<()> {
+    let sup = find_sup(vibhakti, vacana);
     let mut sup = Term::make_upadesha(sup);
 
     sup.add_tags(&[
         T::Pratyaya,
         T::Vibhakti,
         T::Sup,
-        args.vibhakti().as_tag(),
-        args.vacana().as_tag(),
+        vibhakti.as_tag(),
+        vacana.as_tag(),
     ]);
 
-    p.add_tags(&[args.linga().as_tag(), args.vacana().as_tag()]);
-    if args.vibhakti() == Vibhakti::Sambodhana {
+    p.add_tags(&[linga.as_tag(), vacana.as_tag()]);
+    if vibhakti == Vibhakti::Sambodhana {
         p.add_tag(T::Sambodhana);
     }
 

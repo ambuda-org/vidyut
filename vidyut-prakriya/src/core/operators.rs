@@ -86,7 +86,7 @@ pub fn ti(sub: &'static str) -> impl Fn(&mut Term) {
 
 /// Replaces all of the text in the given term.
 pub fn text(sub: &'static str) -> impl Fn(&mut Term) {
-    move |t| t.text.replace_range(.., sub)
+    move |t| t.set_text(sub)
 }
 
 // Insertion of new terms
@@ -142,13 +142,12 @@ pub fn append_agama(rule: impl Into<Rule>, p: &mut Prakriya, i: usize, sub: &str
 
 /// Complex op
 pub fn adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize, sub: &str) {
-    if let Some(t) = p.get_mut(i) {
+    p.run_at(rule, i, |t| {
         t.save_lakshana();
         t.set_u(sub);
         t.set_text(sub);
-        p.step(rule);
-        it_samjna::run(p, i).expect("should always succeed");
-    }
+    });
+    it_samjna::run(p, i).expect("should always succeed");
 }
 
 pub fn optional_adesha(

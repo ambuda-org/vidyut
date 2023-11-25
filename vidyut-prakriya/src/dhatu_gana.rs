@@ -330,11 +330,3 @@ pub const LU_ADI: &[&str] = &[
     "lUY", "stFY", "kFY", "vFY", "DUY", "SF", "pF", "vF", "BF", "mF", "dF", "jF", "JF", "DF", "nF",
     "kF", "F", "gF", "jyA\\",
 ];
-
-/// Dhatus for 3.1.27. These dhatus were copied from the S. C. Vasu commentary on that rule.
-pub const KANDU_ADI: &[&str] = &[
-    "kaRqUY", "mantu", "hraRIY", "valgu", "astra", "manas", "mahIN", "lew", "low", "iras", "iraj",
-    "iraY", "dravas", "meDA", "kuzuBa", "magaDa", "tantas", "pampas", "suKa", "duHKa", "sapara",
-    "ara", "Bizaj", "BizRaj", "izuDa", "caraRa", "curaRa", "BuraRa", "turaRa", "gadgada", "elA",
-    "kelA", "KelA", "liw", "low",
-];

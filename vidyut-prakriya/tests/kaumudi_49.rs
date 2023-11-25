@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 
-#[ignore]
 #[test]
 fn sk_2543() {
     let rudh = d("ru\\Di~^r", Rudhadi);

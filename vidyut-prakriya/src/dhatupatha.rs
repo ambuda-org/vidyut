@@ -15,6 +15,23 @@ pub struct Entry {
 }
 
 impl Entry {
+    fn parse(code: &str, upadesha: &str, artha: &str) -> Result<Self> {
+        let (gana, number) = code.split_once('.').ok_or(Error::InvalidFile)?;
+        let gana = if let Some(stripped) = gana.strip_prefix('0') {
+            stripped.parse()?
+        } else {
+            gana.parse()?
+        };
+        let number = number.parse()?;
+        let dhatu = create_dhatu(upadesha, gana, number)?;
+
+        Ok(Self {
+            code: code.to_string(),
+            dhatu,
+            artha: artha.to_string(),
+        })
+    }
+
     /// The numeric code for this entry.
     pub fn code(&self) -> &String {
         &self.code
@@ -78,23 +95,6 @@ pub fn create_dhatu(upadesha: impl AsRef<str>, gana: Gana, number: u16) -> Resul
     builder.build()
 }
 
-fn create_entry(code: &str, upadesha: &str, artha: &str) -> Result<Entry> {
-    let (gana, number) = code.split_once('.').ok_or(Error::InvalidFile)?;
-    let gana = if let Some(stripped) = gana.strip_prefix('0') {
-        stripped.parse()?
-    } else {
-        gana.parse()?
-    };
-    let number = number.parse()?;
-    let dhatu = create_dhatu(upadesha, gana, number)?;
-
-    Ok(Entry {
-        code: code.to_string(),
-        dhatu,
-        artha: artha.to_string(),
-    })
-}
-
 impl Dhatupatha {
     /// Loads a dhatupatha from the provided TSV.
     ///
@@ -112,25 +112,8 @@ impl Dhatupatha {
     /// # Ok::<(), Error>(())
     /// ```
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
-        let mut dhatus = Vec::new();
-        let mut rdr = csv::ReaderBuilder::new().delimiter(b'\t').from_path(path)?;
-        for maybe_row in rdr.records() {
-            let r = maybe_row?;
-            let code = &r[0];
-            let upadesha = &r[1];
-            let artha = &r[2];
-
-            // If the upadesha is missing, this is a ganasutra -- skip.
-            if upadesha == "-" {
-                continue;
-            }
-
-            let entry = create_entry(code, upadesha, artha)?;
-            dhatus.push(entry);
-        }
-
-        dhatus.sort_by(|x, y| x.code.cmp(&y.code));
-        Ok(Self(dhatus))
+        let content = std::fs::read_to_string(path)?;
+        Self::from_text(&content)
     }
 
     /// Loads a dhatupatha from the input text string.
@@ -169,7 +152,12 @@ impl Dhatupatha {
                 None => return Err(Error::InvalidFile),
             };
 
-            let entry = create_entry(code, upadesha, artha)?;
+            // If the upadesha is missing, this is a ganasutra -- skip.
+            if upadesha == "-" {
+                continue;
+            }
+
+            let entry = Entry::parse(code, upadesha, artha)?;
             dhatus.push(entry);
         }
 
@@ -217,8 +205,8 @@ mod tests {
     #[test]
     fn create_dhatu_basic() {
         let dhatu = create_dhatu("BU", Gana::Bhvadi, 1).unwrap();
-        assert_eq!(dhatu.upadesha(), "BU");
-        assert_eq!(dhatu.gana(), Gana::Bhvadi);
+        assert_eq!(dhatu.upadesha().unwrap(), "BU");
+        assert_eq!(dhatu.gana().expect("ok"), Gana::Bhvadi);
         assert!(dhatu.prefixes().is_empty());
         assert!(dhatu.sanadi().is_empty());
     }
@@ -226,8 +214,8 @@ mod tests {
     #[test]
     fn create_dhatu_with_ashas() {
         let dhatu = create_dhatu("SAsu~\\", Gana::Adadi, 23).unwrap();
-        assert_eq!(dhatu.upadesha(), "SAsu~\\");
-        assert_eq!(dhatu.gana(), Gana::Adadi);
+        assert_eq!(dhatu.upadesha().unwrap(), "SAsu~\\");
+        assert_eq!(dhatu.gana().expect("ok"), Gana::Adadi);
         assert_eq!(dhatu.prefixes(), &vec!["AN"]);
         assert!(dhatu.sanadi().is_empty());
     }

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from collections import Counter
 import re
 import glob
 
@@ -41,23 +42,50 @@ for path in glob.glob("**/*.rs", root_dir=tests, recursive=True):
             for match in re.findall(r"(\d+_\d+_\d+)", line):
                 tested_rules.add(match.replace('_', '.'))
 
-print_legend()
-num_ok = 0
-num_untested = 0
-num_missing = 0
 for rule in all_rules:
     status = None
     if rule in tested_rules:
         status = RULE_OK
-        num_ok += 1
     elif rule in implemented_rules:
         status = RULE_UNTESTED
-        num_untested += 1
     else:
         status = RULE_MISSING
-        num_missing += 1
     print(f"{status}\t\t{rule}")
+
 print_legend()
-print(f"Num tested   : {num_ok}")
-print(f"Num untested : {num_untested}")
-print(f"Num missing  : {num_missing}")
+
+pada_total = Counter()
+pada_written = Counter()
+pada_tested = Counter()
+pada_missing = Counter()
+for rule in all_rules:
+    ap, _, sutra = rule.rpartition('.')
+    pada_total[ap] += 1
+    if rule in tested_rules:
+        pada_tested[ap] += 1
+    elif rule in implemented_rules:
+        pada_written[ap] += 1
+    else:
+        pada_missing[ap] += 1
+
+print("Coverage by pada:")
+print()
+print(f"+---------+------------+------------+------------+------------+")
+print(f"| Pada    |    Written |     Tested |    Missing |      Total |")
+print(f"+---------+------------+------------+------------+------------+")
+for key, total in pada_total.items():
+    written = pada_written[key]
+    tested = pada_tested[key]
+    missing = pada_missing[key]
+    print(f"| {key}     | {written:>10} | {tested:>10} | {missing:>10} | {total:>10} |")
+written = pada_written.total()
+total = pada_total.total()
+tested = pada_tested.total()
+missing = pada_missing.total()
+print(f"+---------+------------+------------+------------+------------+")
+print(f"| All     | {written:>10} | {tested:>10} | {missing:>10} | {total:>10} |")
+print(f"+---------+------------+------------+------------+------------+")
+
+print()
+num_ok = total - pada_missing.total()
+print("Num tested or implemented: {}".format(num_ok))

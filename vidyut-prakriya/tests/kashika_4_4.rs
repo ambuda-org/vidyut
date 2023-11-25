@@ -233,8 +233,8 @@ fn sutra_4_4_33() {
 
 #[test]
 fn sutra_4_4_34() {
-    assert_has_taddhitanta(&prati("Sabda"), T::Wak, &["SAbdika"]);
-    assert_has_taddhitanta(&prati("dardura"), T::Wak, &["dArdurika"]);
+    assert_has_taddhita("Sabda", T::Wak, &["SAbdika"]);
+    assert_has_taddhita("dardura", T::Wak, &["dArdurika"]);
 }
 
 #[test]
@@ -441,9 +441,9 @@ fn sutra_4_4_62() {
 
 #[test]
 fn sutra_4_4_65() {
-    assert_has_taddhitanta(&prati("apUpa"), T::Wak, &["ApUpika"]);
-    assert_has_taddhitanta(&prati("Sazkula"), T::Wak, &["SAzkulika"]);
-    assert_has_taddhitanta(&prati("modaka"), T::Wak, &["mOdakika"]);
+    assert_has_taddhita("apUpa", T::Wak, &["ApUpika"]);
+    assert_has_taddhita("Sazkula", T::Wak, &["SAzkulika"]);
+    assert_has_taddhita("modaka", T::Wak, &["mOdakika"]);
 }
 
 #[test]
@@ -485,10 +485,10 @@ fn sutra_4_4_70() {
 
 #[test]
 fn sutra_4_4_71() {
-    assert_has_taddhitanta(&prati("SmaSAna"), T::Wak, &["SmASAnika"]);
-    assert_has_taddhitanta(&prati("catuzpaTa"), T::Wak, &["cAtuzpaTika"]);
-    assert_has_taddhitanta(&prati("caturdaSa"), T::Wak, &["cAturdaSika"]);
-    assert_has_taddhitanta(&prati("amAvAsyA"), T::Wak, &["AmAvAsyika"]);
+    assert_has_taddhita("SmaSAna", T::Wak, &["SmASAnika"]);
+    assert_has_taddhita("catuzpaTa", T::Wak, &["cAtuzpaTika"]);
+    assert_has_taddhita("caturdaSa", T::Wak, &["cAturdaSika"]);
+    assert_has_taddhita("amAvAsyA", T::Wak, &["AmAvAsyika"]);
 }
 
 #[test]
@@ -585,13 +585,13 @@ fn sutra_4_4_90() {
 
 #[test]
 fn sutra_4_4_91() {
-    assert_has_taddhitanta(&prati("nO"), T::yat, &["nAvya"]);
-    assert_has_taddhitanta(&prati("vayas"), T::yat, &["vayasya"]);
-    assert_has_taddhitanta(&prati("Darma"), T::yat, &["Darmya"]);
-    assert_has_taddhitanta(&prati("viza"), T::yat, &["vizya"]);
-    assert_has_taddhitanta(&prati("mUla"), T::yat, &["mUlya"]);
-    assert_has_taddhitanta(&prati("sItA"), T::yat, &["sItya"]);
-    assert_has_taddhitanta(&prati("tulA"), T::yat, &["tulya"]);
+    assert_has_taddhita("nO", T::yat, &["nAvya"]);
+    assert_has_taddhita("vayas", T::yat, &["vayasya"]);
+    assert_has_taddhita("Darma", T::yat, &["Darmya"]);
+    assert_has_taddhita("viza", T::yat, &["vizya"]);
+    assert_has_taddhita("mUla", T::yat, &["mUlya"]);
+    assert_has_taddhita("sItA", T::yat, &["sItya"]);
+    assert_has_taddhita("tulA", T::yat, &["tulya"]);
     // TODO: others
 }
 
@@ -621,9 +621,9 @@ fn sutra_4_4_95() {
 
 #[test]
 fn sutra_4_4_97() {
-    assert_has_taddhitanta("mata", T::yat, &["matya"]);
-    assert_has_taddhitanta("jana", T::yat, &["janya"]);
-    assert_has_taddhitanta("hala", T::yat, &["halya"]);
+    assert_has_taddhita("mata", T::yat, &["matya"]);
+    assert_has_taddhita("jana", T::yat, &["janya"]);
+    assert_has_taddhita("hala", T::yat, &["halya"]);
 }
 
 #[test]

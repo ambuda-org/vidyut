@@ -5,16 +5,20 @@ Implements the taddhita rules in the "prAk krItAc CaH" section of pada 5.1.
 */
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
+use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
 fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
-    const GO_ADI: &[&str] = &[
-        "go", "havis", "varhiz", "Kawa", "azwakA", "yuga", "meDA", "srak", "nABi", "naBam",
-    ];
-
     // TODO: use `_rule` as well -- this should be simultaneous application.
     let prati = tp.prati();
-    if prati.has_antya('u') || prati.has_antya('U') || prati.has_text_in(GO_ADI) {
+    if prati.has_text("kambala") {
+        tp.optional_try_add("5.1.3", yat);
+    } else if prati.has_text("havis") || prati.has_text_in(gana::APUPA_ADI) {
+        tp.optional_try_add("5.1.4", yat);
+    }
+
+    let prati = tp.prati();
+    if prati.has_antya('u') || prati.has_antya('U') || prati.has_text_in(gana::GAVADI) {
         tp.try_add("5.1.2", yat);
     } else {
         tp.try_add("5.1.1", Ca);
@@ -47,15 +51,17 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TadarthamVikrtehPrakrtau, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(&["Cadis", "upaDi", "bAli"]) {
+        let pratipadika = tp.nyap_pratipadika();
+        if pratipadika.has_text_in(&["Cadis", "upaDi", "bAli"]) {
             tp.try_add("5.1.13", QaY);
         } else if prati.has_text_in(&["fzaBa", "upAnah"]) {
             tp.try_add("5.1.14", Yya);
-        } else if prati.has_text_in(&["vardhra", "varatrA"]) {
+        } else if prati.has_text_in(&["varDrI", "varatrA"]) {
             // HACK: The rule states "carman," i.e. words referring to a skin or leather. For now,
             // use the two examples found in the Kashika Vrtti.
             tp.try_add("5.1.15", aY);
         } else {
+            // aNgArIya, ...
             try_base_cases(tp, "5.1.12");
         }
     });

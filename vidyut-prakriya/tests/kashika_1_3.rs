@@ -70,11 +70,11 @@ fn sutra_1_3_6() {
 #[test]
 fn sutra_1_3_7() {
     // ca
-    assert_has_taddhitanta(&prati("kuYja"), T::cPaY, &["kOYjAyana"]);
+    assert_has_taddhita("kuYja", T::cPaY, &["kOYjAyana"]);
     // ja
     assert_has_sup_1p("brAhmaRa", Pum, &["brAhmaRAH"]);
     // Ya
-    assert_has_taddhitanta(&prati("SaRqika"), T::Yya, &["SARqikya"]);
+    assert_has_taddhita("SaRqika", T::Yya, &["SARqikya"]);
     // wa
     let car = &d("cara~", Bhvadi);
     assert_has_upapada_krdanta("kuru", &[], &car, Krt::wa, &["kurucara"]);
@@ -113,10 +113,10 @@ fn sutra_1_3_8() {
     assert_has_sup_5s("vfkza", Pum, &["vfkzAt"]);
     assert_has_sup_6s("vfkza", Pum, &["vfkzasya"]);
     // ataddhite?
-    assert_has_taddhitanta(&prati("cUqA"), T::lac, &["cUqAla"]);
-    assert_has_taddhitanta(&prati("loman"), T::Sa, &["lomaSa"]);
+    assert_has_taddhita("cUqA", T::lac, &["cUqAla"]);
+    assert_has_taddhita("loman", T::Sa, &["lomaSa"]);
     // TODO: support kan-pratyaya here
-    // assert_has_taddhitanta(&prati("vfkza"), T::kan, &["vfkzaka"]);
+    // assert_has_taddhitanta("vfkza", T::kan, &["vfkzaka"]);
 }
 
 #[test]
@@ -493,7 +493,7 @@ fn sutra_1_3_61() {
 
 #[test]
 fn sutra_1_3_62() {
-    let san = |u, gana| d(u, gana).with_sanadi(&[Sanadi::San]);
+    let san = |u, gana| d(u, gana).with_sanadi(&[Sanadi::san]);
 
     assert_has_lat(&[], &san("Asa~\\", Adadi), &["Asisizate"]);
     assert_has_lat(&[], &san("SIN", Adadi), &["SiSayizate"]);
@@ -696,6 +696,13 @@ fn sutra_1_3_83() {
 fn sutra_1_3_84_and_sutra_1_3_85() {
     let ram = d("ra\\ma~\\", Bhvadi);
     assert_has_lat(&["upa"], &ram, &["uparamati", "uparamate"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_3_1_90() {
+    let kyas = |prati| Dhatu::nama(Pratipadika::basic(prati), None);
+    assert_has_lat(&[], &kyas("lohita"), &["lohitAyati", "lohitAyate"]);
 }
 
 #[test]

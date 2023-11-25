@@ -2,6 +2,12 @@ extern crate test_utils;
 use test_utils::*;
 
 #[test]
+fn sutra_2_2_6() {
+    assert_has_avyaya_tatpurusha("naY", "brAhmaRa", &["abrAhmaRa"]);
+    assert_has_avyaya_tatpurusha("naY", "vfzala", &["avfzala"]);
+}
+
+#[test]
 fn sutra_2_2_8() {
     assert_has_sasthi_tatpurusha("rAjan", "puruza", &["rAjapuruza"]);
     assert_has_sasthi_tatpurusha("brAhmaRa", "kambala", &["brAhmaRakambala"]);

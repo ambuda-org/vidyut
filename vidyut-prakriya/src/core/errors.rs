@@ -10,8 +10,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// An IO error
     Io(io::Error),
-    /// A CSV format error.
-    Csv(csv::Error),
     /// An input vile is invalid in some way.
     InvalidFile,
 
@@ -37,20 +35,13 @@ pub enum Error {
     Generic(&'static str),
 
     /// The caller's arguments are incompatible with the prakriya, so we aborted early.
-    Abort(Prakriya),
+    Abort(Box<Prakriya>),
 }
 
 impl From<io::Error> for Error {
     #[inline]
     fn from(err: io::Error) -> Error {
         Error::Io(err)
-    }
-}
-
-impl From<csv::Error> for Error {
-    #[inline]
-    fn from(err: csv::Error) -> Error {
-        Error::Csv(err)
     }
 }
 
@@ -83,7 +74,6 @@ impl fmt::Display for Error {
 
         match self {
             Io(_) => write!(f, "I/O error"),
-            Csv(_) => write!(f, "CSV error"),
             InvalidFile => write!(f, "The input file is invalid."),
             ParseInt(_) => write!(f, "Parse int error"),
             UnknownIt(c) => write!(f, "`{c}` could not be parsed as an it-samjna."),

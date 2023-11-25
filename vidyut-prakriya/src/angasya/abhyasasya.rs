@@ -73,9 +73,11 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
 
     let mut do_abhyasa_lopa = true;
     let dhatu = p.get(i)?;
-    if dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "mA\\", "mA\\N", "me\\N"])
+    if (dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "mA\\", "mA\\N", "me\\N"])
         || dhatu.has_tag(T::Ghu)
-        || dhatu.has_u_in(&["ra\\Ba~\\", "qula\\Ba~\\z", "Sa\\kx~", "patx~", "pa\\da~\\"])
+        || dhatu.has_u_in(&["ra\\Ba~\\", "qula\\Ba~\\z", "Sa\\kx~", "patx~", "pa\\da~\\"]))
+        // Temporary HACK to avoid running this rule twice.
+        && !dhatu.text.contains("is")
     {
         // mitsati, ripsati, lipsati, Sikzati, pitsati, ...
         let code = "7.4.54";
@@ -136,7 +138,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i_abhyasta)?;
 
     // quick HACK for jAgr
-    let is_laghuni = anga.is_laghu() && !anga.text.starts_with("jA");
+    let is_laghuni = anga.is_laghu() && !anga.starts_with("jA");
     let has_at_lopa = p.has(i_abhyasta, |t| t.has_tag(T::FlagAtLopa));
     let is_ni = p
         .find_next_where(i_abhyasta, |t| t.is_ni_pratyaya())

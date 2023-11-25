@@ -16,7 +16,8 @@ fn create_sanadyanta(upadesha: &str, gana: &str, sanadi: Sanadi) -> Vec<String> 
         .build()
         .unwrap();
 
-    let args = TinantaArgs::builder()
+    let args = Tinanta::builder()
+        .dhatu(dhatu)
         .prayoga(Prayoga::Kartari)
         .purusha(Purusha::Prathama)
         .vacana(Vacana::Eka)
@@ -24,7 +25,7 @@ fn create_sanadyanta(upadesha: &str, gana: &str, sanadi: Sanadi) -> Vec<String> 
         .build()
         .unwrap();
 
-    let prakriyas = a.derive_tinantas(&dhatu, &args);
+    let prakriyas = a.derive_tinantas(&args);
     prakriyas.iter().map(|p| p.text()).collect()
 }
 
@@ -35,7 +36,7 @@ fn run_sanadi_test_cases(cases: &[(&str, u8, &str)], sanadi: Sanadi) {
         expected.sort();
 
         let mut actual: Vec<_> = create_sanadyanta(dhatu, &gana.to_string(), sanadi);
-        if sanadi == Sanadi::Nic {
+        if sanadi == Sanadi::Ric {
             // All Nijantas are ubhayapadI, so to simplify the tests, focus on just parasmaipada.
             actual.retain(|x| x.ends_with("ti"));
         }
@@ -133,5 +134,5 @@ fn san_tinantas() {
         ("kfpU~\\", 1, "cikxpsati|cikalpizate|cikxpsate"),
     ];
 
-    run_sanadi_test_cases(cases, Sanadi::San);
+    run_sanadi_test_cases(cases, Sanadi::san);
 }

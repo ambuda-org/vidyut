@@ -419,7 +419,8 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
     }
 
     let dhatu = p.get(i)?;
-    let has_upasarga = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
+    let i_upasarga = p.find_prev_where(i, |t| t.is_upasarga());
+    let has_upasarga = i_upasarga.is_some();
 
     // Optional cases
     let stanbhu_stunbhu = ["stanBu~", "stunBu~", "skanBu~", "skunBu~", "sku\\Y"];
@@ -437,7 +438,7 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
         if !has_upasarga {
             // yasyati, yasati
             divadi_declined = !p.optional_run("3.1.71", add_vikarana("Syan"));
-        } else if i > 0 && p.has(i - 1, |t| t.has_u("sam")) {
+        } else if i > 0 && p.has(i_upasarga?, |t| t.has_u("sam")) {
             // saMyasyati, saMyasati
             divadi_declined = !p.optional_run("3.1.72", add_vikarana("Syan"));
         }
@@ -609,7 +610,7 @@ pub fn run(p: &mut Prakriya) -> Result<()> {
     if let Some(i_vikarana) = p.find_first(T::Vikarana) {
         try_pratyaya_lopa(p);
         // Run it-samjna-prakarana only after the lopa phase is complete.
-        if p.has(i_vikarana, |t| !t.text.is_empty()) {
+        if p.has(i_vikarana, |t| !t.is_empty()) {
             it_samjna::run(p, i_vikarana)?;
         }
     }

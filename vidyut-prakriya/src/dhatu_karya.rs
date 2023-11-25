@@ -8,8 +8,8 @@ Operations here include:
 - inserting upasargas
 - applying gana sutras
 */
+use crate::args::dhatu::Muladhatu;
 use crate::args::Antargana;
-use crate::args::Dhatu;
 use crate::args::Gana;
 use crate::core::errors::*;
 use crate::core::operators as op;
@@ -17,11 +17,11 @@ use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
-use crate::ganapatha::PRA_ADI;
 use crate::it_samjna;
+use crate::samjna;
 
 /// Adds the mula-dhatu to the prakriya.
-fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Dhatu) {
+fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Muladhatu) {
     p.run("1.3.1", |p| {
         let mut dhatu = Term::make_dhatu(dhatu.upadesha(), dhatu.gana(), dhatu.antargana());
         dhatu.add_tag(T::Dhatu);
@@ -139,7 +139,7 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
                 // Also undo retroflexion of `R`. This occurs only in two roots, as far as I can
                 // tell: zaRa~ and zaRu~. So, just check for `zaR`:
                 if t.text == "zaR" {
-                    t.text.replace_range(.., "san");
+                    t.set_text("san");
                 }
                 t.add_tag(T::FlagSaAdeshadi);
             });
@@ -179,34 +179,35 @@ fn try_add_num_agama(p: &mut Prakriya, i: usize) {
 }
 
 /// Adds prefixes from `dhatu` into the prakriya.
-fn try_add_prefixes(p: &mut Prakriya, dhatu: &Dhatu) -> Option<()> {
-    let i_offset = p.find_first(T::Dhatu)?;
+pub fn try_add_prefixes(p: &mut Prakriya, prefixes: &[String]) -> Option<()> {
+    let mut i_offset = p.find_first(T::Dhatu).unwrap_or(0);
 
     // TODO: prefixes that aren't upasargas?
-    for (i, prefix) in dhatu.prefixes().iter().enumerate() {
-        let i_upasarga = i + i_offset;
-        let mut t = Term::make_upadesha(prefix);
+    for prefix in prefixes {
+        let t = Term::make_upadesha(&prefix);
+        p.insert_before(i_offset, t);
+        samjna::try_nipata_rules(p, i_offset);
 
-        if PRA_ADI.contains(&prefix.as_str()) {
-            t.add_tag(T::Upasarga);
-            p.insert_before(i_upasarga, t);
-            p.step("1.4.80");
-        } else {
-            p.insert_before(i_upasarga, t);
-        }
+        let mut su = Term::make_upadesha("su~");
+        su.add_tags(&[T::Pada, T::V1, T::Sup, T::Ekavacana, T::Luk, T::Pratyaya]);
+        su.set_text("");
+        p.insert_before(i_offset + 1, su);
 
         // Don't run it-samjna-prakarana for other upasargas (e.g. sam, ud)
         // TODO: why run only for AN?
         if prefix == "AN" {
-            it_samjna::run(p, i_upasarga).ok()?;
+            it_samjna::run(p, i_offset).ok()?;
         }
+
+        // Add 1 for prefix and 1 for su~.
+        i_offset += 2;
     }
 
     Some(())
 }
 
 /// Adds a dhatu to the prakriya and runs various follow-up rules on it.
-pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
+pub fn run(p: &mut Prakriya, dhatu: &Muladhatu) -> Result<()> {
     add_mula_dhatu(p, dhatu);
     let i_dhatu = p.terms().len() - 1;
 
@@ -231,7 +232,8 @@ pub fn run(p: &mut Prakriya, dhatu: &Dhatu) -> Result<()> {
     }
     p.maybe_save_sthanivat();
 
-    try_add_prefixes(p, dhatu);
+    // Add upasargas now because certain gana-sUtras check for them.
+    try_add_prefixes(p, dhatu.prefixes());
 
     // Update `i_dhatu` because we added upasargas above.
     let i_dhatu = p.terms().len() - 1;
@@ -249,12 +251,7 @@ mod tests {
     fn check(text: &str, code: &str) -> Term {
         let (gana, _number) = code.split_once('.').expect("valid");
         let gana: u8 = gana.parse().expect("ok");
-        let dhatu = Dhatu::builder()
-            .upadesha(text)
-            .gana(gana.to_string().parse().expect("ok"))
-            .build()
-            .expect("ok");
-
+        let dhatu = Muladhatu::new(text, gana.to_string().parse().unwrap());
         let mut p = Prakriya::new();
         run(&mut p, &dhatu).expect("ok");
         p.get(0).expect("ok").clone()

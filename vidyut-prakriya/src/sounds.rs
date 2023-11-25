@@ -54,21 +54,24 @@ pub struct Set([u8; 256]);
 
 impl Set {
     /// Creates an empty set.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Set([0; 256])
     }
 
     /// Creates a set whose members are the characters in `string`.
-    pub fn from(string: impl AsRef<str>) -> Self {
-        let mut res = Self::new();
-        for c in string.as_ref().chars() {
+    pub const fn from(text: &str) -> Self {
+        let mut res = Set([0; 256]);
+        let mut i = 0;
+        while i < text.len() {
+            let c = text.as_bytes()[i] as char;
             res.0[c as usize] = 1;
+            i += 1;
         }
         res
     }
 
     /// Returns whether the set contains the given sound.
-    pub fn contains(&self, c: Sound) -> bool {
+    pub const fn contains(&self, c: Sound) -> bool {
         self.0[c as usize] == 1
     }
 }

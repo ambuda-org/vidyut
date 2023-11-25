@@ -11,10 +11,10 @@ pub mod iterators;
 pub mod operators;
 pub mod prakriya_stack;
 
-mod prakriya;
-mod tag;
-mod term;
-mod term_view;
+pub(crate) mod prakriya;
+pub(crate) mod tag;
+pub(crate) mod term;
+pub(crate) mod term_view;
 
 pub use prakriya::*;
 pub use tag::*;

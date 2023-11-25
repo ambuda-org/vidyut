@@ -1,5 +1,4 @@
 use vidyut_prakriya::args::*;
-use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::Ashtadhyayi;
 
 fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
@@ -10,7 +9,8 @@ fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
         .build()
         .unwrap();
 
-    let args = TinantaArgs::builder()
+    let args = Tinanta::builder()
+        .dhatu(dhatu)
         .prayoga(prayoga)
         .purusha(Purusha::Prathama)
         .vacana(Vacana::Eka)
@@ -18,13 +18,8 @@ fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
         .build()
         .unwrap();
 
-    let prakriyas = a.derive_tinantas(&dhatu, &args);
+    let prakriyas = a.derive_tinantas(&args);
     prakriyas.iter().map(|p| p.text()).collect()
-}
-
-fn assert_contains(words: &[String], needle: &str) {
-    let found = words.iter().any(|w| w == needle);
-    assert!(found, "Could not find item `{needle}` in {words:?}");
 }
 
 fn run_test_cases(cases: &[(&str, u8, &str)], prayoga: Prayoga) {
@@ -51,52 +46,6 @@ fn run_test_cases(cases: &[(&str, u8, &str)], prayoga: Prayoga) {
         println!("{num_passed} / {num_total} tests passed.")
     }
     assert_eq!(num_failed, 0);
-}
-
-#[test]
-fn with_upasargas() {
-    let a = Ashtadhyayi::new();
-
-    let lat = TinantaArgs::builder()
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lat)
-        .build()
-        .unwrap();
-
-    let lan = TinantaArgs::builder()
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lan)
-        .build()
-        .unwrap();
-
-    let derive = |dhatu, args| {
-        let prakriyas = a.derive_tinantas(dhatu, args);
-        let results: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
-        results
-    };
-
-    // Default upasarga
-    let adhi_i = dhatupatha::create_dhatu("i\\N", Gana::Adadi, 41).unwrap();
-    let results = derive(&adhi_i, &lat);
-    assert_contains(&results, "aDIte");
-
-    // Optional upasarga
-    let anu_bhu = Dhatu::builder()
-        .upadesha("BU")
-        .gana(Gana::Bhvadi)
-        .prefixes(&["anu"])
-        .build()
-        .unwrap();
-
-    let results = derive(&anu_bhu, &lat);
-    assert_contains(&results, "anuBavati");
-
-    let results = derive(&anu_bhu, &lan);
-    assert_contains(&results, "anvaBavat");
 }
 
 #[test]

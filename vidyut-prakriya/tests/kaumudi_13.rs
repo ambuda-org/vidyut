@@ -2,7 +2,6 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::SamasaType::*;
 use vidyut_prakriya::args::{BaseKrt as Krt, Unadi};
 
 #[test]
@@ -140,7 +139,7 @@ fn sk_446() {
     assert_has_sup_3s(&havis, Napumsaka, &["havizA"]);
     assert_has_sup_3d(&havis, Napumsaka, &["havirByAm"]);
 
-    let pipathis = create_krdanta("pipaWiz", &[], &san(&d("paWa~", Bhvadi)), Krt::kvip);
+    let pipathis = krdanta(&[], &san(&d("paWa~", Bhvadi)), Krt::kvip);
     assert_has_sup_1s(&pipathis, Napumsaka, &["pipaWIH"]);
     assert_has_sup_1d(&pipathis, Napumsaka, &["pipaWizI"]);
     assert_has_sup_1p(&pipathis, Napumsaka, &["pipaWizi"]);
@@ -152,7 +151,7 @@ fn sk_446() {
     assert_has_sup_3s("payas", Napumsaka, &["payasA"]);
     assert_has_sup_3d("payas", Napumsaka, &["payoByAm"]);
 
-    let supums = create_samasa("supums", &["su", "pums"], Bahuvrihi);
+    let supums = bahuvrihi("su", "pums");
     assert_has_sup_1s(&supums, Napumsaka, &["supum"]);
     assert_has_sup_1d(&supums, Napumsaka, &["supuMsI"]);
     assert_has_sup_1p(&supums, Napumsaka, &["supumAMsi"]);

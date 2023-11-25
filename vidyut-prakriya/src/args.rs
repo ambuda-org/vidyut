@@ -11,7 +11,7 @@ on which strings are valid arguments in `from_str`, please read the source code 
 */
 mod macros;
 
-mod dhatu;
+pub(crate) mod dhatu;
 mod krt;
 mod pada;
 mod pratipadika;

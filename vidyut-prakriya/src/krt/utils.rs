@@ -75,23 +75,31 @@ impl<'a> KrtPrakriya<'a> {
         self.p.get(i).expect("present")
     }
 
+    fn i_upapada(&self) -> Option<usize> {
+        self.p.find_prev_where(self.i_dhatu, |t| !t.is_empty())
+    }
+
     /// Returns a reference to the underlying upapada, if present.
     pub fn upapada(&self) -> Option<&Term> {
-        if self.i_dhatu > 0 {
-            self.p.get(self.i_dhatu - 1)
-        } else {
-            None
-        }
+        self.p.get(self.i_upapada()?)
     }
 
     /// Returns whether the term before the dhatu has the given upapada.
     pub fn has_upapada(&self, upadesha: &str) -> bool {
-        self.i_dhatu > 0 && self.p.has(self.i_dhatu - 1, |t| t.has_u(upadesha))
+        if let Some(i_upapada) = self.i_upapada() {
+            self.p.has(i_upapada, |t| t.has_u(upadesha))
+        } else {
+            false
+        }
     }
 
     /// Returns whether the term before the dhatu has one of the given upapada values.
     pub fn has_upapada_in(&self, upadeshas: &[&str]) -> bool {
-        self.i_dhatu > 0 && self.p.has(self.i_dhatu - 1, |t| t.has_u_in(upadeshas))
+        if let Some(i_upapada) = self.i_upapada() {
+            self.p.has(i_upapada, |t| t.has_u_in(upadeshas))
+        } else {
+            false
+        }
     }
 
     pub fn expects_krt(&self, krt: impl Into<Krt>) -> bool {
@@ -128,20 +136,22 @@ impl<'a> KrtPrakriya<'a> {
     }
 
     pub fn has_upasarga_dhatu(&self, i_dhatu: usize, upa: &str, dhatu: &str) -> bool {
-        i_dhatu > 0
-            && self.p.has(i_dhatu - 1, |t| t.has_u(upa))
-            && self.p.has(i_dhatu, |t| t.has_u(dhatu))
+        if let Some(i_upapada) = self.i_upapada() {
+            self.p.has(i_upapada, |t| t.has_u(upa)) && self.p.has(i_dhatu, |t| t.has_u(dhatu))
+        } else {
+            false
+        }
     }
 
     pub fn has_prefixes(&self, values: &[&str; 2]) -> bool {
-        match self.p.find_last_where(|t| !t.is_dhatu()) {
-            Some(i) => {
-                i > 0
-                    && self.p.has(i - 1, |t| t.has_text(values[0]))
-                    && self.p.has(i, |t| t.has_text(values[1]))
+        if let Some(i_upapada) = self.i_upapada() {
+            let i_before = self.p.find_prev_where(i_upapada, |t| !t.is_empty());
+            if let Some(i_before) = i_before {
+                return self.p.has(i_before, |t| t.has_text(values[0]))
+                    && self.p.has(i_upapada, |t| t.has_text(values[1]));
             }
-            None => false,
         }
+        false
     }
 
     /// If there's a match, adds the given `krt` pratyaya.
@@ -213,6 +223,8 @@ impl<'a> KrtPrakriya<'a> {
     ) -> bool {
         let rule = rule.into();
         let krt = krt.into();
+
+        self.p.debug(format!("try_add: {:?} --> {krt:?}", rule));
 
         self.had_match = true;
         if self.krt == krt && !self.has_krt {

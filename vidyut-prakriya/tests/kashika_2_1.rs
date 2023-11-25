@@ -3,10 +3,10 @@ use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Dhatu;
 use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
-use vidyut_prakriya::args::Pratipadika;
 
-pub fn create_kta(text: &str, prefixes: &[&str], d: &Dhatu) -> Pratipadika {
+pub fn create_kta(text: &str, prefixes: &[&str], d: &Dhatu) -> Krdanta {
     create_krdanta(text, prefixes, d, Krt::kta)
 }
 
@@ -109,6 +109,12 @@ fn sutra_2_1_15() {
 }
 
 #[test]
+fn sutra_2_1_19() {
+    assert_has_avyayibhava("dvi", "muni", &["dvimuni"]);
+    assert_has_avyayibhava("tri", "muni", &["trimuni"]);
+}
+
+#[test]
 fn sutra_2_1_24() {
     assert_has_dvitiya_tatpurusha("kazwa", "Srita", &["kazwaSrita"]);
     assert_has_dvitiya_tatpurusha("naraka", "Srita", &["narakaSrita"]);
@@ -149,6 +155,13 @@ fn sutra_2_1_27() {
 }
 
 #[test]
+fn sutra_2_1_30() {
+    assert_has_trtiya_tatpurusha("SaNkulA", "KaRqa", &["SaNkulAKaRqa"]);
+    assert_has_trtiya_tatpurusha("kiri", "kARa", &["kirikARa"]);
+    assert_has_trtiya_tatpurusha("DAnya", "arTa", &["DAnyArTa"]);
+}
+
+#[test]
 fn sutra_2_1_31() {
     assert_has_trtiya_tatpurusha("mAsa", "pUrva", &["mAsapUrva"]);
     assert_has_trtiya_tatpurusha("saMvatsara", "pUrva", &["saMvatsarapUrva"]);
@@ -165,6 +178,14 @@ fn sutra_2_1_31() {
     assert_has_trtiya_tatpurusha("guqa", "miSra", &["guqamiSra"]);
     assert_has_trtiya_tatpurusha("tila", "miSra", &["tilamiSra"]);
     assert_has_trtiya_tatpurusha("AcAra", "SlakzRa", &["AcAraSlakzRa"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_2_1_32() {
+    assert_has_trtiya_tatpurusha("ahi", "hata", &["ahihata"]);
+    assert_has_trtiya_tatpurusha("naKa", "nirBinna", &["naKanirBinna"]);
+    assert_has_trtiya_tatpurusha("paraSu", "Cinna", &["paraSucCinna"]);
 }
 
 #[test]
@@ -248,6 +269,17 @@ fn sutra_2_1_41() {
 fn sutra_2_1_42() {
     assert_has_saptami_tatpurusha("tIrTa", "DvANkza", &["tIrTaDvANkza"]);
     // TODO: others
+}
+
+#[ignore]
+#[test]
+fn sutra_2_1_47() {
+    let bhukta = create_kta("Bukta", &[], &d("Bu\\ja~", Rudhadi));
+    let krta = create_kta("kfta", &[], &d("qukf\\Y", Tanadi));
+    let pita = create_kta("pIta", &[], &d("pA\\", Bhvadi));
+    assert_has_saptami_tatpurusha("tatra", &bhukta, &["tatraBukta"]);
+    assert_has_saptami_tatpurusha("tatra", &krta, &["tatrakfta"]);
+    assert_has_saptami_tatpurusha("tatra", &pita, &["tatrapIta"]);
 }
 
 #[test]

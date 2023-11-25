@@ -283,6 +283,9 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if pp.is(&["upa"], &["ra\\ma~\\"]) {
         // 1.3.84 sets anuvrtti for 1.3.85
         pp.optional_para("1.3.85");
+    } else if dhatu.has_u("kyaz") {
+        // lohitAyati, lohitAyate, ...
+        pp.optional_atma("1.3.90");
     } else if dhatu.has_u_in(DYUT_ADI) && dhatu.has_gana(Gana::Bhvadi) && la.has_u("lu~N") {
         pp.optional_para("1.3.91");
     } else if dhatu.has_u_in(VRT_ADI) && dhatu.has_gana(Gana::Bhvadi) && sya_san() {

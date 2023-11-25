@@ -1,4 +1,5 @@
 use crate::args::tin::Vacana;
+use crate::args::Pratipadika;
 use crate::core::errors::Error;
 use crate::core::Tag;
 use crate::enum_boilerplate;
@@ -86,13 +87,55 @@ impl Vibhakti {
 }
 
 /// The information required to derive a subanta in the grammar.
-pub struct SubantaArgs {
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Subanta {
+    pratipadika: Pratipadika,
     linga: Linga,
-    vacana: Vacana,
     vibhakti: Vibhakti,
+    vacana: Vacana,
+    is_avyaya: bool,
 }
 
-impl SubantaArgs {
+impl Subanta {
+    /// Creates a subanta.
+    pub fn new(
+        pratipadika: impl Into<Pratipadika>,
+        linga: Linga,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+    ) -> Self {
+        let pratipadika = pratipadika.into();
+        Self {
+            pratipadika,
+            linga,
+            vibhakti,
+            vacana,
+            is_avyaya: false,
+        }
+    }
+
+    /// Creates a subanta.
+    pub fn avyaya(pratipadika: impl Into<Pratipadika>) -> Self {
+        let pratipadika = pratipadika.into();
+        Self {
+            pratipadika,
+            linga: Linga::Pum,
+            vibhakti: Vibhakti::Prathama,
+            vacana: Vacana::Eka,
+            is_avyaya: true,
+        }
+    }
+
+    /// Returns a new builder for this struct.
+    pub fn builder() -> SubantaBuilder {
+        SubantaBuilder::default()
+    }
+
+    /// The pratipadika to use in the derivation.
+    pub fn pratipadika(&self) -> &Pratipadika {
+        &self.pratipadika
+    }
+
     /// The linga to use in the derivation.
     pub fn linga(&self) -> Linga {
         self.linga
@@ -108,21 +151,28 @@ impl SubantaArgs {
         self.vibhakti
     }
 
-    /// Returns a new builder for this struct.
-    pub fn builder() -> SubantaArgsBuilder {
-        SubantaArgsBuilder::default()
+    /// Returns whether or not this subanta is an avyaya.
+    pub fn is_avyaya(&self) -> bool {
+        self.is_avyaya
     }
 }
 
 /// Convenience struct for building a `SubantaArgs` struct.
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct SubantaArgsBuilder {
+pub struct SubantaBuilder {
+    pratipadika: Option<Pratipadika>,
     linga: Option<Linga>,
     vacana: Option<Vacana>,
     vibhakti: Option<Vibhakti>,
 }
 
-impl SubantaArgsBuilder {
+impl SubantaBuilder {
+    /// Sets the pratipadika to use in the derivation.
+    pub fn pratipadika(&mut self, val: impl Into<Pratipadika>) -> &mut Self {
+        self.pratipadika = Some(val.into());
+        self
+    }
+
     /// Sets the linga to use in the derivation.
     pub fn linga(&mut self, val: Linga) -> &mut Self {
         self.linga = Some(val);
@@ -144,8 +194,12 @@ impl SubantaArgsBuilder {
     /// Converts the arguments in this builder into a `SubantaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
-    pub fn build(&self) -> Result<SubantaArgs, Error> {
-        Ok(SubantaArgs {
+    pub fn build(&self) -> Result<Subanta, Error> {
+        Ok(Subanta {
+            pratipadika: match &self.pratipadika {
+                Some(x) => x.clone(),
+                _ => return Err(Error::missing_required_field("pratipadika")),
+            },
             linga: match self.linga {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("linga")),
@@ -158,6 +212,7 @@ impl SubantaArgsBuilder {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("vibhakti")),
             },
+            is_avyaya: false,
         })
     }
 }

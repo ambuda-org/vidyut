@@ -6,7 +6,7 @@ use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{BaseKrt, KrdantaArgs};
+use vidyut_prakriya::args::{BaseKrt, Krdanta};
 use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
@@ -32,11 +32,11 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     for entry in d {
         let dhatu = entry.dhatu();
         let krt = args.krt;
-        let krdanta_args = KrdantaArgs::builder().krt(krt).build()?;
+        let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
 
-        let prakriyas = a.derive_krdantas(dhatu, &krdanta_args);
+        let prakriyas = a.derive_krdantas(&krdanta);
 
-        let dhatu_text = &dhatu.upadesha();
+        let dhatu_text = &dhatu.upadesha().expect("ok");
         let mut pratipadikas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         pratipadikas.sort();
         pratipadikas.dedup();
@@ -45,7 +45,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
         let row = Row {
             pratipadikas,
             dhatu: dhatu_text,
-            gana: dhatu.gana().as_str(),
+            gana: dhatu.gana().expect("ok").as_str(),
             number: entry.number(),
             krt: krt.as_str(),
         };

@@ -3,9 +3,7 @@ use crate::core::char_view::{
     get_term_and_offset_indices, get_term_index_at, xy, xyz, CharPrakriya,
 };
 use crate::core::operators as op;
-use crate::core::Prakriya;
-use crate::core::Tag as T;
-use crate::core::Term;
+use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
 use lazy_static::lazy_static;
@@ -97,7 +95,7 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
     }
     */
 
-    if i_x != i_y && x.is_pada() && x.has_antya('z') {
+    if i_x != i_y && p.is_pada(i_x) && x.has_antya('z') {
         // nizpAna, ...
         p.step("8.4.35");
     } else if y.has_u("Ra\\Sa~") && (y.has_antya('z') || y.has_antya('k')) {
@@ -197,10 +195,13 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
                 || (t.has_tag(T::Pada) && !t.is_pratipadika() && !t.is_nyap_pratyaya())
         });
         // Allow "carman -> carmaRA" but disallow "sruGna -> *sruGRa"
-        let is_exempt_pratipadika = p.has(i_x, |t| t.text.starts_with("srOGn"));
+        let is_exempt_pratipadika = p.has(i_x, |t| t.starts_with("srOGn"));
         if is_samana_pada && !is_exempt_pratipadika {
             // TODO: track loctaion of rzfF for better rule logging.
             p.run("8.4.2", |p| p.set_char_at(i_n, "R"));
+        } else if x.has_text_in(&["grAma", "agra"]) && y.has_u("RI\\Y") {
+            // See Kashika on 3.2.61 and SK 2975.
+            p.run(Rule::Kaumudi("2975"), |p| p.set_char_at(i_n, "R"));
         }
     }
 
@@ -215,7 +216,7 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
 
 /// (8.4.1 - 8.4.39)
 fn run_natva_rules(p: &mut Prakriya) {
-    let text = p.text();
+    let text = p.compact_text();
     for (i_rs, i_n) in find_natva_spans(&text) {
         try_natva_for_span(p, &text, i_rs, i_n);
     }
@@ -278,14 +279,19 @@ fn try_change_stu_to_parasavarna(cp: &mut CharPrakriya) {
             }
         },
     );
+
+    const WU: Set = Set::from("wWqQR");
     cp.for_chars(
         xy(|x, y| (STU.contains(x) && SWU.contains(y)) || (SWU.contains(x) && STU.contains(y))),
         |p, text, i| {
             let x = text.as_bytes()[i] as char;
             let y = text.as_bytes()[i + 1] as char;
             let i_term = get_term_index_at(p, i).expect("defined");
-            let prev = p.get(i_term).expect("defined");
-            if p.is_pada(i_term) && prev.has_antya(&*SWU) {
+            let t_x = p.get(i_term).expect("defined");
+            if p.is_pada(i_term)
+                && t_x.has_antya(WU)
+                && !p.has(i_term + 2, |t| t.is_vibhakti() && t.has_u("Am"))
+            {
                 p.step("8.4.42");
                 false
             } else if TU.contains(x) && y == 'z' {
@@ -310,7 +316,7 @@ fn try_change_stu_to_parasavarna(cp: &mut CharPrakriya) {
 ///
 /// This rule is in section 8.3, but it has scope to apply only if it follows 8.4.41.
 fn try_dha_lopa(cp: &mut CharPrakriya) {
-    cp.for_terms(
+    cp.for_non_empty_terms(
         |x, y| x.has_antya('Q') && y.has_adi('Q'),
         |p, i, _| {
             p.run_at("8.3.13", i, op::antya(""));
@@ -332,9 +338,12 @@ fn try_dha_lopa(cp: &mut CharPrakriya) {
 }
 
 fn try_to_anunasika(cp: &mut CharPrakriya) {
-    cp.for_terms(
-        |x, y| x.is_pada() && x.has_antya(&*YAR) && y.has_adi(&*ANUNASIKA),
-        |p, i, _| {
+    cp.for_terms(|p, i| {
+        let j = p.find_next_where(i, |t| !t.is_empty())?;
+        let x = p.get_if(i, |t| !t.is_empty())?;
+        let y = p.get(j)?;
+
+        if p.is_pada(i) && x.has_antya(&*YAR) && y.has_adi(&*ANUNASIKA) {
             let x = p.get(i).expect("defined");
             // For now, apply the rule to just these sounds.
             let sub = match x.antya().expect("ok") {
@@ -350,8 +359,10 @@ fn try_to_anunasika(cp: &mut CharPrakriya) {
                 // By convention, this rule is always applied in classical Sanskrit.
                 p.run_at("8.4.45", i, |t| t.set_antya(sub));
             }
-        },
-    );
+        }
+
+        Some(())
+    });
 }
 
 fn try_jhal_adesha(cp: &mut CharPrakriya) -> Option<()> {
@@ -369,7 +380,7 @@ fn try_jhal_adesha(cp: &mut CharPrakriya) -> Option<()> {
         },
     );
 
-    cp.for_terms(
+    cp.for_non_empty_terms(
         // Check for jaz-car to avoid applying a rule that causes no changee.
         |x, _| x.is_abhyasa() && x.has_adi(&*JHAL) && !x.has_adi(&*JASH_CAR),
         |p, i, _| {
@@ -383,18 +394,18 @@ fn try_jhal_adesha(cp: &mut CharPrakriya) -> Option<()> {
     );
 
     // 8.2.38, but indicated here by use of "dadhas" in the rule.
-    cp.for_terms(
+    cp.for_non_empty_terms(
         |x, y| {
             x.has_u("quDA\\Y")
                 && x.has_text_in(&["D", "d"])
                 && (y.has_adi('t')
                     || y.has_adi('T')
                     || y.has_adi('s')
-                    || (y.is_pratyaya() && y.text.starts_with("Dv")))
+                    || (y.is_pratyaya() && y.starts_with("Dv")))
         },
         |p, i, _| {
-            p.set(i - 1, |t| t.text.replace_range(.., "Da"));
-            p.set(i, |t| t.text.replace_range(.., "d"));
+            p.set(i - 1, |t| t.set_text("Da"));
+            p.set(i, |t| t.set_text("d"));
             p.step("8.2.38")
         },
     );
@@ -463,7 +474,7 @@ fn try_to_savarna(cp: &mut CharPrakriya) {
         true
     });
 
-    cp.for_terms(
+    cp.for_non_empty_terms(
         // TODO: which stanbh-dhAtus should we include?
         |x, y| {
             x.is_upasarga()

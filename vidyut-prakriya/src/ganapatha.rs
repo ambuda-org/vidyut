@@ -13,9 +13,170 @@ pub const SARVA_ADI: &[&str] = &[
     "Bavatu~", "kim",
 ];
 
+/// 1.1.38 svarAdi-nipAtam avyayam (2)
+pub const SVAR_ADI: &[&str] = &[
+    "svar",
+    "antar",
+    "prAtar",
+    "punar",
+    "sanutar",
+    "uccEs",
+    "nIcEs",
+    "SanEs",
+    "fDak",
+    "fte",
+    "yugapat",
+    "ArAt",
+    "antikAt",
+    "pfTak",
+    "hyas",
+    "Svas",
+    "divA",
+    "rAtrO",
+    "sAyam",
+    "ciram",
+    "manAk",
+    "Izat",
+    "SaSvat",
+    "jozam",
+    "tUzRIm",
+    "bahis",
+    "aDas",
+    "avas",
+    "samayA",
+    "nikazA",
+    "svayam",
+    "mfzA",
+    "naktam",
+    "naY",
+    "hetO",
+    "he",
+    "hE",
+    "idDA",
+    "adDA",
+    "sAmi",
+    "sanA",
+    "sanat",
+    "sanAt",
+    "upaDA",
+    "tiras",
+    "antarA",
+    "antareRa",
+    "mak",
+    "jyok",
+    "yok",
+    "nak",
+    "kam",
+    "Sam",
+    "sanA",
+    "sahasA",
+    "SradDA",
+    "alam",
+    "svaDA",
+    "vazaw",
+    "vinA",
+    "nAnA",
+    "svasti",
+    "anyat",
+    "asti",
+    "upAMSu",
+    "kzamA",
+    "vihAyasA",
+    "dozA",
+    "mfzA",
+    "muDA",
+    "dizwyA",
+    "vfTA",
+    "miTyA",
+    "purA",
+    "miTo",
+    "miTas",
+    "prAyas",
+    "muhus",
+    "pravAhukam",
+    "pravAhikA",
+    "Aryahalam",
+    "aBIkzRam",
+    "sAyam",
+    "sAkam",
+    "sArDam",
+    "sArTam",
+    "satram",
+    "samam",
+    "namas",
+    "hiruk",
+    "aTa",
+    "am",
+    "Am",
+    "pratAm",
+    "pratAn",
+    "praSAn",
+    "taTAhi",
+    "mA",
+    "mAN",
+    "Sram",
+    "kAmam",
+    "prakAmam",
+    "BUyas",
+    "param",
+    "sAkzAt",
+    "sAci",
+    "sAvi",
+    "satyam",
+    "maMkzu",
+    "saMvat",
+    "avaSyam",
+    "sapadi",
+    "prAdus",
+    "Avis",
+    "aniSam",
+    "nityam",
+    "nityadA",
+    "sadA",
+    "ajasram",
+    "santatam",
+    "uzA",
+    "om",
+    "BUr",
+    "Buvar",
+    "Jawiti",
+    "tarasA",
+    "suzWu",
+    "ku",
+    "aYjasA",
+    "a",
+    "miTu",
+    "amiTu",
+    "viTak",
+    "BAjak",
+    "anvak",
+    "cirAya",
+    "ciram",
+    "cirarAtrAya",
+    "cirasya",
+    "cireRa",
+    "cirAt",
+    "astam",
+    "Anuzak",
+    "anuzak",
+    "anuzaw",
+    "amnas",
+    "amBas",
+    "amnar",
+    "amBar",
+    "sTAne",
+    "varam",
+    "duzWu",
+    "balAt",
+    "Su",
+    "arvAk",
+    "Sudi",
+    "vadi",
+    "ityAdi",
+];
+
 /// 1.4.57 cAdayo sattve (3)
 /// TODO: no cet, na cet
-#[allow(dead_code)]
 pub const CA_ADI: &[&str] = &[
     "ca", "vA", "ha", "aha", "eva", "evam", "nUnam", "SaSvat", "yugapat", "sUpat", "kUpat",
     "kuvit", "net", "cet", "caR", "kaccit", "yatra", "naha", "hanta", "mAkim", "nakim", "mAN",
@@ -35,6 +196,80 @@ pub const CA_ADI: &[&str] = &[
 pub const PRA_ADI: &[&str] = &[
     "pra", "parA", "apa", "sam", "anu", "ava", "nis", "nir", "dus", "dur", "vi", "AN", "ni", "aDi",
     "api", "ati", "su", "ud", "aBi", "prati", "pari", "upa",
+];
+
+/// 1.4.61 UryAdi-cvi-qAcaS ca (5)
+pub const URI_ADI: &[&str] = &[
+    "UrI",
+    "urarI",
+    "tanTI",
+    "tAlI",
+    "AttAlI",
+    "vetAlI",
+    "DUlI",
+    "DUsa",
+    "SakalA",
+    "saMSakalA",
+    "DvaMsakalA",
+    "BraMsakalA",
+    "guluguDA",
+    "sajUs",
+    "Pala",
+    "PalI",
+    "viklI",
+    "AklI",
+    "AlozWI",
+    "kevAlI",
+    "kevAsI",
+    "sevAsI",
+    "paryAlI",
+    "SevAlI",
+    "varzAlI",
+    "atyUmaSA",
+    "maSmaSA",
+    "masmasA",
+    "masamasA",
+    "Ozaw",
+    "SrOzaw",
+    "vOzaw",
+    "vazaw",
+    "svAhA",
+    "svaDA",
+    "vanDA",
+    "prAdus",
+    "Srat",
+    "Avis",
+];
+
+/// 1.4.64 sAkzAt-praBftIni ca (6)
+pub const SAKSHAT_PRABHRTI: &[&str] = &[
+    "sAkzAt",
+    "miTyA",
+    "cintA",
+    "BadrA",
+    "rocanA",
+    "AsTA",
+    "amA",
+    "SradDA",
+    "prAjaryA",
+    "prAjaruhA",
+    "bIjaryA",
+    "bIjaruhA",
+    "saMsaryA",
+    "arTe",
+    "lavaRam",
+    "uzRam",
+    "SItam",
+    "udakam",
+    "Ardram",
+    "agnO",
+    "vaSe",
+    "vihasane",
+    "prasahane",
+    "pratapane",
+    "prAdus",
+    "namas",
+    "Avis",
 ];
 
 /// 2.1.40 saptamI SORqEH (8)
@@ -77,6 +312,54 @@ pub const YAJAKA_ADI: &[&str] = &[
     "Batf",
     "raTagaRaka",
     "pattigaRaka",
+];
+
+/// 3.1.11 BrzAdiByo Buvyacver lopaSca halaH (32)
+pub const BHRSHA_ADI: &[&str] = &[
+    "BfSa",
+    "SIGra",
+    "capala",
+    "manda",
+    "paRqita",
+    "utsuka",
+    "sumanas",
+    "durmanas",
+    "aBimanas",
+    "unmanas",
+    "rahas",
+    "rohat",
+    "rehat",
+    "saMScat",
+    "tfpat",
+    "SaSvat",
+    "Bramat",
+    "vehat",
+    "Sucis",
+    "Sucivarcas",
+    "aRqara",
+    "varcas",
+    "ojas",
+    "surajas",
+    "arajas",
+];
+
+/// 3.1.13 lohitAdi-qAj-ByaH kyaz (33)
+pub const LOHITA_ADI: &[&str] = &[
+    "lohita", "carita", "nIla", "Pena", "madra", "hari", "dAsa", "man",
+];
+
+/// 3.1.17 suKAdiByaH kartf-vedanAyAm (34)
+pub const SUKHA_ADI: &[&str] = &[
+    "suKa", "duHKa", "tfpta", "kfcCra", "asra", "Asra", "aloka", "pratIpa", "karuRa", "kfpaRa",
+    "so",
+];
+
+/// 3.1.27 kaRqvAdiByo yak (35)
+pub const KANDU_ADI: &[&str] = &[
+    "kaRqUY", "mantu", "hraRIY", "valgu", "astra", "manas", "mahIN", "lew", "low", "iras", "iraj",
+    "iraY", "dravas", "meDA", "kuzuBa", "magaDa", "tantas", "pampas", "suKa", "duHKa", "sapara",
+    "ara", "Bizaj", "BizRaj", "izuDa", "caraRa", "curaRa", "BuraRa", "turaRa", "gadgada", "elA",
+    "kelA", "KelA", "liw", "low",
 ];
 
 /// 4.1.4 ajAdyataz wAp (54)
@@ -865,11 +1148,91 @@ pub const KHANDIKA_ADI: &[&str] = &[
     "halabanDa",
 ];
 
-/// For 4.2.49.
+/// 4.2.49 pASAdiByo yaH (74)
 pub const PASHA_ADI: &[&str] = &[
     "pASa", "tfRa", "DUma", "vAta", "aNgAra", "pota", "bAlaka", "piwaka", "piwAka", "Sakawa",
     "hala", "naqa", "vana",
 ];
+
+/// 4.2.53 rAjyanAdiByo vuY (76)
+pub const RAJANYA_ADI: &[&str] = &[
+    "rAjanya",
+    "Anfta",
+    "bABravya",
+    "SAlaNkAyana",
+    "dEvayAtava",
+    "dEvayAta",
+    "vrIqa",
+    "varatra",
+    "jAlaMDarAyaRa",
+    "rAjAyana",
+    "telu",
+    "AtmakAmeya",
+    "ambarIzaputra",
+    "vasAti",
+    "bElvavana",
+    "SElUza",
+    "udumbara",
+    "tIvra",
+    "bElvala",
+    "ArjunAyana",
+    "saMpriya",
+    "dakzi",
+    "UrRanABa",
+];
+
+/// 4.2.54 BorikyAdyEzukAryAdiByo viDal-BaktalO (77)
+pub const BHAURIKI_ADI: &[&str] = &[
+    "BOriki",
+    "vEpeya",
+    "BOliki",
+    "cEpayata",
+    "cEwayata",
+    "kAReya",
+    "vARijaka",
+    "vARikAjya",
+    "vAlikAjya",
+    "sEkayata",
+    "vEkayata",
+];
+
+/// 4.2.54 BorikyAdyEzukAryAdiByo viDal-BaktalO (78)
+pub const AISHUKARI_ADI: &[&str] = &[
+    "EzukAri",
+    "sArasyAyana",
+    "sArasAyana",
+    "cAndrAyaRa",
+    "dvyAkzAyaRa",
+    "tryAkzAyaRa",
+    "OqAyana",
+    "jOlAyana",
+    "KAqAyana",
+    "dAsamitri",
+    "dAsamitrAyaRa",
+    "SOdrAyaRa",
+    "dAkzAyaRa",
+    "SayaRqAyana",
+    "SAyaRqAyana",
+    "tArkzyAyaRa",
+    "SOBrAyaRa",
+    "sOvIra",
+    "sOvIrAyaRa",
+    "SapaRqa",
+    "SayaRqa",
+    "SORqa",
+    "SayARqi",
+    "SayARqa",
+    "vESvamAnava",
+    "vESvaDyenava",
+    "vESvaDenava",
+    "naqa",
+    "tuRqadeva",
+    "viSvadeva",
+    "sApiRqi",
+];
+
+/// 4.2.61 kramAdiByo vun (78)
+pub const KRAMA_ADI: &[&str] = &["krama", "pada", "SikzA", "mImAMsA", "sAman"];
 
 /// For 4.2.75.
 pub const SANKALA_ADI: &[&str] = &[
@@ -1294,6 +1657,43 @@ pub const GUDA_ADI: &[&str] = &[
     "upavAsa",
 ];
 
+/// 5.1.2 u-gavAdiByo yat (146)
+pub const GAVADI: &[&str] = &[
+    "go", "havis", "akzara", "viza", "barhis", "azwakA", "svadA", "yuga", "meDA", "srac", "nABi",
+    "naBa", "kUpa", "Kada", "dara", "asura", "aDvan", "aDvana", "kzara", "veda", "bIja", "dIsa",
+    "dIpta",
+];
+
+/// 5.1.4 viBAzA havirapUpAdiByaH (147)
+pub const APUPA_ADI: &[&str] = &[
+    "apUpa",
+    "taRqula",
+    "aByuza",
+    "aByUza",
+    "aByoza",
+    "avoza",
+    "aByeza",
+    "pfTuka",
+    "odana",
+    "sUpa",
+    "pUpa",
+    "kiRva",
+    "pradIpa",
+    "musala",
+    "kawaka",
+    "karRavezwaka",
+    "irgala",
+    "argala",
+    "yUpa",
+    "sTURA",
+    "dIpa",
+    "aSva",
+    "patra",
+];
+
+/// 5.1.20 asamAse nizkAdiByaH (148)
+pub const NISHKA_ADI: &[&str] = &["nizka", "paRa", "pAda", "mAza", "vAha", "droRa", "zazwi"];
+
 /// 5.1.66 daRqAdiByaH (152)
 pub const DANDA_ADI: &[&str] = &[
     "daRqa",
@@ -1412,6 +1812,108 @@ pub const TARAKA_ADI: &[&str] = &[
     "dIkzA",
     "garja",
 ];
+
+/// 5.2.61 vimuktAdiByo 'R (173)
+pub const VIMUKTA_ADI: &[&str] = &[
+    "vimukta",
+    "devAsura",
+    "rakzosura",
+    "upasad",
+    "suvarRa",
+    "parisAraka",
+    "sadasat",
+    "vasu",
+    "marut",
+    "patnIvat",
+    "vasumat",
+    "mahIyas",
+    "satvat",
+    "barhavat",
+    "daSArRa",
+    "daSArha",
+    "vayas",
+    "havirDAna",
+    "patatrin",
+    "mahitrI",
+    "asyahatya",
+    "somApUzan",
+    "iqA",
+    "agnAvizRU",
+    "urvaSI",
+    "vftrahan",
+];
+
+/// 5.2.62 gozadAdiByo vun (174)
+pub const GOSHADA_ADI: &[&str] = &[
+    "gozada",
+    "gozad",
+    "izetvA",
+    "mAtariSvan",
+    "devasyatvA",
+    "devIrApaH",
+    "kfzRa",
+    "devIMDiyA",
+    "devIMDiya",
+    "rakzohaRa",
+    "yuYjAna",
+    "aYjana",
+    "prasUta",
+    "praBUta",
+    "pratUrta",
+    "kfSAnu",
+    "kfSAku",
+];
+
+/// 5.2.64 AkarzAdiByaH kan (175)
+pub const AKARSHA_ADI: &[&str] = &[
+    "Akarza",
+    "Akaza",
+    "tsaru",
+    "piSAca",
+    "picaRqa",
+    "aSani",
+    "aSman",
+    "nicaya",
+    "caya",
+    "vijaya",
+    "jaya",
+    "Acaya",
+    "naya",
+    "pAda",
+    "dIpahrada",
+    "hrAda",
+    "hlAda",
+    "gadgada",
+    "Sakuni",
+];
+
+/// 5.2.95 rasAdiByaS ca (177)
+pub const RASA_ADI: &[&str] = &[
+    "rasa", "rUpa", "ganDa", "sparSa", "Sabda", "sneha", "guRAt", "ekAcaH",
+];
+
+// 5.2.97 siDmAdiByaS ca (178)
+pub const SIDHMA_ADI: &[&str] = &[
+    "siDma", "gaqu", "maRi", "nABi", "jIva", "nizpAva", "pAMsu", "saktu", "hanu", "mAMsa", "paraSu",
+];
+
+// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (179)
+pub const LOMA_ADI: &[&str] = &[
+    "loman", "roman", "valgu", "baBrO", "hari", "kapi", "Suni", "taru",
+];
+
+// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (180)
+pub const PAMA_ADI: &[&str] = &[
+    "pAman", "vAman", "heman", "Slezman", "kadru", "bali", "SrezWa", "palala", "sAman",
+];
+
+// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (181)
+pub const PICCHA_ADI: &[&str] = &[
+    "picCa", "uras", "GruvakA", "kzuvakA", "varRa", "udaka", "paNka", "prajYA",
+];
+
+/// 5.2.117 tundAdiBya ilac ca (174)
+pub const TUNDA_ADI: &[&str] = &["tunda", "udara", "picaRqa", "yava", "vrIhi"];
 
 /// 5.3.101 SAKAdiByo yat (191)
 pub const SHAKHA_ADI: &[&str] = &[
@@ -1532,4 +2034,12 @@ pub const VINAYA_ADI: &[&str] = &[
     "samUha",
     "viSeza",
     "atyaya",
+];
+
+// 6.1.203 vfzAdInAM ca (210)
+// TODO: SamaraRa
+pub const VRSHA_ADI: &[&str] = &[
+    "vfza", "jana", "jvara", "graha", "haya", "maya", "gaya", "tAya", "taya", "caya", "ama",
+    "veda", "sUda", "aMSa", "guhA", "mantra", "SAnti", "kAma", "yAma", "ArA", "DArA", "kArA",
+    "vaha", "kalpa", "pAda",
 ];

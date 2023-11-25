@@ -34,12 +34,13 @@ enum Stri {
     NIn,
     NIp,
     NIz,
+    UN,
 }
 
 impl Stri {
     fn to_term(self) -> Term {
         let mut stri = Term::make_upadesha(self.as_str());
-        stri.add_tags(&[T::Pratyaya, T::Nyap]);
+        stri.add_tags(&[T::Pratyaya, T::Nyap, T::Stri]);
         stri
     }
 }
@@ -51,6 +52,7 @@ enum_boilerplate!(Stri, {
     NIn => "NIn",
     NIp => "NIp",
     NIz => "NIz",
+    UN => "UN",
 });
 
 const INDRA_ADI: &[&str] = &[
@@ -108,7 +110,7 @@ impl<'a> StriPrakriya<'a> {
             it_samjna::run(self.p, self.i_prati + 1).expect("should never fail");
 
             // HACK: nadi for NIz, etc.
-            if stri.as_str().contains("I") {
+            if stri.as_str().contains('I') {
                 self.p.add_tag_at("1.4.3", self.i_prati + 1, T::Nadi);
             }
 
@@ -164,6 +166,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     }
 
     let mut sp = StriPrakriya::new(p)?;
+    let i_prati = sp.i_prati;
     let last = sp.last();
 
     // HACK: block uzRihA for now.
@@ -178,8 +181,9 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // always napumsaka.
             || last.has_u_in(&["Qak", "QaY"])
             // Other pratyayas are as given.
+            // Include "ayac" which replaces "tayap" by 5.2.43.
             || last.has_u_in(&[
-                "aR", "aY", "dvayasac", "daGnac", "mAtrac", "tayap", "Wak", "WaY", "kaY", "kvarap",
+                "aR", "aY", "dvayasac", "daGnac", "mAtrac", "tayap", "ayac", "Wak", "WaY", "kaY", "kvarap",
             ])
         {
             sp.try_add("4.1.15", NIp);
@@ -192,27 +196,27 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // bahvI, bahu
             sp.optional_try_add("4.1.45", NIz);
         } else if last.has_text_in(INDRA_ADI) {
+            // indrARI, ...
             sp.try_add_with_agama("4.1.49", NIz, "Anu~k");
+        } else if last.has_text_in(&["saKi", "aSiSu"]) {
+            let sub = if last.has_text("saKi") {
+                "saK"
+            } else {
+                "aSiSv"
+            };
+            // saKI, ...
+            sp.p.run("4.1.62", |p| {
+                p.set(i_prati, |t| t.set_text(sub));
+                p.insert_after(i_prati, Stri::NIz.to_term());
+            });
+            it_samjna::run(sp.p, i_prati + 1).expect("ok");
         }
     }
 
     let last = sp.last();
-    if last.has_text_in(gana::AJA_ADI) || last.has_antya('a') {
-        // ajA, ...
-        sp.try_add("4.1.4", wAp);
-    } else if last.has_tag_in(&[T::udit, T::fdit, T::xdit]) {
-        if last.is_dhatu() {
-            sp.block("4.1.6.v1")
-        } else {
-            // BavatI, pacantI, ...
-            sp.try_add("4.1.6", NIp);
-        }
-    } else if last.ends_with("van") {
-        let i_prati = sp.i_prati;
-        // SarvarI
-        sp.try_add_with("4.1.7", NIp, |p| {
-            p.set(i_prati, |t| t.set_antya("r"));
-        });
+    if last.has_tag(T::zaw) || last.has_text_in(gana::SVASR_ADI) {
+        // svasA, duhitA, ...
+        sp.block("4.1.10");
     } else if last.has_text("pAd") {
         // dvipadA, ...
         let done = sp.optional_try_add("4.1.9", wAp);
@@ -220,18 +224,57 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // dvipAt, dvipadI, ...
             sp.optional_try_add("4.1.8", NIp);
         }
-    } else if last.has_tag(T::zaw) || last.has_text_in(gana::SVASR_ADI) {
-        //
-        sp.block("4.1.10");
     } else if last.ends_with("man") {
-        let done = sp.optional_try_add("4.1.13", wAp);
+        let done = sp.optional_try_add("4.1.13", qAp);
         if !done {
             // pAme, pAmAnO, ...
             sp.block("4.1.11");
         }
+    } else if last.has_text("bAhu") && last.is_samasa() {
+        // madrabAhUH
+        // TODO: samjna only
+        sp.try_add("4.1.67", UN);
+    } else if last.has_text("paNgu") {
+        // paNgUH
+        sp.try_add("4.1.68", UN);
+    } else if last.has_text("SvaSura") {
+        // SvaSrUH
+        sp.try_add_with("4.1.68.v1", UN, |p| {
+            p.set(i_prati, |t| t.set_text("SvaSr"));
+        });
+    } else if sp.p.is_chandasi() && last.has_text_in(&["kadru", "kamaRqalu"]) {
+        // kadrUH, ...
+        sp.try_add("4.1.71", UN);
+    } else if last.has_text("SArNgarava") || last.has_u("aY") {
+        // SArNgaravI, ...
+        sp.try_add("4.1.73", NIn);
+    } else if last.has_u_in(&["YyaN", "zyaN"]) {
+        sp.try_add("4.1.74", NIn);
+    } else if last.has_text("Avawya") {
+        // AvawyA, ...
+        sp.try_add("4.1.75", cAp);
+    }
+
+    // Base cases.
+    let last = sp.last();
+    if last.has_text_in(gana::AJA_ADI) || last.has_antya('a') {
+        // ajA, ...
+        sp.try_add("4.1.4", wAp);
+    } else if last.ends_with("van") {
+        // SarvarI, ...
+        sp.try_add_with("4.1.7", NIp, |p| {
+            p.set(i_prati, |t| t.set_antya("r"));
+        });
     } else if last.has_antya('f') || last.has_antya('n') {
         // kartrI, daRqinI, ...
         sp.try_add("4.1.5", NIp);
+    } else if last.has_tag_in(&[T::udit, T::fdit, T::xdit]) {
+        if last.is_dhatu() {
+            sp.block("4.1.6.v1");
+        } else {
+            // BavatI, pacantI, ...
+            sp.try_add("4.1.6", NIp);
+        }
     }
 
     Some(())

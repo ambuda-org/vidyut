@@ -28,6 +28,16 @@ fn sutra_3_4_21() {
 }
 
 #[test]
+fn sutra_3_4_22() {
+    let bhuj = d("Bu\\ja~", Rudhadi);
+    let paa = d("pA\\", Bhvadi);
+    assert_has_krdanta(&[], &bhuj, Krt::Ramul, &["Bojam"]);
+    assert_has_krdanta(&[], &bhuj, Krt::ktvA, &["BuktvA"]);
+    assert_has_krdanta(&[], &paa, Krt::Ramul, &["pAyam"]);
+    assert_has_krdanta(&[], &paa, Krt::ktvA, &["pItvA"]);
+}
+
+#[test]
 fn sutra_3_4_67() {
     let kf = d("qukf\\Y", Tanadi);
     assert_has_krdanta(&[], &kf, Krt::Rvul, &["kAraka"]);
@@ -421,8 +431,8 @@ fn sutra_3_4_114() {
     assert_has_krdanta(&[], &lu, Krt::tavya, &["lavitavya"]);
 
     // DAtoH
-    assert_has_taddhitanta(&prati("vfkza"), T::tva, &["vfkzatva"]);
-    assert_has_taddhitanta(&prati("vfkza"), T::tal, &["vfkzatA"]);
+    assert_has_taddhita("vfkza", T::tva, &["vfkzatva"]);
+    assert_has_taddhita("vfkza", T::tal, &["vfkzatA"]);
     assert_has_sup_3d("lU", Pum, &["lUByAm"]);
     assert_has_sup_3p("lU", Pum, &["lUBiH"]);
     assert_has_lat(&[], &d("gupa~\\", Bhvadi), &["jugupsate"]);

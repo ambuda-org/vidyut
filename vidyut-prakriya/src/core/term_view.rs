@@ -36,7 +36,7 @@ pub struct TermView<'a> {
 impl<'a> TermView<'a> {
     /// Creates a new term view over the interval `[start, end]``
     pub fn new(terms: &'a Vec<Term>, start: usize, end: usize) -> Option<Self> {
-        if end + 1 <= terms.len() {
+        if end < terms.len() {
             Some(TermView { terms, start, end })
         } else {
             None
@@ -104,7 +104,7 @@ impl<'a> TermView<'a> {
     // Accessors
 
     pub fn terms(&self) -> &[Term] {
-        &self.terms
+        self.terms
     }
 
     pub fn slice(&self) -> &[Term] {
@@ -153,7 +153,7 @@ impl<'a> TermView<'a> {
     /// Returns whether the view's text is empty.
     #[allow(unused)]
     pub fn is_empty(&self) -> bool {
-        self.slice().iter().all(|t| t.text.is_empty())
+        self.slice().iter().all(|t| t.is_empty())
     }
 
     /// Returns whether this view is at the very end of the given word.

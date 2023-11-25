@@ -6,7 +6,7 @@ use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{Dhatu, Lakara, Prayoga, Purusha, Sanadi, TinantaArgs, Vacana};
+use vidyut_prakriya::args::{Dhatu, Lakara, Muladhatu, Prayoga, Purusha, Sanadi, Tinanta, Vacana};
 use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
 
 #[derive(Parser)]
@@ -59,6 +59,13 @@ struct Row<'a> {
     vacana: &'static str,
 }
 
+fn to_mula(dhatu: &Dhatu) -> &Muladhatu {
+    match dhatu {
+        Dhatu::Mula(m) => m,
+        _ => panic!("unknown dhatu"),
+    }
+}
+
 fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let a = Ashtadhyayi::builder().log_steps(false).build();
@@ -69,7 +76,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     };
 
     for entry in d {
-        let dhatu = entry.dhatu();
+        let dhatu = to_mula(entry.dhatu());
 
         // Add sanadi to the dhatu.
         let mut builder = Dhatu::builder()
@@ -81,6 +88,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
             builder = builder.antargana(x);
         }
         let dhatu = builder.build()?;
+        let mula = to_mula(&dhatu);
 
         for prayoga in PRAYOGAS {
             // Filter prayoga based on args
@@ -92,14 +100,15 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
 
             for lakara in LAKARA {
                 for (purusha, vacana) in TIN_SEMANTICS {
-                    let tinanta_args = TinantaArgs::builder()
+                    let tinanta = Tinanta::builder()
+                        .dhatu(dhatu.clone())
                         .prayoga(*prayoga)
                         .purusha(*purusha)
                         .vacana(*vacana)
                         .lakara(*lakara)
                         .build()?;
 
-                    let prakriyas = a.derive_tinantas(&dhatu, &tinanta_args);
+                    let prakriyas = a.derive_tinantas(&tinanta);
                     let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
                     padas.sort();
                     padas.dedup();
@@ -115,11 +124,11 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
                         .fold(String::new(), |b, x| b + x + "+");
                     let sanadi_str = sanadi_str.trim_end_matches('+');
 
-                    let dhatu_text = &dhatu.upadesha();
+                    let dhatu_text = mula.upadesha();
                     let row = Row {
                         padas,
                         dhatu: dhatu_text,
-                        gana: dhatu.gana().as_str(),
+                        gana: mula.gana().as_str(),
                         number: entry.number(),
                         sanadi: sanadi_str.to_string(),
                         lakara: lakara.as_str(),

@@ -52,11 +52,13 @@ impl Rule {
     fn as_web_string(&self) -> String {
         match self {
             Self::Ashtadhyayi(s) => s.to_string(),
-            Self::Dhatupatha(s) => format!("DAtupATa {s}"),
-            Self::Kashika(s) => format!("kAzikA {s}"),
+            Self::Varttika(s, v) => format!("vArttika {s} ({v})"),
+            Self::Dhatupatha(s) => format!("DAtupAWa {s}"),
+            Self::Kashika(s) => format!("kASikA {s}"),
             Self::Linganushasana(s) => format!("liNgA {s}"),
             Self::Kaumudi(s) => format!("kOmudI {s}"),
             Self::Unadipatha(s) => format!("uRAdi {s}"),
+            Self::Phit(s) => format!("Piw {s}"),
         }
     }
 }
@@ -67,7 +69,7 @@ fn to_web_history(history: &[Step]) -> Vec<WebStep> {
         .iter()
         .map(|x| WebStep {
             rule: x.rule().as_web_string(),
-            result: x.result().clone(),
+            result: x.result().join(" + "),
         })
         .collect()
 }
@@ -139,7 +141,8 @@ impl Vidyut {
     ) -> JsValue {
         if let Some(raw_dhatu) = self.dhatupatha.get(code) {
             let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
-            let mut args = TinantaArgs::builder()
+            let mut args = Tinanta::builder()
+                .dhatu(dhatu)
                 .lakara(lakara)
                 .prayoga(prayoga)
                 .purusha(purusha)
@@ -150,7 +153,7 @@ impl Vidyut {
             let args = args.build().expect("should be well-formed");
 
             let a = Ashtadhyayi::new();
-            let prakriyas = a.derive_tinantas(&dhatu, &args);
+            let prakriyas = a.derive_tinantas(&args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
@@ -169,7 +172,8 @@ impl Vidyut {
         vacana: Vacana,
         vibhakti: Vibhakti,
     ) -> JsValue {
-        let args = SubantaArgs::builder()
+        let args = Subanta::builder()
+            .pratipadika(Pratipadika::basic(pratipadika))
             .linga(linga)
             .vacana(vacana)
             .vibhakti(vibhakti)
@@ -177,8 +181,7 @@ impl Vidyut {
             .expect("should be well-formed");
 
         let a = Ashtadhyayi::new();
-        let pratipadika = Pratipadika::from(pratipadika);
-        let prakriyas = a.derive_subantas(&pratipadika, &args);
+        let prakriyas = a.derive_subantas(&args);
 
         let web_prakriyas = to_web_prakriyas(&prakriyas);
         serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
@@ -194,14 +197,15 @@ impl Vidyut {
         upasarga: Option<String>,
     ) -> JsValue {
         if let Some(raw_dhatu) = self.dhatupatha.get(code) {
-            let args = KrdantaArgs::builder()
+            let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
+            let args = Krdanta::builder()
+                .dhatu(dhatu)
                 .krt(krt)
                 .build()
                 .expect("should be well-formed");
 
             let a = Ashtadhyayi::new();
-            let dhatu = try_expand_dhatu(raw_dhatu, sanadi, upasarga);
-            let prakriyas = a.derive_krdantas(&dhatu, &args);
+            let prakriyas = a.derive_krdantas(&args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")

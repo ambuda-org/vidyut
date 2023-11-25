@@ -45,7 +45,7 @@ fn try_dvitva_for_ajadi_dhatu(rule: Code, p: &mut Prakriya, i: usize) -> Option<
     third.add_tags(&[T::Dhatu]);
 
     let abhyasa = Term::make_text(&third.text);
-    p.set(i, |t| t.text.truncate(t.text.len() - abhyasa.text.len()));
+    p.set(i, |t| t.text.truncate(t.len() - abhyasa.len()));
     if p.has(i, |t| t.has_u("UrRuY")) {
         third.set_adi("n");
     }
@@ -101,11 +101,11 @@ fn find_abhyasa_span(text: &CompactString) -> Option<(usize, usize)> {
 fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     let mut p_text = CompactString::from("");
     for t in p.terms() {
-        if t.is_upasarga() {
+        if t.is_upasarga() || t.is_lupta() {
             continue;
         }
         if !t.sthanivat().is_empty() {
-            p_text.push_str(&t.sthanivat());
+            p_text.push_str(t.sthanivat());
         } else {
             p_text.push_str(&t.text);
         }
@@ -115,7 +115,18 @@ fn try_dvitva_for_sanadi_ajadi(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> 
 
     // debug_assert!(start == 1);
     let ac = Term::make_text(&p_text[0..start]);
-    let abhyasa = Term::make_text(&p_text[start..=end]);
+    let mut abhyasa = Term::make_text(&p_text[start..=end]);
+
+    // For OcicCat, etc.
+    //
+    // > hrasva eva atra āgamī, na tu tadantaḥ. tena cicchadatuḥ, cicchiduḥ ityatra
+    // > tukabhyāsasya grahaṇena na gṛhyate iti halādiḥśeṣeṇa na nivartyate, nāvayavāvayavaḥ
+    // > samudāyāvayavo bhavatīti.
+    //
+    // -- KV on 6.1.73.
+    if abhyasa.starts_with("tC") {
+        abhyasa.set_adi("");
+    }
 
     let i_ac = i_dhatu;
     p.insert_before(i_ac, ac);
@@ -165,10 +176,10 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i: usize) -> Option<()> {
         try_dvitva_for_sanadi_ajadi(rule, p, i);
     } else if dhatu.is_ekac() || al::is_hal(dhatu.adi()?) {
         let mut abhyasa = Term::make_text("");
-        abhyasa.set_text(&dhatu.sthanivat());
+        abhyasa.set_text(dhatu.sthanivat());
 
-        // TODO: correctly double jAgR
-        if dhatu.text.starts_with("tC") {
+        // See comment above on 6.1.73 and removal of tuk-Agama.
+        if dhatu.starts_with("tC") {
             abhyasa.set_adi("");
         }
         p.insert_before(i, abhyasa);

@@ -5,6 +5,19 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::*;
+use vidyut_prakriya::Ashtadhyayi;
+
+fn assert_has_lrt_sat(dhatu: &Dhatu, krt: BaseKrt, expected: &[&str]) {
+    let a = Ashtadhyayi::new();
+    let args = Krdanta::builder()
+        .lakara(Lrt)
+        .dhatu(dhatu.clone())
+        .krt(krt)
+        .build()
+        .unwrap();
+    let prakriyas = a.derive_krdantas(&args);
+    assert_padas(prakriyas, expected)
+}
 
 #[test]
 fn sutra_3_2_1() {
@@ -625,9 +638,9 @@ fn sutra_3_2_59() {
     assert_has_krdanta(&["ud"], &d("zRi\\ha~", Divadi), kvin, &["uzRih"]);
 
     let anc = d("ancu~", Bhvadi);
-    assert_has_upapada_krdanta("pra", &[], &anc, Krt::kvin, &["prAYc"]);
-    assert_has_upapada_krdanta("prati", &[], &anc, Krt::kvin, &["pratyaYc"]);
-    assert_has_upapada_krdanta("ud", &[], &anc, Krt::kvin, &["udaYc"]);
+    assert_has_upapada_krdanta("pra", &[], &anc, Krt::kvin, &["prAc"]);
+    assert_has_upapada_krdanta("prati", &[], &anc, Krt::kvin, &["pratyac"]);
+    assert_has_upapada_krdanta("ud", &[], &anc, Krt::kvin, &["udac"]);
     assert_has_krdanta(&[], &d("yu\\ji~^r", Rudhadi), Krt::kvin, &["yuj"]);
     assert_has_krdanta(&[], &d("krunca~", Bhvadi), Krt::kvin, &["kruYc"]);
 }
@@ -704,7 +717,16 @@ fn sutra_3_2_62() {
     assert_has_krdanta(&["pra"], &d("Ba\\ja~^", Bhvadi), Krt::Rvi, &["praBAj"]);
 }
 
-// 3.2.63 - 3.2.67 are chAndasa.
+// 3.2.63 is chAndasa.
+
+#[test]
+fn sutra_3_2_64() {
+    let vah = d("va\\ha~^", Bhvadi);
+    assert_has_upapada_krdanta("prazWa", &[], &vah, Krt::Rvi, &["prazWavAh"]);
+    assert_has_upapada_krdanta("ditya", &[], &vah, Krt::Rvi, &["dityavAh"]);
+}
+
+// 3.2.65 - 3.2.67 are chAndasa.
 
 #[test]
 fn sutra_3_2_68() {
@@ -1045,6 +1067,15 @@ fn sutra_3_2_124() {
 }
 
 #[test]
+fn sutra_3_2_127() {
+    let kr = d("qukf\\Y", Tanadi);
+    assert_has_krdanta(&[], &kr, Krt::Satf, &["kurvat"]);
+    assert_has_krdanta(&[], &kr, Krt::SAnac, &["kurvARa"]);
+    assert_has_lrt_sat(&kr, Krt::Satf, &["karizyat"]);
+    assert_has_lrt_sat(&kr, Krt::SAnac, &["karizyamARa"]);
+}
+
+#[test]
 fn sutra_3_2_128() {
     assert_has_krdanta(&[], &d("pUN", Bhvadi), Krt::SAnan, &["pavamAna"]);
     assert_has_krdanta(&[], &d("ya\\ja~^", Bhvadi), Krt::SAnan, &["yajamAna"]);
@@ -1052,10 +1083,22 @@ fn sutra_3_2_128() {
 
 #[test]
 fn sutra_3_2_131() {
-    let dvishat = create_krdanta("dvizat", &[], &d("dvi\\za~^", Adadi), Krt::Satf);
+    let dvishat = krdanta(&[], &d("dvi\\za~^", Adadi), Krt::Satf);
     assert_has_sup_1s(&dvishat, Pum, &["dvizan"]);
     assert_has_sup_1d(&dvishat, Pum, &["dvizantO"]);
     assert_has_sup_1p(&dvishat, Pum, &["dvizantaH"]);
+}
+
+#[test]
+fn sutra_3_2_132() {
+    let su = d("zu\\Y", Svadi);
+    assert_has_krdanta(&[], &su, Krt::Satf, &["sunvat"]);
+}
+
+#[test]
+fn sutra_3_2_133() {
+    let arh = d("arha~", Bhvadi);
+    assert_has_krdanta(&[], &arh, Krt::Satf, &["arhat"]);
 }
 
 #[test]
@@ -1197,6 +1240,35 @@ fn sutra_3_2_167() {
     // TODO: ajasra, hiMsra
     assert_has_krdanta(&[], &d("kamu~\\", Bhvadi), Krt::ra, &["kamra"]);
     assert_has_krdanta(&[], &d("dIpI~\\", Divadi), Krt::ra, &["dIpra"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_3_2_168() {
+    assert_has_krdanta(&[], &san(&d("qukf\\Y", Tanadi)), Krt::u, &["cikIrzu"]);
+    assert_has_krdanta(&[], &san(&d("hf\\Y", Bhvadi)), Krt::u, &["jihIrzu"]);
+    assert_has_krdanta(&["AN"], &d("Sasi~\\", Bhvadi), Krt::u, &["ASaMsu"]);
+    assert_has_krdanta(&[], &d("Bikza~\\", Bhvadi), Krt::u, &["Bikzu"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_3_2_173() {
+    assert_has_krdanta(&[], &d("SF", Kryadi), Krt::Aru, &["SarAru"]);
+    assert_has_krdanta(&[], &d("vadi~\\", Bhvadi), Krt::Aru, &["vandAru"]);
+}
+
+#[test]
+fn sutra_3_2_174() {
+    let bhi = d("YiBI\\", Juhotyadi);
+    assert_has_krdanta(&[], &bhi, Krt::kru, &["BIru"]);
+    assert_has_krdanta(&[], &bhi, Krt::klukan, &["BIluka"]);
+}
+
+#[test]
+fn sutra_3_2_174_v1() {
+    let bhi = d("YiBI\\", Juhotyadi);
+    assert_has_krdanta(&[], &bhi, Krt::kruka, &["BIruka"]);
 }
 
 #[ignore]

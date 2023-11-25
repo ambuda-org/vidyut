@@ -87,6 +87,9 @@ fn try_shaishika_rules(tp: &mut TaddhitaPrakriya, rule: &'static str) {
     } else if prati.has_text("kanTA") {
         tp.try_add("4.2.102", Wak);
         tp.try_add("4.2.103", vuk);
+    } else if prati.is_avyaya() {
+        // amAtyaH, ihatyaH, ...
+        tp.optional_try_add("4.2.104", tyap);
     } else if prati.has_text_in(&["Ezamas", "hyas", "Svas"]) {
         tp.optional_try_add("4.2.105", tyap);
     } else if prati.has_suffix_in(&["tIra", "rUpya"]) {
@@ -256,7 +259,10 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         }
 
         let prati = tp.prati();
-        if prati.has_text_in(&["rAjan", "Svasura"]) {
+        if prati.has_text_in(&["kamaRqalu", "SItabAhu", "jambu"]) {
+            // TODO: support non-KV examples
+            tp.try_add("4.1.135", QaY);
+        } else if prati.has_text_in(&["rAjan", "Svasura"]) {
             // [blocks aR & iY, respectively]
             tp.try_add("4.1.137", yat);
         } else if prati.has_text("kzatra") {
@@ -355,7 +361,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             // Atreya, ...
             // TODO: an-iY
             tp.try_add("4.1.122", Qak);
-        } else if prati.has_tag(T::StriNyap) {
+        } else if prati.has_tag_in(&[T::Stri, T::StriNyap]) {
             // General case.
             if is_dvi_ac {
                 // dAtteya, ...
@@ -585,6 +591,36 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
         if !tp.had_match {
             try_base_cases(tp, "4.2.37");
+        }
+    });
+
+    tp.with_context(TasyaVishayoDeshe, |tp| {
+        let prati = tp.prati();
+        let code = "4.2.54";
+
+        if prati.has_text_in(gana::RAJANYA_ADI)
+            || prati.has_text_in(&["devayAna", "mAlava", "virAwa", "trigarta"])
+        {
+            // rAjanyaka, ...
+            // (Akrti-gana)
+            tp.try_add("4.2.53", vuY);
+        } else if prati.has_text_in(gana::BHAURIKI_ADI) {
+            tp.try_add(code, viDal);
+        } else if prati.has_text_in(gana::AISHUKARI_ADI) {
+            tp.try_add(code, Baktal);
+        }
+
+        if !tp.had_match {
+            try_base_cases(tp, "4.2.52");
+        }
+    });
+
+    tp.with_context(TadAdhiteTadVeda, |tp| {
+        let prati = tp.prati();
+        if prati.has_text_in(gana::KRAMA_ADI) {
+            tp.try_add("4.2.61", vun);
+        } else {
+            try_base_cases(tp, "4.2.59");
         }
     });
 
