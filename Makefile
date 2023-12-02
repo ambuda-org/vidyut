@@ -28,7 +28,7 @@ docs:
 
 # Creates and collects all data files required to use Vidyut.
 create_all_data:
-	@./scripts/create_all_data.sh
+	@./scripts/create_all_data.sh $(MAKE)
 
 create_sandhi_rules:
 	RUST_LOG=info cargo run --release --bin create_sandhi_rules -- \
