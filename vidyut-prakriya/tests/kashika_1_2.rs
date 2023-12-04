@@ -165,7 +165,6 @@ fn sutra_1_2_8() {
     assert_has_tip(&[], &san(&prach), Lat, &["pipfcCizati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_1_2_9() {
     assert_has_tip(
@@ -179,7 +178,12 @@ fn sutra_1_2_9() {
     assert_has_tip(&[], &san(&d("pA\\", Bhvadi)), Lat, &["pipAsati"]);
     assert_has_tip(&[], &san(&d("zWA\\", Bhvadi)), Lat, &["tizWAsati"]);
     assert_has_ta(&[], &san(&d("SIN", Adadi)), Lat, &["SiSayizate"]);
-    assert_has_tip(&[], &san(&d("jYapa~", Curadi)), Lat, &["jYIpsati"]);
+    assert_has_tip(
+        &[],
+        &san(&d("jYapa~", Curadi)),
+        Lat,
+        &["jYIpsati", "jijYapayizati"],
+    );
 }
 
 #[test]
@@ -311,24 +315,31 @@ fn sutra_1_2_18() {
 #[ignore]
 #[test]
 fn sutra_1_2_19() {
+    use Krt::{kta, ktavatu};
+
     let shi = d("SIN", Adadi);
-    assert_has_krdanta(&[], &shi, Krt::kta, &["Sayita"]);
-    assert_has_krdanta(&[], &shi, Krt::ktavatu, &["Sayitavat"]);
+    assert_has_krdanta(&[], &shi, kta, &["Sayita"]);
+    assert_has_krdanta(&[], &shi, ktavatu, &["Sayitavat"]);
+
     let svid = d("zvi\\dA~", Divadi);
-    assert_has_krdanta(&["pra"], &svid, Krt::kta, &["prasvedita"]);
-    assert_has_krdanta(&["pra"], &svid, Krt::ktavatu, &["prasveditavat"]);
+    assert_has_krdanta(&["pra"], &svid, kta, &["prasvedita"]);
+    assert_has_krdanta(&["pra"], &svid, ktavatu, &["prasveditavat"]);
+
     let mid = d("YimidA~\\", Bhvadi);
-    assert_has_krdanta(&["pra"], &mid, Krt::kta, &["pramedita"]);
-    assert_has_krdanta(&["pra"], &mid, Krt::ktavatu, &["prameditavat"]);
+    assert_has_krdanta(&["pra"], &mid, kta, &["pramedita"]);
+    assert_has_krdanta(&["pra"], &mid, ktavatu, &["prameditavat"]);
+
     let kshved = d("YikzvidA~", Bhvadi);
-    assert_has_krdanta(&["pra"], &kshved, Krt::kta, &["prakzvedita"]);
-    assert_has_krdanta(&["pra"], &kshved, Krt::ktavatu, &["prakzveditavat"]);
+    assert_has_krdanta(&["pra"], &kshved, kta, &["prakzvedita"]);
+    assert_has_krdanta(&["pra"], &kshved, ktavatu, &["prakzveditavat"]);
+
     let dharsh = d("YiDfzA~", Svadi);
-    assert_has_krdanta(&["pra"], &dharsh, Krt::kta, &["praDarzita"]);
-    assert_has_krdanta(&["pra"], &dharsh, Krt::ktavatu, &["praDarzitavat"]);
-    // set
-    assert_has_krdanta(&[], &svid, Krt::kta, &["svinna"]);
-    assert_has_krdanta(&[], &svid, Krt::ktavatu, &["svinnavat"]);
+    assert_has_krdanta(&["pra"], &dharsh, kta, &["praDarzita"]);
+    assert_has_krdanta(&["pra"], &dharsh, ktavatu, &["praDarzitavat"]);
+
+    // set?
+    assert_has_krdanta(&[], &svid, kta, &["svinna"]);
+    assert_has_krdanta(&[], &svid, ktavatu, &["svinnavat"]);
 }
 
 #[test]

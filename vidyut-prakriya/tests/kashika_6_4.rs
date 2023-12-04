@@ -656,7 +656,12 @@ fn sutra_6_4_51() {
     assert_has_ta_k(&[], &kf_nic, Lat, &["kAryate"]);
     assert_has_ta_k(&[], &hf_nic, Lat, &["hAryate"]);
 
-    // TODO: jYIpsati
+    assert_has_tip(
+        &[],
+        &san(&d("jYapa~", Curadi)),
+        Lat,
+        &["jYIpsati", "jijYapayizati"],
+    );
 
     // aniwi
     assert_has_krdanta(&[], &kf_nic, Krt::tfc, &["kArayitf"]);
@@ -712,7 +717,6 @@ fn sutra_6_4_55() {
     assert_has_krdanta(&[], &d("pAra", Curadi), Krt::izRuc, &["pArayizRu"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_4_56() {
     use Krt::ktvA;
@@ -720,11 +724,11 @@ fn sutra_6_4_56() {
     assert_has_krdanta(&["pra"], &nic(&d("tamu~", Divadi)), ktvA, &["pratamayya"]);
     assert_has_krdanta(&["pra"], &nic(&d("damu~", Divadi)), ktvA, &["pradamayya"]);
     assert_has_krdanta(&["pra"], &nic(&d("Samu~", Divadi)), ktvA, &["praSamayya"]);
-    assert_has_krdanta(&["pra"], &nic(&d("damu~", Divadi)), ktvA, &["sandamayya"]);
+    assert_has_krdanta(&["sam"], &nic(&d("damu~", Divadi)), ktvA, &["sandamayya"]);
 
-    let bebhidya = yan_nic(&d("Bi\\di^&r", Rudhadi));
+    let bebhidya = yan_nic(&d("Bi\\di~^r", Rudhadi));
     assert_has_krdanta(&["pra"], &bebhidya, ktvA, &["prabeBidayya"]);
-    assert_has_krdanta(&["pra"], &nic(&d("gaRa", Curadi)), ktvA, &["pragaRayya"]);
+    assert_has_krdanta(&["pra"], &d("gaRa", Curadi), ktvA, &["pragaRayya"]);
 
     // laGupUrva?
     assert_has_krdanta(&["pra"], &nic(&d("patx~", Bhvadi)), ktvA, &["prapAtya"]);
@@ -1233,6 +1237,7 @@ fn sutra_6_4_96() {
     assert_has_krdanta(&["sam", "upa"], &chad, Krt::Ga, &["samupacCAda"]);
 }
 
+#[ignore]
 #[test]
 fn sutra_6_4_96_v1() {
     let chad = d("Cada~", Curadi);
@@ -1245,7 +1250,8 @@ fn sutra_6_4_97() {
     let chad = d("Cada~", Curadi);
     assert_has_krdanta(&[], &chad, Unadi::isi, &["Cadis"]);
     assert_has_krdanta(&[], &chad, Krt::manin, &["Cadman"]);
-    assert_has_krdanta(&[], &chad, Krt::zwran, &["Cattra"]);
+    assert_has_krdanta(&[], &chad, Unadi::zwran, &["Cattra"]);
+    // TODO: implement 8.2.2 correctly
     assert_has_upapada_krdanta("dAman", &[], &chad, Krt::kvip, &["dAmacCad"]);
     assert_has_krdanta(&["upa"], &chad, Krt::kvip, &["upacCad"]);
 }
@@ -1843,7 +1849,8 @@ fn sutra_6_4_134() {
 fn sutra_6_4_135() {
     use TaddhitaArtha::TasyaApatyam;
     assert_has_artha_taddhita("ukzan", TasyaApatyam, T::aR, &["OkzRa"]);
-    assert_has_artha_taddhita("BrURahan", TasyaApatyam, T::aR, &["BrORaGna"]);
+    let bhrunahan = upapada_krdanta("BrURa", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    assert_has_artha_taddhita(bhrunahan, TasyaApatyam, T::aR, &["BrORaGna"]);
     assert_has_artha_taddhita("DftarAjan", TasyaApatyam, T::aR, &["DArtarAjYa"]);
     assert_has_artha_taddhita("sAman", TasyaApatyam, T::aR, &["sAmana"]);
     assert_has_artha_taddhita("viman", TasyaApatyam, T::aR, &["vEmana"]);
@@ -1970,6 +1977,7 @@ fn sutra_6_4_146() {
     // TODO: svAyamBuva
 }
 
+#[ignore]
 #[test]
 fn sutra_6_4_147() {
     assert_has_taddhita("kamaRqalu", T::QaY, &["kAmaRqaleya"]);

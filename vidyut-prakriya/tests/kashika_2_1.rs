@@ -180,11 +180,11 @@ fn sutra_2_1_31() {
     assert_has_trtiya_tatpurusha("AcAra", "SlakzRa", &["AcAraSlakzRa"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_2_1_32() {
     assert_has_trtiya_tatpurusha("ahi", "hata", &["ahihata"]);
-    assert_has_trtiya_tatpurusha("naKa", "nirBinna", &["naKanirBinna"]);
+    let nirbhinna = krdanta(&["nir"], &d("Bi\\di~^r", Rudhadi), Krt::kta);
+    assert_has_trtiya_tatpurusha("naKa", nirbhinna, &["naKanirBinna"]);
     assert_has_trtiya_tatpurusha("paraSu", "Cinna", &["paraSucCinna"]);
 }
 

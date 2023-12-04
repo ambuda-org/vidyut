@@ -15,6 +15,7 @@ fn try_base_cases(tp: &mut TaddhitaPrakriya, _code: &'static str) {
     tp.try_add("5.1.18", P::WaY);
 }
 
+/// Overrides WaY (5.1.18) up to 5.1.63 inclusive.
 fn try_base_cases_arhiya(tp: &mut TaddhitaPrakriya, code: &'static str) {
     use Taddhita as P;
     let prati = tp.prati();
@@ -63,6 +64,46 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else {
             try_base_cases_arhiya(tp, "5.1.37");
         }
+    });
+
+    tp.with_context(TasyaVapa, |tp| {
+        let prati = tp.prati();
+        if prati.has_text("pAtra") {
+            tp.try_add("5.1.46", zWan);
+        } else {
+            try_base_cases_arhiya(tp, "5.1.45")
+        }
+    });
+
+    tp.with_context(TadAsminVrddhiAyaLabhaSulkaUpada, |tp| {
+        let prati = tp.prati();
+        if prati.has_text("BAga") {
+            let code = "5.1.49";
+            tp.try_add(code, Wan);
+            tp.try_add(code, yat);
+        } else {
+            try_base_cases_arhiya(tp, "5.1.47")
+        }
+    });
+
+    tp.with_context(TadDharatiVahatiAvahati, |tp| {
+        let prati = tp.prati();
+        if prati.has_text_in(&["vasna", "dravya"]) {
+            // vasnika, dravyaka
+            let t = if prati.has_text("vasna") { Wan } else { kan };
+            tp.try_add("5.1.51", t);
+        } else {
+            try_base_cases_arhiya(tp, "5.1.47")
+        }
+    });
+
+    tp.with_context(SambhavatiAharatiPacati, |tp| {
+        let prati = tp.prati();
+        if prati.has_text_in(&["AQaka", "Acita", "pAtra"]) {
+            tp.optional_try_add("5.1.53", Ka);
+        }
+        // prAsTika, ...
+        try_base_cases_arhiya(tp, "5.1.52")
     });
 
     tp.with_context(TadArhati, |tp| {

@@ -1,12 +1,12 @@
 /*!
-Creates a test file containing the inputs to `Ashtadhyayi`'s derivation functions and all of the
+Creates a test file containing the inputs to `Vyakarana`'s derivation functions and all of the
 padas produced by those inputs.
 */
 use serde::Serialize;
 use std::error::Error;
 use std::io;
 use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, Tinanta, Vacana};
-use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
+use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
 const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
     (Purusha::Prathama, Vacana::Eka),
@@ -34,7 +34,7 @@ struct Row<'a> {
 
 fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
-    let a = Ashtadhyayi::builder().log_steps(false).build();
+    let v = Vyakarana::builder().log_steps(false).build();
 
     for entry in d {
         let dhatu = entry.dhatu();
@@ -49,7 +49,7 @@ fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
                     .lakara(*lakara)
                     .build()?;
 
-                let prakriyas = a.derive_tinantas(&tinanta);
+                let prakriyas = v.derive_tinantas(&tinanta);
 
                 let dhatu_text = &dhatu.upadesha().expect("ok");
                 let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();

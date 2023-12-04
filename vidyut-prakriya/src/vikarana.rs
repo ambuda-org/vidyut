@@ -501,6 +501,11 @@ fn maybe_sic_lopa_before_parasmaipada(
     i_vikarana: usize,
     i_tin: usize,
 ) -> Option<()> {
+    let mut i = i;
+    if p.has(i, |t| t.is_lupta()) {
+        i = p.find_prev_where(i, |t| !t.is_empty())?;
+    }
+
     if !p.has(i_tin, |t| t.is_parasmaipada()) {
         return None;
     }

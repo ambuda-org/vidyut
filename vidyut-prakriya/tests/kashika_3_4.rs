@@ -5,7 +5,6 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
-use vidyut_prakriya::args::Upapada;
 use vidyut_prakriya::args::*;
 
 #[test]
@@ -61,6 +60,7 @@ fn sutra_3_4_69() {
 
 #[test]
 fn sutra_3_4_70() {
+    let avyaya = |text| Pratipadika::avyaya(text);
     let kf = &d("qukf\\Y", Tanadi);
     let bhuj = &d("Bu\\ja~", Rudhadi);
     let aas = &d("Asa~\\", Tanadi);
@@ -76,28 +76,10 @@ fn sutra_3_4_70() {
     assert_has_krdanta(&[], &aas, Krt::kta, &["Asita"]);
     assert_has_krdanta(&[], &shi, Krt::kta, &["Sayita"]);
 
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("Izat"),
-        &[],
-        &kf,
-        Krt::Kal,
-        &["Izatkara"],
-    );
-    assert_has_upapada_krdanta_raw(Upapada::make_avyaya("su"), &[], &kf, Krt::Kal, &["sukara"]);
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("dur"),
-        &[],
-        &kf,
-        Krt::Kal,
-        &["duzkara"],
-    );
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("dur"),
-        &[],
-        &kf,
-        Krt::Kal,
-        &["duzkara"],
-    );
+    assert_has_upapada_krdanta(avyaya("Izat"), &[], &kf, Krt::Kal, &["Izatkara"]);
+    assert_has_upapada_krdanta(avyaya("su"), &[], &kf, Krt::Kal, &["sukara"]);
+    assert_has_upapada_krdanta(avyaya("dur"), &[], &kf, Krt::Kal, &["duzkara"]);
+    assert_has_upapada_krdanta(avyaya("dur"), &[], &kf, Krt::Kal, &["duzkara"]);
     assert_has_krdanta(&["IzadAQya"], bhu, Krt::Kal, &["IzadAQyamBava"]);
     assert_has_krdanta(&["svAQya"], bhu, Krt::Kal, &["svAQyamBava"]);
 }

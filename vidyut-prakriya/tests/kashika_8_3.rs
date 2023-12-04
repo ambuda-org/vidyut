@@ -42,16 +42,16 @@ fn sutra_8_3_15() {
     assert_has_sandhi("vAyus", "nayati", &["vAyur nayati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_8_3_16() {
     assert_has_sup_7p("payas", Napumsaka, &["payaHsu", "payassu"]);
-    // TODO: sarpizzu?
-    // assert_has_sup_7p("sarpis", Napumsaka, &["sarpiHzu"]);
+    assert_has_sup_7p("sarpis", Napumsaka, &["sarpiHzu", "sarpizzu"]);
     assert_has_sup_7p("yaSas", Napumsaka, &["yaSaHsu", "yaSassu"]);
     // ruH
-    assert_has_sup_7p("gir", Napumsaka, &["gIrzu"]);
-    assert_has_sup_7p("Dur", Napumsaka, &["DUrzu"]);
+    let gir = krdanta(&[], &d("gF", Kryadi), Krt::kvip);
+    assert_has_sup_7p(gir, Napumsaka, &["gIrzu"]);
+    let dhur = krdanta(&[], &d("DurvI~", Bhvadi), Krt::kvip);
+    assert_has_sup_7p(&dhur, Napumsaka, &["DUrzu"]);
 }
 
 #[test]

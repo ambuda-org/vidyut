@@ -377,7 +377,7 @@ code	dhatu	artha
 01.0376	luqi~	steye
 01.0377	vawi~	viBAjane
 01.0378	sPawi~	viSaraRe
-01.0379	sPuwi~r	viSaraRe
+01.0379	Puwi~r	viSaraRe
 01.0380	sPuwi~	viSaraRe
 01.0381	paWa~	vyaktAyAM vAci
 01.0382	vaWa~	sTOlye
@@ -2113,7 +2113,7 @@ code	dhatu	artha
 10.0362	granTa~	banDane
 10.0363	SIka~	AmarzaRe
 10.0364	cIka~	AmarzaRe
-10.0365	arda~	hiMsAyAm
+10.0365	arda~^	hiMsAyAm
 10.0366	hisi~	hiMsAyAm
 10.0367	arha~	pUjAyAm
 10.0368	zada~	padyarTe

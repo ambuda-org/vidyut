@@ -52,7 +52,6 @@ fn sutra_6_1_3() {
     // TODO: indidrIyizati
 }
 
-#[ignore]
 #[test]
 fn sutra_6_1_3_v1() {
     assert_has_lat(&[], &san(&d("ubja~", Tudadi)), &["ubjijizati"]);
@@ -411,10 +410,9 @@ fn sutra_6_1_30() {
 fn sutra_6_1_31() {
     let svi = d("wuo~Svi", Bhvadi);
     assert_has_tip(&[], &nic_san(&svi), Lat, &["SuSAvayizati", "SiSvAyayizati"]);
-    assert_has_tip(&[], &nic(&svi), Lat, &["aSUsavat", "aSiSvayat"]);
+    assert_has_tip(&[], &nic(&svi), Lat, &["aSUSavat", "aSiSvayat"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_1_33() {
     let hve = d("hve\\Y", Bhvadi);

@@ -83,8 +83,13 @@ fn sutra_1_3_7() {
     let jan = d("janI~\\", Divadi);
     assert_has_upapada_krdanta("upasara", &[], &jan, Krt::qa, &["upasaraja"]);
     assert_has_upapada_krdanta("mandura", &[], &jan, Krt::qa, &["manduraja"]);
+
     // Ignore Ca, Ja, Wa, Qa,
-    // TODO: others
+    assert_has_taddhita("anna", T::Ra, &["Anna"]);
+    assert_has_taddhita("keSa", T::cuYcup, &["keSacuYcu"]);
+    assert_has_taddhita("keSa", T::caRap, &["keSacaRa"]);
+    assert_has_taddhita("ava", T::wIwac, &["avawIwa"]);
+    assert_has_taddhita("karman", T::aWac, &["karmaWa"]);
 }
 
 #[test]
@@ -115,8 +120,8 @@ fn sutra_1_3_8() {
     // ataddhite?
     assert_has_taddhita("cUqA", T::lac, &["cUqAla"]);
     assert_has_taddhita("loman", T::Sa, &["lomaSa"]);
-    // TODO: support kan-pratyaya here
-    // assert_has_taddhitanta("vfkza", T::kan, &["vfkzaka"]);
+
+    assert_has_taddhita("vfkza", T::kan, &["vfkzaka"]);
 }
 
 #[test]
@@ -698,9 +703,8 @@ fn sutra_1_3_84_and_sutra_1_3_85() {
     assert_has_lat(&["upa"], &ram, &["uparamati", "uparamate"]);
 }
 
-#[ignore]
 #[test]
-fn sutra_3_1_90() {
+fn sutra_1_3_90() {
     let kyas = |prati| Dhatu::nama(Pratipadika::basic(prati), None);
     assert_has_lat(&[], &kyas("lohita"), &["lohitAyati", "lohitAyate"]);
 }

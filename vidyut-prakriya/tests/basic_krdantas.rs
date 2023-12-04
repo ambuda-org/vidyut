@@ -8,15 +8,15 @@ Test cases marked with *Kale* are from M. R. Kale's *A Higher Sanskrit Grammar*.
 */
 use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::*;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::Vyakarana;
 
 /// Creates a krdanta with the given args.
 fn create_krdanta(dhatu: &str, gana: &str, krt: BaseKrt) -> Vec<String> {
-    let a = Ashtadhyayi::new();
+    let v = Vyakarana::new();
     let dhatu = Dhatu::mula(dhatu, gana.parse().expect("ok"));
     let args = Krdanta::builder().dhatu(dhatu).krt(krt).build().unwrap();
 
-    let prakriyas = a.derive_krdantas(&args);
+    let prakriyas = v.derive_krdantas(&args);
     prakriyas.iter().map(|p| p.text()).collect()
 }
 

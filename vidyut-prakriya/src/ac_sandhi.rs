@@ -45,10 +45,18 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
             // For now, just check if the term is a dhatu.
             let is_mula_dhatu = t_x.is_dhatu() && !t_x.is_pratyaya();
             let is_upadesha_adi = is_mula_dhatu && (t_x.has_adi('v') || t_x.has_adi('y'));
-            vyor_vali && !is_upadesha_adi && !(t_x.is_pratipadika() && !t_x.is_pratyaya())
+            vyor_vali
+                && !is_upadesha_adi
+                && !(t_x.is_pratipadika() && !t_x.is_pratyaya())
+                && !t_x.is_abhyasa()
         },
         |p, _, i| {
-            p.run("6.1.66", |p| p.set_char_at(i, ""));
+            let i_t = get_term_index_at(p, i).expect("should be present");
+            p.run("6.1.66", |p| {
+                p.set_char_at(i, "");
+                // Per Neelesh Bodas, remove `Abhyasta` so that we can derive `mAmAva`.
+                p.set(i_t, |t| t.remove_tag(T::Abhyasta))
+            });
             true
         },
     );
@@ -95,10 +103,10 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         let x = text.as_bytes()[i] as char;
         let y = text.as_bytes()[i + 1] as char;
 
-        let i_x = get_term_index_at(p, i).expect("ok");
-        let i_y = get_term_index_at(p, i + 1).expect("ok");
-        let t_x = p.get(i_x).expect("ok");
-        let t_y = p.get(i_y).expect("ok");
+        let i_t_x = get_term_index_at(p, i).expect("ok");
+        let i_t_y = get_term_index_at(p, i + 1).expect("ok");
+        let t_x = p.get(i_t_x).expect("ok");
+        let t_y = p.get(i_t_y).expect("ok");
 
         let eti_edhati = || t_y.has_adi(&*EN) && t_y.has_u_in(&["i\\R", "eDa~\\"]);
         let is_uth = || t_y.has_adi('U') && t_y.has_tag(T::FlagUth);
@@ -115,6 +123,9 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             p.run("6.1.101", |p| {
                 p.set_char_at(i, &al::to_dirgha(x).expect("should be ac").to_string());
                 p.set_char_at(i + 1, "");
+                if i_t_x != i_t_y {
+                    p.set(i_t_x, |t| t.add_tag(T::FlagAntyaAcSandhi));
+                }
             });
             true
         } else if EC.contains(x) && AC.contains(y) {
@@ -140,26 +151,35 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
         } else if t_x.is_upasarga() && t_x.has_antya(&*A) && t_y.is_dhatu() && t_y.has_adi('f') {
             // upa + fcCati -> upArcCati
             p.run("6.1.91", |p| {
-                p.set(i_x, |t| t.set_antya(""));
-                p.set(i_y, |t| t.set_adi("Ar"));
+                p.set(i_t_x, |t| t.set_antya(""));
+                p.set(i_t_y, |t| t.set_adi("Ar"));
+                if i_t_x != i_t_y {
+                    p.set(i_t_x, |t| t.add_tag(T::FlagAntyaAcSandhi));
+                }
             });
             true
         } else if !t_x.is_agama() && t_x.has_antya(&*A) && (eti_edhati() || is_uth()) {
             // upa + eti -> upEti
             let adi = t_y.adi().expect("ok");
             let sub = al::to_vrddhi(adi).expect("ok");
-            p.run_at("6.1.89", i_y, |t| t.set_adi(sub));
+            p.run("6.1.89", |p| {
+                p.set(i_t_x, |t| t.set_antya(""));
+                p.set(i_t_y, |t| t.set_adi(sub));
+                if i_t_x != i_t_y {
+                    p.set(i_t_x, |t| t.add_tag(T::FlagAntyaAcSandhi));
+                }
+            });
             true
         } else if t_x.has_suffix_in(&["aU", "AU"]) {
             // HACK for KOnAti, DOta, and a few others
-            p.run_at("6.1.89", i_x, |t| {
+            p.run_at("6.1.89", i_t_x, |t| {
                 t.set_antya("");
                 t.set_antya("O")
             });
             true
         } else if t_x.is_upasarga() && t_x.has_antya(&*A) && t_y.is_dhatu() && t_y.has_adi(&*EN) {
             // upa + elayati -> upelayati
-            p.run_at("6.1.94", i_x, |t| t.set_antya(""));
+            p.run_at("6.1.94", i_t_x, |t| t.set_antya(""));
             true
         } else if A.contains(x) && AC.contains(y) {
             // General guna/vrddhi rules.
@@ -172,11 +192,17 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
                 p.run("6.1.88", |p| {
                     p.set_char_at(j, al::to_vrddhi(y).expect("should have vrddhi"));
                     p.set_char_at(i, "");
+                    if i_t_x != i_t_y {
+                        p.set(i_t_x, |t| t.add_tag(T::FlagAntyaAcSandhi));
+                    }
                 });
             } else {
                 p.run("6.1.87", |p| {
                     p.set_char_at(j, al::to_guna(y).expect("should have guna"));
                     p.set_char_at(i, "");
+                    if i_t_x != i_t_y {
+                        p.set(i_t_x, |t| t.add_tag(T::FlagAntyaAcSandhi));
+                    }
                 });
             }
             true

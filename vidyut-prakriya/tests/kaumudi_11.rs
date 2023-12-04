@@ -4,9 +4,7 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Pratipadika;
-use vidyut_prakriya::args::Samasa;
 use vidyut_prakriya::args::{BaseKrt as Krt, Gana};
-use vidyut_prakriya::args::{Vacana, Vibhakti};
 
 #[test]
 fn sk_324() {
@@ -352,17 +350,13 @@ fn skip_sk_386() {}
 
 #[test]
 fn sk_388() {
-    fn sup_1p(args: Samasa) -> Samasa {
-        args.with_sup(Pum, Vibhakti::Prathama, Vacana::Bahu)
-    }
-
     assert_has_sup_1p("yuzmad", Pum, &["yUyam"]);
     assert_has_sup_1p("asmad", Pum, &["vayam"]);
 
-    assert_has_samasas(&sup_1p(karmadharaya("parama", "yuzmad")), &["paramayUyam"]);
-    assert_has_samasas(&sup_1p(karmadharaya("parama", "asmad")), &["paramavayam"]);
-    assert_has_samasas(&sup_1p(karmadharaya("ati", "yuzmad")), &["atiyUyam"]);
-    assert_has_samasas(&sup_1p(karmadharaya("ati", "asmad")), &["ativayam"]);
+    assert_has_sup_1p(karmadharaya("parama", "yuzmad"), Pum, &["paramayUyam"]);
+    assert_has_sup_1p(karmadharaya("parama", "asmad"), Pum, &["paramavayam"]);
+    assert_has_sup_1p(karmadharaya("ati", "yuzmad"), Pum, &["atiyUyam"]);
+    assert_has_sup_1p(karmadharaya("ati", "asmad"), Pum, &["ativayam"]);
 }
 
 #[test]
@@ -398,17 +392,13 @@ fn sk_393() {
 
 #[test]
 fn sk_394() {
-    fn sup_4s(args: Samasa) -> Samasa {
-        args.with_sup(Pum, Vibhakti::Caturthi, Vacana::Eka)
-    }
-
     assert_has_sup_4s("yuzmad", Pum, &["tuByam"]);
     assert_has_sup_4s("asmad", Pum, &["mahyam"]);
 
-    assert_has_samasas(&sup_4s(karmadharaya("parama", "yuzmad")), &["paramatuByam"]);
-    assert_has_samasas(&sup_4s(karmadharaya("parama", "asmad")), &["paramamahyam"]);
-    assert_has_samasas(&sup_4s(karmadharaya("ati", "yuzmad")), &["atituByam"]);
-    assert_has_samasas(&sup_4s(karmadharaya("ati", "asmad")), &["atimahyam"]);
+    assert_has_sup_4s(karmadharaya("parama", "yuzmad"), Pum, &["paramatuByam"]);
+    assert_has_sup_4s(karmadharaya("parama", "asmad"), Pum, &["paramamahyam"]);
+    assert_has_sup_4s(karmadharaya("ati", "yuzmad"), Pum, &["atituByam"]);
+    assert_has_sup_4s(karmadharaya("ati", "asmad"), Pum, &["atimahyam"]);
 
     assert_has_sup_4d("yuzmad", Pum, &["yuvAByAm"]);
     assert_has_sup_4d("asmad", Pum, &["AvAByAm"]);

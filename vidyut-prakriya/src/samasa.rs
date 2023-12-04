@@ -390,6 +390,7 @@ pub fn try_sup_luk(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_rules_for_avyayibhava(p: &mut Prakriya) {
+    p.debug("run_rules_for_avyayibhava");
     if p.has_tag(T::Avyayibhava) {
         p.run("2.4.17", |p| p.add_tag(T::Napumsaka));
 

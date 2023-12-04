@@ -1,4 +1,4 @@
-use crate::args::{Linga, Subanta, Vacana, Vibhakti};
+use crate::args::Subanta;
 use crate::core::errors::Error;
 
 /// A samasa type.
@@ -27,8 +27,6 @@ pub enum SamasaType {
 pub struct Samasa {
     /// The items to combine in the samasa.
     padas: Vec<Subanta>,
-    /// The sup-pratyaya to use.
-    sup: Option<(Linga, Vibhakti, Vacana)>,
     /// The samasa type to apply.
     samasa_type: SamasaType,
     /// Whether to add a stri-pratyaya.
@@ -51,21 +49,9 @@ impl Samasa {
         self.samasa_type
     }
 
-    /// Returns the arguments for the `sup`-pratyaya that the samasa will take. If none, derive the
-    /// samasa as a pratipadika.
-    pub fn sup(&self) -> Option<(Linga, Vibhakti, Vacana)> {
-        self.sup
-    }
-
     /// Whether or not to derive this with a strI-pratyaya.
     pub fn stri(&self) -> bool {
         self.stri
-    }
-
-    /// TODO
-    pub fn with_sup(mut self, linga: Linga, vibhakti: Vibhakti, vacana: Vacana) -> Self {
-        self.sup = Some((linga, vibhakti, vacana));
-        self
     }
 
     /// TODO
@@ -80,7 +66,6 @@ impl Samasa {
 pub struct SamasaBuilder {
     padas: Vec<Subanta>,
     samasa_type: Option<SamasaType>,
-    sup: Option<(Linga, Vibhakti, Vacana)>,
 }
 
 impl SamasaBuilder {
@@ -96,12 +81,6 @@ impl SamasaBuilder {
         self
     }
 
-    /// Sets the samasa type to use in the derivation.
-    pub fn sup(&mut self, tuple: (Linga, Vibhakti, Vacana)) -> &mut Self {
-        self.sup = Some(tuple);
-        self
-    }
-
     /// Converts the arguments in this builder into a `SamasaArgs` struct.
     ///
     /// `build()` will fail if any args are missing.
@@ -112,7 +91,6 @@ impl SamasaBuilder {
             } else {
                 return Err(Error::missing_required_field("items"));
             },
-            sup: self.sup,
             samasa_type: match self.samasa_type {
                 Some(x) => x,
                 _ => return Err(Error::missing_required_field("samasa_type")),

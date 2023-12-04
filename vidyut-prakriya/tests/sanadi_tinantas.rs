@@ -4,10 +4,10 @@ Various test cases for sanAdi-dhatus, particulary the dhatus ending in nic, san,
 Test cases marked with *Kale* are from M. R. Kale's *A Higher Sanskrit Grammar*.
 */
 use vidyut_prakriya::args::*;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::Vyakarana;
 
 fn create_sanadyanta(upadesha: &str, gana: &str, sanadi: Sanadi) -> Vec<String> {
-    let a = Ashtadhyayi::new();
+    let v = Vyakarana::new();
     let gana = gana.parse().expect("ok");
     let dhatu = Dhatu::builder()
         .upadesha(upadesha)
@@ -25,7 +25,7 @@ fn create_sanadyanta(upadesha: &str, gana: &str, sanadi: Sanadi) -> Vec<String> 
         .build()
         .unwrap();
 
-    let prakriyas = a.derive_tinantas(&args);
+    let prakriyas = v.derive_tinantas(&args);
     prakriyas.iter().map(|p| p.text()).collect()
 }
 

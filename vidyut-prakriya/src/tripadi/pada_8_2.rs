@@ -1,5 +1,5 @@
 use crate::args::Gana;
-use crate::core::char_view::{get_at, get_term_and_offset_indices, xyz, CharPrakriya};
+use crate::core::char_view::{get_at, get_term_and_offset_indices, CharPrakriya};
 use crate::core::iterators::xy_rule;
 use crate::core::operators as op;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
@@ -166,123 +166,118 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
 /// Runs rules that perform `lopa` for samyogas and `s`.
 ///
 /// (8.2.23 - 8.2.29)
-fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
-    // Exception to 8.2.23.
-    let mut cp = CharPrakriya::new(p);
-    cp.for_chars(
-        xyz(|x, y, z| JHAL.contains(x) && y == 's' && JHAL.contains(z)),
-        |p, _, i| {
-            let t = get_at(p, i + 1).expect("valid");
+fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
+    iter_terms(p, |p, i| {
+        if p.is_pada(i) {
+            return None;
+        }
+
+        let t_y = p.get(i)?;
+        let i_prev = p.find_prev_where(i, |t| !t.is_empty());
+        let i_next = p.find_next_where(i, |t| !t.is_empty());
+
+        let x = p.custom_view(0, i)?.upadha()?;
+        let y = t_y.antya()?;
+
+        if y == 's' && p.has(i_next?, |t| t.has_adi('D')) {
+            p.run_at("8.2.25", i, op::antya(""));
+        } else if JHAL.contains(x)
+            && y == 's'
+            && p.has(i_next?, |t| t.has_adi(&*JHAL))
+            && t_y.has_u_in(&["si~c", "Basa~"])
+        {
             // "ayamapi sica eva lopaḥ, tena iha na bhavati, somasut stotā, dṛṣṭsthānam iti" (KV)
             // But, also part of bapsati?
             // TODO: clean up this rule
-            if t.has_u("si~c") || t.has_u("Basa~") {
-                p.run("8.2.26", |p| p.set_char_at(i + 1, ""));
-                true
-            } else {
-                false
-            }
-        },
-    );
+            p.run_at("8.2.26", i, op::antya(""));
+        } else if al::is_hrasva(x)
+            && t_y.has_u("si~c")
+            && p.has(i_prev?, |t| t.is_anga())
+            && p.has(i_next?, |t| t.has_adi(&*JHAL))
+        {
+            // "ayamapi sica eva lopaḥ, tena iha na bhavati, dviṣṭarām, dviṣṭamām iti" (KV)
+            p.run_at("8.2.27", i, op::antya(""));
+        } else if t_y.has_u("si~c")
+            && p.has(i_prev?, |t| t.has_u("iw"))
+            && p.has(i_next?, |t| t.has_u("Iw"))
+        {
+            p.run_at("8.2.28", i, op::antya(""));
 
-    for i in 0..p.terms().len() {
-        let j = match p.find_next_where(i, |t| !t.is_empty()) {
-            Some(i) => i,
-            None => break,
-        };
-
-        let x = p.get(i)?;
-        let y = p.get(j)?;
-        if x.has_antya('r') && y.has_text("s") && j == p.terms().len() - 1 {
-            // Urj -> Urk
-            p.run_at("8.2.24", j, op::adi(""));
-        } else if x.has_antya('s') && y.has_adi('D') && !x.is_pada() {
-            // Per kAzikA, applies only to s of si~c. But this seems to cause
-            // problems e.g. for tAs + Dve.
-            p.run_at("8.2.25", i, op::antya(""));
+            // sic-lopa is siddha with respect to prior rules (8.2.3 vArttika)
+            // Therefore, apply ac-sandhi:
+            p.run("6.1.101", |p| {
+                p.set(i - 1, op::antya("I"));
+                p.set(i + 1, op::adi(""));
+            });
         }
-    }
 
-    for i in 0..p.terms().len() {
-        if let (Some(x), Some(y), Some(z)) = (p.get(i), p.get(i + 1), p.get(i + 2)) {
-            if x.has_u("iw") && y.has_u("si~c") && z.has_u("Iw") {
-                p.run_at("8.2.28", i + 1, op::lopa);
-
-                // sic-lopa is siddha with respect to prior rules (8.2.3 vArttika)
-                // Therefore, apply ac-sandhi:
-                p.run("6.1.101", |p| {
-                    p.set(i, op::antya("I"));
-                    p.set(i + 2, op::adi(""));
-                });
-            }
-        }
-    }
+        Some(())
+    });
 
     let mut cp = CharPrakriya::new(p);
     cp.for_chars(
         |p, text, i| {
             let bytes = text.as_bytes();
-            if let Some(x) = bytes.get(i) {
-                let x = *x as char;
+            let x = bytes.get(i).expect("present");
+            let x = *x as char;
 
-                // Check that this is the start of a samyoga as opposed to a portion of a larger
-                // samyoga. This check is necessary to prevent `saMstti -> santti`.
-                //
-                // > "'skoḥ' iti salopo'tra na bhavati, bahūnāṃ samavāye dvayossaṃyogasaṃjñābhāvāt"
-                // > iti ātreyamaitreyau."
-                // -- Madhaviya-dhatuvrtti [1].
-                //
-                // But, we should still allow mantkzyati -> maNksyati:
-                //
-                // > 'masjerantyātpūrvaṃ numamicchantyanuṣaṅgasaṃyogādilopārtham' ityantyātpūrvam,
-                // > numi 'skoḥ saṃyogādyoḥ' iti salopaḥ.
-                // -- Madhaviya-dhatuvrtti [2].
-                //
-                // So as a quick hack, w should be (empty OR a vowel) AND not "samst".
-                //
-                // [1]: https://archive.org/details/237131938MadhaviyaDhatuVrtti/page/n434/mode/1up
-                // [2]: as above, but `n540` instead of `n434` in the URL.
-                let is_first_hal = if i > 0 {
-                    match bytes.get(i - 1) {
-                        Some(w) => {
-                            let w = *w as char;
-                            (AC.contains(w) || w == 'n')
-                                && !get_at(p, i).map_or(false, |t| t.has_text("sanst"))
-                        }
-                        None => true,
+            // Check that this is the start of a samyoga as opposed to a portion of a larger
+            // samyoga. This check is necessary to prevent `saMstti -> santti`.
+            //
+            // > "'skoḥ' iti salopo'tra na bhavati, bahūnāṃ samavāye dvayossaṃyogasaṃjñābhāvāt"
+            // > iti ātreyamaitreyau."
+            // -- Madhaviya-dhatuvrtti [1].
+            //
+            // But, we should still allow mantkzyati -> maNksyati:
+            //
+            // > 'masjerantyātpūrvaṃ numamicchantyanuṣaṅgasaṃyogādilopārtham' ityantyātpūrvam,
+            // > numi 'skoḥ saṃyogādyoḥ' iti salopaḥ.
+            // -- Madhaviya-dhatuvrtti [2].
+            //
+            // So as a quick hack, w should be (empty OR a vowel) AND not "samst".
+            //
+            // [1]: https://archive.org/details/237131938MadhaviyaDhatuVrtti/page/n434/mode/1up
+            // [2]: as above, but `n540` instead of `n434` in the URL.
+            let is_first_hal = if i > 0 {
+                match bytes.get(i - 1) {
+                    Some(w) => {
+                        let w = *w as char;
+                        (AC.contains(w) || w == 'n')
+                            && !get_at(p, i).map_or(false, |t| t.has_text("sanst"))
                     }
-                } else {
-                    false
-                };
-
-                let sk = x == 's' || x == 'k';
-
-                if !sk || !is_first_hal {
-                    return false;
+                    None => true,
                 }
+            } else {
+                false
+            };
 
-                let mut num_hals = 0;
-                if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
-                    for i in i_term..p.terms().len() {
-                        let start = if i == i_term { i_offset } else { 0 };
-                        let cur = p.get(i).expect("ok");
-                        for j in start..cur.len() {
-                            let x = cur.text.as_bytes()[j] as char;
-                            if HAL.contains(x) {
-                                num_hals += 1;
-                            } else {
-                                return false;
-                            }
+            let sk = x == 's' || x == 'k';
 
-                            if num_hals >= 3
-                                && JHAL.contains(x)
-                                && (cur.is_pratyaya() || cur.is_agama())
-                            {
-                                return true;
-                            }
-                            if num_hals >= 2 && j == cur.len() - 1 && p.is_pada(i) {
-                                return true;
-                            }
+            if !sk || !is_first_hal {
+                return false;
+            }
+
+            let mut num_hals = 0;
+            if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
+                for i in i_term..p.terms().len() {
+                    let start = if i == i_term { i_offset } else { 0 };
+                    let cur = p.get(i).expect("ok");
+                    for j in start..cur.len() {
+                        let x = cur.text.as_bytes()[j] as char;
+                        if HAL.contains(x) {
+                            num_hals += 1;
+                        } else {
+                            return false;
+                        }
+
+                        if num_hals >= 3
+                            && JHAL.contains(x)
+                            && (cur.is_pratyaya() || cur.is_agama())
+                        {
+                            return true;
+                        }
+                        if num_hals >= 2 && j == cur.len() - 1 && p.is_pada(i) {
+                            return true;
                         }
                     }
                 }
@@ -303,39 +298,32 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) -> Option<()> {
         },
     );
 
-    // hrasvAd aGgAt
-    for i in 0..p.terms().len() {
-        if let (Some(x), Some(y), Some(z)) = (p.get(i), p.get(i + 1), p.get(i + 2)) {
-            // "ayamapi sica eva lopaḥ, tena iha na bhavati, dviṣṭarām, dviṣṭamām iti" (KV)
-            if x.is_hrasva() && y.has_u("si~c") && z.has_adi(&*JHAL) && !x.is_agama() {
-                p.run_at("8.2.27", i + 1, op::lopa);
+    iter_terms(p, |p, i| {
+        if p.is_pada(i) && p.has(i, |t| !t.is_empty()) {
+            loop {
+                let view = p.custom_view(0, i)?;
+                if view.last().has_tag(T::FlagAntyaAcSandhi) {
+                    // This term doesn't actually end in a final consonant, so it is not in scope.
+                    break;
+                }
+                let x = view.upadha()?;
+                let y = view.last().antya()?;
+                if x == 'r' {
+                    if y == 's' {
+                        p.run_at("8.2.24", i, |t| t.set_antya(""));
+                    } else {
+                        break;
+                    }
+                } else if HAL.contains(x) && JHAL.contains(y) {
+                    // Check "JHAL" to ignore lopa on bahiranga changes like "dadhy atra".
+                    p.run_at("8.2.23", i, |t| t.set_antya(""));
+                } else {
+                    break;
+                }
             }
         }
-    }
-
-    // For now, use separate logic for other padas, e.g. upapadas.
-    // Check "JHAL" to ignore lopa on bahiranga changes like "dadhy atra".
-    for i in 0..p.terms().len() {
-        while p.has(i, |t| {
-            t.is_pada() && t.is_samyoganta() && t.has_antya(&*JHAL)
-        }) {
-            p.run_at("8.2.23", i, |t| t.set_antya(""));
-        }
-    }
-
-    // A second form of 8.2.23 for when the last term has just one letter.
-    if p.is_pada(p.terms().len() - 1) {
-        let mut cp = CharPrakriya::new(p);
-        cp.for_chars_rev(
-            |_, text, i| al::is_samyoganta(text) && i == text.len() - 1,
-            |p, _, i| {
-                p.run("8.2.23", |p| p.set_char_at(i, ""));
-                true
-            },
-        );
-    }
-
-    Some(())
+        Some(())
+    });
 }
 
 /// Runs rules that change the final "h" of a dhatu.
@@ -490,7 +478,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
                 let is_sdhvoh = y.has_adi('s') || (y.is_pratyaya() && y.starts_with("Dv"));
                 is_sdhvoh || p.is_pada(i)
             }
-            None => true,
+            None => p.is_pada(i),
         };
 
         if x.has_adi(&*BASH) && x.has_antya(&*JHAZ) && x.is_ekac() && x.is_dhatu() && if_y {
@@ -518,7 +506,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         let is_pada = p.is_pada(i) && !(c.is_upasarga() && !c.has_u("ud"));
         let has_exception = c.has_antya(&*JHAL_TO_JASH_EXCEPTIONS) || is_sa_sajush(p, i);
 
-        if c.has_antya(&*JHAL) && !has_exception && is_pada {
+        if c.has_antya(&*JHAL) && !has_exception && is_pada && !c.has_tag(T::FlagAntyaAcSandhi) {
             let key = c.antya()?;
             let sub = JHAL_TO_JASH.get(key)?;
             p.run_at("8.2.39", i, op::antya(&sub.to_string()));
@@ -684,9 +672,9 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
 
 fn run_misc_rules_2(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
-        if p.is_pada(i) {
-            let t = p.get(i)?;
-            if t.is_dhatu() && p.has(i + 1, |t| t.has_u("kvi~n")) {
+        let t = p.get(i)?;
+        if p.is_pada(i) && t.is_dhatu() {
+            if p.has(i + 1, |t| t.has_u("kvi~n")) {
                 // Gftaspfk, ...
                 let sub = if t.has_antya('n') || t.has_antya('Y') {
                     "N"
@@ -694,9 +682,12 @@ fn run_misc_rules_2(p: &mut Prakriya) -> Option<()> {
                     "k"
                 };
                 p.run_at("8.2.62", i, |t| t.set_antya(sub));
-            } else if t.is_dhatu() && t.has_u("Ra\\Sa~") && p.has(i + 1, |t| t.has_u("kvi~p")) {
+            } else if t.has_u("Ra\\Sa~") && p.has(i + 1, |t| t.has_u("kvi~p")) {
                 // nak, naw
                 p.optional_run_at("8.2.63", i, |t| t.set_antya("k"));
+            } else if t.has_antya('m') {
+                // praSAn, ...
+                p.run_at("8.2.64", i, |t| t.set_antya("n"));
             }
         }
     }

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,"><!-- Avoid favicon requests: https://stackoverflow.com/a/38917888 -->
+  <title>Vidyullekha</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.2.7/sanscript.min.js"></script>
+  <script type="module" src="/static/app.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style type="text/css">
+    .a-underline a {
+        text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+<article x-data="app" class="">
+
+<!-- Header -->
+<header class="py-12 bg-slate-100 text-center">
+  <h1 class="text-4xl font-bold mb-2" x-text="deva('vidyulleKA')"></h1>
+  <p class="text-slate-800">
+  (A demo of <a class="underline" href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya"
+    target="_blank">vidyut-prakriya</a>.
+   Please file bugs <a class="underline" href="https://github.com/ambuda-org/vidyut/issues" target="_blank">here</a>.)
+  </p>
+</header>
+
+<!-- Script select -->
+<div class="max-w-3xl mx-auto text-right p-2">
+  <select x-model="script" class="p-2 my-2">
+    <option value="devanagari">Devanagari</option>
+    <option value="iast">IAST</option>
+    <option value="slp1">SLP1</option>
+    <option value="itrans">ITRANS</option>
+    <option value="telugu">Telugu</option>
+    <option value="kannada">Kannada</option>
+  </select>
+</div>
+
+<div class="max-w-3xl mx-auto my-8 p-2">
+  <!-- Tab select -->
+  <ul class="flex my-4">
+    <li><a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="setTab('about')">About</a></li>
+    <li><a class="py-2 mr-4" href="#" :class="tab('dhatu')"
+        @click.prevent="setTab('dhatu')" x-text="deva('DAtavaH')"></a></li>
+    <li><a class="py-2 mr-4" href="#" :class="tab('subanta')"
+        @click.prevent="setTab('subanta')" x-text="deva('subantAni')"></a></li>
+    <!-- <li><a class="py-2 mr-4" href="#" :class="tab('taddhita')"
+        @click.prevent="setTab('taddhita')"
+        x-text="deva('tadDitAntAni')"></a></li> -->
+  </ul>
+  <hr class="mb-4">
+
+  <!-- Dhatu select tab + tinantas -->
+  <section x-show="activeTab === 'dhatu'">
+    <div x-show="!activeDhatu">
+      <p class="my-4">Click on a dhatu to see its forms. Click on a form to see its prakriya.</p>
+      <input type="text" x-model="dhatuFilter" class="w-full border p-1 my-2"
+        placeholder="Type query (भू, bhU, etc.)"/>
+      <ol>
+        <template x-for="d in filteredDhatus()">
+          <li class="my-1">
+            <a href="#" @click.prevent="setActiveDhatu(d.code)" class="block hover:bg-slate-50 p-1 text-lg">
+              <span class="bg-slate-100 text-slate-700 rounded p-1" x-text="deva(d.code).replaceAll('।', '.')"></span>
+              <span class="text-red-700" x-text="devaNoSvara(d.upadesha)"></span>
+              <span class="text-slate-600" x-text="deva(d.artha)"></span>
+            </a>
+          </li>
+        </template>
+      </ol>
+    </div>
+    <p x-show="dhatus.length === 0">Loading &hellip;</p>
+      <template x-if="activeDhatu">
+      <div>
+        <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
+          &times; <span x-text="devaNoSvara(activeDhatu.upadesha)"></span>
+        </button>
+        <template x-if="activePada">
+          <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
+            &times; <span x-text="deva(activePada.text)"></span>
+          </button>
+        </template>
+        <header class="text-center">
+          <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.upadesha)"></h1>
+          <p x-text="deva(activeDhatu.artha)"></p>
+        </header>
+
+        <template x-if="dhatuPrakriya">
+          <div>
+            <table class="border table-auto w-full">
+              <caption class="font-bold text-2xl text-left mb-2" x-text="deva(dhatuPrakriya.text)"></caption>
+              <thead class="font-bold text-left border-b">
+                <tr class="bg-slate-100">
+                  <th class="py-2 px-4">Result</th>
+                  <th colspan="2" class="py-2 px-4" x-text="deva('sUtram')"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="step in dhatuPrakriya.history">
+                  <tr class="hover:bg-sky-50" :class="stepClasses(step)">
+                    <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
+                    <td class="py-2 px-4 text-lg" x-text="await sutraText(step.rule)"></td>
+                    <td class="text-sm text-right">
+                      <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
+                          x-text="deva(step.rule).replaceAll('।', '.')"
+                          target="_blank"
+                          :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
+                    </td>
+                  </tr>
+                </template>
+                <tr class="border">
+                  <td x-text="deva(dhatuPrakriya.text)" class="py-2 px-4 text-xl font-bold"></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
+
+        <div x-show="!activePada">
+          <div class="text-center my-4">
+            <label x-text="deva('upasargAH')"></label>
+            <select x-model="upasarga" class="p-2 bg-white rounded border">
+              <option value="">(none)</option>
+              <option value="pra" x-text="deva('pra')"></option>
+              <option value="parA" x-text="deva('parA')"></option>
+              <option value="apa" x-text="deva('apa')"></option>
+              <option value="sam" x-text="deva('sam')"></option>
+              <option value="anu" x-text="deva('anu')"></option>
+              <option value="ava" x-text="deva('ava')"></option>
+              <option value="nis" x-text="deva('nis')"></option>
+              <option value="nir" x-text="deva('nir')"></option>
+              <option value="dus" x-text="deva('dus')"></option>
+              <option value="dur" x-text="deva('dur')"></option>
+              <option value="vi" x-text="deva('vi')"></option>
+              <option value="AN" x-text="deva('AN')"></option>
+              <option value="ni" x-text="deva('ni')"></option>
+              <option value="aDi" x-text="deva('aDi')"></option>
+              <option value="api" x-text="deva('api')"></option>
+              <option value="ati" x-text="deva('ati')"></option>
+              <option value="su" x-text="deva('su')"></option>
+              <option value="ud" x-text="deva('ud')"></option>
+              <option value="aBi" x-text="deva('aBi')"></option>
+              <option value="prati" x-text="deva('prati')"></option>
+              <option value="pari" x-text="deva('pari')"></option>
+              <option value="upa" x-text="deva('upa')"></option>
+            </select>
+
+            <label x-text="deva('prayogAH')"></label>
+            <select x-model="prayoga" class="p-2 bg-white rounded border">
+              <option :value="Prayoga.Kartari" x-text="deva('kartari')"></option>
+              <option :value="Prayoga.Karmani" x-text="deva('karmaRi')"></option>
+            </select>
+
+            <label x-text="deva('sanAdi')"></label>
+            <select x-model="sanadi" class="p-2 bg-white rounded border">
+              <option value="">(none)</option>
+              <option :value="Sanadi.san" x-text="deva('sannante')"></option>
+              <option :value="Sanadi.Ric" x-text="deva('Rijante')"></option>
+              <option :value="Sanadi.yaN" x-text="deva('yaNante')"></option>
+              <option :value="Sanadi.yaNluk" x-text="deva('yaNlugante')"></option>
+            </select>
+          </div>
+
+          <template x-for="la in createAllTinantas()">
+            <section>
+              <h1 class="text-2xl font-bold my-4" x-text="la.title"></h1>
+
+              <template x-if="la.Parasmai">
+                <table class="w-full my-4 text-left table-fixed text-xl border">
+                  <template x-for="row in la.Parasmai">
+                    <tr>
+                      <template x-for="cell in row">
+                        <td class="p-1">
+                          <template x-for="(pada, i) in cell">
+                            <span>
+                              <span x-show="i !== 0">, </span><a
+                                  href="#"
+                                  class="hover:underline"
+                                  @click.prevent="setActivePada(pada)"
+                                  x-text="deva(pada.text)"
+                                  >
+                            </a></span>
+                          </template>
+                        </td>
+                      </template>
+                    </tr>
+                  </template>
+                </table>
+              </template>
+
+              <template x-if="la.Atmane">
+                <table class="w-full my-4 text-left table-fixed text-xl border">
+                  <template x-for="row in la.Atmane">
+                    <tr>
+                      <template x-for="cell in row">
+                        <td class="p-1">
+                          <template x-for="(pada, i) in cell">
+                            <span>
+                              <span x-show="i !== 0">, </span><a
+                                  href="#"
+                                  class="hover:underline"
+                                  @click.prevent="setActivePada(pada)"
+                                  x-text="deva(pada.text)"
+                                  >
+                            </a></span>
+                          </template>
+                        </td>
+                      </template>
+                    </tr>
+                  </template>
+                </table>
+              </template>
+            </section>
+          </template>
+        </div>
+        <div x-show="!activePada">
+          <!-- Krdanta table (for selected dhatu) -->
+          <template x-for="krtType in createKrdantas()">
+            <table class="w-full my-4 text-left table-fixed text-xl border">
+              <thead>
+                <tr class="bg-slate-200">
+                    <th class="p-2" x-text="deva('kft-pratyaya')"></th>
+                    <th class="p-2" x-text="deva('kfdanta')"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="krt in krtType">
+                  <tr class="even:bg-slate-50">
+                    <th class="p-2" x-text="deva(krt.title)"></th>
+                    <td class="p-2">
+                      <template x-for="pada in krt.padas">
+                        <a href="#"
+                           class="block hover:underline"
+                           x-text="deva(pada.text || '-')"
+                           @click.prevent="setActivePada(pada)"></a>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </template>
+        </div>
+        </div>
+      </template>
+  </section>
+
+  <!-- Subanta select tab -->
+  <section x-show="activeTab === 'subanta'">
+    <div x-show="!supActivePratipadika">
+      <p class="my-4">(UI in progress) Click on a stem to see its forms. Click on a form to see its prakriya.</p>
+      <input type="text" x-model="supFilter" class="w-full border p-1 my-2"
+        placeholder="Type query (राम, rAma, etc.)"/>
+      <ol>
+        <template x-for="prati in filteredSupPratipadikas()">
+          <li class="my-1">
+            <a href="#" @click.prevent="setPratipadika(prati)"
+              class="block hover:bg-slate-50 p-1 text-lg">
+              <span class="bg-slate-100 text-slate-700 rounded p-1"
+                x-text="getLingaTitle(prati.linga)"></span>
+              <span class="text-red-700" x-text="deva(prati.text)"></span>
+            </a>
+          </li>
+        </template>
+      </ol>
+    </div>
+
+    <!-- Subanta paradigm table -->
+    <template x-if="supParadigm">
+      <div>
+        <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearSupPratipadika">
+          &times; <span x-text="deva(supActivePratipadika.text)"></span>
+        </button>
+        <table class="w-full my-4 text-left table-fixed text-xl border">
+          <tr class="bg-slate-100">
+            <th>&nbsp;</th>
+            <th class="p-2" x-text="deva('ekavacanam')"></th>
+            <th class="p-2" x-text="deva('dvivacanam')"></th>
+            <th class="p-2" x-text="deva('bahuvacanam')"></th>
+          </tr>
+          <template x-for="row in supParadigm">
+            <tr>
+              <th class="bg-slate-100 p-2" x-text="deva(row.title)"></th>
+              <template x-for="cell in row.cells">
+                <td class="p-2">
+                  <template x-for="(pada, i) in cell">
+                    <span><span x-show="i !== 0">, </span><a
+                          href="#"
+                          x-text="deva(pada.displayText)"
+                          @click.prevent="setActivePada(pada)"
+                          >
+                    </a></span>
+                  </template>
+                </td>
+              </template>
+          </template>
+        </table>
+      </div>
+    </template>
+
+    <!-- Subanta prakriya -->
+    <template x-if="supPrakriya">
+      <div>
+        <table class="border table-auto w-full">
+          <caption class="font-bold text-2xl text-left mb-2" x-text="deva(supPrakriya.text)"></caption>
+          <thead class="font-bold text-left border-b">
+            <tr class="bg-slate-100">
+              <th class="py-2 px-4">Result</th>
+              <th colspan="2" class="py-2 px-4" x-text="deva('sUtram')"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="step in supPrakriya.history">
+              <tr class="hover:bg-sky-50" :class="stepClasses(step)">
+                <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
+                <td class="py-2 px-4 text-lg" x-text="await sutraText(step.rule)"></td>
+                <td class="text-sm text-right">
+                  <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
+                      x-text="deva(step.rule).replaceAll('।', '.')"
+                      target="_blank"
+                      :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
+                </td>
+              </tr>
+            </template>
+            <tr class="border">
+              <td x-text="deva(supPrakriya.text)" class="py-2 px-4 text-xl font-bold"></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </template>
+  </section>
+
+  <!-- About tab -->
+  <section x-show="activeTab === 'about'">
+    <div class="prose a-underline">
+      <p class="mb-4">This is an online demo of <a class="italic"
+        href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya">vidyut-prakriya</a>,
+      a Paninian word generator created for the <a
+        href="https://ambuda.org">Ambuda</a> project.</p>
+
+      <ul class="my-4">
+        <li class="my-4"><p><strong>Why does this matter?</strong> &mdash; Our
+          program generates an enormous Sanskrit word list with detailed
+          grammatical information. This data will let us build powerful new
+          tools for the next generation of Sanskrit learners.</p></li>
+
+        <li class="my-4"><p><strong>Why is this new?</strong> &mdash;
+          <i>vidyut-prakriya</i> is fast, free, and powerful. Our system
+          implements more than 2,000 rules from the Ashtadhyayi, with more
+          coming soon.</p></li>
+
+        <li class="my-4"><p><strong>How does this work?</strong> &mdash; See our
+          <a
+        href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya">GitHub
+        repository</a> for details.</p></li>
+
+        <li class="my-4"><p><strong>How did you verify this tool?</strong>
+          &mdash; By testing against more than 10,000 examples from the Kashika
+          Vritti and the Siddhanta Kaumudi. That said, many small errors still
+          remain. We are convinced we can fix these errors over time.</p>
+
+        <li class="my-4"><p><strong>How reliable is this website?</strong> &mdash; This
+          site is a quick online demo and could break at any time. We hope to
+          give it a more permanent home soon.</p></li>
+
+        <li class="my-4"><p><strong>How do I report errors?</strong> &mdash;
+            Please <a href="https://github.com/ambuda-org/vidyut/issues">create
+              an issue</a> on our project's GitHub Issues page. Doing so will
+            require a free GitHub account. Or, <a
+              href="https://ambuda.org/about/contact">contact us</a> on the
+            Ambuda contact page.</p></li>
+
+        <li class="my-4"><p><strong>How do I subscribe for updates?</strong>
+          &mdash; Please <a href="https://groups.google.com/g/ambuda-announce">
+            subscribe to our <i>ambuda-announce</i> newsletter</a>. We post
+          updates roughly once a month about our project and ongoing work.</p></li>
+      </ul>
+
+    </div>
+  </section>
+</div>
+
+</article>
+</body>
+
+</html>

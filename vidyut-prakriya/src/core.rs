@@ -16,6 +16,7 @@ pub(crate) mod tag;
 pub(crate) mod term;
 pub(crate) mod term_view;
 
+pub use errors::Error;
 pub use prakriya::*;
 pub use tag::*;
 pub use term::*;

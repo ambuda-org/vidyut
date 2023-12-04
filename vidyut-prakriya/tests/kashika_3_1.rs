@@ -18,7 +18,7 @@ fn sanadi(p: Pratipadika, s: Sanadi) -> Dhatu {
 }
 
 fn p(text: &str) -> Pratipadika {
-    Pratipadika::Basic(text.to_string(), false)
+    Pratipadika::basic(text.to_string())
 }
 
 #[test]
@@ -120,17 +120,15 @@ fn sutra_3_1_10_v1() {
     assert_has_tip(&[], &kyac(p("paryaNka")), Lat, &["paryaNkIyati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_1_11() {
     let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("Syena")), Lat, &["SyenAyate"]);
     assert_has_ta(&[], &kyan(p("puzkara")), Lat, &["puzkarAyate"]);
     assert_has_ta(&[], &kyan(p("ojas")), Lat, &["ojAyate"]);
-    // TODO: ojAyamAna
+    assert_has_krdanta(&[], &kyan(p("ojas")), Krt::SAnac, &["ojAyamAna"]);
     assert_has_ta(&[], &kyan(p("apsaras")), Lat, &["apsarAyate"]);
     assert_has_ta(&[], &kyan(p("payas")), Lat, &["payAyate", "payasyate"]);
-
     assert_has_ta(&[], &kyan(p("sArasa")), Lat, &["sArasAyate"]);
     assert_has_ta(&[], &kyan(p("haMsa")), Lat, &["haMsAyate"]);
 }
@@ -142,7 +140,6 @@ fn sutra_3_1_12() {
     assert_has_ta(&[], &kyan(p("SIGra")), Lat, &["SIGrAyate"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_1_13() {
     let kyas = |prati| Dhatu::nama(prati, None);

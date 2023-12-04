@@ -1,6 +1,7 @@
 //! Runs rules that add sanAdi-pratyayas to the end of a dhatu or subanta.
 use crate::args::Gana::*;
 use crate::args::{Namadhatu, Pratipadika, Sanadi};
+use crate::core::errors::*;
 use crate::core::operators as op;
 use crate::core::Tag as T;
 use crate::core::Term;
@@ -65,10 +66,19 @@ impl<'a> SanadiPrakriya<'a> {
         SanadiPrakriya::run_for(self.p, self.i_base, rule, upadesha, func);
     }
 
-    fn optional_add_sanadi(&mut self, rule: impl Into<Rule>, upadesha: &str) {
+    fn optional_add(&mut self, rule: impl Into<Rule>, upadesha: &str) {
+        self.optional_add_with(rule, upadesha, |_| {});
+    }
+
+    fn optional_add_with(
+        &mut self,
+        rule: impl Into<Rule>,
+        upadesha: &str,
+        func: impl Fn(&mut Prakriya),
+    ) {
         let i_base = self.i_base;
         self.p.optionally(rule.into(), |rule, p| {
-            SanadiPrakriya::run_for(p, i_base, rule, upadesha, |_| {});
+            SanadiPrakriya::run_for(p, i_base, rule, upadesha, func);
         });
     }
 }
@@ -114,7 +124,19 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
         sp.add("3.1.9", kAmyac.as_str());
     } else if sup && matches!(sanadi, Some(kyaN)) {
         // SyenAyate, ..
-        sp.add("3.1.11", kyaN.as_str());
+        if base.has_text_in(&["ojas", "apsaras"]) {
+            // ojAyate, apsarAyate
+            sp.add_with("3.1.11", kyaN.as_str(), |p| {
+                p.set(i_base, |t| t.set_antya(""));
+            });
+        } else {
+            // SyenAyate, ..
+            sp.add("3.1.11", kyaN.as_str());
+            if sp.p.has(i_base, |t| t.has_antya('s')) {
+                // payAyate, payasyate, ...
+                sp.p.optional_run_at(Varttika("3.1.11", "1"), i_base, |t| t.set_antya(""));
+            }
+        }
     } else if sup && base.has_text_in(gana::BHRSHA_ADI) {
         // BfSAyate, ..
         sp.add_with("3.1.12", kyaN.as_str(), |p| {
@@ -189,7 +211,7 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
                 }
             })
         });
-    } else if matches!(sanadi, Some(Sanadi::yaN) | Some(Sanadi::yaNLuk)) {
+    } else if matches!(sanadi, Some(Sanadi::yaN) | Some(Sanadi::yaNluk)) {
         if base.has_text_in(&["lup", "sad", "car", "jap", "jaB", "dah", "daS", "gF"]) {
             sp.add("3.1.24", yaN.as_str());
         } else if (i_base > 0
@@ -203,7 +225,7 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
             sp.add("3.1.22", yaN.as_str());
         }
 
-        if matches!(sanadi, Some(Sanadi::yaNLuk)) {
+        if matches!(sanadi, Some(Sanadi::yaNluk)) {
             use Rule::Dhatupatha as DP;
 
             let i_yan = p.find_last_where(|t| t.is_pratyaya() && t.has_u("yaN"))?;
@@ -220,7 +242,7 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
             "satya", "pASa", "rUpa", "vIRA", "tUla", "Sloka", "senA", "loman", "tvaca", "varman",
             "varRa", "cUrRa", "arTa", "veda",
         ]))
-        || base.has_gana(Curadi)
+        || (base.has_gana(Curadi) && !base.has_tag(T::FlagNoNic))
     {
         // satyApayati, ..., corayati, ...
         sp.add("3.1.25", Ric.as_str());
@@ -262,7 +284,7 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
                     // > stutyarthena paninā sāhacaryāt tadarthaḥ paṇiḥ pratyayamutpādayati na
                     // > vyavahārārthaḥ. śatasya paṇate. sahasrasaya paṇate
                     // -- KV on 3.1.28
-                    sp.optional_add_sanadi(rule, "Aya");
+                    sp.optional_add(rule, "Aya");
                 } else {
                     sp.add(rule, "Aya");
                 }
@@ -287,15 +309,11 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
     Some(())
 }
 
-pub fn try_add_mandatory(p: &mut Prakriya, is_ardhadhatuka: bool) {
-    try_add(p, None, is_ardhadhatuka);
-}
-
 /// Tries to create a namadhatu using the given arguments.
 pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
     match dhatu.pratipadika() {
-        Pratipadika::Basic(s, nyap) => {
-            pratipadika_karya::add_string(p, s, *nyap);
+        Pratipadika::Basic(basic) => {
+            pratipadika_karya::add_basic(p, &basic);
         }
         _ => panic!("Unsupported type for namadhatu"),
     }
@@ -310,6 +328,23 @@ pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
     Some(())
 }
 
-pub fn try_add_optional(p: &mut Prakriya, sanadi: Sanadi) {
+pub fn try_add_required(p: &mut Prakriya, is_ardhadhatuka: bool) {
+    try_add(p, None, is_ardhadhatuka);
+}
+
+/// Tries to add the given `sanadi`-pratyaya and returns an error if the addition failed.
+pub fn try_add_optional(p: &mut Prakriya, sanadi: Sanadi) -> Result<()> {
     try_add(p, Some(&sanadi), false);
+
+    // For now, raise errors only for yan and yan-luk, since these are the only two public values
+    // that can fail.
+    if matches!(sanadi, Sanadi::yaN | Sanadi::yaNluk) {
+        if let Some(t) = p.terms().last() {
+            if !(t.has_u("yaN") && t.is_pratyaya()) {
+                return Err(Error::Abort(p.rule_choices().clone()));
+            }
+        }
+    }
+
+    Ok(())
 }

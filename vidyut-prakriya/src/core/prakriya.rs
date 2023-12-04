@@ -148,7 +148,7 @@ impl Config {
 /// optional rules the derivation has encountered and which choices the derivation has made for
 /// those rules.
 ///
-/// `Prakriya` also records various config options from the `Ashtadhyayi` object that created it.
+/// `Prakriya` also records various config options from the `Vyakarana` object that created it.
 /// For example, we might want the derivation to use *chandasi* rules, or we might wish to block
 /// such rules. Or, we might want to skip history logging so that we can generate words more
 /// quickly.
@@ -189,7 +189,7 @@ impl Prakriya {
     }
 
     /// Returns all of the rules that were applied during the derivation and the output of each
-    /// step. If history logging has been disabled on `Ashtadhyayi`, then `history()` will return
+    /// step. If history logging has been disabled on `Vyakarana`, then `history()` will return
     /// an empty `Vec`.
     pub fn history(&self) -> &Vec<Step> {
         &self.history

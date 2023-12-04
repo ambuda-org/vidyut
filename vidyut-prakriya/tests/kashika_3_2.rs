@@ -5,18 +5,18 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::*;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::Vyakarana;
 
 fn assert_has_lrt_sat(dhatu: &Dhatu, krt: BaseKrt, expected: &[&str]) {
-    let a = Ashtadhyayi::new();
+    let v = Vyakarana::new();
     let args = Krdanta::builder()
         .lakara(Lrt)
         .dhatu(dhatu.clone())
         .krt(krt)
         .build()
         .unwrap();
-    let prakriyas = a.derive_krdantas(&args);
-    assert_padas(prakriyas, expected)
+    let prakriyas = v.derive_krdantas(&args);
+    assert_has_results(prakriyas, expected)
 }
 
 #[test]
@@ -274,7 +274,7 @@ fn sutra_3_2_21() {
     assert_has_upapada_krdanta("viBA", &[], &kf, wa, &["viBAkara"]);
     assert_has_upapada_krdanta("niSA", &[], &kf, wa, &["niSAkara"]);
     assert_has_upapada_krdanta("praBA", &[], &kf, wa, &["praBAkara"]);
-    assert_has_upapada_krdanta_raw(Upapada::make_avyaya("BAs"), &[], &kf, wa, &["BAskara"]);
+    assert_has_upapada_krdanta(Pratipadika::basic("BAs"), &[], &kf, wa, &["BAskara"]);
     assert_has_upapada_krdanta("kAra", &[], &kf, wa, &["kArakara"]);
     assert_has_upapada_krdanta("anta", &[], &kf, wa, &["antakara"]);
     assert_has_upapada_krdanta("ananta", &[], &kf, wa, &["anantakara"]);
@@ -648,16 +648,18 @@ fn sutra_3_2_59() {
 #[ignore]
 #[test]
 fn sutra_3_2_60() {
-    let dfs = d("df\\Si~r", Bhvadi);
-    assert_has_upapada_krdanta("tyad", &[], &dfs, Krt::kaY, &["tyAdfSa"]);
-    assert_has_upapada_krdanta("tyad", &[], &dfs, Krt::kvin, &["tyAdfk"]);
-    assert_has_upapada_krdanta("tad", &[], &dfs, Krt::kaY, &["tAdfSa"]);
-    assert_has_upapada_krdanta("tad", &[], &dfs, Krt::kvin, &["tAdfk"]);
-    assert_has_upapada_krdanta("yad", &[], &dfs, Krt::kaY, &["yAdfSa"]);
-    assert_has_upapada_krdanta("yad", &[], &dfs, Krt::kvin, &["yAdfk"]);
+    use upapada_krdanta as upa_krt;
 
-    // an-Alocana
-    assert_has_upapada_krdanta("tad", &[], &dfs, Krt::aR, &["taddarSa"]);
+    let dfs = d("df\\Si~r", Bhvadi);
+    assert_has_sup_1s(&upa_krt("tyad", &[], &dfs, Krt::kaY), Pum, &["tyAdfSaH"]);
+    assert_has_sup_1s(&upa_krt("tyad", &[], &dfs, Krt::kvin), Pum, &["tyAdfk"]);
+    assert_has_sup_1s(&upa_krt("tad", &[], &dfs, Krt::kaY), Pum, &["tAdfSaH"]);
+    assert_has_sup_1s(&upa_krt("tad", &[], &dfs, Krt::kvin), Pum, &["tAdfk"]);
+    assert_has_sup_1s(&upa_krt("yad", &[], &dfs, Krt::kaY), Pum, &["yAdfSaH"]);
+    assert_has_sup_1s(&upa_krt("yad", &[], &dfs, Krt::kvin), Pum, &["yAdfk"]);
+
+    // an-Alocana?
+    assert_has_upapada_krdanta("tad", &[], &dfs, Krt::aR, &["taddarSaH"]);
 }
 
 #[test]

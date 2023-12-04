@@ -53,12 +53,12 @@ impl PrakriyaStack {
             let p_init = self.new_prakriya(path.clone());
             match derive(p_init) {
                 Ok(p) => {
-                    self.add_new_paths(&p, &path);
+                    self.add_new_paths(p.rule_choices(), &path);
                     self.prakriyas.push(p);
                 }
                 Err(e) => {
-                    if let Error::Abort(p) = e {
-                        self.add_new_paths(&p, &path);
+                    if let Error::Abort(choices) = e {
+                        self.add_new_paths(&choices, &path);
                     }
                     // TODO: handle other errors better.
                 }
@@ -88,8 +88,7 @@ impl PrakriyaStack {
     ///
     /// > Decline(A), Decline(B)
     /// > Decline(A), Accept(B), Decline(D)
-    fn add_new_paths(&mut self, p: &Prakriya, initial_choices: &[RuleChoice]) {
-        let choices = p.rule_choices();
+    fn add_new_paths(&mut self, choices: &Vec<RuleChoice>, initial_choices: &[RuleChoice]) {
         let offset = initial_choices.len();
         for i in offset..choices.len() {
             let mut path = choices[..=i].to_vec();

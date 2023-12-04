@@ -212,6 +212,13 @@ impl Term {
         self.matches_sound_pattern(self.upadha(), pattern)
     }
 
+    pub fn has_last_vowel(&self, pattern: impl Pattern) -> bool {
+        self.matches_sound_pattern(
+            self.chars().rev().filter(|c| sounds::is_ac(*c)).next(),
+            pattern,
+        )
+    }
+
     /// Returns whether the term has a sound at index `i` that matches the given pattern.
     pub fn has_at(&self, i: usize, pattern: impl Pattern) -> bool {
         self.matches_sound_pattern(self.get_at(i), pattern)
@@ -608,6 +615,10 @@ impl Term {
     /// Returns whether the term has the `Vrddha` samjna.
     pub fn is_vrddha(&self) -> bool {
         self.has_tag(Tag::Vrddha)
+    }
+
+    pub fn is_yan_luk(&self) -> bool {
+        self.has_u("yaN") && self.is_lupta()
     }
 
     /// Returns whether the term is apṛkta.

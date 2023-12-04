@@ -1,3 +1,4 @@
+use crate::args::BasicPratipadika;
 use crate::core::operators as op;
 use crate::core::Prakriya;
 use crate::core::Tag as T;
@@ -5,18 +6,21 @@ use crate::core::Term;
 use crate::sounds as al;
 
 /// FOO
-pub fn add_string(p: &mut Prakriya, text: &str, nyap: bool) {
-    let mut base = Term::make_upadesha(text);
+pub fn add_basic(p: &mut Prakriya, basic: &BasicPratipadika) {
+    let mut base = Term::make_upadesha(&basic.text);
     // HACK: old implemenation of `Pratipadika` has these tags, so keep them here for consistency
     // for now.
-    if nyap {
+    if basic.is_nyap {
         base.add_tags(&[T::Stri, T::StriNyap]);
+    }
+    if basic.is_avyaya {
+        base.add_tags(&[T::Avyaya]);
     }
     p.push(base);
 
     // HACK: Add a dummy pratyaya so rules pass.
     // TODO: see if we can delete `is_nyap`.
-    if nyap {
+    if basic.is_nyap {
         let last = p.terms().last();
         let u = if let Some(t) = last {
             match t.antya() {

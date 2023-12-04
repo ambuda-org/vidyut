@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use vidyut_prakriya::args::{BaseKrt, Krdanta};
 use vidyut_prakriya::dhatupatha;
 use vidyut_prakriya::private::check_file_hash;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::Vyakarana;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -19,7 +19,7 @@ struct Args {
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
     check_file_hash(&args.test_cases, &args.hash);
 
-    let a = Ashtadhyayi::builder().log_steps(false).build();
+    let v = Vyakarana::builder().log_steps(false).build();
 
     let mut rdr = csv::Reader::from_path(&args.test_cases)?;
 
@@ -39,7 +39,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
 
         let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
 
-        let prakriyas = a.derive_krdantas(&krdanta);
+        let prakriyas = v.derive_krdantas(&krdanta);
         let mut actual: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
         actual.sort();
         actual.dedup();

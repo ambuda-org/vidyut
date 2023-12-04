@@ -188,6 +188,24 @@ fn sk_2435() {
 fn skip_sk_2436() {}
 
 #[test]
+fn sk_2437() {
+    let caksh = d("ca\\kzi~\\N", Adadi);
+    assert_has_tip(&[], &caksh, Lit, &["caKyO", "cakSO"]);
+    assert_has_ta(&[], &caksh, Lit, &["caKye", "cakSe", "cacakze"]);
+    assert_has_tip(&[], &caksh, Lut, &["KyAtA", "kSAtA"]);
+    assert_has_tip(&[], &caksh, Lrt, &["KyAsyati", "kSAsyati"]);
+    assert_has_ta(&[], &caksh, Lrt, &["KyAsyate", "kSAsyate"]);
+    assert_has_ta(&[], &caksh, Lan, &["acazwa"]);
+    assert_has_ta(&[], &caksh, VidhiLin, &["cakzIta"]);
+    assert_has_tip(
+        &[],
+        &caksh,
+        AshirLin,
+        &["KyAyAt", "KyeyAt", "kSAyAt", "kSeyAt"],
+    );
+}
+
+#[test]
 fn skip_sk_2439() {}
 
 #[ignore]
@@ -649,6 +667,39 @@ fn sk_2464() {
 
 #[test]
 fn skip_sk_2465() {}
+
+#[test]
+fn sk_2466() {
+    let vid = d("vida~", Adadi);
+    assert_has_tip(
+        &[],
+        &vid,
+        Lot,
+        &["vidANkarotu", "vidANkurutAt", "vettu", "vittAt"],
+    );
+}
+
+#[test]
+fn sk_2467() {
+    let vid = d("vida~", Adadi);
+    assert_has_tip(
+        &[],
+        &vid,
+        Lot,
+        &["vidANkarotu", "vidANkurutAt", "vettu", "vittAt"],
+    );
+    assert_has_sip(
+        &[],
+        &vid,
+        Lot,
+        &["vidANkuru", "vidANkurutAt", "vidDi", "vittAt"],
+    );
+    assert_has_mip(&[], &vid, Lot, &["vidANkaravARi", "vedAni"]);
+
+    assert_has_tip(&[], &vid, Lan, &["avet"]);
+    assert_has_tas(&[], &vid, Lan, &["avittAm"]);
+    assert_has_jhi(&[], &vid, Lan, &["aviduH"]);
+}
 
 #[test]
 fn sk_2468() {

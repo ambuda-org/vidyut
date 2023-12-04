@@ -44,9 +44,10 @@ lazy_static! {
     static ref UK: Set = s("uk");
 }
 
-fn is_hacky_eka_ac(t: &Term) -> bool {
-    // HACK to have ekac apply for am-Agama
-    t.is_ekac() || t.text.contains("fa")
+fn is_hacky_eka_ac(p: &Prakriya, i: usize) -> bool {
+    // HACK to have ekac apply for am-Agama.
+    // Ignore yan-luk per SK 2651.
+    p.has(i, |t| t.is_ekac() || t.text.contains("fa")) && !p.has(i + 1, |t| t.is_yan_luk())
 }
 
 /// Returns whether the given term is vet by 7.2.44.
@@ -100,6 +101,10 @@ impl<'a> ItPrakriya<'a> {
         self.p.pratyaya(self.i_next).expect("present")
     }
 
+    fn is_yan_luki(&self) -> bool {
+        self.p.has(self.i_anga + 1, Term::is_yan_luk)
+    }
+
     /// Returns whether the term before the anga has an upasarga with one of the given values.
     fn has_upasarga_in(&self, values: &[&str]) -> bool {
         self.p
@@ -108,11 +113,11 @@ impl<'a> ItPrakriya<'a> {
 
     /// Inserts it-Agama and prevents further rules.
     fn try_add(&mut self, rule: Code) {
-        self.add_with(rule, |_| {})
+        self.try_add_with(rule, |_| {})
     }
 
     /// Inserts it-Agama and prevents further rules.
-    fn add_with(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
+    fn try_add_with(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
         if !self.done {
             let agama = Term::make_agama("iw");
             self.p.insert_before(self.i_next, agama);
@@ -162,13 +167,13 @@ impl<'a> ItPrakriya<'a> {
 /// Runs rules that lengthen the iṭ-Agama.
 ///
 /// (7.2.37 - 7.2.40)
-fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
-    if i == 0 {
+fn try_dirgha_for_it_agama(p: &mut Prakriya, i_it: usize) -> Option<()> {
+    if i_it == 0 || p.has(i_it, |t| t.has_tag(T::FlagNoDirgha)) {
         return None;
     }
 
-    let dhatu = p.get(i - 1)?;
-    let n = p.pratyaya(i)?;
+    let dhatu = p.get(i_it - 1)?;
+    let n = p.pratyaya(i_it)?;
 
     let last = p.terms().last()?;
     if last.has_lakshana("li~w") {
@@ -177,7 +182,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
 
     if dhatu.has_text("grah") {
         if !n.has_tag(T::Cinvat) {
-            p.run_at("7.2.37", i, op::text("I"));
+            p.run_at("7.2.37", i_it, op::text("I"));
         }
     } else if dhatu.has_antya('F') || dhatu.has_text("vf") {
         if last.has_lakshana("li~N") {
@@ -185,7 +190,7 @@ fn try_lengthen_it_agama(p: &mut Prakriya, i: usize) -> Option<()> {
         } else if n.slice().iter().any(|t| t.has_u("si~c")) && last.is_parasmaipada() {
             p.step("7.2.40");
         } else {
-            p.optional_run_at("7.2.38", i, op::text("I"));
+            p.optional_run_at("7.2.38", i_it, op::text("I"));
         }
     }
 
@@ -252,7 +257,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         } else if n.has_u("Tal") {
             // Rule 7.2.61 ("acas tAsvat ...") conditions on whether tAs would receive it-Agama.
             // Estimate this by reproducing other it rules.
-            let rule_7_2_10 = anga.has_tag(T::Anudatta) && is_hacky_eka_ac(anga);
+            let rule_7_2_10 = anga.has_tag(T::Anudatta) && is_hacky_eka_ac(ip.p, ip.i_anga);
             let is_anit_for_tas = rule_7_2_10;
 
             if (anga.has_antya(&*AC) || anga.text.contains('a')) && is_anit_for_tas {
@@ -312,22 +317,38 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     } else if n.has_u("si~c") {
         if anga.has_text("anj") {
             ip.try_add("7.2.71");
-        } else if ip.p.terms().last()?.has_tag(T::Parasmaipada) {
+        } else if ip.p.terms().last()?.is_parasmaipada() {
             if anga.has_u_in(&["zwu\\Y", "zu\\Y", "DUY"]) {
                 ip.try_add("7.2.72");
             } else if anga.has_text_in(&["yam", "ram", "nam"]) {
                 let i_anga = ip.i_anga;
-                ip.add_with("7.2.73", |p| p.set(i_anga, |t| t.text += "s"));
+                ip.try_add_with("7.2.73", |p| p.set(i_anga, |t| t.text += "s"));
             } else if anga.has_antya('A') {
                 // Handle this after running Attva. See `run_after_attva` for details.
                 return None;
             }
         }
     } else if n.has_u("san") {
-        let rdhu_adi = &[
-            "fD", "Brasj", "danB", "Sri", "svf", "yu", "UrRu", "Bar", "jYap",
+        const RDH_ADI: &[&str] = &[
+            "fDu~",
+            "Bra\\sja~^",
+            "danBu~",
+            "SriY",
+            "svf",
+            "yu",
+            "yu\\Y",
+            "UrRuY",
+            // "bhara iti bhṛñityetasya bhauvādikasya grahaṇam, śapā nirdeśāt" -- KV
+            "Bf\\Y",
+            "jYapa~",
+            "zaRu~^",
+            "zaRa~",
         ];
-        if anga.ends_with("iv") || anga.has_text_in(rdhu_adi) || anga.has_u_in(&["zaRu~^", "zaRa~"])
+        if anga.ends_with("iv")
+            || anga.has_u_in(RDH_ADI)
+            || (anga.has_u("Ric")
+                && ip.i_anga > 0
+                && ip.p.has(ip.i_anga - 1, |t| t.has_u("jYapa~")))
         {
             // didevizati, dudyUzati;
             // ardiDizati, Irtsati;
@@ -344,7 +365,8 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             ip.try_add("7.2.74");
         } else if anga.has_u_in(&["kF", "gF", "df\\N", "Df\\N", "pra\\Ca~"]) {
             // cikarizati, jigarizati, didarizate, diDarizate, papracCizati
-            ip.try_add("7.2.75");
+            let i_it = ip.i_next;
+            ip.try_add_with("7.2.75", |p| p.set(i_it, |t| t.add_tag(T::FlagNoDirgha)));
         }
     } else if ktvi || n.last().is_nistha() {
         if anga.has_text("kliS") {
@@ -370,7 +392,10 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         } else if ktvi && anga.has_text_in(&["jF", "vrasc"]) {
             // jaritvA, jarItvA, vraScitvA
             ip.try_add("7.2.55");
-        } else if ktvi && anga.has_tag(T::udit) {
+        }
+
+        let anga = ip.anga();
+        if ktvi && anga.has_tag(T::udit) {
             // SamitvA, SAntvA, ...
             ip.optional_try_block("7.2.56");
         }
@@ -396,13 +421,21 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         // > auṇādikasya eva taśabdasya grahaṇam iṣyate, na punaḥ ktasya
         // -- Kashika Vrtti
         ip.try_block("7.2.9");
-    } else if (is_hacky_eka_ac(anga) || anga.has_text("UrRu")) && sri_uk && n.has_tag(T::kit) {
+    } else if (is_hacky_eka_ac(ip.p, ip.i_anga) || anga.has_text("UrRu"))
+        && sri_uk
+        && n.has_tag(T::kit)
+    {
         // Include UrRu:
         // > ūrṇotestu vācya ūrṇorṇuvadbhāvo yaṅprasiddhiḥ prayojanam
         // -- Kashikavrtti
         ip.try_block("7.2.11");
     } else if n.has_u("san") && (anga.has_u_in(&["graha~^", "guhU~^"]) || is_uk) {
-        // Exclude "Sri" and "yu" because they are mentioned explicitly in 7.2.49.
+        let vr_rt = anga.has_u_in(&["vfN", "vfY"]) || anga.has_antya('F');
+        if vr_rt {
+            // vuvUrzate, vivarizate, vivarIzate, ...
+            ip.optional_try_add("7.2.41");
+        }
+        // jiGfkzati, juGukzati, lulUzati, ...
         ip.try_block("7.2.12");
     } else if n.is_nistha() {
         if anga.has_text("Svi") || anga.has_tag(T::Idit) {
@@ -431,7 +464,8 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             if can_run {
                 ip.try_block("7.2.16");
             }
-        } else if anga.has_u("arda~") {
+        } else if anga.has_u("arda~") && anga.has_gana(Bhvadi) {
+            // Per nyAsa on 7.2.24, this is for bhvAdi arda~ only.
             if ip.has_upasarga_in(&["sam", "ni", "vi"]) {
                 ip.try_block("7.2.24");
             } else if ip.has_upasarga_in(&["aBi"]) {
@@ -469,7 +503,12 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     } else if anga.has_text("gam") && has_parasmaipada && se {
         // gamizyati
         ip.try_add("7.2.58");
-    } else if anga.has_u_in(gana::VRT_ADI) && anga.has_gana(Bhvadi) && has_parasmaipada && se {
+    } else if anga.has_u_in(gana::VRT_ADI)
+        && anga.has_gana(Bhvadi)
+        && has_parasmaipada
+        && se
+        && !ip.is_yan_luki()
+    {
         // vartsyati (vfd), vartsyati (vfD), Sftsyati, syantsyati
         ip.try_block("7.2.59");
     } else if anga.has_u("kfpU~\\") && has_parasmaipada && (se || n.has_u("tAsi~")) {
@@ -500,8 +539,8 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                 ip.optional_try_block("7.2.44")
             }
         } else if (n.has_lakshana("li~N") || n.has_u("si~c")) && last.is_atmanepada() {
-            let vft = anga.has_text("vf") || anga.has_antya('F');
-            if vft && n.has_tag(T::Ardhadhatuka) {
+            let vr_rt = anga.has_u_in(&["vfN", "vfY"]) || anga.has_antya('F');
+            if vr_rt && n.has_tag(T::Ardhadhatuka) {
                 // By default, all of these roots are seT.
                 // So, the option allows anit.
                 ip.optional_try_block("7.2.42");
@@ -523,7 +562,10 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     let n = ip.next();
     if ip.done {
         // Do nothing
-    } else if anga.has_tag(T::Anudatta) && is_hacky_eka_ac(anga) && !n.has_lakshana("li~w") {
+    } else if anga.has_tag(T::Anudatta)
+        && is_hacky_eka_ac(ip.p, ip.i_anga)
+        && !n.has_lakshana("li~w")
+    {
         // 7.2.10 is a niyama to the general rule, which applies only to
         // ArdhadhAtuka suffixes. So we add a check for ArdhadhAtukatva here.
         //
@@ -537,6 +579,8 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
 }
 
 fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
+    const RUDH_ADI: &[&str] = &["rudi~r", "Yizva\\pa~", "Svasa~", "ana~", "jakza~"];
+
     let n = ip.next();
     if !(n.has_adi(&*VAL) && n.has_tag(T::Sarvadhatuka)) {
         return None;
@@ -546,11 +590,10 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
     let i_n = ip.i_next;
     let tin = n.last();
 
-    let rudh_adi = &["rudi~r", "Yizva\\pa~", "Svasa~", "ana~", "jakza~"];
     let is_aprkta = n.slice().iter().map(|t| t.len()).sum::<usize>() == 1;
     if anga.has_u("a\\da~") && is_aprkta {
         op::insert_agama_at("7.3.100", ip.p, i_n, "aw");
-    } else if anga.has_u_in(rudh_adi) {
+    } else if anga.has_u_in(RUDH_ADI) && !ip.is_yan_luki() {
         // First, check if we should use It-agama instead.
         //
         // This rule is placed here somewhat awkwardly to avoid a complex interdependency:
@@ -595,6 +638,11 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
     for i in (0..n - 1).rev() {
         let cur = p.get(i)?;
 
+        // TODO: check for non-empty to skip yan-luk for ajAhAsIt, etc.
+        if cur.is_empty() {
+            continue;
+        }
+
         if cur.has_tag_in(&[T::Dhatu, T::Abhyasa]) {
             // Mark this term as "done" with it-Agama rules so that we don't try adding it back later
             // (e.g. for sanAdi-dhAtus).
@@ -603,7 +651,8 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
             }
 
             // Skip it-Agama rules for Ji-pratyaya, which at this point hasn't been replaced.
-            // But when it is replaced, it will always start with a vowel.
+            // But when it is replaced, it will always start with a vowel and be ineligible for
+            // these rules.
             let i_n = p.find_next_where(i, |t| !t.is_empty())?;
             if p.has(i_n, |t| t.has_u("Ji")) {
                 continue;
@@ -621,17 +670,18 @@ pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
     }
 
     if let Some(i) = p.find_first_where(|t| t.is_it_agama()) {
-        try_lengthen_it_agama(p, i);
+        try_dirgha_for_it_agama(p, i);
     }
 
     Some(())
 }
 
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Dhatu)?;
-    let n = p.get(i + 1)?;
+    let i = p.find_last_where(|t| t.is_dhatu() && !t.is_empty())?;
+    let i_n = p.find_next_where(i, |t| !t.is_lupta())?;
+    let n = p.get(i_n)?;
 
-    if n.has_tag(T::Ardhadhatuka) && n.has_u("si~c") && !n.has_tag(T::Luk) {
+    if n.is_ardhadhatuka() && n.has_u("si~c") && !n.has_tag(T::Luk) {
         let dhatu = p.get(i)?;
         let is_para = p.terms().last()?.has_tag(T::Parasmaipada);
         if is_para && dhatu.has_antya('A') && n.has_adi(&*VAL) {

@@ -29,17 +29,16 @@ lazy_static! {
 fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let is_avasane = p.find_next_where(i, |t| !t.is_empty()).is_none();
-        let is_khari = if let Some(j) = p.find_next_where(i, |t| !t.is_empty()) {
-            p.has(j, |t| t.has_adi(&*KHAR))
-        } else {
-            false
+        let is_khari = match p.find_next_where(i, |t| !t.is_empty()) {
+            Some(j) => p.has(j, |t| t.has_adi(&*KHAR)),
+            None => false,
         };
 
         // 8.3.15
         // TODO: next pada
         // HACK: use has_upadha to block "pra Rcchati -> pr Arcchati -> pHArcCati"
         let c = p.get(i)?;
-        let has_ru = c.has_antya('r') && !c.has_upadha(&*HAL);
+        let has_ru = c.has_antya('r') && !c.has_tag(T::FlagAntyaAcSandhi);
         if !has_ru {
             continue;
         }
@@ -53,8 +52,19 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
                 // this rule.
                 p.run_at("6.3.111", i, op::antya(&sub.to_string()));
             }
-        } else if p.is_pada(i) && (is_avasane || is_khari) {
-            if p.has(i + 1, |t| !t.is_empty() && t.is_sup()) {
+        } else if c.ends_with("rr") {
+            // Special implementation for apaspAH, etc.
+            p.run_at("8.3.14", i, op::antya(""));
+            let sub = al::to_dirgha(p.get(i)?.upadha()?)?;
+            // Placed here, otherwise this is vyartha. See `8.3.13` for the Qa case of
+            // this rule.
+            p.run_at("6.3.111", i, |t| t.set_upadha(&sub.to_string()));
+        }
+
+        if p.is_pada(i) && (is_avasane || is_khari) {
+            if p.find_next_where(i, |t| !t.is_empty() && t.is_sup())
+                .is_some()
+            {
                 if p.has(i, |t| t.has_tag(T::Ru)) {
                     // payaHsu, ...
                     p.run_at("8.3.16", i, |t| t.set_antya("H"));
@@ -282,13 +292,15 @@ impl<'a> ShaPrakriya<'a> {
 }
 
 fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()> {
+    sp.p.debug(format!("shatva, term={} char={}", sp.i_term, sp.i_char));
     use Gana::*;
 
     let i = sp.i_term;
     let t = sp.term();
 
     // Skip abhyasas since we handle these as part of the dhatu rules.
-    if t.is_abhyasa() {
+    // Check for SaAdeshadi for Irzyi[zi]zati
+    if t.is_abhyasa() && !t.has_tag(T::FlagSaAdeshadi) {
         return None;
     }
 
@@ -371,11 +383,13 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
 
         // No gap between upasarga and dhatu.
         let no_vyavaya = i_upasarga + 2 == sp.i_term;
-        // Gap between upasarga and dhatu is just an abhyasa.
+        // Gap between upasarga and dhatu is aw-Agama.
         let at_vyavaya = i_upasarga + 3 == sp.i_term
             && sp.p.has(i_upasarga + 2, |t| t.is_agama() && t.has_u("aw"));
-        let abhyasa_vyavaya =
-            i_upasarga + 3 == sp.i_term && sp.p.has(i_upasarga + 2, |t| t.is_abhyasa());
+        // Gap between upasarga and dhatu is just an abhyasa.
+        let abhyasa_vyavaya = i_upasarga + 3 == sp.i_term
+            && sp.p.has(i_upasarga + 2, |t| t.is_abhyasa())
+            && !sp.p.has(i_upasarga, |t| t.has_tag(T::FlagAntyaAcSandhi));
 
         // Check both upadesha and gana to avoid matching dhatus in other ganas.
         const SU_TO_STUBH: &[(&str, Gana)] = &[
@@ -504,8 +518,9 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
             }
         }
         let term = sp.term();
-        if term.has_tag(T::FlagSaAdeshadi) && !abhyasa_vyavaya {
+        if term.has_tag(T::FlagSaAdeshadi) && !abhyasa_vyavaya && !term.is_abhyasa() {
             sp.try_block("8.3.111");
+            sp.p.dump();
         }
     }
 
@@ -581,8 +596,8 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         let shan =
             sp.p.find_next_where(sp.i_term, |t| t.has_u("san") && t.has_adi('z'));
 
-        // Check !is_pratyaya to allow "titik[z]izate"
-        if shan.is_some() && !term.is_pratyaya() {
+        let prev_is_abhyasa = sp.i_term > 0 && sp.p.has(sp.i_term - 1, |t| t.is_abhyasa());
+        if shan.is_some() && prev_is_abhyasa {
             let nau = sp.p.has(sp.i_term + 1, |t| t.is_ni_pratyaya());
 
             // Prefer `has_u_in` over `has_text_in` because `has_u_in` is more reliable and doesn't
@@ -649,6 +664,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         }
     }
 
+    sp.p.debug("shatva complete");
     Some(())
 }
 

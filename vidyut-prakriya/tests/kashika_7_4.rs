@@ -114,7 +114,12 @@ fn sutra_7_4_7() {
         Lun,
         &["avavartat", "avIvftat"],
     );
-    assert_has_tip(&[], &d("mfjU~", Curadi), Lun, &["amamArjat", "amImfjat"]);
+    assert_has_tip(
+        &[],
+        &nic(&d("mfjU~", Adadi)),
+        Lun,
+        &["amamArjat", "amImfjat"],
+    );
 }
 
 #[test]
@@ -404,7 +409,7 @@ fn sutra_7_4_31() {
 #[test]
 fn sutra_7_4_33() {
     let kyac = |prati| sanadi(prati, Sanadi::kyac);
-    let p = |text: &str| Pratipadika::Basic(text.to_string(), false);
+    let p = |text: &str| Pratipadika::basic(text.to_string());
     assert_has_tip(&[], &kyac(p("putra")), Lat, &["putrIyati"]);
     assert_has_tip(&[], &kyac(p("Gawa")), Lat, &["GawIyati"]);
     assert_has_tip(&[], &kyac(p("KawvA")), Lat, &["KawvIyati"]);
@@ -566,18 +571,19 @@ fn sutra_7_4_54() {
     // si -- see `pipatizati` above.
 }
 
-#[ignore]
 #[test]
 fn sutra_7_4_55() {
     let aap = d("A\\px~", Svadi);
     let jnap = d("jYapa~", Curadi);
     let rdh = d("fDu~", Divadi);
-    assert_has_lat(&[], &san(&aap), &["Ipsati"]);
-    assert_has_lat(&[], &san(&jnap), &["jYIpsati", "jijYapayizati"]);
-    assert_has_lat(&[], &san(&rdh), &["Irtsati", "ardiDizati"]);
-    // sani
-    assert_has_tip(&["pra"], &san(&aap), Lrt, &["prApsyati"]);
-    // si -- see examples above.
+    assert_has_tip(&[], &san(&aap), Lat, &["Ipsati"]);
+    assert_has_tip(&[], &san(&jnap), Lat, &["jYIpsati", "jijYapayizati"]);
+    assert_has_tip(&[], &san(&rdh), Lat, &["Irtsati", "ardiDizati"]);
+
+    // sani?
+    assert_has_tip(&["pra"], &aap, Lrt, &["prApsyati"]);
+
+    // si? -- see jijYapayizati and ardiDizati above.
 }
 
 #[test]
@@ -994,7 +1000,6 @@ fn sutra_7_4_86() {
     assert_has_lat(&[], &yan_luk(&pash), &["pampaSIti", "pampazwi"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_4_87_and_sutra_7_4_88() {
     let car = d("cara~", Bhvadi);
@@ -1104,7 +1109,6 @@ fn sutra_7_4_91() {
     );
 }
 
-#[ignore]
 #[test]
 fn sutra_7_4_92() {
     assert_has_lat(
@@ -1132,7 +1136,7 @@ fn sutra_7_4_92() {
         ],
     );
     // taparakaraNa
-    assert_has_lat(&[], &yan_luk(&d("kF", Tudadi)), &["cAkarti"]);
+    assert_has_lat(&[], &yan_luk(&d("kF", Tudadi)), &["cAkarti", "cAkarIti"]);
 }
 
 #[test]

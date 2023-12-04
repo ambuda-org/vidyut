@@ -190,8 +190,16 @@ fn maybe_find_antargana(gana: Gana, number: u16) -> Option<Antargana> {
         Some(Antargana::Kutadi)
     } else if gana == Gana::Curadi && (192..=236).contains(&number) {
         // Need to check range explicitly because some of these roots appear
-        // multiple times in the gana, e.g. lakza~
+        // multiple times in the gana, e.g. lakza~.
         Some(Antargana::Akusmiya)
+    } else if gana == Gana::Curadi && (279..=337).contains(&number) {
+        // Need to check range explicitly because some of these roots appear
+        // multiple times in the gana, e.g. tuji~.
+        Some(Antargana::Asvadiya)
+    } else if gana == Gana::Curadi && (338..=388).contains(&number) {
+        // Need to check range explicitly because some of these roots appear
+        // multiple times in the gana, e.g. SraTa~.
+        Some(Antargana::Adhrshiya)
     } else {
         None
     }

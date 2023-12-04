@@ -78,7 +78,7 @@ pub const GHAT_ADI: &[&str] = &[
 pub const JNAP_ADI: &[&str] = &["jYapa~", "yama~", "caha~", "capa~", "raha~", "bala~", "ciY"];
 
 /// Dhatus of the AgarvIya antargaNa.
-pub const AAGARVIYA: &[&str] = &[
+pub const AA_GARVIYA: &[&str] = &[
     "pada", "gfha", "mfga", "kuha", "SUra", "vIra", "sTUla", "arTa", "satra", "garva",
 ];
 

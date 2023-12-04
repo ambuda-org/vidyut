@@ -242,11 +242,10 @@ fn sutra_7_1_20() {
     assert_has_sup_1p("jatu", Napumsaka, &["jatUni"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_21() {
-    assert_has_sup_1p("azwan", Pum, &["azwO"]);
-    assert_has_sup_2p("azwan", Pum, &["azwO"]);
+    assert_has_sup_1p("azwan", Pum, &["azwO", "azwa"]);
+    assert_has_sup_2p("azwan", Pum, &["azwO", "azwa"]);
 }
 
 #[test]
@@ -365,14 +364,15 @@ fn sutra_7_1_36() {
     assert_has_krdanta(&[], &vid, Krt::Satf, &["vidat", "vidvas"]);
 }
 
+#[ignore]
 #[test]
 fn sutra_7_1_37() {
     let kf = d("qukf\\Y", Tanadi);
     let hf = d("hf\\Y", Bhvadi);
     assert_has_krdanta(&["pra"], &kf, Krt::ktvA, &["prakftya"]);
     assert_has_krdanta(&["pra"], &hf, Krt::ktvA, &["prahftya"]);
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("pArSvataH"),
+    assert_has_upapada_krdanta(
+        Pratipadika::avyaya("pArSvataH"),
         &[],
         &kf,
         Krt::ktvA,
@@ -594,33 +594,16 @@ fn sutra_7_1_66() {
 
 #[test]
 fn sutra_7_1_67() {
+    let avyaya = Pratipadika::avyaya;
     let labh = d("qula\\Ba~\\z", Bhvadi);
     // Kal
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("Izat"),
-        &["pra"],
-        &labh,
-        Krt::Kal,
-        &["IzatpralamBa"],
-    );
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("su"),
-        &["pra"],
-        &labh,
-        Krt::Kal,
-        &["supralamBa"],
-    );
+    assert_has_upapada_krdanta(avyaya("Izat"), &["pra"], &labh, Krt::Kal, &["IzatpralamBa"]);
+    assert_has_upapada_krdanta(avyaya("su"), &["pra"], &labh, Krt::Kal, &["supralamBa"]);
     // GaY
     assert_has_krdanta(&["pra"], &labh, Krt::GaY, &["pralamBa"]);
     assert_has_krdanta(&["vi", "pra"], &labh, Krt::GaY, &["vipralamBa"]);
     // otherwise, ...
-    assert_has_upapada_krdanta_raw(
-        Upapada::make_avyaya("Izat"),
-        &[],
-        &labh,
-        Krt::Kal,
-        &["IzallaBa"],
-    );
+    assert_has_upapada_krdanta(avyaya("Izat"), &[], &labh, Krt::Kal, &["IzallaBa"]);
     assert_has_krdanta(&[], &labh, Krt::GaY, &["lABa"]);
 }
 
@@ -679,17 +662,15 @@ fn sutra_7_1_70() {
     assert_has_sup_2p(&shreyas, Pum, &["SreyasaH"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_1_71() {
-    let yuj = create_krdanta("yuj", &[], &d("yu\\ji~^r", Rudhadi), Krt::kvin);
+    let yuj = krdanta(&[], &d("yu\\ji~^r", Rudhadi), Krt::kvin);
     assert_has_sup_1s(&yuj, Pum, &["yuN"]);
     assert_has_sup_1d(&yuj, Pum, &["yuYjO"]);
     assert_has_sup_1p(&yuj, Pum, &["yuYjaH"]);
 
     // asamAse?
-    let ashvayuj =
-        create_upapada_krdanta("aSvayuj", "aSva", &[], &d("yu\\ji~^r", Rudhadi), Krt::kvip);
+    let ashvayuj = upapada_krdanta("aSva", &[], &d("yu\\ji~^r", Rudhadi), Krt::kvip);
     assert_has_sup_1s(&ashvayuj, Pum, &["aSvayuk"]);
     assert_has_sup_1d(&ashvayuj, Pum, &["aSvayujO"]);
     assert_has_sup_1p(&ashvayuj, Pum, &["aSvayujaH"]);
@@ -1018,9 +999,22 @@ fn sutra_7_1_101() {
 fn sutra_7_1_102() {
     let pf = d("pF", Juhotyadi);
     assert_has_krdanta(&[], &pf, Krt::kta, &["pUrta"]);
-    assert_has_tip(&[], &san(&pf), Lat, &["pupUrzati"]);
+    // piparizati and piparIzati are by 7.2.41.
+    assert_has_tip(
+        &[],
+        &san(&pf),
+        Lat,
+        &["pupUrzati", "piparizati", "piparIzati"],
+    );
     assert_has_tip(&[], &san(&d("mf\\N", Tudadi)), Lat, &["mumUrzati"]);
-    assert_has_tip(&[], &san(&d("svF", Kryadi)), Lat, &["susvUrzati"]);
+    // Not to be confused with svf!
+    // sisvarIzati, etc. are allowable (I think) by 7.2.41
+    assert_has_tip(
+        &[],
+        &san(&d("svF", Kryadi)),
+        Lat,
+        &["susvUrzati", "sisvarizati", "sisvarIzati"],
+    );
 
     let vr = d("vf", Svadi);
     assert_has_tip(&[], &san(&vr), Lat, &["vuvUrzati"]);

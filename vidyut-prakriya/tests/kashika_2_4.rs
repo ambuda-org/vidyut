@@ -118,25 +118,36 @@ fn sutra_2_4_45_v1() {
     assert_has_jhi(&["aDi"], &ik, Lun, &["aDyaguH"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_2_4_46() {
     let i = d("i\\R", Adadi);
-    assert_has_tip(&[], &nic(&i), Lat, &["gamayati", "Ayayati"]);
-    assert_has_tas(&[], &nic(&i), Lat, &["gamayataH", "AyayataH"]);
-    assert_has_jhi(&[], &nic(&i), Lat, &["gamayanti", "Ayayanti"]);
+    assert_has_tip(&[], &nic(&i), Lat, &["gamayati"]);
+    assert_has_tas(&[], &nic(&i), Lat, &["gamayataH"]);
+    assert_has_jhi(&[], &nic(&i), Lat, &["gamayanti"]);
 
-    // TODO: iRvad
+    // aboDane?
+    assert_has_tip(&["prati"], &nic(&i), Lat, &["pratyAyayati"]);
+
+    // iRvadika?
+    let ik = d("i\\k", Adadi);
+    assert_has_tip(&["aDi"], &nic(&ik), Lat, &["aDigamayati"]);
 }
 
+// All pass except for pratIzizati
 #[ignore]
 #[test]
 fn sutra_2_4_47() {
     let i_san = san(&d("i\\R", Adadi));
-    assert_has_tip(&[], &i_san, Lat, &["jigamizati", "Izizati"]);
-    assert_has_tas(&[], &i_san, Lat, &["jigamizataH", "IzizataH"]);
-    assert_has_jhi(&[], &i_san, Lat, &["jigamizanti", "Izizanti"]);
-    // TODO: others
+    assert_has_tip(&[], &i_san, Lat, &["jigamizati"]);
+    assert_has_tas(&[], &i_san, Lat, &["jigamizataH"]);
+    assert_has_jhi(&[], &i_san, Lat, &["jigamizanti"]);
+
+    // aboDane?
+    assert_has_tip(&["prati"], &i_san, Lat, &["pratIzizati"]);
+
+    // iRvadika?
+    let ik = d("i\\k", Adadi);
+    assert_has_tip(&["aDi"], &nic(&ik), Lat, &["aDijigamizati"]);
 }
 
 #[test]
@@ -220,7 +231,7 @@ fn sutra_2_4_55() {
         Lit,
         Prathama,
         Eka,
-        &["AcaKyO", "AcaKye", "Acacakze"],
+        &["AcaKyO", "AcaKye", "AcakSO", "AcakSe", "Acacakze"],
     );
     assert_has_tinantas(
         &["AN"],
@@ -228,7 +239,13 @@ fn sutra_2_4_55() {
         Lit,
         Prathama,
         Dvi,
-        &["AcaKyatuH", "AcaKyAte", "AcacakzAte"],
+        &[
+            "AcaKyatuH",
+            "AcaKyAte",
+            "AcakSatuH",
+            "AcakSAte",
+            "AcacakzAte",
+        ],
     );
     assert_has_tinantas(
         &["AN"],
@@ -236,7 +253,7 @@ fn sutra_2_4_55() {
         Lit,
         Prathama,
         Bahu,
-        &["AcaKyuH", "AcaKyire", "Acacakzire"],
+        &["AcaKyuH", "AcaKyire", "AcakSuH", "AcakSire", "Acacakzire"],
     );
 }
 

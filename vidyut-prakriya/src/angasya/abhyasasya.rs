@@ -64,8 +64,8 @@ fn try_shar_purva(text: &str) -> CompactString {
 
 /// Runs rules that remove the abhyAsa of a sannanta (laB -> lipsati).
 fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_last(T::Abhyasta)?;
-    if i == 0 || !p.has(i + 1, |t| t.has_u("san")) {
+    let i = p.find_last_where(|t| t.is_abhyasta() && !t.is_empty())?;
+    if i == 0 || !p.has_next_non_empty(i, |t| t.has_u("san")) {
         return None;
     }
 
@@ -75,7 +75,8 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
     let dhatu = p.get(i)?;
     if (dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "mA\\", "mA\\N", "me\\N"])
         || dhatu.has_tag(T::Ghu)
-        || dhatu.has_u_in(&["ra\\Ba~\\", "qula\\Ba~\\z", "Sa\\kx~", "patx~", "pa\\da~\\"]))
+        // Include both Sak-dhatus per SK.
+        || dhatu.has_u_in(&["ra\\Ba~\\", "qula\\Ba~\\z", "Sa\\kx~", "Sa\\ka~^", "patx~", "pa\\da~\\"]))
         // Temporary HACK to avoid running this rule twice.
         && !dhatu.text.contains("is")
     {
@@ -91,10 +92,14 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
     } else if dhatu.has_u_in(&["A\\px~", "jYapa~", "fDu~"]) {
         // Ipsati, jYIpsati, Irtsati
         let code = "7.4.55";
-        if dhatu.has_text("fD") {
-            p.run_at(code, i, op::upadha("Ir"));
-        } else {
+        if dhatu.has_u("jYapa~") {
             p.run_at(code, i, op::upadha("I"));
+        } else if i >= 2 {
+            if dhatu.has_u("fDu~") {
+                p.run_at(code, i - 2, op::antya("Ir"));
+            } else {
+                p.run_at(code, i - 2, op::antya("I"));
+            }
         }
     } else if dhatu.has_text("danB") {
         // Dipsati, DIpsati
@@ -447,7 +452,12 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
         let i_dhatu = i_dhatu + 1;
         let dhatu = p.get(i_dhatu)?;
         if dhatu.has_upadha('a') {
-            p.run_at("7.4.88", i_dhatu, op::upadha("u"));
+            p.run_at("7.4.88", i_dhatu, |t| {
+                // Per commentaries, the explicit "t" in the rule indicates that this "u" cannot be
+                // lengthened.
+                t.set_upadha("u");
+                t.add_tag(T::FlagGunaApavada);
+            });
         }
     } else if dhatu.text.contains('f') {
         // varIvfScyate, ...
@@ -478,12 +488,6 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
 }
 
 fn run_at_index(p: &mut Prakriya, i_abhyasa: usize) {
-    // TODO: expand for abhyasa after dhatu.
-    let i_dhatu = i_abhyasa + 1;
-    if !p.has(i_dhatu, |t| t.is_dhatu()) {
-        return;
-    }
-
     try_general_rules(p, i_abhyasa);
     try_rules_for_lit(p, i_abhyasa);
     try_rules_for_slu(p, i_abhyasa);

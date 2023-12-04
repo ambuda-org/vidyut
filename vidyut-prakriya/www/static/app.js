@@ -18,7 +18,87 @@
  *   hacky way if that fixes the problem.
  */
 
-import init, { BaseKrt, Vidyut, Gana, Lakara, Prayoga, Purusha, Vacana, DhatuPada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
+import init, { BaseKrt, Vidyut as VidyutWasm, Gana, Lakara, Prayoga, Purusha, Vacana, DhatuPada, Sanadi, Linga, Vibhakti } from "/static/wasm/vidyut_prakriya.js";
+
+// ===================================================
+// vidyut-prakriya
+// ===================================================
+
+// Turn the TSV file sutrapatha.tsv into a map.
+function parseSutras(tsv) {
+    let sutras = {};
+    tsv.split(/\r?\n/).forEach(line => {
+        const [id, text] = line.split(/\t/);
+        sutras[id] = text;
+    });
+    return sutras;
+}
+const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
+
+// Parse a dhatupatha string into separate objects.
+function parseDhatus(text) {
+    let dhatus = [];
+    text.split(/\r?\n/).forEach((line) => {
+        const [code, upadesha, artha] = line.split(/\t/);
+        if (!!code && code !== 'code') {
+            dhatus.push({
+                code,
+                upadesha,
+                upadeshaQuery: removeSlpSvaras(upadesha),
+                artha
+            });
+        }
+    });
+    return dhatus;
+}
+
+class Vidyut {
+    // Call `init()` before calling this so that you initialize the WASM environment.
+    constructor(dhatupatha) {
+        this.wasm = VidyutWasm.init(dhatupatha);
+        this.dhatus = parseDhatus(dhatupatha);
+        console.log("constructed Vidyut.");
+    }
+
+
+    deriveTinantas(tinanta) {
+        // For argument order, see wasm.rs.
+        return this.wasm.deriveTinantas(
+            tinanta.dhatu.code,
+            tinanta.lakara,
+            tinanta.prayoga,
+            tinanta.purusha,
+            tinanta.vacana,
+            tinanta.pada,
+            tinanta.sanadi || null,
+            tinanta.upasarga || null,
+        );
+    }
+
+    deriveSubantas(subanta) {
+        // For argument order, see wasm.rs.
+        return this.wasm.deriveSubantas(
+            subanta.pratipadika,
+            subanta.linga,
+            subanta.vibhakti,
+            subanta.vacana,
+        );
+    }
+
+    deriveKrdantas(krdanta) {
+        // For argument order, see wasm.rs.
+        return this.wasm.deriveKrdantas(
+            krdanta.dhatu.code,
+            krdanta.krt,
+            krdanta.sanadi || null,
+            krdanta.upasarga || null,
+        )
+    }
+}
+
+// ===================================================
+// Frontend
+// ===================================================
 
 // Krts that create ordinary nouns.
 const NOMINAL_KRTS = [
@@ -64,17 +144,6 @@ const Params = {
     Upasarga: "upasarga",
 }
 
-// Turn the TSV file sutrapatha.tsv into a map.
-function parseSutras(tsv) {
-    let sutras = {};
-    tsv.split(/\r?\n/).forEach(line => {
-        const [id, text] = line.split(/\t/);
-        sutras[id] = text;
-    });
-    return sutras;
-}
-const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
-
 function setParam(url, key, value) {
     if (value) {
         url.searchParams.set(key, value);
@@ -83,82 +152,30 @@ function setParam(url, key, value) {
     }
 }
 
-function createKrdantasFrom(vidyut, dhatu, upasarga, sanadi, krtList) {
-    let results = [];
-
-    krtList.forEach((krt) => {
-        let padas = [];
-        const prakriyas = vidyut.deriveKrdantas(
-            dhatu.code,
-            krt,
-            sanadi,
-            upasarga,
-        );
-        prakriyas.forEach((p) => {
-            padas.push({
-                text: p.text,
-                type: "krt",
-                dhatu,
-                krt,
-                sanadi,
-                upasarga,
-            });
-        });
-        results.push({
-            title: BaseKrt[krt],
-            padas,
-        });
-    });
-    return results;
-}
-
 function removeSlpSvaras(s) {
     return s.replaceAll(/[\^\\]/g, '');
 }
 
-// Parse a dhatupatha string into separate objects.
-function parseDhatus(text) {
-    let dhatus = [];
-    text.split(/\r?\n/).forEach((line) => {
-        const [code, upadesha, artha] = line.split(/\t/);
-        if (!!code && code !== 'code') {
-            dhatus.push({
-                code,
-                upadesha,
-                upadeshaQuery: removeSlpSvaras(upadesha),
-                artha
-            });
-        }
-    });
-    return dhatus;
-}
-
-// Load and initialize the Vidyut API.
-async function loadVidyut() {
-    await init();
-
-    const resp = await fetch("/static/data/dhatupatha.tsv");
-    const text = await resp.text();
-
-    return {
-        // Vidyut needs its own copy of the dhatupatha.
-        vidyut: Vidyut.init(text),
-        // For JS use
-        dhatus: parseDhatus(text),
-    }
-}
-
 const App = () => ({
-    activeTab: 'dhatu',
+    activeTab: 'about',
 
-    // All dhatus.
+    // Dhatus
+    // ------
     dhatus: [],
     // The selected dhatu.
     activeDhatu: null,
     // The selected pada for the selected dhatu.
     activePada: null,
     // The prakriya for the selected pada.
-    prakriya: null,
+    dhatuPrakriya: null,
+
+    // Subantas
+    // --------
+    supActivePratipadika: null,
+    supParadigm: null,
+    supPrakriya: null,
+    // A filter to apply to the sup list.
+    supFilter: null,
 
     // UI options
     // ----------
@@ -171,14 +188,24 @@ const App = () => ({
     // A filter to apply to the dhatu list.
     dhatuFilter: null,
 
+    // data
+    sutras: {},
+
     // Transliteration script (devanagari, iast, telugu, etc.)
     script: 'devanagari',
 
     async init() {
-        const data = await loadVidyut();
-        console.log("init");
-        this.vidyut = data.vidyut;
-        this.dhatus = data.dhatus;
+        // Initialize WASM environment.
+        await init();
+
+        const resp = await fetch("/static/data/dhatupatha.tsv");
+        const dhatupatha = await resp.text();
+
+        // Vidyut needs its own copy of the dhatupatha.
+        this.vidyut = new Vidyut(dhatupatha);
+        console.log("initialized vidyut-prakriya WASM bindings.");
+
+        this.dhatus = this.vidyut.dhatus;
 
         // TODO: set state earlier. But, our current implemenation needs to
         // wait for the dhatus to load so that we can set activeDhatu.
@@ -203,6 +230,8 @@ const App = () => ({
         this.$watch('activePada', (value) => {
             this.updateUrlState();
         });
+
+        this.sutras = await sutras;
     },
 
     // Mutators
@@ -258,7 +287,6 @@ const App = () => ({
         }
 
         console.log("updateUrlState to: ", url.href);
-
         history.replaceState(null, document.title, url.toString());
     },
 
@@ -272,14 +300,19 @@ const App = () => ({
     // Set the active pada (and show its prakriya)
     setActivePada(p) {
         this.activePada = p;
-        this.prakriya = this.createPrakriya();
+        if (p.type === "subanta") {
+            this.supPrakriya = this.createPrakriya();
+            console.log(this.supPrakriya);
+        } else {
+            this.dhatuPrakriya = this.createPrakriya();
+        }
         window.scrollTo({ top: 0 });
     },
 
     // Create the active pada (and show all forms for the dhatu)
     clearActivePada() {
         this.activePada = null;
-        this.prakriya = null;
+        this.dhatuPrakriya = null;
     },
 
     // Clear the active dhatu (and show the full dhatu list).
@@ -327,6 +360,18 @@ const App = () => ({
         }
     },
 
+    filteredSupPratipadikas() {
+        if (this.supFilter !== null) {
+            const slpFilter = Sanscript.t(this.supFilter, 'devanagari', 'slp1');
+            const hkFilter = Sanscript.t(this.supFilter, 'hk', 'slp1');
+            return this.supPratipadikas().filter(s =>
+                s.text.includes(slpFilter) || s.text.includes(hkFilter)
+            );
+        } else {
+            return this.supPratipadikas();
+        }
+    },
+
     createPrakriya() {
         if (!this.activePada) {
             return null;
@@ -334,24 +379,12 @@ const App = () => ({
 
         const pada = this.activePada;
         let allPrakriyas = [];
-        if (pada.type === "tin") {
-            allPrakriyas = this.vidyut.deriveTinantas(
-                pada.dhatu.code,
-                pada.lakara,
-                pada.prayoga,
-                pada.purusha,
-                pada.vacana,
-                null,
-                pada.sanadi,
-                pada.upasarga,
-            );
-        } else if (pada.type === "krt") {
-            allPrakriyas = this.vidyut.deriveKrdantas(
-                pada.dhatu.code,
-                pada.krt,
-                pada.sanadi,
-                pada.upasarga,
-            );
+        if (pada.type === "tinanta") {
+            allPrakriyas = this.vidyut.deriveTinantas(pada.args);
+        } else if (pada.type === "krdanta") {
+            allPrakriyas = this.vidyut.deriveKrdantas(pada.args);
+        } else if (pada.type === "subanta") {
+            allPrakriyas = this.vidyut.deriveSubantas(pada.args);
         }
 
         return allPrakriyas.find((p) => p.text == pada.text);
@@ -367,8 +400,8 @@ const App = () => ({
         return Sanscript.t(removeSlpSvaras(s), 'slp1', this.script);
     },
 
-    async sutraText(rule) {
-        const text = (await sutras)[rule];
+    sutraText(rule) {
+        const text = this.sutras[rule];
         return text ? this.deva(text) : '';
     },
 
@@ -377,8 +410,35 @@ const App = () => ({
         return this.deva(str);
     },
 
+    stepClasses(step) {
+        const code = step.rule;
+        let minor = new Set(["1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.3.5", "1.3.6", "1.3.7", "1.3.8", "1.3.9", "1.2.45", "1.2.46", "3.4.114", "1.1.43", "1.4.14",
+            "1.4.58", "1.4.59", "1.4.60", "1.4.80", "3.1.32", "6.1.4", "6.1.5", "8.4.68", "3.4.113", "2.3.48", "1.4.17", "2.3.49", "1.4.7",
+        ]);
+        if (minor.has(code)) {
+            return ["opacity-40"];
+        } else {
+            return [];
+        }
+    },
+
+    renderStepResult(step) {
+        let res = "";
+        step.result.forEach((val, i) => {
+            if (res.length !== 0) {
+                res += ' <span class="text-sm text-gray-400">+</span> ';
+            }
+            let text = Sanscript.t(removeSlpSvaras(val), 'slp1', this.script);
+            if (i === step.active) {
+              text = `<span class="text-red-700">${text}</span>`
+            }
+            res += text;
+        })
+        return res;
+    },
+
     /// Create all tinantas allowed by the given `args`.
-    createParadigm(args) {
+    createTinantaParadigm(args) {
         const { dhatu, lakara, prayoga, pada, sanadi, upasarga } = args;
 
         let purushas = Object.values(Purusha).filter(Number.isInteger);
@@ -386,9 +446,10 @@ const App = () => ({
 
         let paradigm = [];
         for (const purusha in purushas) {
+            let row = [];
             for (const vacana in vacanas) {
-                let prakriyas = this.vidyut.deriveTinantas(
-                    dhatu.code,
+                const args = {
+                    dhatu,
                     lakara,
                     prayoga,
                     purusha,
@@ -396,36 +457,30 @@ const App = () => ({
                     pada,
                     sanadi,
                     upasarga,
-                );
+                };
+                let prakriyas = this.vidyut.deriveTinantas(args);
 
-                let pvPadas = [];
+                let cell = [];
                 let seen = new Set();
                 prakriyas.forEach((p) => {
                     if (seen.has(p.text)) {
                         return;
                     }
                     seen.add(p.text);
-
-                    pvPadas.push({
+                    cell.push({
                         text: p.text,
-                        type: "tin",
-                        dhatu,
-                        lakara,
-                        prayoga,
-                        purusha,
-                        vacana,
-                        pada,
-                        sanadi,
-                        upasarga,
+                        type: "tinanta",
+                        args
                     });
                 });
 
-                if (pvPadas.length === 0) {
+                if (cell.length === 0) {
                     return [];
                 }
 
-                paradigm.push(pvPadas);
+                row.push(cell);
             }
+            paradigm.push(row);
         }
 
         return paradigm;
@@ -450,6 +505,186 @@ const App = () => ({
         return this.deva(text);
     },
 
+    getLingaTitle(value) {
+        const mapping = {
+            [Linga.Pum]: "puMliNgaH",
+            [Linga.Stri]: "strIliNgaH",
+            [Linga.Napumsaka]: "napuMsakaliNgaH",
+        };
+        const text = mapping[value];
+        return this.deva(text || "missing");
+    },
+
+    supPratipadikas() {
+        return [
+            {text: "a", linga: Linga.Pum},
+            {text: "deva", linga: Linga.Pum},
+            {text: "rAma", linga: Linga.Pum},
+            {text: "sarva", linga: Linga.Pum},
+            {text: "viSva", linga: Linga.Pum},
+            {text: "i", linga: Linga.Pum},
+            {text: "kavi", linga: Linga.Pum},
+            {text: "hari", linga: Linga.Pum},
+            {text: "kavi", linga: Linga.Pum},
+            {text: "hari", linga: Linga.Pum},
+            {text: "saKi", linga: Linga.Pum},
+            {text: "pati", linga: Linga.Pum},
+            {text: "tri", linga: Linga.Pum},
+            {text: "u", linga: Linga.Pum},
+            {text: "SamBu", linga: Linga.Pum},
+            {text: "guru", linga: Linga.Pum},
+            {text: "krozwu", linga: Linga.Pum},
+            {text: "hUhU", linga: Linga.Pum},
+            {text: "pitf", linga: Linga.Pum},
+            {text: "jAmAtf", linga: Linga.Pum},
+            {text: "BrAtf", linga: Linga.Pum},
+            {text: "go", linga: Linga.Pum},
+            {text: "rE", linga: Linga.Pum},
+            {text: "glO", linga: Linga.Pum},
+            {text: "janO", linga: Linga.Pum},
+            {text: "rAjan", linga: Linga.Pum},
+            {text: "yajvan", linga: Linga.Pum},
+            {text: "aryaman", linga: Linga.Pum},
+            {text: "brahman", linga: Linga.Pum},
+            {text: "SarNgin", linga: Linga.Pum},
+            {text: "Atman", linga: Linga.Pum},
+            {text: "guRin", linga: Linga.Pum},
+            {text: "Svan", linga: Linga.Pum},
+            {text: "paTin", linga: Linga.Pum},
+            {text: "yaSasvin", linga: Linga.Pum},
+            {text: "pUzan", linga: Linga.Pum},
+            {text: "yuvan", linga: Linga.Pum},
+            {text: "maTin", linga: Linga.Pum},
+            {text: "arvan", linga: Linga.Pum},
+            {text: "fBukzin", linga: Linga.Pum},
+            {text: "ftvij", linga: Linga.Pum},
+            {text: "tyad", linga: Linga.Pum},
+            {text: "tad", linga: Linga.Pum},
+            {text: "yad", linga: Linga.Pum},
+            {text: "etad", linga: Linga.Pum},
+            {text: "yuzmad", linga: Linga.Pum},
+            {text: "asmad", linga: Linga.Pum},
+            {text: "kim", linga: Linga.Pum},
+            {text: "idam", linga: Linga.Pum},
+            {text: "adas", linga: Linga.Pum},
+
+            {text: "u", linga: Linga.Stri},
+            {text: "tad", linga: Linga.Stri},
+            {text: "yad", linga: Linga.Stri},
+            {text: "etad", linga: Linga.Stri},
+            {text: "kim", linga: Linga.Stri},
+            {text: "idam", linga: Linga.Stri},
+            {text: "adas", linga: Linga.Stri},
+            {text: "svasf", linga: Linga.Stri},
+            {text: "mAtf", linga: Linga.Stri},
+            {text: "duhitf", linga: Linga.Stri},
+            {text: "go", linga: Linga.Stri},
+            {text: "dyo", linga: Linga.Stri},
+            {text: "rE", linga: Linga.Stri},
+            {text: "nO", linga: Linga.Stri},
+
+            {text: "Pala", linga: Linga.Napumsaka},
+            {text: "puzpa", linga: Linga.Napumsaka},
+            {text: "sarva", linga: Linga.Napumsaka},
+            {text: "viSva", linga: Linga.Napumsaka},
+            {text: "eka", linga: Linga.Napumsaka},
+            {text: "pUrva", linga: Linga.Napumsaka},
+            {text: "para", linga: Linga.Napumsaka},
+            {text: "avara", linga: Linga.Napumsaka},
+            {text: "dakziRa", linga: Linga.Napumsaka},
+            {text: "uttara", linga: Linga.Napumsaka},
+            {text: "apara", linga: Linga.Napumsaka},
+            {text: "aDara", linga: Linga.Napumsaka},
+            {text: "hfdaya", linga: Linga.Napumsaka},
+            {text: "asTi", linga: Linga.Napumsaka},
+            {text: "sakTi", linga: Linga.Napumsaka},
+            {text: "akzi", linga: Linga.Napumsaka},
+            {text: "maDu", linga: Linga.Napumsaka},
+            {text: "ambu", linga: Linga.Napumsaka},
+            {text: "vasu", linga: Linga.Napumsaka},
+            {text: "aSru", linga: Linga.Napumsaka},
+            {text: "laGu", linga: Linga.Napumsaka},
+            {text: "bahu", linga: Linga.Napumsaka},
+            {text: "vastu", linga: Linga.Napumsaka},
+            {text: "pIlu", linga: Linga.Napumsaka},
+            {text: "sAnu", linga: Linga.Napumsaka},
+            {text: "yakft", linga: Linga.Napumsaka},
+            {text: "tad", linga: Linga.Napumsaka},
+            {text: "yad", linga: Linga.Napumsaka},
+            {text: "etad", linga: Linga.Napumsaka},
+            {text: "kim", linga: Linga.Napumsaka},
+            {text: "idam", linga: Linga.Napumsaka},
+            {text: "adas", linga: Linga.Napumsaka},
+        ];
+    },
+
+    setPratipadika(pratipadika) {
+        this.supActivePratipadika = pratipadika;
+        this.supParadigm = this.createSubantaParadigm();
+    },
+
+    clearSupPratipadika() {
+        this.supParadigm = null;
+        this.supActivePratipadika = null;
+    },
+
+    createSubantaParadigm() {
+        const vibhaktis = Object.values(Vibhakti).filter(Number.isInteger);
+        const vacanas = Object.values(Vacana).filter(Number.isInteger);
+        const pratipadika = this.supActivePratipadika;
+
+        const vibhaktiTitles = {
+            [Vibhakti.Prathama]: "praTamA",
+            [Vibhakti.Dvitiya]: "dvitIyA",
+            [Vibhakti.Trtiya]: "tftIyA",
+            [Vibhakti.Caturthi]: "caturTI",
+            [Vibhakti.Panchami]: "paYcamI",
+            [Vibhakti.Sasthi]: "zazWI",
+            [Vibhakti.Saptami]: "saptamI",
+            [Vibhakti.Sambodhana]: "samboDanam",
+        };
+
+        let paradigm = [];
+        vibhaktis.forEach((vibhakti) => {
+            let row = [];
+            vacanas.forEach((vacana) => {
+                const args = {
+                    pratipadika: pratipadika.text,
+                    linga: pratipadika.linga,
+                    vibhakti: vibhakti,
+                    vacana: vacana,
+                };
+                const prakriyas = this.vidyut.deriveSubantas(args);
+
+                let vvPadas = [];
+                prakriyas.forEach((p) => {
+                    let text = p.text;
+                    let displayText = text;
+                    // Use `==` for int/string cast.
+                    if (vibhakti == Vibhakti.Sambodhana) {
+                        displayText = "he " + text;
+                    }
+                    vvPadas.push({
+                        displayText,
+                        text,
+                        type: "subanta",
+                        args,
+                    })
+                })
+                row.push(vvPadas);
+            });
+
+            paradigm.push({
+                title: vibhaktiTitles[vibhakti],
+                cells: row,
+            });
+        });
+
+        return paradigm;
+    },
+
+
+    /// Creates a grid of krdantas to show for a specific dhatu.
     createKrdantas() {
         if (this.activeDhatu === null) {
             return [];
@@ -458,14 +693,39 @@ const App = () => ({
         const dhatu = this.activeDhatu;
         const upasarga = this.upasarga;
         const sanadi = this.sanadi;
-        return [
-            createKrdantasFrom(this.vidyut, dhatu, upasarga, sanadi, NOMINAL_KRTS),
-            createKrdantasFrom(this.vidyut, dhatu, upasarga, sanadi, PARTICIPLE_KRTS),
-            createKrdantasFrom(this.vidyut, dhatu, upasarga, sanadi, AVYAYA_KRTS),
-        ];
+
+        let ret = [];
+        [NOMINAL_KRTS, PARTICIPLE_KRTS, AVYAYA_KRTS].forEach((list) => {
+            let table = [];
+            list.forEach((krt) => {
+                const args = {
+                    dhatu,
+                    krt,
+                    upasarga,
+                    sanadi,
+                };
+
+                const prakriyas = this.vidyut.deriveKrdantas(args)
+                let padas = [];
+                prakriyas.forEach((p) => {
+                    padas.push({
+                        text: p.text,
+                        type: "krdanta",
+                        args
+                    });
+                });
+
+                table.push({
+                    title: BaseKrt[krt],
+                    padas,
+                });
+            });
+            ret.push(table);
+        });
+        return ret;
     },
 
-    createTinantas() {
+    createAllTinantas() {
         if (this.activeDhatu === null) {
             return [];
         }
@@ -477,7 +737,7 @@ const App = () => ({
         const sanadi = this.sanadi || null;;
         const upasarga = this.upasarga || null;;
 
-        console.log("createTinantas", prayoga, this.sanadi, upasarga);
+        console.log("createAllTinantas", prayoga, this.sanadi, upasarga);
         let results = [];
         for (const lakara in lakaras) {
             let laResults = {
@@ -486,7 +746,7 @@ const App = () => ({
 
             for (const tinPada in tinPadas) {
                 const padaKey = DhatuPada[tinPada];
-                const paradigm = this.createParadigm({
+                const paradigm = this.createTinantaParadigm({
                     dhatu,
                     lakara,
                     prayoga,
@@ -502,6 +762,7 @@ const App = () => ({
             results.push(laResults);
         }
 
+        console.log(results);
         return results;
     },
 });

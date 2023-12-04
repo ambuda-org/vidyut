@@ -24,3 +24,20 @@ fn urjijiayizati() {
 fn titikzizati() {
     assert_has_ta(&[], &san(&d("tija~\\", Bhvadi)), Lat, &["titikzizate"]);
 }
+
+#[test]
+fn praipsat() {
+    // Not a real regression, just want to make sure this works consistently.
+    let aap = d("A\\px~", Svadi);
+    assert_has_tip(&["pra"], &san(&aap), Lan, &["prEpsat"]);
+}
+
+#[test]
+fn irshy_san_lan() {
+    assert_has_tip(
+        &[],
+        &san(&d("Irzya~", Bhvadi)),
+        Lan,
+        &["Erzyiyizat", "Erzyizizat"],
+    );
+}

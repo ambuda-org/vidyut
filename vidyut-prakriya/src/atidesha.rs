@@ -138,7 +138,10 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
     } else if cur.has_antya(&*IK) && n.has_u("san") {
         // cicIzati, tuzwUzati, ...
         wrap.add_kit("1.2.9", i_n);
-    } else if cur.has_upadha(&*IK) && cur.has_antya(&*HAL) && n.has_u("san") {
+    } else if cur.has_last_vowel(&*IK) && cur.has_antya(&*HAL) && n.has_u("san") {
+        // titfkzati, DIpsati, ...
+        //
+        // (Per commentaries, "halantAt" here allows multiple hals in a row.
         wrap.add_kit("1.2.10", i_n);
     }
 

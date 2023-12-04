@@ -1,5 +1,5 @@
 /*!
-Creates a test file containing the inputs to `Ashtadhyayi`'s derivation functions and all of the
+Creates a test file containing the inputs to `Vyakarana`'s derivation functions and all of the
 padas produced by those inputs.
 */
 use clap::Parser;
@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::error::Error;
 use std::io;
 use vidyut_prakriya::args::{BaseKrt, Krdanta};
-use vidyut_prakriya::{Ashtadhyayi, Dhatupatha};
+use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -27,14 +27,14 @@ struct Row<'a> {
 
 fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
-    let a = Ashtadhyayi::builder().log_steps(false).build();
+    let v = Vyakarana::builder().log_steps(false).build();
 
     for entry in d {
         let dhatu = entry.dhatu();
         let krt = args.krt;
         let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
 
-        let prakriyas = a.derive_krdantas(&krdanta);
+        let prakriyas = v.derive_krdantas(&krdanta);
 
         let dhatu_text = &dhatu.upadesha().expect("ok");
         let mut pratipadikas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();

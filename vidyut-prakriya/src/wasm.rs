@@ -17,7 +17,7 @@ use crate::dhatupatha::Dhatupatha;
 use serde::Serialize;
 extern crate console_error_panic_hook;
 
-use crate::Ashtadhyayi;
+use crate::Vyakarana;
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
@@ -33,7 +33,9 @@ pub struct WebStep {
     /// The rule that was applied for this step of the derivation.
     rule: String,
     /// The result of applying the given rule.
-    result: String,
+    result: Vec<String>,
+    /// If defined, the index in `result` that was changed by `rule`.
+    active: Option<usize>,
 }
 
 /// A lightweight `Prakriya` that exposes fewer private fields than the native `Prakriya` struct.
@@ -69,7 +71,8 @@ fn to_web_history(history: &[Step]) -> Vec<WebStep> {
         .iter()
         .map(|x| WebStep {
             rule: x.rule().as_web_string(),
-            result: x.result().join(" + "),
+            result: x.result().clone(),
+            active: x.active(),
         })
         .collect()
 }
@@ -123,7 +126,7 @@ impl Vidyut {
         }
     }
 
-    /// Wrapper for `Ashtadhyayi::derive_tinantas`.
+    /// Wrapper for `Vyakarana::derive_tinantas`.
     ///
     /// TODO: how might we reduce the number of arguments here?
     #[allow(clippy::too_many_arguments)]
@@ -152,8 +155,8 @@ impl Vidyut {
             }
             let args = args.build().expect("should be well-formed");
 
-            let a = Ashtadhyayi::new();
-            let prakriyas = a.derive_tinantas(&args);
+            let v = Vyakarana::new();
+            let prakriyas = v.derive_tinantas(&args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
@@ -163,14 +166,14 @@ impl Vidyut {
         }
     }
 
-    /// Wrapper for `Ashtadhyayi::derive_subantas`.
+    /// Wrapper for `Vyakarana::derive_subantas`.
     #[allow(non_snake_case)]
     pub fn deriveSubantas(
         &self,
         pratipadika: &str,
         linga: Linga,
-        vacana: Vacana,
         vibhakti: Vibhakti,
+        vacana: Vacana,
     ) -> JsValue {
         let args = Subanta::builder()
             .pratipadika(Pratipadika::basic(pratipadika))
@@ -180,14 +183,14 @@ impl Vidyut {
             .build()
             .expect("should be well-formed");
 
-        let a = Ashtadhyayi::new();
-        let prakriyas = a.derive_subantas(&args);
+        let v = Vyakarana::new();
+        let prakriyas = v.derive_subantas(&args);
 
         let web_prakriyas = to_web_prakriyas(&prakriyas);
         serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
     }
 
-    /// Wrapper for `Ashtadhyayi::derive_krdantas`.
+    /// Wrapper for `Vyakarana::derive_krdantas`.
     #[allow(non_snake_case)]
     pub fn deriveKrdantas(
         &self,
@@ -204,8 +207,8 @@ impl Vidyut {
                 .build()
                 .expect("should be well-formed");
 
-            let a = Ashtadhyayi::new();
-            let prakriyas = a.derive_krdantas(&args);
+            let v = Vyakarana::new();
+            let prakriyas = v.derive_krdantas(&args);
 
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")

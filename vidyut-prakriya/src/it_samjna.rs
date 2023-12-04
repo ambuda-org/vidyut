@@ -232,6 +232,7 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
                 if t.has_tag(T::zit) && t.has_adi('w') {
                     t.set_adi("t");
                 }
+                t.maybe_save_sthanivat();
             });
         }
     }

@@ -1,4 +1,4 @@
-use crate::core::Prakriya;
+use crate::core::RuleChoice;
 use std::fmt;
 use std::io;
 use std::num;
@@ -8,9 +8,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Models all of the errors this crate might produce.
 #[derive(Debug)]
 pub enum Error {
-    /// An IO error
+    /// An IO error.
     Io(io::Error),
-    /// An input vile is invalid in some way.
+
+    /// An input file is invalid in some way.
     InvalidFile,
 
     /// An integer couldn't be parsed.
@@ -25,17 +26,11 @@ pub enum Error {
     /// An enum value could not parsed correctly.
     ParseError(String),
 
-    /// An enum value could not parsed correctly.
-    GanaParseError(u8),
-
     /// A term has an empty upadesha.
     InvalidUpadesha(String),
 
-    /// A generic error.
-    Generic(&'static str),
-
     /// The caller's arguments are incompatible with the prakriya, so we aborted early.
-    Abort(Box<Prakriya>),
+    Abort(Vec<RuleChoice>),
 }
 
 impl From<io::Error> for Error {
@@ -80,8 +75,6 @@ impl fmt::Display for Error {
             InvalidUpadesha(s) => write!(f, "The term `{s}` unexpectedly has an empty upadesha."),
             MissingRequiredField(s) => write!(f, "Please define the `{s}` field."),
             ParseError(v) => write!(f, "Could not parse `{v}` into an enum value."),
-            GanaParseError(v) => write!(f, "Could not parse `{v}` as a dhatu gana."),
-            Generic(msg) => write!(f, "{msg}"),
             Abort(_) => write!(f, "The given arguments cannot produce a valid prakriya."),
         }
     }

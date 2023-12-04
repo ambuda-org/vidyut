@@ -14,10 +14,7 @@ see the `angasya` module.
 use crate::ac_sandhi;
 use crate::args::{Artha, Gana, TaddhitaArtha};
 use crate::core::operators as op;
-use crate::core::Prakriya;
-use crate::core::Tag as T;
-use crate::core::Term;
-use crate::core::TermView;
+use crate::core::{Prakriya, Rule, Tag as T, Term, TermView};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::sounds as al;
@@ -41,6 +38,10 @@ lazy_static! {
 
 fn is_knit(n: &TermView) -> bool {
     n.is_knit()
+}
+
+fn is_sanadyanta(p: &Prakriya, i: usize) -> bool {
+    p.has(i + 1, |t| t.is_dhatu())
 }
 
 /// Returns whether the given slice has multiple vowels.
@@ -213,7 +214,8 @@ fn run_for_kniti_ardhadhatuke_after_guna(p: &mut Prakriya, i: usize) -> Option<(
 /// Constraints: must run after dvitva.
 fn run_for_kniti_ardhadhatuke_after_dvitva(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
-    let n = p.pratyaya(i + 1)?;
+    let i_n = p.find_next_where(i, |t| !t.is_lupta())?;
+    let n = p.pratyaya(i_n)?;
 
     let aat = dhatu.has_antya('A');
     let kniti_ardha = n.is_knit() && n.has_tag(T::Ardhadhatuka);
@@ -312,7 +314,7 @@ fn try_run_kniti_sarvadhatuke_for_shna_and_abhyasta(p: &mut Prakriya, i: usize) 
         p.optional_run_at("6.4.115", i, op::antya("i"));
     } else if anga.has_antya('A') {
         let mut changed = false;
-        if anga.has_u("o~hA\\k") && n_is_haladi {
+        if anga.has_u("o~hA\\k") && n_is_haladi && !is_sanadyanta(p, i) {
             if n.has_adi('y') {
                 p.run_at("6.4.118", i, op::antya(""));
             } else {
@@ -459,7 +461,8 @@ fn has_antya_a_asiddhavat(t: &Term) -> bool {
 /// (6.4.46 - 6.4.70)
 fn try_ardhadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
-    let n = p.pratyaya(i + 1)?;
+    let i_n = p.find_next_where(i, |t| !t.is_lupta())?;
+    let n = p.pratyaya(i_n)?;
     if !n.has_tag(T::Ardhadhatuka) {
         return None;
     }
@@ -486,17 +489,15 @@ fn try_ardhadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
         p.optional_run_at("6.4.47", i, op::text("Barj"));
     } else if anga.ends_with("ya") && is_halah(p, i) && !anga.has_u("kyac") {
         // TODO: why block kyac? SK mentions the "sannipAta-pariBAzA" in 2658
-        p.run("6.4.49", |p| {
-            p.set(i, op::antya(""));
-            p.set(i, op::antya(""));
-            p.set(i, op::add_tag(T::FlagAtLopa));
-            p.add_tag(T::FlagAtLopa);
+        p.run_at("6.4.49", i, |t| {
+            t.set_antya("");
+            t.set_antya("");
+            t.add_tag(T::FlagAtLopa);
         });
     } else if has_antya_a_asiddhavat(anga) {
-        p.run("6.4.48", |p| {
-            p.set(i, op::antya(""));
-            p.set(i, op::add_tag(T::FlagAtLopa));
-            p.add_tag(T::FlagAtLopa);
+        p.run_at("6.4.48", i, |t| {
+            t.set_antya("");
+            t.add_tag(T::FlagAtLopa);
         });
     }
 
@@ -587,8 +588,11 @@ fn try_antya_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
     let kniti = is_knit(&n);
     let jhali_kniti = n.has_adi(&*JHAL) && kniti;
 
-    if anga.has_u("ha\\na~") && n.last().has_text("hi") {
+    if anga.has_u("ha\\na~") && !is_sanadyanta(p, i) && n.last().has_text("hi") {
         // jahi
+        //
+        // Since this rule cites "hanti" explicitly, it excludes sanAdi-dhAtus, which is why we
+        // check above that the anga is not part of a sanAdi-dhAtu. (śtipā-paribhāṣā)
         p.run_at("6.4.36", i, op::text("ja"));
     } else if anga.has_text("gam") && n.has_u("kvi~p") {
         // TODO: other kvi-pratyayas?
@@ -704,7 +708,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
     // Must run before guNa.
     let anga = p.get(i)?;
     let n = p.pratyaya(j)?;
-    if anga.has_text("BU") && n.has_lakshana_in(&["lu~N", "li~w"]) {
+    if anga.has_text("BU") && n.last().has_lakshana_in(&["lu~N", "li~w"]) {
         op::append_agama("6.4.88", p, i, "vu~k");
     } else if anga.has_u("guhU~^") && n.has_adi(&*AC) && !n.is_knit() {
         // gUhati, agUhat -- but juguhatuH due to Nit on the pratyaya.
@@ -727,6 +731,9 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
             if p.optional_run("6.4.114.v2", |_| {}) {
                 return None;
             }
+        } else if n.last().has_u_in(&["san", "Rvul", "lyuw"]) {
+            p.run(Rule::Kaumudi("2483"), |_| {});
+            return None;
         }
 
         // Should replace just the last sound, but sak-Agama causes issues
@@ -844,17 +851,17 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 }
 
 /// Runs asiddhavat rules that alter a Ri suffix.
-pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
+pub fn try_ni_adesha(p: &mut Prakriya) -> Option<()> {
     let i_ni = p.find_last_where(|t| t.is_ni_pratyaya())?;
     if i_ni == 0 {
         return None;
     }
 
-    let i_dhatu = i_ni - 1;
+    let i_dhatu = p.find_prev_where(i_ni, |t| !t.is_empty())?;
     let n = p.pratyaya(i_ni + 1)?;
     let iti = n.first().is_it_agama();
 
-    if n.has_tag(T::Ardhadhatuka) {
+    if n.last().is_ardhadhatuka() {
         let dhatu = p.get(i_dhatu)?;
 
         if n.first()
@@ -875,10 +882,25 @@ pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
             ac_sandhi::apply_general_ac_sandhi(p);
             p.run_at("6.4.51", i_ni, op::lopa);
         }
+        p.debug("No checks matched");
+    }
+    /*
+     * guna -> ac sandhi -> lopa (cayyAt)
+     */
+
+    Some(())
+}
+
+/// Runs asiddhavat rules that alter a Ri suffix.
+pub fn run_for_ni(p: &mut Prakriya) -> Option<()> {
+    let i_ni = p.find_last_where(|t| t.is_ni_pratyaya())?;
+    if i_ni == 0 {
+        return None;
     }
 
-    let dhatu = p.get(i_dhatu)?;
+    let i_dhatu = i_ni - 1;
     let n = p.pratyaya(i_ni + 1)?;
+    let dhatu = p.get(i_dhatu)?;
     let ni = p.get(i_ni)?;
     if ni.has_u("Ric") {
         if n.has_u("Kac") {
@@ -1017,8 +1039,14 @@ pub fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
         p.run_at("6.4.138", i_end, |t| t.set_adi(""));
     } else if bha.has_antya('n') {
         if taddhita {
+            let n = bha.len();
             let ani = next.has_u("aR");
-            if bha.has_u_in(&[
+            if ani && (n > 3 && bha.get_at(n - 3)? == 'z')
+                || bha.has_text("han")
+                || bha.has_text("DftarAjan")
+            {
+                p.run_at("6.4.135", i, op::upadha(""));
+            } else if bha.has_u_in(&[
                 "sabrahmacArin",
                 "pIWasarpin",
                 "kalApin",
@@ -1072,7 +1100,7 @@ pub fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
                 p.step("6.4.137");
                 blocked = true;
             } else if next.has_u_in(&["Ni", "SI"]) {
-                blocked = p.optional_run("6.4.135", |_| {});
+                blocked = p.optional_run("6.4.136", |_| {});
             }
             if !blocked {
                 p.run_at("6.4.134", i, op::upadha(""));

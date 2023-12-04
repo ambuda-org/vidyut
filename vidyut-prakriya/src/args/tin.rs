@@ -274,6 +274,9 @@ impl Tinanta {
 ///
 /// ````
 /// # use vidyut_prakriya::args::*;
+/// # use vidyut_prakriya::Error;
+///
+/// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
 /// let args = Tinanta::builder()
 ///     .dhatu(dhatu)
 ///     .lakara(Lakara::Lat)

@@ -1,8 +1,8 @@
 use vidyut_prakriya::args::*;
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::Vyakarana;
 
 fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
-    let a = Ashtadhyayi::new();
+    let v = Vyakarana::new();
     let dhatu = Dhatu::builder()
         .upadesha(upadesha)
         .gana(gana.parse().expect("ok"))
@@ -18,7 +18,7 @@ fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
         .build()
         .unwrap();
 
-    let prakriyas = a.derive_tinantas(&args);
+    let prakriyas = v.derive_tinantas(&args);
     prakriyas.iter().map(|p| p.text()).collect()
 }
 

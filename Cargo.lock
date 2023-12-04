@@ -1016,6 +1016,7 @@ dependencies = [
  "csv",
  "enumset",
  "lazy_static",
+ "rayon",
  "serde",
  "serde-wasm-bindgen",
  "sha2 0.10.6",

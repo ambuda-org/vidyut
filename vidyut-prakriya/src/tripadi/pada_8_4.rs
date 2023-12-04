@@ -1,6 +1,6 @@
 use crate::args::Gana;
 use crate::core::char_view::{
-    get_term_and_offset_indices, get_term_index_at, xy, xyz, CharPrakriya,
+    get_at, get_term_and_offset_indices, get_term_index_at, xy, xyz, CharPrakriya,
 };
 use crate::core::operators as op;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
@@ -71,14 +71,15 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
     // Exceptions to Ratva.
     if let Some(i) = p.find_first(T::Dhatu) {
         let dhatu = p.get(i)?;
-        let next = p.get(i + 1)?;
-        if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
-            || (dhatu.has_u("skanBu~") && next.has_u_in(&["SnA", "Snu"]))
-            || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
-            || (dhatu.has_u("nftI~") && next.has_u("yaN"))
-        {
-            p.step("8.4.39");
-            return None;
+        if let Some(next) = p.get(i + 1) {
+            if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
+                || (dhatu.has_u("skanBu~") && next.has_u_in(&["SnA", "Snu"]))
+                || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
+                || (dhatu.has_u("nftI~") && next.has_u("yaN"))
+            {
+                p.step("8.4.39");
+                return None;
+            }
         }
     }
 
@@ -415,8 +416,7 @@ fn try_jhal_adesha(cp: &mut CharPrakriya) -> Option<()> {
             let x = text.as_bytes()[i] as char;
             let sub = JHAL_TO_CAR.get(x).expect("present");
             if x != sub {
-                p.set_char_at(i, &sub.to_string());
-                p.step("8.4.55");
+                p.run("8.4.55", |p| p.set_char_at(i, &sub.to_string()));
                 true
             } else {
                 false
@@ -510,7 +510,12 @@ fn try_to_savarna(cp: &mut CharPrakriya) {
     });
 
     cp.for_chars(
-        xyz(|x, y, z| JHAY.contains(x) && y == 'S' && AT.contains(z)),
+        |p, text, i| {
+            let cond = xyz(|x, y, z| JHAY.contains(x) && y == 'S' && AT.contains(z))(p, text, i);
+            let term = get_at(p, i).expect("ok");
+            let is_ksha = term.has_u("kSAY");
+            cond && !is_ksha
+        },
         |p, _, i| p.optional_run("8.4.63", |p| p.set_char_at(i + 1, "C")),
     );
 

@@ -683,6 +683,14 @@ pub enum TaddhitaArtha {
     TadAsyaTadAsminSyat,
     /// What is bought with this. (5.1.37)
     TenaKritam,
+    /// Sown with this. (5.1.45)
+    TasyaVapa,
+    /// In which this is an interest, rent, profit, tax, or bribe. (5.1.47)
+    TadAsminVrddhiAyaLabhaSulkaUpada,
+    /// What one carries away, or conveys, or brings. (5.1.50)
+    TadDharatiVahatiAvahati,
+    /// What is capable of this, or holds this, or cooks this. (5.152)
+    SambhavatiAharatiPacati,
     /// One deserves this. (5.1.63)
     TadArhati,
     /// One performs this. (5.1.72)

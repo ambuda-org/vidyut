@@ -243,6 +243,9 @@ pub enum Tag {
     FlagHagSetSic,
     FlagAtAgama,
     FlagAtLopa,
+    FlagAntyaAcSandhi,
+    /// Optionally blocks Ric-pratyaya.
+    FlagNoNic,
     /// Indicates deletion of a term's final "n" in the asiddhavat section.
     FlagNaLopa,
     /// Indicates prevention of a sa -> za change in the asiddha section.

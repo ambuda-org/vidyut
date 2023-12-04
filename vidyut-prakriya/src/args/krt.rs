@@ -1,7 +1,7 @@
 use crate::args::dhatu::Dhatu;
 use crate::args::unadi::Unadi;
 use crate::args::Lakara;
-use crate::args::{Linga, Vacana, Vibhakti};
+use crate::args::Subanta;
 use crate::core::errors::*;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -389,53 +389,21 @@ impl Krt {
     }
 }
 
-/// An upapada (dependent word) for a krdanta derivation.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
-pub enum Upapada {
-    /// A generic subanta.
-    Subanta(String),
-    /// An avyaya.
-    Avyaya(String),
-    /// An upasarga.
-    Upasarga(String),
-}
-
-impl Upapada {
-    /// Creates an upapada from a generic subanta.
-    pub fn make_subanta(text: impl AsRef<str>) -> Self {
-        Self::Subanta(text.as_ref().to_string())
-    }
-
-    /// Creates an upapada from an avyaya.
-    pub fn make_avyaya(text: impl AsRef<str>) -> Self {
-        Self::Avyaya(text.as_ref().to_string())
-    }
-
-    /// Creates an upapada from an upasarga.
-    pub fn make_upasarga(text: impl AsRef<str>) -> Self {
-        Self::Upasarga(text.as_ref().to_string())
-    }
-
-    /// Returns the text corresponding to this upapada.
-    pub fn text(&self) -> &str {
-        match self {
-            Self::Subanta(x) => x,
-            Self::Avyaya(x) => x,
-            Self::Upasarga(x) => x,
-        }
-    }
-}
-
 /// The information required to derive a krdanta in the grammar.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Krdanta {
+    /// The dhatu to add the krt-pratyaya to.
     dhatu: Dhatu,
+    /// The krt-pratyaya to use.
     krt: Krt,
+    /// Whether this krdanta must follow a specific `KrtArtha` condition.
     artha: Option<KrtArtha>,
+    /// Whether this krdanta must replace a specific `Lakara`. If unset, default to `Lat` if
+    /// necessary.
     lakara: Option<Lakara>,
-    upapada: Option<Upapada>,
-    /// The sup-pratyaya to use.
-    sup: Option<(Linga, Vibhakti, Vacana)>,
+    /// Whether this krdanta is allowed only with a specific upapada.
+    upapada: Option<Subanta>,
+    /// Whether the derived krdanta must have exactly the specified value.
     require: Option<String>,
 }
 
@@ -450,7 +418,6 @@ impl Krdanta {
             artha: None,
             lakara: None,
             upapada: None,
-            sup: None,
             require: None,
         }
     }
@@ -490,7 +457,7 @@ impl Krdanta {
     }
 
     /// The upapada that conditions the krt pratyaya.
-    pub fn upapada(&self) -> &Option<Upapada> {
+    pub fn upapada(&self) -> &Option<Subanta> {
         &self.upapada
     }
 
@@ -499,15 +466,15 @@ impl Krdanta {
         self.artha
     }
 
-    /// Returns the arguments for the `sup`-pratyaya that the samasa will take. If none, derive the
-    /// samasa as a pratipadika.
-    pub fn sup(&self) -> Option<(Linga, Vibhakti, Vacana)> {
-        self.sup
-    }
-
     /// The value that the krdanta must match, if defined.
     pub fn require(&self) -> &Option<String> {
         &self.require
+    }
+
+    /// Sets the required value for this krdanta.
+    pub fn with_require(mut self, s: impl AsRef<str>) -> Self {
+        self.require = Some(s.as_ref().to_string());
+        self
     }
 }
 
@@ -516,10 +483,9 @@ impl Krdanta {
 pub struct KrdantaBuilder {
     dhatu: Option<Dhatu>,
     krt: Option<Krt>,
-    upapada: Option<Upapada>,
+    upapada: Option<Subanta>,
     artha: Option<KrtArtha>,
     lakara: Option<Lakara>,
-    sup: Option<(Linga, Vibhakti, Vacana)>,
     require: Option<String>,
 }
 
@@ -537,7 +503,7 @@ impl KrdantaBuilder {
     }
 
     /// Sets the upapada to use in the derivation.
-    pub fn upapada(&mut self, upapada: Upapada) -> &mut Self {
+    pub fn upapada(&mut self, upapada: Subanta) -> &mut Self {
         self.upapada = Some(upapada);
         self
     }
@@ -554,12 +520,6 @@ impl KrdantaBuilder {
     /// If `lakara` is not specified, prakriyas will default to lat-lakara.
     pub fn lakara(&mut self, lakara: Lakara) -> &mut Self {
         self.lakara = Some(lakara);
-        self
-    }
-
-    /// Sets the samasa type to use in the derivation.
-    pub fn sup(&mut self, tuple: (Linga, Vibhakti, Vacana)) -> &mut Self {
-        self.sup = Some(tuple);
         self
     }
 
@@ -585,7 +545,6 @@ impl KrdantaBuilder {
             upapada: self.upapada.as_ref().cloned(),
             lakara: self.lakara,
             artha: self.artha,
-            sup: self.sup,
             require: self.require.clone(),
         })
     }

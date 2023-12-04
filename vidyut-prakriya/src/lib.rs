@@ -2,10 +2,9 @@
 #![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
 
-pub use crate::ashtadhyayi::{Ashtadhyayi, AshtadhyayiBuilder};
-pub use crate::core::errors::Error;
-pub use crate::core::{Prakriya, Rule, RuleChoice, Step};
+pub use crate::core::{Error, Prakriya, Rule, RuleChoice, Step};
 pub use crate::dhatupatha::Dhatupatha;
+pub use crate::vyakarana::{Vyakarana, VyakaranaBuilder};
 
 // Public modules.
 // - `args` defines the API contract.
@@ -26,17 +25,16 @@ pub mod private {
 mod core;
 mod sounds;
 
-/// Other texts.
+// Other texts.
+mod ashtadhyayi;
 mod ganapatha;
 mod linganushasanam;
 mod phit_sutraani;
-mod sutrapatha;
 
 // Components of the sutrapatha.
 mod ac_sandhi;
 mod angasya;
 mod ardhadhatuka;
-mod ashtadhyayi;
 mod atidesha;
 mod atmanepada;
 mod dhatu_gana;
@@ -61,5 +59,6 @@ mod tin_pratyaya;
 mod tripadi;
 mod uttarapade;
 mod vikarana;
+mod vyakarana;
 
 pub mod wasm;

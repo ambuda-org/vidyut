@@ -4,8 +4,9 @@
 </div>
 
 `vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)
-according to the rules of Paninian grammar. Our long-term goal is to provide a
-complete implementation of the Ashtadhyayi.
+according to the rules of Paninian grammar and currently implements around
+2,000 rules. Our long-term goal is to provide a complete implementation of the
+Ashtadhyayi.
 
 This [crate][crate] is under active development as part of the [Ambuda][ambuda]
 project. If you enjoy our work and wish to contribute to it, please see the
@@ -34,9 +35,9 @@ Overview
    that was used as well as its result.
 
 2. *Speed*. On my laptop (a 2.4GHz 8-core CPU with 64 GB of DDR4 RAM), this
-   crate generates almost 50,000 words per second. All else equal, a fast
-   program is easier to run and test, which means that we can produce a larger
-   word list at a higher standard of quality.
+   crate generates almost 50,000 words per second on a single thread. All else
+   equal, a fast program is easier to run and test, which means that we can
+   produce a larger word list at a higher standard of quality.
 
 3. *Portability*. This crate compiles to fast native code and can be bound to
    most other progamming languages with a bit of effort. In particular, this
@@ -64,26 +65,28 @@ compile and complete within a few seconds.
 To generate prakriyas programmatically, you can use the starter code below:
 
 ```rust
-use vidyut_prakriya::Ashtadhyayi;
+use vidyut_prakriya::Vyakarana;
 use vidyut_prakriya::args::*;
 
-let a = Ashtadhyayi::new();
+let v = Vyakarana::new();
 
-let dhatu = Dhatu::new("BU", Gana::Bhvadi);
-let args = TinantaArgs::builder()
+let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
+let args = Tinanta::builder()
+    .dhatu(dhatu)
     .lakara(Lakara::Lat)
     .prayoga(Prayoga::Kartari)
     .purusha(Purusha::Prathama)
     .vacana(Vacana::Eka)
     .build().unwrap();
 
-let prakriyas = a.derive_tinantas(&dhatu, &args);
+let prakriyas = v.derive_tinantas(&args);
 
 for p in prakriyas {
     println!("{}", p.text());
     println!("---------------------------");
     for step in p.history() {
-        println!("{:<10} | {}", step.rule(), step.result());
+        let result: String = step.result().join(" + ");
+        println!("{:<10} | {}", step.rule().code(), result);
     }
     println!("---------------------------");
     println!("\n");
@@ -95,9 +98,8 @@ Output of the code above:
 ```text
 Bavati
 ---------------------------
-start      | BU
 1.3.1      | BU
-3.3.123    | BU + la~w
+3.2.123    | BU + la~w
 1.3.2      | BU + la~w
 1.3.3      | BU + la~w
 1.3.9      | BU + l
@@ -112,7 +114,9 @@ start      | BU
 1.3.9      | BU + a + ti
 3.4.113    | BU + a + ti
 7.3.84     | Bo + a + ti
+1.4.14     | Bo + a + ti
 6.1.78     | Bav + a + ti
+8.4.68     | Bav + a + ti
 ---------------------------
 ```
 
@@ -127,7 +131,7 @@ text is SLP1, which is the encoding format we use throughout the crate.
 
 [sv]: https://github.com/drdhaval2785/SanskritVerb
 
-For more details, see the following methods on the `Ashtadhyayi` struct:
+For more details, see the following methods on the `Vyakarana` struct:
 
 - `derive_tinantas` (for verbs)
 - `derive_subantas` (for nominals)
@@ -210,69 +214,4 @@ README][data-readme].
 Design
 ------
 
-`vidyut-prakriya` follows the form and spirit of the Ashtadhyayi as closely as
-possible. At the same time, we make certain concessions to pragmatism so that
-we can build a clear and maintainable program. For example, instead of
-selecting a rule according to principles like `utsarga-apavAda`, we instead
-manually reorder rules so that we can run a simple imperative program.
-
-Our main data structure is a `Term`, which generalizes the उपदेश concept from
-traditional grammar. `Term` is simply a string with useful metadata and a rich
-API. For details, see the `term` module.
-
-We manage the overall derivation with a `Prakriya`, which is a `Vec<Term>` along
-with useful metadata and a rich API. `Prakriya` also maintains a log of which
-steps have been applied in the derivation. For details, see the `prakriya`
-module.
-
-Both `Term` and `Prakriya` are annotated with `Tag`s, which generalize the संज्ञा
-concept from  traditional grammar. For details, see the `tag` module.
-
-In general, our rules are implemented as simple if-else statements. For example:
-
-```rust,ignore
-fn rules(p: &mut Prakriya, i: usize) -> Option<()> {
-    let tin = p.get_if(i, |t| t.has_adi('J'))?;
-
-    let i_base = p.find_prev_where(i, |t| !t.is_empty())?;
-    let base = p.get(i_base)?;
-
-    if base.has_tag(T::Abhyasta) {
-        // juhvati
-        p.run_at("7.1.4", i, op::adi("at"));
-    } else if !base.has_antya('a') && tin.has_tag(T::Atmanepada) {
-        // kurvate
-        p.run_at("7.1.5", i, op::adi("at"));
-    } else {
-        // Bavanti
-        p.run_at("7.1.3", i, op::adi("ant"));
-    }
-
-    Some(())
-}
-```
-
-Since we have so many rules to write, we use short variable names as long as
-they don't sacrifice readability. Some notes on our naming conventions:
-
-- `p` is a `Prakriya`.
-- `i` is the index of a term in the prakriya. We use indices often so that we
-  can [better accommodate Rust's borrow checker][rust-borrow].
-- `t` is a `Term`.
-- `?` is a [Rust operator][rust-q] that roughly means "return if not found."
-- `T` is an alias for `Tag`.
-- `op` is an alias for `operators`, a module that contains common operations
-  that we apply to terms during the derivation.
-
-Notes on our API:
-
-- `p.run_at("my-rule", i, fn)` applies the `fn` function to the term at index `i`
-  of `p` and associates that operation with `"my-rule"`.
-- `op::adi(s)` returns a function. The returned function accepts a `Term` and
-  replaces its first sound with `s`. If you haven't worked with [first-class
-  functions][funcs] before, you might find this API strange at first. But in
-  time, we hope that you find it to be as expressive and powerful as we do.
-
-[rust-q]: https://doc.rust-lang.org/rust-by-example/std/result/question_mark.html
-[rust-borrow]: https://users.rust-lang.org/t/newbie-mut-with-nested-structs/84755
-[funcs]: https://en.wikipedia.org/wiki/First-class_function
+See `ARCHITECTURE.md` for details.

@@ -154,7 +154,10 @@ fn try_sup_adesha(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
     let is_napumsaka = p.has_tag(T::Napumsaka);
     let is_jas_shas = sup.has_u_in(&["jas", "Sas"]);
 
-    if anga.has_tag(T::zaw) && is_jas_shas {
+    if anga.has_text("azwA") && anga.has_u("azwan") && is_jas_shas {
+        // azwO
+        op::adesha("7.1.21", p, i_sup, "OS");
+    } else if anga.has_tag(T::zaw) && is_jas_shas {
         // zaw, paYca, ...
         p.run_at("7.1.22", i_sup, op::luk);
     } else if anga.is_aap_pratyaya() && sup.has_text("O") {
@@ -167,9 +170,6 @@ fn try_sup_adesha(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
         // kuRqAni, daDIni, maDUni, ...
         op::adesha("7.1.20", p, i_sup, "Si");
         p.add_tag_at("1.1.42", i_sup, T::Sarvanamasthana);
-    } else if anga.has_text("azwA") && anga.has_u("azwan") && is_jas_shas {
-        // azwO
-        op::adesha("7.1.21", p, i_sup, "OS");
     } else if anga.has_text("adaa") && sup.has_u("wA") {
         // TODO: ada instead of adaa?
         // By 8.2.3, rule 8.2.80 is siddha with respect to wA --> nA.

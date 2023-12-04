@@ -69,14 +69,23 @@ pub enum Antargana {
     /// Antargana of *tud* gana. Pratyayas that follow dhatus in kut-Adi will generally be marked
     /// Nit per 1.2.1. Required because of duplicates like `juqa~`.
     Kutadi,
+    /// Antargana of *cur* gana ending with `zvada~` / `svAda~`. A dhatu in this antargana
+    /// optionaly uses Ric-pratyaya when taking an object. Required because of duplicates like
+    /// `tuji~`.
+    Asvadiya,
+    /// Antargana of *cur* gana ending with `Dfza~`. A dhatu in this antargana optionaly uses
+    /// Ric-pratyaya. Required because of duplicates like `SraTa~`.
+    Adhrshiya,
     /// Antargana of *cur* gana ending with `kusma~`. A dhatu in this antargana is always
     /// ātmanepadī. Required because of duplicates like `daSi~`.
     Akusmiya,
 }
 
 enum_boilerplate!(Antargana, {
-    Kutadi => "kutadi",
-    Akusmiya => "akusmiya",
+    Kutadi => "kuwAdi",
+    Akusmiya => "AkusmIya",
+    Asvadiya => "AsvadIya",
+    Adhrshiya => "ADfzIya",
 });
 
 /// One of the three common *sanAdi* pratyayas.
@@ -121,7 +130,7 @@ pub enum Sanadi {
     /// very different form.
     ///
     /// Examples: boBavIti, boBoti, nenayIti, neneti.
-    yaNLuk,
+    yaNluk,
 
     /// `san`, which creates desiderative roots per 3.1.7.
     ///
@@ -135,7 +144,7 @@ enum_boilerplate!(Sanadi, {
     kAmyac => "kAmyac",
     kyaN => "kyaN",
     yaN => "yaN",
-    yaNLuk => "yaN-luk",
+    yaNluk => "yaNluk",
     Ric => "Ric",
 });
 
@@ -247,9 +256,9 @@ impl Dhatu {
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::args::{Dhatu, Gana};
-    /// let bhu = Dhatu::new("BU", Gana::Bhvadi);
-    /// let kr = Dhatu::new("qukf\\Y", Gana::Tanadi);
+    /// # use vidyut_prakriya::args::*;
+    /// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+    /// let kr = Dhatu::mula("qukf\\Y", Gana::Tanadi);
     /// ```
     pub fn mula(upadesha: &str, gana: Gana) -> Self {
         Self::Mula(Muladhatu::new(upadesha, gana))
@@ -259,6 +268,23 @@ impl Dhatu {
     ///
     /// If `sanadi` is `None`, the program will try finding a sanAdi match by appling the
     /// rules in 3.1. If no match is found, the prakriya will abort.
+    ///
+    /// ### Example
+    ///
+    /// With an explicit `Sanadi` pratyaya:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::args::*;
+    /// let putriya = Dhatu::nama(Pratipadika::basic("putra"), Some(Sanadi::kyac));
+    /// let putrakamya = Dhatu::nama(Pratipadika::basic("putra"), Some(Sanadi::kAmyac));
+    /// ````
+    ///
+    /// With an implicit `Sanadi` pratyaya:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::args::*;
+    /// let lohitaya = Dhatu::nama(Pratipadika::basic("lohita"), None);
+    /// ````
     pub fn nama(subanta: Pratipadika, sanadi: Option<Sanadi>) -> Self {
         let sanadi = match sanadi {
             Some(x) => vec![x],

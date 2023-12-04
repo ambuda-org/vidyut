@@ -2,12 +2,12 @@ use crate::args::Krdanta;
 use crate::core::Prakriya;
 
 mod basic;
-mod unadi_sutras;
+mod unadipatha;
 mod utils;
 
 pub fn run(p: &mut Prakriya, args: &Krdanta) -> bool {
     // First, check if the pratyaya is an unAdi-pratyaya.
-    let mut added = unadi_sutras::run(p, args.krt());
+    let mut added = unadipatha::run(p, args.krt());
     if !added {
         added = basic::run(p, args.krt());
     }

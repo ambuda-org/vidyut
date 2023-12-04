@@ -3,7 +3,7 @@ use crate::core::Prakriya;
 
 /// Miscellaneous rules that we should put somewhere else.
 const PADA_ADI: &[&str] = &[
-    "pAda", "danta", "nAsikA", "mAsa", "yUza", "hfdaya", "niSA", "asfj", "dos", "yakft", "Sakft",
+    "pAda", "danta", "nAsikA", "mAsa", "hfdaya", "niSA", "asfj", "yUza", "dos", "yakft", "Sakft",
     "udaka", "Asya",
 ];
 

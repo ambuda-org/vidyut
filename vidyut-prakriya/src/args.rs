@@ -6,8 +6,8 @@ desired purusha and vacana, the dhatu we wish to use, and so on. To better docum
 help users avoid configuration mistakes, we model this information through the enums and structs in
 this module.
 
-For extra flexibility, all of the enums here provides `as_str` and `from_str` methods. For details
-on which strings are valid arguments in `from_str`, please read the source code directly.
+For extra flexibility, all of the pratyaya enums here provides `as_str` and `from_str` methods. For
+details on which strings are valid arguments in `from_str`, please read the source code directly.
 */
 mod macros;
 

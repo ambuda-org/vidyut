@@ -102,16 +102,37 @@ fn do_samprasarana_for_abhyasa(rule: Code, p: &mut Prakriya, i_abhyasa: usize) -
     Some(())
 }
 
-pub fn run_for_dhatu(p: &mut Prakriya) -> Option<()> {
+pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
 
-    let dhatu = p.get(i)?;
+    // Don't apply samprasarana rules twice (for sanAdi-dhatus)
+    let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagSamprasarana))?;
+
+    let n = p.pratyaya(i_n)?;
+    let n_is_lit = n.has_lakshana("li~w");
+    let n_will_be_abhyasta = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
+
+    let set_text = |rule, p: &mut Prakriya, text| {
+        p.run_at(rule, i, |t| {
+            t.set_text(text);
+            t.add_tag(T::FlagSamprasarana);
+        });
+    };
+
+    if dhatu.has_text("hve") && n_will_be_abhyasta {
+        set_text("6.1.33", p, "hu");
+    }
+
+    Some(())
+}
+
+pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_first(T::Dhatu)?;
+    let i_n = p.find_next_where(i, |t| !t.is_empty())?;
 
     // Don't apply samprasarana rules twice (for sanAdi-dhatus)
-    if dhatu.has_tag(T::FlagSamprasarana) {
-        return None;
-    }
+    let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagSamprasarana))?;
 
     let n = p.pratyaya(i_n)?;
     let n_is_yan = n.has_u("yaN");

@@ -306,8 +306,17 @@ fn try_guna_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         // HACK: check for absence of `Nit` on first term to prevent tfnhyAt -> tfRihyAt
         p.run_at("7.3.92", i_anga, op::mit("i"));
     } else if is_sarva_ardha {
+        let is_yan_luk = || {
+            gp.p.find_next_where(i_anga, |t| t.has_u("yaN") && t.is_lupta())
+                .is_some()
+        };
         // Exceptions
-        if anga.has_text_in(&["BU", "sU"]) && n.has_tag(T::Tin) && piti_sarvadhatuke {
+        if anga.has_text_in(&["BU", "sU"])
+            && n.has_tag(T::Tin)
+            && piti_sarvadhatuke
+            // See KV on 7.3.88 for why we exclude yaN-luk forms (boBoti, etc.)
+            && !is_yan_luk()
+        {
             // aBUt, ...
             gp.block("7.3.88");
         } else if anga.has_antya('u') && n.has_adi(&*HAL) && piti_sarvadhatuke {

@@ -17,7 +17,7 @@ fn sk_2564() {
     assert_has_tip(
         &[],
         &cur,
-        Lat,
+        Lit,
         &["corayAYcakAra", "corayAmbaBUva", "corayAmAsa"],
     );
     assert_has_tip(&[], &cur, Lut, &["corayitA"]);
@@ -27,7 +27,7 @@ fn sk_2564() {
     assert_has_ta(&[], &cur, Lun, &["acUcurata"]);
 
     let cint = d("citi~", Curadi);
-    assert_has_tip(&[], &cint, Lat, &["cintayati"]);
+    assert_has_tip(&[], &cint, Lat, &["cintayati", "cintati"]);
     assert_has_tip(&[], &cint, Lun, &["acicintat"]);
     assert_has_tip(&[], &cint, AshirLin, &["cintyAt"]);
     assert_has_ta_k(&[], &cint, Lat, &["cintyate"]);

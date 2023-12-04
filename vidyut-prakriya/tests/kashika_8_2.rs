@@ -4,6 +4,7 @@ use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Pada;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha;
 
@@ -120,7 +121,6 @@ fn sutra_8_2_23() {
     // TODO: others
 }
 
-#[ignore]
 #[test]
 fn sutra_8_2_24() {
     assert_has_sup_6s("mAtf", Stri, &["mAtuH"]);
@@ -758,8 +758,12 @@ fn sutra_8_2_68() {
 #[ignore]
 #[test]
 fn sutra_8_2_69() {
-    assert_has_sandhi("ahan", "dadAti", &["ahar dadAti"]);
-    assert_has_sandhi("ahan", "BuNkte", &["ahar BuNkte"]);
+    let ahan = sup_1s("ahan", "ahan", Napumsaka);
+
+    let dadati = Pada::from_text("dadAti");
+    let bhunkte = Pada::from_text("BuNkte");
+    assert_has_vakya(&ahan, &dadati, &["ahar dadAti"]);
+    assert_has_vakya(&ahan, &bhunkte, &["ahar BuNkte"]);
 
     // a-supi?
     assert_has_sup_3d("ahan", Pum, &["ahoByAm"]);
@@ -827,15 +831,19 @@ fn sutra_8_2_75() {
     assert_has_sip(&[], &d("Ci\\di~^r", Rudhadi), Lan, &["acCinaH", "acCinat"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_8_2_76() {
-    /*
-    assert_has_sup_1s(&dhatu_prati("gir"), Pum, &["gIH"]);
-    assert_has_sup_1s(&dhatu_prati("Dur"), Pum, &["DUH"]);
-    assert_has_sup_1s(&dhatu_prati("pur"), Pum, &["pUH"]);
-    assert_has_sup_1s(&dhatu_prati("ASis"), Pum, &["pUH"]);
-    */
+    let gir = krdanta(&[], &d("gF", Kryadi), Krt::kvip);
+    assert_has_sup_1s(&gir, Pum, &["gIH"]);
+
+    let dhur = krdanta(&[], &d("DurvI~", Bhvadi), Krt::kvip);
+    assert_has_sup_1s(&dhur, Pum, &["DUH"]);
+
+    let pur = krdanta(&[], &d("pF", Kryadi), Krt::kvip);
+    assert_has_sup_1s(&pur, Pum, &["pUH"]);
+
+    let ashis = create_krdanta("ASis", &["AN"], &d("SAsu~\\", Adadi), Krt::kvip);
+    assert_has_sup_1s(&ashis, Pum, &["ASIH"]);
 }
 
 #[test]

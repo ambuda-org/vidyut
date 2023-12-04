@@ -19,6 +19,7 @@ lazy_static = "1.4.0"
 serde = { version = "1.0.150", features = ["derive"] }
 sha2 = "0.10.6"
 sha256 = "1.1.1"
+rayon = "1.6.1"
 wasm-bindgen = "0.2"
 serde-wasm-bindgen = "0.4"
 console_error_panic_hook = "0.1.7"

@@ -164,14 +164,14 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // vAcaMyama, purandara
             p.run("6.3.69", |p| {
                 let mut am = Term::make_upadesha("am");
-                am.add_tags(&[T::Pratyaya, T::Vibhakti, T::Sup, T::V2, T::Pada]);
+                am.add_tags(&[T::Pratyaya, T::Vibhakti, T::Sup, T::V2, T::Pada, T::Aluk]);
                 p.insert_after(i_purva, am);
                 p.set(i_purva, |t| t.remove_tag(T::Pada));
             });
         } else if purva.num_vowels() == 1 && purva.has_antya(&*AC) && !purva.has_antya(&*AA) {
             p.run("6.3.68", |p| {
                 let mut am = Term::make_upadesha("am");
-                am.add_tags(&[T::Pratyaya, T::Vibhakti, T::Sup, T::V2, T::Pada]);
+                am.add_tags(&[T::Pratyaya, T::Vibhakti, T::Sup, T::V2, T::Pada, T::Aluk]);
                 p.insert_after(i_purva, am);
             });
         } else if purva.has_u_in(&["arus", "dvizat"]) || ajanta {

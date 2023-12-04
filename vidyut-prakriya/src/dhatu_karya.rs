@@ -37,13 +37,17 @@ fn add_samjnas(p: &mut Prakriya, i: usize) {
     };
 }
 
-/// Applies rules 1.0933 to 1.0940 from the Dhatupatha.
-fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
+/// Tries applying the gana sutras in the Dhatupatha.
+///
+/// These sutras define various properties over collections of dhatus.
+fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
+    use Gana::*;
     use Rule::Dhatupatha as DP;
 
-    let i = p.find_last(T::Dhatu)?;
     let dhatu = p.get(i)?;
-    let is_bhvadi = dhatu.has_gana(Gana::Bhvadi);
+    let is_bhvadi = dhatu.has_gana(Bhvadi);
+    let is_divadi = dhatu.has_gana(Divadi);
+    let is_curadi = dhatu.has_gana(Curadi);
 
     let has_upasarga = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
 
@@ -71,51 +75,50 @@ fn try_run_bhvadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
     if is_mit_blocked {
         // Do nothing.
     } else if is_bhvadi && dhatu.has_text_in(&["jval", "hval", "hmal", "nam"]) && !has_upasarga {
-        p.optional_run_at(DP("01.0935"), i, op::add_tag(T::mit));
+        p.optional_add_tag_at(DP("01.0935"), i, T::mit);
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
-        p.optional_run_at(DP("01.0936"), i, op::add_tag(T::mit));
-    } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"])
-        && dhatu.has_gana(Gana::Divadi))
-        || (is_bhvadi && dhatu.ends_with("am"))
+        p.optional_add_tag_at(DP("01.0936"), i, T::mit);
+    } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]) && is_divadi)
+        || dhatu.ends_with("am")
     {
-        p.add_tag_at(DP("01.0934"), i, T::mit);
+        if is_curadi {
+            p.step(DP("10.0494"));
+        } else {
+            p.add_tag_at(DP("01.0934"), i, T::mit);
+        }
     } else if is_bhvadi && dhatu.has_u_in(gana::GHAT_ADI) {
         p.add_tag_at(DP("01.0933"), i, T::mit);
     }
 
-    Some(())
-}
-
-fn try_run_divadi_gana_sutras(p: &mut Prakriya) -> Option<()> {
-    use Rule::Dhatupatha as DP;
-
-    let i = p.find_last(T::Dhatu)?;
-    let dhatu = p.get_if(i, |t| t.has_gana(Gana::Divadi))?;
-
-    if dhatu.has_u_in(&[
-        "zUN", "dUN", "dI\\N", "qIN", "DI\\N", "mI\\N", "rI\\N", "lI\\N", "vrI\\N",
-    ]) {
-        // sUna, dUna, dIna, ...
-        p.add_tag_at(DP("04.0162"), i, T::odit);
-    }
-
-    Some(())
-}
-
-fn try_run_curadi_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
-    use Rule::Dhatupatha as DP;
-
-    let dhatu = p.get_if(i, |t| t.has_gana(Gana::Curadi))?;
-
-    if dhatu.has_u_in(gana::JNAP_ADI) {
-        p.add_tag_at(DP("10.0493"), i, T::mit);
-    }
-
     let dhatu = p.get(i)?;
-    if dhatu.has_antargana(Antargana::Akusmiya) {
-        p.run(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
-    } else if dhatu.has_u_in(gana::AAGARVIYA) {
-        p.run(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
+    if is_divadi {
+        if dhatu.has_u_in(&[
+            "zUN", "dUN", "dI\\N", "qIN", "DI\\N", "mI\\N", "rI\\N", "lI\\N", "vrI\\N",
+        ]) {
+            // sUna, dUna, dIna, ...
+            p.add_tag_at(DP("04.0162"), i, T::odit);
+        }
+    } else if is_curadi {
+        if dhatu.has_u_in(gana::JNAP_ADI) {
+            p.add_tag_at(DP("10.0493"), i, T::mit);
+        }
+
+        let dhatu = p.get(i)?;
+        if dhatu.has_antargana(Antargana::Akusmiya) {
+            p.run(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
+        } else if dhatu.has_u_in(gana::AA_GARVIYA) {
+            p.run(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
+        } else if dhatu.has_antargana(Antargana::Adhrshiya) {
+            p.optional_run_at(DP("10.0498"), i, |t| t.add_tag(T::FlagNoNic));
+        } else if dhatu.has_antargana(Antargana::Asvadiya) {
+            p.optional_run_at(DP("10.0499"), i, |t| t.add_tag(T::FlagNoNic));
+        }
+        /*
+        } else if dhatu.has_tag(T::idit) {
+            // cintayati, cintati, ...
+            p.optional_run_at(Rule::Kaumudi("2564"), i, |t| t.add_tag(T::FlagNoNic));
+        }
+        */
     }
 
     Some(())
@@ -237,9 +240,7 @@ pub fn run(p: &mut Prakriya, dhatu: &Muladhatu) -> Result<()> {
 
     // Update `i_dhatu` because we added upasargas above.
     let i_dhatu = p.terms().len() - 1;
-    try_run_bhvadi_gana_sutras(p);
-    try_run_divadi_gana_sutras(p);
-    try_run_curadi_gana_sutras(p, i_dhatu);
+    try_run_gana_sutras(p, i_dhatu);
 
     Ok(())
 }

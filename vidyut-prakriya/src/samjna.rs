@@ -129,6 +129,7 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         "kim",
     ];
 
+    // HACK for nyAp-prAtipadikas
     let mut i = i;
     if p.has(i, |t| t.is_empty()) && i > 0 {
         i = p.find_prev_where(i, |t| !t.is_empty())?;
@@ -195,7 +196,7 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
 
         let prati = p.get(i)?;
         let sup = p.get(i_sup)?;
-        if i_u && !decided && !prati.has_text("saKi") {
+        if i_u && !decided && !(prati.has_text("saKi") && !prati.is_samasa()) {
             if prati.has_text("pati") {
                 if prati.is_samasa() {
                     p.add_tag_at("1.4.8", i_sup - 1, T::Ghi);
@@ -437,7 +438,10 @@ pub fn try_decide_pratipadika(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let t = p.get(i)?;
 
-        if t.is_krt() || t.is_taddhita() || t.is_samasa() {
+        if t.is_pratipadika() {
+            // do nothing. This can occur if we call `try_decide_pratipadika` on nested derivations
+            // (e.g. samana containing pratipadikas).
+        } else if t.is_krt() || t.is_taddhita() || t.is_samasa() {
             p.add_tag_at("1.2.46", i, T::Pratipadika);
         } else if !t.is_dhatu()
             && !t.is_pratyaya()
