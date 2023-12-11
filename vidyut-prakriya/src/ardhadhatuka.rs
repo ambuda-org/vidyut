@@ -30,7 +30,7 @@ fn will_cause_guna(n: &TermView) -> bool {
     let is_apit = !n.has_tag(T::pit);
     !(
         // Parasmaipada Ashir-liN will use yAsuT-Agama, which is kit.
-        (n.has_lakshana("li~N") && n.all(&[T::Ardhadhatuka, T::Parasmaipada]))
+        (n.has_lakshana("li~N") && n.last().has_all_tags(&[T::Ardhadhatuka, T::Parasmaipada]))
         // sArvadhAtukam apit will be Nit.
         || (n.has_tag(T::Sarvadhatuka) && is_apit)
         // apit liT when not after samyoga will be kit.
@@ -82,7 +82,7 @@ pub fn dhatu_adesha_before_pada(p: &mut Prakriya, la: Lakara) {
         }
         if use_khya {
             // AkSAtA, AkSAtum, AkSAtavya, ...
-            let ksha = p.optionally(Varttika("2.4.54", "1"), |rule, p| {
+            let ksha = p.optionally(Varttika("2.4.54.1"), |rule, p| {
                 op::upadesha_no_it(p, i, "kSAY");
                 // Remove tags set by `ca\kzi~\N`
                 p.set(i, |t| {
@@ -151,7 +151,7 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
             }
         }
     } else if dhatu.has_u_in(&["i\\R", "i\\k"]) {
-        let code_invat = "2.4.45.v1";
+        let code_invat = Varttika("2.4.45.1");
         let is_ik = dhatu.has_u("i\\k");
 
         let n = p.pratyaya(j)?;
@@ -232,7 +232,7 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         let will_have_valadi = !(will_yasut || is_lit_ajadi);
         // HACK: ignore Rvul, since it will be replaced with -aka.
         if n.has_adi(&*VAL) && will_have_valadi && !n.has_text("vu~") {
-            run = !p.optionally("2.4.56.v2", |rule, p| p.step(rule));
+            run = !p.optionally(Varttika("2.4.56.2"), |rule, p| p.step(rule));
         }
         if run {
             // aniT-tva comes from anudAtta in upadesha.

@@ -2,11 +2,12 @@ use crate::args::Gana;
 use crate::core::char_view::{get_at, get_term_and_offset_indices, CharPrakriya};
 use crate::core::iterators::xy_rule;
 use crate::core::operators as op;
+use crate::core::term::TermString;
+use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::dhatu_gana;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
-use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -66,11 +67,11 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
                 if p.has_tag(T::Napumsaka) {
                     // "vA napuMsakAnAm"
                     // (nAman, nAma)
-                    blocked = p.optional_run("8.2.8.v1", |_| {});
+                    blocked = p.optional_run(Varttika("8.2.8.3"), |_| {});
                 } else if sup.has_u("Ni") && p.find_next_where(i_prati, |t| t.is_samasa()).is_some()
                 {
                     // carmatilaH, ...
-                    p.step(Rule::Varttika("8.2.8", "1"));
+                    p.step(Rule::Varttika("8.2.8.1"));
                 } else {
                     // sambuddhi: yogin, Atman
                     // ni: vyoman, Sarman, etc. (vedic)
@@ -80,7 +81,7 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
             }
 
             let prati = p.get(i_prati)?;
-            if !blocked && !prati.is_upasarga() {
+            if !blocked && !prati.is_upasarga() && !prati.has_tag(T::FlagPratipadikaTiLopa) {
                 // rAjA, rAjaByAm, ...
                 // (these can be called `pada` by 1.4.17.
                 // HACK to ignore upasargas for unnI, due to multiple passes of
@@ -259,6 +260,10 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
 
             let mut num_hals = 0;
             if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
+                if p.has(i_term, |t| t.has_tag(T::FlagPratipadikaTiLopa)) {
+                    return false;
+                }
+
                 for i in i_term..p.terms().len() {
                     let start = if i == i_term { i_offset } else { 0 };
                     let cur = p.get(i).expect("ok");
@@ -302,7 +307,10 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
         if p.is_pada(i) && p.has(i, |t| !t.is_empty()) {
             loop {
                 let view = p.custom_view(0, i)?;
-                if view.last().has_tag(T::FlagAntyaAcSandhi) {
+                if view
+                    .last()
+                    .has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa])
+                {
                     // This term doesn't actually end in a final consonant, so it is not in scope.
                     break;
                 }
@@ -350,15 +358,17 @@ fn try_ha_adesha(p: &mut Prakriya) -> Option<()> {
         };
 
         if jhali_or_ante {
-            if is_dhatu {
-                let dhatu = p.get(i)?;
-                if dhatu.has_u_in(DRUHA_ADI) {
+            let dhatu = p.get(i)?;
+            // Explicitly check for `h` to bypass unAdi derivations like mUrKa, naKa, ...
+            if is_dhatu && dhatu.has_antya('h') {
+                if dhatu.has_u_in(DRUHA_ADI) && dhatu.has_antya('h') {
+                    // drogDA, ...
                     p.optional_run("8.2.33", |p| p.set(i, op::antya("G")));
                 } else if dhatu.has_u("Ra\\ha~^") {
                     p.run_at("8.2.34", i, op::antya("D"));
                 } else if dhatu.has_text("Ah") {
                     p.run_at("8.2.35", i, op::antya("T"));
-                } else if dhatu.has_adi('d') && dhatu.has_antya('h') {
+                } else if dhatu.has_adi('d') {
                     p.run_at("8.2.32", i, op::antya("G"));
                 }
             }
@@ -436,6 +446,10 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
             }
         })?;
 
+        if x.has_tag_in(&[T::FlagPratipadikaTiLopa, T::FlagAntyaAcSandhi]) {
+            continue;
+        }
+
         let is_ante = p.is_pada(i);
         let is_jhali = match p.find_next_where(i, |t| !t.is_empty()) {
             Some(j) => {
@@ -500,14 +514,18 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         if c.is_none() {
             continue;
         }
-        let c = c.expect("ok");
+        let t = c.expect("ok");
 
         // HACK to exclude erroneous sandhi on (upa -> up -> ub)
-        let is_pada = p.is_pada(i) && !(c.is_upasarga() && !c.has_u("ud"));
-        let has_exception = c.has_antya(&*JHAL_TO_JASH_EXCEPTIONS) || is_sa_sajush(p, i);
+        let is_pada = p.is_pada(i) && !(t.is_upasarga() && !t.has_u("ud"));
+        let has_exception = t.has_antya(&*JHAL_TO_JASH_EXCEPTIONS) || is_sa_sajush(p, i);
 
-        if c.has_antya(&*JHAL) && !has_exception && is_pada && !c.has_tag(T::FlagAntyaAcSandhi) {
-            let key = c.antya()?;
+        if t.has_antya(&*JHAL)
+            && !has_exception
+            && is_pada
+            && !t.has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa])
+        {
+            let key = t.antya()?;
             let sub = JHAL_TO_JASH.get(key)?;
             p.run_at("8.2.39", i, op::antya(&sub.to_string()));
         }
@@ -834,7 +852,7 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) {
                 let dhatu = &p.terms()[i];
                 let n = dhatu.len();
                 p.set(i, |t| {
-                    t.text = CompactString::from(&t.text[..n - 3]) + &sub + &t.text[n - 2..]
+                    t.text = TermString::from(&t.text[..n - 3]) + &sub + &t.text[n - 2..]
                 });
             });
         }

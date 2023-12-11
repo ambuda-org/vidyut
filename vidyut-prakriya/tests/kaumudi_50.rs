@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 
-#[ignore]
 #[test]
 fn sk_2547() {
     let tan = d("tanu~^", Tanadi);
@@ -31,17 +30,19 @@ fn sk_2547() {
     assert_has_ta(&[], &kshan, Lun, &["akzata", "akzaRizwa"]);
     assert_has_thaas(&[], &kshan, Lun, &["akzaTAH", "akzaRizWAH"]);
 
+    // Per SK, `u` indicates optional upaDA-guna.
+    // This seems to extend to fRu, tfRu, GfRu, etc. per other sources.
     let kshin = d("kziRu~^", Tanadi);
     assert_has_tip(&[], &kshin, Lat, &["kziRoti", "kzeRoti"]);
     assert_has_sip(&[], &kshin, Lut, &["kzeRitAsi"]);
     assert_has_thaas(&[], &kshin, Lut, &["kzeRitAse"]);
     assert_has_tip(&[], &kshin, Lun, &["akzeRIt"]);
-    assert_has_tip(&[], &kshin, Lun, &["akzita", "akzeRizwa"]);
+    assert_has_ta(&[], &kshin, Lun, &["akzita", "akzeRizwa"]);
 
     let rn = d("fRu~^", Tanadi);
-    assert_has_tip(&[], &rn, Lat, &["arRoti"]);
-    assert_has_tas(&[], &rn, Lat, &["arRutaH"]);
-    assert_has_jhi(&[], &rn, Lat, &["arRvanti"]);
+    assert_has_tip(&[], &rn, Lat, &["arRoti", "fRoti"]);
+    assert_has_tas(&[], &rn, Lat, &["arRutaH", "fRutaH"]);
+    assert_has_jhi(&[], &rn, Lat, &["arRvanti", "fRvanti"]);
     assert_has_tip(&[], &rn, Lit, &["AnarRa"]);
     assert_has_ta(&[], &rn, Lit, &["AnfRe"]);
     assert_has_thaas(&[], &rn, Lut, &["arRitAse"]);
@@ -51,7 +52,7 @@ fn sk_2547() {
 
     let trn = d("tfRu~^", Tanadi);
     assert_has_tip(&[], &trn, Lat, &["tfRoti", "tarRoti"]);
-    assert_has_ta(&[], &trn, Lat, &["tfRute"]);
+    assert_has_ta(&[], &trn, Lat, &["tfRute", "tarRute"]);
 
     let ghrn = d("GfRu~^", Tanadi);
     assert_has_tip(&[], &ghrn, Lit, &["jaGarRa"]);

@@ -58,6 +58,8 @@ pub enum Taddhita {
     izWan,
     /// -Ika,
     Ikak,
+    /// -Ika,
+    Ikan,
     /// -Iyas
     Iyasun,
     /// -eRya
@@ -380,6 +382,7 @@ enum_boilerplate!(Taddhita, {
     ilac => "ilac",
     izWan => "izWan",
     Ikak => "Ikak",
+    Ikan => "Ikan",
     Iyasun => "Iyasu~n",
     eRya => "eRya",
     Erak => "Erak",
@@ -611,7 +614,7 @@ pub enum TaddhitaArtha {
     Unchati,
     /// What is protected. (4.4.33)
     TadRakshati,
-    /// Who does this. ($.4.34)
+    /// Who does this. (4.4.34)
     Karoti,
     /// What one kills. (4.4.35)
     Hanti,
@@ -683,6 +686,8 @@ pub enum TaddhitaArtha {
     TadAsyaTadAsminSyat,
     /// What is bought with this. (5.1.37)
     TenaKritam,
+    /// For the sake of this, when the meaning is a relation or appearance. (5.1.38)
+    TasyaNimittamSamyogotpattau,
     /// Sown with this. (5.1.45)
     TasyaVapa,
     /// In which this is an interest, rent, profit, tax, or bribe. (5.1.47)
@@ -691,6 +696,8 @@ pub enum TaddhitaArtha {
     TadDharatiVahatiAvahati,
     /// What is capable of this, or holds this, or cooks this. (5.152)
     SambhavatiAharatiPacati,
+    /// The measure of this. (5.1.57)
+    TadAsyaParimanam,
     /// One deserves this. (5.1.63)
     TadArhati,
     /// One performs this. (5.1.72)
@@ -701,6 +708,14 @@ pub enum TaddhitaArtha {
     Gacchati,
     /// Who deserves approach (5.1.74 vArttika)
     AbhigamanamArhati,
+    /// What is conveyed by that way. (5.1.77)
+    Ahrtam,
+    /// Completed by this time. (5.1.79)
+    TenaNirvrttam,
+    /// For which time one instructs, is paid, existed, or will exist. (5.1.80)
+    TamAdhisteBhrtoBhutoBhavi,
+    /// Age. (5.1.81)
+    Vayasi,
     /// The existence of which. (5.1.119)
     TasyaBhava,
     /// A place of growing, when that place is a field. (5.2.1)

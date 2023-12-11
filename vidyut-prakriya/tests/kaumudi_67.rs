@@ -417,6 +417,73 @@ fn unadi_4_189() {
 }
 
 #[test]
+fn unadi_5_2() {
+    assert_has_krdanta(&[], &d("guDa~", Divadi), Unadi::Uma, &["goDUma"]);
+}
+
+#[test]
+fn unadi_5_3() {
+    assert_has_krdanta(&[], &d("masI~", Divadi), Unadi::Uran, &["masUra"]);
+}
+
+#[test]
+fn unadi_5_4() {
+    assert_has_krdanta(&[], &d("zWA\\", Bhvadi), Unadi::Uran, &["sTUra"]);
+}
+
+#[test]
+fn unadi_5_5() {
+    assert_has_krdanta(&[], &d("pA\\", Adadi), Unadi::ati_, &["pAti"]);
+}
+
+#[test]
+fn unadi_5_6() {
+    assert_has_krdanta(&[], &d("vA\\", Adadi), Unadi::ati_, &["vAti"]);
+}
+
+#[test]
+fn unadi_5_7() {
+    assert_has_krdanta(&[], &d("f\\", Bhvadi), Unadi::ati_, &["arati"]);
+}
+
+#[test]
+fn unadi_5_8() {
+    assert_has_krdanta(&[], &d("tfhU~", Tudadi), Unadi::kna, &["tfRa"]);
+}
+
+#[ignore]
+#[test]
+fn unadi_5_12() {
+    assert_has_krdanta(&["ud"], &d("ci\\Y", Svadi), Unadi::qEsi, &["uccEH"]);
+}
+
+#[ignore]
+#[test]
+fn unadi_5_13() {
+    assert_has_krdanta(&["ni"], &d("ci\\Y", Svadi), Unadi::qEsi, &["nIcEH"]);
+}
+
+#[test]
+fn unadi_5_15() {
+    assert_has_krdanta(&[], &d("pUY", Kryadi), Unadi::yat, &["puRya"]);
+}
+
+#[test]
+fn unadi_5_22() {
+    assert_has_krdanta(&[], &d("mu\\ha~", Divadi), Unadi::Ka, &["mUrKa"]);
+}
+
+#[test]
+fn unadi_5_23() {
+    assert_has_krdanta(&[], &d("Ra\\ha~^", Divadi), Unadi::Ka, &["naKa"]);
+}
+
+#[test]
+fn unadi_5_25() {
+    assert_has_krdanta(&[], &d("mA\\N", Divadi), Unadi::UKa, &["mayUKa"]);
+}
+
+#[test]
 fn unadi_5_68() {
     assert_has_krdanta(&[], &d("praTa~\\", Bhvadi), Unadi::amac, &["praTama"]);
 }

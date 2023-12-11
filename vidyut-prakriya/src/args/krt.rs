@@ -17,6 +17,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
 pub enum BaseKrt {
     /// -a
     a,
+    /// -a,
+    aN,
     /// -a
     ac,
     /// -a
@@ -221,6 +223,7 @@ pub enum BaseKrt {
 
 enum_boilerplate!(BaseKrt, {
     a => "a",
+    aN => "aN",
     ac => "ac",
     aR => "aR",
     atfn => "atf~n",

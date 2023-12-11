@@ -3,6 +3,7 @@ use crate::core::char_view::{
     get_at, get_term_and_offset_indices, get_term_index_at, xy, xyz, CharPrakriya,
 };
 use crate::core::operators as op;
+use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
@@ -147,10 +148,10 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
         } else if y.has_lakshana("lo~w") && y.has_u("ni") {
             if x.has_u("dur") {
                 // TODO: extend
-                p.step("1.4.60.v3");
+                p.step(Varttika("1.4.60.3"));
             } else if x.has_u("antar") {
                 // TODO: extend
-                p.step("1.4.65.v1");
+                p.step(Varttika("1.4.65.1"));
             } else {
                 // pravapARi
                 p.run("8.4.16", |p| p.set_char_at(i_n, "R"));

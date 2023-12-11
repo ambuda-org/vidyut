@@ -239,19 +239,7 @@ fn sutra_7_3_50() {
 }
 
 #[test]
-fn sutra_7_3_52() {
-    let pac = d("qupa\\ca~^z", Bhvadi);
-    assert_has_krdanta(&[], &pac, Krt::GaY, &["pAka"]);
-    assert_has_krdanta(&[], &d("tya\\ja~", Bhvadi), Krt::GaY, &["tyAga"]);
-    assert_has_krdanta(&[], &d("ra\\nja~^", Bhvadi), Krt::GaY, &["rAga", "raNga"]);
-
-    assert_has_krdanta(&[], &pac, Krt::Ryat, &["pAkya", "pAcya"]);
-    assert_has_krdanta(&[], &d("va\\ca~", Bhvadi), Krt::Ryat, &["vAkya", "vAcya"]);
-    assert_has_krdanta(&[], &d("ri\\ci~^r", Bhvadi), Krt::Ryat, &["rekya", "recya"]);
-}
-
-#[test]
-fn sutra_7_3_53() {
+fn sutra_7_3_51() {
     // is
     assert_has_taddhita("sarpis", T::Wak, &["sArpizka"]);
     // us
@@ -266,6 +254,18 @@ fn sutra_7_3_53() {
     assert_has_taddhita("udaSvit", T::Wak, &["OdaSvitka"]);
     assert_has_taddhita("Sakft", T::Wak, &["SAkftka"]);
     assert_has_taddhita("yakft", T::Wak, &["yAkftka"]);
+}
+
+#[test]
+fn sutra_7_3_52() {
+    let pac = d("qupa\\ca~^z", Bhvadi);
+    assert_has_krdanta(&[], &pac, Krt::GaY, &["pAka"]);
+    assert_has_krdanta(&[], &d("tya\\ja~", Bhvadi), Krt::GaY, &["tyAga"]);
+    assert_has_krdanta(&[], &d("ra\\nja~^", Bhvadi), Krt::GaY, &["rAga", "raNga"]);
+
+    assert_has_krdanta(&[], &pac, Krt::Ryat, &["pAkya", "pAcya"]);
+    assert_has_krdanta(&[], &d("va\\ca~", Bhvadi), Krt::Ryat, &["vAkya", "vAcya"]);
+    assert_has_krdanta(&[], &d("ri\\ci~^r", Bhvadi), Krt::Ryat, &["rekya", "recya"]);
 }
 
 #[test]

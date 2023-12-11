@@ -1144,13 +1144,7 @@ fn sutra_7_2_65() {
 
 #[test]
 fn sutra_7_2_66() {
-    // TODO: check jaGasTa
-    assert_has_sip(
-        &[],
-        &d("a\\da~", Adadi),
-        Lit,
-        &["AdiTa", "jaGasiTa", "jaGasTa"],
-    );
+    assert_has_sip(&[], &d("a\\da~", Adadi), Lit, &["AdiTa", "jaGasiTa"]);
     assert_has_sip(&[], &d("f\\", Bhvadi), Lit, &["AriTa"]);
     assert_has_sip(&[], &d("vye\\Y", Bhvadi), Lit, &["vivyayiTa"]);
 }
@@ -1273,23 +1267,32 @@ fn sutra_7_2_76() {
 
 #[test]
 fn sutra_7_2_77() {
-    let is = d("ISa~\\", Adadi);
-    assert_has_tinantas(
-        &[],
-        &is,
-        Lakara::Lat,
-        Purusha::Madhyama,
-        Vacana::Eka,
-        &["ISize"],
-    );
-    assert_has_tinantas(
-        &[],
-        &is,
-        Lakara::Lot,
-        Purusha::Madhyama,
-        Vacana::Eka,
-        &["ISizva"],
-    );
+    let ish = d("ISa~\\", Adadi);
+    assert_has_thaas(&[], &ish, Lat, &["ISize"]);
+    assert_has_thaas(&[], &ish, Lot, &["ISizva"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_7_2_78() {
+    let id = d("Iqa~\\", Adadi);
+    assert_has_dhvam(&[], &id, Lat, &["IqiDve"]);
+    assert_has_dhvam(&[], &id, Lot, &["IqiDvam"]);
+    assert_has_thaas(&[], &id, Lat, &["Iqize"]);
+    assert_has_thaas(&[], &id, Lot, &["Iqizva"]);
+
+    // TODO: let jan = d("janI~\\", Divadi);
+
+    // HACK: force atmanepada by adding anudAttet.
+    let jan = d("jana~", Juhotyadi);
+    assert_has_thaas(&["vi", "ati"], &jan, Lat, &["vyatijajYize"]);
+    assert_has_thaas(&["vi", "ati"], &jan, Lot, &["vyatijajYizva"]);
+    assert_has_dhvam(&["vi", "ati"], &jan, Lat, &["vyatijajYiDve"]);
+    assert_has_dhvam(&["vi", "ati"], &jan, Lot, &["vyatijajYiDvam"]);
+
+    let ish = d("ISa~\\", Adadi);
+    assert_has_dhvam(&[], &ish, Lat, &["ISiDve"]);
+    assert_has_dhvam(&[], &ish, Lot, &["ISiDvam"]);
 }
 
 #[test]

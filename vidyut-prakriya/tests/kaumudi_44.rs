@@ -11,7 +11,6 @@ fn sk_2423() {
     assert_has_jhi(&[], &ad, Lat, &["adanti"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2424() {
     // AduH justified by KV 2.4.40.
@@ -206,9 +205,28 @@ fn sk_2437() {
 }
 
 #[test]
+fn sk_2438() {
+    let caksh = d("ca\\kzi~\\N", Adadi);
+    assert_has_tip(&[], &caksh, Lun, &["aKyat", "akSAsIt"]);
+    assert_has_ta(&[], &caksh, Lun, &["aKyata", "akSAsta"]);
+
+    let ir = d("Ira~\\", Adadi);
+    assert_has_ta(&[], &ir, Lat, &["Irte"]);
+    assert_has_ta(&[], &ir, Lit, &["IrAYcakre", "IrAmAsa", "IrAmbaBUva"]);
+    assert_has_ta(&[], &ir, Lut, &["IritA"]);
+    assert_has_ta(&[], &ir, Lrt, &["Irizyate"]);
+    assert_has_ta(&[], &ir, Lot, &["IrtAm"]);
+    assert_has_thaas(&[], &ir, Lot, &["Irzva"]);
+    assert_has_dhvam(&[], &ir, Lot, &["IrDvam"]);
+    assert_has_ta(&[], &ir, Lun, &["Erizwa"]);
+
+    let id = d("Iqa~\\", Adadi);
+    assert_has_ta(&[], &id, Lat, &["Iwwe"]);
+}
+
+#[test]
 fn skip_sk_2439() {}
 
-#[ignore]
 #[test]
 fn sk_2440() {
     let id = d("Iqa~\\", Adadi);
@@ -522,7 +540,6 @@ fn sk_2456() {
     assert_has_tip(&[], &i, AshirLin, &["IyAt"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2457() {
     let i = d("i\\R", Adadi);
@@ -530,7 +547,7 @@ fn sk_2457() {
     assert_has_tip(&["aBi"], &i, AshirLin, &["aBIyAt"]);
     assert_has_tip(&["sam", "AN"], &i, AshirLin, &["sameyAt"]);
 
-    assert_has_tip(&["sam"], &i, AshirLin, &["samIyAt"]);
+    assert_has_tip(&["sam"], &d("I", Bhvadi), AshirLin, &["samIyAt"]);
 }
 
 #[test]
@@ -754,6 +771,15 @@ fn sk_2471() {
 
 #[ignore]
 #[test]
+fn sk_2472() {
+    let as_ = d("asa~", Adadi);
+    assert_has_tip(&["prAdus"], &as_, VidhiLin, &["prAduHzyAt", "prAduzzyAt"]);
+    assert_has_jhi(&["ni"], &as_, Lat, &["nizanti"]);
+    assert_has_jhi(&["prAdus"], &as_, Lat, &["prAduHzanti", "prAduzzanti"]);
+    assert_has_tas(&["aBi"], &as_, Lat, &["aBistaH"]);
+}
+
+#[test]
 fn sk_2473() {
     let mrj = d("mfjU~", Adadi);
     assert_has_tip(&[], &mrj, Lat, &["mArzwi"]);
@@ -761,9 +787,9 @@ fn sk_2473() {
     assert_has_jhi(&[], &mrj, Lat, &["mfjanti", "mArjanti"]);
     assert_has_tip(&[], &mrj, Lit, &["mamArja"]);
     assert_has_tas(&[], &mrj, Lit, &["mamArjatuH", "mamfjatuH"]);
-    assert_has_sip(&[], &mrj, Lat, &["mamArjiTa", "mamArzWa"]);
+    assert_has_sip(&[], &mrj, Lit, &["mamArjiTa", "mamArzWa"]);
     assert_has_tip(&[], &mrj, Lut, &["mArjitA", "mArzwA"]);
-    assert_has_tip(&[], &mrj, Lot, &["mfqQi", "mrzwAt"]);
+    assert_has_sip(&[], &mrj, Lot, &["mfqQi", "mfzwAt"]);
     assert_has_tip(&[], &mrj, Lan, &["amArw"]);
     assert_has_mip(&[], &mrj, Lan, &["amArjam"]);
     assert_has_tip(&[], &mrj, Lun, &["amArjIt", "amArkzIt"]);
@@ -894,7 +920,6 @@ fn sk_2482() {
     assert_has_tas(&[], &daridra, Lat, &["daridritaH"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2483() {
     let daridra = d("daridrA", Adadi);
@@ -904,23 +929,43 @@ fn sk_2483() {
         &[],
         &daridra,
         Lit,
-        &["daridrAYcakAra", "daridrAmbaBUva", "daridrAmAsa"],
+        &[
+            "daridrAYcakAra",
+            "daridrAmbaBUva",
+            "daridrAmAsa",
+            "dadaridrO",
+        ],
     );
-    assert_has_tip(&[], &daridra, Lit, &["dadaridrO"]);
-    assert_has_tas(&[], &daridra, Lit, &["dadaridratuH"]);
+    assert_has_tas(
+        &[],
+        &daridra,
+        Lit,
+        &[
+            "daridrAYcakratuH",
+            "daridrAmbaBUvatuH",
+            "daridrAmAsatuH",
+            "dadaridratuH",
+        ],
+    );
     assert_has_tip(&[], &daridra, Lut, &["daridritA"]);
     assert_has_tip(&[], &daridra, Lan, &["adaridrAt"]);
     assert_has_tas(&[], &daridra, Lan, &["adaridritAm"]);
     assert_has_jhi(&[], &daridra, Lan, &["adaridruH"]);
     assert_has_tip(&[], &daridra, VidhiLin, &["daridriyAt"]);
     assert_has_tip(&[], &daridra, AshirLin, &["daridryAt"]);
-    assert_has_tip(&[], &daridra, Lun, &["adiridrIt", "adaridrAsIt"]);
+    assert_has_tip(&[], &daridra, Lun, &["adaridrIt", "adaridrAsIt"]);
 
     let cakas = d("cakAsf~", Adadi);
     assert_has_tip(&[], &cakas, Lat, &["cakAsti"]);
-    assert_has_tip(&[], &cakas, Lat, &["cakAsati"]);
-    assert_has_tip(&[], &cakas, Lat, &["cakAsAMcakAra"]);
-    assert_has_tip(&[], &cakas, Lat, &["cakAdDi"]);
+    assert_has_jhi(&[], &cakas, Lat, &["cakAsati"]);
+    assert_has_tip(
+        &[],
+        &cakas,
+        Lit,
+        &["cakAsAYcakAra", "cakAsAmAsa", "cakAsAmbaBUva"],
+    );
+    // We can't support cakAdDi per "sica evetyeke" because this blocks "tAs + Dve -> tADve".
+    assert_has_sip(&[], &cakas, Lot, &["cakADi", "cakAstAt"]);
 }
 
 #[test]

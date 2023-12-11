@@ -13,12 +13,20 @@ use crate::args::Antargana;
 use crate::args::Gana;
 use crate::core::errors::*;
 use crate::core::operators as op;
+use crate::core::Rule::Kaumudi;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::samjna;
+use crate::sounds::{s, Set};
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref HAL: Set = s("hal");
+}
 
 /// Adds the mula-dhatu to the prakriya.
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Muladhatu) {
@@ -37,6 +45,21 @@ fn add_samjnas(p: &mut Prakriya, i: usize) {
     };
 }
 
+fn hacky_unclear_has_samyoga_before_a(t: &Term) -> bool {
+    // TODO: this prinicple seems to apply widely but SK applies it narrowly. Not sure why. For
+    // now, restrict to the specific dhatus that SK mentions.
+    t.has_u_in(&["mUtra", "katra", "karta", "garva"])
+    /*
+    let len = t.text.len();
+    if len < 3 {
+        false
+    } else {
+        // katra, mUtra, ...
+        t.has_antya('a') && t.has_at(len - 2, &*HAL) && t.has_at(len - 3, &*HAL)
+    }
+    */
+}
+
 /// Tries applying the gana sutras in the Dhatupatha.
 ///
 /// These sutras define various properties over collections of dhatus.
@@ -49,24 +72,31 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     let is_divadi = dhatu.has_gana(Divadi);
     let is_curadi = dhatu.has_gana(Curadi);
 
-    let has_upasarga = p.find_prev_where(i, |t| t.is_upasarga()).is_some();
+    let has_upasarga = p.has_prev_non_empty(i, |t| t.is_upasarga());
 
     // Exceptions to the general mittva rules below.
     let mut is_mit_blocked = false;
     if is_bhvadi {
         if dhatu.has_text_in(&["kam", "am", "cam"]) {
+            // kAmayate, Amayati, cAmayati
             p.step(DP("01.0937"));
             is_mit_blocked = true;
         } else if dhatu.has_u("Samo~") {
             is_mit_blocked = p.optional_run(DP("01.0938"), |_| {})
-        } else if dhatu.has_text("yam") && is_bhvadi {
-            is_mit_blocked = p.optional_run(DP("01.0939"), |_| {})
-        } else if dhatu.has_u("sKadi~\\r")
-            && i > 0
-            && p.has(i - 1, |t| t.has_u_in(&["ava", "pari"]))
-        {
-            p.step(DP("01.0940"));
+        } else if dhatu.has_u("yama~") && is_bhvadi && p.has_prev_non_empty(i, |t| t.has_u("AN")) {
+            // AyAmayati
+            // (include only "yama~ aparivezaRe")
+            p.step(DP("01.0939"));
             is_mit_blocked = true;
+        } else if dhatu.has_u("sKadi~\\r") {
+            if p.has_prev_non_empty(i, |t| t.has_u_in(&["ava", "pari"])) {
+                // avasKAdayati, parisKAdayati
+                p.step(DP("01.0940"));
+                is_mit_blocked = true;
+            } else if p.has_prev_non_empty(i, |t| t.has_u("apa")) {
+                // apasKAdayati, apasKadayati
+                is_mit_blocked = p.optional_run(Kaumudi("2353"), |_| {});
+            }
         }
     }
 
@@ -78,7 +108,7 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
         p.optional_add_tag_at(DP("01.0935"), i, T::mit);
     } else if dhatu.has_text_in(&["glE", "snA", "van", "vam"]) && !has_upasarga {
         p.optional_add_tag_at(DP("01.0936"), i, T::mit);
-    } else if (dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]) && is_divadi)
+    } else if (is_divadi && dhatu.has_u_in(&["janI~\\", "jFz", "knasu~", "ra\\nja~^"]))
         || dhatu.ends_with("am")
     {
         if is_curadi {
@@ -86,8 +116,21 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
         } else {
             p.add_tag_at(DP("01.0934"), i, T::mit);
         }
-    } else if is_bhvadi && dhatu.has_u_in(gana::GHAT_ADI) {
+    } else if is_bhvadi && dhatu.has_antargana(Antargana::Ghatadi) {
         p.add_tag_at(DP("01.0933"), i, T::mit);
+    } else if is_bhvadi
+        && dhatu.has_u_in(&[
+            "dala~",
+            "vala~\\",
+            "sKala~",
+            "raRa~",
+            "Dvana~",
+            "trapU~\\z",
+            "kzE\\",
+        ])
+    {
+        // dalayati, valayati, ...
+        p.add_tag_at(DP("01.0944"), i, T::mit);
     }
 
     let dhatu = p.get(i)?;
@@ -97,28 +140,64 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
         ]) {
             // sUna, dUna, dIna, ...
             p.add_tag_at(DP("04.0162"), i, T::odit);
+        } else if dhatu.has_u("Sa\\ka~^") {
+            // SaktA, SakitA
+            p.optional_run_at(Kaumudi("2514"), i, |t| t.remove_tag(T::Anudatta));
+        }
+    } else if dhatu.has_gana(Gana::Tudadi) {
+        if dhatu.has_u("vi\\dx~^") {
+            // vettA, veditA
+            p.optional_run_at(Kaumudi("2542"), i, |t| t.remove_tag(T::Anudatta));
+        }
+    } else if dhatu.has_gana(Gana::Tanadi) {
+        if dhatu.has_u("vanu~\\") {
+            // vanute, vanoti
+            p.optional_run_at(Kaumudi("2547"), i, |t| t.remove_tag(T::anudattet));
         }
     } else if is_curadi {
         if dhatu.has_u_in(gana::JNAP_ADI) {
             p.add_tag_at(DP("10.0493"), i, T::mit);
         }
 
+        // First decide Ric-pratyaya, since this affects the scope of AkusmIya, etc.
         let dhatu = p.get(i)?;
-        if dhatu.has_antargana(Antargana::Akusmiya) {
-            p.run(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
-        } else if dhatu.has_u_in(gana::AA_GARVIYA) {
-            p.run(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
-        } else if dhatu.has_antargana(Antargana::Adhrshiya) {
-            p.optional_run_at(DP("10.0498"), i, |t| t.add_tag(T::FlagNoNic));
+        if dhatu.has_antargana(Antargana::Adhrshiya) {
+            p.optional_add_tag_at(DP("10.0498"), i, T::FlagNoNic);
         } else if dhatu.has_antargana(Antargana::Asvadiya) {
-            p.optional_run_at(DP("10.0499"), i, |t| t.add_tag(T::FlagNoNic));
-        }
-        /*
+            p.optional_add_tag_at(DP("10.0499"), i, T::FlagNoNic);
         } else if dhatu.has_tag(T::idit) {
             // cintayati, cintati, ...
-            p.optional_run_at(Rule::Kaumudi("2564"), i, |t| t.add_tag(T::FlagNoNic));
+            p.optional_add_tag_at(Kaumudi("2564"), i, T::FlagNoNic);
+        } else if dhatu.has_antya('F') {
+            // pArayati, parati, ...
+            p.optional_add_tag_at(Kaumudi("2565"), i, T::FlagNoNic);
+        } else if dhatu.has_tag_in(&[T::Yit, T::udit]) {
+            // cayayati, cayati, ...
+            p.optional_add_tag_at(Kaumudi("2570"), i, T::FlagNoNic);
+        } else if dhatu.has_u("Guzi~r") {
+            // Gozayati, Gozati, ...
+            p.optional_add_tag_at(Kaumudi("2571"), i, T::FlagNoNic);
+        } else if dhatu.has_tag(T::Idit) {
+            // pUrayati, pUrati, ...
+            p.optional_add_tag_at(Kaumudi("2572"), i, T::FlagNoNic);
+        } else if dhatu.has_u("pata") {
+            let va_nijanta = p.optional_add_tag_at(Kaumudi("2573.1"), i, T::FlagNoNic);
+            if !va_nijanta {
+                p.optional_run_at(Kaumudi("2573.2"), i, |t| t.set_antya(""));
+            }
+        } else if hacky_unclear_has_samyoga_before_a(dhatu) {
+            // katrayati, katrati, ...
+            p.optional_add_tag_at(Kaumudi("2573.3"), i, T::FlagNoNic);
         }
-        */
+
+        let dhatu = p.get(i)?;
+        if !dhatu.has_tag(T::FlagNoNic) {
+            if dhatu.has_antargana(Antargana::Akusmiya) {
+                p.run(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
+            } else if dhatu.has_u_in(gana::AA_GARVIYA) {
+                p.run(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
+            }
+        }
     }
 
     Some(())
@@ -129,10 +208,10 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
     if dhatu.has_adi('z') {
         if dhatu.has_text_in(&["zWiv", "zvazk"]) {
             // Varttika -- no change for zWiv or zvask
-            p.step("6.1.64.v1");
+            p.step(Varttika("6.1.64.1"));
         } else if dhatu.has_prefix_in(&["zw", "zW", "zR", "zaR"]) {
             // Varttika -- also change the next sound
-            p.run_at("6.1.64.v2", i, |t| {
+            p.run_at(Varttika("6.1.64.2"), i, |t| {
                 match &t.text[..2] {
                     "zw" => t.text.replace_range(..2, "st"),
                     "zW" => t.text.replace_range(..2, "sT"),
@@ -160,7 +239,7 @@ fn try_satva_and_natva(p: &mut Prakriya, i: usize) -> Option<()> {
             t.set_adi("n");
         });
     } else if dhatu.has_u("DraRa~") {
-        p.run_at(Rule::Kaumudi("2318"), i, |t| {
+        p.run_at(Kaumudi("2318"), i, |t| {
             t.set_text("Dran");
         });
     }
@@ -224,6 +303,10 @@ pub fn run(p: &mut Prakriya, dhatu: &Muladhatu) -> Result<()> {
         // Standard dhatus.
         it_samjna::run(p, i_dhatu)?;
         add_samjnas(p, i_dhatu);
+
+        if p.has(i_dhatu, |t| t.is_empty()) {
+            return Err(Error::invalid_upadesha(dhatu.upadesha()));
+        }
     }
 
     try_satva_and_natva(p, i_dhatu);

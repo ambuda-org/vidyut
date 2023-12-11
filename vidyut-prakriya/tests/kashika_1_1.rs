@@ -112,7 +112,8 @@ fn sutra_1_1_5() {
     assert_has_tas(&[], &ci, Lat, &["cinutaH"]);
     assert_has_jhi(&[], &ci, Lat, &["cinvanti"]);
     assert_has_tinantas(&[], &mfj, Lat, P::Prathama, Dvi, &["mfzwaH"]);
-    assert_has_tinantas(&[], &mfj, Lat, P::Prathama, Bahu, &["mfjanti"]);
+    // mArjanti per SK.
+    assert_has_tinantas(&[], &mfj, Lat, P::Prathama, Bahu, &["mfjanti", "mArjanti"]);
 
     // git
     assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::ksnu, &["jizRu"]);

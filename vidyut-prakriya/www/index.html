@@ -104,12 +104,12 @@
                 <template x-for="step in dhatuPrakriya.history">
                   <tr class="hover:bg-sky-50" :class="stepClasses(step)">
                     <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
-                    <td class="py-2 px-4 text-lg" x-text="await sutraText(step.rule)"></td>
+                    <td class="py-2 px-4 text-lg" x-html="renderStepRule(step.rule)"></td>
                     <td class="text-sm text-right">
                       <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
-                          x-text="deva(step.rule).replaceAll('।', '.')"
+                          x-text="renderStepRuleLinkText(step.rule)"
                           target="_blank"
-                          :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
+                          :href="renderStepRuleLink(step.rule)"></a>
                     </td>
                   </tr>
                 </template>
@@ -221,32 +221,32 @@
           </template>
         </div>
         <div x-show="!activePada">
+          <p>Note: the krt-pratyaya forms below overgenerate and might use
+          pratyayas that are not explicitly allowed for this dhatu.</p>
           <!-- Krdanta table (for selected dhatu) -->
-          <template x-for="krtType in createKrdantas()">
-            <table class="w-full my-4 text-left table-fixed text-xl border">
-              <thead>
-                <tr class="bg-slate-200">
-                    <th class="p-2" x-text="deva('kft-pratyaya')"></th>
-                    <th class="p-2" x-text="deva('kfdanta')"></th>
+          <table class="w-full my-4 text-left table-fixed text-xl border">
+            <thead>
+              <tr class="bg-slate-200">
+                  <th class="p-2" x-text="deva('kft-pratyaya')"></th>
+                  <th class="p-2" x-text="deva('kfdanta')"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="krt in createKrdantas()">
+                <tr class="even:bg-slate-50">
+                  <th class="p-2" x-text="deva(krt.title)"></th>
+                  <td class="p-2">
+                    <template x-for="pada in krt.padas">
+                      <a href="#"
+                         class="block hover:underline"
+                         x-text="deva(pada.text || '-')"
+                         @click.prevent="setActivePada(pada)"></a>
+                    </template>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                <template x-for="krt in krtType">
-                  <tr class="even:bg-slate-50">
-                    <th class="p-2" x-text="deva(krt.title)"></th>
-                    <td class="p-2">
-                      <template x-for="pada in krt.padas">
-                        <a href="#"
-                           class="block hover:underline"
-                           x-text="deva(pada.text || '-')"
-                           @click.prevent="setActivePada(pada)"></a>
-                      </template>
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </template>
+              </template>
+            </tbody>
+          </table>
         </div>
         </div>
       </template>
@@ -320,12 +320,12 @@
             <template x-for="step in supPrakriya.history">
               <tr class="hover:bg-sky-50" :class="stepClasses(step)">
                 <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
-                <td class="py-2 px-4 text-lg" x-text="await sutraText(step.rule)"></td>
+                <td class="py-2 px-4 text-lg" x-text="renderStepRule(step.rule)"></td>
                 <td class="text-sm text-right">
                   <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
-                      x-text="deva(step.rule).replaceAll('।', '.')"
+                      x-text="renderStepRuleLinkText(step.rule)"
                       target="_blank"
-                      :href="'https://ashtadhyayi.com/sutraani/' + step.rule"></a>
+                      :href="renderStepRuleLink(step.rule)"></a>
                 </td>
               </tr>
             </template>

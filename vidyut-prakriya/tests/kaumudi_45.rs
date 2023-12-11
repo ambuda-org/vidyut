@@ -75,7 +75,6 @@ fn sk_2494() {
     assert_has_tip(&[], &pr, Lit, &["papAra"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2495() {
     let prr = d("pF", Juhotyadi);
@@ -90,7 +89,7 @@ fn sk_2495() {
     assert_has_tip(&[], &prr, Lun, &["apArIt"]);
     assert_has_tas(&[], &prr, Lun, &["apArizwAm"]);
 
-    let pr = d("pf", Juhotyadi);
+    let pr = d("pf\\", Juhotyadi);
     assert_has_tip(&[], &pr, Lat, &["piparti"]);
     assert_has_tas(&[], &pr, Lat, &["pipftaH"]);
     assert_has_jhi(&[], &pr, Lat, &["piprati"]);

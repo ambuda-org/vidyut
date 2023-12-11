@@ -123,7 +123,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         }
 
         // BrAtfvala, ...
-        tp.try_add(Varttika("5.2.112", "1"), valac);
+        tp.try_add(Varttika("5.2.112.1"), valac);
 
         let prati = tp.prati();
         if prati.ends_with("as") || prati.has_text_in(&["mAyA", "meDA", "sraj"]) {

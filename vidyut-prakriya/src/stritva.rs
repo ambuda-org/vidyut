@@ -15,6 +15,7 @@ Generally, these pratyayas are of two types:
 */
 
 use crate::core::errors::Error;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Prakriya, Rule};
@@ -239,7 +240,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         sp.try_add("4.1.68", UN);
     } else if last.has_text("SvaSura") {
         // SvaSrUH
-        sp.try_add_with("4.1.68.v1", UN, |p| {
+        sp.try_add_with(Varttika("4.1.68.1"), UN, |p| {
             p.set(i_prati, |t| t.set_text("SvaSr"));
         });
     } else if sp.p.is_chandasi() && last.has_text_in(&["kadru", "kamaRqalu"]) {
@@ -270,7 +271,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         sp.try_add("4.1.5", NIp);
     } else if last.has_tag_in(&[T::udit, T::fdit, T::xdit]) {
         if last.is_dhatu() {
-            sp.block("4.1.6.v1");
+            sp.block(Varttika("4.1.6.1"));
         } else {
             // BavatI, pacantI, ...
             sp.try_add("4.1.6", NIp);

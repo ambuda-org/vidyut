@@ -4,13 +4,28 @@
 //!
 //! The most "core" prakaraṇa is the it-saṁjñā-prakaraṇa, which identifies remove different `it`
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
+use crate::args::Gana;
 use crate::core::errors::*;
 use crate::core::Prakriya;
+use crate::core::Rule::Varttika;
 use crate::core::{Tag as T, Term};
 use crate::sounds::{s, Set};
-use compact_str::CompactString;
 use lazy_static::lazy_static;
 
+// Common constants. Benchmark indicates that switching to `const` has negligible or negative
+// impact:
+//
+// lazy_static:
+//     Benchmark 1: ../target/release/create_tinantas > /dev/null
+//       Time (mean ± σ):      7.604 s ±  0.095 s    [User: 7.545 s, System: 0.021 s]
+//       Range (min … max):    7.502 s …  7.793 s    10 runs
+//
+// const:
+//     Benchmark 1: ../target/release/create_tinantas > /dev/null
+//       Time (mean ± σ):      7.768 s ±  0.122 s    [User: 7.714 s, System: 0.021 s]
+//       Range (min … max):    7.596 s …  7.984 s    10 runs
+//
+// The poor results for `const` are surprising to me. I'm not sure how to explain them.
 lazy_static! {
     // FIXME: find a better approach for `s`.
     static ref AC: Set = s("ac");
@@ -21,91 +36,47 @@ lazy_static! {
     static ref LASHAKU: Set = s("l S ku~");
 }
 
-fn get_adi(s: &CompactString) -> Option<char> {
+fn get_adi(s: &str) -> Option<char> {
     s.as_bytes().first().map(|u| *u as char)
 }
 
-fn is_cutu_exempt_taddhita(t: &Term) -> bool {
-    t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap", "jAhac", "wIwac"])
+fn is_exempt_from_cutu(t: &Term) -> bool {
+    // The sounds C, J, W, and Q are replaced later in the grammar. If we substitute them now,
+    // those rules will become vyartha.
+    if t.has_adi(&*CUTU_EXCEPTION) {
+        true
+    } else {
+        t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap", "jAhac", "wIwac"])
+    }
 }
 
-fn is_lashaku_exempt(t: &Term) -> bool {
-    t.has_u_in(&["kAmyac"])
+fn is_exempt_from_lakshaku(t: &Term) -> bool {
+    const LAKARAS: &[&str] = &[
+        "la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w", "la~N", "li~N", "lu~N", "lf~N",
+    ];
+
+    if t.has_tag(T::La) && t.has_u_in(LAKARAS) {
+        // Keep the first "l" of the lakAras. Otherwise, rule 3.4.77 will become vyartha.
+        true
+    } else if t.is_unadi() && t.has_u_in(&["kan", "Ka"]) {
+        true
+    } else {
+        t.is_pratyaya() && t.has_u_in(&["kAmyac"])
+    }
 }
 
-/// Runs rule 1.3.2 ("upadeśe janunāsika iṭ").
-fn run_1_3_2(p: &mut Prakriya, i_term: usize, before: &mut CompactString) -> Option<()> {
-    let term = p.get_mut(i_term)?;
-
-    // If the text contains `yu~` or `vu~`, skip lopa of nasal vowels so that rule 7.1.1
-    // (yuvoranAkau) can apply.
-    if term.is_pratyaya() && (term.text.contains("yu~") || term.text.contains("vu~")) {
-        return None;
+fn get_upadesha(t: &Term) -> Result<&str> {
+    match &t.u {
+        Some(s) => Ok(&s),
+        None => Err(Error::invalid_upadesha(&t.text)),
     }
-
-    let mut i = 0;
-    let bytes = before.as_bytes();
-    let mut after = CompactString::from("");
-    let mut should_mark_rule = false;
-
-    while let Some(u) = bytes.get(i) {
-        let c = *u as char;
-
-        if AC.contains(c) {
-            if let Some(b'~') = bytes.get(i + 1) {
-                should_mark_rule = true;
-                // Nasal vowel: parse as it.
-                term.add_tag(T::parse_it(c).ok()?);
-                let maybe_tag = match bytes.get(i + 2) {
-                    Some(b'^') => Some(T::svaritet),
-                    Some(b'\\') => Some(T::anudattet),
-                    _ => None,
-                };
-                let shift = if let Some(tag) = maybe_tag {
-                    term.add_tag(tag);
-                    3
-                } else {
-                    2
-                };
-
-                i += shift;
-            } else {
-                // Non-nasal vowel: get accent.
-                let maybe_tag = match bytes.get(i + 1) {
-                    Some(b'^') => Some(T::Svarita),
-                    Some(b'\\') => Some(T::Anudatta),
-                    _ => None,
-                };
-                let shift = if let Some(tag) = maybe_tag {
-                    term.add_tag(tag);
-                    2
-                } else {
-                    1
-                };
-                after.push(c);
-                i += shift;
-            }
-        } else {
-            after.push(c);
-            i += 1;
-        }
-    }
-
-    if before != &after {
-        before.replace_range(.., &after);
-        if should_mark_rule {
-            p.run_at("1.3.2", i_term, |_| {});
-        }
-    }
-
-    Some(())
 }
 
 /// Runs rules that identify and remove it letters from the term at index `i`.
 ///
 /// (1.3.2 - 1.3.9)
-pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
-    let t = match p.get(i) {
+pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
+    let t = match p.get(i_term) {
         Some(t) => t,
         None => return Ok(()),
     };
@@ -115,42 +86,96 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
         return Ok(());
     }
 
+    if t.is_dhatu()
+        && t.has_gana(Gana::Kandvadi)
+        && (t.has_antya('s') || t.has_antya('w') || t.has_antya('j'))
+    {
+        return Ok(());
+    }
+
     // All it sounds are removed at once by 1.3.9 "tasya lopaH". Before then, keep the text in the
     // term unchanged. Instead, mutate a new temporary string and copy it over as part of 1.3.9.
-    let mut temp: CompactString = match &t.u {
-        Some(s) => s.clone(),
-        None => {
-            return Err(Error::invalid_upadesha(&t.text));
-        }
-    };
+    let mut changed = false;
+    let mut i_start = 0;
+    let mut i_end = t.text.len();
 
     // Varttika: `i~r` is its own it.
     let mut irit = false;
-    if let Some(t) = p.get_mut(i) {
-        if let Some(prefix) = temp.strip_suffix("i~r") {
-            temp.truncate(prefix.len());
-            t.add_tag(T::irit);
-            irit = true;
-        } else if let Some(prefix) = temp.strip_suffix("i~^r") {
-            temp.truncate(prefix.len());
-            t.add_tags(&[T::irit, T::svaritet]);
-            irit = true;
+    if p.has(i_term, |t| t.has_suffix_in(&["i~r", "i~^r", "i~\\r"])) {
+        let ir_slice = t.text.rfind(|c| c == 'i').expect("present");
+        i_end = ir_slice;
+
+        p.run_at(Varttika("1.3.3.1"), i_term, |t| {
+            let suffix = &t.text[ir_slice..];
+            if suffix == "i~^r" {
+                t.add_tags(&[T::irit, T::svaritet]);
+            } else if suffix == "i~\\r" {
+                t.add_tags(&[T::irit, T::anudattet]);
+            } else {
+                t.add_tag(T::irit);
+            }
+        });
+
+        irit = true;
+        changed = true;
+    }
+
+    // Rule 1.3.2 ("upadeśe janunāsika iṭ").
+    let mut is_yu_vu = false;
+    if let Some(t) = p.get_mut(i_term) {
+        // If the text contains `yu~` or `vu~`, skip lopa of nasal vowels so that rule 7.1.1
+        // (yuvoranAkau) can apply.
+        is_yu_vu = t.is_pratyaya() && (t.text.contains("yu~") || t.text.contains("vu~"));
+        if !is_yu_vu {
+            let mut should_mark_rule = false;
+
+            let upadesha = &get_upadesha(t)?[..i_end];
+            for i in 0..upadesha.len() {
+                let upadesha = &get_upadesha(t)?[..i_end];
+                let bytes = upadesha.as_bytes();
+                let c = *bytes.get(i).expect("present") as char;
+
+                if !AC.contains(c) {
+                    continue;
+                }
+
+                let next = match bytes.get(i + 1) {
+                    Some(b) => *b,
+                    None => continue,
+                };
+
+                if next == b'~' {
+                    should_mark_rule = true;
+                    let maybe_tag = match bytes.get(i + 2) {
+                        Some(b'^') => Some(T::svaritet),
+                        Some(b'\\') => Some(T::anudattet),
+                        _ => None,
+                    };
+
+                    t.add_tag(T::parse_it(c)?);
+                    if let Some(tag) = maybe_tag {
+                        t.add_tag(tag);
+                    };
+                } else if next == b'\\' {
+                    t.add_tag(T::Anudatta);
+                } else if next == b'^' {
+                    t.add_tag(T::Svarita);
+                }
+            }
+
+            if should_mark_rule {
+                p.run_at("1.3.2", i_term, |_| {});
+                changed = true;
+            }
         }
     }
 
-    run_1_3_2(p, i, &mut temp);
+    if let Some(t) = p.get(i_term) {
+        let antya = match t.antya() {
+            Some(x) => x,
+            None => return Err(Error::invalid_upadesha(&t.text)),
+        };
 
-    let t = match p.get(i) {
-        Some(t) => t,
-        None => return Ok(()),
-    };
-
-    let antya = match t.antya() {
-        Some(x) => x,
-        None => return Err(Error::invalid_upadesha(&t.text)),
-    };
-
-    if let Some(t) = p.get_mut(i) {
         if HAL.contains(antya) && !irit {
             let vibhaktau_tusmah = t.is_vibhakti() && TUSMA.contains(antya);
 
@@ -167,74 +192,75 @@ pub fn run(p: &mut Prakriya, i: usize) -> Result<()> {
             if vibhaktau_tusmah && !is_vibhakti_exception {
                 p.step("1.3.4");
             } else {
-                p.add_tag_at("1.3.3", i, T::parse_it(antya)?);
-                temp.truncate(temp.len() - 1);
+                p.add_tag_at("1.3.3", i_term, T::parse_it(antya)?);
+                changed = true;
+                i_end -= 1;
             }
         }
     }
 
-    let mut temp_slice = &temp[..];
-    if let Some(t) = p.get_mut(i) {
-        // Apply 1.3.5 only for non-pratyayas. This way, we avoid including qu-pratyaya, etc.
-        if !t.is_pratyaya() {
-            let mut matched = false;
-            for (it, tag) in [("Yi", T::YIt), ("wu", T::wvit), ("qu", T::qvit)] {
-                if temp.strip_prefix(it).is_some() {
-                    temp_slice = &temp_slice[it.len()..];
-                    t.add_tag(tag);
-                    matched = true;
-                }
-            }
-            if matched {
-                p.run_at("1.3.5", i, |_| {});
-            }
-        }
-    }
+    if let Some(t) = p.get(i_term) {
+        let upadesha = get_upadesha(t)?;
+        let adi = match get_adi(&upadesha) {
+            Some(x) => x,
+            None => return Err(Error::invalid_upadesha(&upadesha)),
+        };
 
-    let adi = match get_adi(&temp) {
-        Some(x) => x,
-        None => return Err(Error::invalid_upadesha(&temp)),
-    };
-
-    if let Some(t) = p.get_mut(i) {
         if t.is_pratyaya() {
-            if t.is_unadi() && t.has_u_in(&["kan"]) {
-                // Do nothing.
-            } else if adi == 'z' {
-                temp_slice = &temp_slice[1..];
-                p.add_tag_at("1.3.6", i, T::parse_it(adi)?);
-            } else if CUTU.contains(adi) && !is_cutu_exempt_taddhita(t) {
-                // The sounds C, J, W, and Q are replaced later in the grammar.
-                // If we substitute them now, those rules will become vyartha.
-                if !CUTU_EXCEPTION.contains(adi) {
-                    t.add_tag(T::parse_it(adi)?);
-                    temp_slice = &temp_slice[1..];
-                }
-                p.step("1.3.7");
-            } else if !t.has_tag(T::Taddhita) && t.has_adi(&*LASHAKU) && !is_lashaku_exempt(t) {
-                // Keep the first "l" of the lakAras.
-                // Otherwise, rule 3.4.77 will become vyartha.
-                const LAKARAS: &[&str] = &[
-                    "la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w", "la~N", "li~N", "lu~N", "lf~N",
-                ];
-                if !t.has_u_in(&LAKARAS) {
-                    temp_slice = &temp_slice[1..];
-                    p.add_tag_at("1.3.8", i, T::parse_it(adi)?);
+            if adi == 'z' {
+                p.add_tag_at("1.3.6", i_term, T::parse_it(adi)?);
+                changed = true;
+                i_start += 1;
+            } else if CUTU.contains(adi) && !is_exempt_from_cutu(t) {
+                p.add_tag_at("1.3.7", i_term, T::parse_it(adi)?);
+                changed = true;
+                i_start += 1;
+            } else if !t.is_taddhita() && t.has_adi(&*LASHAKU) && !is_exempt_from_lakshaku(t) {
+                p.add_tag_at("1.3.8", i_term, T::parse_it(adi)?);
+                changed = true;
+                i_start += 1;
+            }
+        } else {
+            // Apply 1.3.5 only for non-pratyayas. This way, we avoid including qu-pratyaya, etc.
+            for (it, tag) in [("Yi", T::YIt), ("wu", T::wvit), ("qu", T::qvit)] {
+                if upadesha.strip_prefix(it).is_some() {
+                    p.add_tag_at("1.3.5", i_term, tag);
+                    changed = true;
+                    i_start += it.len();
+                    break;
                 }
             }
         }
     }
 
-    if let Some(t) = p.get_mut(i) {
-        if temp_slice != t.text {
-            p.run_at("1.3.9", i, |t| {
-                t.set_text(temp_slice);
-                if t.has_tag(T::zit) && t.has_adi('w') {
-                    t.set_adi("t");
+    if changed {
+        p.run_at("1.3.9", i_term, |t| {
+            // Remove it-samjnas, excluding nasal vowels.
+            t.text.truncate(i_end);
+            t.text.drain(..i_start);
+
+            // Remove accents.
+            t.text.retain(|c| c != '\\' && c != '^');
+
+            // Remove nasal vowels.
+            if !is_yu_vu {
+                while let Some(i_nasal) = t.text.find('~') {
+                    if i_nasal > 0 {
+                        t.text.drain(i_nasal - 1..i_nasal + 1);
+                    }
                 }
-                t.maybe_save_sthanivat();
-            });
-        }
+            }
+
+            // TODO: justify this change.
+            if t.has_tag(T::zit) && t.has_adi('w') {
+                t.set_adi("t");
+            }
+
+            t.maybe_save_sthanivat();
+        });
+    } else {
+        // Remove accents. This should happen even if `changed` is false.
+        p.set(i_term, |t| t.text.retain(|c| c != '\\' && c != '^'));
     }
 
     Ok(())
@@ -274,9 +300,9 @@ mod tests {
             ),
         ];
 
-        for (raw, text, tags) in tests {
+        for (raw, expected, tags) in tests {
             let t = check(Term::make_upadesha(raw));
-            assert_eq!(t.text, text);
+            assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags));
         }
     }
@@ -292,12 +318,12 @@ mod tests {
             ("AtAm", "AtAm", vec![]),
         ];
 
-        for (raw, text, tags) in tests {
+        for (raw, expected, tags) in tests {
             let mut start = Term::make_upadesha(raw);
             start.add_tag(T::Vibhakti);
             let t = check(start);
 
-            assert_eq!(t.text, text);
+            assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags));
         }
     }
@@ -307,14 +333,17 @@ mod tests {
         let tests = [
             ("kta", "ta", vec![T::Pratyaya, T::kit]),
             ("Ric", "i", vec![T::Pratyaya, T::Rit, T::cit]),
-            ("la~w", "l", vec![T::Pratyaya, T::adit, T::wit]),
+            ("la~w", "l", vec![T::Pratyaya, T::La, T::adit, T::wit]),
         ];
-        for (raw, text, tags) in tests {
+        for (raw, expected, tags) in tests {
             let mut start = Term::make_upadesha(raw);
             start.add_tag(T::Pratyaya);
-            let t = check(start);
+            if raw == "la~w" {
+                start.add_tag(T::La);
+            }
 
-            assert_eq!(t.text, text, "{text}");
+            let t = check(start);
+            assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags), "Missing one or more of `{tags:?}`");
         }
     }

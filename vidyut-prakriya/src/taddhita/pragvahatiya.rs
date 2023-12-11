@@ -7,6 +7,7 @@ use crate::args::Taddhita;
 use crate::args::TaddhitaArtha::*;
 use crate::core::operators as op;
 use crate::core::Rule;
+use crate::core::Rule::Varttika;
 use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
@@ -220,7 +221,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         if prati.has_text("Darma") {
             tp.try_add("4.4.41", P::Wak);
         } else if prati.has_text("aDarma") {
-            tp.try_add("4.4.41.v1", P::Wak);
+            tp.try_add(Varttika("4.4.41.1"), P::Wak);
         }
     });
 
@@ -269,7 +270,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_antya('f') {
             tp.try_add("4.4.49", P::aY);
         } else if prati.has_text("nara") {
-            tp.try_add("4.4.49.v1", P::aY);
+            tp.try_add(Varttika("4.4.49.1"), P::aY);
         } else {
             tp.try_add("4.4.47", P::Wak);
         }

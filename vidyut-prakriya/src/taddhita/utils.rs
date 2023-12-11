@@ -110,14 +110,12 @@ impl<'a> TaddhitaPrakriya<'a> {
 
         let rule = rule.into();
         if cfg!(debug_assertions) {
-            /*
             self.p.debug(format!(
                 "Try {}: {} + {:?}",
                 rule.code(),
                 &self.prati().text,
                 taddhita,
             ));
-            */
         }
 
         self.had_match = true;

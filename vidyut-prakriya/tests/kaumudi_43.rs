@@ -2766,7 +2766,6 @@ fn sk_2338() {
     assert_has_jhi(&[], &aksh, Lun, &["AkzizuH", "AkzuH"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2339() {
     let taksh = d("takzU~", Bhvadi);
@@ -2808,7 +2807,7 @@ fn sk_2339() {
     let khash = d("Kaza~", Bhvadi);
     assert_has_tip(&[], &khash, Lit, &["caKAza"]);
 
-    let shish = d("Siza~", Bhvadi);
+    let shish = d("Si\\za~", Bhvadi);
     assert_has_tip(&[], &shish, Lit, &["SiSeza"]);
     assert_has_sip(&[], &shish, Lit, &["SiSeziTa"]);
     assert_has_tip(&[], &shish, Lut, &["SezwA"]);
@@ -3164,7 +3163,7 @@ fn sk_2352() {
     assert_has_tip(&[], &klp, Lrn, &["akalpsyat"]);
     assert_has_ta(&[], &klp, Lrn, &["akalpizyata", "akalpsyata"]);
 
-    let ghatt = d("Gawa~\\", Bhvadi);
+    let ghatt = d_ghatadi("Gawa~\\", Bhvadi);
     assert_has_ta(&[], &ghatt, Lat, &["Gawate"]);
     assert_has_ta(&[], &ghatt, Lit, &["jaGawe"]);
     assert_has_tip(&[], &nic(&ghatt), Lat, &["Gawayati"]);
@@ -3178,89 +3177,100 @@ fn sk_2352() {
     assert_has_ta(&[], &vyath, Lat, &["vyaTate"]);
 }
 
-#[ignore]
+// TODO: review carefully for missing forms.
 #[test]
 fn sk_2353() {
-    let vyath = d("vyaTa~\\", Bhvadi);
+    // The Kaumudi defines Gaw-Adi in a way that is inconsistent with dhatupatha.tsv. To allow
+    // these tests to function, explicitly mark dhatus as Gaw-Adi with `d_ghatadi`:
+    let d_g = d_ghatadi;
+
+    let vyath = d_g("vyaTa~\\", Bhvadi);
     assert_has_ta(&[], &vyath, Lit, &["vivyaTe"]);
 
-    let prath = d("praTa~\\", Bhvadi);
+    let prath = d_g("praTa~\\", Bhvadi);
     assert_has_ta(&[], &prath, Lit, &["papraTe"]);
 
-    let pras = d("prasa~\\", Bhvadi);
+    let pras = d_g("prasa~\\", Bhvadi);
     assert_has_ta(&[], &pras, Lit, &["paprase"]);
 
-    // TODO: patch 6.4.93 to match on an-upadha for kzanj
-    let kshanj = d("kzaji~\\", Bhvadi);
+    let kshanj = d_g("kzaji~\\", Bhvadi);
     assert_has_ta_k(&[], &nic(&kshanj), Lun, &["akzaYji", "akzAYji"]);
     assert_has_krdanta(&[], &nic(&kshanj), Krt::Ramul, &["kzaYjam", "kzAYjam"]);
 
-    let jvar = d("jvara~", Bhvadi);
+    let jvar = d_g("jvara~", Bhvadi);
     assert_has_tip(&[], &jvar, Lat, &["jvarati"]);
 
-    let gad = d("gaqa~", Bhvadi);
+    let gad = d_g("gaqa~", Bhvadi);
     assert_has_tip(&[], &gad, Lat, &["gaqati"]);
 
-    let hed = d("heqa~", Bhvadi);
+    let hed = d_g("heqa~", Bhvadi);
     assert_has_tip(&[], &hed, Lat, &["heqati"]);
     assert_has_tip(&[], &hed, Lit, &["jiheqa"]);
     assert_has_tip(&[], &nic(&hed), Lat, &["hiqayati"]);
-    assert_has_ta_k(&[], &hed, Lun, &["ahiqi", "ahIqi"]);
+    assert_has_ta_k(&[], &nic(&hed), Lun, &["ahiqi", "ahIqi"]);
 
-    let hed_anadare = d("heqf~", Bhvadi);
+    // This dhatu is outside of ghaT-Adi, so it doesn't receive mittva.
+    let hed_anadare = d("heqf~\\", Bhvadi);
     assert_has_tip(&[], &nic(&hed_anadare), Lat, &["heqayati"]);
 
-    let stak = d("zwaka~", Bhvadi);
+    let stak = d_g("zwaka~", Bhvadi);
     assert_has_tip(&[], &stak, Lat, &["stakati"]);
 
-    let kakh = d("kaKe~", Bhvadi);
+    let kakh = d_g("kaKe~", Bhvadi);
     assert_has_tip(&[], &kakh, Lun, &["akaKIt"]);
 
-    let kan = d("kaRa~", Bhvadi);
+    let kan = d_g("kaRa~", Bhvadi);
     assert_has_tip(&[], &kan, Lit, &["cakARa"]);
 
-    let ran = d("raRa~", Bhvadi);
+    let ran = d_g("raRa~", Bhvadi);
     assert_has_tip(&[], &ran, Lit, &["rarARa"]);
 
-    let krath = d("kraTa~", Bhvadi);
+    let krath = d_g("kraTa~", Bhvadi);
     assert_has_tip(&[], &nic(&krath), Lat, &["krATayati"]);
-    assert_has_ta_k(&[], &krath, Lun, &["akraTi", "akrATi"]);
-    assert_has_krdanta(&[], &krath, Krt::Ramul, &["kraTam", "krATam"]);
+    assert_has_ta_k(&[], &nic(&krath), Lun, &["akraTi", "akrATi"]);
+    assert_has_krdanta(&[], &nic(&krath), Krt::Ramul, &["kraTam", "krATam"]);
 
-    let van = d("vana~", Bhvadi);
+    let van = d_g("vana~", Bhvadi);
     assert_has_tip(&["pra"], &nic(&van), Lat, &["pravanayati"]);
 
-    let jval = d("jvala~", Bhvadi);
+    let jval = d_g("jvala~", Bhvadi);
     assert_has_tip(&["pra"], &nic(&jval), Lat, &["prajvalayati"]);
 
-    let hval = d("hvala~", Bhvadi);
+    let hval = d_g("hvala~", Bhvadi);
     assert_has_tip(&["pra"], &nic(&hval), Lat, &["prahvalayati"]);
 
-    let hmal = d("hmala~", Bhvadi);
+    let hmal = d_g("hmala~", Bhvadi);
     assert_has_tip(&["pra"], &nic(&hmal), Lat, &["prahmalayati"]);
 
-    let dr = d("dF", Bhvadi);
+    let dr = d_g("dF", Bhvadi);
     assert_has_tip(&[], &nic(&dr), Lat, &["darayati"]);
 
-    let nr = d("nF", Bhvadi);
+    // nayAdanyatra nArayati -- but, in our dhatupatha, nF only ever has the meaning "naye"! As a
+    // quick HACK, check the nF outside of bhvAdi-gana.
+    let nr = d("nF", Kryadi);
     assert_has_tip(&[], &nic(&nr), Lat, &["nArayati"]);
 
-    let shra = d("SrA", Bhvadi);
+    let shra = d_g("SrA", Bhvadi);
     assert_has_tip(&[], &nic(&shra), Lat, &["Srapayati"]);
 
-    let cal = d("cala~", Bhvadi);
+    // pAkAd anyatra SrApayati -- but, in our dhatupatha, SrA only ever has the meaning "pAke"! As
+    // a quick HACK, check the SrA outside of bhvAdi-gana.
+    let shra_fake = d("SrA\\", Adadi);
+    assert_has_tip(&[], &nic(&shra_fake), Lat, &["SrApayati"]);
+
+    let cal = d_g("cala~", Bhvadi);
     assert_has_tip(&[], &nic(&cal), Lat, &["calayati"]);
 
-    let chad = d("CadiH", Bhvadi);
+    let chad = d_g("CadiH", Bhvadi);
     assert_has_tip(&[], &nic(&chad), Lat, &["Cadayati"]);
 
-    let lad = d("laqa~", Bhvadi);
+    let lad = d_g("laqa~", Bhvadi);
     assert_has_tip(&[], &nic(&lad), Lat, &["laqayati"]);
 
-    let mad = d("madI~", Bhvadi);
+    let mad = d_g("madI~", Bhvadi);
     assert_has_tip(&[], &nic(&mad), Lat, &["madayati"]);
 
-    let dhvan = d("Dvana~", Bhvadi);
+    let dhvan = d_g("Dvana~", Bhvadi);
     assert_has_tip(&[], &nic(&dhvan), Lat, &["Dvanayati"]);
 
     let dal = d("dala~", Bhvadi);
@@ -3278,35 +3288,54 @@ fn sk_2353() {
     let kshai = d("kzE\\", Bhvadi);
     assert_has_tip(&[], &nic(&kshai), Lat, &["kzapayati"]);
 
-    let svan = d("svana~", Bhvadi);
+    let svan = d_g("svana~", Bhvadi);
     assert_has_tip(&[], &nic(&svan), Lat, &["svanayati"]);
 
-    assert_has_tip(&[], &nic(&svan), Lat, &["jArayati"]);
+    let jr = d("jFz", Divadi);
+    assert_has_tip(&[], &nic(&jr), Lat, &["jarayati"]);
 
-    assert_has_tip(&[], &nic(&svan), Lat, &["jvalayati"]);
-    assert_has_tip(&[], &nic(&svan), Lat, &["jvAlayati"]);
-    assert_has_tip(&[], &nic(&svan), Lat, &["prajvalayati"]);
+    let jrnati = d("jF", Kryadi);
+    assert_has_tip(&[], &nic(&jrnati), Lat, &["jArayati"]);
 
-    assert_has_ta(&[], &nic(&svan), Lat, &["kAmayate"]);
+    let jval = d_g("jvala~", Bhvadi);
+    assert_has_tip(&[], &nic(&jval), Lat, &["jvalayati", "jvAlayati"]);
+    assert_has_tip(&["pra"], &nic(&jval), Lat, &["prajvalayati"]);
 
-    assert_has_tip(&[], &nic(&svan), Lat, &["Amayati"]);
+    let kam = d("kamu~\\", Bhvadi);
+    assert_has_ta(&[], &kam, Lat, &["kAmayate"]);
 
-    assert_has_tip(&[], &nic(&svan), Lat, &["cAmayati"]);
+    let am = d("ama~", Bhvadi);
+    assert_has_tip(&[], &nic(&am), Lat, &["Amayati"]);
 
-    let sham = d("Samo~", Bhvadi);
-    assert_has_tip(&["ni"], &nic(&sham), Lat, &["niSAmayati"]);
+    let cam = d("camu~", Bhvadi);
+    assert_has_tip(&[], &nic(&cam), Lat, &["cAmayati"]);
 
-    assert_has_tip(&[], &nic(&sham), Lat, &["AyAmayati"]);
+    let sham = d_g("Samo~", Bhvadi);
+    assert_has_tip(&["ni"], &nic(&sham), Lat, &["niSAmayati", "niSamayati"]);
+    assert_has_krdanta(&["ni"], &nic(&sham), Krt::ktvA, &["niSAmya", "niSamayya"]);
 
-    let skhad = d("sKadi~\\r", Bhvadi);
-    assert_has_tip(&["ava"], &skhad, Lat, &["avasKAdayati"]);
-    assert_has_tip(&["pari"], &skhad, Lat, &["parisKAdayati"]);
+    let yam_pariveshane = d_g("yama~", Bhvadi);
+    assert_has_tip(&["AN"], &nic(&yam_pariveshane), Lat, &["AyAmayati"]);
+
+    let yam_uparame = d_g("ya\\ma~", Bhvadi);
+    assert_has_tip(&[], &nic(&yam_uparame), Lat, &["yamayati"]);
+
+    let skhad = d_g("sKadi~\\r", Bhvadi);
+    assert_has_tip(&["ava"], &nic(&skhad), Lat, &["avasKAdayati"]);
+    assert_has_tip(&["pari"], &nic(&skhad), Lat, &["parisKAdayati"]);
+
+    assert_has_tip(
+        &["apa"],
+        &nic(&skhad),
+        Lat,
+        &["apasKAdayati", "apasKadayati"],
+    );
 }
 
 #[test]
 fn sk_2354() {
     // paPaRiTa is in KV 6.4.125.
-    let phan = d("PaRa~", Bhvadi);
+    let phan = d_ghatadi("PaRa~", Bhvadi);
     assert_has_tas(&[], &phan, Lit, &["PeRatuH", "paPaRatuH"]);
     assert_has_jhi(&[], &phan, Lit, &["PeRuH", "paPaRuH"]);
     assert_has_sip(&[], &phan, Lit, &["PeRiTa", "paPaRiTa"]);
@@ -3868,7 +3897,6 @@ fn sk_2380() {
     assert_has_sip(&[], &svr, Lit, &["sasvariTa", "sasvarTa"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2381() {
     let svr = d("svf", Bhvadi);

@@ -66,7 +66,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             p.add_tag_at("6.3.11", i_purva_sup, T::Aluk);
         } else if purva.has_text("anta") && uttara.has_text("guru") {
             // anteguru
-            p.add_tag_at("6.3.11.v1", i_purva_sup, T::Aluk);
+            p.add_tag_at(Varttika("6.3.11.1"), i_purva_sup, T::Aluk);
         } else if purva.has_text_in(&["prAvfz", "Sarad", "kAla", "div"]) && uttara.has_text("ja") {
             // prAvfzija, ...
             p.add_tag_at("6.3.15", i_purva_sup, T::Aluk);
@@ -144,7 +144,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // utsAhavala, ...
             // TODO: "putra" not part of the varttika, but then how do we derive
             // putravala?
-            p.step(Varttika("6.3.118", "1"));
+            p.step(Varttika("6.3.118.1"));
         } else {
             // AsutIvala, ...
             let antya = purva.antya()?;

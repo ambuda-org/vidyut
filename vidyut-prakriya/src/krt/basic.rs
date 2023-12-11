@@ -218,7 +218,7 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
             kp.try_add("3.2.173", Aru);
         } else if dhatu.has_text("BI") {
             if kp.expects_krt(kruka) {
-                kp.try_add(Varttika("3.2.174", "1"), kruka);
+                kp.try_add(Varttika("3.2.174.1"), kruka);
             } else if kp.expects_krt(kru) {
                 kp.try_add("3.2.174", kru);
             } else {
@@ -461,10 +461,10 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
             kp.try_add("3.3.120", GaY);
         } else if dhatu.has_u("Kanu~^") {
             kp.optional_try_add("3.3.125", Ga);
-            kp.optional_try_add(Varttika("3.3.125", "1"), qa);
-            kp.optional_try_add(Varttika("3.3.125", "2"), qara);
-            kp.optional_try_add(Varttika("3.3.125", "3"), ika);
-            kp.optional_try_add(Varttika("3.3.125", "4"), ikavaka);
+            kp.optional_try_add(Varttika("3.3.125.1:1"), qa);
+            kp.optional_try_add(Varttika("3.3.125.1:2"), qara);
+            kp.optional_try_add(Varttika("3.3.125.1:3"), ika);
+            kp.optional_try_add(Varttika("3.3.125.1:4"), ikavaka);
         }
 
         // Base case
@@ -558,7 +558,7 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
                 && dhatu.has_u("pA\\")
                 && dhatu.has_gana(Gana::Bhvadi)
             {
-                kp.try_add(Varttika("3.2.8", "1"), wak);
+                kp.try_add(Varttika("3.2.8.1"), wak);
             } else if dhatu.has_u("hf\\Y") {
                 if kp.has_upapada("AN") {
                     // tAcCIlye
@@ -571,10 +571,10 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
                 if upapada.has_text_in(&[
                     "Sakti", "lANgala", "aNkuSa", "yazwi", "tomara", "Gawa", "GaWI", "Danus",
                 ]) {
-                    kp.try_add(Varttika("3.2.9", "1"), ac);
+                    kp.try_add(Varttika("3.2.9.1"), ac);
                 } else if upapada.has_text("sUtra") {
                     // dhAri-arthe
-                    kp.optional_try_add(Varttika("3.2.9", "2"), ac);
+                    kp.optional_try_add(Varttika("3.2.9.2"), ac);
                 }
             } else if !upasarge && dhatu.has_antya('A') {
                 kp.try_add("3.2.3", ka);
@@ -785,7 +785,7 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             if upapada.has_text_in(TYAD_ADI) && dhatu.has_u("df\\Si~r") {
                 kp.try_add("3.2.60", krt);
             } else if upapada.has_text_in(&["samAna", "anya"]) && dhatu.has_u("df\\Si~r") {
-                kp.try_add(Varttika("3.2.60", "1"), krt);
+                kp.try_add(Varttika("3.2.60.1"), krt);
             } else if krt == kvin {
                 if !upapada.has_text("udaka") && dhatu.has_text("spfS") {
                     kp.try_add("3.2.58", kvin);
@@ -880,7 +880,7 @@ fn try_add_upapada_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
         if dhatu.has_text("Sri") {
             // SrI
             // TODO: others
-            kp.p.run_at(Varttika("3.2.178", "1"), i_dhatu, |t| t.set_antya("I"));
+            kp.p.run_at(Varttika("3.2.178.1"), i_dhatu, |t| t.set_antya("I"));
         }
     }
 
@@ -938,12 +938,12 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             let added = kp.try_add("3.1.96", krt);
             if added && krt == K::tavyat && kp.dhatu().has_u("va\\sa~") {
                 // vAstavya
-                kp.p.optional_run_at(Varttika("3.1.96", "1"), i + 1, |t| t.add_tag(T::Rit));
+                kp.p.optional_run_at(Varttika("3.1.96.1"), i + 1, |t| t.add_tag(T::Rit));
             }
         }
 
         K::kelimar => {
-            kp.try_add("3.1.96.v2", krt);
+            kp.try_add(Varttika("3.1.96.2"), krt);
         }
 
         // "ya" (3.1.97 - 3.1.132)
@@ -985,7 +985,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             } else if dhatu.has_u_in(&["gada~", "madI~", "cara~", "ya\\ma~"]) && !upasarge {
                 kp.try_add("3.1.100", K::yat);
             } else if dhatu.has_u("cara~") && kp.has_upapada("AN") {
-                kp.optional_try_add(Varttika("3.1.100", "1"), K::yat);
+                kp.optional_try_add(Varttika("3.1.100.1"), K::yat);
             } else if !upasarge && dhatu.has_text("vad") && supi {
                 kp.try_add("3.1.106", K::yat);
                 kp.try_add("3.1.106", K::kyap);
@@ -1017,7 +1017,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             if (dhatu.has_antya('u') || dhatu.has_antya('U')) && !avashyaka_blocked {
                 kp.optional_try_add("3.1.125", K::Ryat);
             } else if dhatu.has_u("ha\\na~") {
-                kp.optional_try_add_with("3.1.97.v2", K::yat, |p| {
+                kp.optional_try_add_with(Varttika("3.1.97.2"), K::yat, |p| {
                     p.set(i_dhatu, |t| t.set_text("vaD"));
                 });
             }
@@ -1029,7 +1029,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
                     // Sapya, laBya, japya
                     kp.try_add("3.1.98", K::yat);
                 } else if dhatu.has_u_in(&["taka~", "Sasu~\\", "cate~^", "yatI~\\", "janI~\\"]) {
-                    kp.try_add(Varttika("3.1.97", "1"), K::yat);
+                    kp.try_add(Varttika("3.1.97.1"), K::yat);
                 } else if dhatu.has_antya('f') || dhatu.has_antya('F') || dhatu.has_antya(&*HAL) {
                     kp.try_add("3.1.124", K::Ryat);
                 } else if dhatu.has_antya(&*AC) {
@@ -1146,7 +1146,7 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
                 kp.try_add(code, krt);
             } else {
                 // suSarmA, prAtaritvan, vijAvA, rez, ...
-                kp.try_add("3.2.76", krt);
+                kp.try_add("3.2.75", krt);
             }
         }
 
@@ -1336,6 +1336,12 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
             }
         }
 
+        K::aN => {
+            if dhatu.has_antya('A') && upasarge {
+                kp.try_add_with("3.3.106", krt, |p| p.add_tag(T::Stri));
+            }
+        }
+
         K::yuc => {
             if dhatu.has_u_in(&["Ric", "Asa~\\", "SranTa~"]) {
                 kp.try_add_with("3.3.107", krt, |p| p.add_tag(T::Stri));
@@ -1356,7 +1362,9 @@ fn try_add_krt(p: &mut Prakriya, krt: BaseKrt) -> Option<bool> {
 
         K::Kal => {
             // TODO: restrict
-            kp.try_add("3.3.126", krt);
+            if kp.upapada().is_some() {
+                kp.try_add("3.3.126", krt);
+            }
         }
 
         K::ktic => {

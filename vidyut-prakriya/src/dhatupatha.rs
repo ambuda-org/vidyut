@@ -184,21 +184,25 @@ impl IntoIterator for Dhatupatha {
 }
 
 fn maybe_find_antargana(gana: Gana, number: u16) -> Option<Antargana> {
-    if gana == Gana::Tudadi && (93..=137).contains(&number) {
-        // Check number explicitly because some roots are duplicated within tudAdi
-        // but outside this gana (e.g. juq).
+    if gana == Gana::Bhvadi && (867..=932).contains(&number) {
+        // Need to check range explicitly because some of these roots appear multiple times in the
+        // gana, e.g. svana~.
+        Some(Antargana::Ghatadi)
+    } else if gana == Gana::Tudadi && (93..=137).contains(&number) {
+        // Need to check range explicitly because some of these roots appear multiple times in the
+        // gana, e.g. juqa~.
         Some(Antargana::Kutadi)
     } else if gana == Gana::Curadi && (192..=236).contains(&number) {
-        // Need to check range explicitly because some of these roots appear
-        // multiple times in the gana, e.g. lakza~.
+        // Need to check range explicitly because some of these roots appear multiple times in the
+        // gana, e.g. lakza~.
         Some(Antargana::Akusmiya)
     } else if gana == Gana::Curadi && (279..=337).contains(&number) {
-        // Need to check range explicitly because some of these roots appear
-        // multiple times in the gana, e.g. tuji~.
+        // Need to check range explicitly because some of these roots appear multiple times in the
+        // gana, e.g. tuji~.
         Some(Antargana::Asvadiya)
     } else if gana == Gana::Curadi && (338..=388).contains(&number) {
-        // Need to check range explicitly because some of these roots appear
-        // multiple times in the gana, e.g. SraTa~.
+        // Need to check range explicitly because some of these roots appear multiple times in the
+        // gana, e.g. SraTa~.
         Some(Antargana::Adhrshiya)
     } else {
         None

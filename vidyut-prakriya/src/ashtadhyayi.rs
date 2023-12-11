@@ -86,19 +86,21 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, is_ardhadhatuka: bool) -> Resu
         // Defer tripadi until we add other pratyayas.
     }
 
-    for s in dhatu.sanadi() {
-        sanadi::try_add_optional(p, *s)?;
-        samjna::run(p);
-        // Needed for BIzayate, etc.
-        // TODO: revisit this. Is this really necessary here?
-        atmanepada::run(p);
-        run_main_rules(p, None, false)?;
-        // Defer tripadi until we add other pratyayas.
+    if let Dhatu::Mula(_) = dhatu {
+        for s in dhatu.sanadi() {
+            // HACK: reset padas for next sanadi.
+            p.remove_tag(Tag::Parasmaipada);
+            p.remove_tag(Tag::Atmanepada);
+
+            sanadi::try_add_optional(p, *s)?;
+            samjna::run(p);
+            atmanepada::run(p);
+            run_main_rules(p, None, false)?;
+            // Defer tripadi until we add other pratyayas.
+        }
     }
 
-    if !dhatu.sanadi().is_empty() {
-        p.debug("~~~~~~~~~~~~~~ completed dhatu ~~~~~~~~~~~~~~~~~~")
-    }
+    p.debug("~~~~~~~~~~~~~~ completed dhatu ~~~~~~~~~~~~~~~~~~");
 
     Ok(())
 }
@@ -197,13 +199,16 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
 fn prepare_taddhitanta(p: &mut Prakriya, args: &Taddhitanta) -> Result<()> {
     let taddhita = args.taddhita();
 
+    prepare_pratipadika(p, args.pratipadika())?;
+    samjna::run(p);
+
     // If defined, set the meaning condition that this prakriya must follow.
+    //
+    // Set `artha` *after* `prepare_pratipadika` to avoid clobbering `artha` when dealing with
+    // nested taddhitantas.
     if let Some(artha) = args.artha() {
         p.set_artha(Artha::Taddhita(artha));
     }
-
-    prepare_pratipadika(p, args.pratipadika())?;
-    samjna::run(p);
 
     let added = taddhita::run(p, taddhita);
     if !added {
@@ -312,6 +317,8 @@ fn run_main_rules(p: &mut Prakriya, lakara: Option<Lakara>, is_ardhadhatuka: boo
         // Must run before it-Agama.
         angasya::try_cinvat_for_bhave_and_karmani_prayoga(p);
 
+        // Must run before it_agama rules since it affects how those rules are applied.
+        atidesha::run_before_it_agama(p);
         // Depends on jha_adesha since it conditions on the first sound.
         it_agama::run_before_attva(p);
         // Should come before atidesha rules for ju[hve --> hU]zati (san is kit).

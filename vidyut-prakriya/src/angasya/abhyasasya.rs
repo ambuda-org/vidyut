@@ -8,13 +8,14 @@ Runs rules that modify the abhyāsa.
 
 use crate::args::Gana;
 use crate::core::operators as op;
+use crate::core::term::TermString;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set};
-use compact_str::CompactString;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -31,8 +32,8 @@ lazy_static! {
 }
 
 /// Simplifies the abhyasa per 7.4.60.
-fn try_haladi(text: &str) -> CompactString {
-    let mut ret = CompactString::from("");
+fn try_haladi(text: &str) -> TermString {
+    let mut ret = TermString::from("");
     for (i, c) in text.chars().enumerate() {
         if al::is_hal(c) {
             if i == 0 {
@@ -47,8 +48,8 @@ fn try_haladi(text: &str) -> CompactString {
 }
 
 /// Simplifies the abhyasa per 7.4.61.
-fn try_shar_purva(text: &str) -> CompactString {
-    let mut ret = CompactString::from("");
+fn try_shar_purva(text: &str) -> TermString {
+    let mut ret = TermString::from("");
     for (i, c) in text.chars().enumerate() {
         if i == 0 {
             assert!(SHAR.contains(c));
@@ -88,7 +89,7 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
             p.run_at(code, i, op::antya("is"));
         }
     } else if dhatu.has_text("rAD") {
-        do_abhyasa_lopa = p.optional_run_at("7.4.54.v1", i, op::upadha("is"));
+        do_abhyasa_lopa = p.optional_run_at(Varttika("7.4.54.1"), i, op::upadha("is"));
     } else if dhatu.has_u_in(&["A\\px~", "jYapa~", "fDu~"]) {
         // Ipsati, jYIpsati, Irtsati
         let code = "7.4.55";
@@ -372,7 +373,7 @@ fn try_rules_for_slu(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if dhatu.has_u_in(&["quBf\\Y", "mA\\N", "o~hA\\N"]) {
         // biBarti, mimIte, jihIte
         p.run_at("7.4.76", i, op::antya("i"));
-    } else if dhatu.has_u_in(&["f\\", "pf", "pF"]) && dhatu.has_gana(Gana::Juhotyadi) {
+    } else if dhatu.has_u_in(&["f\\", "pf\\", "pF"]) && dhatu.has_gana(Gana::Juhotyadi) {
         // iyarti, piparti (allowed by both `pf` and `pF`)
         p.run_at("7.4.77", i, op::antya("i"));
     } else if dhatu.has_u("gA\\") && dhatu.has_gana(Gana::Juhotyadi) {
@@ -477,7 +478,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
             } else if dhatu.has_antya('f') {
                 op::insert_agama_at("7.4.92", p, i_dhatu, "rIk");
             } else {
-                op::insert_agama_at("7.4.90.v1", p, i_dhatu, "rIk");
+                op::insert_agama_at(Varttika("7.4.90.1"), p, i_dhatu, "rIk");
             }
         }
     } else if abhyasa.has_antya('a') {

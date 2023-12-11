@@ -7,6 +7,7 @@ use crate::args::Taddhita;
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
 use crate::core::operators as op;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::ganapatha as gana;
 use crate::it_samjna;
@@ -52,7 +53,7 @@ fn try_shaishika_rules(tp: &mut TaddhitaPrakriya, rule: &'static str) {
         let sub = if prati.has_text("rAzwra") { Ga } else { Ka };
         tp.try_add("4.2.93", sub);
     } else if prati.has_text_in(&["avAra", "pAra", "pArAvara"]) {
-        tp.try_add("4.2.93.v1", Ka);
+        tp.try_add(Varttika("4.2.93.1"), Ka);
     } else if prati.has_text("grAma") {
         let code = "4.2.94";
         tp.try_add(code, ya);
@@ -339,11 +340,15 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_text("kulawA") {
             tp.optional_try_add_with("4.1.127", Qak, |p| p.set(i_prati, |t| t.set_antya("in")));
         } else if prati.has_text("cawakA") {
+            // cAwakEra
             tp.try_add("4.1.128", Erak);
         } else if prati.has_text("cawaka") {
-            tp.try_add("4.1.128.v1", Erak);
+            // cAwakEra
+            tp.try_add(Varttika("4.1.128.1"), Erak);
         } else if prati.has_text("goDA") {
+            // gODera
             tp.try_add("4.1.129", Qrak);
+            // gODAra
             tp.try_add("4.1.130", Arak);
         } else if prati.has_text("pitfzvasf") {
             tp.try_add("4.1.132", CaR);
@@ -384,7 +389,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
                 p.set(i_prati, |t| t.set_antya("aka"));
             });
         } else if prati.has_text_in(&["vyAsa", "varuqa", "nizAda", "caRqAla", "bimba"]) {
-            tp.try_add_with("4.1.97.v1", iY, |p| {
+            tp.try_add_with(Varttika("4.1.97.1"), iY, |p| {
                 p.set(i_prati, |t| t.set_antya("aka"));
             });
         } else if prati.has_antya('a') {
@@ -504,7 +509,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
                 p.set(i_prati, |t| t.find_and_replace_text("ptAt", "ptf"))
             });
         } else if prati.has_text("Satarudra") {
-            let code = "4.2.28.v2";
+            let code = Varttika("4.2.28.2");
             tp.try_add(code, Ga);
             tp.try_add(code, Ca);
         } else if prati.has_text("mahendra") {
@@ -555,15 +560,15 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             }
             tp.try_add("4.2.41", WaY);
         } else if prati.has_text("gaRikA") {
-            tp.try_add("4.2.40.v1", yaY);
+            tp.try_add(Varttika("4.2.40.1"), yaY);
         } else if prati.has_text_in(&["brAhmaRa", "mARava", "vAqava"]) {
             tp.try_add("4.2.42", yan);
         } else if prati.has_text("pfzWa") {
-            tp.try_add("4.2.42.v1", yan);
+            tp.try_add(Varttika("4.2.42.1"), yan);
         } else if prati.has_text_in(&["grAma", "jana", "banDu", "sahAya"]) {
             tp.try_add("4.2.43", tal);
         } else if prati.has_text("gaja") {
-            tp.try_add("4.2.43.v1", tal);
+            tp.try_add(Varttika("4.2.43.1"), tal);
         } else if prati.has_text_in(gana::KHANDIKA_ADI) {
             tp.try_add("4.2.45", aY);
         } else if true

@@ -26,6 +26,7 @@ console_error_panic_hook = "0.1.7"
 
 [dev-dependencies]
 test_utils = { path = "test_utils" }
+vidyut-lipi = { path = "../vidyut-lipi" }
 
 [lib]
 crate-type = ["cdylib", "rlib"]

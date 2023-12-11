@@ -367,23 +367,24 @@ fn sutra_7_1_36() {
 #[ignore]
 #[test]
 fn sutra_7_1_37() {
+    use Krt::ktvA;
     let kf = d("qukf\\Y", Tanadi);
     let hf = d("hf\\Y", Bhvadi);
-    assert_has_krdanta(&["pra"], &kf, Krt::ktvA, &["prakftya"]);
-    assert_has_krdanta(&["pra"], &hf, Krt::ktvA, &["prahftya"]);
+    assert_has_krdanta(&["pra"], &kf, ktvA, &["prakftya"]);
+    assert_has_krdanta(&["pra"], &hf, ktvA, &["prahftya"]);
     assert_has_upapada_krdanta(
         Pratipadika::avyaya("pArSvataH"),
         &[],
         &kf,
-        Krt::ktvA,
+        ktvA,
         &["pArSvataHkftya"],
     );
-    assert_has_krdanta(&["nAnA"], &kf, Krt::ktvA, &["nAnAkftya"]);
-    assert_has_krdanta(&["dviDA"], &kf, Krt::ktvA, &["dviDAkftya"]);
+    assert_has_krdanta(&["nAnA"], &kf, ktvA, &["nAnAkftya"]);
+    assert_has_krdanta(&["dviDA"], &kf, ktvA, &["dviDAkftya"]);
 
     // samAse
-    assert_has_krdanta(&[], &kf, Krt::ktvA, &["kftvA"]);
-    assert_has_krdanta(&[], &hf, Krt::ktvA, &["hftvA"]);
+    assert_has_krdanta(&[], &kf, ktvA, &["kftvA"]);
+    assert_has_krdanta(&[], &hf, ktvA, &["hftvA"]);
 
     // TODO: others
 }
@@ -541,8 +542,9 @@ fn sutra_7_1_62() {
     assert_has_krdanta(&[], &radh, Krt::tavya, &["raDitavya", "radDavya"]);
     assert_has_krdanta(&[], &radh, Krt::lyuw, &["ranDana"]);
     assert_has_krdanta(&[], &radh, Krt::Rvul, &["ranDaka"]);
-    assert_has_vas(&[], &radh, Lit, &["raranDiva"]);
-    assert_has_mas(&[], &radh, Lit, &["raranDima"]);
+    // reDva, reDma by 7.2.45.
+    assert_has_vas(&[], &radh, Lit, &["raranDiva", "reDva"]);
+    assert_has_mas(&[], &radh, Lit, &["raranDima", "reDma"]);
 
     // TODO: redhivas (we get *redhvas instead)
 }

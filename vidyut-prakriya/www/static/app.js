@@ -34,6 +34,7 @@ function parseSutras(tsv) {
     return sutras;
 }
 const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
+const varttikas = fetch("/static/data/varttikas.tsv").then(resp => resp.text()).then(text => parseSutras(text));
 
 // Parse a dhatupatha string into separate objects.
 function parseDhatus(text) {
@@ -57,7 +58,7 @@ class Vidyut {
     constructor(dhatupatha) {
         this.wasm = VidyutWasm.init(dhatupatha);
         this.dhatus = parseDhatus(dhatupatha);
-        console.log("constructed Vidyut.");
+        console.log("Constructed Vidyut.");
     }
 
 
@@ -99,39 +100,6 @@ class Vidyut {
 // ===================================================
 // Frontend
 // ===================================================
-
-// Krts that create ordinary nouns.
-const NOMINAL_KRTS = [
-    BaseKrt.GaY,
-    BaseKrt.lyuw,
-    BaseKrt.Rvul,
-    BaseKrt.tfc,
-    BaseKrt.kvip,
-];
-
-// Krts that are generally called *participles*.
-const PARTICIPLE_KRTS = [
-    BaseKrt.tavya,
-    BaseKrt.anIyar,
-    BaseKrt.yat,
-    BaseKrt.Ryat,
-
-    BaseKrt.Satf,
-    BaseKrt.SAnac,
-
-    BaseKrt.kta,
-    BaseKrt.ktavatu,
-
-    BaseKrt.kvasu,
-    BaseKrt.kAnac,
-];
-
-// Krts that create avyayas.
-const AVYAYA_KRTS = [
-    BaseKrt.tumun,
-    BaseKrt.ktvA,
-    BaseKrt.Ramul,
-];
 
 // What to call these params in the URL.
 const Params = {
@@ -190,6 +158,7 @@ const App = () => ({
 
     // data
     sutras: {},
+    varttikas: {},
 
     // Transliteration script (devanagari, iast, telugu, etc.)
     script: 'devanagari',
@@ -203,7 +172,7 @@ const App = () => ({
 
         // Vidyut needs its own copy of the dhatupatha.
         this.vidyut = new Vidyut(dhatupatha);
-        console.log("initialized vidyut-prakriya WASM bindings.");
+        console.log("Initialized vidyut-prakriya WASM bindings.");
 
         this.dhatus = this.vidyut.dhatus;
 
@@ -232,6 +201,7 @@ const App = () => ({
         });
 
         this.sutras = await sutras;
+        this.varttikas = await varttikas;
     },
 
     // Mutators
@@ -302,7 +272,6 @@ const App = () => ({
         this.activePada = p;
         if (p.type === "subanta") {
             this.supPrakriya = this.createPrakriya();
-            console.log(this.supPrakriya);
         } else {
             this.dhatuPrakriya = this.createPrakriya();
         }
@@ -400,9 +369,51 @@ const App = () => ({
         return Sanscript.t(removeSlpSvaras(s), 'slp1', this.script);
     },
 
-    sutraText(rule) {
-        const text = this.sutras[rule];
-        return text ? this.deva(text) : '';
+    renderStepRule(rule) {
+        if (rule.source === "ashtadhyayi") {
+            let text = this.sutras[rule.code];
+            return text ? this.deva(text) : '';
+        } else if (rule.source === "varttika") {
+            let text = this.varttikas[rule.code];
+            text = this.deva(text || "");
+            if (text) {
+                return `<span class="text-green-500">${text}</span>`;
+            } else {
+                return '';
+            }
+        } else {
+            return "(missing)"
+        }
+    },
+
+    renderStepRuleLinkText(rule) {
+        let prefix = "";
+        if (rule.source === "varttika") {
+            prefix = "vArttika ";
+        } else if (rule.source === "kaumudi") {
+            prefix = "kOmudI ";
+        } else if (rule.source === "unadi") {
+            prefix = "uRAdi ";
+        } else if (rule.source === "linganushasanam") {
+            prefix = "liNgA ";
+        } else if (rule.source === "dhatupatha") {
+            prefix = "DAtupAWa ";
+        } else if (rule.source === "phit") {
+            prefix = "Piw ";
+        }
+
+        const text = prefix + rule.code;
+        return this.deva(text).replaceAll('।', '.')
+    },
+
+    renderStepRuleLink(rule) {
+        if (rule.source === "ashtadhyayi" || rule.source === "varttika") {
+            return "https://ashtadhyayi.com/sutraani/" + rule.code;
+        } else if (rule.source === "kaumudi") {
+            return "https://ashtadhyayi.com/sutraani/sk" + rule.code;
+        } else {
+            return "https://ashtadhyayi.com";
+        }
     },
 
     entryString(entries) {
@@ -411,7 +422,7 @@ const App = () => ({
     },
 
     stepClasses(step) {
-        const code = step.rule;
+        const code = step.rule.code;
         let minor = new Set(["1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.3.5", "1.3.6", "1.3.7", "1.3.8", "1.3.9", "1.2.45", "1.2.46", "3.4.114", "1.1.43", "1.4.14",
             "1.4.58", "1.4.59", "1.4.60", "1.4.80", "3.1.32", "6.1.4", "6.1.5", "8.4.68", "3.4.113", "2.3.48", "1.4.17", "2.3.49", "1.4.7",
         ]);
@@ -424,12 +435,16 @@ const App = () => ({
 
     renderStepResult(step) {
         let res = "";
-        step.result.forEach((val, i) => {
+        step.result.forEach((term, i) => {
+            // Skip empty terms since traditional prakriyas expect this to be done.
+            if (term.text.length === 0) {
+                return;
+            }
             if (res.length !== 0) {
                 res += ' <span class="text-sm text-gray-400">+</span> ';
             }
-            let text = Sanscript.t(removeSlpSvaras(val), 'slp1', this.script);
-            if (i === step.active) {
+            let text = Sanscript.t(removeSlpSvaras(term.text), 'slp1', this.script);
+            if (term.wasChanged) {
               text = `<span class="text-red-700">${text}</span>`
             }
             res += text;
@@ -695,32 +710,32 @@ const App = () => ({
         const sanadi = this.sanadi;
 
         let ret = [];
-        [NOMINAL_KRTS, PARTICIPLE_KRTS, AVYAYA_KRTS].forEach((list) => {
-            let table = [];
-            list.forEach((krt) => {
-                const args = {
-                    dhatu,
-                    krt,
-                    upasarga,
-                    sanadi,
-                };
+        const krts = Object.values(BaseKrt).filter(Number.isInteger);
 
-                const prakriyas = this.vidyut.deriveKrdantas(args)
-                let padas = [];
-                prakriyas.forEach((p) => {
-                    padas.push({
-                        text: p.text,
-                        type: "krdanta",
-                        args
-                    });
+        krts.forEach((krt) => {
+            const args = {
+                dhatu,
+                krt,
+                upasarga,
+                sanadi,
+            };
+
+            const prakriyas = this.vidyut.deriveKrdantas(args)
+            let padas = [];
+            prakriyas.forEach((p) => {
+                padas.push({
+                    text: p.text,
+                    type: "krdanta",
+                    args
                 });
+            });
 
-                table.push({
+            if (padas.length !== 0) {
+                ret.push({
                     title: BaseKrt[krt],
                     padas,
                 });
-            });
-            ret.push(table);
+            }
         });
         return ret;
     },
@@ -762,7 +777,6 @@ const App = () => ({
             results.push(laResults);
         }
 
-        console.log(results);
         return results;
     },
 });

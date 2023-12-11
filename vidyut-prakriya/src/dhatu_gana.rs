@@ -2,6 +2,9 @@
 
 /// Dhatus that are `mit` per DP.01.0933.
 /// These dhatus will use a hrasva vowel per 6.4.92.
+///
+/// Range: 1.0867 - 1.0932)
+#[allow(unused)]
 pub const GHAT_ADI: &[&str] = &[
     "Gawa~\\",
     "vyaTa~\\",

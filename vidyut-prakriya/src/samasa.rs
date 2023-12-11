@@ -1,6 +1,7 @@
 use crate::args::Samasa;
 use crate::args::SamasaType;
 use crate::core::operators as op;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
 use crate::core::{Term, TermView};
@@ -257,7 +258,7 @@ fn decide_samasa_type(p: &mut Prakriya, args: &Samasa) -> Option<bool> {
                 sp.mark_tatpurusha("2.1.37");
             } else if uttara.has_text_in(&["BIta", "BIti", "BI"]) {
                 // vfkaBIta, ...
-                sp.mark_tatpurusha("2.1.37.v1");
+                sp.mark_tatpurusha(Varttika("2.1.37.1"));
             } else if uttara.has_text_in(&["apeta", "apoQa", "mukta", "patita", "apatrasta"]) {
                 // suKApeta, ...
                 sp.mark_tatpurusha("2.1.38");

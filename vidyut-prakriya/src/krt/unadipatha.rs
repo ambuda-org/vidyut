@@ -30,8 +30,10 @@ Points against:
 We found the points against more convincing and have stored these pratyayas in two separate enums.
 */
 use crate::args::{Krt, Unadi};
+use crate::core::operators as op;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
+use crate::it_samjna;
 use crate::krt::utils::KrtPrakriya;
 use crate::sounds::{s, Set};
 use lazy_static::lazy_static;
@@ -53,6 +55,14 @@ fn set_text(text: &'static str) -> impl Fn(&mut Prakriya) {
     move |p| {
         let i_dhatu = p.terms().len() - 2;
         p.set(i_dhatu, |t| t.set_text(text));
+    }
+}
+
+/// A helper function that replaces the first sound of the dhatu.
+fn set_adi(text: &'static str) -> impl Fn(&mut Prakriya) {
+    move |p| {
+        let i_dhatu = p.terms().len() - 2;
+        p.set(i_dhatu, |t| t.set_adi(text));
     }
 }
 
@@ -246,6 +256,7 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         }
         U::ati => {
             if dhatu.has_text_in(&["mah"]) {
+                // mahat
                 kp.try_add_with(UP("2.84"), krt, |p| {
                     p.set(i_dhatu + 1, |t| t.add_tags(&[T::Sit, T::fdit]));
                 });
@@ -371,7 +382,6 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         | U::Asa
         | U::Anuk => {
             let code = UP("4.2");
-            let has_u = |u| dhatu.has_u(u);
 
             match krt {
                 U::katnic if dhatu.has_u("f\\") => {
@@ -410,10 +420,10 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                     kp.try_add(code, krt);
                 }
                 // TODO: kavaca?
-                U::Asa if has_u("yu") => {
+                U::Asa if dhatu.has_u("yu") => {
                     kp.try_add(code, krt);
                 }
-                U::Anuk if has_u("kfSa~") => {
+                U::Anuk if dhatu.has_u("kfSa~") => {
                     kp.try_add(code, krt);
                 }
                 _ => (),
@@ -455,6 +465,7 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         }
         U::kvin => {
             if dhatu.has_u_in(&["jF", "SFY", "stFY", "jAgf"]) {
+                // jIrvi, SIrvi, stIrvi, jAgfvi
                 kp.try_add(UP("4.54"), krt);
             }
         }
@@ -475,11 +486,13 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         }
         U::ama => {
             if dhatu.has_text_in(&["kal", "kard"]) {
+                // kalama, karmada
                 kp.try_add(UP("4.83"), krt);
             }
         }
         U::kindac => {
             if dhatu.has_text_in(&["kuR", "pul"]) {
+                // kuRinda, pulinda
                 kp.try_add(UP("4.84"), krt);
             }
         }
@@ -497,6 +510,102 @@ pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 kp.try_add_with(UP("4.189"), krt, |p| p.set(i, |t| t.set_upadha("e")));
             } else {
                 kp.try_add(UP("4.188"), krt);
+            }
+        }
+        U::Uma => {
+            if dhatu.has_u("guDa~") {
+                // goDUma
+                kp.try_add(UP("5.2"), krt);
+            }
+        }
+        U::Uran => {
+            if dhatu.has_u("masI~") {
+                // masUra
+                kp.try_add(UP("5.3"), krt);
+            } else if dhatu.has_u("zWA\\") {
+                // sTUra
+                kp.try_add_with(UP("5.4"), krt, mark_as(T::kit));
+            }
+        }
+        U::ati_ => {
+            if dhatu.has_u("pA\\") {
+                // pAti, sampAti
+                kp.try_add(UP("5.5"), krt);
+            } else if dhatu.has_u("vA\\") {
+                // vAti
+                kp.try_add_with(UP("5.6"), krt, mark_as(T::nit));
+            } else if dhatu.has_u("f\\") {
+                // arati
+                kp.try_add_with(UP("5.7"), krt, mark_as(T::nit));
+            }
+        }
+        U::kna => {
+            if dhatu.has_u("tfhU~") {
+                // tfRa
+                kp.try_add_with(UP("5.8"), krt, set_antya(""));
+            }
+        }
+        U::qEsi => {
+            if has_upasarga("ud") && dhatu.has_u("ci\\Y") {
+                // uccEH
+                kp.try_add(UP("5.12"), krt);
+            } else if has_upasarga("ni") && dhatu.has_u("ci\\Y") {
+                // nIcEH
+                kp.try_add_with(UP("5.13"), krt, |p| p.set(i - 1, |t| t.set_antya("I")));
+            }
+        }
+        U::yat => {
+            if dhatu.has_u("pUY") {
+                // puRya
+                let added = kp.try_add_with(UP("5.15"), krt, |p| {
+                    p.set(i, |t| t.set_antya("u"));
+                    op::insert_agama_after(p, i, "Ru~k");
+                });
+                if added {
+                    it_samjna::run(kp.p, i + 1).expect("ok");
+                }
+            }
+        }
+        U::Ka => {
+            if dhatu.has_u("mu\\ha~") {
+                // mUrKa
+                kp.try_add_with(UP("5.22"), krt, |p| {
+                    p.set(i, |t| t.set_text("mUr"));
+                });
+            } else if dhatu.has_u("Ra\\ha~^") {
+                // naKa
+                kp.try_add_with(UP("5.23"), krt, set_antya(""));
+            } else if dhatu.has_u("SIN") {
+                // SiKA
+                // TODO: why strI?
+                kp.try_add_with(UP("5.24"), krt, set_antya("i"));
+            }
+        }
+        U::UKa => {
+            if dhatu.has_u("mA\\N") {
+                // mayUKa
+                kp.try_add_with(UP("5.25"), krt, set_text("may"));
+            }
+        }
+        U::wan => {
+            if dhatu.has_u("janI~\\") {
+                // jawA
+                // TODO: why strI?
+                kp.try_add_with(UP("5.30"), krt, set_antya(""));
+            }
+        }
+        U::an => {
+            if dhatu.has_text("kliS") {
+                // keSa
+                kp.try_add_with(UP("5.33"), krt, |p| {
+                    p.set(i, |t| t.find_and_replace_text("l", ""))
+                });
+            }
+        }
+        U::itac => {
+            if dhatu.has_text("Pal") {
+                // palita
+                kp.try_add_with(UP("5.34"), krt, set_adi("p"));
             }
         }
         U::amac => {

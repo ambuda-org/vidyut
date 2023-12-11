@@ -6,7 +6,7 @@ use vidyut_prakriya::args::Lakara::*;
 
 #[test]
 fn ambibat() {
-    assert_has_tip(&[], &d("abi~", Curadi), Lun, &["Ambibat"]);
+    assert_has_tip(&[], &nic(&d("abi~", Bhvadi)), Lun, &["Ambibat"]);
 }
 
 #[test]

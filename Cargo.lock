@@ -1022,6 +1022,7 @@ dependencies = [
  "sha2 0.10.6",
  "sha256",
  "test_utils",
+ "vidyut-lipi",
  "wasm-bindgen",
 ]
 

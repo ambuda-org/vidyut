@@ -55,7 +55,6 @@ fn sk_2554() {
     assert_has_tip(&[], &si, Lut, &["setA"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2555() {
     let sku = d("sku\\Y", Kryadi);
@@ -78,7 +77,7 @@ fn sk_2555() {
     assert_has_tip(&["ava"], &stambh, Lit, &["avatazwamBa", "avatastamBa"]);
     assert_has_tip(&["vi"], &stambh, Lun, &["vyazwaBat", "vyazwamBIt"]);
 
-    let stumbh = d("stu\\nBu~", Kryadi);
+    let stumbh = d("stunBu~", Kryadi);
     assert_has_tip(&[], &stumbh, Lat, &["stuBnoti", "stuBnAti"]);
 }
 
@@ -184,8 +183,7 @@ fn sk_2558() {
     assert_has_tip(&[], &dhu, Lat, &["DunAti"]);
     assert_has_ta(&[], &dhu, Lat, &["DunIte"]);
     assert_has_sip(&[], &dhu, Lit, &["duDaviTa", "duDoTa"]);
-    // dudhUva seems justified.
-    assert_has_vas(&[], &dhu, Lit, &["duDuviva", "duDUva"]);
+    assert_has_vas(&[], &dhu, Lit, &["duDuviva"]);
     assert_has_tip(&[], &dhu, Lut, &["DotA", "DavitA"]);
     assert_has_tip(&[], &dhu, Lun, &["aDAvIt"]);
     assert_has_ta(&[], &dhu, Lun, &["aDavizwa", "aDozwa"]);
@@ -220,7 +218,6 @@ fn sk_2558() {
     assert_has_tas(&[], &r, Lun, &["ArizwAm"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2559() {
     let jya = d("jyA\\", Kryadi);
@@ -240,38 +237,44 @@ fn sk_2559() {
 
     let bandh = d("ba\\nDa~", Kryadi);
     assert_has_tip(&[], &bandh, Lat, &["baDnAti"]);
-    assert_has_sip(&[], &bandh, Lit, &["babanDiTa"]);
-    assert_has_tip(&[], &bandh, Lut, &["banDA"]);
-    assert_has_tas(&[], &bandh, Lut, &["banDArO"]);
+    // babandDa, etc. are supported by other sources.
+    assert_has_sip(&[], &bandh, Lit, &["babanDiTa", "babandDa", "babanDa"]);
+    assert_has_tip(&[], &bandh, Lut, &["banDA", "bandDA"]);
+    assert_has_tas(&[], &bandh, Lut, &["banDArO", "bandDArO"]);
     assert_has_tip(&[], &bandh, Lrt, &["Bantsyati"]);
-    assert_has_sip(&[], &bandh, Lot, &["baDAna"]);
-    assert_has_tip(&[], &bandh, Lun, &["aBAnsIt"]);
-    assert_has_tas(&[], &bandh, Lun, &["abAnDAm"]);
-    assert_has_jhi(&[], &bandh, Lun, &["aBAntsu"]);
+    assert_has_sip(&[], &bandh, Lot, &["baDAna", "baDnItAt"]);
+    assert_has_tip(&[], &bandh, Lun, &["aBAntsIt"]);
+    assert_has_tas(&[], &bandh, Lun, &["abAnDAm", "abAndDAm"]);
+    assert_has_jhi(&[], &bandh, Lun, &["aBAntsuH"]);
 
     let vr = d("vfN", Kryadi);
     assert_has_ta(&[], &vr, Lat, &["vfRIte"]);
     assert_has_ta(&[], &vr, Lit, &["vavre"]);
     assert_has_thaas(&[], &vr, Lit, &["vavfze"]);
     assert_has_dhvam(&[], &vr, Lit, &["vavfQve"]);
-    assert_has_tip(&[], &vr, Lut, &["varitA", "varItA"]);
-    assert_has_tip(&[], &vr, Lun, &["avarizwa", "avarIzwa", "avfta"]);
+    assert_has_ta(&[], &vr, Lut, &["varitA", "varItA"]);
+    assert_has_ta(&[], &vr, Lun, &["avarizwa", "avarIzwa", "avfta"]);
 
     let shranth = d("SranTa~", Kryadi);
     assert_has_tip(&[], &shranth, Lat, &["SraTnAti"]);
-    assert_has_tas(&[], &shranth, Lit, &["SreTatuH"]);
-    assert_has_jhi(&[], &shranth, Lit, &["SreTuH"]);
-    assert_has_sip(&[], &shranth, Lit, &["SreTiTa", "SaSrATa"]);
+    // SaSranTatuH and SasranTuH are not supported by KV or SK, but they are allowed by other
+    // grammarians.
+    assert_has_tas(&[], &shranth, Lit, &["SreTatuH", "SaSranTatuH"]);
+    assert_has_jhi(&[], &shranth, Lit, &["SreTuH", "SaSranTuH"]);
+    assert_has_sip(&[], &shranth, Lit, &["SaSranTiTa"]);
+    // TODO: SaSrATa, SaSraTa, SreTiTa by sudhAkara-mata. But, adding this makes the derivation of
+    // SaSrATa unclear.
 
     let kunth = d("kunTa~", Kryadi);
     assert_has_tip(&[], &kunth, Lat, &["kuTnAti"]);
     assert_has_tip(&[], &kunth, Lit, &["cukunTa"]);
 
-    assert_has_tip(&[], &kunth, Lit, &["cukoTa"]);
+    let kuth = d("kuTa~", Kryadi);
+    assert_has_tip(&[], &kuth, Lit, &["cukoTa"]);
 
     let mrd = d("mfda~", Kryadi);
     assert_has_tip(&[], &mrd, Lat, &["mfdnAti"]);
-    assert_has_sip(&[], &mrd, Lot, &["mfdAna"]);
+    assert_has_sip(&[], &mrd, Lot, &["mfdAna", "mfdnItAt"]);
 
     let mrd = d("mfqa~", Kryadi);
     assert_has_tip(&[], &mrd, Lat, &["mfqRAti"]);
@@ -282,6 +285,76 @@ fn sk_2559() {
     let kush = d("kuza~", Kryadi);
     assert_has_tip(&[], &kush, Lat, &["kuzRAti"]);
     assert_has_tip(&[], &kush, Lut, &["kozitA"]);
+}
+
+#[ignore]
+#[test]
+fn sk_2560() {
+    let kush = d("kuza~", Kryadi);
+    assert_has_tip(&["nir"], &kush, Lut, &["nizkozitA", "nizkozwA"]);
+    // aniT -> ksa -> nirakukzat
+    assert_has_tip(&["nir"], &kush, Lun, &["nirakozIt", "nirakukzat"]);
+
+    let kshubh = d("kzuBa~", Kryadi);
+    assert_has_tip(&[], &kshubh, Lat, &["kzuBnAti"]);
+    assert_has_tas(&[], &kshubh, Lat, &["kzuBnItaH"]);
+    assert_has_tip(&[], &kshubh, Lut, &["kzoBitA"]);
+    assert_has_sip(&[], &kshubh, Lot, &["kzuBAna", "kzuBnItAt"]);
+
+    let nabh = d("RaBa~", Kryadi);
+    assert_has_tip(&[], &nabh, Lat, &["naBnAti"]);
+
+    let tubh = d("tuBa~", Kryadi);
+    assert_has_tip(&[], &tubh, Lat, &["tuBnAti"]);
+
+    assert_has_ta(&[], &d("RaBa~\\", Bhvadi), Lat, &["naBate"]);
+    assert_has_ta(&[], &d("tuBa~\\", Bhvadi), Lat, &["toBate"]);
+    assert_has_tip(&[], &d("RaBa~", Divadi), Lat, &["naByati"]);
+    assert_has_tip(&[], &d("tuBa~", Divadi), Lat, &["tuByati"]);
+
+    let klish = d("kliSU~", Kryadi);
+    assert_has_tip(&[], &klish, Lat, &["kliSnAti"]);
+    assert_has_tip(&[], &klish, Lut, &["kleSitA", "klezwA"]);
+    assert_has_tip(&[], &klish, Lun, &["akleSIt", "aklikzat"]);
+
+    let ash = d("aSa~", Kryadi);
+    assert_has_tip(&[], &ash, Lat, &["aSnAti"]);
+    assert_has_tip(&[], &ash, Lit, &["ASa"]);
+
+    let dhras = d("u~Drasa~", Kryadi);
+    assert_has_tip(&[], &dhras, Lat, &["DrasnAti"]);
+
+    let x = d("uDrasa~", Kryadi);
+    assert_has_tip(
+        &[],
+        &x,
+        Lit,
+        &["uDrasAYcakAra", "uDrasAmAsa", "uDrasAmbaBUva"],
+    );
+
+    let ish = d("iza~", Kryadi);
+    assert_has_tip(&[], &ish, Lat, &["izRAti"]);
+    assert_has_tip(&[], &ish, Lut, &["ezitA"]);
+    // TODO: iw-vikalpa?
+
+    let x = d("vi\\za~", Kryadi);
+    assert_has_tip(&[], &x, Lat, &["vizRAti"]);
+    assert_has_tip(&[], &x, Lut, &["vezwA"]);
+
+    let prush = d("pruza~", Kryadi);
+    assert_has_tip(&[], &prush, Lat, &["pruzRAti"]);
+
+    let plush = d("pluza~", Kryadi);
+    assert_has_tip(&[], &plush, Lat, &["pluzRAti"]);
+
+    let push = d("puza~", Kryadi);
+    assert_has_tip(&[], &push, Lut, &["pozitA"]);
+
+    let mush = d("muza~", Kryadi);
+    assert_has_tip(&[], &mush, Lut, &["mozitA"]);
+
+    let khac = d("Kaca~", Kryadi);
+    assert_has_tip(&[], &khac, Lat, &["KacYAti"]);
 }
 
 #[test]

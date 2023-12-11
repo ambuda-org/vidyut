@@ -65,7 +65,6 @@ impl<'a> TermView<'a> {
     }
 
     /// Returns this view's text.
-    #[allow(unused)]
     pub fn text(&self) -> String {
         let mut ret = String::from("");
         for t in self.slice() {
@@ -145,25 +144,12 @@ impl<'a> TermView<'a> {
         None
     }
 
-    #[allow(unused)]
-    pub fn is_padanta(&self) -> bool {
-        self.is_empty() && self.ends_word()
-    }
-
     /// Returns whether the view's text is empty.
-    #[allow(unused)]
     pub fn is_empty(&self) -> bool {
         self.slice().iter().all(|t| t.is_empty())
     }
 
-    /// Returns whether this view is at the very end of the given word.
-    #[allow(unused)]
-    pub fn ends_word(&self) -> bool {
-        self.end == self.terms.len() - 1
-    }
-
     /// Returns the number of vowels contained in this term's text.
-    #[allow(unused)]
     pub fn num_vowels(&self) -> usize {
         self.slice().iter().map(|t| t.num_vowels()).sum()
     }
@@ -229,10 +215,7 @@ impl<'a> TermView<'a> {
     }
 
     pub fn has_u_in(&self, us: &[&str]) -> bool {
-        match self.slice().first() {
-            Some(t) => t.has_u_in(us),
-            None => false,
-        }
+        self.last().has_u_in(us)
     }
 
     pub fn has_tag(&self, tag: Tag) -> bool {
@@ -240,21 +223,11 @@ impl<'a> TermView<'a> {
     }
 
     pub fn has_lakshana(&self, s: &str) -> bool {
-        self.slice().iter().any(|t| t.has_lakshana(s))
+        self.last().has_lakshana(s)
     }
 
     pub fn has_lakshana_in(&self, items: &[&str]) -> bool {
-        self.slice().iter().any(|t| t.has_lakshana_in(items))
-    }
-
-    pub fn all(&self, tags: &[Tag]) -> bool {
-        for tag in tags {
-            if self.slice().iter().any(|t| t.has_tag(*tag)) {
-                continue;
-            }
-            return false;
-        }
-        true
+        self.last().has_lakshana_in(items)
     }
 
     pub fn has_tag_in(&self, tags: &[Tag]) -> bool {
@@ -275,7 +248,7 @@ impl<'a> TermView<'a> {
     }
 
     pub fn is_knit(&self) -> bool {
-        self.has_tag_in(&[Tag::kit, Tag::Nit])
+        self.last().has_tag_in(&[Tag::kit, Tag::Nit])
     }
 }
 

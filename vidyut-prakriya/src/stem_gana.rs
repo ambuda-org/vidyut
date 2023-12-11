@@ -13,6 +13,13 @@ pub const LAUKIKA_SANKHYA: &[&str] = &[
     "dvAdaSan",
     "trayodaSan",
     "zoqaSan",
+    "viMSati",
+    "triMSat",
+    "catvAriMSat",
+    "pAYcASat",
+    "zazwi",
+    "saptati",
+    "aSIti",
     "Sata",
     "sahasra",
 ];

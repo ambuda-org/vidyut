@@ -355,11 +355,14 @@ pub const SUKHA_ADI: &[&str] = &[
 ];
 
 /// 3.1.27 kaRqvAdiByo yak (35)
+#[allow(unused)]
 pub const KANDU_ADI: &[&str] = &[
-    "kaRqUY", "mantu", "hraRIY", "valgu", "astra", "manas", "mahIN", "lew", "low", "iras", "iraj",
-    "iraY", "dravas", "meDA", "kuzuBa", "magaDa", "tantas", "pampas", "suKa", "duHKa", "sapara",
-    "ara", "Bizaj", "BizRaj", "izuDa", "caraRa", "curaRa", "BuraRa", "turaRa", "gadgada", "elA",
-    "kelA", "KelA", "liw", "low",
+    "kaRqUY", "mantu", "mantuY", "valgu", "asu~", "asU", "asUY", "lew", "low", "lelA", "iras",
+    "iraj", "iraY", "uzas", "veda", "meDA", "kuzuBa", "magaDa", "tantas", "pampas", "suKa",
+    "duHKa", "sapara", "arara", "BizajU", "BizRaj", "izuDa", "caraRa", "varaRa", "curaRa",
+    "turaRa", "BuraRa", "gadgada", "elA", "kelA", "KelA", "ilA", "leKA", "leKa", "liwa", "lAwa",
+    "hfRIN", "mahIN", "reKA", "dravas", "tiras", "agada", "uras", "taraRa", "payas", "samBUyas",
+    "ambara", "saMvara",
 ];
 
 /// 4.1.4 ajAdyataz wAp (54)
@@ -1693,6 +1696,28 @@ pub const APUPA_ADI: &[&str] = &[
 
 /// 5.1.20 asamAse nizkAdiByaH (148)
 pub const NISHKA_ADI: &[&str] = &["nizka", "paRa", "pAda", "mAza", "vAha", "droRa", "zazwi"];
+
+/// 5.1.64 CedAdiByo nityam (151)
+pub const CHEDA_ADI: &[&str] = &[
+    "Ceda",
+    "Beda",
+    "droha",
+    "doha",
+    "narti",
+    "narta",
+    "karza",
+    "tIrTa",
+    "samprayoga",
+    "viprayoga",
+    "prayoga",
+    "viprakarza",
+    "prezaRa",
+    "sampraSna",
+    "vipraSna",
+    "vikarza",
+    "virAga",
+    "viraNga",
+];
 
 /// 5.1.66 daRqAdiByaH (152)
 pub const DANDA_ADI: &[&str] = &[

@@ -830,6 +830,7 @@ fn sutra_6_4_63() {
 
     // aci?
     assert_has_lat(&["upa"], &yan(&di), &["upadedIyate"]);
+
     // kNiti?
     assert_has_krdanta(&["upa"], &di, Krt::lyuw, &["upadAna"]);
 }
@@ -845,6 +846,15 @@ fn sutra_6_4_64() {
     assert_has_tas(&[], &stha, Lit, &["tasTatuH"]);
     assert_has_jhi(&[], &stha, Lit, &["tasTuH"]);
 
+    let daa = d("qudA\\Y", Juhotyadi);
+    assert_has_upapada_krdanta("go", &[], &daa, Krt::ka, &["goda"]);
+    assert_has_upapada_krdanta("kambala", &[], &daa, Krt::ka, &["kambalada"]);
+
+    // Niti?
+    let dhaa = d("quDA\\Y", Juhotyadi);
+    assert_has_krdanta(&["pra"], &daa, Krt::aN, &["pradA"]);
+    assert_has_krdanta(&["pra"], &dhaa, Krt::aN, &["praDA"]);
+
     // ArdhadhAtuke?
     assert_has_jhi(&[], &d("yA\\", Adadi), Lat, &["yAnti"]);
     assert_has_jhi(&[], &d("vA\\", Adadi), Lat, &["vAnti"]);
@@ -852,8 +862,6 @@ fn sutra_6_4_64() {
     // aci
     assert_has_ta_k(&[], &d("glE\\", Bhvadi), Lat, &["glAyate"]);
     assert_has_iw(&[], &d("qudA\\Y", Juhotyadi), AshirLin, &["dAsIya"]);
-
-    // TODO: others
 }
 
 #[test]
@@ -1167,6 +1175,46 @@ fn sutra_6_4_85() {
 }
 
 #[test]
+fn sutra_6_4_87() {
+    let hu = d("hu\\", Juhotyadi);
+    assert_has_jhi(&[], &hu, Lat, &["juhvati"]);
+    assert_has_jhi(&[], &hu, Lot, &["juhvatu"]);
+    assert_has_krdanta(&[], &hu, Krt::Satf, &["juhvat"]);
+
+    let su = d("zu\\Y", Svadi);
+    assert_has_jhi(&[], &su, Lat, &["sunvanti"]);
+    assert_has_jhi(&[], &su, Lot, &["sunvantu"]);
+    assert_has_jhi(&[], &su, Lan, &["asunvan"]);
+
+    // huSnuvoH?
+    assert_has_jhi(&[], &yan_luk(&d("yu", Adadi)), Lat, &["yoyuvati"]);
+    assert_has_jhi(&[], &yan_luk(&d("ru", Adadi)), Lat, &["roruvati"]);
+
+    // sArvadhAtuke?
+    assert_has_tas(
+        &[],
+        &hu,
+        Lit,
+        &[
+            "juhuvatuH",
+            "juhavAYcakratuH",
+            "juhavAmAsatuH",
+            "juhavAmbaBUvatuH",
+        ],
+    );
+    assert_has_jhi(
+        &[],
+        &hu,
+        Lit,
+        &["juhuvuH", "juhavAYcakruH", "juhavAmAsuH", "juhavAmbaBUvuH"],
+    );
+
+    // asaMyogapUrvasya?
+    assert_has_jhi(&[], &d("A\\px~", Svadi), Lat, &["Apnuvanti"]);
+    assert_has_jhi(&[], &d("rA\\Da~", Svadi), Lat, &["rADnuvanti"]);
+}
+
+#[test]
 fn sutra_6_4_88() {
     let bhu = d("BU", Bhvadi);
     assert_has_jhi(&[], &bhu, Lun, &["aBUvan"]);
@@ -1200,8 +1248,9 @@ fn sutra_6_4_90_and_sutra_6_4_91() {
 
 #[test]
 fn sutra_6_4_92() {
-    assert_has_tip(&[], &nic(&d("Gawa~\\", Bhvadi)), Lat, &["Gawayati"]);
-    assert_has_tip(&[], &nic(&d("vyaTa~\\", Bhvadi)), Lat, &["vyaTayati"]);
+    let d_g = d_ghatadi;
+    assert_has_tip(&[], &nic(&d_g("Gawa~\\", Bhvadi)), Lat, &["Gawayati"]);
+    assert_has_tip(&[], &nic(&d_g("vyaTa~\\", Bhvadi)), Lat, &["vyaTayati"]);
     assert_has_tip(&[], &nic(&d("janI~\\", Divadi)), Lat, &["janayati"]);
     assert_has_tip(
         &[],
@@ -1210,9 +1259,28 @@ fn sutra_6_4_92() {
         &["rajayati", "raYjayati"],
     );
 
-    // TODO: not sure
-    // assert_has_tip(&[], &nic("Samu~", Bhvadi), Lat, &["Samayati"]);
-    // assert_has_tip(&[], &nic("", Bhvadi), Lat, &["jYapayati"]);
+    assert_has_tip(&[], &nic(&d("Samu~", Bhvadi)), Lat, &["Samayati"]);
+    assert_has_tip(&[], &d("jYapa~", Curadi), Lat, &["jYapayati"]);
+}
+
+#[test]
+fn sutra_6_4_93() {
+    let sham = d("Samu~", Bhvadi);
+    let tam = d("tamu~", Divadi);
+    assert_has_ta_k(&[], &nic(&sham), Lun, &["aSami", "aSAmi"]);
+    assert_has_ta_k(&[], &nic(&tam), Lun, &["atami", "atAmi"]);
+
+    assert_has_krdanta(&[], &nic(&sham), Krt::Ramul, &["Samam", "SAmam"]);
+    assert_has_krdanta(&[], &nic(&tam), Krt::Ramul, &["tamam", "tAmam"]);
+
+    let nic_nic = |d: &Dhatu| d.clone().with_sanadi(&[Sanadi::Ric, Sanadi::Ric]);
+    assert_has_krdanta(&[], &nic_nic(&sham), Krt::Satf, &["Samayat"]);
+    assert_has_ta_k(&[], &nic_nic(&sham), Lun, &["aSami", "aSAmi"]);
+    assert_has_krdanta(&[], &nic_nic(&sham), Krt::Ramul, &["Samam", "SAmam"]);
+
+    assert_has_tip(&[], &yan_nic(&sham), Lat, &["SaMSamayati"]);
+    assert_has_ta_k(&[], &yan_nic(&sham), Lun, &["aSaMSami", "aSaMSAmi"]);
+    assert_has_krdanta(&[], &yan_nic(&sham), Krt::Ramul, &["SaMSamam", "SaMSAmam"]);
 }
 
 #[test]

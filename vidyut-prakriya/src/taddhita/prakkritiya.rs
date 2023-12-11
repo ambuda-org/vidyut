@@ -5,6 +5,7 @@ Implements the taddhita rules in the "prAk krItAc CaH" section of pada 5.1.
 */
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
+use crate::core::Rule::Varttika;
 use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
@@ -13,7 +14,7 @@ fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
     let prati = tp.prati();
     if prati.has_text("kambala") {
         tp.optional_try_add("5.1.3", yat);
-    } else if prati.has_text("havis") || prati.has_text_in(gana::APUPA_ADI) {
+    } else if prati.has_text_in(&["AmikzA", "puroqASa"]) || prati.has_text_in(gana::APUPA_ADI) {
         tp.optional_try_add("5.1.4", yat);
     }
 
@@ -33,7 +34,13 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TasmaiHitam, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(&["Kala", "yava", "mAza", "tila", "vfza", "brahman"]) {
+        if prati.has_text_in(&["danta", "kaRWa", "ozWa", "nABi", "nAsikA"]) {
+            // TODO: support the class, not just specific examples.
+            tp.try_add("5.1.6", yat);
+            if tp.prati().has_text("nAsikA") {
+                tp.p.run_at(Varttika("5.1.6.1"), tp.i_prati, |t| t.set_text("nas"));
+            }
+        } else if prati.has_text_in(&["Kala", "yava", "mAza", "tila", "vfza", "brahman"]) {
             tp.try_add("5.1.7", yat);
         } else if prati.has_text_in(&["aja", "avi"]) {
             tp.try_add("5.1.8", Tyan);

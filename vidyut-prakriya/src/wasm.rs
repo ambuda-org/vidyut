@@ -12,7 +12,7 @@ JavaScript callers can use them more idiomatically.
 */
 use crate::args::*;
 use crate::core::Rule;
-use crate::core::{Prakriya, Step};
+use crate::core::{Prakriya, Step, StepTerm};
 use crate::dhatupatha::Dhatupatha;
 use serde::Serialize;
 extern crate console_error_panic_hook;
@@ -27,15 +27,44 @@ extern "C" {
     fn error(s: &str);
 }
 
+/// A rule that was applied in the derivation.
+///
+/// We use this data to look up the rule's text in the frontend.
+#[allow(non_snake_case)]
+#[derive(Serialize)]
+pub struct WebRule {
+    /// The source of this rule (sutrapatha, varttika, etc.)
+    source: String,
+    /// The (numeric) code that was applied for this step of the derivation.
+    code: String,
+}
+
+/// A single term in the derivation history.
+#[allow(non_snake_case)]
+#[derive(Serialize)]
+pub struct WebStepTerm {
+    /// The text in the term.
+    text: String,
+    /// Whether or not this term was changed from the previous step.
+    wasChanged: bool,
+}
+
+impl From<&StepTerm> for WebStepTerm {
+    fn from(x: &StepTerm) -> Self {
+        Self {
+            text: x.text().to_string(),
+            wasChanged: x.was_changed(),
+        }
+    }
+}
+
 /// A lightweight `Step` that exposes fewer private fields than the native `Step` struct.
 #[derive(Serialize)]
 pub struct WebStep {
-    /// The rule that was applied for this step of the derivation.
-    rule: String,
+    /// The rule that created this step.
+    rule: WebRule,
     /// The result of applying the given rule.
-    result: Vec<String>,
-    /// If defined, the index in `result` that was changed by `rule`.
-    active: Option<usize>,
+    result: Vec<WebStepTerm>,
 }
 
 /// A lightweight `Prakriya` that exposes fewer private fields than the native `Prakriya` struct.
@@ -48,19 +77,18 @@ pub struct WebPrakriya {
 }
 
 impl Rule {
-    /// Converts a `Rule` to a string suitable for web display.
-    ///
-    /// We return SLP1 strings, which the frontend will transliterate to the user's chosen script.
-    fn as_web_string(&self) -> String {
+    /// The text this rule comes from.
+    fn source(&self) -> &str {
+        use Rule::*;
         match self {
-            Self::Ashtadhyayi(s) => s.to_string(),
-            Self::Varttika(s, v) => format!("vArttika {s} ({v})"),
-            Self::Dhatupatha(s) => format!("DAtupAWa {s}"),
-            Self::Kashika(s) => format!("kASikA {s}"),
-            Self::Linganushasana(s) => format!("liNgA {s}"),
-            Self::Kaumudi(s) => format!("kOmudI {s}"),
-            Self::Unadipatha(s) => format!("uRAdi {s}"),
-            Self::Phit(s) => format!("Piw {s}"),
+            Ashtadhyayi(_) => "ashtadhyayi",
+            Varttika(_) => "varttika",
+            Dhatupatha(_) => "dhatupatha",
+            Kashika(_) => "kashika",
+            Linganushasana(_) => "linganushasanam",
+            Kaumudi(_) => "kaumudi",
+            Unadipatha(_) => "unadi",
+            Phit(_) => "phit",
         }
     }
 }
@@ -69,10 +97,12 @@ impl Rule {
 fn to_web_history(history: &[Step]) -> Vec<WebStep> {
     history
         .iter()
-        .map(|x| WebStep {
-            rule: x.rule().as_web_string(),
-            result: x.result().clone(),
-            active: x.active(),
+        .map(|step| WebStep {
+            rule: WebRule {
+                source: step.rule().source().to_string(),
+                code: step.rule().code().to_string(),
+            },
+            result: step.result().iter().map(|t| t.into()).collect(),
         })
         .collect()
 }

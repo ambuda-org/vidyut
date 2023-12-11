@@ -2,8 +2,9 @@ use crate::args::Gana;
 use crate::core::char_view::{get_term_and_offset_indices, xy, CharPrakriya};
 use crate::core::iterators::xy_rule;
 use crate::core::operators as op;
-use crate::core::Code;
 use crate::core::Prakriya;
+use crate::core::Rule;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::it_samjna;
@@ -257,28 +258,28 @@ impl<'a> ShaPrakriya<'a> {
         }
     }
 
-    fn try_block(&mut self, rule: Code) {
+    fn try_block(&mut self, rule: impl Into<Rule>) {
         if !self.done {
             self.p.step(rule);
         }
         self.done = true;
     }
 
-    fn try_shatva(&mut self, rule: Code) {
+    fn try_shatva(&mut self, rule: impl Into<Rule>) {
         if !self.done {
             self.p.run(rule, |p| p.set_char_at(self.i_char, "z"));
         }
         self.done = true;
     }
 
-    fn try_run_with(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
+    fn try_run_with(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut Prakriya)) {
         if !self.done {
-            self.p.run(rule, func);
+            self.p.run(rule.into(), func);
         }
         self.done = true;
     }
 
-    fn optional_try_shatva(&mut self, rule: Code) -> bool {
+    fn optional_try_shatva(&mut self, rule: impl Into<Rule>) -> bool {
         if !self.done {
             let done = self
                 .p
@@ -358,7 +359,9 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
             sp.try_run_with("8.3.118", |p| p.set(i_abhyasa, |t| t.set_adi("z")));
         } else if t.has_u("zva\\nja~\\") && has_abhyasa {
             // parizasvaje, ...
-            sp.try_run_with("8.3.118.v1", |p| p.set(i_abhyasa, |t| t.set_adi("z")));
+            sp.try_run_with(Varttika("8.3.118.1"), |p| {
+                p.set(i_abhyasa, |t| t.set_adi("z"))
+            });
         }
     }
 
@@ -406,7 +409,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
             ("zwu\\Y", Adadi),
             ("zwuBu~\\", Bhvadi),
             ("zWA\\", Bhvadi),
-            // TODO: senaya -- but, not listed in our dhatupatha?
+            // TODO: senaya (senA + Ric)
             ("ziDa~", Bhvadi),
             ("ziDU~", Bhvadi),
             ("zi\\ca~^", Tudadi),
@@ -520,7 +523,6 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         let term = sp.term();
         if term.has_tag(T::FlagSaAdeshadi) && !abhyasa_vyavaya && !term.is_abhyasa() {
             sp.try_block("8.3.111");
-            sp.p.dump();
         }
     }
 

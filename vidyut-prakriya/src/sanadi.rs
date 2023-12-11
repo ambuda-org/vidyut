@@ -134,9 +134,14 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
             sp.add("3.1.11", kyaN.as_str());
             if sp.p.has(i_base, |t| t.has_antya('s')) {
                 // payAyate, payasyate, ...
-                sp.p.optional_run_at(Varttika("3.1.11", "1"), i_base, |t| t.set_antya(""));
+                sp.p.optional_run_at(Varttika("3.1.11.1"), i_base, |t| t.set_antya(""));
             }
         }
+    } else if sup && matches!(sanadi, Some(Ric)) {
+        // pawayati, ...
+        sp.add_with(Rule::Dhatupatha("10.0502"), Ric.as_str(), |p| {
+            p.set(i_base + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
+        });
     } else if sup && base.has_text_in(gana::BHRSHA_ADI) {
         // BfSAyate, ..
         sp.add_with("3.1.12", kyaN.as_str(), |p| {
@@ -154,14 +159,14 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
         sp.add("3.1.14", kyaN.as_str());
     } else if sup && base.has_text_in(&["satra", "kakza", "kfcCra", "gahana"]) {
         // kazwAyate, ...
-        sp.add(Varttika("3.1.14", "1"), kyaN.as_str());
+        sp.add(Varttika("3.1.14.1"), kyaN.as_str());
     } else if sup && base.has_text_in(&["romanTa", "tapas"]) {
         let is_tapas = base.has_text("tapas");
         // romanTAyate, ...
         sp.add("3.1.15", kyaN.as_str());
         // tapasyati, ...
         if is_tapas {
-            sp.p.run_at(Varttika("3.1.15", "1"), sp.p.terms().len() - 1, |t| {
+            sp.p.run_at(Varttika("3.1.15.2"), sp.p.terms().len() - 1, |t| {
                 t.remove_tag(T::Nit)
             });
         }
@@ -170,20 +175,20 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
         sp.add("3.1.16", kyaN.as_str());
     } else if sup && base.has_text("Pena") {
         // PenAyate, ...
-        sp.add(Varttika("3.1.16", "1"), kyaN.as_str());
+        sp.add(Varttika("3.1.16.1"), kyaN.as_str());
     } else if sup && base.has_text_in(&["Sabda", "vEra", "kalaha", "aBra", "kaRva", "meGa"]) {
         // SabdAyate, ...
         sp.add("3.1.17", kyaN.as_str());
     } else if sup && base.has_text_in(&["sudina", "durdina", "nIhAra"]) {
         // sudinAyate, ...
-        sp.add(Varttika("3.1.17", "1"), kyaN.as_str());
+        sp.add(Varttika("3.1.17.1"), kyaN.as_str());
     } else if sup
         && base.has_text_in(&[
             "awA", "awwA", "SIkA", "kowA", "powA", "sowA", "kazwA", "pruzwA", "pluzwA",
         ])
     {
         // awAyate, ...
-        sp.add(Varttika("3.1.17", "2"), kyaN.as_str());
+        sp.add(Varttika("3.1.17.2"), kyaN.as_str());
     } else if sup && base.has_text_in(gana::SUKHA_ADI) {
         // suKAyate, ...
         sp.add("3.1.18", kyaN.as_str());
@@ -220,7 +225,7 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
                 .has(i_base - 1, |t| t.has_u_in(&["sUca", "sUtra", "mUtra"])))
             || base.has_u_in(&["awa~", "f\\", "aSa~", "aSU~\\", "UrRuY"])
         {
-            sp.add("3.1.22.v1", yaN.as_str());
+            sp.add(Varttika("3.1.22.1"), yaN.as_str());
         } else if base.is_ekac() && base.has_adi(&*HAL) {
             sp.add("3.1.22", yaN.as_str());
         }
@@ -250,17 +255,20 @@ fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> 
         let base = sp.p.get(i_base)?;
         if sup && base.has_text_in(&["satya", "arTa", "veda"]) {
             // satyApayati, arTApayati, vedApayati
-            op::insert_agama_at(Varttika("3.1.25", "1"), sp.p, i_base + 2, "Apu~k");
+            op::insert_agama_at(Varttika("3.1.25.1"), sp.p, i_base + 2, "Apu~k");
         }
     } else if matches!(sanadi, Some(Ric)) {
+        // kArayati, ...
         sp.add("3.1.26", Ric.as_str());
-    } else if base.has_u_in(gana::KANDU_ADI) {
+    } else if base.has_gana(Kandvadi) {
         // kaNDUyati, ...
         //
         // "dvivadhāḥ kaṇḍvādayo, dhātavaḥ prātipādikāni ca. tatra dhātvadhikārād
         // dhātubhyaḥ eva pratyayo vidhīyate, na tu prātipadikebhyaḥ"
         //
         // -- KV on 3.1.27.
+        //
+        // We avoid `has_u_in` because it turns up too many false positives, e.g. "asu~" (asyati).
         sp.add("3.1.27", "yak");
     } else if base.has_u_in(AYADAYA) {
         let mut can_add_pratyaya = true;

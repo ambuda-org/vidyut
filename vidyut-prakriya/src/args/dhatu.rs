@@ -23,7 +23,7 @@ pub enum Gana {
     Svadi,
     /// The sixth gaṇa, whose first dhatu is `tud`.
     Tudadi,
-    /// The seventh gaṇa, whose first dhatu is `rudh`.
+    /// The seventh gaṇa, whose first dhatu is `ruD`.
     Rudhadi,
     /// The eighth gaṇa, whose first dhatu is `tan`.
     Tanadi,
@@ -31,6 +31,8 @@ pub enum Gana {
     Kryadi,
     /// The tenth gaṇa, whose first dhatu is `cur`.
     Curadi,
+    /// The kandvAdi gaṇa, whose first dhatu is `kaRqU`.
+    Kandvadi,
 }
 
 enum_boilerplate!(Gana, {
@@ -44,6 +46,7 @@ enum_boilerplate!(Gana, {
     Tanadi => "8",
     Kryadi => "9",
     Curadi => "10",
+    Kandvadi => "kandu",
 });
 
 /// Defines an antargana.
@@ -66,6 +69,9 @@ enum_boilerplate!(Gana, {
 /// or requiring callers to follow our specific conventions.)
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Antargana {
+    /// Antargana of *bhU* gana. A dhatu in this antargana uses a shortened vowel when followed by
+    /// Ric-pratyaya.
+    Ghatadi,
     /// Antargana of *tud* gana. Pratyayas that follow dhatus in kut-Adi will generally be marked
     /// Nit per 1.2.1. Required because of duplicates like `juqa~`.
     Kutadi,
@@ -73,7 +79,7 @@ pub enum Antargana {
     /// optionaly uses Ric-pratyaya when taking an object. Required because of duplicates like
     /// `tuji~`.
     Asvadiya,
-    /// Antargana of *cur* gana ending with `Dfza~`. A dhatu in this antargana optionaly uses
+    /// Antargana of *cur* gana ending with `Dfza~`. A dhatu in this antargana optionally uses
     /// Ric-pratyaya. Required because of duplicates like `SraTa~`.
     Adhrshiya,
     /// Antargana of *cur* gana ending with `kusma~`. A dhatu in this antargana is always
@@ -82,6 +88,7 @@ pub enum Antargana {
 }
 
 enum_boilerplate!(Antargana, {
+    Ghatadi => "GawAdi",
     Kutadi => "kuwAdi",
     Akusmiya => "AkusmIya",
     Asvadiya => "AsvadIya",

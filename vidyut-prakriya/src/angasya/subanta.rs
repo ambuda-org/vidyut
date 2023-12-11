@@ -9,6 +9,7 @@ favor of more generic modules like `angasya.rs`.
 */
 use crate::angasya::asiddhavat;
 use crate::core::operators as op;
+use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::it_samjna;
 use crate::samjna;
@@ -258,7 +259,7 @@ fn try_sup_adesha(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
                 // asmaByam, yuzmaByam
                 op::adesha("7.1.30", p, i_sup, "Byam");
             }
-        } else if sup.all(&[T::V5, T::Ekavacana]) {
+        } else if sup.last().has_all_tags(&[T::V5, T::Ekavacana]) {
             // mat, tvat
             op::adesha("7.1.32", p, i_sup, "at");
         } else if sup.first().has_text("s") && sup.last().has_text("Am") {
@@ -287,7 +288,7 @@ fn try_napumsaka_su_am_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             {
                 if anga.has_text("ekatara") {
                     // ekataram
-                    p.step("7.1.26.v1");
+                    p.step(Varttika("7.1.26.1"));
                 } else {
                     // anyat
                     op::adesha("7.1.25", p, i_sup, "adq");

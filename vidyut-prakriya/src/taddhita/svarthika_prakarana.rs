@@ -1,5 +1,6 @@
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::ganapatha as gana;
 use crate::taddhita::utils::TaddhitaPrakriya;
@@ -83,7 +84,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         if prati.has_text_in(gana::STHULA_ADI) {
             tp.try_add("5.4.3", kan);
         } else if prati.has_text_in(&["caYcat", "bfhat"]) {
-            tp.try_add("5.4.3.v1", kan);
+            tp.try_add(Varttika("5.4.3.1"), kan);
         } else {
             // 5.4.3 is an apavAda to 5.3.69.
             tp.try_add("5.3.69", jAtIyar);

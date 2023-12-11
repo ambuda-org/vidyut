@@ -5,6 +5,7 @@ Implements the taddhita rules in the "samAsAntAH" section of pada 5.4.
 */
 use crate::args::Taddhita;
 use crate::args::Taddhita::*;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
 use crate::ganapatha as gana;
@@ -66,7 +67,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             add("5.4.78", p, ac);
         } else if purva.has_text_in(&["pallya", "rAjan"]) {
             // pallyavarcasa, ...
-            add("5.4.78.v1", p, ac);
+            add(Varttika("5.4.78.1"), p, ac);
         }
     } else if purva.has_text_in(&["ava", "sam", "anDa"]) && uttara.has_text("tamas") {
         // avatamasam, ...

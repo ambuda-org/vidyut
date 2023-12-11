@@ -314,7 +314,6 @@ fn sk_2536() {
     assert_has_tip(&[], &sphur, Lat, &["sPurati"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2537() {
     // nissPurati and nizzPurati are justified.
@@ -346,30 +345,40 @@ fn sk_2537() {
     assert_has_tip(&[], &gu, Lut, &["gutA"]);
     assert_has_tip(&[], &gu, Lrt, &["guzyati"]);
     assert_has_tip(&[], &gu, Lun, &["aguzIt"]);
-    // TODO: SK has agUtAm?
     assert_has_tas(&[], &gu, Lun, &["agutAm"]);
     assert_has_jhi(&[], &gu, Lun, &["aguzuH"]);
 
+    // "Adyasya DruvatItyAdi guvativat"
     let dhru = d_kutadi("Dru\\", Tudadi);
-    assert_has_sip(&[], &dhru, Lit, &["duDruviTa"]);
-    assert_has_tip(&[], &dhru, Lut, &["DruvitA"]);
-    assert_has_tip(&[], &dhru, Lrt, &["Druvizyati"]);
-    assert_has_tip(&[], &dhru, AshirLin, &["DrUvyAt"]);
-    assert_has_tip(&[], &dhru, Lun, &["aDruvIt"]);
-    assert_has_tas(&[], &dhru, Lun, &["aDruvizwAm"]);
+    assert_has_sip(&[], &dhru, Lit, &["duDruviTa", "duDruTa"]);
+    assert_has_tip(&[], &dhru, Lut, &["DrutA"]);
+    assert_has_tip(&[], &dhru, Lrt, &["Druzyati"]);
+    assert_has_tip(&[], &dhru, Lun, &["aDruzIt"]);
+    assert_has_tas(&[], &dhru, Lun, &["aDrutAm"]);
+    assert_has_jhi(&[], &dhru, Lun, &["aDruzuH"]);
 
-    let kuu = d("kUN", Tudadi);
+    // "dvitIyastu sew"
+    let dhruv = d_kutadi("Druva~", Tudadi);
+    assert_has_tip(&[], &dhruv, Lut, &["DruvitA"]);
+    assert_has_sip(&[], &dhruv, Lit, &["duDruviTa"]);
+    assert_has_tip(&[], &dhruv, Lut, &["DruvitA"]);
+    assert_has_tip(&[], &dhruv, Lrt, &["Druvizyati"]);
+    assert_has_tip(&[], &dhruv, AshirLin, &["DrUvyAt"]);
+    assert_has_tip(&[], &dhruv, Lun, &["aDruvIt"]);
+    assert_has_tas(&[], &dhruv, Lun, &["aDruvizwAm"]);
+
+    let kuu = d_kutadi("kUN", Tudadi);
     assert_has_ta(&[], &kuu, Lut, &["kuvitA"]);
     assert_has_ta(&[], &kuu, Lun, &["akuvizwa"]);
 
-    let ku = d("ku\\N", Tudadi);
+    let ku = d_kutadi("ku\\N", Tudadi);
     assert_has_ta(&[], &ku, Lut, &["kutA"]);
     assert_has_ta(&[], &ku, Lun, &["akuta"]);
 
     let pr = d("pf\\N", Tudadi);
     assert_has_ta(&["vi", "AN"], &pr, Lat, &["vyApriyate"]);
     assert_has_ta(&["vi", "AN"], &pr, Lit, &["vyApapre"]);
-    assert_has_aataam(&["vi", "AN"], &pr, Lat, &["vyApaprAte"]);
+    assert_has_aataam(&["vi", "AN"], &pr, Lit, &["vyApaprAte"]);
     assert_has_ta(&["vi", "AN"], &pr, Lrt, &["vyAparizyate"]);
     assert_has_ta(&["vi", "AN"], &pr, Lun, &["vyApfta"]);
     assert_has_aataam(&["vi", "AN"], &pr, Lun, &["vyApfzAtAm"]);
@@ -527,7 +536,6 @@ fn sk_2541() {
     assert_has_ta(&[], &mil, Lit, &["mimile"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2542() {
     let muc = d("mu\\cx~^", Tudadi);
@@ -552,7 +560,6 @@ fn sk_2542() {
     assert_has_tip(&[], &vid, Lit, &["viveda"]);
     assert_has_ta(&[], &vid, Lit, &["vivide"]);
     assert_has_tip(&[], &vid, Lut, &["veditA", "vettA"]);
-    // TODO: is pariveditA justified?
     assert_has_tip(&["pari"], &vid, Lut, &["parivettA", "pariveditA"]);
 
     let lip = d("li\\pa~^", Tudadi);
@@ -566,10 +573,10 @@ fn sk_2542() {
     assert_has_tip(&[], &sic, Lat, &["siYcati"]);
     assert_has_ta(&[], &sic, Lat, &["siYcate"]);
     assert_has_tip(&[], &sic, Lun, &["asicat"]);
-    assert_has_tip(&[], &sic, Lun, &["asicata", "asikta"]);
+    assert_has_ta(&[], &sic, Lun, &["asicata", "asikta"]);
     assert_has_tip(&["aBi"], &sic, Lat, &["aBiziYcati"]);
     assert_has_tip(&["aBi"], &sic, Lan, &["aByaziYcat"]);
-    assert_has_tip(&[], &sic, Lit, &["aBizizeca"]);
+    assert_has_tip(&["aBi"], &sic, Lit, &["aBizizeca"]);
 
     let krt = d("kftI~", Tudadi);
     assert_has_tip(&[], &krt, Lat, &["kfntati"]);
@@ -584,6 +591,7 @@ fn sk_2542() {
     assert_has_tip(&[], &khid, Lut, &["KettA"]);
 
     let pish = d("piSa~", Tudadi);
-    assert_has_tip(&[], &pish, Lat, &["piMSati", "peSati"]);
-    assert_has_tip(&[], &pish, Lot, &["piMSatu"]);
+    assert_has_tip(&[], &pish, Lat, &["piMSati"]);
+    assert_has_tip(&[], &pish, Lut, &["peSitA"]);
+    assert_has_tip(&[], &pish, Lot, &["piMSatu", "piMSatAt"]);
 }

@@ -690,21 +690,17 @@ fn sutra_8_2_55() {
 
 #[test]
 fn sutra_8_2_56() {
-    assert_has_krdanta(&[], &d("Ru\\da~^", Tudadi), Krt::kta, &["nunna", "nutta"]);
-    assert_has_krdanta(&[], &d("vi\\da~\\", Rudhadi), Krt::kta, &["vinna", "vitta"]);
-    assert_has_krdanta(
-        &["sam"],
-        &d("undI~", Rudhadi),
-        Krt::kta,
-        &["samunna", "samutta"],
-    );
-    assert_has_krdanta(&[], &d("trE\\N", Bhvadi), Krt::kta, &["trARa", "trAta"]);
-    assert_has_krdanta(&[], &d("GrA\\", Bhvadi), Krt::kta, &["GrARa", "GrAta"]);
-    assert_has_krdanta(&[], &d("hrI\\", Juhotyadi), Krt::kta, &["hrIRa", "hrIta"]);
+    use Krt::kta;
+    assert_has_krdanta(&[], &d("Ru\\da~^", Tudadi), kta, &["nunna", "nutta"]);
+    assert_has_krdanta(&[], &d("vi\\da~\\", Rudhadi), kta, &["vinna", "vitta"]);
+    assert_has_krdanta(&["sam"], &d("undI~", Rudhadi), kta, &["samunna", "samutta"]);
+    assert_has_krdanta(&[], &d("trE\\N", Bhvadi), kta, &["trARa", "trAta"]);
+    assert_has_krdanta(&[], &d("GrA\\", Bhvadi), kta, &["GrARa", "GrAta"]);
+    assert_has_krdanta(&[], &d("hrI\\", Juhotyadi), kta, &["hrIRa", "hrIta"]);
     // only for vinatti
-    assert_has_krdanta(&[], &d("vida~", Adadi), Krt::kta, &["vidita"]);
-    assert_has_krdanta(&[], &d("vi\\da~\\", Divadi), Krt::kta, &["vinna"]);
-    assert_has_krdanta(&[], &d("vi\\dx~^", Tudadi), Krt::kta, &["vinna"]);
+    assert_has_krdanta(&[], &d("vida~", Adadi), kta, &["vidita"]);
+    assert_has_krdanta(&[], &d("vi\\da~\\", Divadi), kta, &["vinna"]);
+    assert_has_krdanta(&[], &d("vi\\dx~^", Tudadi), kta, &["vinna", "vidita"]);
 }
 
 #[test]

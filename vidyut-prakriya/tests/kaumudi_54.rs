@@ -261,9 +261,10 @@ fn sk_2623() {
 
     assert_has_tip(&[], &san(&d("Sa\\kx~", Svadi)), Lat, &["Sikzati"]);
 
+    // SiSakizati seems justified because Sa\\kx~ is optionally seT.
     let shak = &d("Sa\\ka~^", Divadi);
-    assert_has_tip(&[], &san(&shak), Lat, &["Sikzati"]);
-    assert_has_ta(&[], &san(&shak), Lat, &["Sikzate"]);
+    assert_has_tip(&[], &san(&shak), Lat, &["Sikzati", "SiSakizati"]);
+    assert_has_ta(&[], &san(&shak), Lat, &["Sikzate", "SiSakizate"]);
 
     assert_has_ta(&[], &san(&d("pa\\da~\\", Divadi)), Lat, &["pitsate"]);
 

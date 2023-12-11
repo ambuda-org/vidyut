@@ -92,7 +92,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
                 p.set(i_dhatu, |t| t.add_tag(T::Dvitva));
             });
             if !done {
-                p.run(Varttika("6.1.3", "3"), |p| {
+                p.run(Varttika("6.1.3.3"), |p| {
                     // Irzy + i + [sa] + sa
                     let mut abhyasa = Term::make_text(&p.get(i_pratyaya).expect("").text);
                     abhyasa.add_tags(&[T::Abhyasa, T::FlagIttva]);
@@ -252,6 +252,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
 ///
 /// - `i` should point to a dhatu.
 fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    p.debug("run at index");
     let dhatu = p.get_mut(i)?;
     debug_assert!(dhatu.is_dhatu());
 
@@ -299,6 +300,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// For more details, see rule 1.1.59 ("dvirvacane 'ci").
 pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
+    p.debug("try_dvirvacane_aci");
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
     let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Dvitva, T::Pratyaya]);
 

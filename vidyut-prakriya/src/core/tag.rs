@@ -234,6 +234,8 @@ pub enum Tag {
 
     FlagTrjvat,
 
+    FlagPratipadikaTiLopa,
+
     // Flags on the `Prakriya`.
     FlagNaAdeshadi,
     FlagSaAdeshadi,

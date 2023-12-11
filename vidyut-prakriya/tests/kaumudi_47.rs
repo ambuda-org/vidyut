@@ -89,20 +89,19 @@ fn sk_2526() {
     assert_has_ta(&[], &kr, Lun, &["akfta"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2527() {
     let vr = d("vfY", Svadi);
     assert_has_sip(&[], &vr, Lit, &["vavariTa"]);
     assert_has_vas(&[], &vr, Lit, &["vavfva"]);
     assert_has_vahi(&[], &vr, Lit, &["vavfvahe"]);
-    assert_has_tip(&[], &vr, Lut, &["varitA"]);
+    // varItA by 7.2.38.
+    assert_has_tip(&[], &vr, Lut, &["varitA", "varItA"]);
 }
 
 #[test]
 fn skip_sk_2528() {}
 
-#[ignore]
 #[test]
 fn sk_2529() {
     let vr = d("vfY", Svadi);

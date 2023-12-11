@@ -53,40 +53,40 @@ test_tinantas:
 	cargo build --release
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-kartari.csv \
-	  --hash "ff57ac933f1a44a21285448f1b064d1b4464a7aee650981cb30244c8ee3ed111"
+	  --hash "28293a6aa746f04dff1a5c3b822396c236df269460d691bd137ba01a2c80557f"
 	../target/release/test_tinantas \
   	--test-cases test-files/tinantas-nic-kartari.csv \
-    --hash "263fa8bc08eeb912ffe4daa876452a1bea1a4117620d4e3d86aa876f03795140"
+    --hash "5d508a8b3a52ebe92a1524b0b51bbed90e27301f265669aa8e7a887d55bf1eff"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-kartari.csv \
-		--hash "c9c2c2e79eecf4a6bbe105537ceb64f77004ce3ff3b53a07a4ac410f0131de0e"
+		--hash "ef278531cd45ba1df9af60e5b4b8ef582fdbe7a7eb31478fe35b9600c42380fc"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-kartari.csv \
-		--hash "585c83fa6a241d7f31d2b12e7382e65d05b3f7703edaa1609ee3617810aa74d2"
+		--hash "be90fccc6f3907862cf820969094fd958b44b58a447a7a6369edbecde75d8cd4"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-luk-kartari.csv \
-		--hash "9168fb70bce7903708004da407dfe1c14aedc199ab770c2ee524b7f573233cfc"
+		--hash "aec7b4524b159e195e38ce4b0e5e1335940b60cb41606ba31d1b9fbd010f7d11"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-karmani.csv \
-    --hash "63d076bf9d8b88d7a03f224626410ec2be751f2b50ef0f0777c5cddcecad3dfd"
+    --hash "b3621fe5bf2295f2f1d15270aa26b9fc973450126cd4a551e53f91571e4d531c"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-nic-karmani.csv \
-    --hash "2b9aa1158d26ce7a9da28f7ec8685ce61554daa3f8434770aec3e16e000eefe2"
+    --hash "f4760cd6da0496f6db82f1812ba168a18e8cde4e5dffafee815e1e88d19abb36"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-karmani.csv \
-    --hash "e60669056aec2124c27c8d60f3cebe19b75e11d193e87522458be06291db221f"
+    --hash "089160604d7a5a40f8f71e1234cccc3667135b3e2654c4ac346677727e5aae80"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-karmani.csv \
-    --hash "7e0ed1e074eff8eb104dc88b8cf7525d1e28b8686bb82dccb9d036a4696caed7"
+    --hash "260a684b78e4e66a68f89366c07850d1680a72424e2934392678359289a1916b"
 
 test_krdantas:
 	cargo build --release
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-ktvA.csv \
-	    --hash "6d480b70491153eeac8958d5f66c32e4e3e428f54c6e0fc2d75154889642ef7b"
+	    --hash "59470473bec6cb2d2254217d604a2302c6ee8926571441b3281004a30abc81ce"
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-kta.csv \
-	    --hash "bb99612ddcc34a66aff16553ed325f8b1a09d4bfcc920f86d312c959c6b1800b"
+	    --hash "2ce641122f4c6ac243acb348d376f35586c5f960ea338b9b1f7b79f0f72e3c12"
 
 test_subantas:
 	cargo run --bin test_subantas -- \
@@ -102,7 +102,7 @@ check_rule_coverage:
 # Profiles the program's execution time on OSX. This command will probably not
 # work on other operating systems.
 profile-time-osx:
-	cargo instruments -t time --release --bin create_test_file
+	cargo instruments -t time --release --example create_all_tinantas > /dev/null
 
 
 # Other

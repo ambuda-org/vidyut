@@ -3,10 +3,33 @@ use crate::core::Tag;
 use crate::sounds;
 use crate::sounds::Pattern;
 use crate::sounds::{s, Set};
-use compact_str::CompactString;
 use enumset::EnumSet;
 
 use lazy_static::lazy_static;
+
+// Abstracts our choice of String type so we can try other implementations.
+//
+// Setup:
+//    cargo build --release --example create_all_tinantas
+//    hyperfine "../target/release/examples/create_all_tinantas > /dev/null"
+//
+// With `CompactString`:
+//   Benchmark 1: ../target/release/examples/create_all_tinantas > /dev/null
+//     Time (mean ± σ):     97.769 s ±  0.608 s    [User: 97.294 s, System: 0.288 s]
+//     Range (min … max):   96.984 s … 99.231 s    10 runs
+//
+// With `String`:
+//   Benchmark 1: ../target/release/examples/create_all_tinantas > /dev/null
+//     Time (mean ± σ):     86.631 s ±  0.831 s    [User: 86.209 s, System: 0.257 s]
+//     Range (min … max):   85.141 s … 87.937 s    10 runs
+//
+// My guess is that the overhead of allocating `String` is lower than the overhead of checking
+// bounds on `CompactString`.
+//
+// TODO: investigate whether other uses of `CompactString` in the crate can be migrated to
+// `String`. Early indications are that doing so makes the program slower than just using
+// `CompactString` everywhere.
+pub(crate) type TermString = String;
 
 lazy_static! {
     static ref AC: Set = s("ac");
@@ -33,7 +56,7 @@ pub(crate) enum Svara {
 /// tin-pratyaya that has replaced an earlier *tip*-pratyaya.
 ///
 /// `Term` is a general-purpose struct that manages these strings and their associated metadata.
-/// Its main field is `text`, a `CompactString` that is more memory-efficient than a standard
+/// Its main field is `text`, a `TermString` that is more memory-efficient than a standard
 /// `String`.
 ///
 /// Most of a `Term`'s metadata is stored in `tags`, a memory-efficient set of `Tag` values. `Tag`
@@ -52,25 +75,25 @@ pub struct Term {
     ///
     /// This field is changed only when there is a full substitution, e.g. substitution of `ktvA`
     /// with `lyap`.
-    pub(crate) u: Option<CompactString>,
+    pub(crate) u: Option<TermString>,
     /// The text of this term. This string contains sound changes such as guna, vrddhi, lopa, etc.
-    pub(crate) text: CompactString,
+    pub(crate) text: TermString,
     /// The svara that applies to this term.
     pub(crate) svara: Option<Svara>,
+    /// Various metadata associated with this term.
+    pub(crate) tags: EnumSet<Tag>,
     /// The form of the term to use for sthAnivad-bhAva substitutions, e.g. for dvitva on the
     /// dhatu. For example, when applying dvitva for BAvi, the abhyasa should be BO, not BAv.
     ///
     /// For a complete example in English, see S. C. Vasu's commentary on rule 1.1.59, part (e).
-    sthanivat: CompactString,
-    /// Various metadata associated with this term.
-    tags: EnumSet<Tag>,
+    sthanivat: TermString,
     /// If this term is a dhatu, the dhatu's gana.
     gana: Option<Gana>,
     /// If this term is a dhatu, the dhatu's antargana.
     antargana: Option<Antargana>,
     /// All upadeshas that this term has had. This field is called `lakshanas` per rule 1.1.62
     /// (*pratyayalopa pratyaylakshanam*).
-    lakshanas: Vec<CompactString>,
+    lakshanas: Vec<TermString>,
 }
 
 impl Term {
@@ -80,9 +103,9 @@ impl Term {
     /// Creates a new upadesha.
     pub fn make_upadesha(s: &str) -> Self {
         Term {
-            u: Some(CompactString::from(s)),
-            text: CompactString::from(s),
-            sthanivat: CompactString::from(s),
+            u: Some(TermString::from(s)),
+            text: TermString::from(s),
+            sthanivat: TermString::from(s),
             tags: EnumSet::new(),
             gana: None,
             antargana: None,
@@ -95,8 +118,8 @@ impl Term {
     pub fn make_text(s: &str) -> Self {
         Term {
             u: None,
-            text: CompactString::from(s),
-            sthanivat: CompactString::from(s),
+            text: TermString::from(s),
+            sthanivat: TermString::from(s),
             tags: EnumSet::new(),
             gana: None,
             antargana: None,
@@ -143,7 +166,7 @@ impl Term {
         ret
     }
 
-    pub fn sthanivat(&self) -> &CompactString {
+    pub fn sthanivat(&self) -> &TermString {
         &self.sthanivat
     }
 
@@ -152,12 +175,12 @@ impl Term {
         self.text.chars().filter(|c| AC.contains(*c)).count()
     }
 
-    /// Wrapper over `CompactString::len`.
+    /// Wrapper over `TermString::len`.
     pub fn len(&self) -> usize {
         self.text.len()
     }
 
-    /// Wrapper over `CompactString::chars`.
+    /// Wrapper over `TermString::chars`.
     pub fn chars(&self) -> std::str::Chars<'_> {
         self.text.chars()
     }
@@ -180,6 +203,10 @@ impl Term {
     /// (1.1.65 alo'ntyāt pūrva upadhā)
     pub fn upadha(&self) -> Option<char> {
         self.text.chars().rev().nth(1)
+    }
+
+    pub fn last_vowel(&self) -> Option<char> {
+        self.chars().rev().filter(|c| sounds::is_ac(*c)).next()
     }
 
     /// Returns the sound at index `i` if it exists.
@@ -213,10 +240,7 @@ impl Term {
     }
 
     pub fn has_last_vowel(&self, pattern: impl Pattern) -> bool {
-        self.matches_sound_pattern(
-            self.chars().rev().filter(|c| sounds::is_ac(*c)).next(),
-            pattern,
-        )
+        self.matches_sound_pattern(self.last_vowel(), pattern)
     }
 
     /// Returns whether the term has a sound at index `i` that matches the given pattern.
@@ -664,6 +688,19 @@ impl Term {
         }
     }
 
+    pub fn set_last_vowel(&mut self, s: &str) {
+        let result = self
+            .text
+            .bytes()
+            .enumerate()
+            .rev()
+            .filter(|(_, c)| sounds::is_ac(*c as char))
+            .next();
+        if let Some((i, _)) = result {
+            self.set_at(i, s);
+        }
+    }
+
     /// Replaces the character at index `i` with the given value.
     pub fn set_at(&mut self, i: usize, s: &str) {
         self.text.replace_range(i..=i, s);
@@ -671,7 +708,7 @@ impl Term {
 
     /// Sets the term's upadesha to the given value.
     pub fn set_u(&mut self, s: &str) {
-        self.u = Some(CompactString::from(s));
+        self.u = Some(TermString::from(s));
     }
 
     /// Sets the term's text to the given value.
@@ -726,7 +763,7 @@ impl Term {
 
     pub fn save_lakshana(&mut self) {
         if let Some(u) = &self.u {
-            self.lakshanas.push(CompactString::new(u));
+            self.lakshanas.push(TermString::from(u));
         }
     }
 

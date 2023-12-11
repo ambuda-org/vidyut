@@ -28,8 +28,9 @@ Order of operations:
 
 use crate::args::Gana::*;
 use crate::core::operators as op;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
-use crate::core::{Code, Prakriya};
+use crate::core::{Prakriya, Rule};
 use crate::core::{Term, TermView};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
@@ -53,11 +54,21 @@ fn is_hacky_eka_ac(p: &Prakriya, i: usize) -> bool {
 /// Returns whether the given term is vet by 7.2.44.
 ///
 /// We wrap this condition in its own function because other rules need to check it as well.
-fn is_generally_vet(anga: &Term) -> bool {
+fn is_svarati_suti(anga: &Term) -> bool {
     // > vakṣyati svaratisūtisūyatidhūñūdito vā 7.2.44। vidhūtaḥ। vidhūtavān। guhū gūḍhaḥ। gūḍhavān।
     // > udito vā vṛdhu vṛddhaḥ।
     // -- Kashikavrtti on 7.2.15.
     anga.has_u_in(&["svf", "zUN", "DUY"]) || anga.has_tag(T::Udit)
+}
+
+/// Returns whether the given term is vet by 7.2.45.
+fn is_radh_adi(anga: &Term) -> bool {
+    anga.has_gana(Divadi) && anga.has_u_in(gana::RADH_ADI)
+}
+
+fn is_krta_crta(anga: &Term) -> bool {
+    const KRTA_CRTA: &[&str] = &["kftI~", "cftI~", "u~Cfdi~^r", "u~tfdi~^r", "nftI~"];
+    anga.has_u_in(KRTA_CRTA)
 }
 
 /// Returns whether the given term is ever vet in any rule.
@@ -67,7 +78,7 @@ fn is_ever_vet(anga: &Term) -> bool {
     // > vakṣyati svaratisūtisūyatidhūñūdito vā 7.2.44। vidhūtaḥ। vidhūtavān। guhū gūḍhaḥ। gūḍhavān।
     // > udito vā vṛdhu vṛddhaḥ।
     // -- Kashikavrtti on 7.2.15.
-    is_generally_vet(anga) || anga.has_tag(T::udit) || anga.has_u_in(gana::RADH_ADI)
+    is_svarati_suti(anga) || is_radh_adi(anga) || anga.has_tag(T::udit)
 }
 
 /// A wrapper for `Prakriya` that allows at most one it-Agama rule to be added to the derivation.
@@ -112,12 +123,12 @@ impl<'a> ItPrakriya<'a> {
     }
 
     /// Inserts it-Agama and prevents further rules.
-    fn try_add(&mut self, rule: Code) {
+    fn try_add(&mut self, rule: impl Into<Rule>) {
         self.try_add_with(rule, |_| {})
     }
 
     /// Inserts it-Agama and prevents further rules.
-    fn try_add_with(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
+    fn try_add_with(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut Prakriya)) {
         if !self.done {
             let agama = Term::make_agama("iw");
             self.p.insert_before(self.i_next, agama);
@@ -130,7 +141,8 @@ impl<'a> ItPrakriya<'a> {
     }
 
     /// Optionally inserts it-Agama and returns whether the rule was applied.
-    fn optional_try_add(&mut self, rule: Code) -> bool {
+    fn optional_try_add(&mut self, rule: impl Into<Rule>) -> bool {
+        let rule = rule.into();
         if !self.done {
             if self.p.is_allowed(rule) {
                 self.try_add(rule);
@@ -145,7 +157,7 @@ impl<'a> ItPrakriya<'a> {
     }
 
     // Blocks it-Agama and prevents further rules.
-    fn try_block(&mut self, rule: Code) {
+    fn try_block(&mut self, rule: impl Into<Rule>) {
         if !self.done {
             self.p.step(rule);
         }
@@ -153,7 +165,8 @@ impl<'a> ItPrakriya<'a> {
     }
 
     // Optionally blocks it-Agama.
-    fn optional_try_block(&mut self, rule: Code) {
+    fn optional_try_block(&mut self, rule: impl Into<Rule>) {
+        let rule = rule.into();
         if !self.done {
             if self.p.is_allowed(rule) {
                 self.try_block(rule);
@@ -184,7 +197,7 @@ fn try_dirgha_for_it_agama(p: &mut Prakriya, i_it: usize) -> Option<()> {
         if !n.has_tag(T::Cinvat) {
             p.run_at("7.2.37", i_it, op::text("I"));
         }
-    } else if dhatu.has_antya('F') || dhatu.has_text("vf") {
+    } else if dhatu.has_antya('F') || dhatu.has_u_in(&["vfN", "vfY"]) {
         if last.has_lakshana("li~N") {
             p.step("7.2.39");
         } else if n.slice().iter().any(|t| t.has_u("si~c")) && last.is_parasmaipada() {
@@ -204,14 +217,19 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         return None;
     }
 
+    if n.last().is_unadi() {
+        return None;
+    }
+
     let ktvi = n.last().has_u("ktvA");
 
     if n.has_u("kvasu~") {
+        // kvasu~ rules should take priority over `li~w` below.
         let anga = ip.anga();
         if anga.has_text_in(&["gam", "han", "vid", "viS"]) {
             ip.optional_try_add("7.2.68");
         } else if anga.has_text("dfS") {
-            ip.optional_try_add("7.2.68.v1");
+            ip.optional_try_add(Varttika("7.2.68.1"));
         }
 
         let anga = ip.anga();
@@ -243,71 +261,70 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             ip.try_block(code);
         }
     } else if n.has_lakshana("li~w") {
-        if is_generally_vet(anga) {
-            // Per SK, 7.2.44 allows iw-Agama here.
-            ip.optional_try_add("7.2.44");
-            ip.done = true;
-        }
-
-        let anga = ip.anga();
-        let n = ip.next();
-        // These rules are always aniT.
-        if anga.has_text_in(&["kf", "sf", "Bf", "vf", "stu", "dru", "sru", "Sru"]) {
+        if anga.has_text("vf") && n.has_u("Tal") {
+            // Exception to krAdi-niyama.
+            ip.try_add("7.2.64");
+        } else if anga.has_text_in(&["kf", "sf", "Bf", "vf", "stu", "dru", "sru", "Sru"]) {
             ip.try_block("7.2.13");
-        } else if n.has_u("Tal") {
-            // Rule 7.2.61 ("acas tAsvat ...") conditions on whether tAs would receive it-Agama.
-            // Estimate this by reproducing other it rules.
-            let rule_7_2_10 = anga.has_tag(T::Anudatta) && is_hacky_eka_ac(ip.p, ip.i_anga);
-            let is_anit_for_tas = rule_7_2_10;
-
-            if (anga.has_antya(&*AC) || anga.text.contains('a')) && is_anit_for_tas {
-                // Concise summary of rules:
-                // - The roots in 7.2.13 are aniT. All others are seT by valAdi (7.2.35).
-                // - However, there are the following exceptions for Tal:
-                //   - roots ending in `f` (except `f`) are aniT.
-                //   - roots ending in a vowel and roots with a middle 'a' are veT.
-                //   - other roots listed in rules explicitly (e.g. in 7.2.66)
-                let code = if anga.has_antya(&*AC) {
-                    Some("7.2.61")
-                } else if !anga.has_u("vayi~") {
-                    // quick HACK to prevent *uvayTa.
-                    Some("7.2.62")
-                } else {
-                    None
-                };
-
-                if let Some(code) = code {
-                    // The last root is "vyeY" per siddhAntakaumudI.
-                    if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
-                        ip.try_add("7.2.66");
-                    } else if !anga.has_antya('f') {
-                        // 7.2.63 Rto bhAradvAjasya
-                        // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
-                        // other roots, this condition is optional:
-                        if ip.p.is_allowed(code) {
-                            ip.try_add(code);
-                        } else {
-                            ip.p.decline(code);
-                            ip.try_block(code);
-                        }
-                    } else {
-                        ip.try_block(code);
-                    }
-                }
-            } else if anga.has_text_in(&["sfj", "dfS"]) {
-                // By default, these will be seT. So the option allows aniT.
-                ip.optional_try_block("7.2.65");
+        } else {
+            // Normally, these options allow seT. Here, they allow aniT due to krAdi-niyama.
+            let shryukah_kiti = anga.has_antya(&*UK) && n.last().has_tag(T::kit);
+            if is_svarati_suti(anga) && !shryukah_kiti {
+                ip.optional_try_block("7.2.44");
+            } else if is_radh_adi(anga) && !shryukah_kiti {
+                ip.optional_try_block("7.2.45");
+            } else if is_krta_crta(anga) && n.has_adi('s') && !shryukah_kiti {
+                ip.optional_try_block("7.2.57");
             }
-        }
 
-        if !ip.done {
-            // The effect of 7.2.13 is that all other anudatta roots are considerd `sew` by
-            // default.
-            ip.p.step("7.2.13");
             let anga = ip.anga();
             let n = ip.next();
-            if n.has_adi(&*VAL) && anga.has_tag(T::Anudatta) {
-                ip.try_add("7.2.35");
+            if n.has_u("Tal") && !ip.done {
+                // Rule 7.2.61 ("acas tAsvat ...") conditions on whether tAs would receive it-Agama.
+                // Estimate this by reproducing other it rules.
+                let rule_7_2_10 = anga.has_tag(T::Anudatta) && is_hacky_eka_ac(ip.p, ip.i_anga);
+                let is_anit_for_tas = rule_7_2_10;
+
+                if (anga.has_antya(&*AC) || anga.text.contains('a')) && is_anit_for_tas {
+                    let code = if anga.has_u_in(&["Gasx~", "vayi~"]) {
+                        // Skip these because they are not eligible per tAs, per KV on 7.2.61.
+                        None
+                    } else if anga.has_antya(&*AC) {
+                        Some("7.2.61")
+                    } else {
+                        Some("7.2.62")
+                    };
+
+                    if let Some(code) = code {
+                        // The last root is "vyeY" per siddhAntakaumudI.
+                        if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
+                            ip.try_add("7.2.66");
+                        } else if !anga.has_antya('f') {
+                            // 7.2.63 Rto bhAradvAjasya
+                            // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
+                            // other roots, this condition is optional:
+                            if ip.p.is_allowed(code) {
+                                ip.try_add(code);
+                            } else {
+                                ip.p.decline(code);
+                                ip.try_block(code);
+                            }
+                        } else {
+                            ip.try_block(code);
+                        }
+                    }
+                } else if anga.has_text_in(&["sfj", "dfS"]) {
+                    // By default, these will be seT. So the option allows aniT.
+                    ip.optional_try_block("7.2.65");
+                }
+            }
+
+            if !ip.done {
+                let n = ip.next();
+                if n.has_adi(&*VAL) {
+                    ip.p.step("7.2.13");
+                    ip.try_add("7.2.35");
+                }
             }
         }
     } else if n.has_u("sya") {
@@ -358,8 +375,8 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             }
         } else if anga.has_u_in(&["tanu~^", "patx~", "daridrA"]) {
             // titanizati, titaMsati, titAMsati, ...
-            if !ip.optional_try_add("7.2.49.v1") {
-                ip.try_block("7.2.49.v1");
+            if !ip.optional_try_add(Varttika("7.2.49.1")) {
+                ip.try_block(Varttika("7.2.49.1"));
             }
         } else if anga.has_u_in(&["zmi\\N", "pUN", "f\\", "anjU~", "aSU~\\"]) {
             ip.try_add("7.2.74");
@@ -480,12 +497,11 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     let has_parasmaipada = ip.p.has_tag(T::Parasmaipada);
     let se = n.has_adi('s');
 
-    let krta_crta = &["kftI~", "cftI~", "u~Cfdi~^r", "u~tfdi~^r", "nftI~"];
     let ishu_saha = &["izu~", "zaha~\\", "luBa~", "ruza~", "riza~"];
 
     if ip.done {
         // Do nothing
-    } else if anga.has_u_in(gana::RADH_ADI) && n.has_adi(&*VAL) {
+    } else if is_radh_adi(anga) && n.has_adi(&*VAL) {
         // All of these roots are in scope for 7.2.10 (aniT).
         // So, this option allows seT.
         ip.optional_try_add("7.2.45");
@@ -497,7 +513,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         }
     } else if anga.has_u_in(ishu_saha) && n.has_adi('t') {
         ip.optional_try_block("7.2.48");
-    } else if anga.has_u_in(krta_crta) && se && !n.has_u("si~c") {
+    } else if is_krta_crta(anga) && se && !n.has_u("si~c") {
         // kartsyati, kartizyati, ...
         ip.optional_try_block("7.2.57");
     } else if anga.has_text("gam") && has_parasmaipada && se {
@@ -526,7 +542,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     let n = ip.next();
     let last = ip.p.terms().last()?;
     if n.has_adi(&*VAL) && !ip.done {
-        if is_generally_vet(anga) {
+        if is_svarati_suti(anga) {
             // Synchronize choice of "it" with the choice of lun-vikarana in 3.1.45:
             // - if lun and using ksa, must use anit.
             // - if lun and not using ksa, must use set.
@@ -588,8 +604,9 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
 
     let anga = ip.anga();
     let i_n = ip.i_next;
-    let tin = n.last();
 
+    let se = || n.has_text_in(&["se", "sva"]);
+    let dhve = || n.has_text_in(&["Dve", "Dvam"]) && n.has_lakshana_in(&["la~w", "lo~w"]);
     let is_aprkta = n.slice().iter().map(|t| t.len()).sum::<usize>() == 1;
     if anga.has_u("a\\da~") && is_aprkta {
         op::insert_agama_at("7.3.100", ip.p, i_n, "aw");
@@ -615,10 +632,10 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
             // roditi, svapiti, Svasiti, aniti, jakziti
             ip.try_add("7.2.76");
         }
-    } else if anga.has_text("IS") && n.has_adi('s') {
+    } else if anga.has_text("IS") && se() {
         // ISize, ISizva
         ip.try_add("7.2.77");
-    } else if anga.has_text_in(&["Iq", "jan", "IS"]) && tin.has_text_in(&["se", "Dve"]) {
+    } else if anga.has_u_in(&["Iqa~\\", "janI~\\", "jana~", "ISa~\\"]) && (se() || dhve()) {
         // IqiDve, janiDve
         //
         // See kAshika on 7.2.78 for inclusion of IS here.

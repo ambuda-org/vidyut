@@ -229,14 +229,13 @@ fn sutra_3_1_19() {
     assert_has_ta(&[], &nama("citra"), Lat, &["citrIyate"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_1_20() {
     let nama = |prati| Dhatu::nama(p(prati), None);
     assert_has_ta(&["ud"], &nama("pucCa"), Lat, &["utpucCayate"]);
     assert_has_ta(&["pari"], &nama("pucCa"), Lat, &["paripucCayate"]);
     assert_has_ta(&["sam"], &nama("BARqa"), Lat, &["samBARqayate"]);
-    assert_has_ta(&["sam"], &nama("cIvara"), Lat, &["saYcIvarayAte"]);
+    assert_has_ta(&["sam"], &nama("cIvara"), Lat, &["saYcIvarayate"]);
 }
 
 #[ignore]
@@ -333,6 +332,12 @@ fn sutra_3_1_26() {
 }
 
 #[test]
+fn sutra_3_1_27() {
+    let kandu = d("kaRqUY", Kandvadi);
+    assert_has_lat(&[], &kandu, &["kaRqUyati", "kaRqUyate"]);
+}
+
+#[test]
 fn sutra_3_1_28() {
     let pan = &d("paRa~\\", Bhvadi);
     assert_has_tip(&[], &d("gupU~", Bhvadi), Lat, &["gopAyati"]);
@@ -394,6 +399,7 @@ fn sutra_3_1_35() {
     );
     // TODO: amantre
 }
+
 #[test]
 fn sutra_3_1_36() {
     assert_has_lit(

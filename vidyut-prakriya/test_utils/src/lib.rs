@@ -77,6 +77,21 @@ pub fn d_kutadi(u: &str, g: Gana) -> Dhatu {
     Dhatu::Mula(mula)
 }
 
+pub fn d_akusmiya(u: &str, g: Gana) -> Dhatu {
+    let mula = Muladhatu::new(u, g).with_antargana(Antargana::Akusmiya);
+    Dhatu::Mula(mula)
+}
+
+pub fn d_adhrshiya(u: &str, g: Gana) -> Dhatu {
+    let mula = Muladhatu::new(u, g).with_antargana(Antargana::Adhrshiya);
+    Dhatu::Mula(mula)
+}
+
+pub fn d_ghatadi(u: &str, g: Gana) -> Dhatu {
+    let mula = Muladhatu::new(u, g).with_antargana(Antargana::Ghatadi);
+    Dhatu::Mula(mula)
+}
+
 pub fn san(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::san])
 }
@@ -132,6 +147,19 @@ pub fn upapada_krdanta(
 pub fn taddhitanta(prati: impl Into<Pratipadika>, taddhita: Taddhita) -> Taddhitanta {
     Taddhitanta::builder()
         .pratipadika(prati.into())
+        .taddhita(taddhita)
+        .build()
+        .unwrap()
+}
+
+pub fn artha_taddhitanta(
+    prati: impl Into<Pratipadika>,
+    artha: TaddhitaArtha,
+    taddhita: Taddhita,
+) -> Taddhitanta {
+    Taddhitanta::builder()
+        .pratipadika(prati.into())
+        .artha(artha)
         .taddhita(taddhita)
         .build()
         .unwrap()
@@ -942,10 +970,7 @@ fn derive_vakyas(first: &str, second: &str) -> Vec<Prakriya> {
 // ------------------
 
 /// Sanitizes our test results by making them deterministic and predictable.
-fn sanitize_results(mut results: Vec<Prakriya>) -> Vec<Prakriya> {
-    results.sort_by_key(|p| p.text());
-    results.dedup_by_key(|p| p.text());
-
+fn sanitize_results(results: Vec<Prakriya>) -> Vec<Prakriya> {
     results
         .into_iter()
         .filter(|p| {
@@ -958,7 +983,7 @@ fn sanitize_results(mut results: Vec<Prakriya>) -> Vec<Prakriya> {
 fn debug_text(rule: Rule) -> String {
     match rule {
         Rule::Ashtadhyayi(x) => x.to_string(),
-        Rule::Varttika(x, y) => format!("{x} v{y}"),
+        Rule::Varttika(x) => format!("vA {x}"),
         Rule::Dhatupatha(x) => format!("DA {x}"),
         Rule::Kashika(x) => format!("kA {x}"),
         Rule::Kaumudi(x) => format!("kO {x}"),
@@ -973,14 +998,14 @@ pub fn print_all_prakriyas(prakriyas: &[Prakriya]) {
     for p in prakriyas {
         for step in p.history() {
             let mut result = String::new();
-            for (i, text) in step.result().iter().enumerate() {
+            for (i, t) in step.result().iter().enumerate() {
                 if i != 0 {
                     result += " + ";
                 }
-                if step.active() == Some(i) {
-                    result += &format!("[{text}]");
+                if t.was_changed() {
+                    result += &format!("[{}]", t.text());
                 } else {
-                    result += text;
+                    result += t.text();
                 }
             }
             println!("{} --> {}", debug_text(step.rule()), result);
@@ -1011,8 +1036,5 @@ pub fn assert_has_results(prakriyas: Vec<Prakriya>, expected: &[&str]) {
         print_all_prakriyas(&prakriyas);
     }
 
-    assert_eq!(
-        actuals, expected,
-        "expected: {expected:#?}, actual: {actuals:#?}"
-    );
+    assert_eq!(expected, actuals);
 }

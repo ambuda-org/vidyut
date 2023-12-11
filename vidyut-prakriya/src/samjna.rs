@@ -1,6 +1,7 @@
 //! Rules that add various samjnas (labels) to the terms in the grammar.
 use crate::core::operators as op;
 use crate::core::Prakriya;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::ganapatha as gana;
@@ -20,9 +21,8 @@ fn is_tiya(t: &Term) -> bool {
     t.has_u_in(&["dvitIya", "tftIya"])
 }
 
-fn is_vatu(_: &Term) -> bool {
-    // HACK: placeholder
-    false
+fn is_vatu(t: &Term) -> bool {
+    t.has_u("vatu~p")
 }
 
 fn is_dati(t: &Term) -> bool {
@@ -165,7 +165,7 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         p.optional_run_at("1.1.33", i, add_tag(T::Sarvanama));
     } else if is_tiya(prati) && p.has(i + 1, |t| t.has_tag(T::Nit)) {
         // dvitIyAya, dvitIyasmE, ...
-        p.optional_run_at("1.1.33.v1", i, add_tag(T::Sarvanama));
+        p.optional_run_at(Varttika("1.1.33.1"), i, add_tag(T::Sarvanama));
     } else if prati.has_u_in(gana::SARVA_ADI) || prati.has_u_in(USES_DATARA_DATAMA) {
         let mut sarvanama = true;
         if prati.has_u_in(PURVA_ADI) && jasi {

@@ -5,8 +5,9 @@ atidesha (1.2.1 - 1.2.17)
 
 use crate::args::Antargana;
 use crate::core::operators as op;
+use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
-use crate::core::{Code, Prakriya};
+use crate::core::{Prakriya, Rule};
 use crate::sounds::{s, Set};
 use lazy_static::lazy_static;
 
@@ -30,40 +31,40 @@ impl<'a> AtideshaPrakriya<'a> {
         AtideshaPrakriya { p, added: false }
     }
 
-    fn optional(&mut self, rule: Code, func: impl Fn(&mut Prakriya)) {
+    fn optional(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut Prakriya)) {
         self.added = self.p.optional_run(rule, func);
     }
 
-    fn optional_block(&mut self, rule: Code) {
+    fn optional_block(&mut self, rule: impl Into<Rule>) {
         self.added = self.p.optional_run(rule, |_| {});
     }
 
-    fn add_nit(&mut self, rule: Code, i: usize) {
+    fn add_nit(&mut self, rule: impl Into<Rule>, i: usize) {
         self.p.add_tag_at(rule, i, T::Nit);
         self.added = true;
     }
 
-    fn optional_add_nit(&mut self, rule: Code, i: usize) {
+    fn optional_add_nit(&mut self, rule: impl Into<Rule>, i: usize) {
         self.added = self.p.optional_run_at(rule, i, |t| t.add_tag(T::Nit));
     }
 
-    fn add_kit(&mut self, rule: Code, i: usize) {
+    fn add_kit(&mut self, rule: impl Into<Rule>, i: usize) {
         self.p.add_tag_at(rule, i, T::kit);
         self.added = true;
     }
 
-    fn optional_add_kit(&mut self, rule: Code, i: usize) {
+    fn optional_add_kit(&mut self, rule: impl Into<Rule>, i: usize) {
         self.added = self.p.optionally(rule, |rule, p| {
             p.add_tag_at(rule, i, T::kit);
         });
     }
 
-    fn remove_kit(&mut self, rule: Code, i: usize) {
+    fn remove_kit(&mut self, rule: impl Into<Rule>, i: usize) {
         self.p.run_at(rule, i, |t| t.remove_tag(T::kit));
         self.added = true;
     }
 
-    fn optional_remove_kit(&mut self, rule: Code, i: usize) {
+    fn optional_remove_kit(&mut self, rule: impl Into<Rule>, i: usize) {
         self.added = self.p.optional_run_at(rule, i, |t| t.remove_tag(T::kit));
     }
 }
@@ -89,7 +90,7 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
     {
         // vyaceḥ kuṭāditvamanasīti tu neha pravartate, anasīti paryudāsena kṛnmātraviṣayatvāt
         // -- SK 655
-        ap.add_nit("1.2.1.v1", i_n);
+        ap.add_nit(Varttika("1.2.1.1"), i_n);
     } else if cur.has_u_in(&["o~vijI~\\", "o~vijI~"]) && iti {
         // Just for these `vij` dhatus, according to the Kashika.
         ap.add_nit("1.2.2", i_n);
@@ -113,19 +114,7 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
     }
 
     let i_n = n.end();
-
-    let apit = !n.has_tag(T::pit);
-    let n_is_lit = n.has_lakshana("li~w");
-
-    if !cur.is_samyoganta() && n_is_lit && !n.has_tag(T::pit) {
-        wrap.add_kit("1.2.5", i_n);
-    } else if cur.has_text_in(&["BU", "inD"]) && n_is_lit && apit {
-        // baBUva
-        wrap.add_kit("1.2.6", i_n);
-    } else if n_is_lit && cur.has_text_in(&["SranT", "granT", "danB", "svanj"]) && apit {
-        // Optional per Siddhanta-kaumudi.
-        wrap.optional_add_kit("1.2.6.v1", i_n);
-    } else if cur.has_text_in(&["mfq", "mfd", "guD", "kuz", "kliS", "vad", "vas"])
+    if cur.has_text_in(&["mfq", "mfd", "guD", "kuz", "kliS", "vad", "vas"])
         && n.last().has_u("ktvA")
     {
         // mfqitvA, mfditvA, ...
@@ -253,6 +242,38 @@ fn try_remove_kit_for_set_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
+fn run_before_it_agama_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    let mut ap = AtideshaPrakriya::new(p);
+
+    let cur = ap.p.get(i)?;
+    let n = ap.p.pratyaya(i + 1)?;
+    if cur.is_agama() {
+        return None;
+    }
+
+    let i_n = n.end();
+
+    let apit = !n.has_tag(T::pit);
+    let n_is_lit = n.has_lakshana("li~w");
+
+    if !cur.is_samyoganta() && n_is_lit && !n.has_tag(T::pit) {
+        ap.add_kit("1.2.5", i_n);
+    } else if cur.has_text_in(&["BU", "inD"]) && n_is_lit && apit {
+        // baBUva
+        ap.add_kit("1.2.6", i_n);
+    } else if n_is_lit && cur.has_text_in(&["SranT", "granT", "danB", "svanj"]) {
+        if apit {
+            // Optional per Siddhanta-kaumudi.
+            ap.optional_add_kit(Varttika("1.2.6.1"), i_n);
+        }
+        // TODO: sudhAkara in SK 2559 describes an option for SaSrATa, etc. but the derivation
+        // seems hazy, e.g. how do we do vrddhi with kit? Is it that "ata upadhAyAH" can't be
+        // blocked by knit?
+    }
+
+    Some(())
+}
+
 fn run_before_attva_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     try_add_nit(p, i);
     let added_1 = try_add_kit_for_various_pratyayas(p, i).unwrap_or(false);
@@ -263,6 +284,13 @@ fn run_before_attva_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     Some(())
+}
+
+/// Runs atidesha rules that must apply before it-agama.
+pub fn run_before_it_agama(p: &mut Prakriya) {
+    for i in 0..p.terms().len() {
+        run_before_it_agama_at_index(p, i);
+    }
 }
 
 /// Runs most atidesha rules.

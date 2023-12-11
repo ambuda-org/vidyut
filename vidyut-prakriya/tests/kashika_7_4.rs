@@ -438,6 +438,18 @@ fn sutra_7_4_40() {
 }
 
 #[test]
+fn sutra_7_4_41() {
+    use Krt::{kta, ktavatu};
+    let sho = d("So\\", Divadi);
+    assert_has_krdanta(&["ni"], &sho, kta, &["niSita", "niSAta"]);
+    assert_has_krdanta(&["ni"], &sho, ktavatu, &["niSitavat", "niSAtavat"]);
+
+    let cho = d("Co\\", Divadi);
+    assert_has_krdanta(&["ava"], &cho, kta, &["avacCita", "avacCAta"]);
+    assert_has_krdanta(&["ava"], &cho, ktavatu, &["avacCitavat", "avacCAtavat"]);
+}
+
+#[test]
 fn sutra_7_4_42() {
     let dhaa = d("quDA\\Y", Juhotyadi);
     assert_has_krdanta(&[], &dhaa, Krt::kta, &["hita"]);
@@ -563,6 +575,7 @@ fn sutra_7_4_54() {
     assert_has_tip(&[], &san(&d("quDA\\Y", Juhotyadi)), Lat, &["Ditsati"]);
     assert_has_lat(&["AN"], &san(&d("ra\\Ba~\\", Bhvadi)), &["Aripsate"]);
     assert_has_lat(&["AN"], &san(&d("qula\\Ba~\\z", Bhvadi)), &["Alipsate"]);
+    // SiSakizati seems justified because Sa\\kx~ is optionally sew.
     assert_has_lat(&[], &san(&d("Sa\\kx~", Svadi)), &["Sikzati"]);
     assert_has_lat(&[], &san(&d("patx~", Bhvadi)), &["pitsati", "pipatizati"]);
     assert_has_lat(&["pra"], &san(&d("pa\\da~\\", Divadi)), &["prapitsate"]);
@@ -584,6 +597,16 @@ fn sutra_7_4_55() {
     assert_has_tip(&["pra"], &aap, Lrt, &["prApsyati"]);
 
     // si? -- see jijYapayizati and ardiDizati above.
+}
+
+#[test]
+fn sutra_7_4_56() {
+    assert_has_tip(
+        &[],
+        &san(&d("danBu~", Svadi)),
+        Lat,
+        &["Dipsati", "DIpsati", "didamBizati"],
+    );
 }
 
 #[test]

@@ -25,7 +25,7 @@ pub enum Rule {
     /// A varttika on the Ashtadhyayi. The first string is an adhyaya-pada-sutra string, e.g.
     /// "3.1.68",a nd the second string is an integer corresponding to the vArttika's position on
     /// the sutra, e.g. "2" for the second vArttika on some sUtra.
-    Varttika(&'static str, &'static str),
+    Varttika(&'static str),
     /// A sutra from the Dhatupatha. The string data here is a gana-sutra string, e.g. "10.0493".
     Dhatupatha(&'static str),
     /// A sutra from the Unadipatha. The string here is a gana-sutra string, e.g. "1.1".
@@ -48,7 +48,7 @@ impl Rule {
     pub fn code(&self) -> &'static str {
         match self {
             Self::Ashtadhyayi(x) => x,
-            Self::Varttika(x, _) => x,
+            Self::Varttika(x) => x,
             Self::Dhatupatha(x) => x,
             Self::Unadipatha(x) => x,
             Self::Linganushasana(x) => x,
@@ -77,8 +77,7 @@ impl From<&'static str> for Rule {
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Step {
     rule: Rule,
-    result: Vec<String>,
-    active: Option<usize>,
+    result: Vec<StepTerm>,
 }
 
 impl Step {
@@ -88,14 +87,29 @@ impl Step {
     }
 
     /// The result of applying `rule`.
-    pub fn result(&self) -> &Vec<String> {
+    pub fn result(&self) -> &Vec<StepTerm> {
         &self.result
     }
+}
 
-    /// Returns the index of the item in `result` that was modified, or `None` if the rule modified
-    /// either more than one term or no terms.
-    pub fn active(&self) -> Option<usize> {
-        self.active
+/// One of the terms in the derivation.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub struct StepTerm {
+    text: String,
+    // NOTE: keep `tags` private.
+    tags: EnumSet<Tag>,
+    was_changed: bool,
+}
+
+impl StepTerm {
+    /// The current text of this term.
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+
+    /// Whether the term was changed in the current step.
+    pub fn was_changed(&self) -> bool {
+        self.was_changed
     }
 }
 
@@ -662,7 +676,7 @@ impl Prakriya {
     ) -> bool {
         if let Some(term) = self.get_mut(index) {
             func(term);
-            self.step_at(rule.into(), index);
+            self.step(rule.into());
             true
         } else {
             false
@@ -741,26 +755,58 @@ impl Prakriya {
 
     /// Adds `rule` and the current derivation state to the derivation history.
     pub(crate) fn step(&mut self, rule: impl Into<Rule>) {
-        if self.config.log_steps {
-            let result = self.terms.iter().map(|t| t.text_with_svaras()).collect();
-            self.history.push(Step {
-                rule: rule.into(),
-                result,
-                active: None,
-            })
+        if !self.config.log_steps {
+            return;
         }
-    }
 
-    /// Adds `rule` and the current derivation state to the derivation history.
-    pub(crate) fn step_at(&mut self, rule: impl Into<Rule>, index: usize) {
-        if self.config.log_steps {
-            let result = self.terms.iter().map(|t| t.text_with_svaras()).collect();
-            self.history.push(Step {
-                rule: rule.into(),
-                result,
-                active: Some(index),
+        let mut result: Vec<StepTerm> = self
+            .terms
+            .iter()
+            .map(|t| {
+                let mut tags = t.tags;
+                // HACK: remove a flag that is not added by any rule, to avoid spurious
+                // highlighting.
+                // TODO: move flags to their own field to avoid these and similar issues, and so
+                // that we might refactor `Tag` into a `Samjna` type in the future.
+                tags.remove(Tag::FlagIttva);
+                StepTerm {
+                    text: t.text_with_svaras(),
+                    tags,
+                    was_changed: false,
+                }
             })
+            .collect();
+
+        if let Some(prev) = self.history.last() {
+            let prev = prev.result();
+            let had_insertion = prev.len() < result.len();
+            let mut any_changed = false;
+            for i in 0..result.len() {
+                if let (Some(t_cur), Some(t_prev)) = (result.get_mut(i), prev.get(i)) {
+                    let was_changed = t_prev.text != t_cur.text || t_prev.tags != t_cur.tags;
+                    t_cur.was_changed = was_changed;
+                    any_changed |= was_changed;
+
+                    if was_changed && had_insertion {
+                        // Assume that when a term has been inserted, all other terms are the same.
+                        // This assumption doesn't always hold, but it's good enough for now.
+                        break;
+                    }
+                }
+            }
+            if had_insertion && !any_changed {
+                // We inserted a new term, but all the terms we checked are still the same. So, the
+                // changed term must be at the end.
+                result.last_mut().expect("non-empty").was_changed = true;
+            }
+        } else {
+            result.iter_mut().for_each(|x| x.was_changed = true);
         }
+
+        self.history.push(Step {
+            rule: rule.into(),
+            result,
+        })
     }
 
     // Optional rules
@@ -816,8 +862,11 @@ impl Prakriya {
     pub(crate) fn debug(&mut self, text: impl AsRef<str>) {
         self.history.push(Step {
             rule: Rule::Ashtadhyayi("    "),
-            result: vec![text.as_ref().to_string()],
-            active: None,
+            result: vec![StepTerm {
+                text: text.as_ref().to_string(),
+                tags: EnumSet::new(),
+                was_changed: false,
+            }],
         });
     }
 

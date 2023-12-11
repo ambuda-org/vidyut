@@ -1,8 +1,7 @@
 use crate::args::Gana;
 use crate::core::operators as op;
-use crate::core::Tag as T;
-use crate::core::{Code, Prakriya};
-use crate::core::{Term, TermView};
+use crate::core::Rule::Varttika;
+use crate::core::{Code, Prakriya, Rule, Tag as T, Term, TermView};
 use crate::sounds as al;
 use crate::sounds::{s, Set};
 use lazy_static::lazy_static;
@@ -247,7 +246,7 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
     } else if anga.has_upadha('a') {
         if anga.has_u_in(&["kamu~\\", "wuvama~"]) {
             // akAmi, avAmi
-            p.step("7.3.34.v1")
+            p.step(Varttika("7.3.34.1"))
         }
 
         // pAcayati
@@ -268,6 +267,9 @@ fn try_vrddhi_adesha(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> 
         let mut gp = GunaVrddhiPrakriya::new(p, i_anga, i_n);
         gp.check_guna_vrddhi_blocks();
         gp.try_run("7.2.114", |t| t.try_upadha_vrddhi());
+    } else if anga.has_text("mfj") && n.last().is_knit() && n.has_adi(&*AC) && !n.last().is_krt() {
+        // mfjanti, mArjanti, ...
+        p.optional_run_at(Rule::Kaumudi("2473"), i_anga, |t| t.try_upadha_vrddhi());
     } else if n.first().is_taddhita() {
         try_taddhita_vrddhi(p, i_anga, i_n);
     } else {
@@ -445,6 +447,17 @@ fn run_for_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
     let n = p.get(i_n)?;
 
+    if anga.is_dhatu()
+        && anga.has_gana(Gana::Tanadi)
+        && anga.has_u_in(&["kziRu~^", "fRu~^", "tfRu~^", "GfRu~^"])
+        && n.has_u("u")
+    {
+        // kziRoti, kzeRoti, ...
+        p.optional_add_tag_at(Rule::Kaumudi("2547"), i_anga, T::FlagGunaApavada);
+    }
+
+    let anga = p.get(i_anga)?;
+    let n = p.get(i_n)?;
     if anga.has_u("jAgf")
         && !n.has_u_in(&["kvin", "ciR", "Ral"])
         && !p.pratyaya(i_n)?.has_tag(T::Nit)
@@ -471,7 +484,9 @@ fn run_for_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
-        if p.has(i, |t| t.is_anga()) {
+        if p.has(i, |t| {
+            t.is_anga() && !t.has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa])
+        }) {
             run_for_index(p, i);
         }
     }

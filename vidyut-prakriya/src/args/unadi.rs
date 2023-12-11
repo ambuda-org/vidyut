@@ -35,8 +35,10 @@ pub enum Unadi {
     aRqan,
     /// -ata
     atac,
-    /// -ati
+    /// -at
     ati,
+    /// -ati
+    ati_,
     /// -atra
     atran,
     /// -atri
@@ -443,7 +445,7 @@ pub enum Unadi {
     qaw,
     /// -qati
     qati,
-    /// -qavatu
+    /// -avat
     qavatu,
     /// -qimi
     qimi,
@@ -457,7 +459,7 @@ pub enum Unadi {
     qU,
     /// -qE
     qE,
-    /// -qEsi
+    /// -Es
     qEsi,
     /// -qo
     qo,
@@ -645,6 +647,7 @@ enum_boilerplate!(Unadi, {
     aRqan => "aRqan",
     atac => "atac",
     ati => "ati~",
+    ati_ => "ati",
     atran => "atran",
     atrin => "atrin",
     aTa => "aTa",
@@ -855,7 +858,7 @@ enum_boilerplate!(Unadi, {
     qumsun => "qumsun",
     qU => "qU",
     qE => "qE",
-    qEsi => "qEsi",
+    qEsi => "qEsi~",
     qo => "qo",
     qosi => "qosi",
     qO => "qO",
