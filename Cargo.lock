@@ -1004,6 +1004,10 @@ name = "vidyut-lipi"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "console_error_panic_hook",
+ "rustc-hash",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
 ]
 
 [[package]]

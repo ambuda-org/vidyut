@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,"><!-- Avoid favicon requests: https://stackoverflow.com/a/38917888 -->
+  <title>vidyut-lipi demo</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script type="module" src="/static/app.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style type="text/css">
+    .a-underline a {
+        text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+<article x-data="app" class="">
+
+<!-- Header -->
+<header class="py-12 bg-slate-100 text-center">
+  <h1 class="text-4xl font-bold mb-2" x-text="deva('vidyut')"></h1>
+  <p class="text-slate-800">
+  (A demo of <a class="underline" href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-lipi"
+    target="_blank">vidyut-lipi</a>.
+   Please file bugs <a class="underline" href="https://github.com/ambuda-org/vidyut/issues" target="_blank">here</a>.)
+  </p>
+</header>
+
+<div class="max-w-4xl mx-auto px-4">
+
+<ul class="flex my-4">
+  <li><a class="py-2 mr-4" href="#" :class="tab('simple')" @click.prevent="setTab('simple')">Simple</a></li>
+  <li><a class="py-2 mr-4" href="#" :class="tab('multi')" @click.prevent="setTab('multi')">Multi</a></li>
+  <li><a class="py-2 mr-4" href="#" :class="tab('grid')" @click.prevent="setTab('grid')">Grid</a></li>
+</ul>
+
+<section x-show="activeTab === 'simple'">
+  <div class="my-4">
+    <select x-model="simpleFrom" class="p-2 bg-white border rounded">
+      <template x-for="s in schemes()">
+        <option x-text="s.text" :value="s.value" :selected="s.value === simpleFrom"></option> 
+      </template>
+    </select>
+
+    &rarr;
+
+    <select x-model="simpleTo" class="p-2 bg-white border rounded">
+      <template x-for="s in schemes()">
+        <option x-text="s.text" :value="s.value" :selected="s.text === simpleTo"></option> 
+      </template>
+    </select>
+  </div>
+
+  <div class="flex w-full justify-between">
+    <textarea class="border block rounded w-full p-2 mr-2" rows="15" x-model="simpleInput">
+
+    </textarea>
+    <textarea readonly class="border block rounded bg-slate-50 w-full p-2 ml-2" rows="15" x-text="simpleOutput()"></textarea>
+  </div>
+
+  <div class="prose my-8 mx-auto">
+    <p><strong>vidyut-lipi</strong> is an experimental Sanskrit transliteration
+    library. Our goal is to provide a standard transliterator in Rust that can
+    be bound to other languages as needed. Our source code is available <a
+         href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-lipi">here</a>.</p>
+
+    <p>This page demonstrates some of vidyut-lipi's features. The
+    <dfn>Simple</dfn> tab shows a simple transliteration UI. <dfn>Multi</dfn>
+    transliterates to dozens of scripts at once. <dfn>Grid</dfn> shows our full
+    mapping grid.</p>
+  </div>
+</section>
+
+
+<section x-show="activeTab === 'multi'">
+  <div class="flex">
+    <input x-model="multiInput"
+           type="text"
+           class="block w-full p-2 border rounded mr-2"
+           placeholder="Enter your text here."
+           ></input>
+    <select x-model="multiFrom" class="p-2 bg-white border rounded">
+      <template x-for="s in schemes()">
+        <option x-text="s.text" :value="s.value" :selected="s.value === simpleFrom"></option> 
+      </template>
+    </select>
+  </div>
+
+  <ul x-show="multiInput.length !== 0">
+    <template x-for="s in schemes()">
+      <li class="my-2 p-1 flex justify-between items-center odd:bg-slate-50">
+        <span class="block text-lg" x-text="multiOutput(Scheme[s.value])"></span>
+        <span class="text-xs text-slate-500" x-text="s.text"></span>
+      </li>
+    </template>
+  </ul>
+</section>
+
+<section x-show="activeTab === 'grid'">
+  <template x-for="group in soundTable()">
+  <div class="overflow-scroll">
+    <table class="my-8 mx-auto border w-full">
+      <tbody class="text-center">
+        <template x-for="row in group">
+          <tr>
+            <th class="text-xs font-normal bg-slate-200 p-2 text-right" x-text="row.name"></th>
+            <template x-for="sound in row.values">
+              <td class="text-lg p-1 even:bg-slate-50" x-text="sound"></td>
+            </template>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+  </template>
+</section>
+
+</div>
+
+</article>
+</body>
+</html>
