@@ -7,7 +7,7 @@
   <link rel="icon" href="data:,"><!-- Avoid favicon requests: https://stackoverflow.com/a/38917888 -->
   <title>vidyut-lipi demo</title>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-  <script type="module" src="/static/app.js"></script>
+  <script type="module" src="/static/vidyut-lipi-app.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style type="text/css">
     .a-underline a {
@@ -23,18 +23,19 @@
 <header class="py-12 bg-slate-100 text-center">
   <h1 class="text-4xl font-bold mb-2" x-text="deva('vidyut')"></h1>
   <p class="text-slate-800">
-  (A demo of <a class="underline" href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-lipi"
-    target="_blank">vidyut-lipi</a>.
-   Please file bugs <a class="underline" href="https://github.com/ambuda-org/vidyut/issues" target="_blank">here</a>.)
+    <strong><a class="underline" href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-lipi" target="_blank">vidyut-lipi</a></strong>
+    is an experimental Sanskrit transliterator.<br>See the <i>About</i> tab for details.</p>
   </p>
 </header>
 
 <div class="max-w-4xl mx-auto px-4">
 
-<ul class="flex my-4">
+<ul class="flex my-4 pb-3 border-b">
   <li><a class="py-2 mr-4" href="#" :class="tab('simple')" @click.prevent="setTab('simple')">Simple</a></li>
   <li><a class="py-2 mr-4" href="#" :class="tab('multi')" @click.prevent="setTab('multi')">Multi</a></li>
   <li><a class="py-2 mr-4" href="#" :class="tab('grid')" @click.prevent="setTab('grid')">Grid</a></li>
+  <li><a class="py-2 mr-4" href="#" :class="tab('detect')" @click.prevent="setTab('detect')">Detect</a></li>
+  <li><a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="setTab('about')">About</a></li>
 </ul>
 
 <section x-show="activeTab === 'simple'">
@@ -45,35 +46,44 @@
       </template>
     </select>
 
-    &rarr;
+    <button @click="swapSimple" class="border p-1 rounded hover:bg-blue-200 transition">↔</button>
 
     <select x-model="simpleTo" class="p-2 bg-white border rounded">
       <template x-for="s in schemes()">
-        <option x-text="s.text" :value="s.value" :selected="s.text === simpleTo"></option> 
+        <option x-text="s.text" :value="s.value" :selected="s.value === simpleTo"></option> 
       </template>
     </select>
   </div>
 
   <div class="flex w-full justify-between">
-    <textarea class="border block rounded w-full p-2 mr-2" rows="15" x-model="simpleInput">
+    <textarea x-ref="simpleInText" class="border block rounded w-full p-2 mr-2" rows="10" x-model="simpleInput">
 
     </textarea>
-    <textarea readonly class="border block rounded bg-slate-50 w-full p-2 ml-2" rows="15" x-text="simpleOutput()"></textarea>
+    <textarea readonly class="border block rounded bg-slate-50 w-full p-2 ml-2" rows="10"
+      x-text="simpleOutput()"
+      @click="simpleHighlightOutput">
+    </textarea>
   </div>
 
-  <div class="prose my-8 mx-auto">
-    <p><strong>vidyut-lipi</strong> is an experimental Sanskrit transliteration
-    library. Our goal is to provide a standard transliterator in Rust that can
-    be bound to other languages as needed. Our source code is available <a
-         href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-lipi">here</a>.</p>
-
-    <p>This page demonstrates some of vidyut-lipi's features. The
-    <dfn>Simple</dfn> tab shows a simple transliteration UI. <dfn>Multi</dfn>
-    transliterates to dozens of scripts at once. <dfn>Grid</dfn> shows our full
-    mapping grid.</p>
+  <div class="my-8 mx-auto max-w-3xl">
+  <template x-for="group in simpleCheatSheet">
+    <ul class="flex text-center justify-center items-center">
+      <template x-for="s in group">
+        <li class="p-2">
+          <template x-if="s.to !== ''">
+            <span class="block text-2xl" x-text="s.to"></span>
+          </template>
+          <template x-if="s.to === ''">
+            <span class="block text-2xl text-red-300">&times;</span>
+          </template>
+          <span class="block text-sm" x-text="s.from"></span>
+        </li>
+      </template>
+    </ul>
+  </template>
   </div>
+
 </section>
-
 
 <section x-show="activeTab === 'multi'">
   <div class="flex">
@@ -116,6 +126,39 @@
     </table>
   </div>
   </template>
+</section>
+
+<section x-show="activeTab === 'detect'">
+  <input x-model="detectInput"
+         type="text"
+         class="block w-full p-2 border rounded mr-2"
+         placeholder="Enter your text here."
+         ></input>
+  <p class="my-2">Detected as: <span x-text="detectResult"></span></p>
+
+  <p class="my-4 p-2 bg-slate-100">(<i>detect</i> uses simple heuristics and will likely yield
+  false positives. Even so, we have found it useful when building user
+  interfaces.)</p>
+</section>
+
+<section x-show="activeTab === 'about'">
+  <div class="prose my-8 mx-auto">
+    <p><i>vidyut-lipi</i> aims to provide a standard transliterator for the
+    Sanskrit ecosystem. It is implemented in Rust and can be bound to other
+       programming languages as needed. Our source code is available <a
+      href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-lipi">here</a>,
+    and you can file bugs <a href="https://github.com/ambuda-org/vidyut/issues">here</a>.</p>
+
+    <p>This page demonstrates some of vidyut-lipi's features. It has the following tabs:</p>
+
+    <ul>
+      <li><dfn>Simple</dfn> shows a simple transliteration UI.</li>
+      <li><dfn>Multi</dfn> transliterates into dozens of scripts at once.</li>
+      <li><dfn>Grid</dfn> shows our full mapping grid.</li>
+      <li><dfn>Detect</dfn> demonstrates our scheme detector.</li>
+      <li><dfn>About</dfn> is this page.</li>
+    </ul>
+  </div>
 </section>
 
 </div>

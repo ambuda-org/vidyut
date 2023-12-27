@@ -1,6 +1,6 @@
 use clap::Parser;
 use std::error::Error;
-use vidyut_lipi::transliterate;
+use vidyut_lipi::{transliterate, Mapping, Scheme};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -11,11 +11,8 @@ struct Args {
 }
 
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
-    let result = transliterate(
-        &args.text,
-        vidyut_lipi::Scheme::Iast,
-        vidyut_lipi::Scheme::Slp1,
-    );
+    let mapping = Mapping::new(Scheme::Iast, Scheme::Slp1);
+    let result = transliterate(&args.text, &mapping);
 
     println!("{}", result);
 

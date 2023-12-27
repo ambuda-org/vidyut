@@ -11,29 +11,23 @@
  *   hacky way if that fixes the problem.
  */
 
-import init, { VidyutLipi as VidyutWasm, Scheme } from "/static/wasm/vidyut_lipi.js";
-
-// ===================================================
-// vidyut-lipi
-// ===================================================
-
-class Vidyut {
-  // Call `init()` before calling this so that you initialize the WASM environment.
-  constructor() {
-    this.wasm = VidyutWasm.init();
-    console.log("Constructed Vidyut.");
-  }
-
-  transliterate(input, from, to) {
-    return this.wasm.transliterate(input, from, to);
-  }
-}
+import init, { transliterate, detect, Scheme } from "/static/wasm/vidyut_lipi.js";
 
 // ===================================================
 // App
 // ===================================================
 
-let vowels = [
+let CHEAT_SHEET = [
+  "a A i I u U R RR lR lRR e ai o au aM aH",
+  "ka kha ga gha Na ca cha ja jha Ja",
+  "Ta Tha Da Dha Na ta tha da dha na",
+  "pa pha ba bha ma ya ra la va",
+  "za Sa sa ha La kSa jJa",
+  "0 1 2 3 4 5 6 7 8 9 . .. ' OM",
+];
+
+
+let VOWELS = [
   "अ",
   "आ",
   "इ",
@@ -50,7 +44,7 @@ let vowels = [
   "औ",
 ];
 
-let marks = [
+let MARKS = [
   "क",
   "का",
   "कि",
@@ -68,7 +62,7 @@ let marks = [
   "क्"
 ];
 
-let consonants = [
+let CONSONANTS = [
   "क",
   "ख",
   "ग",
@@ -123,46 +117,56 @@ let symbols = [
 
 let schemes = [
   Scheme.Devanagari,
+  Scheme.Balinese,
   Scheme.Bengali,
   Scheme.Brahmi,
+  Scheme.Burmese,
   Scheme.Grantha,
   Scheme.Gujarati,
   Scheme.Gurmukhi,
+  Scheme.Javanese,
   Scheme.Kannada,
   Scheme.Malayalam,
-  Scheme.Oriya,
+  Scheme.Odia,
+  Scheme.Sharada,
   Scheme.Sinhala,
   Scheme.Tamil,
   Scheme.Telugu,
-  Scheme.Tibetan,
 
   Scheme.HarvardKyoto,
   Scheme.Iast,
+  Scheme.Iso19519,
   Scheme.Itrans,
   Scheme.Slp1,
   Scheme.Velthuis,
+  Scheme.Wx,
 ];
 
 let schemeNames = {
   [Scheme.Devanagari]: "Devanagari",
+  [Scheme.Balinese]: "Balinese",
   [Scheme.Bengali]: "Bengali",
   [Scheme.Brahmi]: "Brahmi",
+  [Scheme.Burmese]: "Burmese",
   [Scheme.Grantha]: "Grantha",
   [Scheme.Gujarati]: "Gujarati",
   [Scheme.Gurmukhi]: "Gurmukhi",
+  [Scheme.Javanese]: "Javanese",
   [Scheme.Kannada]: "Kannada",
   [Scheme.Malayalam]: "Malayalam",
-  [Scheme.Oriya]: "Oriya",
+  [Scheme.Odia]: "Odia",
+  [Scheme.Sharada]: "Sharada",
   [Scheme.Sinhala]: "Sinhala",
   [Scheme.Tamil]: "Tamil",
   [Scheme.Telugu]: "Telugu",
-  [Scheme.Tibetan]: "Tibetan",
 
   [Scheme.HarvardKyoto]: "Harvard-Kyoto",
   [Scheme.Iast]: "IAST",
+  [Scheme.Iso19519]: "ISO 19519",
   [Scheme.Itrans]: "ITRANS",
   [Scheme.Slp1]: "SLP1",
   [Scheme.Velthuis]: "Velthuis",
+  [Scheme.Wx]: "WX",
 }
 
 const App = () => ({
@@ -175,6 +179,8 @@ const App = () => ({
   multiInput: "",
   multiFrom: "HarvardKyoto",
 
+  detectInput: "",
+
   async init() {
     this.activeTab = 'simple';
     await this.initVidyut();
@@ -182,7 +188,7 @@ const App = () => ({
 
   async initVidyut() {
     await init();
-    this.vidyut = new Vidyut();
+    this.vidyut = "initialized";
   },
 
   tab(s) {
@@ -197,26 +203,6 @@ const App = () => ({
     this.activeTab = tab;
   },
 
-  simpleOutput() {
-    const input = this.simpleInput;
-    const from = Scheme[this.simpleFrom];
-    const to = Scheme[this.simpleTo];
-    if (!this.vidyut) {
-      return "";
-    }
-    return this.vidyut.transliterate(input, from, to);
-  },
-
-  multiOutput(toScheme) {
-    const input = this.multiInput;
-    const from = Scheme[this.multiFrom];
-    if (!this.vidyut) {
-      return "";
-    }
-    return this.vidyut.transliterate(input, from, toScheme);
-  },
-
-
   // Schemes, mapping from strings to numeric values.
   schemes() {
     let ints = Object.values(Scheme).filter(Number.isInteger);
@@ -230,19 +216,76 @@ const App = () => ({
 
   async deva(text) {
     await this.initVidyut();
-    return this.vidyut.transliterate(text, Scheme.Slp1, Scheme.Devanagari);
+    return transliterate(text, Scheme.Slp1, Scheme.Devanagari);
   },
+
+  // Simple
+  // ------
+
+  simpleOutput() {
+    const input = this.simpleInput;
+    const from = Scheme[this.simpleFrom];
+    const to = Scheme[this.simpleTo];
+    if (!this.vidyut) {
+      return "";
+    }
+    return transliterate(input, from, to);
+  },
+
+  swapSimple() {
+    const oldOutput = this.simpleOutput();
+    const oldFrom = this.simpleFrom;
+    this.simpleInput = oldOutput;
+    this.simpleFrom = this.simpleTo;
+    this.simpleTo = oldFrom;
+  },
+
+  simpleHighlightOutput(e) {
+    e.target.select();
+  },
+
+  async simpleCheatSheet() {
+    const simpleFrom = this.simpleFrom;
+    const simpleTo = this.simpleTo;
+    await this.initVidyut();
+    let rows = [];
+    CHEAT_SHEET.forEach((group) => {
+      let row = [];
+      group.split(/\s+/).forEach((s) => {
+        let from = transliterate(s, Scheme.HarvardKyoto, Scheme[simpleFrom]);
+        let to = transliterate(s, Scheme.HarvardKyoto, Scheme[simpleTo]);
+        row.push({ from, to })
+      });
+      rows.push(row);
+    });
+    return rows;
+  },
+
+  // Multi
+  // ------
+
+  multiOutput(toScheme) {
+    const input = this.multiInput;
+    const from = Scheme[this.multiFrom];
+    if (!this.vidyut) {
+      return "";
+    }
+    return transliterate(input, from, toScheme);
+  },
+
+  // Grid
+  // -----
 
   async soundTable() {
     await this.initVidyut();
     let allTables = [];
-    [vowels, marks, consonants, symbols].forEach((group) => {
+    [VOWELS, MARKS, CONSONANTS, symbols].forEach((group) => {
       let table = [];
       schemes.forEach((toScheme) => {
         let name = schemeNames[toScheme];
         let row = [];
         group.forEach((sound) => {
-          let out = this.vidyut.transliterate(sound, Scheme.Devanagari, toScheme);
+          let out = transliterate(sound, Scheme.Devanagari, toScheme);
           row.push(out);
         });
         table.push({
@@ -254,11 +297,31 @@ const App = () => ({
     });
 
     return allTables;
+  },
+
+  // Detect
+  // ------
+
+  detectResult() {
+    const input = this.detectInput;
+    if (!this.vidyut || input === "") {
+      return "(none)";
+    }
+    // TODO: consider filing alpine.js bug for when logic is like:
+    //
+    // if (input === "") {
+    //   return "(none)";
+    // } else {
+    //   let scheme = ...;
+    //   return ...;
+    // }
+    let scheme = detect(input);
+    return Scheme[scheme];
   }
+
 });
 
 window.Scheme = Scheme;
-window.Vidyut = Vidyut;
 
 // Initialize the app.
 window.addEventListener('alpine:init', async () => {

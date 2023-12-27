@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create schemes for vidyut-lipi and writes them to `src/schemes.rs`.
+"""Create schemes for vidyut-lipi and writes them to `src/autogen_schemes.rs`.
 
 We create these mappings by modifying the data in the `common_maps` dir from
 the indic-transliteration project.
@@ -32,15 +32,19 @@ VOWEL_TO_MARK = {
 }
 
 ALLOWED = {
+    "BALINESE",
     "BENGALI",
     "BRAHMI",
+    "BURMESE",
     "DEVANAGARI",
     "GUJARATI",
     "GURMUKHI",
     "GRANTHA",
+    "JAVANESE",
     "KANNADA",
     "MALAYALAM",
     "ORIYA",
+    "SHARADA",
     "SINHALA",
     "TAMIL",
     "TELUGU",
@@ -48,9 +52,11 @@ ALLOWED = {
 
     "HK",
     "IAST",
+    "ISO",
     "ITRANS",
     "SLP1",
     "VELTHUIS",
+    "WX",
 }
 
 
@@ -59,12 +65,12 @@ def _sanitize(s: str) -> str:
 
 
 def _maybe_override(name: str, deva: str, raw: str) -> str | None:
-    if name == "BRAHMI":
-        if deva == "\u0946":
-            # short e mark
-            return None
-        if deva == "\u094a":
-            # short o mark
+    if name in {"BRAHMI", "BALINESE", "BURMESE", "TIBETAN"}:
+        if deva in {"\u0946", "\u094a", "\u090e", "\u0912"}:
+            # - short e mark
+            # - short o mark
+            # - short e vowel
+            # - short o vowel
             return None
     elif name == "HK":
         if raw == "|":
@@ -148,11 +154,16 @@ def main():
                     if deva is None:
                         continue
                     for alt in alts:
-                        assert isinstance(deva, str)
-                        assert isinstance(alt, str)
                         alt = _maybe_override(scheme_name, deva, alt)
                         if alt is not None:
                             scheme_items.append((deva, alt))
+                    mark = VOWEL_TO_MARK.get(deva)
+                    if mark:
+                        assert isinstance(mark, str)
+                        for alt in alts:
+                            alt = _maybe_override(scheme_name, mark, alt)
+                            if alt is not None:
+                                scheme_items.append((mark, alt))
             else:
                 for deva, raw in data[category].items():
                     assert isinstance(deva, str)
@@ -173,7 +184,7 @@ def main():
 
         buf.append(create_scheme_str(scheme_name, scheme_items))
 
-    with open(CRATE_DIR / "src/schemes.rs", "w") as f:
+    with open(CRATE_DIR / "src/autogen_schemes.rs", "w") as f:
         f.write("\n".join(buf))
 
     print("Cleaning up ...")

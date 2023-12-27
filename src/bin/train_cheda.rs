@@ -10,7 +10,7 @@ use vidyut_cheda::model::State;
 use vidyut_cheda::Result;
 use vidyut_cheda::{Config, Token};
 use vidyut_kosha::morph::*;
-use vidyut_lipi::{transliterate, Scheme};
+use vidyut_lipi::{transliterate, Mapping, Scheme};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -56,7 +56,8 @@ struct Statistics {
 }
 
 fn to_slp1(text: &str) -> String {
-    transliterate(text, Scheme::Iast, Scheme::Slp1)
+    let m = Mapping::new(Scheme::Iast, Scheme::Slp1);
+    transliterate(text, &m)
 }
 
 fn process_sentence(tokens: &[Token], s: &mut Statistics) {

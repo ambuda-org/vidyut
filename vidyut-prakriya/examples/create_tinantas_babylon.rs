@@ -17,7 +17,7 @@
 //! ```
 
 use clap::Parser;
-use vidyut_lipi::{transliterate, Scheme};
+use vidyut_lipi::{transliterate, Mapping, Scheme};
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::dhatupatha::Entry as DhatuEntry;
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
@@ -45,7 +45,8 @@ struct BabylonEntry {
 }
 
 fn to_devanagari(text: &str) -> String {
-    transliterate(&text, Scheme::Slp1, Scheme::Devanagari)
+    let mapping = Mapping::new(Scheme::Slp1, Scheme::Devanagari);
+    transliterate(&text, &mapping)
 }
 
 /// Removes svarita and anudAtta from the dhatu (for easier searching)

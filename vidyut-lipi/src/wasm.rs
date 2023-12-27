@@ -1,5 +1,5 @@
 //! WebAssembly bindings for vidyut-lipi.
-use crate::{transliterate, Scheme};
+use crate::{detect as rust_detect, Lipika, Scheme};
 extern crate console_error_panic_hook;
 
 use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
@@ -11,28 +11,21 @@ extern "C" {
     fn error(s: &str);
 }
 
-/// WebAssembly API for vidyut-prakriya.
+/// Wrapper for `transliterate`.
+#[wasm_bindgen]
+pub fn transliterate(input: &str, from: Scheme, to: Scheme) -> JsValue {
+    console_error_panic_hook::set_once();
+    let mut lipika = Lipika::new();
+    let output = lipika.transliterate(input, from, to);
+    JsValue::from_str(&output)
+}
+
+/// Wrapper for `detect`.
 ///
-/// Within reason, we have tried to mimic a native JavaScript API. At some point, we wish to
-/// support optional arguments, perhaps by using `Reflect`.
+/// `wasm_bindgen` struggles when returning optional types, so our default option here is just
+/// Harvard-Kyoto.
 #[wasm_bindgen]
-pub struct VidyutLipi {}
-
-#[wasm_bindgen]
-impl VidyutLipi {
-    /// Creates a new API manager.
-    ///
-    /// This constructor is not called `new` because `new` is a reserved word in JavaScript.
-    pub fn init() -> Self {
-        // Logs panics to the console. Without this, panics are logged as "RuntimeError:
-        // Unreachable executed", which is not useful.
-        console_error_panic_hook::set_once();
-        Self {}
-    }
-
-    /// Wrapper for `transliterate`.
-    pub fn transliterate(&self, input: &str, from: Scheme, to: Scheme) -> JsValue {
-        let output = transliterate(input, from.into(), to.into());
-        JsValue::from_str(&output)
-    }
+pub fn detect(input: &str) -> Scheme {
+    console_error_panic_hook::set_once();
+    rust_detect(input).unwrap_or(Scheme::HarvardKyoto)
 }
