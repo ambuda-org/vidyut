@@ -4,8 +4,8 @@ use crate::vrtta::{Jati, Vrtta};
 use std::collections::HashMap;
 use std::error::Error;
 
-fn to_weights(txt: String) -> Vec<Weight> {
-    txt.chars()
+fn to_weights(text: String) -> Vec<Weight> {
+    text.chars()
         .map(|c| match c {
             'X' => Weight::X,
             'L' => Weight::L,
@@ -28,15 +28,14 @@ pub struct Chandas {
 fn process_data(vrtta_list: Vec<Vrttad>, matra_list: Vec<Matra>) -> Chandas {
     let mut vrttas: HashMap<String, Vrtta> = HashMap::new();
     let mut jatis: HashMap<String, Jati> = HashMap::new();
-    let anushtup = Vrtta::new(vec![String::from("anushtup")], vec![]);
+    let anushtup = Vrtta::new(String::from("anushtup"), vec![]);
 
     for metre in vrtta_list {
         let name = String::from(&metre.name);
-        let names = vec![name.clone()];
         let vrtta: Vrtta;
 
         vrtta = Vrtta::new(
-            names.clone(),
+            name.clone(),
             metre
                 .pattern
                 .iter()
@@ -59,7 +58,7 @@ fn process_data(vrtta_list: Vec<Vrttad>, matra_list: Vec<Matra>) -> Chandas {
             })
             .collect();
 
-        jatis.insert(name.clone(), Jati::new(vec![name], pattern));
+        jatis.insert(name.clone(), Jati::new(name, pattern));
     }
 
     Chandas {

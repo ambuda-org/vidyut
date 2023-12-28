@@ -18,17 +18,13 @@ pub enum Gana {
 
 #[derive(Debug, Clone)]
 pub struct Vrtta {
-    names: Vec<String>,
+    name: String,
     weights: Vec<Vec<Weight>>,
 }
 
 impl Vrtta {
-    pub fn new(names: Vec<String>, weights: Vec<Vec<Weight>>) -> Self {
-        Vrtta { names, weights }
-    }
-
-    pub fn names(&self) -> std::slice::Iter<'_, String> {
-        self.names.iter()
+    pub fn new(name: String, weights: Vec<Vec<Weight>>) -> Self {
+        Vrtta { name, weights }
     }
 
     pub fn get_weights(&self) -> &Vec<Vec<Weight>> {
@@ -84,20 +80,13 @@ impl Vrtta {
 
 #[derive(Debug, Clone)]
 pub struct Jati {
-    names: Vec<String>,
+    name: String,
     matras: Vec<Vec<usize>>,
 }
 
 impl Jati {
-    pub fn new(names: Vec<String>, matras: Vec<Vec<usize>>) -> Self {
-        Jati {
-            names: names,
-            matras: matras,
-        }
-    }
-
-    pub fn names(&self) -> std::slice::Iter<'_, String> {
-        self.names.iter()
+    pub fn new(name: String, matras: Vec<Vec<usize>>) -> Self {
+        Jati { name, matras }
     }
 
     pub fn get_matras(&self) -> &Vec<Vec<usize>> {
