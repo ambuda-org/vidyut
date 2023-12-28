@@ -2,6 +2,5 @@
 mod aksharas;
 pub mod chandas;
 mod io;
-pub mod utils;
+mod sounds;
 mod vrtta;
-
