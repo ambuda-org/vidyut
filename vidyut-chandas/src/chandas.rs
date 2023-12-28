@@ -1,4 +1,5 @@
-use crate::data::{read_matras, read_vrttas, Jati, Vrtta};
+use crate::data::{read_matras, read_vrttas};
+use crate::vrtta::{Jati, Vrtta};
 use std::error::Error;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
