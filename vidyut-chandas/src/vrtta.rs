@@ -1,6 +1,6 @@
 use crate::aksharas::Weight;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Gana {
     Ya,
     Ma,
@@ -12,11 +12,9 @@ pub enum Gana {
     Sa,
     La,
     Ga,
-    G,
-    L,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Vrtta {
     name: String,
     weights: Vec<Vec<Weight>>,
@@ -24,44 +22,37 @@ pub struct Vrtta {
 
 impl Vrtta {
     pub fn new(name: String, weights: Vec<Vec<Weight>>) -> Self {
-        Vrtta { name, weights }
+        Self { name, weights }
     }
 
-    pub fn get_weights(&self) -> &Vec<Vec<Weight>> {
+    pub fn weights(&self) -> &Vec<Vec<Weight>> {
         &self.weights
     }
 
     pub fn ganas(&self) -> Vec<Vec<Gana>> {
-        let mut result = Vec::<Vec<Gana>>::new();
+        use Gana::*;
+        use Weight::*;
 
-        for pada in self.weights.clone() {
-            let mut ganas = Vec::<Gana>::new();
-            let chunks: Vec<_> = pada.chunks(3).collect();
+        let mut result = Vec::new();
+        for pada in &self.weights {
+            let mut ganas = Vec::new();
 
-            for chunk in chunks {
+            for chunk in pada.chunks(3) {
                 match chunk {
-                    [Weight::L, Weight::G, Weight::G] => ganas.push(Gana::Ya),
+                    [L, G, G] => ganas.push(Ya),
+                    [G, L, G] => ganas.push(Ma),
+                    [G, G, L] => ganas.push(Ta),
+                    [L, L, L] => ganas.push(Ra),
+                    [G, L, L] => ganas.push(Ja),
+                    [L, G, L] => ganas.push(Bha),
+                    [L, L, G] => ganas.push(Na),
+                    [G, G, G] => ganas.push(Sa),
 
-                    [Weight::G, Weight::L, Weight::G] => ganas.push(Gana::Ya),
-
-                    [Weight::G, Weight::G, Weight::L] => ganas.push(Gana::Ya),
-
-                    [Weight::L, Weight::L, Weight::L] => ganas.push(Gana::Ya),
-
-                    [Weight::G, Weight::L, Weight::L] => ganas.push(Gana::Ya),
-
-                    [Weight::L, Weight::G, Weight::L] => ganas.push(Gana::Ya),
-
-                    [Weight::L, Weight::L, Weight::G] => ganas.push(Gana::Ya),
-
-                    [Weight::G, Weight::G, Weight::G] => ganas.push(Gana::Ya),
-
-                    // Just push the corresponding Gana::{G, L} from now
                     _ => {
                         for it in chunk {
                             match it {
-                                Weight::G => ganas.push(Gana::G),
-                                Weight::L => ganas.push(Gana::L),
+                                L => ganas.push(La),
+                                G => ganas.push(Ga),
                                 _ => {
                                     panic!("ERROR: You shouldn't be converting Anushtup to Ganas!");
                                 }
@@ -70,7 +61,6 @@ impl Vrtta {
                     }
                 }
             }
-
             result.push(ganas);
         }
 
@@ -78,7 +68,7 @@ impl Vrtta {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Jati {
     name: String,
     matras: Vec<Vec<usize>>,
@@ -86,10 +76,10 @@ pub struct Jati {
 
 impl Jati {
     pub fn new(name: String, matras: Vec<Vec<usize>>) -> Self {
-        Jati { name, matras }
+        Self { name, matras }
     }
 
-    pub fn get_matras(&self) -> &Vec<Vec<usize>> {
+    pub fn matras(&self) -> &Vec<Vec<usize>> {
         &self.matras
     }
 }
