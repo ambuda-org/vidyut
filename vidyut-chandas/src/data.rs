@@ -1,60 +1,54 @@
-use serde::{Deserialize, Serialize};
-use serde_json;
+use std::error::Error;
 use std::fs;
 
-
-#[derive(Deserialize, Debug, Serialize)]
-pub struct VrttaData {
-    pub comment: Vec<String>,
-    pub metres: Vec<Vrttad>,
-}
-
-#[derive(Clone, Deserialize, Debug, Serialize)]
+#[derive(Clone, Debug)]
 pub struct Vrttad {
     pub name: String,
-    pub pattern: StringOrList,
+    pub pattern: Vec<String>,
 }
 
-#[derive(Clone, Deserialize, Debug, Serialize)]
-pub struct MatraData {
-    pub comment: Vec<String>,
-    pub metres: Vec<Matra>,
-}
-
-#[derive(Clone, Deserialize, Debug, Serialize)]
+#[derive(Clone, Debug)]
 pub struct Matra {
     pub name: String,
-    pub pattern: MData,
+    pub pattern: Vec<String>,
 }
 
-#[derive(Clone, Deserialize, Debug, Serialize)]
-pub struct MData {
-    pub regex: Vec<String>,
-    pub comment: String,
+pub fn read_vrttas() -> Result<Vec<Vrttad>, Box<dyn Error>> {
+    let path = "./data/vrtta.tsv";
+    let data = fs::read_to_string(path)?;
+
+    let mut ret = Vec::new();
+    for line in data.lines() {
+        let fields: Vec<_> = line.split("\t").collect();
+        debug_assert_eq!(fields.len(), 2);
+
+        let name = fields[0];
+        let pattern_str = fields[1];
+        ret.push(Vrttad {
+            name: name.to_string(),
+            pattern: pattern_str.split("/").map(String::from).collect(),
+        })
+    }
+
+    Ok(ret)
 }
 
-#[derive(Deserialize, Clone, Debug, Serialize)]
-#[serde(untagged)]
-pub enum StringOrList {
-    String(String),
-    List(Vec<String>),
-}
+pub fn read_matras() -> Result<Vec<Matra>, Box<dyn Error>> {
+    let path = "./data/matra.tsv";
+    let data = fs::read_to_string(path)?;
 
-pub fn read_json_vrtta() -> VrttaData {
-    
-    let path = "./data/vrtta.json";
-    let data = fs::read_to_string(path).expect("Unable to read file");
-    let my_data: VrttaData = serde_json::from_str(&data).expect("Unable to parse");
+    let mut ret = Vec::new();
+    for line in data.lines() {
+        let fields: Vec<_> = line.split("\t").collect();
+        debug_assert_eq!(fields.len(), 2);
 
-    // To deal with the warning :(
-    let _ = my_data.comment;
+        let name = fields[0];
+        let pattern_str = fields[1];
+        ret.push(Matra {
+            name: name.to_string(),
+            pattern: pattern_str.split("/").map(String::from).collect(),
+        })
+    }
 
-    return my_data;
-}
-
-pub fn read_json_matra() -> MatraData {
-    let path = "./data/matra.json";
-    let data = fs::read_to_string(path).expect("Unable to read file");
-    let my_data: MatraData = serde_json::from_str(&data).expect("Unable to parse");
-    return my_data;
+    Ok(ret)
 }

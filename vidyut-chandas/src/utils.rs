@@ -18,7 +18,6 @@ const OTHERS: &str = "MH";
 //Sanskrit
 const SANSKRIT: &str = "aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL";
 
-
 pub struct Set([u8; 256]);
 
 impl Set {
@@ -98,73 +97,78 @@ pub fn clean(line: &str) -> String {
     cleaned
 }
 
-
 pub fn to_aksharas(text: impl AsRef<str>, separator: Option<&str>) -> Vec<Vec<Akshara>> {
+    let lines = text
+        .as_ref()
+        .split(separator.unwrap_or("\n"))
+        .filter(|s| !s.is_empty())
+        .map(|a| {
+            let s = clean(a);
+            let line: Vec<char> = s.chars().collect();
+            let mut aksharas: Vec<Akshara> = Vec::new();
+            let LEN = line.len();
+            let mut to_push = String::new();
 
-    
-    let lines = text.as_ref().split(separator.unwrap_or("\n")).filter(|s| !s.is_empty()).map(|a| {
-        
-        let s = clean(a); 
-        let line: Vec<char> = s.chars().collect();
-        let mut aksharas: Vec<Akshara> = Vec::new();
-        let LEN = line.len();
-        let mut to_push = String::new();
-        
-        for mut i in 0..LEN {
-            let curr = line[i];
-            
-            // If it is a vowel
-            if is_hrasva(curr) || is_dirgha(curr){
-                to_push.push(curr);
-        
-                if i != LEN - 1 {
-                    // Check if the next one is a special character. If so push it also
-                    if is_special(line[i+1]){
-                        to_push.push(line[i+1]);
-                        aksharas.push(Akshara::new(to_push.clone(), Weight::G));
-                        to_push.clear();
-                        i+=1;
-                    } else if is_dirgha(curr) {
-                        aksharas.push(Akshara::new(to_push.clone(), Weight::G));
-                        to_push.clear();
-                    } // If it is a hrasva check if a conjunct consonant follows
-                    else if i != LEN - 2 {
-                        if is_hal(line[i+1]) && is_hal(line[i+2]) {
+            for mut i in 0..LEN {
+                let curr = line[i];
+
+                // If it is a vowel
+                if is_hrasva(curr) || is_dirgha(curr) {
+                    to_push.push(curr);
+
+                    if i != LEN - 1 {
+                        // Check if the next one is a special character. If so push it also
+                        if is_special(line[i + 1]) {
+                            to_push.push(line[i + 1]);
                             aksharas.push(Akshara::new(to_push.clone(), Weight::G));
                             to_push.clear();
+                            i += 1;
+                        } else if is_dirgha(curr) {
+                            aksharas.push(Akshara::new(to_push.clone(), Weight::G));
+                            to_push.clear();
+                        }
+                        // If it is a hrasva check if a conjunct consonant follows
+                        else if i != LEN - 2 {
+                            if is_hal(line[i + 1]) && is_hal(line[i + 2]) {
+                                aksharas.push(Akshara::new(to_push.clone(), Weight::G));
+                                to_push.clear();
+                            } else {
+                                aksharas.push(Akshara::new(to_push.clone(), Weight::L));
+                                to_push.clear();
+                            }
                         } else {
-                            aksharas.push(Akshara::new(to_push.clone(), Weight::L));
+                            // Vowel at second last position. Just push whatever follows also
+                            to_push.push(line[i + 1]);
+                            if is_dirgha(curr) || is_special(line[i + 1]) {
+                                aksharas.push(Akshara::new(to_push.clone(), Weight::G));
+                            } else {
+                                aksharas.push(Akshara::new(to_push.clone(), Weight::L));
+                            }
+                            i += 1;
                             to_push.clear();
                         }
                     } else {
-                        // Vowel at second last position. Just push whatever follows also
-                        to_push.push(line[i+1]);
-                        if is_dirgha(curr) || is_special(line[i+1]) {
-                            aksharas.push(Akshara::new(to_push.clone(), Weight::G));
-                        } else {
-                            aksharas.push(Akshara::new(to_push.clone(), Weight::L));
-                        }
-                        i+=1;
+                        // Just push it
+                        aksharas.push(Akshara::new(
+                            to_push.clone(),
+                            match is_dirgha(curr) {
+                                true => Weight::G,
+                                false => Weight::L,
+                            },
+                        ));
                         to_push.clear();
                     }
                 } else {
-                    // Just push it
-                    aksharas.push(Akshara::new(to_push.clone(), match is_dirgha(curr) {
-                        true => Weight::G,
-                        false => Weight::L
-                    }));
-                    to_push.clear();
-                }
-            } else {
-                // If it's a consonant
-                if is_hal(curr) {
-                    to_push.push(curr);
+                    // If it's a consonant
+                    if is_hal(curr) {
+                        to_push.push(curr);
+                    }
                 }
             }
-        }
-        
-        aksharas
-    });
+
+            aksharas
+        });
 
     lines.collect()
 }
+

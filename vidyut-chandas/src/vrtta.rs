@@ -24,10 +24,7 @@ pub struct Vrtta {
 
 impl Vrtta {
     pub fn new(names: Vec<String>, weights: Vec<Vec<Weight>>) -> Self {
-        Vrtta {
-            names: names,
-            weights: weights,
-        }
+        Vrtta { names, weights }
     }
 
     pub fn names(&self) -> std::slice::Iter<'_, String> {
