@@ -1,4 +1,4 @@
-use crate::data::{read_matras, read_vrttas};
+use crate::io::{read_matras, read_vrttas};
 use crate::vrtta::{Jati, Vrtta};
 use std::error::Error;
 

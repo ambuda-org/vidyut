@@ -40,11 +40,16 @@ impl Akshara {
     }
 }
 
-#[test]
-fn test_num_matras() {
-    let laghu = Akshara::new("ta", Weight::G);
-    assert_eq!(laghu.num_matras(), 2);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let guru = Akshara::new("paH", Weight::L);
-    assert_eq!(guru.num_matras(), 1);
+    #[test]
+    fn test_num_matras() {
+        let laghu = Akshara::new("ta", Weight::G);
+        assert_eq!(laghu.num_matras(), 2);
+
+        let guru = Akshara::new("paH", Weight::L);
+        assert_eq!(guru.num_matras(), 1);
+    }
 }

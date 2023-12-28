@@ -1,8 +1,7 @@
 #![allow(dead_code)]
 mod aksharas;
-mod vrtta;
 pub mod chandas;
+mod io;
 pub mod utils;
-pub mod input;
-mod matching;
-mod data;
+mod vrtta;
+
