@@ -1,7 +1,20 @@
-use crate::aksharas::Weight; 
+use crate::aksharas::Weight;
 
 #[derive(Debug, Copy, Clone)]
-pub enum Gana { Ya, Ma, Ta, Ra, Ja, Bha, Na, Sa, La, Ga, G, L }
+pub enum Gana {
+    Ya,
+    Ma,
+    Ta,
+    Ra,
+    Ja,
+    Bha,
+    Na,
+    Sa,
+    La,
+    Ga,
+    G,
+    L,
+}
 
 #[derive(Debug, Clone)]
 pub struct Vrtta {
@@ -11,7 +24,10 @@ pub struct Vrtta {
 
 impl Vrtta {
     pub fn new(names: Vec<String>, weights: Vec<Vec<Weight>>) -> Self {
-        Vrtta { names: names, weights: weights }
+        Vrtta {
+            names: names,
+            weights: weights,
+        }
     }
 
     pub fn names(&self) -> std::slice::Iter<'_, String> {
@@ -34,19 +50,19 @@ impl Vrtta {
                     [Weight::L, Weight::G, Weight::G] => ganas.push(Gana::Ya),
 
                     [Weight::G, Weight::L, Weight::G] => ganas.push(Gana::Ya),
-                    
+
                     [Weight::G, Weight::G, Weight::L] => ganas.push(Gana::Ya),
-                    
+
                     [Weight::L, Weight::L, Weight::L] => ganas.push(Gana::Ya),
-                    
+
                     [Weight::G, Weight::L, Weight::L] => ganas.push(Gana::Ya),
-                    
+
                     [Weight::L, Weight::G, Weight::L] => ganas.push(Gana::Ya),
-                    
+
                     [Weight::L, Weight::L, Weight::G] => ganas.push(Gana::Ya),
-                    
+
                     [Weight::G, Weight::G, Weight::G] => ganas.push(Gana::Ya),
-                    
+
                     // Just push the corresponding Gana::{G, L} from now
                     _ => {
                         for it in chunk {
@@ -59,12 +75,10 @@ impl Vrtta {
                             }
                         }
                     }
-                      
                 }
             }
 
             result.push(ganas);
-            
         }
 
         result
@@ -74,11 +88,10 @@ impl Vrtta {
 #[derive(Debug, Clone)]
 pub struct Jati {
     names: Vec<String>,
-    matras: Vec<Vec<usize>>
+    matras: Vec<Vec<usize>>,
 }
 
 impl Jati {
-    
     pub fn new(names: Vec<String>, matras: Vec<Vec<usize>>) -> Self {
         Jati {
             names: names,
@@ -94,4 +107,3 @@ impl Jati {
         &self.matras
     }
 }
-

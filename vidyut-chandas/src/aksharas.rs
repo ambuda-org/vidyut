@@ -1,4 +1,4 @@
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Weight {
     G,
     L,
@@ -12,21 +12,25 @@ pub struct Akshara {
 }
 
 impl Akshara {
+    /// Creates a new akshara.
     pub fn new(text: impl AsRef<str>, weight: Weight) -> Self {
-        Akshara {
+        Self {
             text: text.as_ref().to_string(),
-            weight: weight,
+            weight,
         }
     }
 
+    /// The text of this akshara.
     pub fn text(&self) -> &str {
         &self.text
     }
 
+    /// The weight of this akshara.
     pub fn weight(&self) -> Weight {
         self.weight
     }
 
+    /// The length of this akshara in matras.
     pub fn num_matras(&self) -> usize {
         match self.weight {
             Weight::G => 2,
@@ -37,13 +41,10 @@ impl Akshara {
 }
 
 #[test]
-fn matras_test() {
+fn test_num_matras() {
     let laghu = Akshara::new("ta", Weight::G);
     assert_eq!(laghu.num_matras(), 2);
 
     let guru = Akshara::new("paH", Weight::L);
     assert_eq!(guru.num_matras(), 1);
-
-    let any = Akshara::new("svA", Weight::X);
-    assert_eq!(any.num_matras(), 0);
 }

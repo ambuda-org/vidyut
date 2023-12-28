@@ -1,47 +1,52 @@
-use crate::aksharas::{Akshara, Weight};
-use crate::utils::{to_aksharas, clean};
+use crate::aksharas::Akshara;
+use crate::utils::to_aksharas;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Input {
-    pub pada_one: Option<Vec<Akshara>>,
-    pub pada_two: Option<Vec<Akshara>>,
-    pub pada_three: Option<Vec<Akshara>>,
-    pub pada_four: Option<Vec<Akshara>>,
+    pub pada_1: Option<Vec<Akshara>>,
+    pub pada_2: Option<Vec<Akshara>>,
+    pub pada_3: Option<Vec<Akshara>>,
+    pub pada_4: Option<Vec<Akshara>>,
 }
 
 impl Input {
     pub fn init_fromtext(text: impl AsRef<str>, seperator: Option<&str>) -> Self {
-        
         let text_scheme = to_aksharas(text, seperator);
         let mut text_scheme_iter = text_scheme.iter();
 
         let pada_one = text_scheme_iter.next().cloned();
-        let pada_two= text_scheme_iter.next().cloned();
+        let pada_two = text_scheme_iter.next().cloned();
         let pada_three = text_scheme_iter.next().cloned();
         let pada_four = text_scheme_iter.next().cloned();
-        
-        Input { pada_one: pada_one, pada_two: pada_two, pada_three: pada_three, pada_four: pada_four }
 
+        Input {
+            pada_1: pada_one,
+            pada_2: pada_two,
+            pada_3: pada_three,
+            pada_4: pada_four,
+        }
     }
-
-
 }
 
 /// ----------------------- TESTS -----------------------
 
-#[test]
-fn input_test() {
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aksharas::Weight;
 
-    let shloka = "
-tapaHsvADyAyanirataM tapasvI vAgvidAM varam
-nAradaM paripapracCa vAlmIkirmunipuMgavam";
+    #[test]
+    fn input_test() {
+        let shloka = "
+    tapaHsvADyAyanirataM tapasvI vAgvidAM varam
+    nAradaM paripapracCa vAlmIkirmunipuMgavam";
 
-    let input_obj = Input::init_fromtext(shloka, None);
+        let input_obj = Input::init_fromtext(shloka, None);
 
-    assert_eq!(input_obj, 
-        Input {
-            pada_one: Some(
-                vec![
+        assert_eq!(
+            input_obj,
+            Input {
+                pada_1: Some(vec![
                     Akshara {
                         text: "ta".to_string(),
                         weight: Weight::L,
@@ -106,10 +111,8 @@ nAradaM paripapracCa vAlmIkirmunipuMgavam";
                         text: "ram".to_string(),
                         weight: Weight::L,
                     },
-                ],
-            ),
-            pada_two: Some(
-                vec![
+                ],),
+                pada_2: Some(vec![
                     Akshara {
                         text: "nA".to_string(),
                         weight: Weight::G,
@@ -174,11 +177,10 @@ nAradaM paripapracCa vAlmIkirmunipuMgavam";
                         text: "vam".to_string(),
                         weight: Weight::L,
                     },
-                ],
-            ),
-            pada_three: None,
-            pada_four: None,
-        }
-    );
-
+                ],),
+                pada_3: None,
+                pada_4: None,
+            }
+        );
+    }
 }
