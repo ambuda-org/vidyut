@@ -42,19 +42,22 @@ pub enum Scheme {
     /// https://unicode.org/charts/PDF/U0980.pdf
     Bengali,
 
-    /// Burmese script.
-    ///
-    /// https://unicode.org/charts/PDF/U1000.pdf
-    Burmese,
-
     /// Brahmi script.
     ///
     /// https://unicode.org/charts/PDF/U11000.pdf
     Brahmi,
 
+    /// Burmese script.
+    ///
+    /// https://unicode.org/charts/PDF/U1000.pdf
+    Burmese,
+
     /// Devanagari script.
     ///
     /// https://unicode.org/charts/PDF/U0900.pdf
+    /// https://unicode.org/charts/PDF/UA8E0.pdf (Devanagari Extended)
+    /// https://unicode.org/charts/PDF/U11B00.pdf (Devanagari Extended-A)
+    /// https://unicode.org/charts/PDF/U1CD0.pdf (Vedic Extensions)
     Devanagari,
 
     /// Gujarati script.
@@ -62,15 +65,15 @@ pub enum Scheme {
     /// https://unicode.org/charts/PDF/U0A80.pdf
     Gujarati,
 
-    /// Gurmukhi script.
-    ///
-    /// https://unicode.org/charts/PDF/U0A00.pdf
-    Gurmukhi,
-
     /// Grantha script.
     ///
     /// http://www.unicode.org/charts/PDF/U11300.pdf
     Grantha,
+
+    /// Gurmukhi script.
+    ///
+    /// https://unicode.org/charts/PDF/U0A00.pdf
+    Gurmukhi,
 
     /// Javanese script.
     ///
@@ -97,6 +100,11 @@ pub enum Scheme {
     /// https://unicode.org/charts/PDF/U11180.pdf
     Sharada,
 
+    /// Siddham script.
+    ///
+    /// https://unicode.org/charts/PDF/U11580.pdf
+    Siddham,
+
     /// Sinhala script.
     ///
     /// https://unicode.org/charts/PDF/U0D80.pdf
@@ -116,6 +124,13 @@ pub enum Scheme {
     ///
     /// https://unicode.org/charts/PDF/U0C00.pdf
     Telugu,
+
+    /// Baraha transliteration.
+    ///
+    /// Documentation:
+    /// - https://baraha.com/help//Keyboards/dev-phonetic.htm (Baraha North)
+    /// - https://baraha.com/help/special-symbols.htm
+    BarahaSouth,
 
     /// Harvard-Kyoto transliteration.
     ///
@@ -169,6 +184,7 @@ impl Scheme {
             Grantha,
             Gujarati,
             Gurmukhi,
+            BarahaSouth,
             HarvardKyoto,
             Iast,
             Itrans,
@@ -177,6 +193,7 @@ impl Scheme {
             Malayalam,
             Odia,
             Sharada,
+            Siddham,
             Sinhala,
             Slp1,
             Tamil,
@@ -204,15 +221,17 @@ impl Scheme {
             Scheme::Malayalam => auto::MALAYALAM,
             Scheme::Odia => auto::ORIYA,
             Scheme::Sharada => auto::SHARADA,
+            Scheme::Siddham => auto::SIDDHAM,
             Scheme::Sinhala => auto::SINHALA,
             Scheme::Tamil => auto::TAMIL,
             Scheme::Telugu => auto::TELUGU,
             // Scheme::Tibetan => auto::TIBETAN,
-            Scheme::Slp1 => auto::SLP1,
+            Scheme::BarahaSouth => auto::BARAHA,
             Scheme::HarvardKyoto => auto::HK,
             Scheme::Iast => auto::IAST,
             Scheme::Iso19519 => auto::ISO,
             Scheme::Itrans => auto::ITRANS,
+            Scheme::Slp1 => auto::SLP1,
             Scheme::Velthuis => auto::VELTHUIS,
             Scheme::Wx => auto::WX,
         }
@@ -233,10 +252,11 @@ impl Scheme {
         match self {
             // Abugidas are all `true`.
             Balinese | Bengali | Brahmi | Burmese | Devanagari | Gujarati | Gurmukhi | Grantha
-            | Javanese | Kannada | Malayalam | Odia | Sharada | Sinhala | Tamil | Telugu => true,
+            | Javanese | Kannada | Malayalam | Odia | Sharada | Siddham | Sinhala | Tamil
+            | Telugu => true,
 
             // Alphabets are all `false`.
-            HarvardKyoto | Iso19519 | Itrans | Iast | Slp1 | Velthuis | Wx => false,
+            BarahaSouth | HarvardKyoto | Iso19519 | Itrans | Iast | Slp1 | Velthuis | Wx => false,
         }
     }
 
@@ -255,7 +275,6 @@ impl Scheme {
 
         match self {
             Balinese => Classical,
-            Bengali | Tamil => Partial,
             Brahmi => Classical,
             Burmese => Classical,
             Devanagari => Complete,
@@ -269,7 +288,10 @@ impl Scheme {
             Sharada => Classical,
             Sinhala => Classical,
             Telugu => Classical,
-            // Tibetan => Classical,
+
+            Bengali | Tamil => Partial,
+            Siddham => Partial,
+
             _ => Unknown,
         }
     }
@@ -291,8 +313,9 @@ mod tests {
             // Don't use `_`, as that would defeat the point of this test.
             match s {
                 Devanagari | Balinese | Bengali | Tamil | Brahmi | Burmese | Grantha | Gujarati
-                | Gurmukhi | Javanese | Odia | Sharada | Kannada | Malayalam | Sinhala | Telugu
-                | Itrans | HarvardKyoto | Slp1 | Velthuis | Iast | Wx | Iso19519 => {
+                | Gurmukhi | Javanese | Odia | Sharada | Kannada | Malayalam | Siddham
+                | Sinhala | Telugu | Itrans | HarvardKyoto | Slp1 | Velthuis | Iast | Wx
+                | Iso19519 | BarahaSouth => {
                     expected.push(*s);
                 }
             }

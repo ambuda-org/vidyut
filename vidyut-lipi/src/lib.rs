@@ -6,11 +6,13 @@
 mod autogen_schemes;
 mod detect;
 mod lipika;
+mod mapping;
 mod scheme;
 mod transliterate;
 pub mod wasm;
 
 pub use detect::detect;
 pub use lipika::Lipika;
+pub use mapping::Mapping;
 pub use scheme::Scheme;
-pub use transliterate::{transliterate, Mapping};
+pub use transliterate::transliterate;

@@ -1,5 +1,6 @@
+use crate::mapping::Mapping;
 use crate::scheme::Scheme;
-use crate::transliterate::{transliterate, Mapping};
+use crate::transliterate::transliterate;
 
 // Size of the internal `Vec` cache. We search this cache with a linear scan, so keep this small.
 const CACHE_CAPACITY: usize = 10;
@@ -67,6 +68,8 @@ impl Lipika {
     /// `transliterate` first checks if the mapping between `from` and `to` is available in the
     /// internal cache. If the mapping exists, `transliterate` will reuse it. Otherwise,
     /// `transliterate` will create a new mapping and store it for future use.
+    ///
+    /// For details on the underrlying algorithm, see comments on the `transliterate` method.
     pub fn transliterate(&mut self, input: impl AsRef<str>, from: Scheme, to: Scheme) -> String {
         let mapping = self.find_or_create_mapping(from, to);
         transliterate(input.as_ref(), &mapping)

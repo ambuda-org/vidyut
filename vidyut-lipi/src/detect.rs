@@ -45,6 +45,9 @@ fn detect_inner(input: &str) -> Option<Scheme> {
     // These are ranges of Unicode code points as defined by unicode.org. To see the official spec
     // for each scheme, see the comments on `Scheme`.
     const DEVANAGARI: Range = 0x0900..=0x097f;
+    const DEVANAGARI_EXTENDED: Range = 0xa8e0..=0xa8ff;
+    const DEVANAGARI_EXTENDED_A: Range = 0x11b00..=0x11b5f;
+    const VEDIC_EXTENSIONS: Range = 0x1cd0..=0x1cff;
     const BENGALI: Range = 0x0980..=0x09ff;
     const GURMUKHI: Range = 0x0a00..=0x0a7f;
     const GUJARATI: Range = 0x0a80..=0x0aff;
@@ -60,6 +63,7 @@ fn detect_inner(input: &str) -> Option<Scheme> {
     const JAVANESE: Range = 0xa980..=0xa9df;
     const BRAHMI: Range = 0x11000..=0x1107f;
     const GRANTHA: Range = 0x11300..=0x1137f;
+    const SIDDHAM: Range = 0x11580..=0x115ff;
 
     //https://unicode.org/charts/PDF/U0100.pdf
     const LATIN_1_SUPPLEMENT: Range = 0x0080..=0x00ff;
@@ -69,7 +73,7 @@ fn detect_inner(input: &str) -> Option<Scheme> {
     const LATIN_EXTENDED: Range = 0x01e00..=0x01eff;
 
     // Wraps all of the ranges above.
-    const INDIC: Range = 0x00900..=0x1137f;
+    const INDIC: Range = *DEVANAGARI.start()..=*SIDDHAM.end();
     const ASCII: Range = 0..=0xff;
 
     for (i, c) in input.char_indices() {
@@ -91,6 +95,12 @@ fn detect_inner(input: &str) -> Option<Scheme> {
             }
         } else if INDIC.contains(&code) {
             let maybe = if DEVANAGARI.contains(&code) {
+                Some(Devanagari)
+            } else if DEVANAGARI_EXTENDED.contains(&code) {
+                Some(Devanagari)
+            } else if DEVANAGARI_EXTENDED_A.contains(&code) {
+                Some(Devanagari)
+            } else if VEDIC_EXTENSIONS.contains(&code) {
                 Some(Devanagari)
             } else if BENGALI.contains(&code) {
                 Some(Bengali)
@@ -120,6 +130,8 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                 Some(Brahmi)
             } else if GRANTHA.contains(&code) {
                 Some(Grantha)
+            } else if SIDDHAM.contains(&code) {
+                Some(Siddham)
             } else {
                 None
             };
@@ -204,6 +216,7 @@ mod tests {
         ("ꦱꦁꦱ꧀ꦏꦽꦠꦩ꧀", Javanese),
         ("𑀦𑀸𑀭𑀸𑀬𑀡𑀂", Brahmi),
         ("𑌨𑌾𑌰𑌾𑌯𑌣𑌃", Grantha),
+        ("𑖭𑖽𑖭𑖿𑖎𑖴𑖝𑖦𑖿", Siddham),
         // IAST
         // ----
         ("rāga", Iast),
