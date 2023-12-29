@@ -1,11 +1,21 @@
 use crate::sounds;
 
+/// The weight of an akshara.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Weight {
     G,
     L,
 }
 
+/// A Sanskrit syllable.
+///
+/// An akshara follows the following rules:
+///
+/// - It must contain exactly one vowel.
+/// - It must end with a vowel, an anusvara, or a visarga.
+/// - It must not start with an anusvara or visarga.
+///
+/// Together, these three rurles mean that an input string has exactly one division into aksharas.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Akshara {
     pub text: String,
@@ -16,7 +26,7 @@ impl Akshara {
     /// Creates a new akshara.
     ///
     /// This function assumes that `text` contains exactly one vowel.
-    pub fn new(text: String, weight: Weight) -> Self {
+    pub(crate) fn new(text: String, weight: Weight) -> Self {
         Self { text, weight }
     }
 
@@ -40,6 +50,8 @@ impl Akshara {
 }
 
 /// Scans the given string into aksharas.
+///
+/// Any text that is not a valid Sanskrit sound in SLP1 will be ignored.
 pub fn scan_line(text: impl AsRef<str>) -> Vec<Akshara> {
     let mut akshara_strs = Vec::new();
     let mut cur = String::new();
@@ -89,6 +101,8 @@ pub fn scan_line(text: impl AsRef<str>) -> Vec<Akshara> {
 }
 
 /// Scans the given multi-line string into aksharas.
+///
+/// Any text that is not a valid Sanskrit sound in SLP1 will be ignored.
 pub fn scan_block(text: impl AsRef<str>) -> Vec<Vec<Akshara>> {
     text.as_ref()
         .lines()

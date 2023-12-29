@@ -1,10 +1,14 @@
 use std::error::Error;
 
+/// Models the
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum VrttaWeight {
+    /// A heavy syllable.
     G,
+    /// A light syllable.
     L,
-    X,
+    /// Any syllable.
+    Any,
 }
 
 /// A shorthand notation for vrtta weights.
@@ -35,7 +39,7 @@ pub enum Gana {
 fn to_weights(text: &str) -> Vec<VrttaWeight> {
     text.chars()
         .map(|c| match c {
-            'X' => VrttaWeight::X,
+            'X' => VrttaWeight::Any,
             'L' => VrttaWeight::L,
             'G' => VrttaWeight::G,
             _ => {
@@ -99,7 +103,7 @@ impl Vrtta {
                         for a in chunk {
                             match a {
                                 L => ganas.push(La),
-                                X | G => ganas.push(Ga),
+                                Any | G => ganas.push(Ga),
                             }
                         }
                     }
