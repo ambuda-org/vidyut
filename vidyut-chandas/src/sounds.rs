@@ -35,30 +35,27 @@ impl Set {
     }
 }
 
+/// Returns whether `c` is a vowel.
 pub(crate) fn is_ac(c: Sound) -> bool {
     AC.contains(c)
 }
 
+/// Returns whether `c` is a short vowel.
 pub(crate) fn is_hrasva(c: Sound) -> bool {
     HRASVA.contains(c)
 }
 
+/// Returns whether `c` is a consonant.
 pub(crate) fn is_hal(c: Sound) -> bool {
     HAL.contains(c)
 }
 
+/// Returns whether `c` is a Sanskrit sound.
 pub(crate) fn is_sanskrit(c: Sound) -> bool {
     AC.contains(c) || HAL.contains(c)
 }
 
-pub(crate) fn ends_in_laghu(s: &str) -> bool {
-    if let Some(x) = s.chars().last() {
-        is_hrasva(x)
-    } else {
-        false
-    }
-}
-
+/// Returns whether `s` starts with a consonant cluster.
 pub(crate) fn is_samyogadi(s: &str) -> bool {
     let mut chars = s.chars();
     if let (Some(x), Some(y)) = (chars.next(), chars.next()) {
