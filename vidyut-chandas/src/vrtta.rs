@@ -1,8 +1,9 @@
+use crate::aksharas::Weight;
 use std::error::Error;
 
 /// Models the
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum VrttaWeight {
+pub enum PatternWeight {
     /// A heavy syllable.
     G,
     /// A light syllable.
@@ -36,12 +37,34 @@ pub enum Gana {
     Ga,
 }
 
-fn to_weights(text: &str) -> Vec<VrttaWeight> {
+impl Gana {
+    fn weights(&self) -> &[Weight] {
+        use Gana::*;
+        use Weight::*;
+
+        // yamAtArAjabhAnasalagAH
+        const YA_MA: &[Weight] = &[L, G, G, G, L, G, L, L, L, G];
+        match self {
+            Ya => &YA_MA[0..3],
+            Ma => &YA_MA[1..4],
+            Ta => &YA_MA[2..5],
+            Ra => &YA_MA[3..6],
+            Ja => &YA_MA[4..7],
+            Bha => &YA_MA[5..8],
+            Na => &YA_MA[6..9],
+            Sa => &YA_MA[7..10],
+            La => &YA_MA[8..9],
+            Ga => &YA_MA[9..10],
+        }
+    }
+}
+
+fn to_weights(text: &str) -> Vec<PatternWeight> {
     text.chars()
         .map(|c| match c {
-            'X' => VrttaWeight::Any,
-            'L' => VrttaWeight::L,
-            'G' => VrttaWeight::G,
+            'X' => PatternWeight::Any,
+            'L' => PatternWeight::L,
+            'G' => PatternWeight::G,
             _ => {
                 eprintln!("ERROR: Received JSON of wrong format!");
                 std::process::exit(1);
@@ -59,11 +82,11 @@ fn to_counts(text: &str) -> Vec<usize> {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Vrtta {
     name: String,
-    weights: Vec<Vec<VrttaWeight>>,
+    weights: Vec<Vec<PatternWeight>>,
 }
 
 impl Vrtta {
-    pub fn new(name: impl AsRef<str>, weights: Vec<Vec<VrttaWeight>>) -> Self {
+    pub fn new(name: impl AsRef<str>, weights: Vec<Vec<PatternWeight>>) -> Self {
         Self {
             name: name.as_ref().to_string(),
             weights,
@@ -77,13 +100,13 @@ impl Vrtta {
         &self.name
     }
 
-    pub fn weights(&self) -> &Vec<Vec<VrttaWeight>> {
+    pub fn weights(&self) -> &Vec<Vec<PatternWeight>> {
         &self.weights
     }
 
     pub fn ganas(&self) -> Vec<Vec<Gana>> {
         use Gana::*;
-        use VrttaWeight::*;
+        use PatternWeight::*;
 
         let mut result = Vec::new();
         for pada in &self.weights {
