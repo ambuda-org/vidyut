@@ -11,7 +11,7 @@ pub enum VrttaWeight {
     Any,
 }
 
-/// A shorthand notation for vrtta weights.
+/// A traditional shorthand for vrtta weights.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Gana {
     /// *ya* (L G G)
@@ -92,13 +92,13 @@ impl Vrtta {
             for chunk in pada.chunks(3) {
                 match chunk {
                     [L, G, G] => ganas.push(Ya),
-                    [G, L, G] => ganas.push(Ma),
+                    [G, G, G] => ganas.push(Ma),
                     [G, G, L] => ganas.push(Ta),
-                    [L, L, L] => ganas.push(Ra),
-                    [G, L, L] => ganas.push(Ja),
-                    [L, G, L] => ganas.push(Bha),
-                    [L, L, G] => ganas.push(Na),
-                    [G, G, G] => ganas.push(Sa),
+                    [G, L, G] => ganas.push(Ra),
+                    [L, G, L] => ganas.push(Ja),
+                    [G, L, L] => ganas.push(Bha),
+                    [L, L, L] => ganas.push(Na),
+                    [L, L, G] => ganas.push(Sa),
                     _ => {
                         for a in chunk {
                             match a {
@@ -160,5 +160,24 @@ impl TryFrom<&str> for Jati {
         let pattern_str = fields[1];
         let counts = pattern_str.split("/").map(to_counts).collect();
         Ok(Jati::new(name, counts))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn vrtta_ganas() {
+        use Gana::*;
+
+        let vasantatilaka: Vrtta = "vasantatilakA\tGGLGLLLGLLGLGG".try_into().unwrap();
+        assert_eq!(vasantatilaka.ganas()[0], vec![Ta, Bha, Ja, Ja, Ga, Ga]);
+
+        let mandakranta: Vrtta = "mandAkrAntA\tGGGGLLLLLGGLGGLGG".try_into().unwrap();
+        assert_eq!(mandakranta.ganas()[0], vec![Ma, Bha, Na, Ta, Ta, Ga, Ga]);
+
+        let shardula: Vrtta = "SArdUlavikrIqita\tGGGLLGLGLLLGGGLGGLG".try_into().unwrap();
+        assert_eq!(shardula.ganas()[0], vec![Ma, Sa, Ja, Sa, Ta, Ta, Ga]);
     }
 }

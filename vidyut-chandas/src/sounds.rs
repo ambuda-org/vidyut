@@ -64,3 +64,39 @@ pub(crate) fn is_samyogadi(s: &str) -> bool {
         false
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const AC: &str = "aAiIuUfFxXeEoO";
+    const HAL: &str = "kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL";
+    const HRASVA: &str = "aiufx";
+
+    #[test]
+    fn test_sounds() {
+        for c in AC.chars() {
+            assert!(is_sanskrit(c));
+            assert!(is_ac(c));
+            assert!(!is_hal(c));
+        }
+
+        for c in HAL.chars() {
+            assert!(is_sanskrit(c));
+            assert!(is_hal(c));
+            assert!(!is_ac(c));
+        }
+
+        for c in HRASVA.chars() {
+            assert!(is_ac(c));
+            assert!(is_hrasva(c));
+        }
+    }
+
+    #[test]
+    fn test_samyogadi() {
+        assert!(is_samyogadi("kra"));
+        assert!(!is_samyogadi("ka"));
+        assert!(!is_samyogadi("a"));
+    }
+}

@@ -244,7 +244,7 @@ mod tests {
         assert_eq!(weights(&scan[0]), vec![L, G, G]);
 
         // Last syllable of `anIka` stays laghu due to following vowel.
-        // TODO: buggy
+        // TODO: this is buggy.
         // let scan = scan_block("anIkam\neva");
         // assert_eq!(weights(&scan[0]), vec![L, G, L]);
     }
