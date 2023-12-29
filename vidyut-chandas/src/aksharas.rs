@@ -4,7 +4,6 @@ use crate::sounds;
 pub enum Weight {
     G,
     L,
-    X,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -36,7 +35,6 @@ impl Akshara {
         match self.weight {
             Weight::L => 1,
             Weight::G => 2,
-            _ => 0,
         }
     }
 }

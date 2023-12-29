@@ -1,26 +1,43 @@
-use crate::aksharas::Weight;
 use std::error::Error;
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum VrttaWeight {
+    G,
+    L,
+    X,
+}
+
+/// A shorthand notation for vrtta weights.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Gana {
+    /// *ya* (L G G)
     Ya,
+    /// *ma* (G G G)
     Ma,
+    /// *ta* (G G L)
     Ta,
+    /// *ra* (G L G)
     Ra,
+    /// *ja* (L G L)
     Ja,
+    /// *bha* (G L L)
     Bha,
+    /// *na* (L L L)
     Na,
+    /// *sa* (L L G)
     Sa,
+    /// *la* (L)
     La,
+    /// *ga* (G)
     Ga,
 }
 
-fn to_weights(text: &str) -> Vec<Weight> {
+fn to_weights(text: &str) -> Vec<VrttaWeight> {
     text.chars()
         .map(|c| match c {
-            'X' => Weight::X,
-            'L' => Weight::L,
-            'G' => Weight::G,
+            'X' => VrttaWeight::X,
+            'L' => VrttaWeight::L,
+            'G' => VrttaWeight::G,
             _ => {
                 eprintln!("ERROR: Received JSON of wrong format!");
                 std::process::exit(1);
@@ -38,11 +55,11 @@ fn to_counts(text: &str) -> Vec<usize> {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Vrtta {
     name: String,
-    weights: Vec<Vec<Weight>>,
+    weights: Vec<Vec<VrttaWeight>>,
 }
 
 impl Vrtta {
-    pub fn new(name: impl AsRef<str>, weights: Vec<Vec<Weight>>) -> Self {
+    pub fn new(name: impl AsRef<str>, weights: Vec<Vec<VrttaWeight>>) -> Self {
         Self {
             name: name.as_ref().to_string(),
             weights,
@@ -56,13 +73,13 @@ impl Vrtta {
         &self.name
     }
 
-    pub fn weights(&self) -> &Vec<Vec<Weight>> {
+    pub fn weights(&self) -> &Vec<Vec<VrttaWeight>> {
         &self.weights
     }
 
     pub fn ganas(&self) -> Vec<Vec<Gana>> {
         use Gana::*;
-        use Weight::*;
+        use VrttaWeight::*;
 
         let mut result = Vec::new();
         for pada in &self.weights {
@@ -78,15 +95,11 @@ impl Vrtta {
                     [L, G, L] => ganas.push(Bha),
                     [L, L, G] => ganas.push(Na),
                     [G, G, G] => ganas.push(Sa),
-
                     _ => {
-                        for it in chunk {
-                            match it {
+                        for a in chunk {
+                            match a {
                                 L => ganas.push(La),
-                                G => ganas.push(Ga),
-                                _ => {
-                                    panic!("ERROR: You shouldn't be converting Anushtup to Ganas!");
-                                }
+                                X | G => ganas.push(Ga),
                             }
                         }
                     }
