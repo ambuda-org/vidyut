@@ -103,7 +103,7 @@ pub fn scan_line(text: impl AsRef<str>) -> Vec<Akshara> {
 /// Scans the given multi-line string into aksharas.
 ///
 /// Any text that is not a valid Sanskrit sound in SLP1 will be ignored.
-pub fn scan_block<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<Vec<Akshara>> {
+pub fn scan_lines<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<Vec<Akshara>> {
     use sounds::{is_hal, is_sanskrit};
 
     let clean_lines: Vec<_> = lines
@@ -190,8 +190,8 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_block() {
-        let scan = scan_block(
+    fn test_scan_lines() {
+        let scan = scan_lines(
             "vAgarTAviva saMpfktO
                 vAgarTapratipattaye .
                 jagataH pitarO vande
@@ -221,26 +221,26 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_block_with_hrasva_weight_change() {
-        let scan = scan_block("ASramezu".lines());
+    fn test_scan_lines_with_hrasva_weight_change() {
+        let scan = scan_lines("ASramezu".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, L]);
 
         // Last syllable of `ASramezu` becomes guru due to following samyoga.
-        let scan = scan_block("ASramezu\nsnigDa".lines());
+        let scan = scan_lines("ASramezu\nsnigDa".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, G]);
 
         // Last syllable of `ASramezu` stays laghu.
-        let scan = scan_block("ASramezu\ntasya".lines());
+        let scan = scan_lines("ASramezu\ntasya".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, L]);
     }
 
     #[test]
     fn test_scan_block_with_laghu_weight_change() {
-        let scan = scan_block("anIkam".lines());
+        let scan = scan_lines("anIkam".lines());
         assert_eq!(weights(&scan[0]), vec![L, G, G]);
 
         // Last syllable of `anIkam` becomes guru due to following samyoga.
-        let scan = scan_block("anIkam\nvyUQam".lines());
+        let scan = scan_lines("anIkam\nvyUQam".lines());
         assert_eq!(weights(&scan[0]), vec![L, G, G]);
 
         // Last syllable of `anIka` stays laghu due to following vowel.
