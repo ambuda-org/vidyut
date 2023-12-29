@@ -103,18 +103,16 @@ pub fn scan_line(text: impl AsRef<str>) -> Vec<Akshara> {
 /// Scans the given multi-line string into aksharas.
 ///
 /// Any text that is not a valid Sanskrit sound in SLP1 will be ignored.
-pub fn scan_block(text: impl AsRef<str>) -> Vec<Vec<Akshara>> {
+pub fn scan_block<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<Vec<Akshara>> {
     use sounds::{is_hal, is_sanskrit};
 
-    let lines: Vec<_> = text
-        .as_ref()
-        .lines()
+    let clean_lines: Vec<_> = lines
         .map(|line| line.trim())
         .filter(|line| !line.is_empty())
         .collect();
 
     let mut ret = Vec::new();
-    for (i, line) in lines.iter().enumerate() {
+    for (i, line) in clean_lines.iter().enumerate() {
         let mut scan = scan_line(line);
         if scan.is_empty() {
             continue;
@@ -122,7 +120,7 @@ pub fn scan_block(text: impl AsRef<str>) -> Vec<Vec<Akshara>> {
 
         // If the first sound of the next line is heavy and in contact with this line, make the
         // last akshara of `scan` heavy.
-        if let Some(next) = lines.get(i + 1) {
+        if let Some(next) = clean_lines.get(i + 1) {
             let touches_next = line.ends_with(is_sanskrit) && next.starts_with(is_sanskrit);
             if touches_next
                 && (sounds::is_samyogadi(next)
@@ -197,7 +195,8 @@ mod tests {
             "vAgarTAviva saMpfktO
                 vAgarTapratipattaye .
                 jagataH pitarO vande
-                pArvatIparameSvarO .. 1 ..",
+                pArvatIparameSvarO .. 1 .."
+                .lines(),
         );
         assert_eq!(
             strings(&scan[0]),
@@ -223,25 +222,25 @@ mod tests {
 
     #[test]
     fn test_scan_block_with_hrasva_weight_change() {
-        let scan = scan_block("ASramezu");
+        let scan = scan_block("ASramezu".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, L]);
 
         // Last syllable of `ASramezu` becomes guru due to following samyoga.
-        let scan = scan_block("ASramezu\nsnigDa");
+        let scan = scan_block("ASramezu\nsnigDa".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, G]);
 
         // Last syllable of `ASramezu` stays laghu.
-        let scan = scan_block("ASramezu\ntasya");
+        let scan = scan_block("ASramezu\ntasya".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, L]);
     }
 
     #[test]
     fn test_scan_block_with_laghu_weight_change() {
-        let scan = scan_block("anIkam");
+        let scan = scan_block("anIkam".lines());
         assert_eq!(weights(&scan[0]), vec![L, G, G]);
 
         // Last syllable of `anIkam` becomes guru due to following samyoga.
-        let scan = scan_block("anIkam\nvyUQam");
+        let scan = scan_block("anIkam\nvyUQam".lines());
         assert_eq!(weights(&scan[0]), vec![L, G, G]);
 
         // Last syllable of `anIka` stays laghu due to following vowel.
