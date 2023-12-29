@@ -94,6 +94,7 @@ pub fn scan_line(text: impl AsRef<str>) -> Vec<Akshara> {
 pub fn scan_block(text: impl AsRef<str>) -> Vec<Vec<Akshara>> {
     text.as_ref()
         .lines()
+        .map(|line| line.trim())
         .filter(|line| !line.is_empty())
         .map(scan_line)
         .collect()
@@ -111,18 +112,43 @@ mod tests {
     }
 
     #[test]
-    fn test_scan_line() {
-        let scan = scan_line("Darmakzetre kurukzetre");
+    fn test_scan_line_to_text() {
+        let akshara_text = |text: &str| -> Vec<String> {
+            let scan = scan_line(text);
+            scan.iter().map(|x| x.text.clone()).collect()
+        };
 
-        let text: Vec<_> = scan.iter().map(|x| x.text.clone()).collect();
-        let weights: Vec<_> = scan.iter().map(|x| x.weight).collect();
+        assert_eq!(akshara_text("a"), vec!["a"]);
+        assert_eq!(akshara_text("ka"), vec!["ka"]);
+        assert_eq!(akshara_text("ak"), vec!["ak"]);
         assert_eq!(
-            text,
-            vec!["Da", "rma", "kze", "tre", "ku", "ru", "kze", "tre"],
+            akshara_text("agnimILe purohitaM yajYasya devamftvijam"),
+            vec![
+                "a", "gni", "mI", "Le", "pu", "ro", "hi", "taM", "ya", "jYa", "sya", "de", "va",
+                "mf", "tvi", "jam"
+            ]
         );
-        assert_eq!(weights, vec![G, G, G, G, L, G, G, G],);
     }
 
     #[test]
-    fn test_scan_block() {}
+    fn test_scan_line_to_weights() {
+        let akshara_weights = |text: &str| -> Vec<Weight> {
+            let scan = scan_line(text);
+            scan.iter().map(|x| x.weight).collect()
+        };
+
+        assert_eq!(
+            akshara_weights("vAgarTAviva sampfktO"),
+            vec![G, G, G, L, L, G, G, G]
+        );
+
+        assert_eq!(
+            akshara_weights("mAtaH samastajagatAM maDukEwaBAre"),
+            vec![G, G, L, G, L, L, L, G, L, L, G, L, G, G]
+        );
+        assert_eq!(
+            akshara_weights("yakzaScakre janakatanayAsnAnapuRyodakezu"),
+            vec![G, G, G, G, L, L, L, L, L, G, G, L, G, G, L, G, L]
+        );
+    }
 }

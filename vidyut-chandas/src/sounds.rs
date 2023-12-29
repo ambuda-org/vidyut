@@ -3,7 +3,7 @@ use lazy_static::lazy_static;
 lazy_static! {
     static ref HRASVA: Set = Set::from("aiufx");
     static ref AC: Set = Set::from("aAiIuUfFxXeEoO");
-    static ref HAL: Set = Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzsh");
+    static ref HAL: Set = Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL");
 }
 
 type Sound = char;
@@ -45,6 +45,10 @@ pub(crate) fn is_hrasva(c: Sound) -> bool {
 
 pub(crate) fn is_hal(c: Sound) -> bool {
     HAL.contains(c)
+}
+
+pub(crate) fn is_sanskrit(c: Sound) -> bool {
+    AC.contains(c) || HAL.contains(c)
 }
 
 pub(crate) fn ends_in_laghu(s: &str) -> bool {
