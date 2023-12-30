@@ -102,7 +102,7 @@ for scheme in Scheme::iter() {
 }
 ```
 
-As of 2023-12-26, this code prints the following:
+As of 2023-12-29, this code prints the following:
 
 ```text
 Balinese        ᬲᬂᬲ᭄ᬓᬺᬢᬫ᭄
@@ -113,17 +113,22 @@ Devanagari      संस्कृतम्
 Grantha         𑌸𑌂𑌸𑍍𑌕𑍃𑌤𑌮𑍍
 Gujarati        સંસ્કૃતમ્
 Gurmukhi        ਸਂਸ੍ਕਤਮ੍
+BarahaSouth     saMskRutam
 HarvardKyoto    saMskRtam
 Iast            saṃskṛtam
 Itrans          saMskRRitam
 Javanese        ꦱꦁꦱ꧀ꦏꦽꦠꦩ꧀
-Kannada         ಸಂಸ್ಕೃತಮ್                                                                                                                                                            Malayalam       സംസ്കൃതമ്
-Odia            ସଂସ୍କୃତମ୍                                                                                                                                                             Sharada         𑆱𑆁𑆱𑇀𑆑𑆸𑆠𑆩𑇀
+Kannada         ಸಂಸ್ಕೃತಮ್
+Malayalam       സംസ്കൃതമ്
+Odia            ସଂସ୍କୃତମ୍
+Sharada         𑆱𑆁𑆱𑇀𑆑𑆸𑆠𑆩𑇀
+Siddham         𑖭𑖽𑖭𑖿𑖎𑖴𑖝𑖦𑖿
 Sinhala         සංස්කෘතම්
 Slp1            saMskftam
 Tamil           ஸம்ஸ்க்ரு'தம்
 Telugu          సంస్కృతమ్
 Velthuis        sa.msk.rtam
+Wx              saMskqwam
 ```
 
 `Lipika` is a thin wrapper over the `transliterate` function. We recommend

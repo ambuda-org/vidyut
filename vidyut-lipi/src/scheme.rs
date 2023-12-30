@@ -67,7 +67,9 @@ pub enum Scheme {
 
     /// Grantha script.
     ///
-    /// http://www.unicode.org/charts/PDF/U11300.pdf
+    /// Documentation:
+    /// - http://www.unicode.org/charts/PDF/U11300.pdf
+    /// - https://unicode.org/L2/L2009/09372-grantha.pdf
     Grantha,
 
     /// Gurmukhi script.

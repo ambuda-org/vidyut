@@ -229,8 +229,6 @@ impl Mapping {
                     }
                     TokenType::Other => (),
                 }
-
-                println!("{a} --> {deva_key} --> [{new_b}] ({from:?} --> {to:?})");
                 all.insert(a.to_string(), new_b);
             }
         }
@@ -257,8 +255,6 @@ impl Mapping {
                     }
                     TokenType::Other => (),
                 }
-
-                println!("[{new_a}] --> {deva_key} --> {b} ({from:?} --> {to:?})");
                 all.insert(new_a, b.to_string());
             }
         }

@@ -87,8 +87,8 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "\ua8e3": None,
         }
     elif name == "GRANTHA":
-        # vowel sign AU
         overrides = {
+            # vowel sign AU
             "\u094c": "\U0001134c",
         }
     elif name == "HK":
@@ -165,6 +165,9 @@ def main():
         "//! from the `indic-transliteration` project.",
         "",
     ]
+
+    BRAHMIC_WITH_DEVA_ACCENTS = {"BENGALI", "KANNADA", "TELUGU", "MALAYALAM", "ORIYA", "SHARADA"}
+
     for path in sorted(glob("common_maps/**/*.toml")):
         with open(path, "rb") as f:
             data = tomllib.load(f)
@@ -187,6 +190,10 @@ def main():
             if category == "shortcuts":
                 # TODO: support these
                 continue
+
+            if category == "accents":
+                if scheme_name in BRAHMIC_WITH_DEVA_ACCENTS or scheme_name == "GRANTHA":
+                    continue
 
             if category.endswith("alternates"):
                 for raw_main, alts in data[category].items():
@@ -223,6 +230,26 @@ def main():
                             assert isinstance(mark, str)
                             assert isinstance(raw, str)
                             scheme_items.append((mark, raw))
+
+        # Add svarita and anudatta for Brahmic scripts that use Devanagari accent marks.
+        if scheme_name in BRAHMIC_WITH_DEVA_ACCENTS:
+            scheme_items.extend([
+                # Svarita
+                ("\u0951", "\u0951"),
+                # Anudatta
+                ("\u0952", "\u0952"),
+                # Dirgha svarita
+                ("\u1cda", "\u1cda"),
+            ])
+        elif scheme_name == "GRANTHA":
+            scheme_items.extend([
+                # Svarita (use chandra symbol)
+                ("\u0951", "\u1cf4"),
+                # Dirgha svarita (use Devanagari svarita)
+                ("\u1cda", "\u0951"),
+                # Anudatta (use Devanagari)
+                ("\u0952", "\u0952"),
+            ])
 
         if scheme_name == "BARAHA":
             scheme_items.extend([

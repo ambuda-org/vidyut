@@ -41,6 +41,9 @@ fn assert_one_way_pairwise(reference: (Scheme, &str), examples: &[(Scheme, &str)
     }
 }
 
+// Sanskrit (Basic)
+// ----------------
+
 #[test]
 fn sanskrit_independent_vowels() {
     assert_two_way_pairwise(&[
@@ -172,16 +175,6 @@ fn sanskrit_ayogavahas_etc() {
 }
 
 #[test]
-fn sanskrit_vedic_svarita_and_anudatta() {
-    assert_two_way_pairwise(&[
-        (BarahaSouth, "aq a#"),
-        (Devanagari, "अ॒ अ॑"),
-        (Itrans, r"a\_ a\'"),
-        (Slp1, r"a\ a^"),
-    ]);
-}
-
-#[test]
 fn sanskrit_consonants_non_vedic() {
     assert_two_way_pairwise(&[
         (BarahaSouth, "ka kha ga gha ~ga cha Cha ja jha ~ja Ta Tha Da Dha Na ta tha da dha na pa pha ba bha ma ya ra la va sha Sha sa ha"),
@@ -207,36 +200,6 @@ fn sanskrit_consonants_non_vedic() {
         (Siddham, "𑖎 𑖏 𑖐 𑖑 𑖒 𑖓 𑖔 𑖕 𑖖 𑖗 𑖘 𑖙 𑖚 𑖛 𑖜 𑖝 𑖞 𑖟 𑖠 𑖡 𑖢 𑖣 𑖤 𑖥 𑖦 𑖧 𑖨 𑖩 𑖪 𑖫 𑖬 𑖭 𑖮"),
         (Sinhala, "ක ඛ ග ඝ ඞ ච ඡ ජ ඣ ඤ ට ඨ ඩ ඪ ණ ත ථ ද ධ න ප ඵ බ භ ම ය ර ල ව ශ ෂ ස හ"),
         (Telugu, "క ఖ గ ఘ ఙ చ ఛ జ ఝ ఞ ట ఠ డ ఢ ణ త థ ద ధ న ప ఫ బ భ మ య ర ల వ శ ష స హ"),
-    ]);
-}
-
-#[test]
-fn sanskrit_consonants_vedic() {
-    assert_two_way_pairwise(&[
-        (BarahaSouth, "La Lha"),
-        (HarvardKyoto, "La Lha"),
-        (Iast, "ḻa ḻha"),
-        (Iso19519, "ḷa ḷha"),
-        (Itrans, "La Lha"),
-        (Slp1, "La |a"),
-        (Velthuis, "La Lha"),
-        (Wx, "lYa lYha"),
-        // Indic
-        (Balinese, "ᬮ᬴ ᬮ᬴᭄ᬳ"),
-        (Bengali, "ল় ল়্হ"),
-        (Brahmi, "𑀴 𑀴𑁆𑀳"),
-        (Burmese, "ဠ ဠ်ဟ"),
-        (Devanagari, "ळ ळ्ह"),
-        (Grantha, "𑌳 𑌳𑍍𑌹"),
-        (Gujarati, "ળ ળ્હ"),
-        (Javanese, "ꦭ꦳ ꦭ꦳꧀ꦲ"),
-        (Kannada, "ಳ ಳ್ಹ"),
-        (Malayalam, "ള ള്ഹ"),
-        (Odia, "ଳ ଳ୍ହ"),
-        (Sharada, "𑆭 𑆭𑇀𑆲"),
-        (Siddham, "𑖩𑗀 𑖩𑗀𑖿𑖮"),
-        (Sinhala, "ළ ළ්හ"),
-        (Telugu, "ళ ళ్హ"),
     ]);
 }
 
@@ -285,6 +248,72 @@ fn sanskrit_basic_sentences() {
         (Sharada, "𑆤𑆳𑆫𑆳𑆪𑆟𑆁 𑆤𑆩𑆱𑇀𑆑𑆸𑆠𑇀𑆪 𑆤𑆫𑆁 𑆖𑆽𑆮 𑆤𑆫𑆾𑆠𑇀𑆠𑆩𑆩𑇀 𑇅 𑆢𑆼𑆮𑆵𑆁 𑆱𑆫𑆱𑇀𑆮𑆠𑆵𑆁 𑆖𑆽𑆮 𑆠𑆠𑆾 𑆘𑆪𑆩𑆶𑆢𑆵𑆪𑆫𑆼𑆠𑇀 𑇆 𑇑 𑇆"),
         (Siddham, "𑖡𑖯𑖨𑖯𑖧𑖜𑖽 𑖡𑖦𑖭𑖿𑖎𑖴𑖝𑖿𑖧 𑖡𑖨𑖽 𑖓𑖹𑖪 𑖡𑖨𑖺𑖝𑖿𑖝𑖦𑖦𑖿 𑗂 𑖟𑖸𑖪𑖱𑖽 𑖭𑖨𑖭𑖿𑖪𑖝𑖱𑖽 𑖓𑖹𑖪 𑖝𑖝𑖺 𑖕𑖧𑖦𑖲𑖟𑖱𑖧𑖨𑖸𑖝𑖿 𑗃 1 𑗃"),
         (Telugu, "నారాయణం నమస్కృత్య నరం చైవ నరోత్తమమ్ । దేవీం సరస్వతీం చైవ తతో జయముదీయరేత్ ॥ ౧ ॥"),
+    ]);
+}
+
+// Sanskrit (Vedic)
+// ----------------
+
+#[test]
+fn sanskrit_vedic_accent() {
+    // Svarita and anudatta
+    assert_two_way_pairwise(&[
+        (BarahaSouth, "aq a#"),
+        (Itrans, r"a\_ a\'"),
+        (Slp1, r"a\ a^"),
+        // Indic
+        (Bengali, "অ॒ অ॑"),
+        (Devanagari, "अ॒ अ॑"),
+        (Grantha, "𑌅॒ 𑌅᳴"),
+        (Kannada, "ಅ॒ ಅ॑"),
+        (Malayalam, "അ॒ അ॑"),
+        (Odia, "ଅ॒ ଅ॑"),
+        (Sharada, "𑆃॒ 𑆃॑"),
+        (Telugu, "అ॒ అ॑"),
+    ]);
+
+    // Dirgha svarita
+    assert_two_way_pairwise(&[
+        (BarahaSouth, "a$"),
+        // Indic
+        (Bengali, "অ᳚"),
+        (Devanagari, "अ᳚"),
+        (Grantha, "𑌅॑"),
+        (Kannada, "ಅ᳚"),
+        (Malayalam, "അ᳚"),
+        (Odia, "ଅ᳚"),
+        (Sharada, "𑆃᳚"),
+        (Telugu, "అ᳚"),
+    ]);
+}
+
+#[test]
+fn sanskrit_vedic_consonants() {
+    assert_two_way_pairwise(&[
+        (BarahaSouth, "La Lha"),
+        (HarvardKyoto, "La Lha"),
+        (Iast, "ḻa ḻha"),
+        (Iso19519, "ḷa ḷha"),
+        (Itrans, "La Lha"),
+        (Slp1, "La |a"),
+        (Velthuis, "La Lha"),
+        (Wx, "lYa lYha"),
+        // Indic
+        (Balinese, "ᬮ᬴ ᬮ᬴᭄ᬳ"),
+        (Bengali, "ল় ল়্হ"),
+        (Brahmi, "𑀴 𑀴𑁆𑀳"),
+        (Burmese, "ဠ ဠ်ဟ"),
+        (Devanagari, "ळ ळ्ह"),
+        (Grantha, "𑌳 𑌳𑍍𑌹"),
+        (Gujarati, "ળ ળ્હ"),
+        (Javanese, "ꦭ꦳ ꦭ꦳꧀ꦲ"),
+        (Kannada, "ಳ ಳ್ಹ"),
+        (Malayalam, "ള ള്ഹ"),
+        (Odia, "ଳ ଳ୍ହ"),
+        (Sharada, "𑆭 𑆭𑇀𑆲"),
+        (Siddham, "𑖩𑗀 𑖩𑗀𑖿𑖮"),
+        (Sinhala, "ළ ළ්හ"),
+        (Telugu, "ళ ళ్హ"),
     ]);
 }
 
