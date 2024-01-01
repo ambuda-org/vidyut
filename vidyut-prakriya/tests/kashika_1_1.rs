@@ -158,7 +158,7 @@ fn sutra_1_1_10() {
     assert_has_sandhi("daRqa", "hasta", &["daRqahasta"]);
     assert_has_sandhi("daDi", "SItam", &["daDiSItam"]);
     assert_has_taddhita("vipASa", T::aR, &["vEpASa"]);
-    // TODO: anaquham
+    assert_has_taddhita("anaquh", T::aR, &["Anaquha"]);
 }
 
 #[test]
@@ -292,12 +292,12 @@ fn sutra_1_1_23() {
     assert_has_taddhita("bahu", T::kftvasuc, &["bahukftvas"]);
     assert_has_taddhita("bahu", T::DA, &["bahuDA"]);
     assert_has_taddhita("bahu", T::kan, &["bahuka"]);
-    // TODO: assert_has_taddhitanta(&bahu, T::Sas, &["bahuSas"]);
+    // TODO: assert_has_taddhita("bahu", T::Sas, &["bahuSas"]);
 
     assert_has_taddhita("gaRa", T::kftvasuc, &["gaRakftvas"]);
     assert_has_taddhita("gaRa", T::DA, &["gaRaDA"]);
     assert_has_taddhita("gaRa", T::kan, &["gaRaka"]);
-    // TODO: assert_has_taddhitanta(&gana, T::Sas, &["gaRaSas"]);
+    // TODO: assert_has_taddhita("gaRa", T::Sas, &["gaRaSas"]);
 
     // TODO:
     // let taavat = prati("tAvat");

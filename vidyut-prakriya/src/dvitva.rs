@@ -282,7 +282,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
             try_dvitva("6.1.8", p, i);
         }
     } else if p
-        .find_next_where(i, |t| t.has_u_in(&["san", "yaN"]))
+        .find_next_where(i, |t| t.has_u_in(&["san", "yaN"]) && !t.is_unadi())
         .is_some()
     {
         try_dvitva("6.1.9", p, i);

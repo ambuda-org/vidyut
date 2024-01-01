@@ -70,21 +70,88 @@ impl Vyakarana {
     /// Returns all possible dhatu prakriyas that can be derived with the given initial
     /// conditions.
     ///
-    /// The main use case of this function is to convert an *aupadeśika* dhatu (`"vadi~\\"`) into its
-    /// a more recognizable form (`vand`).
+    /// The main use case of this method is to convert an *aupadeśika* dhatu (`"vadi~\\"`) into a
+    /// more recognizable form (`vand`).
     ///
-    /// `derive_dhatus` might return multiple `Prakriya`s for roots like `"gup"`/`"gopAya"`, where
-    /// `"Aya"` is optional.
     ///
-    /// ### Example
+    /// ### Examples
+    ///
+    /// A mula-dhatu from the Dhatupatha:
     ///
     /// ```
     /// # use vidyut_prakriya::Vyakarana;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let dhatu = Dhatu::mula("vadi~\\", Gana::Bhvadi);
-    /// let prakriyas = v.derive_dhatus(&dhatu);
+    /// let vand = Dhatu::mula("vadi~\\", Gana::Bhvadi);
+    /// let prakriyas = v.derive_dhatus(&vand);
+    /// assert_eq!(prakriyas[0].text(), "vand");
     /// ```
+    ///
+    /// A mula-dhatu with one or more upasargas:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::args::*;
+    /// let v = Vyakarana::new();
+    /// let gam = Dhatu::mula("ga\\mx~", Gana::Bhvadi);
+    /// let upasangam = gam.with_prefixes(&["upa", "sam"]);
+    /// let prakriyas = v.derive_dhatus(&upasangam);
+    /// assert_eq!(prakriyas[0].text(), "upasaNgam");
+    /// ```
+    ///
+    /// A mula-dhatu with one or more sanAdi-pratyayas:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::args::*;
+    /// let v = Vyakarana::new();
+    /// let vand = Dhatu::mula("vadi~\\", Gana::Bhvadi);
+    ///
+    /// let vivandisha = vand.clone().with_sanadi(&[Sanadi::san]);
+    /// let prakriyas = v.derive_dhatus(&vivandisha);
+    /// assert_eq!(prakriyas[0].text(), "vivandiza");
+    ///
+    /// let vandi = vand.clone().with_sanadi(&[Sanadi::Ric]);
+    /// let prakriyas = v.derive_dhatus(&vandi);
+    /// assert_eq!(prakriyas[0].text(), "vandi");
+    ///
+    /// let vavandya = vand.clone().with_sanadi(&[Sanadi::yaN]);
+    /// let prakriyas = v.derive_dhatus(&vavandya);
+    /// assert_eq!(prakriyas[0].text(), "vAvandya");
+    ///
+    /// let vivandayisha = vand.clone().with_sanadi(&[Sanadi::Ric, Sanadi::san]);
+    /// let prakriyas = v.derive_dhatus(&vivandayisha);
+    /// assert_eq!(prakriyas[0].text(), "vivandayiza");
+    ///
+    /// let vivandishi = vand.clone().with_sanadi(&[Sanadi::san, Sanadi::Ric]);
+    /// let prakriyas = v.derive_dhatus(&vivandishi);
+    /// assert_eq!(prakriyas[0].text(), "vivandizi");
+    /// ```
+    ///
+    /// A nama-dhatu with an optional sanAdi-pratyaya:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::args::*;
+    /// let v = Vyakarana::new();
+    /// let putra = Pratipadika::basic("putra");
+    /// let putriya = Dhatu::nama(putra, Some(Sanadi::kyac));
+    /// let prakriyas = v.derive_dhatus(&putriya);
+    /// assert_eq!(prakriyas[0].text(), "putrIya");
+    /// ```
+    ///
+    /// A nama-dhatu with a mandatory sanAdi-pratyaya from some other sutra:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::args::*;
+    /// let v = Vyakarana::new();
+    /// let lohita = Pratipadika::basic("lohita");
+    /// let lohitaya = Dhatu::nama(lohita, None);
+    /// let prakriyas = v.derive_dhatus(&lohitaya);
+    /// // From sutra 3.1.13.
+    /// assert_eq!(prakriyas[0].text(), "lohitAya");
+    /// ````
     pub fn derive_dhatus(&self, args: &Dhatu) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
         stack.find_all(|p| ashtadhyayi::derive_dhatu(p, args));
@@ -93,6 +160,7 @@ impl Vyakarana {
 
     /// Returns all possible tinanta prakriyas that can be derived with the given initial
     /// conditions.
+    ///
     ///
     /// ### Example
     ///
@@ -110,6 +178,7 @@ impl Vyakarana {
     ///     .vacana(Vacana::Eka)
     ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
+    /// assert_eq!(prakriyas[0].text(), "Bavati");
     /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_tinantas(&self, args: &Tinanta) -> Vec<Prakriya> {
@@ -175,19 +244,20 @@ impl Vyakarana {
     /// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
     /// let args = Krdanta::new(dhatu, BaseKrt::ktvA);
     /// let prakriyas = v.derive_krdantas(&args);
+    /// assert_eq!(prakriyas[0].text(), "BUtvA");
     /// # Ok::<(), Error>(())
     /// ```
     ///
     /// Using an unadi-pratyaya:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
-    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     /// let dhatu = Dhatu::mula("dF", Gana::Kryadi);
     /// let args = Krdanta::new(dhatu, Unadi::YuR);
     /// let prakriyas = v.derive_krdantas(&args);
+    /// assert_eq!(prakriyas[0].text(), "dAru");
     /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_krdantas(&self, krdanta: &Krdanta) -> Vec<Prakriya> {

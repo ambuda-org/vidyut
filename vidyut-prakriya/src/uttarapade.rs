@@ -139,6 +139,9 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // kadajaH, ...
             p.run_at("6.3.101", i_purva, |t| t.set_text("kat"));
         }
+    } else if purva.has_text("SinG") && uttara.has_text("ARaka") {
+        // TODO: add many others
+        p.optional_run_at("6.3.109", i_uttara, |t| t.set_text("ARa"));
     } else if uttara.has_u("valac") {
         if purva.has_text_in(&["utsAha", "BrAtf", "pitf", "putra"]) {
             // utsAhavala, ...

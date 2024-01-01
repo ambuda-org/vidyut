@@ -740,6 +740,12 @@ fn sutra_1_3_89() {
     assert_has_lat(&[], &nic(&d("va\\sa~", Bhvadi)), &["vAsayate"]);
 }
 
+#[ignore]
+#[test]
+fn sutra_1_3_89_v1() {
+    assert_has_lat(&[], &nic(&d("De\\w", Bhvadi)), &["DApayate"]);
+}
+
 #[test]
 fn sutra_1_3_90() {
     let kyas = |prati| Dhatu::nama(Pratipadika::basic(prati), None);

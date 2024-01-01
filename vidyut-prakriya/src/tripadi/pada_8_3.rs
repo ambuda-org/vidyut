@@ -37,7 +37,6 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
 
         // 8.3.15
         // TODO: next pada
-        // HACK: use has_upadha to block "pra Rcchati -> pr Arcchati -> pHArcCati"
         let c = p.get(i)?;
         let has_ru = c.has_antya('r') && !c.has_tag(T::FlagAntyaAcSandhi);
         if !has_ru {
@@ -130,6 +129,9 @@ fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
             if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
                 let t = p.get(i_term).expect("ok");
                 if t.is_pada() && i_offset + 1 == t.len() {
+                    false
+                } else if t.is_unadi() && t.has_u("qumsu~n") {
+                    // for qumsun-pratyaya
                     false
                 } else if t.has_text("pums") && !p.has(i_term + 1, |t| t.is_pada()) {
                     // Don't make this change for "m" in a pratipadika, so that we can derive
@@ -660,6 +662,12 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         if term.has_u("sAti~") {
             // agnisAt ...
             sp.try_block("8.3.111");
+        } else if term.last().is_unadi()
+            && (term.last().has_u("sara")
+                && sp.i_term > 0
+                && sp.p.has(sp.i_term - 1, |t| t.has_text_in(&["kf", "DU"])))
+        {
+            // Do nothing.
         } else {
             // General case.
             sp.try_shatva("8.3.59");

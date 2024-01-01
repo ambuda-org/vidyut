@@ -92,7 +92,7 @@ impl<'a> SanadiPrakriya<'a> {
 ///
 /// 2. If `sanadi` is `None`, the function tries to add the first possible sanadi pratyaya and
 ///    does nothing if no such rule can be found. Examples: bAzpayate, muRqayati, ...
-fn try_add(p: &mut Prakriya, sanadi: Option<&Sanadi>, is_ardhadhatuka: bool) -> Option<()> {
+fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> Option<()> {
     use Sanadi::*;
 
     let i_last = p.terms().len() - 1;
@@ -331,18 +331,18 @@ pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
     su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::V1, T::Luk]);
     p.push(su);
 
-    try_add(p, dhatu.sanadi().first(), false);
+    try_add(p, &dhatu.nama_sanadi(), false);
 
     Some(())
 }
 
 pub fn try_add_required(p: &mut Prakriya, is_ardhadhatuka: bool) {
-    try_add(p, None, is_ardhadhatuka);
+    try_add(p, &None, is_ardhadhatuka);
 }
 
 /// Tries to add the given `sanadi`-pratyaya and returns an error if the addition failed.
 pub fn try_add_optional(p: &mut Prakriya, sanadi: Sanadi) -> Result<()> {
-    try_add(p, Some(&sanadi), false);
+    try_add(p, &Some(sanadi), false);
 
     // For now, raise errors only for yan and yan-luk, since these are the only two public values
     // that can fail.

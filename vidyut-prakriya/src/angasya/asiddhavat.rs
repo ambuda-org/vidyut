@@ -528,7 +528,12 @@ fn try_upadha_nalopa(p: &mut Prakriya, i: usize) -> Option<()> {
         p.optional_run_at("6.4.32", i, op::upadha(""));
     } else if anga.has_u("Ba\\njo~") && n.has_u("ciR") {
         p.optional_run_at("6.4.33", i, op::upadha(""));
-    } else if anidit_hal && is_kniti && anga.has_upadha('n') {
+    } else if anidit_hal
+        && is_kniti
+        && anga.has_upadha('n')
+        // Block specific unadis
+        && !(n.last().is_unadi() && n.last().has_u_in(&["katra", "ka", "kU"]))
+    {
         let mut blocked = false;
         // ancu gati-pUjanayoH
         if anga.has_u("ancu~") && !p.has(i + 1, |t| t.has_u("kvi~n")) {
@@ -730,7 +735,10 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if anga.has_u("ciR") && n.last().has_text("ta") {
         p.run_at("6.4.104", n.end(), op::luk);
     } else if anga.has_u("daridrA") && n.has_tag(T::Ardhadhatuka) {
-        if p.terms().last()?.has_lakshana("lu~N") {
+        if n.last().is_unadi() && n.last().has_text("U") {
+            // dardrU
+            return None;
+        } else if p.terms().last()?.has_lakshana("lu~N") {
             // Varttika.
             if p.optional_run(Varttika("6.4.114.2"), |_| {}) {
                 return None;

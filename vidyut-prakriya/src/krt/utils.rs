@@ -274,8 +274,8 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, optionally adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: BaseKrt) -> bool {
-        self.optional_try_add_with(rule, krt, |_| {})
+    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: impl Into<Krt>) -> bool {
+        self.optional_try_add_with(rule, krt.into(), |_| {})
     }
 
     /// Like `optional` but indicates a specific choice of artha. Not sure how to use this yet, but

@@ -11,10 +11,11 @@ use wasm_bindgen::prelude::wasm_bindgen;
 ///
 /// NOTE: we generated this list programmatically. Many of these pratyayas have typos.
 #[allow(dead_code, non_camel_case_types)]
-#[allow(dead_code, non_camel_case_types)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 #[wasm_bindgen]
 pub enum Unadi {
+    /// -a
+    a,
     /// -aknu
     aknuc,
     /// -aNga
@@ -23,11 +24,11 @@ pub enum Unadi {
     radAnuk,
     /// -a
     ac,
-    /// -aji
+    /// -aj
     aji,
     /// -awa
     awan,
-    /// -awi
+    /// -aw
     awi,
     /// -aWa
     aWa,
@@ -45,7 +46,7 @@ pub enum Unadi {
     atrin,
     /// -aTa
     aTa,
-    /// -adi
+    /// -ad
     adi,
     /// -a
     an,
@@ -61,8 +62,8 @@ pub enum Unadi {
     apa,
     /// -abaka
     abaka,
-    /// -aba
-    abac,
+    /// -amba
+    ambac,
     /// -aBa
     aBac,
     /// -ama
@@ -77,6 +78,8 @@ pub enum Unadi {
     ara,
     /// -ara
     aran,
+    /// -ar
+    aran_,
     /// -aru
     aru,
     /// -a
@@ -93,7 +96,7 @@ pub enum Unadi {
     asac,
     /// -asAna
     asAnac,
-    /// -asi
+    /// -as
     asi,
     /// -as (cetas)
     asun,
@@ -133,13 +136,13 @@ pub enum Unadi {
     AlIyac,
     /// -A
     Asa,
-    /// -Asi
+    /// -As
     Asi,
     /// -i
     i,
     /// -ika
     ikan,
-    /// -iji
+    /// -ij
     iji,
     /// -i
     iY,
@@ -151,7 +154,7 @@ pub enum Unadi {
     itac,
     /// -ita
     itan,
-    /// -iti
+    /// -it
     iti,
     /// -itnu
     itnuc,
@@ -171,9 +174,9 @@ pub enum Unadi {
     inan,
     /// -in
     ini,
-    /// -imani
+    /// -iman
     imanic,
-    /// -imani
+    /// -iman
     imanin,
     /// -ila
     ilac,
@@ -211,7 +214,7 @@ pub enum Unadi {
     uqac,
     /// -u
     uR,
-    /// -uti
+    /// -ut
     uti,
     /// -utra
     utra,
@@ -219,7 +222,7 @@ pub enum Unadi {
     una,
     /// -una
     unan,
-    /// -unasi
+    /// -unas
     unasi,
     /// -uni
     uni,
@@ -235,6 +238,8 @@ pub enum Unadi {
     urac,
     /// -ura
     uran,
+    /// -ur
+    uran_,
     /// -uri
     urin,
     /// -ula
@@ -265,7 +270,7 @@ pub enum Unadi {
     Uzan,
     /// -f
     f,
-    /// -fti
+    /// -ft
     ftin,
     /// -f
     fn_,
@@ -301,9 +306,9 @@ pub enum Unadi {
     kTan,
     /// -ka
     kan,
-    /// -kanasi
+    /// -anas
     kanasi,
-    /// -kani
+    /// -an
     kanin,
     /// -kanu
     kanum,
@@ -315,7 +320,7 @@ pub enum Unadi {
     kapa,
     /// -kapa
     kapan,
-    /// -kami
+    /// -am
     kamin,
     /// -kaya
     kayan,
@@ -327,7 +332,7 @@ pub enum Unadi {
     kAku,
     /// -kAla
     kAlan,
-    /// -kika
+    /// -ika
     kikan,
     /// -kita
     kitac,
@@ -367,9 +372,9 @@ pub enum Unadi {
     knin,
     /// -kmala
     kmalan,
-    /// -kyu
+    /// -ana
     kyu,
-    /// -kyu
+    /// -ana
     kyun,
     /// -kra
     kran,
@@ -379,7 +384,7 @@ pub enum Unadi {
     kri,
     /// -kri
     krin,
-    /// -kruka
+    /// -ruka
     krukan,
     /// -kru
     krun,
@@ -387,13 +392,13 @@ pub enum Unadi {
     kla,
     /// -kva
     kvan,
-    /// -kvani
+    /// -van
     kvanip,
     /// -kvi
     kvin,
-    /// -kvi
+    /// -
     kvip,
-    /// -kvu
+    /// -aka
     kvun,
     /// -ksara
     ksaran,
@@ -421,7 +426,7 @@ pub enum Unadi {
     caw,
     /// -catu
     catu,
-    /// -ci
+    /// -c
     cik,
     /// -Ja
     Jac,
@@ -441,31 +446,31 @@ pub enum Unadi {
     qa,
     /// -qau
     qau,
-    /// -qa
-    qaw,
+    /// -ra
+    qraw,
     /// -qati
     qati,
     /// -avat
     qavatu,
-    /// -qimi
+    /// -qim
     qimi,
     /// -quta
     qutac,
     /// -qu
     qun,
-    /// -qumsu
+    /// -ums
     qumsun,
-    /// -qU
+    /// -U
     qU,
-    /// -qE
+    /// -E
     qE,
     /// -Es
     qEsi,
-    /// -qo
+    /// -o
     qo,
-    /// -qosi
+    /// -os
     qosi,
-    /// -qO
+    /// -O
     qO,
     /// -qri
     qri,
@@ -487,7 +492,7 @@ pub enum Unadi {
     tanan,
     /// -taSa
     taSan,
-    /// -taSasu
+    /// -taSas
     taSasun,
     /// -ti
     ti,
@@ -571,9 +576,9 @@ pub enum Unadi {
     yatuc,
     /// -yu
     yuk,
-    /// -yu
+    /// -ana
     yuc,
-    /// -yu
+    /// -ana
     yun,
     /// -ra
     ra,
@@ -591,7 +596,7 @@ pub enum Unadi {
     vaR,
     /// -va
     van,
-    /// -vani
+    /// -van
     vanip,
     /// -vara
     varaw,
@@ -603,7 +608,7 @@ pub enum Unadi {
     vAlan,
     /// -vi
     vin,
-    /// -vu
+    /// -aka
     vun,
     /// -Sa
     Sak,
@@ -636,13 +641,14 @@ pub enum Unadi {
 }
 
 enum_boilerplate!(Unadi, {
+    a => "a",
     aknuc => "aknuc",
     aNgac => "aNgac",
     radAnuk => "radAnuk",
     ac => "ac",
-    aji => "aji",
+    aji => "aji~",
     awan => "awan",
-    awi => "awi",
+    awi => "awi~",
     aWa => "aWa",
     aRqan => "aRqan",
     atac => "atac",
@@ -651,7 +657,7 @@ enum_boilerplate!(Unadi, {
     atran => "atran",
     atrin => "atrin",
     aTa => "aTa",
-    adi => "adi",
+    adi => "adi~",
     an => "an",
     ani => "ani",
     anuN => "anuN",
@@ -659,7 +665,7 @@ enum_boilerplate!(Unadi, {
     anyuc => "anyuc",
     apa => "apa",
     abaka => "abaka",
-    abac => "abac",
+    ambac => "ambac",
     aBac => "aBac",
     ama => "ama",
     amac => "amac",
@@ -667,6 +673,7 @@ enum_boilerplate!(Unadi, {
     ayu => "ayu",
     ara => "ara",
     aran => "aran",
+    aran_ => "ara~n",
     aru => "aru",
     al => "al",
     alac => "alac",
@@ -675,7 +682,7 @@ enum_boilerplate!(Unadi, {
     asa => "asa",
     asac => "asac",
     asAnac => "asAnac",
-    asi => "asi",
+    asi => "asi~",
     asun => "asu~n",
     A => "A",
     Aka => "Aka",
@@ -695,16 +702,16 @@ enum_boilerplate!(Unadi, {
     AlaY => "AlaY",
     AlIyac => "AlIyac",
     Asa => "Asa",
-    Asi => "Asi",
+    Asi => "Asi~",
     i => "i",
     ikan => "ikan",
-    iji => "iji",
+    iji => "iji~",
     iY => "iY",
     iR => "iR",
     ita => "ita",
     itac => "itac",
     itan => "itan",
-    iti => "iti",
+    iti => "iti~",
     itnuc => "itnuc",
     itra => "itra",
     itvan => "itvan",
@@ -714,8 +721,8 @@ enum_boilerplate!(Unadi, {
     inaR => "inaR",
     inan => "inan",
     ini => "ini~",
-    imanic => "imanic",
-    imanin => "imanin",
+    imanic => "imani~c",
+    imanin => "imani~n",
     ilac => "ilac",
     izWac => "izWac",
     izWuc => "izWuc",
@@ -734,11 +741,11 @@ enum_boilerplate!(Unadi, {
     ukan => "ukan",
     uqac => "uqac",
     uR => "uR",
-    uti => "uti",
+    uti => "uti~",
     utra => "utra",
     una => "una",
     unan => "unan",
-    unasi => "unasi",
+    unasi => "unasi~",
     uni => "uni",
     unta => "unta",
     unti => "unti",
@@ -746,6 +753,7 @@ enum_boilerplate!(Unadi, {
     umBa => "umBa",
     urac => "urac",
     uran => "uran",
+    uran_ => "ura~n",
     urin => "urin",
     ulac => "ulac",
     uli => "uli",
@@ -761,7 +769,7 @@ enum_boilerplate!(Unadi, {
     Uran => "Uran",
     Uzan => "Uzan",
     f => "f",
-    ftin => "ftin",
+    ftin => "fti~n",
     fn_ => "fn",
     eRu => "eRu",
     eRya => "eRya",
@@ -779,14 +787,14 @@ enum_boilerplate!(Unadi, {
     katra => "katra",
     kTan => "kTan",
     kan => "kan",
-    kanasi => "kanasi",
-    kanin => "kanin",
+    kanasi => "kanasi~",
+    kanin => "kani~n",
     kanum => "kanum",
     kanyan => "kanyan",
     kanyuc => "kanyuc",
     kapa => "kapa",
     kapan => "kapan",
-    kamin => "kamin",
+    kamin => "kami~n",
     kayan => "kayan",
     karan => "karan",
     kala => "kala",
@@ -812,8 +820,8 @@ enum_boilerplate!(Unadi, {
     kna => "kna",
     knin => "knin",
     kmalan => "kmalan",
-    kyu => "kyu",
-    kyun => "kyun",
+    kyu => "kyu~",
+    kyun => "kyu~n",
     kran => "kran",
     kraran => "kraran",
     kri => "kri",
@@ -822,10 +830,10 @@ enum_boilerplate!(Unadi, {
     krun => "krun",
     kla => "kla",
     kvan => "kvan",
-    kvanip => "kvanip",
+    kvanip => "kvani~p",
     kvin => "kvin",
-    kvip => "kvip",
-    kvun => "kvun",
+    kvip => "kvi~p",
+    kvun => "kvu~n",
     ksaran => "ksaran",
     ksi => "ksi",
     ksu => "ksu",
@@ -839,7 +847,7 @@ enum_boilerplate!(Unadi, {
     GaTin => "GaTin",
     caw => "caw",
     catu => "catu",
-    cik => "cik",
+    cik => "ci~k",
     Jac => "Jac",
     Jic => "Jic",
     YuR => "YuR",
@@ -849,18 +857,18 @@ enum_boilerplate!(Unadi, {
     Wa => "Wa",
     qa => "qa",
     qau => "qau",
-    qaw => "qaw",
+    qraw => "qraw",
     qati => "qati",
     qavatu => "qavatu~",
-    qimi => "qimi",
+    qimi => "qimi~",
     qutac => "qutac",
     qun => "qun",
-    qumsun => "qumsun",
+    qumsun => "qumsu~n",
     qU => "qU",
     qE => "qE",
     qEsi => "qEsi~",
     qo => "qo",
-    qosi => "qosi",
+    qosi => "qosi~",
     qO => "qO",
     qri => "qri",
     Qa => "Qa",
@@ -872,7 +880,7 @@ enum_boilerplate!(Unadi, {
     tan => "tan",
     tanan => "tanan",
     taSan => "taSan",
-    taSasun => "taSasun",
+    taSasun => "taSasu~n",
     ti => "ti",
     tikan => "tikan",
     tu => "tu",
@@ -914,8 +922,8 @@ enum_boilerplate!(Unadi, {
     yat => "yat",
     yatuc => "yatuc",
     yuk => "yuk",
-    yuc => "yuc",
-    yun => "yun",
+    yuc => "yu~c",
+    yun => "yu~n",
     ra => "ra",
     rak => "rak",
     ran => "ran",
@@ -924,13 +932,13 @@ enum_boilerplate!(Unadi, {
     va => "va",
     vaR => "vaR",
     van => "van",
-    vanip => "vanip",
+    vanip => "vani~p",
     varaw => "varaw",
     valaY => "valaY",
     vAlac => "vAlac",
     vAlan => "vAlan",
     vin => "vin",
-    vun => "vun",
+    vun => "vu~n",
     Sak => "Sak",
     Sun => "Sun",
     SvaR => "SvaR",

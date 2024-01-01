@@ -350,6 +350,8 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         if mula.has_u_in(BUDH_ADI) {
             // boDayati, ...
             pp.para("1.3.86");
+        // TODO: "akartraBiprAye SezAd iti parasmEpadaM syAdeva" -- so, how should we even model
+        // this rule?
         /*
         } else if (mula.has_u("pA\\") && mula.has_gana(Gana::Bhvadi))
             || mula.has_u("damu~")
@@ -360,6 +362,9 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         {
             // pAyayate, ...
             pp.p.step("1.3.89");
+            pp.atma(default);
+        } else if mula.has_u("De\\w") {
+            pp.p.step(Varttika("1.3.89.1"));
             pp.atma(default);
         */
         } else {

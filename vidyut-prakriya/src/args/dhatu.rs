@@ -95,14 +95,13 @@ enum_boilerplate!(Antargana, {
     Adhrshiya => "ADfzIya",
 });
 
-/// One of the three common *sanAdi* pratyayas.
+/// A *sanAdi* pratyaya.
 ///
 /// The *sanAdi* pratyayas create new dhatus per 3.1.32. They are introduced in rules 3.1.7 -
 /// 3.1.30, and since rule 3.1.7 contains the word "dhAtoH", they can be called Ardhadhatuka by
 /// 3.4.114.
 ///
-/// Of the sanAdi pratyayas, most are added after either subantas or a handful of dhatus. But
-/// three of these pratyayas are added after dhatus more generally: `san`, `yaN`, and `Ric`.
+/// Any sanAdi-pratyayas not listed here are required by certain sutras and added by default.
 ///
 /// For details on what these pratyayas mean and what kinds of words they produce, see the comments
 /// below.
@@ -111,17 +110,23 @@ enum_boilerplate!(Antargana, {
 #[wasm_bindgen]
 pub enum Sanadi {
     /// `kAmyac`, which creates nAma-dhAtus per 3.1.9.
+    ///
+    /// Examples: `putrakAmyati`
     kAmyac,
 
     /// `kyaN`, which creates nAma-dhAtus per 3.1.11.
+    ///
+    /// Examples: `SyenAyate`, `BfSAyate`
     kyaN,
 
     /// `kyac`, which creates nAma-dhAtus per 3.1.8.
+    ///
+    /// Examples: `putrIyati`
     kyac,
 
     /// `Nic`, which creates causal roots per 3.1.26.
     ///
-    /// Examples: BAvayati, nAyayati.
+    /// Examples: `BAvayati`, `nAyayati`.
     Ric,
 
     /// `yaN`, which creates intensive roots per 3.1.22. For certain dhatus, the semantics are
@@ -133,7 +138,7 @@ pub enum Sanadi {
     /// vowel. If this constraint is violated, our APIs will return an `Error`.
     yaN,
 
-    /// `yaN`, with elision per 2.4.74. This is often listed separately due to its rarity and its
+    /// `yaN`, with lopa per 2.4.74. This is often listed separately due to its rarity and its
     /// very different form.
     ///
     /// Examples: boBavIti, boBoti, nenayIti, neneti.
@@ -145,17 +150,129 @@ pub enum Sanadi {
     san,
 }
 
+impl Sanadi {
+    /// Returns whether this pratyaya can be added only after subantas.
+    pub fn is_namadhatu(&self) -> bool {
+        use Sanadi::*;
+        matches!(self, kAmyac | kyaN | kyac)
+    }
+}
+
 enum_boilerplate!(Sanadi, {
-    san => "san",
-    kyac => "kyac",
     kAmyac => "kAmyac",
     kyaN => "kyaN",
+    kyac => "kyac",
+    Ric => "Ric",
     yaN => "yaN",
     yaNluk => "yaNluk",
-    Ric => "Ric",
+    san => "san",
 });
 
-/// The verb root to use for the derivation.
+/// Models the verb root to use in some derivation.
+///
+///
+/// ### Model
+///
+/// A `Dhatu` is an enum with two variants:
+///
+/// - `Mula` holds a `MulaDhatu` from the Dhatupatha.
+/// - `Nama` holds a NamaDhatu` that combines a subanta with a sanAdi-pratyaya. For simplicity, our
+///   API uses `Pratipadika`s instead of `Subanta`s.
+///
+/// A `Dhatu` may optionally have:
+///
+/// - one or more prefixes. We currently support only upasargas and basic gati-prefixes. In the
+/// future, we hope to also support cvi- and DAc-prefixes.
+/// - one or more sanAdi-pratyayas. For details, see `Sanadi`.
+///
+///
+/// ### Usage
+///
+/// `Dhatu` is an argument to `Tinanta` and `Krdanta`. You may also pass it to
+/// `Vyakarana::derive_tinantas`, which shows how the dhatu will appear after applying the normal
+/// operations of the grammar (satva, natva, num-Agama-adesha, sandhi, guna, etc.)
+///
+/// Some dhatus are used only with specific upasargas, and others appear in specific antarganas.
+/// Our `Dhatupatha` struct provides a simple API that manages these upasargas and antarganas for
+/// you automatically, and we encourage you to use it. For example usage, see the `examples`
+/// directory of this crate.
+///
+/// ### Examples
+///
+/// A mula-dhatu in a specific gana:
+///
+/// ```
+/// use vidyut_prakriya::args::*;
+///
+/// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+/// let ad = Dhatu::mula("a\\da~", Gana::Adadi);
+/// let hu = Dhatu::mula("hu\\", Gana::Juhotyadi);
+/// let div = Dhatu::mula("divu~", Gana::Divadi);
+/// let su = Dhatu::mula("zu\\Y", Gana::Svadi);
+/// let tud = Dhatu::mula("tu\\da~^", Gana::Tudadi);
+/// let rudh = Dhatu::mula("ru\\Di~^r", Gana::Rudhadi);
+/// let tan = Dhatu::mula("tanu~^", Gana::Tanadi);
+/// let kri = Dhatu::mula("qukrI\\Y", Gana::Kryadi);
+/// let cur = Dhatu::mula("cura~", Gana::Curadi);
+/// ```
+///
+/// A mula-dhatu in a specific gana and antargana:
+///
+/// ```
+/// use vidyut_prakriya::args::*;
+///
+/// let kut = Dhatu::mula_with_antargana("kuwa~", Gana::Tudadi, Antargana::Kutadi);
+/// ````
+///
+/// A mula-dhatu with sanAdi-pratyayas:
+///
+/// ```
+/// # use vidyut_prakriya::args::*;
+/// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+/// let bhavi = bhu.clone().with_sanadi(&[Sanadi::Ric]);
+/// let bubhusha = bhu.clone().with_sanadi(&[Sanadi::san]);
+/// let bobhuya = bhu.clone().with_sanadi(&[Sanadi::yaN]);
+/// let bobhu = bhu.clone().with_sanadi(&[Sanadi::yaNluk]);
+/// let bibhavayiza = bhu.clone().with_sanadi(&[Sanadi::Ric, Sanadi::san]);
+/// ```
+///
+/// A mula-dhatu with prefixes:
+///
+/// ```
+/// # use vidyut_prakriya::args::*;
+/// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+/// let prabhu = bhu.clone().with_prefixes(&["pra"]);
+/// let pratisambhu = bhu.clone().with_prefixes(&["prati", "sam"]);
+/// ```
+///
+/// A mula-dhatu with both prefixes and sanAdi-pratyayas:
+///
+/// ```
+/// # use vidyut_prakriya::args::*;
+/// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+/// let pratisambibhavayiza = bhu.clone()
+///     .with_prefixes(&["prati", "sam"])
+///     .with_sanadi(&[Sanadi::Ric, Sanadi::san]);
+/// ```
+///
+/// A nama-dhatu with an optional sanAdi-pratyaya:
+///
+/// ```
+/// # use vidyut_prakriya::args::*;
+/// let putra = Pratipadika::basic("putra");
+/// let putriya = Dhatu::nama(putra, Some(Sanadi::kyac));
+/// ```
+///
+/// A nama-dhatu with a mandatory sanAdi-pratyaya from some other sutra:
+///
+/// ```
+/// # use vidyut_prakriya::args::*;
+/// let lohita = Pratipadika::basic("lohita");
+/// // "kyaN" will be added by sutra 3.1.13.
+/// let lohitaya = Dhatu::nama(lohita, None);
+/// ````
+///
+/// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Dhatu {
     /// Indicates a muladhAtu from the Dhatupatha.
@@ -172,14 +289,6 @@ pub struct Muladhatu {
     antargana: Option<Antargana>,
     sanadi: Vec<Sanadi>,
     prefixes: Vec<String>,
-}
-
-/// A dhatu created from a subanta.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
-pub struct Namadhatu {
-    pratipadika: Pratipadika,
-    sanadi: Vec<Sanadi>,
-    pub(crate) prefixes: Vec<String>,
 }
 
 impl Muladhatu {
@@ -232,15 +341,29 @@ impl Muladhatu {
     }
 }
 
+/// A dhatu created from a subanta.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub struct Namadhatu {
+    pratipadika: Pratipadika,
+    nama_sanadi: Option<Sanadi>,
+    other_sanadi: Vec<Sanadi>,
+    pub(crate) prefixes: Vec<String>,
+}
+
 impl Namadhatu {
     /// The pratipadika to use as the basis of this dhatu.
     pub fn pratipadika(&self) -> &Pratipadika {
         &self.pratipadika
     }
 
-    /// The sanAdi pratyayas to use with this dhatu.
-    pub fn sanadi(&self) -> &Vec<Sanadi> {
-        &self.sanadi
+    /// The main sanAdi pratyayas to use with this dhatu.
+    pub fn nama_sanadi(&self) -> &Option<Sanadi> {
+        &self.nama_sanadi
+    }
+
+    /// Any other sanAdi pratyayas to use after `nama_sanadi`.
+    pub fn other_sanadi(&self) -> &Vec<Sanadi> {
+        &self.other_sanadi
     }
 
     /// The prefixes to use with the dhatu.
@@ -263,12 +386,32 @@ impl Dhatu {
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::args::*;
+    /// use vidyut_prakriya::args::*;
+    ///
     /// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
     /// let kr = Dhatu::mula("qukf\\Y", Gana::Tanadi);
     /// ```
     pub fn mula(upadesha: &str, gana: Gana) -> Self {
         Self::Mula(Muladhatu::new(upadesha, gana))
+    }
+
+    /// Creates a new dhatu with its gana and antargana.
+    ///
+    /// An *antargana* is a subsection of a larger gana. Generally, dhatus in the same antargana
+    /// share specific properties. For example, the *kuṭādi* antargana generally does not change
+    /// its vowel to guna.
+    ///
+    /// For more customization, use the `builder()` API instead.
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// use vidyut_prakriya::args::*;
+    ///
+    /// let kut = Dhatu::mula_with_antargana("kuwa~", Gana::Tudadi, Antargana::Kutadi);
+    /// ```
+    pub fn mula_with_antargana(upadesha: &str, gana: Gana, antargana: Antargana) -> Self {
+        Self::Mula(Muladhatu::new(upadesha, gana).with_antargana(antargana))
     }
 
     /// Creates a new namadhatu with its sanadi-pratyaya.
@@ -292,14 +435,11 @@ impl Dhatu {
     /// # use vidyut_prakriya::args::*;
     /// let lohitaya = Dhatu::nama(Pratipadika::basic("lohita"), None);
     /// ````
-    pub fn nama(subanta: Pratipadika, sanadi: Option<Sanadi>) -> Self {
-        let sanadi = match sanadi {
-            Some(x) => vec![x],
-            None => Vec::new(),
-        };
+    pub fn nama(subanta: Pratipadika, nama_sanadi: Option<Sanadi>) -> Self {
         Self::Nama(Namadhatu {
             pratipadika: subanta,
-            sanadi,
+            nama_sanadi,
+            other_sanadi: Vec::new(),
             prefixes: Vec::new(),
         })
     }
@@ -313,7 +453,7 @@ impl Dhatu {
     pub fn sanadi(&self) -> &Vec<Sanadi> {
         match self {
             Self::Mula(m) => m.sanadi(),
-            Self::Nama(n) => n.sanadi(),
+            Self::Nama(n) => n.other_sanadi(),
         }
     }
 
@@ -374,8 +514,8 @@ impl Dhatu {
                 m.sanadi.extend(sanadi);
             }
             Self::Nama(ref mut n) => {
-                n.sanadi.clear();
-                n.sanadi.extend(sanadi);
+                n.other_sanadi.clear();
+                n.other_sanadi.extend(sanadi);
             }
         }
         self

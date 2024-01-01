@@ -239,7 +239,7 @@ pub fn try_pratyaya_adesha_at_index(p: &mut Prakriya, i_anga: usize) -> Option<(
         }
     } else if let Some(sub) = replace_pha_dha_and_others(n) {
         p.run_at("7.1.2", i_n, op::adi(sub));
-    } else if n.has_adi('W') {
+    } else if n.has_adi('W') && !n.is_unadi() {
         // Run 7.3.50 and 7.3.51 because they have no clear place otherwise.
         if anga.has_suffix_in(&["is", "us", "t"]) || anga.has_antya(&*UK) {
             p.run_at("7.3.51", i_n, |t| t.set_adi("k"));
@@ -841,7 +841,11 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if has_c_j_antya && (n.has_tag(T::Git) || n.has_u("Ryat")) {
         let sub = convert(anga.antya()?)?;
         p.run_at("7.3.52", i, op::antya(sub));
-    } else if anga.has_text("masj") && n.first().has_unadi(Unadi::u) {
+    } else if (anga.has_text("masj") && n.first().has_unadi(Unadi::u))
+        || (anga.has_text("Bfj") && n.first().has_unadi(Unadi::ku))
+        || (anga.has_text("anc") && n.first().has_unadi(Unadi::u))
+    {
+        // TODO: add other nyankvAdi cases.
         let sub = convert(anga.antya()?)?;
         p.run_at("7.3.53", i, op::antya(sub));
     } else if anga.has_u("ha\\na~") && anga.has_adi('h') {

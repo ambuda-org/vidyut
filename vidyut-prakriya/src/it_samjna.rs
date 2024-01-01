@@ -45,6 +45,8 @@ fn is_exempt_from_cutu(t: &Term) -> bool {
     // those rules will become vyartha.
     if t.has_adi(&*CUTU_EXCEPTION) {
         true
+    } else if t.is_unadi() && t.has_u_in(&["Ru", "ci~k", "wan"]) {
+        true
     } else {
         t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap", "jAhac", "wIwac"])
     }
@@ -58,7 +60,11 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
     if t.has_tag(T::La) && t.has_u_in(LAKARAS) {
         // Keep the first "l" of the lakAras. Otherwise, rule 3.4.77 will become vyartha.
         true
-    } else if t.is_unadi() && t.has_u_in(&["kan", "Ka"]) {
+    } else if t.is_unadi()
+        && t.has_u_in(&[
+            "kan", "Ka", "SvaR", "Sun", "ga", "gan", "gaR", "gak", "karan", "lak",
+        ])
+    {
         true
     } else {
         t.is_pratyaya() && t.has_u_in(&["kAmyac"])

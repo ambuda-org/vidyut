@@ -135,7 +135,7 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let j = p.find_next_where(i, |t| !t.is_empty())?;
         let x = p.get(i)?;
-        let y = p.get(j)?;
+        let y = p.get_if(j, |t| !t.is_unadi())?;
 
         if x.has_u_in(&["kfpU~\\", "kfpa~\\", "kfpa~"]) {
             p.run("8.2.18", |p| {
@@ -154,8 +154,9 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
         } else if x.has_u("gF") {
             if y.has_u("yaN") {
                 p.run_at("8.2.20", i, do_ra_la);
-            } else if x.has_gana(Gana::Tudadi) && y.has_adi(&*AC) {
-                // TODO: why only gana 6?
+            } else if x.has_gana(Gana::Tudadi) && y.has_adi(&*AC) && !y.is_unadi() {
+                // Exclude unadi so we don't derive "galuqa".
+                // TODO: why only tudAdi?
                 p.optional_run_at("8.2.21", i, do_ra_la);
             }
         }

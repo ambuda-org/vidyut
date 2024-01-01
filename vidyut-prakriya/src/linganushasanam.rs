@@ -115,6 +115,10 @@ impl<'a> LingaPrakriya<'a> {
 pub fn run(p: &mut Prakriya) -> Option<()> {
     use Rule::Linganushasana as L;
 
+    if p.has_tag(T::Stri) {
+        return None;
+    }
+
     let mut lp = LingaPrakriya::new(p);
     let i_last = lp.p.terms().len() - 1;
 

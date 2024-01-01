@@ -185,6 +185,9 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
             // General guna/vrddhi rules.
             if is_upasarga_sanadi_dhatu(p, i) {
                 return false;
+            } else if t_x.is_unadi() && t_x.has_u("qau") {
+                // Otherwise stating this as `qau` would by vyartha.
+                return false;
             }
 
             let j = i + 1;

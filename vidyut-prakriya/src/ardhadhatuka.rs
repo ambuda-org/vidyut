@@ -200,7 +200,7 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         if run_it {
             it_samjna::run(p, i).expect("ok");
         }
-    } else if dhatu.has_u("asa~") {
+    } else if dhatu.has_u("asa~") && !n.first().is_unadi() {
         op::adesha("2.4.52", p, i, "BU");
     } else if dhatu.has_u("brUY") {
         // anudAtta to prevent iT
@@ -231,7 +231,8 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         let is_lit_ajadi = la == Some(Lakara::Lit) && p.terms().last()?.has_adi(&*AC);
         let will_have_valadi = !(will_yasut || is_lit_ajadi);
         // HACK: ignore Rvul, since it will be replaced with -aka.
-        if n.has_adi(&*VAL) && will_have_valadi && !n.has_text("vu~") {
+        // HACK: ignore unadi, since here it seems mandatory.
+        if n.has_adi(&*VAL) && will_have_valadi && !n.is_unadi() && !n.has_text("vu~") {
             run = !p.optionally(Varttika("2.4.56.2"), |rule, p| p.step(rule));
         }
         if run {
@@ -281,7 +282,7 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
     }
 
     // Substitution of A for root vowel
-    if dhatu.has_antya(&*EC) && !n.has_tag(T::Sit) {
+    if dhatu.has_antya(&*EC) && !n.has_tag(T::Sit) && !dhatu.has_tag(T::Complete) {
         if dhatu.has_text("vye") && n.has_lakshana("li~w") {
             p.step("6.1.46");
         } else {
@@ -315,6 +316,8 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
     if dhatu.has_u_in(&["mI\\Y", "qumi\\Y", "dI\\N"])
         && ashiti_lyapi
         && !n.last().has_unadi(Unadi::u)
+        && !n.last().has_unadi(Unadi::Uran)
+        && !n.last().has_unadi(Unadi::Aran)
         && will_cause_guna(&n)
     {
         p.run_at("6.1.50", i, op::antya("A"));
