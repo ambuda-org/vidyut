@@ -108,6 +108,13 @@ independently depending on your use case.
 In Rust, components of this kind are called *crates*.
 
 
+### [`vidyut-chandas`][vidyut-chandas]
+
+`vidyut-chandas` is an experimental classifier for Sanskrit meters.
+
+For details, see the [vidyut-chandas README][vidyut-chandas].
+
+
 ### [`vidyut-cheda`][vidyut-cheda]
 
 `vidyut-cheda` segments Sanskrit expressions into words then annotates those
@@ -147,6 +154,7 @@ between words. It is fast, simple, and appropriate for most use cases.
 For details, see the [vidyut-sandhi README][vidyut-sandhi].
 
 
+[vidyut-chandas]: vidyut-chandas/README.md
 [vidyut-cheda]: vidyut-cheda/README.md
 [vidyut-kosha]: vidyut-kosha/README.md
 [vidyut-prakriya]: vidyut-prakriya/README.md

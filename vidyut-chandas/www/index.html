@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,"><!-- Avoid favicon requests: https://stackoverflow.com/a/38917888 -->
+  <title>vidyut-chandas demo</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.2.7/sanscript.min.js"></script>
+  <script type="module" src="/static/vidyut-chandas-app.js"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style type="text/css">
+    .a-underline a {
+        text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+<article x-data="app">
+
+<!-- Header -->
+<header class="py-12 bg-slate-100 text-center">
+  <h1 class="text-4xl font-bold mb-2" x-text="deva('vidyut')"></h1>
+  <p class="text-slate-800">
+    <strong><a class="underline" href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-chandas" target="_blank">vidyut-chandas</a></strong>
+    is an experimental metrical classifier.</p>
+  </p>
+</header>
+
+<div class="max-w-4xl mx-auto px-4">
+
+<ul class="flex my-4 pb-3 border-b">
+  <li><a class="py-2 mr-4" href="#" :class="tab('demo')" @click.prevent="setTab('demo')">Demo</a></li>
+  <li><a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="setTab('about')">About</a></li>
+</ul>
+
+<section x-show="activeTab === 'demo'">
+  <div class="my-4">
+    <select x-model="from" class="p-2 bg-slate-50 border rounded">
+      <template x-for="s in schemes()">
+        <option x-text="s.text" :value="s.value" :selected="s.value === from"></option>
+      </template>
+    </select>
+
+    &rarr;
+
+    <select x-model="to" class="p-2 bg-slate-100 border rounded">
+      <template x-for="s in schemes()">
+        <option x-text="s.text" :value="s.value" :selected="s.value === to"></option>
+      </template>
+    </select>
+  </div>
+
+  <textarea x-model="text" rows="8" class="p-2 rounded border block w-full p-2">
+  </textarea>
+
+  <div class="my-4">
+    <p class="my-4 p-2 rounded">Detected as:
+      <i><span x-text="results.vrtta || '(unknown)'"></span></i>
+      <template x-if="results.matchType">
+        <i>(match type: <span x-text="results.matchType"></span>)</i>
+      </template>
+    </p>
+
+    <template x-for="row in results.aksharas">
+      <ul class="flex">
+        <template x-for="a in row">
+        <li class="p-1 border rounded m-1 text-lg bg-slate-100" :class="akshara(a)"
+          x-text="transSLP1(a.text)"></li>
+        </template>
+      </ul>
+    </template>
+  </div>
+</section>
+
+<section x-show="activeTab === 'about'">
+  <div class="prose my-8 mx-auto">
+    <p><i>vidyut-chandas</i> is an experimental metrical classifier. Our source
+       code is available <a
+         href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-chandas">here</a>,
+       and you can file bugs <a
+         href="https://github.com/ambuda-org/vidyut/issues">here</a>.</p>
+  </div>
+</section>
+
+</div>
+
+</article>
+</body>
+</html>
+

@@ -1,0 +1,22 @@
+[package]
+name = "vidyut-chandas"
+version = "0.1.0"
+authors = ["Arun Prasad <ambuda.library@gmail.com>"]
+description = "A Sanskrit metrical classifier"
+homepage = "https://github.com/ambuda-org/vidyut"
+repository = "https://github.com/ambuda-org/vidyut"
+categories = ["text-processing"]
+keywords = ["sanskrit"]
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+lazy_static = "1.4.0"
+serde = { version = "1.0.150", features = ["derive"] }
+serde-wasm-bindgen = "0.4"
+serde_derive = "1.0.193"
+wasm-bindgen = "0.2"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

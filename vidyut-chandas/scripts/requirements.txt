@@ -1,0 +1,2 @@
+indic_transliteration
+requests
