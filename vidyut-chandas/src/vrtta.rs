@@ -74,15 +74,18 @@ impl Gana {
     }
 }
 
-fn to_weights(text: &str) -> Vec<PatternWeight> {
-    text.chars()
+fn to_weights(text: &str) -> Pada {
+    Pada {
+        weights: text.chars()
         .filter_map(|c| match c {
             '.' => Some(PatternWeight::Any),
             'L' => Some(PatternWeight::L),
             'G' => Some(PatternWeight::G),
             _ => None,
         })
-        .collect()
+        .collect(),
+        yati: text.match_indices('|').enumerate().map(|(pos, (index, _))| index - pos).collect()
+    }
 }
 
 fn to_counts(text: &str) -> Vec<usize> {
@@ -91,21 +94,38 @@ fn to_counts(text: &str) -> Vec<usize> {
         .collect()
 }
 
+/// Models a *feet/leg* of a verse, which constitutes of a specific pattern of light and heavy syllables along with some additional information like the yati positions.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Pada {
+    weights: Vec<PatternWeight>,
+    yati: Vec<usize>
+}
+
 /// Models a *vṛtta*, which defines a specific pattern of light and heavy syllables.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Vrtta {
     name: String,
-    weights: Vec<Vec<PatternWeight>>,
+    padas: Vec<Pada>,
 }
 
 impl Vrtta {
+
     /// Creates a new `Vrtta` with the given name and weight pattern.
-    pub fn new(name: impl AsRef<str>, weights: Vec<Vec<PatternWeight>>) -> Self {
+    pub fn new(name: impl AsRef<str>, padas: Vec<Pada>) -> Self {
         Self {
             name: name.as_ref().to_string(),
-            weights,
+            padas,
         }
     }
+
+    // Just a small utility function to get the weights as a vector from the Vrtta struct
+    fn weights_as_vector(&self) -> Vec<Vec<PatternWeight>> {
+        self.padas.iter().fold(Vec::new(), |mut w, p| {
+            w.push(p.weights.clone());
+            w
+        })
+    }
+
 
     /// The name of this vrtta.
     ///
@@ -115,8 +135,8 @@ impl Vrtta {
     }
 
     #[allow(unused)]
-    pub(crate) fn weights(&self) -> &Vec<Vec<PatternWeight>> {
-        &self.weights
+    pub(crate) fn padas(&self) -> &Vec<Pada> {
+        &self.padas
     }
 
     pub(crate) fn try_match(&self, aksharas: &[Vec<Akshara>]) -> MatchType {
@@ -132,10 +152,14 @@ impl Vrtta {
         }
         eprintln!();
 
+        let w = self.weights_as_vector();
+
         let mut full = Vec::new();
+        
         while full.len() < 4 {
-            full.extend(self.weights.clone());
+            full.extend(w.clone());
         }
+
         debug_assert_eq!(full.len(), 4);
         if let Some(last) = full[1].last_mut() {
             *last = Any;
@@ -187,7 +211,7 @@ impl Vrtta {
         use PatternWeight::*;
 
         let mut result = Vec::new();
-        for pada in &self.weights {
+        for pada in &self.weights_as_vector() {
             let mut ganas = Vec::new();
 
             for chunk in pada.chunks(3) {
@@ -227,8 +251,8 @@ impl TryFrom<&str> for Vrtta {
         let name = fields[0];
         let _ = fields[1];
         let pattern_str = fields[2];
-        let weights = pattern_str.split("/").map(to_weights).collect();
-        Ok(Vrtta::new(name, weights))
+        let padas: Vec<Pada> = pattern_str.split("/").map(to_weights).collect();
+        Ok(Vrtta::new(name, padas))
     }
 }
 
