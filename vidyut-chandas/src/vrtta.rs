@@ -80,21 +80,18 @@ fn to_counts(text: &str) -> Vec<usize> {
         .collect()
 }
 
-/// Models a *pāda*, which is one of the four "feet" or "legs" of a verse. 
-/// A *pāda* defines a specific pattern of light and heavy syllables and 
+/// Models a *pāda*, which is one of the four "feet" or "legs" of a verse.
+/// A *pāda* defines a specific pattern of light and heavy syllables and
 /// might also define one or more *yati*s (caesuras).
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Pada {
     weights: Vec<PatternWeight>,
-    yati: Vec<usize>
+    yati: Vec<usize>,
 }
 
 impl Pada {
     fn new(weights: Vec<PatternWeight>, yati: Vec<usize>) -> Self {
-        Pada {
-            weights,
-            yati
-        }
+        Pada { weights, yati }
     }
 }
 
@@ -106,7 +103,6 @@ pub struct Vrtta {
 }
 
 impl Vrtta {
-
     /// Creates a new `Vrtta` with the given name and weight pattern.
     pub fn new(name: impl AsRef<str>, padas: Vec<Pada>) -> Self {
         Self {
@@ -114,7 +110,6 @@ impl Vrtta {
             padas,
         }
     }
-
 
     /// The name of this vrtta.
     ///
@@ -142,10 +137,10 @@ impl Vrtta {
         eprintln!();
 
         let mut full = Vec::new();
-        
+
         while full.len() < 4 {
             for p in &self.padas {
-              full.push(p.weights.clone());
+                full.push(p.weights.clone());
             }
         }
 
@@ -201,7 +196,6 @@ impl Vrtta {
 
         let mut result = Vec::new();
 
-        
         for pada in &self.padas {
             let mut ganas = Vec::new();
 
@@ -236,14 +230,20 @@ impl TryFrom<&str> for Pada {
     type Error = Box<dyn Error>;
 
     fn try_from(text: &str) -> Result<Self, Self::Error> {
-        let weights: Vec<PatternWeight> = text.chars().filter_map(|c| match c {
+        let weights: Vec<PatternWeight> = text
+            .chars()
+            .filter_map(|c| match c {
                 '.' => Some(PatternWeight::Any),
                 'L' => Some(PatternWeight::L),
                 'G' => Some(PatternWeight::G),
                 _ => None,
             })
-        .collect();
-        let yati: Vec<usize> = text.match_indices('|').enumerate().map(|(i, (offset, _))| offset - i).collect();
+            .collect();
+        let yati: Vec<usize> = text
+            .match_indices('|')
+            .enumerate()
+            .map(|(i, (offset, _))| offset - i)
+            .collect();
         Ok(Pada::new(weights, yati))
     }
 }
@@ -258,7 +258,8 @@ impl TryFrom<&str> for Vrtta {
         let name = fields[0];
         let _ = fields[1];
         let pattern_str = fields[2];
-        let padas: Result<Vec<Pada>, Box<dyn Error>> = pattern_str.split("/").map(|x| x.try_into()).collect();
+        let padas: Result<Vec<Pada>, Box<dyn Error>> =
+            pattern_str.split("/").map(|x| x.try_into()).collect();
         let padas = padas?;
         Ok(Vrtta::new(name, padas))
     }
