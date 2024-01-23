@@ -144,10 +144,10 @@ pub enum Scheme {
     /// TODO: find documentation link for IAST.
     Iast,
 
-    /// ISO 19519 transliteration.
+    /// ISO 15919 transliteration.
     ///
-    /// TODO: find a free documentation link for ISO 19519.
-    Iso19519,
+    /// TODO: find a free documentation link for ISO 15919.
+    Iso15919,
 
     /// ITRANS transliteration.
     ///
@@ -231,11 +231,50 @@ impl Scheme {
             Scheme::BarahaSouth => auto::BARAHA,
             Scheme::HarvardKyoto => auto::HK,
             Scheme::Iast => auto::IAST,
-            Scheme::Iso19519 => auto::ISO,
+            Scheme::Iso15919 => auto::ISO,
             Scheme::Itrans => auto::ITRANS,
             Scheme::Slp1 => auto::SLP1,
             Scheme::Velthuis => auto::VELTHUIS,
             Scheme::Wx => auto::WX,
+        }
+    }
+
+    /// Returns a map from tokens to their NFD forms.
+    ///
+    /// (NFD = Unicode normal form canonical decomposition)
+    pub(crate) fn unicode_nfd_pairs(&self) -> &[Pair] {
+        use crate::unicode_norm as u;
+        use Scheme::*;
+
+        match self {
+            Balinese => u::BALINESE_NFD,
+            Bengali => u::BENGALI_NFD,
+            Burmese => u::MYANMAR_NFD,
+            Devanagari => u::DEVANAGARI_NFD,
+            Grantha => u::GRANTHA_NFD,
+            Gurmukhi => u::GURMUKHI_NFD,
+            Kannada => u::KANNADA_NFD,
+            Malayalam => u::MALAYALAM_NFD,
+            Odia => u::ORIYA_NFD,
+            Siddham => u::SIDDHAM_NFD,
+            Sinhala => u::SINHALA_NFD,
+            Tamil => u::TAMIL_NFD,
+            Telugu => u::TELUGU_NFD,
+            Iast | Iso15919 => u::LATIN_NFD,
+            _ => &[],
+        }
+    }
+
+    pub(crate) fn unicode_composition_exclusions(&self) -> &[&str] {
+        use crate::unicode_norm as u;
+        use Scheme::*;
+
+        match self {
+            Devanagari => u::DEVANAGARI_COMPOSITION_EXCLUSIONS,
+            Bengali => u::BENGALI_COMPOSITION_EXCLUSIONS,
+            Gurmukhi => u::GURMUKHI_COMPOSITION_EXCLUSIONS,
+            Odia => u::ORIYA_COMPOSITION_EXCLUSIONS,
+            _ => &[],
         }
     }
 
@@ -258,7 +297,7 @@ impl Scheme {
             | Telugu => true,
 
             // Alphabets are all `false`.
-            BarahaSouth | HarvardKyoto | Iso19519 | Itrans | Iast | Slp1 | Velthuis | Wx => false,
+            BarahaSouth | HarvardKyoto | Iso15919 | Itrans | Iast | Slp1 | Velthuis | Wx => false,
         }
     }
 
@@ -267,6 +306,13 @@ impl Scheme {
     /// A writing system is an *alphabet* if
     pub(crate) fn is_alphabet(&self) -> bool {
         !self.is_abugida()
+    }
+
+    /// Returns whether the scheme uses non-decimal numerals.
+    ///
+    /// Currently, our only scheme of this kind is `Grantha`.
+    pub(crate) fn has_non_decimal_numerals(&self) -> bool {
+        matches!(self, Scheme::Grantha)
     }
 
     /// Returns how well this scheme support Sanskrit.
@@ -302,6 +348,7 @@ impl Scheme {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use unicode_normalization::UnicodeNormalization;
 
     #[test]
     fn iter_contains_all_defined_schemes() {
@@ -317,7 +364,7 @@ mod tests {
                 Devanagari | Balinese | Bengali | Tamil | Brahmi | Burmese | Grantha | Gujarati
                 | Gurmukhi | Javanese | Odia | Sharada | Kannada | Malayalam | Siddham
                 | Sinhala | Telugu | Itrans | HarvardKyoto | Slp1 | Velthuis | Iast | Wx
-                | Iso19519 | BarahaSouth => {
+                | Iso15919 | BarahaSouth => {
                     expected.push(*s);
                 }
             }
@@ -325,8 +372,9 @@ mod tests {
         assert_eq!(expected, actual);
     }
 
+    /// Checks basic token pairs.
     #[test]
-    fn token_pairs() {
+    fn token_pairs_basic() {
         let mark_aa = "\u{093e}";
 
         let slp1 = Scheme::Slp1.token_pairs();
@@ -342,6 +390,40 @@ mod tests {
         assert!(deva.contains(&(mark_aa, mark_aa)));
     }
 
+    /// Checks that all tokens are encoded in NFC.
+    ///
+    /// This is just a sanity check to ensure that our default schemes are somewhat well-formed.
+    #[test]
+    fn token_pairs_are_all_nfc() {
+        for scheme in Scheme::iter() {
+            for (key, value) in scheme.token_pairs() {
+                let key_nfc: String = key.nfc().collect();
+                let value_nfc: String = value.nfc().collect();
+                assert_eq!(&key_nfc, key);
+                assert_eq!(&value_nfc, value);
+            }
+        }
+    }
+
+    /// Checks that token pairs don't contain needless duplicates.
+    ///
+    /// This is just a sanity check to ensure that our default schemes are somewhat well-formed.
+    #[test]
+    fn token_pairs_have_no_duplicates() {
+        for scheme in Scheme::iter() {
+            let mut seen = std::collections::HashSet::new();
+            for pair in scheme.token_pairs() {
+                let key_codes: Vec<_> = pair.0.chars().map(|c| c as u32).collect();
+                let value_codes: Vec<_> = pair.1.chars().map(|c| c as u32).collect();
+                assert!(
+                    !seen.contains(pair),
+                    "Token pair {pair:?} ({key_codes:x?} --> {value_codes:x?}) already exists in scheme {scheme:?}"
+                );
+                seen.insert(pair);
+            }
+        }
+    }
+
     #[test]
     fn is_abugida_or_alphabet() {
         use Scheme::*;
@@ -351,6 +433,7 @@ mod tests {
         }
     }
 
+    /// Not used anywhere yet.
     #[test]
     fn coverage() {
         use Scheme::*;

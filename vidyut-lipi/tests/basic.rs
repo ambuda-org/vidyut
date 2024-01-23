@@ -1,10 +1,10 @@
 use vidyut_lipi::Scheme::*;
-use vidyut_lipi::{transliterate, Mapping, Scheme};
+use vidyut_lipi::{Lipika, Scheme};
 
 /// A quick alias for transliterating.
 fn t(input: &str, from: Scheme, to: Scheme) -> String {
-    let mapping = Mapping::new(from, to);
-    transliterate(input, &mapping)
+    let mut lipika = Lipika::new();
+    lipika.transliterate(input, from, to)
 }
 
 fn assert_transliterate(input: &str, from: Scheme, to: Scheme, expected: &str) {
@@ -50,7 +50,7 @@ fn sanskrit_independent_vowels() {
         (BarahaSouth, "a A i I u U Ru RU ~lu ~lU E ai O au"),
         (HarvardKyoto, "a A i I u U R RR lR lRR e ai o au"),
         (Iast, "a ā i ī u ū ṛ ṝ ḷ ḹ e ai o au"),
-        (Iso19519, "a ā i ī u ū r̥ r̥̄ l̥ l̥̄ ē ai ō au"),
+        (Iso15919, "a ā i ī u ū r̥ r̥̄ l̥ l̥̄ ē ai ō au"),
         (Itrans, "a A i I u U RRi RRI LLi LLI e ai o au"),
         (Slp1, "a A i I u U f F x X e E o O"),
         (Velthuis, "a aa i ii u uu .r .R .l .L e ai o au"),
@@ -98,7 +98,7 @@ fn sanskrit_dependent_vowels() {
             "ka kA ki kI ku kU kR kRR klR klRR ke kai ko kau",
         ),
         (Iast, "ka kā ki kī ku kū kṛ kṝ kḷ kḹ ke kai ko kau"),
-        (Iso19519, "ka kā ki kī ku kū kr̥ kr̥̄ kl̥ kl̥̄ kē kai kō kau"),
+        (Iso15919, "ka kā ki kī ku kū kr̥ kr̥̄ kl̥ kl̥̄ kē kai kō kau"),
         (
             Itrans,
             "ka kA ki kI ku kU kRRi kRRI kLLi kLLI ke kai ko kau",
@@ -146,7 +146,7 @@ fn sanskrit_ayogavahas_etc() {
         (BarahaSouth, "aM aH a~M"),
         (HarvardKyoto, "aM aH a~"),
         (Iast, "aṃ aḥ am̐"),
-        (Iso19519, "aṁ aḥ am̐"),
+        (Iso15919, "aṁ aḥ am̐"),
         (Itrans, "aM aH a.N"),
         (Slp1, "aM aH a~"),
         (Velthuis, "a.m a.h a~m"),
@@ -180,7 +180,7 @@ fn sanskrit_consonants_non_vedic() {
         (BarahaSouth, "ka kha ga gha ~ga cha Cha ja jha ~ja Ta Tha Da Dha Na ta tha da dha na pa pha ba bha ma ya ra la va sha Sha sa ha"),
         (HarvardKyoto, "ka kha ga gha Ga ca cha ja jha Ja Ta Tha Da Dha Na ta tha da dha na pa pha ba bha ma ya ra la va za Sa sa ha"),
         (Iast, "ka kha ga gha ṅa ca cha ja jha ña ṭa ṭha ḍa ḍha ṇa ta tha da dha na pa pha ba bha ma ya ra la va śa ṣa sa ha"),
-        (Iso19519, "ka kha ga gha ṅa ca cha ja jha ña ṭa ṭha ḍa ḍha ṇa ta tha da dha na pa pha ba bha ma ya ra la va śa ṣa sa ha"),
+        (Iso15919, "ka kha ga gha ṅa ca cha ja jha ña ṭa ṭha ḍa ḍha ṇa ta tha da dha na pa pha ba bha ma ya ra la va śa ṣa sa ha"),
         (Itrans, "ka kha ga gha ~Na cha Cha ja jha ~na Ta Tha Da Dha Na ta tha da dha na pa pha ba bha ma ya ra la va sha Sha sa ha"),
         (Slp1, "ka Ka ga Ga Na ca Ca ja Ja Ya wa Wa qa Qa Ra ta Ta da Da na pa Pa ba Ba ma ya ra la va Sa za sa ha"),
         (Velthuis, "ka kha ga gha \"na ca cha ja jha ~na .ta .tha .da .dha .na ta tha da dha na pa pha ba bha ma ya ra la va \"sa .sa sa ha"),
@@ -231,7 +231,7 @@ fn sanskrit_basic_sentences() {
         (BarahaSouth, "nArAyaNaM namaskRutya naraM chaiva narOttamam | dEvIM sarasvatIM chaiva tatO jayamudIyarEt || 1 ||",),
         (HarvardKyoto, "nArAyaNaM namaskRtya naraM caiva narottamam . devIM sarasvatIM caiva tato jayamudIyaret .. 1 ..",),
         (Iast, "nārāyaṇaṃ namaskṛtya naraṃ caiva narottamam . devīṃ sarasvatīṃ caiva tato jayamudīyaret .. 1 .."),
-        (Iso19519, "nārāyaṇaṁ namaskr̥tya naraṁ caiva narōttamam . dēvīṁ sarasvatīṁ caiva tatō jayamudīyarēt .. 1 .."),
+        (Iso15919, "nārāyaṇaṁ namaskr̥tya naraṁ caiva narōttamam . dēvīṁ sarasvatīṁ caiva tatō jayamudīyarēt .. 1 .."),
         (Itrans, "nArAyaNaM namaskRRitya naraM chaiva narottamam | devIM sarasvatIM chaiva tato jayamudIyaret || 1 ||"),
         (Slp1, "nArAyaRaM namaskftya naraM cEva narottamam . devIM sarasvatIM cEva tato jayamudIyaret .. 1 .."),
         (Velthuis, "naaraaya.na.m namask.rtya nara.m caiva narottamam | devii.m sarasvatii.m caiva tato jayamudiiyaret || 1 ||"),
@@ -293,7 +293,7 @@ fn sanskrit_vedic_consonants() {
         (BarahaSouth, "La Lha"),
         (HarvardKyoto, "La Lha"),
         (Iast, "ḻa ḻha"),
-        (Iso19519, "ḷa ḷha"),
+        (Iso15919, "ḷa ḷha"),
         (Itrans, "La Lha"),
         (Slp1, "La |a"),
         (Velthuis, "La Lha"),
@@ -320,8 +320,9 @@ fn sanskrit_vedic_consonants() {
 #[test]
 fn other_consonants() {
     assert_two_way_pairwise(&[
-        (Devanagari, "क़ ख़ ग़ ज़ ड़ ढ़ फ़ य़ ऱ"),
+        (Devanagari, "क़ ख़ ग़ ज़ ड़ ढ़ फ़ य़ ऱ"),
         (Itrans, "qa Ka Ga za .Da .Dha fa Ya Ra"),
+        (Iso15919, "qa k͟ha ġa za ṛa ṛha fa ẏa ṟa"),
     ]);
 }
 
@@ -381,6 +382,85 @@ fn grantha_two_part_vowels() {
     assert_has("𑌕\u{11357}", kau);
 }
 
+/// Tests that NFC and NFD variants of IAST are transliterated in the same way.
+#[test]
+fn iast_unicode_variants() {
+    use unicode_normalization::UnicodeNormalization;
+
+    let cases = &[
+        ("A", "ā"),
+        ("I", "ī"),
+        ("U", "ū"),
+        ("f", "ṛ"),
+        ("F", "ṝ"),
+        ("x", "ḷ"),
+        ("X", "ḹ"),
+        ("M", "ṃ"),
+        ("H", "ḥ"),
+        ("N", "ṅ"),
+        ("Y", "ñ"),
+        ("w", "ṭ"),
+        ("q", "ḍ"),
+        ("R", "ṇ"),
+        ("S", "ś"),
+        ("z", "ṣ"),
+    ];
+
+    let mut lipika = Lipika::new();
+    for (slp1, iast) in cases {
+        let iast_nfc: String = iast.nfc().collect();
+        let slp1_out_nfc = lipika.transliterate(&iast_nfc, Scheme::Iast, Scheme::Slp1);
+        assert_eq!(&slp1_out_nfc, slp1);
+
+        let iast_nfd: String = iast.nfd().collect();
+        assert_ne!(iast_nfc, iast_nfd);
+
+        let slp1_out_nfd = lipika.transliterate(&iast_nfd, Scheme::Iast, Scheme::Slp1);
+        assert_eq!(&slp1_out_nfd, slp1);
+    }
+}
+
+#[test]
+fn iso_tamil_aytam() {
+    assert_transliterate("ஃ", Tamil, Iso15919, "ḳ");
+    assert_transliterate("\u{1e33}", Iso15919, Tamil, "ஃ");
+    assert_transliterate("k\u{0323}", Iso15919, Tamil, "ஃ");
+}
+
+/// Tests that NFC and NFD variants of ISO-15919 are transliterated in the same way.
+#[test]
+fn iso_unicode_variants() {
+    use unicode_normalization::UnicodeNormalization;
+
+    let cases = &[
+        ("A", "ā"),
+        ("I", "ī"),
+        ("U", "ū"),
+        ("M", "ṁ"),
+        ("H", "ḥ"),
+        ("N", "ṅ"),
+        ("Y", "ñ"),
+        ("w", "ṭ"),
+        ("q", "ḍ"),
+        ("R", "ṇ"),
+        ("S", "ś"),
+        ("z", "ṣ"),
+    ];
+
+    let mut lipika = Lipika::new();
+    for (slp1, iso) in cases {
+        let iso_nfc: String = iso.nfc().collect();
+        let slp1_out_nfc = lipika.transliterate(&iso_nfc, Scheme::Iso15919, Scheme::Slp1);
+        assert_eq!(&slp1_out_nfc, slp1);
+
+        let iso_nfd: String = iso.nfd().collect();
+        assert_ne!(iso_nfc, iso_nfd);
+
+        let slp1_out_nfd = lipika.transliterate(&iso_nfd, Scheme::Iso15919, Scheme::Slp1);
+        assert_eq!(&slp1_out_nfd, slp1);
+    }
+}
+
 #[test]
 fn itrans_zero_width_joiner() {
     assert_transliterate("bara_u", Itrans, Devanagari, "बरउ");
@@ -397,9 +477,9 @@ fn itrans_backslash_escape() {
 #[test]
 fn itrans_alternates() {
     let assert_identical = |x, y| {
-        let mapping = Mapping::new(Itrans, Devanagari);
-        let deva_x = transliterate(x, &mapping);
-        let deva_y = transliterate(y, &mapping);
+        let mut lipika = Lipika::new();
+        let deva_x = lipika.transliterate(x, Itrans, Devanagari);
+        let deva_y = lipika.transliterate(y, Itrans, Devanagari);
         assert_eq!(deva_x, deva_y, "{x} ({deva_x}) != {y} ({deva_y})");
     };
     assert_identical("A I U RRi RRI LLi LLI", "aa ii uu R^i R^I L^i L^I");
@@ -436,5 +516,5 @@ fn velthuis_basic() {
         "\u{902} \u{901} \u{903} \u{93d} \u{94d} \u{945} \u{949} ॐ । ॥ ऱ ॰ ॱ",
     );
     // Extended consonants
-    assert_has("qa .kha .ga za Ra Rha fa", "क़ ख़ ग़ ज़ ड़ ढ़ फ़");
+    assert_has("qa .kha .ga za Ra Rha fa", "क़ ख़ ग़ ज़ ड़ ढ़ फ़");
 }

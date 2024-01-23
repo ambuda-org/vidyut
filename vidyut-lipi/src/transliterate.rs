@@ -1,18 +1,36 @@
 use crate::mapping::Mapping;
+use crate::numerals;
 use crate::scheme::Scheme;
 
 /// Transliterates from an abugida.
 fn transliterate_from_abugida(input: &str, mapping: &Mapping) -> String {
     let chars: Vec<char> = input.chars().collect();
     let is_to_alpha = mapping.to.is_alphabet();
+    let uses_non_decimal =
+        mapping.from.has_non_decimal_numerals() || mapping.to.has_non_decimal_numerals();
 
     let mut output = String::new();
     let mut i = 0;
     let mut key = String::new();
     let mut had_consonant = false;
     while i < chars.len() {
-        let mut o: Option<&String> = None;
+        if uses_non_decimal {
+            let num_numerals = chars[i..]
+                .iter()
+                .take_while(|c| {
+                    let mut temp = [0u8; 4];
+                    let digit_str = c.encode_utf8(&mut temp);
+                    mapping.numeral_to_int.contains_key(digit_str)
+                })
+                .count();
+            if num_numerals > 0 {
+                numerals::transliterate_numeral(&mut output, &chars[i..i + num_numerals], mapping);
+                i += num_numerals;
+                continue;
+            }
+        }
 
+        let mut o: Option<&String> = None;
         let mut key_len_in_chars = 0;
         for len_key in (1..=mapping.len_longest_key).rev() {
             let j = std::cmp::min(i + len_key, chars.len());
@@ -67,8 +85,23 @@ fn transliterate_from_alphabet(input: &str, mapping: &Mapping) -> String {
     let mut key = String::new();
     let mut had_consonant = false;
     while i < chars.len() {
-        let mut o: Option<&String> = None;
+        if mapping.to().has_non_decimal_numerals() {
+            let num_numerals = chars[i..]
+                .iter()
+                .take_while(|c| {
+                    let mut temp = [0u8; 4];
+                    let digit_str = c.encode_utf8(&mut temp);
+                    mapping.numeral_to_int.contains_key(digit_str)
+                })
+                .count();
+            if num_numerals > 0 {
+                numerals::transliterate_numeral(&mut output, &chars[i..i + num_numerals], mapping);
+                i += num_numerals;
+                continue;
+            }
+        }
 
+        let mut o: Option<&String> = None;
         let mut key_len_in_chars = 0;
         for len_key in (1..=mapping.len_longest_key).rev() {
             let j = std::cmp::min(i + len_key, chars.len());

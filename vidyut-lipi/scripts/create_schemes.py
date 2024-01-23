@@ -7,6 +7,7 @@ the indic-transliteration project.
 
 import tomllib
 import subprocess
+import unicodedata
 from pathlib import Path
 from glob import glob
 import shutil
@@ -66,6 +67,29 @@ def _sanitize(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def _to_deva_nfd(s: str) -> str:
+    overrides = {
+        "\u0958": "\u0915\u093c",  # ka
+        "\u0959": "\u0916\u093c",  # kha
+        "\u095a": "\u0917\u093c",  # ga
+        "\u095b": "\u091c\u093c",  # ja
+        "\u095c": "\u0921\u093c",  # Da
+        "\u095d": "\u0922\u093c",  # Dha
+        "\u095e": "\u092b\u093c",  # pha
+        "\u095f": "\u092f\u093c",  # ya
+    }
+    return overrides.get(s, s)
+
+def to_unique(xs: list) -> list:
+    seen = set()
+    ret = []
+    for x in xs:
+        if x not in seen:
+            ret.append(x)
+            seen.add(x)
+    return ret
+
+
 def _maybe_override(name: str, deva: str, raw: str) -> str | None:
     overrides = {}
 
@@ -100,6 +124,7 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
         overrides = {
             "।": ".",
             "॥": "..",
+            "क़": None,
         }
     elif name == "IAST":
         overrides = {
@@ -109,6 +134,11 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "॥": "..",
             # candrabindu
             "\u0901": "m̐",
+        }
+    elif name == "TAMIL":
+        overrides = {
+            # Visarga
+            "\u0903": None,
         }
     elif name == "VELTHUIS":
         # These are part of the Velthuis spec but are errors in indic-transliteration.
@@ -135,13 +165,19 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
     return overrides.get(deva, raw)
 
 
-def create_scheme_str(name: str, items: list[tuple[str, str]]) -> str:
+def create_scheme_entry(name: str, items: list[tuple[str, str]]) -> str:
     buf = []
+    seen = set()
 
     buf.append(f"pub const {name}: &[(&str, &str)] = &[")
     for deva, raw in items:
-        deva = _sanitize(deva)
-        raw = _sanitize(raw)
+        deva = unicodedata.normalize('NFC', _sanitize(deva))
+        raw = unicodedata.normalize('NFC', _sanitize(raw))
+
+        if (deva, raw) in seen:
+            continue
+        seen.add((deva, raw))
+
         buf.append(f'    ("{deva}", "{raw}"),')
     buf.append("];\n")
 
@@ -200,6 +236,8 @@ def main():
                     deva = raw_to_deva.get(raw_main)
                     if deva is None:
                         continue
+
+                    deva = unicodedata.normalize('NFC', _sanitize(deva))
                     for alt in alts:
                         alt = _maybe_override(scheme_name, deva, alt)
                         if alt is not None:
@@ -230,6 +268,10 @@ def main():
                             assert isinstance(mark, str)
                             assert isinstance(raw, str)
                             scheme_items.append((mark, raw))
+
+        scheme_items = [(_to_deva_nfd(x), _to_deva_nfd(y))
+                        for (x, y) in scheme_items]
+        scheme_items = to_unique(scheme_items)
 
         # Add svarita and anudatta for Brahmic scripts that use Devanagari accent marks.
         if scheme_name in BRAHMIC_WITH_DEVA_ACCENTS:
@@ -273,16 +315,7 @@ def main():
                 ("\u0948", "\u0947\u094e"),
                 ("\u094b", "\u093e\u094e"),
                 ("\u094c", "\u094b\u094e"),
-                # Consonants with nuqtas.
-                ("\u0931", "\u0931"),
-                ("\u0958", "\u0958"),
-                ("\u0959", "\u0959"),
-                ("\u095a", "\u095a"),
-                ("\u095b", "\u095b"),
-                ("\u095c", "\u095c"),
-                ("\u095d", "\u095d"),
-                ("\u095e", "\u095e"),
-                ("\u095f", "\u095f"),
+
                 # Vedic accents
                 ("\u1cd2", "\u1cd2"),
                 ("\u1cda", "\u1cda"),
@@ -299,6 +332,11 @@ def main():
                 ("\u094c", "\U00011357"),
                 # AU (AA + AU length mark)
                 ("\u094c", "\U00011347\U00011357"),
+            ])
+        elif scheme_name == "ISO":
+            scheme_items.extend([
+                # Aytam
+                ("\u0b83", "ḳ"),
             ])
         elif scheme_name == "SINHALA":
             # Sinhala chandrabindu is not supported in the fonts I tried, so
@@ -317,6 +355,11 @@ def main():
                 # Anudatta
                 ("\u0952", "\\"),
             ])
+        elif scheme_name == "TAMIL":
+            scheme_items.extend([
+                # Aytam
+                ("\u0b83", "\u0b83"),
+            ])
         elif scheme_name == "VELTHUIS":
             scheme_items.extend([
                 # Virama
@@ -330,16 +373,16 @@ def main():
                 ("\u0971", "#"),
                 # Consonants with nuqtas
                 ("\u0931", "^r"),
-                ("\u0958", "q"),
-                ("\u0959", ".kh"),
-                ("\u095a", ".g"),
-                ("\u095b", "z"),
-                ("\u095c", "R"),
-                ("\u095d", "Rh"),
-                ("\u095e", "f"),
+                ("\u0915\u093c", "q"),
+                ("\u0916\u093c", ".kh"),
+                ("\u0957\u093c", ".g"),
+                ("\u091c\u093c", "z"),
+                ("\u0921\u093c", "R"),
+                ("\u0922\u093c", "Rh"),
+                ("\u092b\u093c", "f"),
             ])
 
-        buf.append(create_scheme_str(scheme_name, scheme_items))
+        buf.append(create_scheme_entry(scheme_name, scheme_items))
 
     with open(CRATE_DIR / "src/autogen_schemes.rs", "w") as f:
         f.write("\n".join(buf))

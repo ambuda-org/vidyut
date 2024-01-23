@@ -137,6 +137,16 @@ elsewhere.
 For details, see the [vidyut-kosha README][vidyut-kosha].
 
 
+### [`vidyut-lipi`][vidyut-lipi]
+
+`vidyut-lipi` is an experimental Sanskrit transliteration library that also
+supports many of the scripts used within the Indosphere. Our goal is to provide
+a standard transliterator for the Sanskrit ecosystem that is easy to bind to
+other programming languages.
+
+For details, see the [vidyut-lipi README][vidyut-lipi].
+
+
 ### [`vidyut-prakriya`][vidyut-prakriya]
 
 `vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)
@@ -157,6 +167,7 @@ For details, see the [vidyut-sandhi README][vidyut-sandhi].
 [vidyut-chandas]: vidyut-chandas/README.md
 [vidyut-cheda]: vidyut-cheda/README.md
 [vidyut-kosha]: vidyut-kosha/README.md
+[vidyut-lipi]: vidyut-lipi/README.md
 [vidyut-prakriya]: vidyut-prakriya/README.md
 [vidyut-sandhi]: vidyut-sandhi/README.md
 

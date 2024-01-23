@@ -54,37 +54,98 @@ fn decide_token_type(s: &str) -> TokenType {
     }
 }
 
+/// A one-way mapping from our IR to some `Scheme`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct OneWayMapping {
+    /// The scheme being mapped to.
     to_scheme: Scheme,
-    // Maps from Devanagari to all options available in the given scheme.
+    /// Maps from IR to all options available in the given scheme.
     data: FxHashMap<String, Vec<String>>,
+    /// Maps from this scheme's digit chars to their numeric values.
+    numeral_to_int: FxHashMap<String, u32>,
+    /// The virama, or the empty string if not defined for this scheme.
     virama: String,
 }
 
 impl OneWayMapping {
     fn new(scheme: Scheme) -> Self {
-        const VIRAMA: &str = "\u{094d}";
+        const DEVA_VIRAMA: &str = "\u{094d}";
         let mut data = FxHashMap::default();
         let mut virama = String::new();
 
+        let mut unicode_alts = FxHashMap::default();
+        for (nfc, nfd) in scheme.unicode_nfd_pairs() {
+            unicode_alts.insert(nfc, vec![nfc, nfd]);
+            unicode_alts.insert(nfd, vec![nfc, nfd]);
+        }
+
         for (deva_key, value) in scheme.token_pairs() {
             let key = deva_key.to_string();
-            if key == VIRAMA {
+            if key == DEVA_VIRAMA {
                 virama += value;
             }
             let vals: &mut Vec<_> = data.entry(key).or_default();
-            vals.push(value.to_string());
+
+            let value = value.to_string();
+            if !vals.contains(&value) {
+                vals.push(value.to_string());
+            }
+
+            // Also add Unicode equivalents.
+            if let Some(vs) = unicode_alts.get(&value.as_str()) {
+                for v in vs {
+                    let v = v.to_string();
+                    if !vals.contains(&v) {
+                        vals.push(v);
+                    }
+                }
+            }
         }
+
+        // Checks
+        // ------
         if scheme.is_abugida() {
             debug_assert!(
                 !virama.is_empty(),
                 "Scheme `{scheme:?}` is an abugida but has no virama."
             );
         }
+
+        // Numerals
+        // --------
+        let mut numeral_to_int = FxHashMap::default();
+        const DIGITS: &[(&str, u32)] = &[
+            ("\u{0966}", 0),
+            ("\u{0967}", 1),
+            ("\u{0968}", 2),
+            ("\u{0969}", 3),
+            ("\u{096a}", 4),
+            ("\u{096b}", 5),
+            ("\u{096c}", 6),
+            ("\u{096d}", 7),
+            ("\u{096e}", 8),
+            ("\u{096f}", 9),
+        ];
+        for (deva_key, value) in scheme.token_pairs() {
+            for (digit, num) in DIGITS {
+                if deva_key == digit {
+                    numeral_to_int.insert(value.to_string(), *num);
+                }
+            }
+        }
+
+        // Also include Grantha powers of ten so that `transliterate` can detect that these are
+        // numerals.
+        if scheme == Scheme::Grantha {
+            numeral_to_int.insert("௰".to_string(), 10);
+            numeral_to_int.insert("௱".to_string(), 100);
+            numeral_to_int.insert("௲".to_string(), 1000);
+        }
+
         Self {
             to_scheme: scheme,
             data,
+            numeral_to_int,
             virama,
         }
     }
@@ -130,6 +191,19 @@ impl OneWayMapping {
             Some(out)
         }
     }
+
+    #[allow(unused)]
+    pub(crate) fn dump(&self) {
+        let mut items: Vec<_> = self.data.iter().collect();
+        items.sort_by(|x, y| x.0.cmp(y.0));
+        for (k, vs) in items {
+            let k_codes: Vec<_> = k.chars().map(|c| c as u32).collect();
+            for v in vs {
+                let v_codes: Vec<_> = v.chars().map(|c| c as u32).collect();
+                println!("{k} ({k_codes:x?}) --> {v} ({v_codes:x?})");
+            }
+        }
+    }
 }
 
 /// Defines a mapping between two schemes.
@@ -143,6 +217,8 @@ pub struct Mapping {
     pub(crate) output_virama: String,
     pub(crate) consonants: FxHashMap<String, String>,
     pub(crate) len_longest_key: usize,
+    pub(crate) numeral_to_int: FxHashMap<String, u32>,
+    pub(crate) int_to_numeral: FxHashMap<u32, String>,
 }
 
 impl Mapping {
@@ -155,7 +231,8 @@ impl Mapping {
     /// input scheme, `B` is our output scheme, and `X` is our intermediate representation.
     ///
     /// If we reverse our `B to `X` mapping to get an `X` to `B` mapping, we can join these two
-    /// mappings to get an `A` to `B` mapping. This approach is workable but will two cases:
+    /// mappings to get an `A` to `B` mapping. This approach is workable but needs extra support
+    /// for these two cases:
     ///
     /// 1. A mapping `a --> x` without a corresponding `x --> b`. For example, consider `| --> ळ`,
     ///    where `|` is an SLP1 character and `ळ` is not defined in B. In this case, we
@@ -177,36 +254,40 @@ impl Mapping {
         let mut seen_b: FxHashSet<&str> = FxHashSet::default();
 
         // Iterate over `from.token_pairs()` so that we maintain a predictable input order.
-        for (deva_key, a) in from.token_pairs() {
-            let token_type = decide_token_type(deva_key);
-            let bs = match b_map.data.get(*deva_key) {
-                Some(bs) => bs,
-                None => continue,
-            };
-            let b = match bs.first() {
-                Some(b) => b,
-                None => continue,
-            };
+        for (deva_key, _) in from.token_pairs() {
+            // But, use the values in `a_map` instead of the values from `token_pairs` so that we
+            // pick up Unicode equivalents.
+            for a in a_map.data.get(*deva_key).expect("present") {
+                let token_type = decide_token_type(deva_key);
+                let bs = match b_map.data.get(*deva_key) {
+                    Some(bs) => bs,
+                    None => continue,
+                };
+                let b = match bs.first() {
+                    Some(b) => b,
+                    None => continue,
+                };
 
-            match token_type {
-                TokenType::VowelMark => {
-                    marks.insert(a.to_string(), b.to_string());
+                match token_type {
+                    TokenType::VowelMark => {
+                        marks.insert(a.to_string(), b.to_string());
+                    }
+                    TokenType::Consonant => {
+                        consonants.insert(a.to_string(), b.to_string());
+                    }
+                    TokenType::Other => (),
                 }
-                TokenType::Consonant => {
-                    consonants.insert(a.to_string(), b.to_string());
-                }
-                TokenType::Other => (),
-            }
 
-            // Insert only the first match seen. Consequences:
-            //
-            // - If a sound maps to both a vowel and a vowel mark, we insert the vowel mark,
-            //   which comes first in our representation.
-            //
-            // - If a sound has alternates, we store only the first.
-            if !all.contains_key(*a) {
-                all.insert(a.to_string(), b.to_string());
-                seen_b.insert(b);
+                // Insert only the first match seen. Consequences:
+                //
+                // - If a sound maps to both a vowel and a vowel mark, we insert the vowel mark,
+                //   which comes first in our representation.
+                //
+                // - If a sound has alternates, we store only the first.
+                if !all.contains_key(a) {
+                    all.insert(a.to_string(), b.to_string());
+                    seen_b.insert(b);
+                }
             }
         }
 
@@ -259,6 +340,10 @@ impl Mapping {
             }
         }
 
+        let mut int_to_numeral = FxHashMap::default();
+        for (k, v) in &b_map.numeral_to_int {
+            int_to_numeral.insert(*v, k.to_string());
+        }
         let len_longest_key = all.keys().map(|a| a.len()).max().unwrap_or(0);
 
         Self {
@@ -270,6 +355,8 @@ impl Mapping {
             input_virama: a_map.virama,
             output_virama: b_map.virama,
             len_longest_key,
+            numeral_to_int: a_map.numeral_to_int.clone(),
+            int_to_numeral,
         }
     }
 
@@ -285,6 +372,17 @@ impl Mapping {
 
     pub(crate) fn get(&self, key: &str) -> Option<&String> {
         self.all.get(key)
+    }
+
+    #[allow(unused)]
+    pub(crate) fn dump(&self) {
+        let mut items: Vec<_> = self.all.iter().collect();
+        items.sort_by(|x, y| x.0.cmp(y.0));
+        for (k, v) in items {
+            let k_codes: Vec<_> = k.chars().map(|c| c as u32).collect();
+            let v_codes: Vec<_> = v.chars().map(|c| c as u32).collect();
+            println!("{k} ({k_codes:x?}) --> {v} ({v_codes:x?})");
+        }
     }
 }
 
@@ -320,9 +418,26 @@ mod tests {
     }
 
     #[test]
-    fn test_one_way_mapping() {
-        let slp1 = OneWayMapping::new(Iast);
-        assert_eq!(slp1.transliterate_key("ळ्ह"), Some("ḻh".to_string()));
+    fn test_one_way_mapping_basic() {
+        let itrans = OneWayMapping::new(Itrans);
+        assert_eq!(itrans.data.get("ळ").unwrap(), &vec!["L"]);
+        assert_eq!(itrans.data.get("\u{0916}\u{093c}").unwrap(), &vec!["K"]);
+    }
+
+    #[test]
+    fn test_one_way_mapping_with_unicode_decompositions() {
+        let itrans = OneWayMapping::new(Devanagari);
+        // Map to both NFD and composed, preferring NFD.
+        assert_eq!(
+            itrans.data.get("\u{0916}\u{093c}").unwrap(),
+            &vec!["\u{0916}\u{093c}", "\u{0959}"]
+        );
+    }
+
+    #[test]
+    fn test_one_way_mapping_transliterate_key() {
+        let iast = OneWayMapping::new(Iast);
+        assert_eq!(iast.transliterate_key("ळ्ह"), Some("ḻh".to_string()));
 
         let deva = OneWayMapping::new(Devanagari);
         assert_eq!(deva.transliterate_key("ळ्ह"), Some("ळ्ह".to_string()));
@@ -347,9 +462,30 @@ mod tests {
         let m = Mapping::new(Bengali, Itrans);
         assert_has(&m, "\u{09be}", "A");
         assert_has(&m, "\u{09c7}", "e");
+    }
 
+    #[test]
+    fn test_mapping_with_unicode_decompositions() {
+        // Maps to NFD
         let m = Mapping::new(Velthuis, Devanagari);
-        assert_has(&m, "R", "\u{095c}");
-        assert_has(&m, "Rh", "\u{095d}");
+        assert_eq!(m.get("R").unwrap(), "\u{0921}\u{093c}");
+        assert_eq!(m.get("Rh").unwrap(), "\u{0922}\u{093c}");
+
+        // Maps from NFD and composed
+        let m = Mapping::new(Devanagari, Velthuis);
+
+        let deva = OneWayMapping::new(Devanagari);
+        assert_eq!(
+            deva.data.get("\u{0921}\u{093c}").unwrap(),
+            &vec!["\u{0921}\u{093c}", "\u{095c}"]
+        );
+
+        let velthuis = OneWayMapping::new(Velthuis);
+        assert_eq!(velthuis.data.get("\u{0921}\u{093c}").unwrap(), &vec!["R"]);
+        assert_eq!(velthuis.data.get("\u{095c}"), None);
+
+        assert_eq!(m.get("\u{0921}\u{093c}").unwrap(), "R");
+        assert_eq!(m.get("\u{095c}").unwrap(), "R");
+        assert_eq!(m.get("\u{095d}").unwrap(), "Rh");
     }
 }

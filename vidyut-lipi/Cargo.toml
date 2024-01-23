@@ -21,3 +21,6 @@ console_error_panic_hook = "0.1.7"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[dev-dependencies]
+unicode-normalization = "0.1.22"

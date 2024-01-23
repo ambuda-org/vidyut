@@ -7,8 +7,10 @@ mod autogen_schemes;
 mod detect;
 mod lipika;
 mod mapping;
+mod numerals;
 mod scheme;
 mod transliterate;
+mod unicode_norm;
 pub mod wasm;
 
 pub use detect::detect;

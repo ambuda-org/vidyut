@@ -24,7 +24,7 @@ enum ClapScheme {
 
     HarvardKyoto,
     Iast,
-    Iso19519,
+    Iso15919,
     Itrans,
     Slp1,
     Velthuis,
@@ -57,7 +57,7 @@ impl From<ClapScheme> for Scheme {
 
             C::HarvardKyoto => HarvardKyoto,
             C::Iast => Iast,
-            C::Iso19519 => Iso19519,
+            C::Iso15919 => Iso15919,
             C::Itrans => Itrans,
             C::Slp1 => Slp1,
             C::Velthuis => Velthuis,
