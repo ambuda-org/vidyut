@@ -37,20 +37,29 @@ ALLOWED = {
     "BENGALI",
     "BRAHMI",
     "BURMESE",
+    "CHAM",
     "DEVANAGARI",
     "GUJARATI",
     "GURMUKHI",
     "GRANTHA",
     "JAVANESE",
     "KANNADA",
+    "KHMER",
+    "LAO",
     "MALAYALAM",
+    "MODI",
+    "NEWA",
     "ORIYA",
     "SHARADA",
     "SIDDHAM",
     "SINHALA",
-    "TAMIL",
+    # Not yet on indic-transliteration/master
+    "SAURASHTRA",
+    "TAMIL_SUPERSCRIPTED",
     "TELUGU",
+    "THAI",
     "TIBETAN",
+    "TIRHUTA_MAITHILI",
 
     "BARAHA",
     "HK",
@@ -93,7 +102,7 @@ def to_unique(xs: list) -> list:
 def _maybe_override(name: str, deva: str, raw: str) -> str | None:
     overrides = {}
 
-    if name in {"BRAHMI", "BALINESE", "BURMESE", "SIDDHAM", "TIBETAN"}:
+    if name in {"BRAHMI", "BALINESE", "BURMESE", "SIDDHAM"}:
         if deva in {"\u0946", "\u094a", "\u090e", "\u0912"}:
             # - short e mark
             # - short o mark
@@ -110,6 +119,14 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "\ua8e2": None,
             "\ua8e3": None,
         }
+    elif name == "CHAM":
+        overrides = {
+            # Short e and o, plus vowel marks
+            "\u0946": None,
+            "\u094a": None,
+            "\u090e": None,
+            "\u0912": None,
+        }
     elif name == "GRANTHA":
         overrides = {
             # vowel sign AU
@@ -124,6 +141,9 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
         overrides = {
             "।": ".",
             "॥": "..",
+            "ख़": "k͟h",
+            # Delete -- common_maps maps this to "ḳ", which we need for aytam.
+            # We'll add a valid mapping for क़: further below.
             "क़": None,
         }
     elif name == "IAST":
@@ -135,10 +155,64 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             # candrabindu
             "\u0901": "m̐",
         }
-    elif name == "TAMIL":
+    elif name == "KHMER":
         overrides = {
-            # Visarga
-            "\u0903": None,
+            "।": "។",
+            "॥": "៕",
+        }
+    elif name == "MODI":
+        overrides = {
+            "\u0907": "\U00011602",  # letter i
+            "\u0908": "\U00011603",  # letter ii
+            "\u0909": "\U00011604",  # letter u
+            "\u090a": "\U00011605",  # letter uu
+            "\u090b": "\U00011606",  # letter vocalic r
+            "\u090c": "\U00011608",  # letter vocalic l
+            "\u093f": "\U00011631",  # sign i
+            "\u0940": "\U00011632",  # sign ii
+            "\u0941": "\U00011633",  # sign u
+            "\u0942": "\U00011634",  # sign uu
+            "\u0943": "\U00011635",  # sign vocalic r
+            "\u0944": "\U00011636",  # sign vocalic rr
+            "\u0960": "\U00011607",  # letter vocalic rr
+            "\u0961": "\U00011609",  # letter vocalic ll
+            "\u0962": "\U00011637",  # sign vocalic l
+            "\u0963": "\U00011638",  # sign vocalic ll
+
+            "\u0964": "\U00011641",  # danda
+            "\u0965": "\U00011642",  # double danda
+        }
+
+    elif name == "NEWA":
+        overrides = {
+            "\u0964": "\U0001144b",  # danda
+            "\u0965": "\U0001144c",  # double danda
+        }
+    elif name == "TAMIL_SUPERSCRIPTED":
+        # Use roman digits per Aksharamukha
+        overrides = {
+            "०": "0",
+            "१": "1",
+            "२": "2",
+            "३": "3",
+            "४": "4",
+            "५": "5",
+            "६": "6",
+            "७": "7",
+            "८": "8",
+            "९": "9",
+        }
+    elif name == "TIBETAN":
+        overrides = {
+            # Virama
+            "\u094d": "\u0f84",
+            # Short e and o, plus vowel marks
+            "\u0946": None,
+            "\u094a": None,
+            "\u090e": None,
+            "\u0912": None,
+            # Use distinct "va" character instead of "ba".
+            "व": "\u0f5d",
         }
     elif name == "VELTHUIS":
         # These are part of the Velthuis spec but are errors in indic-transliteration.
@@ -185,7 +259,9 @@ def create_scheme_entry(name: str, items: list[tuple[str, str]]) -> str:
 
 
 def main():
-    repo = "https://github.com/indic-transliteration/common_maps.git"
+    # We're waiting on some changes to be pushed to indic-transliteration, so
+    # use a fork for now.
+    repo = "https://github.com/akprasad/common_maps.git"
     common_maps = Path("common_maps")
     if not common_maps.exists():
         print("Cloning `common_maps` ...")
@@ -333,6 +409,11 @@ def main():
                 # AU (AA + AU length mark)
                 ("\u094c", "\U00011347\U00011357"),
             ])
+        elif scheme_name == "ITRANS":
+            scheme_items.extend([
+                # Vedic anusvara (just render as candrabindu)
+                ("\u0901", "{\\m+}"),
+            ])
         elif scheme_name == "ISO":
             scheme_items.extend([
                 # Aytam
@@ -355,7 +436,7 @@ def main():
                 # Anudatta
                 ("\u0952", "\\"),
             ])
-        elif scheme_name == "TAMIL":
+        elif scheme_name == "TAMIL_SUPERSCRIPTED":
             scheme_items.extend([
                 # Aytam
                 ("\u0b83", "\u0b83"),
@@ -382,6 +463,10 @@ def main():
                 ("\u092b\u093c", "f"),
             ])
 
+        if scheme_name == "TAMIL_SUPERSCRIPTED":
+            scheme_name = "TAMIL"
+        elif scheme_name == "TIRHUTA_MAITHILI":
+            scheme_name = "TIRHUTA"
         buf.append(create_scheme_entry(scheme_name, scheme_items))
 
     with open(CRATE_DIR / "src/autogen_schemes.rs", "w") as f:

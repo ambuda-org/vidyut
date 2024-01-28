@@ -28,7 +28,7 @@ An online demo is available [here][demo].
 Overview
 --------
 
-Communities around the world write Sanskrit and other Indian languages in
+Communities around the world write Sanskrit and other Indian languages with
 different scripts in different contexts. For example, a user might type
 Sanskrit in ITRANS, read it in Kannada, and publish it in Devanagari. Such
 communities often rely on a *transliterator*, which converts text from one
@@ -42,24 +42,48 @@ and feature work is diluted across several different implementations.
 ecosystem. Our priorities are:
 
 - quality, including a comprehensive test suite.
-- coverage across all of the schemes in common use.
-- ease of use (and reuse) for developers.
+- test coverage across all of the schemes in common use.
+- a precise and ergonomic API.
+- availability in multiple languages, including Python and WebAssembly.
 - high performance across various metrics, including runtime, startup time, and
   file size.
 
-We recommend `vidyut-lipi` if you need a simple and high-quality
-transliteration library, and we encourage you to [file an issue][issue] if
-`vidyut-lipi` does not support your use case. We are especially excited about
-supporting new scripts and new programming languages.
+We encourage you to [file an issue][issue] if `vidyut-lipi` does not support
+your use case. We are especially excited about supporting new scripts and new
+programming languages.
 
 [issue]: https://github.com/ambuda-org/vidyut/issues
 
-If `vidyut-lipi` is not right for your needs, we also strongly recommend
-the [Aksharamukha][aksharamukha] the [indic-transliteration][indic-trans]
-projects, which have each been highly influential in our work on `vidyut-lipi`.
 
-[aksharamukha]: https://github.com/virtualvinodh/aksharamukha/
-[indic-trans]: https://github.com/indic-transliteration
+Alternatives to `vidyut-lipi`
+-----------------------------
+
+There are two main alternatives to `vidyut-lipi`, both of which have been
+influential on the design of `vidyut-lipi`:
+
+- [Aksharamukha][am] offers high quality and supports more than a hundred
+  different scripts. Aksharamukha offers best-in-class transliteration, but it
+  is available only in Python.
+
+- [indic-transliteration][it] implements the same basic transliterator in
+  multiple programming languages. indic-transliteration supports a large
+  software ecosystem, but its different implementations each have their own
+  quirks and limitations.
+
+[am]: https://github.com/virtualvinodh/aksharamukha/
+[it]: https://github.com/indic-transliteration
+
+Our long-term goal is to combine the quality of Aksharamukha with the
+availability of indic-transliteration. Until then, `vidyut-lipi` provides the
+following short-term benefits:
+
+- High-quality transliteration for Rust and WebAssembly.
+- Smooth support for other programming languages through projects like
+  [pyo3][pyo3] (Python), [magnus][magnus] (Ruby), [cxx][cxx] (C++), etc.
+
+[pyo3]: https://pyo3.rs/v0.20.2/
+[magnus]: https://github.com/matsadler/magnus
+[cxx]: https://cxx.rs/
 
 
 Usage
@@ -102,10 +126,11 @@ for scheme in Scheme::iter() {
 }
 ```
 
-As of 2023-12-29, this code prints the following:
+As of 2024-01-27, this code prints the following:
 
 ```text
 Balinese        ᬲᬂᬲ᭄ᬓᬺᬢᬫ᭄
+BarahaSouth     saMskRutam
 Bengali         সংস্কৃতম্
 Brahmi          𑀲𑀁𑀲𑁆𑀓𑀾𑀢𑀫𑁆
 Burmese         သံသ်ကၖတမ်
@@ -113,20 +138,27 @@ Devanagari      संस्कृतम्
 Grantha         𑌸𑌂𑌸𑍍𑌕𑍃𑌤𑌮𑍍
 Gujarati        સંસ્કૃતમ્
 Gurmukhi        ਸਂਸ੍ਕਤਮ੍
-BarahaSouth     saMskRutam
 HarvardKyoto    saMskRtam
 Iast            saṃskṛtam
+Iso15919        saṁskr̥tam
 Itrans          saMskRRitam
 Javanese        ꦱꦁꦱ꧀ꦏꦽꦠꦩ꧀
 Kannada         ಸಂಸ್ಕೃತಮ್
+Khmer           សំស្ក្ឫតម៑
 Malayalam       സംസ്കൃതമ്
+Modi            𑘭𑘽𑘭𑘿𑘎𑘵𑘝𑘦𑘿
+Newa            𑐳𑑄𑐳𑑂𑐎𑐺𑐟𑐩𑑂
 Odia            ସଂସ୍କୃତମ୍
+Saurashtra      ꢱꢀꢱ꣄ꢒꢺꢡꢪ꣄
 Sharada         𑆱𑆁𑆱𑇀𑆑𑆸𑆠𑆩𑇀
 Siddham         𑖭𑖽𑖭𑖿𑖎𑖴𑖝𑖦𑖿
 Sinhala         සංස්කෘතම්
 Slp1            saMskftam
-Tamil           ஸம்ஸ்க்ரு'தம்
+Tamil           ஸம்ʼஸ்க்ருʼதம்
 Telugu          సంస్కృతమ్
+Thai            สํสฺกฺฤตมฺ
+Tibetan         སཾསྐྲྀཏམ
+Tirhuta         𑒮𑓀𑒮𑓂𑒏𑒵𑒞𑒧𑓂
 Velthuis        sa.msk.rtam
 Wx              saMskqwam
 ```

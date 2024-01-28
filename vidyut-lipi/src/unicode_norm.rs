@@ -33,8 +33,10 @@ pub const LATIN_NFD: &[(&str, &str)] = &[
     // C1 Controls and Latin-1 Supplement (https://unicode.org/charts/PDF/U0080.pdf)
     ("\u{00d1}", "N\u{0303}"), // Ñ
     ("\u{00e8}", "e\u{0300}"), // è
+    ("\u{00ea}", "e\u{0302}"), // ê
     ("\u{00f1}", "n\u{0303}"), // ñ
     ("\u{00f2}", "o\u{0300}"), // ò
+    ("\u{00f4}", "o\u{0302}"), // ô
     // Latin Extended-A (https://unicode.org/charts/PDF/U0100.pdf)
     ("\u{0100}", "A\u{0304}"), // Ā
     ("\u{0101}", "a\u{0304}"), // ā
@@ -50,6 +52,8 @@ pub const LATIN_NFD: &[(&str, &str)] = &[
     ("\u{015b}", "s\u{0301}"), // ś
     ("\u{016a}", "U\u{0304}"), // Ū
     ("\u{016b}", "u\u{0304}"), // ū
+    ("\u{017c}", "z\u{0307}"), // ż
+    ("\u{017e}", "z\u{030c}"), // ž
     // Latin Extended Additional (https://unicode.org/charts/PDF/U1E00.pdf)
     ("\u{1e0c}", "D\u{0323}"),         // Ḍ
     ("\u{1e0d}", "d\u{0323}"),         // ḍ
@@ -83,8 +87,12 @@ pub const LATIN_NFD: &[(&str, &str)] = &[
     ("\u{1e63}", "s\u{0323}"),         // ṣ
     ("\u{1e6c}", "T\u{0323}"),         // Ṭ
     ("\u{1e6d}", "t\u{0323}"),         // ṭ
+    ("\u{1e89}", "w\u{0323}"),         // ẉ
     ("\u{1e8e}", "Y\u{0307}"),         // Ẏ
     ("\u{1e8f}", "y\u{0307}"),         // ẏ
+    ("\u{1e93}", "z\u{0323}"),         // ẓ
+    ("\u{1e95}", "z\u{0331}"),         // ž
+    ("\u{1e96}", "h\u{0331}"),         // ẖ
 ];
 
 /// NFD/NFC mapping for Devanagari.
@@ -225,6 +233,13 @@ pub const TELUGU_NFD: &[(&str, &str)] = &[
     ("\u{0c48}", "\u{0c46}\u{0c56}"), // vowel sign ai
 ];
 
+/// Spec: https://www.unicode.org/charts/PDF/U11480.pdf
+pub const TIRHUTA_NFD: &[(&str, &str)] = &[
+    ("\u{114bb}", "\u{114b9}\u{114ba}"), // vowel sign ai
+    ("\u{114bc}", "\u{114b9}\u{114b0}"), // vowel sign o
+    ("\u{114be}", "\u{114b9}\u{114bd}"), // vowel sign au
+];
+
 #[allow(unused)]
 pub(crate) fn to_nfc(s: &str) -> String {
     let mut map = FxHashMap::default();
@@ -291,7 +306,7 @@ pub(crate) fn to_nfd(s: &str) -> String {
         if let Some(nfd) = map.get(char_str) {
             ret.push_str(nfd)
         } else {
-            ret.push_str(&char_str);
+            ret.push_str(char_str);
         }
     }
     ret

@@ -1,4 +1,3 @@
-//! Hacky transliteration functions that other crates might need.
 #![doc = include_str!("../README.md")]
 #![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
@@ -8,6 +7,7 @@ mod detect;
 mod lipika;
 mod mapping;
 mod numerals;
+mod reshape;
 mod scheme;
 mod transliterate;
 mod unicode_norm;

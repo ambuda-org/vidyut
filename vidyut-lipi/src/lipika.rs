@@ -1,3 +1,5 @@
+//! Provides a convenient transliteration API for end users.
+
 use crate::mapping::Mapping;
 use crate::scheme::Scheme;
 use crate::transliterate::transliterate;
@@ -6,6 +8,11 @@ use crate::transliterate::transliterate;
 const CACHE_CAPACITY: usize = 10;
 
 /// A `Mapping` as stored in `Lipika`'s internal cache.
+///
+/// While creating a `Mapping` is cheap, doing so repeatedly within an inner loop will add some
+/// unnecessary overhead. So, cache common mappings so that callers can reuse them. Essentially, we
+/// are memoizing creating a `Mapping`.
+#[derive(Clone, Eq, PartialEq)]
 struct CachedMapping {
     /// A "timestamp" that represents when the mapping was last used.
     stamp: i32,
@@ -46,6 +53,7 @@ struct CachedMapping {
 /// let original = lipika.transliterate(deva, detected, Scheme::HarvardKyoto);
 /// assert_eq!(original, "saMskRtam");
 /// ```
+#[derive(Clone, Default, Eq, PartialEq)]
 pub struct Lipika {
     cache: Vec<CachedMapping>,
     // Indicates when a mapping was last used.
@@ -72,7 +80,7 @@ impl Lipika {
     /// For details on the underrlying algorithm, see comments on the `transliterate` method.
     pub fn transliterate(&mut self, input: impl AsRef<str>, from: Scheme, to: Scheme) -> String {
         let mapping = self.find_or_create_mapping(from, to);
-        transliterate(input.as_ref(), &mapping)
+        transliterate(input.as_ref(), mapping)
     }
 
     /// Finds an existing mapping to reuse, or creates one if absent.

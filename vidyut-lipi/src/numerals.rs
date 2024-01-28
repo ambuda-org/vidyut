@@ -22,11 +22,7 @@ fn grantha_to_decimal(buffer: &mut String, numeral: &str, digit_to_int: &DigitTo
             .flat_map(|digit| {
                 let mut temp = [0u8; 4];
                 let digit_str = digit.encode_utf8(&mut temp);
-                if let Some(i) = digit_to_int.get(digit_str) {
-                    Some(*i as u8)
-                } else {
-                    None
-                }
+                digit_to_int.get(digit_str).map(|i| *i as u8)
             })
             .collect();
         // Pad so that we can iterate by chunks of `CHUNK_SIZE`.
@@ -34,12 +30,12 @@ fn grantha_to_decimal(buffer: &mut String, numeral: &str, digit_to_int: &DigitTo
             ints.push(0);
         }
         // Reorder so most significant digit is first.
-        ints.iter().rev().map(|d| *d).collect()
+        ints.iter().rev().copied().collect()
     };
 
     // Special case for 0.
     if ints.iter().all(|d| *d == 0) {
-        buffer.push_str("௦");
+        buffer.push('௦');
         return;
     }
 
@@ -213,17 +209,16 @@ fn decimal_to_grantha(buffer: &mut String, grantha: &str, int_to_digit: &IntToDi
 /// Procedure:
 /// - If from `Grantha` or to `Grantha`, use Grantha-specific logic.
 /// - Otherwise, transliterate digit by digit.
-pub fn transliterate_numeral(buffer: &mut String, numerals: &[char], mapping: &Mapping) {
-    let numeral: String = numerals.iter().collect();
+pub fn transliterate_numeral(buffer: &mut String, numeral: &str, mapping: &Mapping) {
     if mapping.from() == mapping.to() {
         // Leave the number unchanged.
-        buffer.push_str(&numeral);
+        buffer.push_str(numeral);
     } else if mapping.from() == Scheme::Grantha {
         // Convert to Grantha place notation.
-        decimal_to_grantha(buffer, &numeral, &mapping.int_to_numeral);
+        decimal_to_grantha(buffer, numeral, &mapping.int_to_numeral);
     } else if mapping.to() == Scheme::Grantha {
         // Convert from Grantha place notation.
-        grantha_to_decimal(buffer, &numeral, &mapping.numeral_to_int)
+        grantha_to_decimal(buffer, numeral, &mapping.numeral_to_int)
     } else {
         // For decimal-decimal, transliterate one char at a time.
         for glyph in numeral.chars().flat_map(|c| {
@@ -231,7 +226,7 @@ pub fn transliterate_numeral(buffer: &mut String, numerals: &[char], mapping: &M
             let glyph_str = c.encode_utf8(&mut temp);
             mapping.all.get(glyph_str)
         }) {
-            buffer.push_str(&glyph);
+            buffer.push_str(&glyph.text);
         }
     }
 }

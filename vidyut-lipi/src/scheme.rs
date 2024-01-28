@@ -34,104 +34,149 @@ pub(crate) enum Coverage {
 pub enum Scheme {
     /// Balinese script.
     ///
-    /// https://unicode.org/charts/PDF/U1B00.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U1B00.pdf>
     Balinese,
 
     /// Bengali script.
     ///
-    /// https://unicode.org/charts/PDF/U0980.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0980.pdf>
     Bengali,
 
     /// Brahmi script.
     ///
-    /// https://unicode.org/charts/PDF/U11000.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U11000.pdf>
     Brahmi,
 
     /// Burmese script.
     ///
-    /// https://unicode.org/charts/PDF/U1000.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U1000.pdf>
     Burmese,
+
+    /// Cham script.
+    ///
+    /// <https://unicode.org/charts/PDF/UAA00.pdf>
+    // Cham,
 
     /// Devanagari script.
     ///
-    /// https://unicode.org/charts/PDF/U0900.pdf
-    /// https://unicode.org/charts/PDF/UA8E0.pdf (Devanagari Extended)
-    /// https://unicode.org/charts/PDF/U11B00.pdf (Devanagari Extended-A)
-    /// https://unicode.org/charts/PDF/U1CD0.pdf (Vedic Extensions)
+    /// Docs:
+    /// - <https://unicode.org/charts/PDF/U0900.pdf>
+    /// - <https://unicode.org/charts/PDF/UA8E0.pdf> (Devanagari Extended)
+    /// - <https://unicode.org/charts/PDF/U11B00.pdf> (Devanagari Extended-A)
+    /// - <https://unicode.org/charts/PDF/U1CD0.pdf> (Vedic Extensions)
     Devanagari,
 
     /// Gujarati script.
     ///
-    /// https://unicode.org/charts/PDF/U0A80.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0A80.pdf>
     Gujarati,
 
     /// Grantha script.
     ///
-    /// Documentation:
-    /// - http://www.unicode.org/charts/PDF/U11300.pdf
-    /// - https://unicode.org/L2/L2009/09372-grantha.pdf
+    /// Docs:
+    /// - <http://www.unicode.org/charts/PDF/U11300.pdf>
+    /// - <https://unicode.org/L2/L2009/09372-grantha.pdf>
     Grantha,
 
     /// Gurmukhi script.
     ///
-    /// https://unicode.org/charts/PDF/U0A00.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0A00.pdf>
     Gurmukhi,
 
     /// Javanese script.
     ///
-    /// https://unicode.org/charts/PDF/UA980.pdf
+    /// Docs: <https://unicode.org/charts/PDF/UA980.pdf>
     Javanese,
 
     /// Kannada script.
     ///
-    /// https://unicode.org/charts/PDF/U0C80.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0C80.pdf>
     Kannada,
+
+    /// Khmer script.
+    ///
+    /// <https://unicode.org/charts/PDF/U1780.pdf>
+    Khmer,
 
     /// Malayalam script.
     ///
-    /// https://unicode.org/charts/PDF/U0D00.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0D00.pdf>
     Malayalam,
+
+    /// Modi script.
+    ///
+    /// <https://unicode.org/charts/PDF/U11600.pdf>
+    Modi,
+
+    /// Lao script.
+    ///
+    /// Documentation:
+    /// - <https://unicode.org/charts/PDF/U0E80.pdf>
+    /// - <https://www.unicode.org/wg2/docs/n4861-17106r-lao-for-pali.pdf>
+    // Lao,
+
+    /// Newa script.
+    ///
+    /// <https://unicode.org/charts/PDF/U11400.pdf>
+    Newa,
 
     /// Odia script.
     ///
-    /// https://unicode.org/charts/PDF/U0B00.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0B00.pdf>
     Odia,
+
+    /// Saurashtra script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/UA880.pdf>
+    Saurashtra,
 
     /// Sharada script.
     ///
-    /// https://unicode.org/charts/PDF/U11180.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U11180.pdf>
     Sharada,
 
     /// Siddham script.
     ///
-    /// https://unicode.org/charts/PDF/U11580.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U11580.pdf>
     Siddham,
 
     /// Sinhala script.
     ///
-    /// https://unicode.org/charts/PDF/U0D80.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0D80.pdf>
     Sinhala,
 
     /// Tamil script.
     ///
-    /// https://unicode.org/charts/PDF/U0B80.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0B80.pdf>
     Tamil,
-
-    /// Tibetan script.
-    ///
-    /// https://unicode.org/charts/PDF/U0F00.pdf
-    // Tibetan,
 
     /// Telugu script.
     ///
-    /// https://unicode.org/charts/PDF/U0C00.pdf
+    /// Docs: <https://unicode.org/charts/PDF/U0C00.pdf>
     Telugu,
+
+    /// Thai script.
+    ///
+    /// <https://unicode.org/charts/PDF/U0E00.pdf>
+    Thai,
+
+    /// Tibetan script.
+    ///
+    /// **Status: buggy and partial.**
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U0F00.pdf>
+    Tibetan,
+
+    /// Tirhuta script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11480.pdf>
+    Tirhuta,
 
     /// Baraha transliteration.
     ///
-    /// Documentation:
-    /// - https://baraha.com/help//Keyboards/dev-phonetic.htm (Baraha North)
-    /// - https://baraha.com/help/special-symbols.htm
+    /// Docs:
+    /// - <https://baraha.com/help//Keyboards/dev-phonetic.htm> (Baraha North)
+    /// - <https://baraha.com/help/special-symbols.htm>
     BarahaSouth,
 
     /// Harvard-Kyoto transliteration.
@@ -149,19 +194,25 @@ pub enum Scheme {
     /// TODO: find a free documentation link for ISO 15919.
     Iso15919,
 
-    /// ITRANS transliteration.
+    /// ITRANS 5.3 transliteration.
     ///
-    /// https://www.aczoom.com/itrans/online/itrans6/itrans-tables-unicode.pdf
+    /// Docs:
+    /// - https://www.aczoom.com/itrans/ (official ITRANS site for version 5.3)
+    /// - https://www.aczoom.com/itrans/html/dvng/node3.html (DEVNAG table)
+    /// - http://www.sanskritweb.net/itrans/itmanual2003.pdf (Itranslator 2003 manual)
+    ///
+    /// ITRANS appears in various versions, some of which conflict with each other. Version 5.3
+    /// seems to be the most widely used, and it is supported by software like Itranslator 2003.
     Itrans,
 
     /// SLP1 transliteration.
     ///
-    /// https://www.sanskritlibrary.org/pub/SLP1LiesAppendixB.pdf
+    /// Docs: <https://www.sanskritlibrary.org/pub/SLP1LiesAppendixB.pdf>
     Slp1,
 
     /// Velthuis transliteration.
     ///
-    /// https://mirrors.mit.edu/CTAN/language/devanagari/velthuis/doc/manual.pdf
+    /// Docs: <https://mirrors.mit.edu/CTAN/language/devanagari/velthuis/doc/manual.pdf>
     Velthuis,
 
     /// WX transliteration.
@@ -179,6 +230,7 @@ impl Scheme {
         use Scheme::*;
         const SCHEMES: &[Scheme] = &[
             Balinese,
+            BarahaSouth,
             Bengali,
             Brahmi,
             Burmese,
@@ -186,20 +238,27 @@ impl Scheme {
             Grantha,
             Gujarati,
             Gurmukhi,
-            BarahaSouth,
             HarvardKyoto,
             Iast,
+            Iso15919,
             Itrans,
             Javanese,
             Kannada,
+            Khmer,
             Malayalam,
+            Modi,
+            Newa,
             Odia,
+            Saurashtra,
             Sharada,
             Siddham,
             Sinhala,
             Slp1,
             Tamil,
             Telugu,
+            Thai,
+            Tibetan,
+            Tirhuta,
             Velthuis,
             Wx,
         ];
@@ -214,20 +273,28 @@ impl Scheme {
             Scheme::Bengali => auto::BENGALI,
             Scheme::Brahmi => auto::BRAHMI,
             Scheme::Burmese => auto::BURMESE,
+            // Scheme::Cham => auto::CHAM,
             Scheme::Devanagari => auto::DEVANAGARI,
             Scheme::Gujarati => auto::GUJARATI,
             Scheme::Gurmukhi => auto::GURMUKHI,
             Scheme::Grantha => auto::GRANTHA,
             Scheme::Javanese => auto::JAVANESE,
             Scheme::Kannada => auto::KANNADA,
+            Scheme::Khmer => auto::KHMER,
+            // Scheme::Lao => auto::LAO,
             Scheme::Malayalam => auto::MALAYALAM,
+            Scheme::Modi => auto::MODI,
+            Scheme::Newa => auto::NEWA,
             Scheme::Odia => auto::ORIYA,
+            Scheme::Saurashtra => auto::SAURASHTRA,
             Scheme::Sharada => auto::SHARADA,
             Scheme::Siddham => auto::SIDDHAM,
             Scheme::Sinhala => auto::SINHALA,
             Scheme::Tamil => auto::TAMIL,
             Scheme::Telugu => auto::TELUGU,
-            // Scheme::Tibetan => auto::TIBETAN,
+            Scheme::Thai => auto::THAI,
+            Scheme::Tibetan => auto::TIBETAN,
+            Scheme::Tirhuta => auto::TIRHUTA,
             Scheme::BarahaSouth => auto::BARAHA,
             Scheme::HarvardKyoto => auto::HK,
             Scheme::Iast => auto::IAST,
@@ -260,6 +327,7 @@ impl Scheme {
             Sinhala => u::SINHALA_NFD,
             Tamil => u::TAMIL_NFD,
             Telugu => u::TELUGU_NFD,
+            Tirhuta => u::TIRHUTA_NFD,
             Iast | Iso15919 => u::LATIN_NFD,
             _ => &[],
         }
@@ -292,9 +360,9 @@ impl Scheme {
         // Use an exhaustive match (no `_`) so that we explicitly account for all schemes.
         match self {
             // Abugidas are all `true`.
-            Balinese | Bengali | Brahmi | Burmese | Devanagari | Gujarati | Gurmukhi | Grantha
-            | Javanese | Kannada | Malayalam | Odia | Sharada | Siddham | Sinhala | Tamil
-            | Telugu => true,
+            Balinese | Bengali | Brahmi | Burmese | Devanagari | Grantha | Gujarati | Gurmukhi
+            | Javanese | Kannada | Khmer | Malayalam | Modi | Newa | Odia | Saurashtra
+            | Sharada | Siddham | Sinhala | Tamil | Telugu | Thai | Tibetan | Tirhuta => true,
 
             // Alphabets are all `false`.
             BarahaSouth | HarvardKyoto | Iso15919 | Itrans | Iast | Slp1 | Velthuis | Wx => false,
@@ -332,7 +400,9 @@ impl Scheme {
             Javanese => Classical,
             Kannada => Classical,
             Malayalam => Classical,
+            Newa => Classical,
             Odia => Classical,
+            Saurashtra => Classical,
             Sharada => Classical,
             Sinhala => Classical,
             Telugu => Classical,
@@ -361,10 +431,11 @@ mod tests {
             //
             // Don't use `_`, as that would defeat the point of this test.
             match s {
-                Devanagari | Balinese | Bengali | Tamil | Brahmi | Burmese | Grantha | Gujarati
-                | Gurmukhi | Javanese | Odia | Sharada | Kannada | Malayalam | Siddham
-                | Sinhala | Telugu | Itrans | HarvardKyoto | Slp1 | Velthuis | Iast | Wx
-                | Iso15919 | BarahaSouth => {
+                Balinese | BarahaSouth | Bengali | Brahmi | Burmese | Devanagari | Grantha
+                | Gujarati | Gurmukhi | HarvardKyoto | Iast | Iso15919 | Itrans | Javanese
+                | Kannada | Khmer | Malayalam | Modi | Newa | Odia | Saurashtra | Sharada
+                | Siddham | Sinhala | Slp1 | Tamil | Telugu | Thai | Tibetan | Tirhuta
+                | Velthuis | Wx => {
                     expected.push(*s);
                 }
             }
@@ -397,6 +468,11 @@ mod tests {
     fn token_pairs_are_all_nfc() {
         for scheme in Scheme::iter() {
             for (key, value) in scheme.token_pairs() {
+                assert!(
+                    !value.contains('\u{25cc}'),
+                    "{value} contains the dreaded 25cc"
+                );
+
                 let key_nfc: String = key.nfc().collect();
                 let value_nfc: String = value.nfc().collect();
                 assert_eq!(&key_nfc, key);
