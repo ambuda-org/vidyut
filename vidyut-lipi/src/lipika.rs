@@ -11,7 +11,7 @@ const CACHE_CAPACITY: usize = 10;
 ///
 /// While creating a `Mapping` is cheap, doing so repeatedly within an inner loop will add some
 /// unnecessary overhead. So, cache common mappings so that callers can reuse them. Essentially, we
-/// are memoizing creating a `Mapping`.
+/// are memoizing the `Mapping` constructor.
 #[derive(Clone, Eq, PartialEq)]
 struct CachedMapping {
     /// A "timestamp" that represents when the mapping was last used.
@@ -77,7 +77,7 @@ impl Lipika {
     /// internal cache. If the mapping exists, `transliterate` will reuse it. Otherwise,
     /// `transliterate` will create a new mapping and store it for future use.
     ///
-    /// For details on the underrlying algorithm, see comments on the `transliterate` method.
+    /// For details on the underlying algorithm, see the comments on the `transliterate` method.
     pub fn transliterate(&mut self, input: impl AsRef<str>, from: Scheme, to: Scheme) -> String {
         let mapping = self.find_or_create_mapping(from, to);
         transliterate(input.as_ref(), mapping)
@@ -85,16 +85,20 @@ impl Lipika {
 
     /// Finds an existing mapping to reuse, or creates one if absent.
     ///
-    /// Assume that a `Mapping` is a pure function of `from` and `to`.
+    /// This code assumes that a `Mapping` is a pure function of `from` and `to`.
     fn find_or_create_mapping(&mut self, from: Scheme, to: Scheme) -> &Mapping {
         self.next_stamp += 1;
         if self.next_stamp < 0 {
-            // This is a very rare edge case. Here, just reset so that `next_stamp` is positive
+            // Integer overflow. This is a very rare edge case that will appear only in very
+            // long-running processes.
+            //
+            // Since this case is rare, just reset the cache so that `next_stamp` is non-negative
             // again.
             self.cache.clear();
             self.next_stamp = 0;
         }
 
+        // Check the cache. For now, assume that a `Mapping` is a pure function of `from` and `to`.
         if let Some(i) = self.cache.iter().position(|x| x.from == from && x.to == to) {
             // Cache hit.
             self.cache[i].stamp += self.next_stamp;

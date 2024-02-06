@@ -14,6 +14,185 @@ import shutil
 
 CRATE_DIR = Path(__file__).parent.parent
 
+ALLOWED = {
+    "AHOM",
+    "BALINESE",
+    "BENGALI",
+    "BHAIKSUKI",
+    "BRAHMI",
+    "BURMESE",
+    "CHAM",
+    "DEVANAGARI",
+    "DOGRA",
+    "GONDI_GUNJALA",
+    "GONDI_MASARAM",
+    "GUJARATI",
+    "GURMUKHI",
+    "GRANTHA",
+    "JAVANESE",
+    "KAITHI",
+    "KANNADA",
+    "KHMER",
+    "KHUDAWADI",
+    "LAO",
+    "LEPCHA",
+    "LIMBU",
+    "MALAYALAM",
+    "MANIPURI",
+    "MODI",
+    "NANDINAGARI",
+    "NEWA",
+    "OL_CHIKI",
+    "ORIYA",
+    "SHARADA",
+    "SIDDHAM",
+    "SINHALA",
+    # Not yet on indic-transliteration/master
+    "SAURASHTRA",
+    "TAKRI",
+    "TAI_THAM",
+    "TAMIL_SUPERSCRIPTED",
+    "TELUGU",
+    "THAI",
+    "TIBETAN",
+    "TIRHUTA_MAITHILI",
+    "ZANBAZAR_SQUARE",
+
+    "BARAHA",
+    "HK",
+    "IAST",
+    "ISO",
+    "ITRANS",
+    "SLP1",
+    "VELTHUIS",
+    "WX",
+}
+
+
+KEY_NAMES = {
+    "\u0905": "A",
+    "\u0906": "AA",
+    "\u0907": "I",
+    "\u0908": "II",
+    "\u0909": "U",
+    "\u090a": "UU",
+    "\u090b": "R",
+    "\u0960": "RR",
+    "\u090c": "L",
+    "\u0961": "LL",
+    "\u090d": "CANDRA_E",
+    "\u090e": "E",
+    "\u090f": "EE",
+    "\u0910": "AI",
+    "\u0911": "CANDRA_O",
+    "\u0912": "O",
+    "\u0913": "OO",
+    "\u0914": "AU",
+
+    "\u093e": "SIGN_AA",
+    "\u093f": "SIGN_I",
+    "\u0940": "SIGN_II",
+    "\u0941": "SIGN_U",
+    "\u0942": "SIGN_UU",
+    "\u0943": "SIGN_R",
+    "\u0944": "SIGN_RR",
+    "\u0962": "SIGN_L",
+    "\u0963": "SIGN_LL",
+    "\u0945": "SIGN_CANDRA_E",
+    "\u0946": "SIGN_E",
+    "\u0947": "SIGN_EE",
+    "\u0948": "SIGN_AI",
+    "\u0949": "SIGN_CANDRA_O",
+    "\u094a": "SIGN_O",
+    "\u094b": "SIGN_OO",
+    "\u094c": "SIGN_AU",
+
+    "\u0902": "ANUSVARA",
+    "\u0903": "VISARGA",
+    "\u0901": "CANDRABINDU",
+    "\u094d": "VIRAMA",
+
+    "\u0915": "KA",
+    "\u0916": "KHA",
+    "\u0917": "GA",
+    "\u0918": "GHA",
+    "\u0919": "NGA",
+    "\u091a": "CA",
+    "\u091b": "CHA",
+    "\u091c": "JA",
+    "\u091d": "JHA",
+    "\u091e": "NYA",
+    "\u091f": "TTA",
+    "\u0920": "TTHA",
+    "\u0921": "DDA",
+    "\u0922": "DDHA",
+    "\u0923": "NNA",
+    "\u0924": "TA",
+    "\u0925": "THA",
+
+    "\u0926": "DA",
+    "\u0927": "DHA",
+    "\u0928": "NA",
+    "\u092a": "PA",
+    "\u092b": "PHA",
+    "\u092c": "BA",
+    "\u092d": "BHA",
+    "\u092e": "MA",
+    "\u092f": "YA",
+    "\u0930": "RA",
+    "\u0932": "LA",
+
+    "\u0935": "VA",
+    "\u0936": "SHA",
+    "\u0937": "SSA",
+    "\u0938": "SA",
+    "\u0939": "HA",
+
+    "\u0933": "LLA",
+    "\u0931": "RRA",
+    "\u0929": "NNNA",
+    "\u0934": "LLLA",
+
+    "क्ष": "KSSA",
+    "ज्ञ": "JNYA",
+    "त्र": "TRA",
+
+    "\u0915\u093c": "QA",
+    "\u0916\u093c": "KHHA",
+    "\u0917\u093c": "GHHA",
+    "\u091c\u093c": "ZA",
+    "\u0921\u093c": "DDDHA",
+    "\u0922\u093c": "RHA",
+    "\u092b\u093c": "FA",
+    "\u092f\u093c": "YYA",
+
+    "\u0951": "SVARITA",
+    "\u1cda": "DOUBLE_SVARITA",
+    "\u0952": "ANUDATTA",
+
+    "\u0966": "DIGIT_0",
+    "\u0967": "DIGIT_1",
+    "\u0968": "DIGIT_2",
+    "\u0969": "DIGIT_3",
+    "\u096a": "DIGIT_4",
+    "\u096b": "DIGIT_5",
+    "\u096c": "DIGIT_6",
+    "\u096d": "DIGIT_7",
+    "\u096e": "DIGIT_8",
+    "\u096f": "DIGIT_9",
+
+    "\u0950": "OM",
+    "\u093c": "NUKTA",
+    "\u093d": "AVAGRAHA",
+    "\u0964": "DANDA",
+    "\u0965": "DOUBLE_DANDA",
+    "\u0970": "ABBREVIATION_SIGN",
+    "\u0971": "HIGH_SPACING_DOT",
+
+    "\u200c": "ZERO_WIDTH_NON_JOINER",
+    "\u200d": "ZERO_WIDTH_JOINER",
+}
+
 VOWEL_TO_MARK = {
     "आ": "\u093e",
     "इ": "\u093f",
@@ -31,46 +210,6 @@ VOWEL_TO_MARK = {
     "ओ": "\u094b",
     "औ": "\u094c",
 }
-
-ALLOWED = {
-    "BALINESE",
-    "BENGALI",
-    "BRAHMI",
-    "BURMESE",
-    "CHAM",
-    "DEVANAGARI",
-    "GUJARATI",
-    "GURMUKHI",
-    "GRANTHA",
-    "JAVANESE",
-    "KANNADA",
-    "KHMER",
-    "LAO",
-    "MALAYALAM",
-    "MODI",
-    "NEWA",
-    "ORIYA",
-    "SHARADA",
-    "SIDDHAM",
-    "SINHALA",
-    # Not yet on indic-transliteration/master
-    "SAURASHTRA",
-    "TAMIL_SUPERSCRIPTED",
-    "TELUGU",
-    "THAI",
-    "TIBETAN",
-    "TIRHUTA_MAITHILI",
-
-    "BARAHA",
-    "HK",
-    "IAST",
-    "ISO",
-    "ITRANS",
-    "SLP1",
-    "VELTHUIS",
-    "WX",
-}
-
 
 def _sanitize(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"')
@@ -102,15 +241,7 @@ def to_unique(xs: list) -> list:
 def _maybe_override(name: str, deva: str, raw: str) -> str | None:
     overrides = {}
 
-    if name in {"BRAHMI", "BALINESE", "BURMESE", "SIDDHAM"}:
-        if deva in {"\u0946", "\u094a", "\u090e", "\u0912"}:
-            # - short e mark
-            # - short o mark
-            # - short e vowel
-            # - short o vowel
-            # TODO: keep short vowels and reorder them after long vowels
-            return None
-    elif name == "BARAHA":
+    if name == "BARAHA":
         # Existing accent marks seem to be mostly wrong -- delete so that we
         # can redefine them elsewhere.
         overrides = {
@@ -119,18 +250,42 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "\ua8e2": None,
             "\ua8e3": None,
         }
-    elif name == "CHAM":
-        overrides = {
-            # Short e and o, plus vowel marks
-            "\u0946": None,
-            "\u094a": None,
-            "\u090e": None,
-            "\u0912": None,
-        }
     elif name == "GRANTHA":
         overrides = {
             # vowel sign AU
             "\u094c": "\U0001134c",
+        }
+    elif name == "GONDI_GUNJALA":
+        overrides = {
+            # No avagraha defined -- for now, use Devanagari avagraha as placeholder.
+            "\u093d": "\u093d",
+            
+        }
+    elif name == "GONDI_MASARAM":
+        overrides = {
+            # Virama
+            "\u094d": "\U00011d45",
+            # No avagraha defined -- for now, use Devanagari avagraha as placeholder.
+            "\u093d": "\u093d",
+            # Conjuncts
+            "क्ष": "𑴮",
+            "ज्ञ": "𑴯",
+            
+        }
+    elif name == "GURMUKHI":
+        overrides = {
+            "\u090b": "ਰੁ",  # letter vocalic r
+            "\u0960": "ਰੂ",  # letter vocalic rr
+            "\u090c": "ਲੁ",  # letter vocalic l
+            "\u0961": "ਲੂ",  # letter vocalic ll
+            "\u0943": "\u0a4dਰੁ",  # sign vocalic r
+            "\u0944": "\u0a4dਰੂ",  # sign vocalic rr
+            "\u0962": "\u0a4dਲੁ",  # sign vocalic l
+            "\u0963": "\u0a4dਲੂ",  # sign vocalic ll
+            "\u090e": "ਏ",  # letter short e
+            "\u0912": "ਓ",  # letter short o
+            "\u0946": "\u0a47",  # sign short e
+            "\u094a": "\u0a4b",  # sign short o
         }
     elif name == "HK":
         if raw == "|":
@@ -160,6 +315,13 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "।": "។",
             "॥": "៕",
         }
+    elif name == "KHUDAWADI":
+        overrides = {
+            "\u090e": "\U000112b6",  # letter short e
+            "\u0912": "\U000112b8",  # letter short o
+            "\u0946": "\U000112e5",  # sign short e
+            "\u094a": "\U000112e7",  # sign short o
+        }
     elif name == "MODI":
         overrides = {
             "\u0907": "\U00011602",  # letter i
@@ -188,6 +350,10 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "\u0964": "\U0001144b",  # danda
             "\u0965": "\U0001144c",  # double danda
         }
+    elif name == "TAKRI":
+        overrides = {
+            "ख": "𑚸",
+        }
     elif name == "TAMIL_SUPERSCRIPTED":
         # Use roman digits per Aksharamukha
         overrides = {
@@ -206,22 +372,12 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
         overrides = {
             # Virama
             "\u094d": "\u0f84",
-            # Short e and o, plus vowel marks
-            "\u0946": None,
-            "\u094a": None,
-            "\u090e": None,
-            "\u0912": None,
             # Use distinct "va" character instead of "ba".
             "व": "\u0f5d",
         }
     elif name == "VELTHUIS":
         # These are part of the Velthuis spec but are errors in indic-transliteration.
         overrides = {
-            # Short e and o, plus vowel marks
-            "\u0946": None,
-            "\u094a": None,
-            "\u090e": None,
-            "\u0912": None,
             "ॠ": ".R",
             "ॡ": ".L",
             # Should be .o, per spec
@@ -235,8 +391,41 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
             "ळ": "lY",
             "ऽ": "Z",
         }
+    elif name == "ZANBAZAR_SQUARE":
+        overrides = {
+            "\u0943": "\U00011A34\U00011A2B\U00011A09",            # sign vocalic r
+            "\u0944": "\U00011A34\U00011A2B\U00011A09\U00011A0A",  # sign vocalic rr
+            "\u0962": "\U00011A34\U00011A2C\U00011A09",            # sign vocalic l
+            "\u0963": "\U00011A34\U00011A2C\U00011A09\U00011A0A",  # sign vocalic ll
+        }
 
     return overrides.get(deva, raw)
+
+
+def _reorder_short_vowels(items: list) -> list:
+    # Rank show vowel items lower than long vowel items so that we prefer long vowels when reversing.
+    short_vowel_codes = {"\u0946", "\u094a", "\u090e", "\u0912"}
+    no_short_e_o = [x for x in items if x[0] not in short_vowel_codes]
+    short_e_o = [x for x in items if x[0] in short_vowel_codes]
+
+    return no_short_e_o + short_e_o
+
+def _ol_chiki_consonants(items: list) -> list:
+    new = []
+    for x, y in items:
+        if len(y) > 1 and y.endswith('ᱚ'):
+            new.append((x, y[:-1]))
+        else:
+            new.append((x, y))
+
+    return new
+
+
+def create_key_consts() -> str:
+    buf = []
+    for deva, name in KEY_NAMES.items():
+        buf.append(f'const {name}: &str = "{deva}";')
+    return '\n'.join(buf)
 
 
 def create_scheme_entry(name: str, items: list[tuple[str, str]]) -> str:
@@ -252,7 +441,11 @@ def create_scheme_entry(name: str, items: list[tuple[str, str]]) -> str:
             continue
         seen.add((deva, raw))
 
-        buf.append(f'    ("{deva}", "{raw}"),')
+        if deva in KEY_NAMES:
+            key_name = KEY_NAMES[deva]
+            buf.append(f'    ({key_name}, "{raw}"),')
+        else:
+            buf.append(f'    ("{deva}", "{raw}"),')
     buf.append("];\n")
 
     return "\n".join(buf)
@@ -276,11 +469,14 @@ def main():
         "//! These schemes were auto-generated from the `common_maps` repository",
         "//! from the `indic-transliteration` project.",
         "",
+        create_key_consts(),
+        "",
     ]
 
     BRAHMIC_WITH_DEVA_ACCENTS = {"BENGALI", "KANNADA", "TELUGU", "MALAYALAM", "ORIYA", "SHARADA"}
 
-    for path in sorted(glob("common_maps/**/*.toml")):
+
+    for path in sorted(glob("/Users/arun/temp/common_maps/**/*.toml")):
         with open(path, "rb") as f:
             data = tomllib.load(f)
 
@@ -400,6 +596,14 @@ def main():
                 ("\u0970", "\u0970"),
                 ("\u0971", "\u0971"),
             ])
+        elif scheme_name == "GONDI_GUNJALA":
+            scheme_items.extend([
+                ("\u094d", "\U00011D97"),
+            ])
+        elif scheme_name == "GONDI_MASARAM":
+            scheme_items.extend([
+                ("त्र", "𑴰"),
+            ])
         elif scheme_name == "GRANTHA":
             scheme_items.extend([
                 # OO (EE + AA length mark)
@@ -463,10 +667,19 @@ def main():
                 ("\u092b\u093c", "f"),
             ])
 
-        if scheme_name == "TAMIL_SUPERSCRIPTED":
-            scheme_name = "TAMIL"
-        elif scheme_name == "TIRHUTA_MAITHILI":
-            scheme_name = "TIRHUTA"
+        renames = {
+            "GONDI_GUNJALA": "GUNJALA_GONDI",
+            "GONDI_MASARAM": "MASARAM_GONDI",
+            "MANIPURI": "MEETEI_MAYEK",
+            "ZANBAZAR_SQUARE": "ZANABAZAR_SQUARE",
+            "TAMIL_SUPERSCRIPTED": "TAMIL",
+            "TIRHUTA_MAITHILI": "TIRHUTA",
+        }
+        scheme_name = renames.get(scheme_name, scheme_name)
+
+        scheme_items = _reorder_short_vowels(scheme_items)
+        if scheme_name == "OL_CHIKI":
+            scheme_items = _ol_chiki_consonants(scheme_items)
         buf.append(create_scheme_entry(scheme_name, scheme_items))
 
     with open(CRATE_DIR / "src/autogen_schemes.rs", "w") as f:

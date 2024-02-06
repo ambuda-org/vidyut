@@ -70,21 +70,32 @@ fn detect_inner(input: &str) -> Option<Scheme> {
     const SINHALA: Range = 0x0d80..=0x0dff;
     const THAI: Range = 0x0e00..=0x0e7f;
     const TIBETAN: Range = 0x0f00..=0x0fff;
-    const BURMESE: Range = 0x1000..=0x109f;
+    const MYANMAR: Range = 0x1000..=0x109f;
+    const TAI_THAM: Range = 0x1a20..=0x1aaf;
     const KHMER: Range = 0x1780..=0x17ff;
+    const LIMBU: Range = 0x1900..=0x194f;
     const BALINESE: Range = 0x1b00..=0x1b7f;
     const SAURASHTRA: Range = 0xa880..=0xa8df;
     const JAVANESE: Range = 0xa980..=0xa9df;
     const BRAHMI: Range = 0x11000..=0x1107f;
+    const KAITHI: Range = 0x11080..=0x110cf;
     const SHARADA: Range = 0x11180..=0x111df;
+    const KHUDAWADI: Range = 0x112b0..=0x112ff;
     const GRANTHA: Range = 0x11300..=0x1137f;
-    const SIDDHAM: Range = 0x11580..=0x115ff;
     const NEWA: Range = 0x11400..=0x1147f;
     const TIRHUTA: Range = 0x11480..=0x114df;
+    const SIDDHAM: Range = 0x11580..=0x115ff;
     const MODI: Range = 0x11600..=0x1165f;
+    const TAKRI: Range = 0x11680..=0x116cf;
+    const _AHOM: Range = 0x11700..=0x1174f;
+    const DOGRA: Range = 0x11800..=0x1184f;
+    const ZANABAZAR_SQUARE: Range = 0x11a00..=0x11a4f;
+    const BHAIKSUKI: Range = 0x11c00..=0x11c6f;
+    const MASARAM_GONDI: Range = 0x11d00..=0x11d5f;
+    const GUNJALA_GONDI: Range = 0x11d60..=0x11daf;
 
     // Wraps all of the ranges above.
-    const INDIC: Range = *DEVANAGARI.start()..=*MODI.end();
+    const INDIC: Range = *DEVANAGARI.start()..=*GUNJALA_GONDI.end();
     const ASCII: Range = 0..=0xff;
 
     for (i, c) in input.char_indices() {
@@ -134,10 +145,14 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                 Some(Thai)
             } else if TIBETAN.contains(&code) {
                 Some(Tibetan)
-            } else if BURMESE.contains(&code) {
+            } else if MYANMAR.contains(&code) {
                 Some(Burmese)
+            } else if TAI_THAM.contains(&code) {
+                Some(TaiTham)
             } else if KHMER.contains(&code) {
                 Some(Khmer)
+            } else if LIMBU.contains(&code) {
+                Some(Limbu)
             } else if BALINESE.contains(&code) {
                 Some(Balinese)
             } else if SAURASHTRA.contains(&code) {
@@ -146,18 +161,34 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                 Some(Javanese)
             } else if BRAHMI.contains(&code) {
                 Some(Brahmi)
+            } else if KAITHI.contains(&code) {
+                Some(Kaithi)
             } else if SHARADA.contains(&code) {
                 Some(Sharada)
+            } else if KHUDAWADI.contains(&code) {
+                Some(Khudawadi)
             } else if GRANTHA.contains(&code) {
                 Some(Grantha)
-            } else if SIDDHAM.contains(&code) {
-                Some(Siddham)
             } else if NEWA.contains(&code) {
                 Some(Newa)
             } else if TIRHUTA.contains(&code) {
                 Some(Tirhuta)
+            } else if SIDDHAM.contains(&code) {
+                Some(Siddham)
             } else if MODI.contains(&code) {
                 Some(Modi)
+            } else if TAKRI.contains(&code) {
+                Some(Takri)
+            } else if DOGRA.contains(&code) {
+                Some(Dogra)
+            } else if ZANABAZAR_SQUARE.contains(&code) {
+                Some(ZanabazarSquare)
+            } else if BHAIKSUKI.contains(&code) {
+                Some(Bhaiksuki)
+            } else if MASARAM_GONDI.contains(&code) {
+                Some(MasaramGondi)
+            } else if GUNJALA_GONDI.contains(&code) {
+                Some(GunjalaGondi)
             } else {
                 None
             };
@@ -228,17 +259,25 @@ mod tests {
         // -----
         ("ᬅᬕ᭄ᬦᬶᬫ᭄", Balinese),
         ("অগ্নিম্", Bengali),
+        ("𑰀𑰐𑰿𑰡𑰰𑰦𑰿", Bhaiksuki),
         ("𑀅𑀕𑁆𑀦𑀺𑀫𑁆", Brahmi),
         ("အဂ်နိမ်", Burmese),
         ("अग्निम्", Devanagari),
+        ("𑠩𑠷𑠩𑠹𑠊𑠹𑠘𑠹𑠙𑠢𑠹", Dogra),
         ("𑌅𑌗𑍍𑌨𑌿𑌮𑍍", Grantha),
+        ("𑶉𑶕𑶉𑶗𑵱𑶗𑵺𑶗𑵳𑵰", GunjalaGondi),
         ("ਅਗ੍ਨਿਮ੍", Gurmukhi),
         ("અગ્નિમ્", Gujarati),
         ("ꦄꦒ꧀ꦤꦶꦩ꧀", Javanese),
+        ("𑂮𑂁𑂮𑂹𑂍𑂹𑂩𑂱𑂞𑂧𑂹", Kaithi),
         ("ಅಗ್ನಿಮ್", Kannada),
         ("អគ្និម៑", Khmer),
+        ("𑋝𑋟𑋝𑋪𑊺𑋪𑋙𑋡𑋍𑋗𑋪", Khudawadi),
+        ("ᤛᤲᤛ᤻ᤁ᤻ᤏ᤻ᤋᤶ", Limbu),
         ("അഗ്നിമ്", Malayalam),
+        ("𑴫𑵀𑴫𑵅𑴌𑴶𑴛𑴤𑵄", MasaramGondi),
         ("𑘀𑘐𑘿𑘡𑘱𑘦𑘿", Modi),
+        ("𑚨𑚫𑚨𑚶𑚊𑚶𑚘𑚶𑚙𑚢𑚶", Takri),
         ("𑐀𑐐𑑂𑐣𑐶𑐩𑑂", Newa),
         ("ଅଗ୍ନିମ୍", Odia),
         ("ꢂꢔ꣄ꢥꢶꢪ꣄", Saurashtra),

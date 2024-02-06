@@ -22,17 +22,29 @@ pub fn transliterate(input: impl AsRef<str>, mapping: &Mapping) -> String {
 
 /// Transliterates the input string with the provided `Mapping`.
 ///
-/// ### Implementation
 ///
-/// We iterate through `input` in one pass. We build `output` by repeatedly matching the prefix of
-/// the remaining text (`input[i..]`) against `mapping` and appending the best match to the output
-/// buffer.
+/// ### Data flow
 ///
-/// For most scheme pairs, this simple proceduce is sufficient. But some schemes are complex enough
-/// that further post-processing is necessary. In general, we post-process iteratively so that we
-/// can avoid making a second pass through the output string.
+/// This function has three stages:
+///
+/// 1. *Pre-processing.* Certain schemes are difficult to transliterate in their raw form. To make
+///    transliteration easier, pre-process the input string by rearranging or substituting certain
+///    code points. For details, see `reshape_before`.
+///
+/// 2. *Remapping.* Here, we transliterate the output of (1) in a single pass by greedily matching
+///    against the entries in `mapping`. For many transliteration pairs, this stage is the only one
+///    required.
+///
+/// 3. *Post-processing.* Certain schemes use a code point order that is difficult to create just
+///    by remapping. So, we reshape the output of (2) to create our final output. For details, see
+///    `reshape_after`.
+///
+/// Each of these stages makes at most one pass over the input string. Several scheme pairs will be
+/// able to avoid doing work in stages (1) and (3) and thus process the input text in just one
+/// pass. For more complex scheme pairs (such as `Tibetan` to `Khmer`), this code will make three
+/// passes total.
 fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
-    let input = reshape_before(input, mapping);
+    let input = reshape_before(input, mapping.from());
 
     let is_to_alphabet = mapping.to.is_alphabet();
     let is_from_abugida = mapping.from.is_abugida();
@@ -80,9 +92,13 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
 
         // 2. Append the mapped result, if it exists.
         if let Some(token) = token {
+            // `letter_a` is "a" for Latin scripts but takes other values for non-Latin scripts
+            // like Ol Chiki.
+
             // Abugidas and alphabets have distinct logic here, so keep their code neatly separate.
             if is_from_abugida {
-                if output.ends_with('a')
+                let a = &mapping.output_letter_a;
+                if output.ends_with(a)
                     && (mapping.marks.contains_key(key) || key == mapping.input_virama)
                 {
                     // `key` maps to a token that blocks the default "a" vowel, so pop the "a" that
@@ -96,11 +112,11 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                     // Add an implicit "a" vowel.
                     //
                     // (The next loop iteration might pop this "a" off of `output`.)
-                    output += "a";
+                    output += a;
                 }
             } else {
                 // Transliterate from alphabet
-                if had_virama && key == "a" {
+                if had_virama && key == mapping.input_letter_a {
                     // `key` is the default "a" vowel, so pop the virama that we added in the
                     // previous iteration.
                     output.pop();
@@ -148,7 +164,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
         i = next_i;
     }
 
-    reshape_after(output, mapping)
+    reshape_after(output, mapping.to())
 }
 
 /// Finds the end byte of a sequence of numerals starting at byte offset `i`.
@@ -157,7 +173,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
 /// - `Some(j)` if `input[i..]` starts with a numeral.
 /// - `None` if `input[i..]` does not start wtih a numeral.
 fn find_end_of_numeral_span(mapping: &Mapping, input: &str, i: usize) -> Option<usize> {
-    let j = input[i..]
+    let i_next_non_numeric = input[i..]
         .char_indices()
         .find(|(_, c)| {
             let mut temp = [0u8; 4];
@@ -166,11 +182,12 @@ fn find_end_of_numeral_span(mapping: &Mapping, input: &str, i: usize) -> Option<
         })
         .map(|(i, _)| i);
 
-    if let Some(j) = j {
+    if let Some(j) = i_next_non_numeric {
         if j == 0 {
-            // input[i..] does not start with a number.
+            // input[i..] does not start with a numeral.
             None
         } else {
+            // input[i..] starts with a numeral.
             Some(i + j)
         }
     } else {

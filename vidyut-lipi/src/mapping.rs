@@ -5,7 +5,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 /// An output token, which we append to our output string when transliterating.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Token {
+pub(crate) struct Token {
     /// The text of this token.
     pub text: String,
     /// The token type. `kind` controls how this token combines with neighboring tokens.
@@ -88,6 +88,8 @@ pub(crate) struct OneWayMapping {
     numeral_to_int: FxHashMap<String, u32>,
     /// The virama, or the empty string if not defined for this scheme.
     virama: String,
+    /// The letter representation of the "a" vowel.
+    letter_a: String,
 }
 
 impl OneWayMapping {
@@ -124,6 +126,11 @@ impl OneWayMapping {
                 }
             }
         }
+
+        let letter_a = match data.get("अ") {
+            Some(vs) => vs.iter().next().expect("present").clone(),
+            None => String::new(),
+        };
 
         // Checks
         // ------
@@ -170,6 +177,7 @@ impl OneWayMapping {
             data,
             numeral_to_int,
             virama,
+            letter_a,
         }
     }
 
@@ -240,8 +248,12 @@ pub struct Mapping {
     pub(crate) to: Scheme,
     pub(crate) all: FxHashMap<String, Token>,
     pub(crate) marks: FxHashMap<String, String>,
+
     pub(crate) input_virama: String,
     pub(crate) output_virama: String,
+    pub(crate) input_letter_a: String,
+    pub(crate) output_letter_a: String,
+
     pub(crate) len_longest_key: usize,
     pub(crate) numeral_to_int: FxHashMap<String, u32>,
     pub(crate) int_to_numeral: FxHashMap<u32, String>,
@@ -360,6 +372,8 @@ impl Mapping {
             marks,
             input_virama: a_map.virama,
             output_virama: b_map.virama,
+            input_letter_a: a_map.letter_a,
+            output_letter_a: b_map.letter_a,
             len_longest_key,
             numeral_to_int: a_map.numeral_to_int.clone(),
             int_to_numeral,

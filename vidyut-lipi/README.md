@@ -28,11 +28,11 @@ An online demo is available [here][demo].
 Overview
 --------
 
-Communities around the world write Sanskrit and other Indian languages with
+Communities around the world write Sanskrit and other Indic languages with
 different scripts in different contexts. For example, a user might type
 Sanskrit in ITRANS, read it in Kannada, and publish it in Devanagari. Such
 communities often rely on a *transliterator*, which converts text from one
-scheme to another.
+encoding scheme to another.
 
 While various transliterators exist, none are both high-quality and widely
 available in different programming languages. The result is that maintenance
@@ -59,7 +59,7 @@ Alternatives to `vidyut-lipi`
 -----------------------------
 
 There are two main alternatives to `vidyut-lipi`, both of which have been
-influential on the design of `vidyut-lipi`:
+influential on our overall design:
 
 - [Aksharamukha][am] offers high quality and supports more than a hundred
   different scripts. Aksharamukha offers best-in-class transliteration, but it

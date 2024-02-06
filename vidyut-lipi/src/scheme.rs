@@ -42,6 +42,11 @@ pub enum Scheme {
     /// Docs: <https://unicode.org/charts/PDF/U0980.pdf>
     Bengali,
 
+    /// Bhaiksuki script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11C00.pdf>
+    Bhaiksuki,
+
     /// Brahmi script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U11000.pdf>
@@ -55,7 +60,7 @@ pub enum Scheme {
     /// Cham script.
     ///
     /// <https://unicode.org/charts/PDF/UAA00.pdf>
-    // Cham,
+    Cham,
 
     /// Devanagari script.
     ///
@@ -66,10 +71,10 @@ pub enum Scheme {
     /// - <https://unicode.org/charts/PDF/U1CD0.pdf> (Vedic Extensions)
     Devanagari,
 
-    /// Gujarati script.
+    /// Dogra script.
     ///
-    /// Docs: <https://unicode.org/charts/PDF/U0A80.pdf>
-    Gujarati,
+    /// Docs: <https://unicode.org/charts/PDF/U11800.pdf>
+    Dogra,
 
     /// Grantha script.
     ///
@@ -77,6 +82,16 @@ pub enum Scheme {
     /// - <http://www.unicode.org/charts/PDF/U11300.pdf>
     /// - <https://unicode.org/L2/L2009/09372-grantha.pdf>
     Grantha,
+
+    /// Gujarati script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U0A80.pdf>
+    Gujarati,
+
+    /// Gunjala Gondi script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11D60.pdf>
+    GunjalaGondi,
 
     /// Gurmukhi script.
     ///
@@ -88,6 +103,11 @@ pub enum Scheme {
     /// Docs: <https://unicode.org/charts/PDF/UA980.pdf>
     Javanese,
 
+    /// Kaithi script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U11080.pdf>
+    Kaithi,
+
     /// Kannada script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U0C80.pdf>
@@ -95,13 +115,38 @@ pub enum Scheme {
 
     /// Khmer script.
     ///
-    /// <https://unicode.org/charts/PDF/U1780.pdf>
+    /// Docs: <https://unicode.org/charts/PDF/U1780.pdf>
     Khmer,
+
+    /// Khudawadi script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U112B0.pdf>
+    Khudawadi,
+
+    /// Lepcha script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U1C00.pdf>
+    // Lepcha,
+
+    /// Limbu script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U1900.pdf>
+    Limbu,
 
     /// Malayalam script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U0D00.pdf>
     Malayalam,
+
+    /// Meetei script, known as Meetei Mayek.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/UABC0.pdf>
+    MeeteiMayek,
+
+    /// Masaram Gondi script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11D00.pdf>
+    MasaramGondi,
 
     /// Modi script.
     ///
@@ -110,20 +155,35 @@ pub enum Scheme {
 
     /// Lao script.
     ///
-    /// Documentation:
+    /// Docs:
     /// - <https://unicode.org/charts/PDF/U0E80.pdf>
     /// - <https://www.unicode.org/wg2/docs/n4861-17106r-lao-for-pali.pdf>
     // Lao,
 
+    /// Nandinagari script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U119A0.pdf>
+    Nandinagari,
+
     /// Newa script.
     ///
-    /// <https://unicode.org/charts/PDF/U11400.pdf>
+    /// Docs: <https://unicode.org/charts/PDF/U11400.pdf>
     Newa,
 
     /// Odia script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U0B00.pdf>
     Odia,
+
+    /// Ol Chiki (Santali) script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U1C50.pdf>
+    OlChiki,
+
+    /// `Phags-pa script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/UA840.pdf>
+    // PhagsPa,
 
     /// Saurashtra script.
     ///
@@ -145,6 +205,16 @@ pub enum Scheme {
     /// Docs: <https://unicode.org/charts/PDF/U0D80.pdf>
     Sinhala,
 
+    /// Tai Tham script (Lanna)
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U1A20.pdf>
+    TaiTham,
+
+    /// Takri script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11680.pdf>
+    Takri,
+
     /// Tamil script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U0B80.pdf>
@@ -157,7 +227,7 @@ pub enum Scheme {
 
     /// Thai script.
     ///
-    /// <https://unicode.org/charts/PDF/U0E00.pdf>
+    /// Docs: <https://unicode.org/charts/PDF/U0E00.pdf>
     Thai,
 
     /// Tibetan script.
@@ -171,6 +241,11 @@ pub enum Scheme {
     ///
     /// Docs: <https://www.unicode.org/charts/PDF/U11480.pdf>
     Tirhuta,
+
+    /// Zanabazar Square script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11A00.pdf>
+    ZanabazarSquare,
 
     /// Baraha transliteration.
     ///
@@ -229,38 +304,55 @@ impl Scheme {
     pub fn iter() -> impl Iterator<Item = &'static Scheme> {
         use Scheme::*;
         const SCHEMES: &[Scheme] = &[
+            // Assamese,
             Balinese,
             BarahaSouth,
             Bengali,
+            Bhaiksuki,
             Brahmi,
             Burmese,
+            Cham,
             Devanagari,
+            Dogra,
             Grantha,
             Gujarati,
+            GunjalaGondi,
             Gurmukhi,
             HarvardKyoto,
             Iast,
             Iso15919,
             Itrans,
             Javanese,
+            Kaithi,
             Kannada,
             Khmer,
+            Khudawadi,
+            Limbu,
             Malayalam,
+            MeeteiMayek,
+            MasaramGondi,
             Modi,
+            Nandinagari,
             Newa,
             Odia,
+            OlChiki,
             Saurashtra,
             Sharada,
             Siddham,
             Sinhala,
             Slp1,
+            // Soyombo,
+            TaiTham,
+            Takri,
             Tamil,
             Telugu,
             Thai,
             Tibetan,
             Tirhuta,
             Velthuis,
+            // Wancho,
             Wx,
+            ZanabazarSquare,
         ];
         SCHEMES.iter()
     }
@@ -269,32 +361,49 @@ impl Scheme {
         use autogen_schemes as auto;
 
         match self {
+            // Abugidas
             Scheme::Balinese => auto::BALINESE,
             Scheme::Bengali => auto::BENGALI,
+            Scheme::Bhaiksuki => auto::BHAIKSUKI,
             Scheme::Brahmi => auto::BRAHMI,
             Scheme::Burmese => auto::BURMESE,
-            // Scheme::Cham => auto::CHAM,
+            Scheme::Cham => auto::CHAM,
             Scheme::Devanagari => auto::DEVANAGARI,
-            Scheme::Gujarati => auto::GUJARATI,
-            Scheme::Gurmukhi => auto::GURMUKHI,
+            Scheme::Dogra => auto::DOGRA,
             Scheme::Grantha => auto::GRANTHA,
+            Scheme::Gujarati => auto::GUJARATI,
+            Scheme::GunjalaGondi => auto::GUNJALA_GONDI,
+            Scheme::Gurmukhi => auto::GURMUKHI,
             Scheme::Javanese => auto::JAVANESE,
+            Scheme::Kaithi => auto::KAITHI,
             Scheme::Kannada => auto::KANNADA,
             Scheme::Khmer => auto::KHMER,
+            Scheme::Khudawadi => auto::KHUDAWADI,
             // Scheme::Lao => auto::LAO,
+            // Scheme::Lepcha => auto::LEPCHA,
+            Scheme::Limbu => auto::LIMBU,
             Scheme::Malayalam => auto::MALAYALAM,
+            Scheme::MeeteiMayek => auto::MEETEI_MAYEK,
+            Scheme::MasaramGondi => auto::MASARAM_GONDI,
             Scheme::Modi => auto::MODI,
+            Scheme::Nandinagari => auto::NANDINAGARI,
             Scheme::Newa => auto::NEWA,
             Scheme::Odia => auto::ORIYA,
+            Scheme::OlChiki => auto::OL_CHIKI,
             Scheme::Saurashtra => auto::SAURASHTRA,
             Scheme::Sharada => auto::SHARADA,
             Scheme::Siddham => auto::SIDDHAM,
             Scheme::Sinhala => auto::SINHALA,
+            Scheme::TaiTham => auto::TAI_THAM,
+            Scheme::Takri => auto::TAKRI,
             Scheme::Tamil => auto::TAMIL,
             Scheme::Telugu => auto::TELUGU,
             Scheme::Thai => auto::THAI,
             Scheme::Tibetan => auto::TIBETAN,
             Scheme::Tirhuta => auto::TIRHUTA,
+            Scheme::ZanabazarSquare => auto::ZANABAZAR_SQUARE,
+
+            // Alphabets
             Scheme::BarahaSouth => auto::BARAHA,
             Scheme::HarvardKyoto => auto::HK,
             Scheme::Iast => auto::IAST,
@@ -320,6 +429,7 @@ impl Scheme {
             Devanagari => u::DEVANAGARI_NFD,
             Grantha => u::GRANTHA_NFD,
             Gurmukhi => u::GURMUKHI_NFD,
+            Kaithi => u::KAITHI_NFD,
             Kannada => u::KANNADA_NFD,
             Malayalam => u::MALAYALAM_NFD,
             Odia => u::ORIYA_NFD,
@@ -360,12 +470,15 @@ impl Scheme {
         // Use an exhaustive match (no `_`) so that we explicitly account for all schemes.
         match self {
             // Abugidas are all `true`.
-            Balinese | Bengali | Brahmi | Burmese | Devanagari | Grantha | Gujarati | Gurmukhi
-            | Javanese | Kannada | Khmer | Malayalam | Modi | Newa | Odia | Saurashtra
-            | Sharada | Siddham | Sinhala | Tamil | Telugu | Thai | Tibetan | Tirhuta => true,
+            Balinese | Bengali | Bhaiksuki | Brahmi | Burmese | Cham | Devanagari | Dogra
+            | Grantha | Gujarati | GunjalaGondi | Gurmukhi | Javanese | Kaithi | Kannada
+            | Khmer | Khudawadi | Limbu | Malayalam | MasaramGondi | MeeteiMayek | Modi
+            | Nandinagari | Newa | Odia | Saurashtra | Sharada | Siddham | Sinhala | TaiTham
+            | Takri | Tamil | Telugu | Thai | Tibetan | Tirhuta | ZanabazarSquare => true,
 
             // Alphabets are all `false`.
-            BarahaSouth | HarvardKyoto | Iso15919 | Itrans | Iast | Slp1 | Velthuis | Wx => false,
+            BarahaSouth | HarvardKyoto | Iso15919 | Itrans | Iast | OlChiki | Slp1 | Velthuis
+            | Wx => false,
         }
     }
 
@@ -431,11 +544,13 @@ mod tests {
             //
             // Don't use `_`, as that would defeat the point of this test.
             match s {
-                Balinese | BarahaSouth | Bengali | Brahmi | Burmese | Devanagari | Grantha
-                | Gujarati | Gurmukhi | HarvardKyoto | Iast | Iso15919 | Itrans | Javanese
-                | Kannada | Khmer | Malayalam | Modi | Newa | Odia | Saurashtra | Sharada
-                | Siddham | Sinhala | Slp1 | Tamil | Telugu | Thai | Tibetan | Tirhuta
-                | Velthuis | Wx => {
+                Balinese | BarahaSouth | Bengali | Bhaiksuki | Brahmi | Burmese | Cham
+                | Devanagari | Dogra | GunjalaGondi | Grantha | Gujarati | Gurmukhi
+                | HarvardKyoto | Iast | Iso15919 | Itrans | Javanese | Kaithi | Kannada | Khmer
+                | Khudawadi | Limbu | Malayalam | MasaramGondi | MeeteiMayek | Nandinagari
+                | Modi | Newa | Odia | OlChiki | Saurashtra | Sharada | Siddham | Sinhala
+                | Slp1 | TaiTham | Takri | Tamil | Telugu | Thai | Tibetan | Tirhuta | Velthuis
+                | Wx | ZanabazarSquare => {
                     expected.push(*s);
                 }
             }
@@ -481,11 +596,11 @@ mod tests {
         }
     }
 
-    /// Checks that token pairs don't contain needless duplicates.
+    /// Checks that token pairs don't contain repeated pairs.
     ///
     /// This is just a sanity check to ensure that our default schemes are somewhat well-formed.
     #[test]
-    fn token_pairs_have_no_duplicates() {
+    fn token_pairs_have_no_repeated_pairs() {
         for scheme in Scheme::iter() {
             let mut seen = std::collections::HashSet::new();
             for pair in scheme.token_pairs() {
@@ -502,9 +617,7 @@ mod tests {
 
     #[test]
     fn is_abugida_or_alphabet() {
-        use Scheme::*;
-        let schemes = &[Devanagari, Kannada, Iast, Itrans];
-        for s in schemes {
+        for s in Scheme::iter() {
             assert!(s.is_abugida() != s.is_alphabet());
         }
     }
