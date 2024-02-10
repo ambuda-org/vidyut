@@ -2,7 +2,7 @@
 
 use crate::scheme::Scheme;
 
-/// Detcts the scheme used by the given text.
+/// Detects the scheme used by the given text.
 ///
 /// `detect` is ideal for interfaces where the user would otherwise need to manually choose which
 /// input encoding to use. `detect` removes some of this user friction by making a reasonable guess
@@ -44,11 +44,12 @@ fn detect_inner(input: &str) -> Option<Scheme> {
 
     type Range = std::ops::RangeInclusive<u32>;
 
-    // These are Latin supplements for IAST, ISO-15919, etc.
+    // The Latin blocks below are used by IAST, ISO-15919, etc.
     //
-    // - https://unicode.org/charts/PDF/U0080.pdf
-    // - https://unicode.org/charts/PDF/U0100.pdf
-    // - https://unicode.org/charts/PDF/U1E00.pdf
+    // Docs:
+    // - <https://unicode.org/charts/PDF/U0080.pdf>
+    // - <https://unicode.org/charts/PDF/U0100.pdf>
+    // - <https://unicode.org/charts/PDF/U1E00.pdf>
     const LATIN_1_SUPPLEMENT: Range = 0x0080..=0x00ff;
     const LATIN_EXTENDED_A: Range = 0x0100..=0x017f;
     const LATIN_EXTENDED: Range = 0x01e00..=0x01eff;
@@ -72,6 +73,7 @@ fn detect_inner(input: &str) -> Option<Scheme> {
     const TIBETAN: Range = 0x0f00..=0x0fff;
     const MYANMAR: Range = 0x1000..=0x109f;
     const TAI_THAM: Range = 0x1a20..=0x1aaf;
+    const OL_CHIKI: Range = 0x1c50..=0x1c7f;
     const KHMER: Range = 0x1780..=0x17ff;
     const LIMBU: Range = 0x1900..=0x194f;
     const BALINESE: Range = 0x1b00..=0x1b7f;
@@ -89,7 +91,9 @@ fn detect_inner(input: &str) -> Option<Scheme> {
     const TAKRI: Range = 0x11680..=0x116cf;
     const _AHOM: Range = 0x11700..=0x1174f;
     const DOGRA: Range = 0x11800..=0x1184f;
+    const NANDINAGARI: Range = 0x119a0..=0x119ff;
     const ZANABAZAR_SQUARE: Range = 0x11a00..=0x11a4f;
+    const SOYOMBO: Range = 0x11a50..=0x11aaf;
     const BHAIKSUKI: Range = 0x11c00..=0x11c6f;
     const MASARAM_GONDI: Range = 0x11d00..=0x11d5f;
     const GUNJALA_GONDI: Range = 0x11d60..=0x11daf;
@@ -149,6 +153,8 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                 Some(Burmese)
             } else if TAI_THAM.contains(&code) {
                 Some(TaiTham)
+            } else if OL_CHIKI.contains(&code) {
+                Some(OlChiki)
             } else if KHMER.contains(&code) {
                 Some(Khmer)
             } else if LIMBU.contains(&code) {
@@ -181,8 +187,12 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                 Some(Takri)
             } else if DOGRA.contains(&code) {
                 Some(Dogra)
+            } else if NANDINAGARI.contains(&code) {
+                Some(Nandinagari)
             } else if ZANABAZAR_SQUARE.contains(&code) {
                 Some(ZanabazarSquare)
+            } else if SOYOMBO.contains(&code) {
+                Some(Soyombo)
             } else if BHAIKSUKI.contains(&code) {
                 Some(Bhaiksuki)
             } else if MASARAM_GONDI.contains(&code) {
@@ -277,13 +287,16 @@ mod tests {
         ("അഗ്നിമ്", Malayalam),
         ("𑴫𑵀𑴫𑵅𑴌𑴶𑴛𑴤𑵄", MasaramGondi),
         ("𑘀𑘐𑘿𑘡𑘱𑘦𑘿", Modi),
+        ("𑧍𑧞𑧍𑧠𑦮𑧖𑦽𑧆𑧠", Nandinagari),
         ("𑚨𑚫𑚨𑚶𑚊𑚶𑚘𑚶𑚙𑚢𑚶", Takri),
         ("𑐀𑐐𑑂𑐣𑐶𑐩𑑂", Newa),
         ("ଅଗ୍ନିମ୍", Odia),
+        ("ᱥᱚᱝᱥᱠᱨᱩᱛᱚᱢ", OlChiki),
         ("ꢂꢔ꣄ꢥꢶꢪ꣄", Saurashtra),
         ("𑆃𑆓𑇀𑆤𑆴𑆩𑇀", Sharada),
         ("𑖀𑖐𑖿𑖡𑖰𑖦𑖿", Siddham),
         ("අග්නිම්", Sinhala),
+        ("𑪁𑪖𑪁𑪙𑩜𑩙𑩫𑩴", Soyombo),
         ("அக்³நிம்", Tamil),
         ("అగ్నిమ్", Telugu),
         ("ཨགིམ", Tibetan),

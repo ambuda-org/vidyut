@@ -44,7 +44,7 @@ pub fn transliterate(input: impl AsRef<str>, mapping: &Mapping) -> String {
 /// pass. For more complex scheme pairs (such as `Tibetan` to `Khmer`), this code will make three
 /// passes total.
 fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
-    let input = reshape_before(input, mapping.from());
+    let input = reshape_before(input, mapping.from(), mapping.to());
 
     let is_to_alphabet = mapping.to.is_alphabet();
     let is_from_abugida = mapping.from.is_abugida();
@@ -97,9 +97,9 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
 
             // Abugidas and alphabets have distinct logic here, so keep their code neatly separate.
             if is_from_abugida {
-                let a = &mapping.output_letter_a;
+                let a = &mapping.to_map.letter_a;
                 if output.ends_with(a)
-                    && (mapping.marks.contains_key(key) || key == mapping.input_virama)
+                    && (mapping.marks.contains_key(key) || key == mapping.from_map.virama)
                 {
                     // `key` maps to a token that blocks the default "a" vowel, so pop the "a" that
                     // we added in the previous iteration.
@@ -116,7 +116,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                 }
             } else {
                 // Transliterate from alphabet
-                if had_virama && key == mapping.input_letter_a {
+                if had_virama && key == mapping.from_map.letter_a {
                     // `key` is the default "a" vowel, so pop the virama that we added in the
                     // previous iteration.
                     output.pop();
@@ -136,7 +136,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                         // We have not seen a vowel mark yet, so push a virama for now.
                         //
                         // (The next loop iteration might pop this virama off of `output`.)
-                        output += &mapping.output_virama;
+                        output += &mapping.to_map.virama;
                         had_virama = true;
                     }
                 }

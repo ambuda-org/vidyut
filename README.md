@@ -139,10 +139,9 @@ For details, see the [vidyut-kosha README][vidyut-kosha].
 
 ### [`vidyut-lipi`][vidyut-lipi]
 
-`vidyut-lipi` is an experimental Sanskrit transliteration library that also
+`vidyut-lipi` is a transliteration library for Sanskrit and Pali that also
 supports many of the scripts used within the Indosphere. Our goal is to provide
-a standard transliterator for the Sanskrit ecosystem that is easy to bind to
-other programming languages.
+a standard transliterator that is easy to bind to other programming languages.
 
 For details, see the [vidyut-lipi README][vidyut-lipi].
 
@@ -217,8 +216,6 @@ we are most excited about:
 
 - dependency parsing and *anvaya* generation
 - search indexing that accounts for sandhi and Sanskrit's complex morphology.
-- transliteration, perhaps through a port of [Aksharamukha][aksharamukha]
-- meter recognition
 - support for Vedic Sanskrit
 - implementations of non-Paninian grammars
 

@@ -19,9 +19,9 @@
 //!
 //! Rough size estimates, as of 2024-01-22:
 //!
-//! - Code without NFC/NFD logic:       ~ 129 KiB wasm
-//! - Code with this module:            ~ 134 KiB wasm
-//! - Code with `unicode_normaliation`: ~ 248 KiB wasm
+//! - Code without NFC/NFD logic :       ~ 129 KiB wasm
+//! - Code with this module:             ~ 134 KiB wasm
+//! - Code with `unicode_normalization`: ~ 248 KiB wasm
 //!
 //! [1]: https://docs.rs/unicode-normalization/latest/unicode_normalization/
 
@@ -61,6 +61,7 @@ pub const LATIN_NFD: Table = &[
     ("\u{1e0d}", "d\u{0323}"),         // ḍ
     ("\u{1e24}", "H\u{0323}"),         // Ḥ
     ("\u{1e25}", "h\u{0323}"),         // ḥ
+    ("\u{1e2b}", "h\u{032e}"),         // ḫ
     ("\u{1e32}", "K\u{0323}"),         // Ḳ
     ("\u{1e33}", "k\u{0323}"),         // ḳ
     ("\u{1e36}", "L\u{0323}"),         // Ḷ
@@ -248,7 +249,13 @@ pub const TIRHUTA_NFD: Table = &[
     ("\u{114be}", "\u{114b9}\u{114bd}"), // vowel sign au
 ];
 
-#[allow(unused)]
+/// Converts `s` to its NFC representation.
+///
+/// Only characters that appear in one of our `Scheme`s will be converted. All other characters
+/// will be left as-is.
+///
+/// TODO: consider using `unicode_normalization` in non-WASM with conditional compilation. Leaning
+/// against due to having to reason about two different systems.
 pub(crate) fn to_nfc(s: &str) -> String {
     let mut map = FxHashMap::default();
     let mut len_longest_key = 0;

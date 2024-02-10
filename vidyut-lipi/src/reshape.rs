@@ -23,10 +23,23 @@
 //! WASM. So instead of using regexes, we've rolled our own logic for these transformations.
 
 use crate::scheme::Scheme;
-use std::borrow::Cow;
+use crate::unicode_norm;
+
+const BENGALI_LETTER_YA: char = '\u{09af}';
+
+const BENGALI_LETTER_YYA: &str = "\u{09af}\u{09bc}";
+
+const BENGALI_LETTER_TA: char = '\u{09a4}';
+
+const BENGALI_LETTER_KHANDA_TA: char = '\u{09ce}';
+
+const BENGALI_VIRAMA: char = '\u{09cd}';
 
 /// Used instead of space (' ') in Bhaiksuki.
 const BHAIKSUKI_WORD_SEPARATOR: char = '\u{11c43}';
+
+/// Javanese virama.
+const JAVANESE_PANGKON: char = '\u{a9c0}';
 
 /// "ra" consonant
 const KHMER_LETTER_RO: char = '\u{179a}';
@@ -40,6 +53,9 @@ const KHMER_SIGN_VIRIAM: char = '\u{17d1}';
 
 /// Like virama, but indicates that next char should be subscripted.
 const KHMER_SIGN_COENG: char = '\u{17d2}';
+
+/// Limbu virama.
+const LIMBU_SIGN_SA_I: char = '\u{193b}';
 
 // Generic ra
 const MASARAM_GONDI_LETTER_RA: char = '\u{11d26}';
@@ -55,6 +71,16 @@ const MASARAM_GONDI_REPHA: char = '\u{11d46}';
 const MASARAM_GONDI_RA_KARA: char = '\u{11d47}';
 
 const MEETEI_MAYEK_APUN_IYEK: char = '\u{abed}';
+
+const MYANMAR_SIGN_VIRAMA: char = '\u{1039}';
+
+const MYANMAR_SIGN_ASAT: char = '\u{103a}';
+
+// Tai Tham virama.
+const TAI_THAM_SIGN_RA_HAAM: char = '\u{1a7a}';
+
+// Tai Tham combiner.
+const TAI_THAM_SIGN_SAKOT: char = '\u{1a60}';
 
 /// Used instead of space (' ') in Tibetan
 const TIBETAN_MARK_INTERSYLLABLIC_TSHEG: char = '\u{0f0b}';
@@ -75,12 +101,137 @@ const ZANABAZAR_SQUARE_SIGN_VIRAMA: char = '\u{11a34}';
 
 const ZANABAZAR_SQUARE_SUBJOINER: char = '\u{11a47}';
 
+fn is_svara(c: char) -> bool {
+    matches!(c, '\u{0951}' | '\u{0952}' | '\u{1cda}')
+}
+
+fn is_ayogavaha(c: char) -> bool {
+    ('\u{0901}'..='\u{0903}').contains(&c)
+}
+
+fn is_cham_yrlv(c: char) -> bool {
+    to_cham_subjoined_yrlv(c).is_some()
+}
+
+fn to_cham_subjoined_yrlv(c: char) -> Option<char> {
+    if ('\u{aa22}'..='\u{aa25}').contains(&c) {
+        let code = c as u32;
+        char::from_u32(code + 0x0011)
+    } else {
+        None
+    }
+}
+
+fn has_cham_final_consonant(c: char) -> bool {
+    to_cham_final_consonant(c).is_some()
+}
+
+fn to_cham_final_consonant(c: char) -> Option<char> {
+    let ret = match c {
+        // Skip SIGN_FINAL_NG -- not sure how to use it.
+        '\u{aa06}' => '\u{aa40}', // KA
+        '\u{aa07}' => '\u{aa40}', // KHA --> KA
+        '\u{aa08}' => '\u{aa41}', // GA
+        '\u{aa09}' => '\u{aa41}', // GHA --> GA
+        '\u{aa0b}' => '\u{aa42}', // NGA
+        '\u{aa0c}' => '\u{aa44}', // CHA
+        '\u{aa0d}' => '\u{aa44}', // CHHA --> CHA
+        '\u{aa0e}' => '\u{aa44}', // JA --> CHA
+        '\u{aa0f}' => '\u{aa44}', // JHA --> CHA
+        '\u{aa13}' => '\u{aa45}', // TA
+        '\u{aa14}' => '\u{aa45}', // THA --> TA
+        '\u{aa15}' => '\u{aa45}', // DA --> TA
+        '\u{aa16}' => '\u{aa45}', // DHA --> TA
+        '\u{aa18}' => '\u{aa46}', // NA
+        '\u{aa1a}' => '\u{aa47}', // PA
+        '\u{aa1c}' => '\u{aa47}', // PHA --> PA
+        '\u{aa1d}' => '\u{aa47}', // BA --> PA
+        '\u{aa1e}' => '\u{aa47}', // BHA --> PA
+        '\u{aa20}' => '\u{aa4c}', // MA
+        '\u{aa22}' => '\u{aa48}', // YA
+        '\u{aa23}' => '\u{aa49}', // RA
+        '\u{aa24}' => '\u{aa4a}', // LA
+        '\u{aa26}' => '\u{aa4b}', // SSA
+        '\u{aa27}' => '\u{aa4b}', // SA --> SSA
+        '\u{aa28}' => '\u{aa4d}', // HA
+        _ => return None,
+    };
+    Some(ret)
+}
+
 fn is_gunjala_gondi_consonant(c: char) -> bool {
     ('\u{11d6c}'..='\u{11d89}').contains(&c)
 }
 
+fn from_javanese_medial(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{a9be}' => '\u{a9aa}',
+        '\u{a9bf}' => '\u{a9ab}',
+        _ => return None,
+    };
+    Some(ret)
+}
+
+fn to_javanese_medial(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{a9aa}' => '\u{a9be}',
+        '\u{a9ab}' => '\u{a9bf}',
+        _ => return None,
+    };
+    Some(ret)
+}
+
 fn is_khmer_consonant(c: char) -> bool {
     ('\u{1780}'..='\u{17a2}').contains(&c)
+}
+
+fn is_limbu_standard_yrv(c: char) -> bool {
+    to_limbu_subjoined_yrv(c).is_some()
+}
+
+fn is_limbu_subjoined_yrv(c: char) -> bool {
+    to_limbu_standard_yrv(c).is_some()
+}
+
+fn to_limbu_standard_yrv(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{1929}' => '\u{1915}',
+        '\u{192a}' => '\u{1916}',
+        '\u{192b}' => '\u{1918}',
+        _ => return None,
+    };
+    Some(ret)
+}
+
+fn to_limbu_subjoined_yrv(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{1915}' => '\u{1929}',
+        '\u{1916}' => '\u{192a}',
+        '\u{1918}' => '\u{192b}',
+        _ => return None,
+    };
+    Some(ret)
+}
+
+#[allow(unused)]
+fn has_limbu_final_consonant(c: char) -> bool {
+    to_limbu_final_consonant(c).is_some()
+}
+
+#[allow(unused)]
+fn to_limbu_final_consonant(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{1901}' => '\u{1930}',
+        '\u{1905}' => '\u{1931}',
+        '\u{190b}' => '\u{1933}',
+        '\u{190f}' => '\u{1934}',
+        '\u{1910}' => '\u{1935}',
+        '\u{1914}' => '\u{1936}',
+        '\u{1916}' => '\u{1937}',
+        '\u{1917}' => '\u{1938}',
+        _ => return None,
+    };
+    Some(ret)
 }
 
 fn is_masaram_gondi_consonant(c: char) -> bool {
@@ -104,8 +255,43 @@ fn to_meetei_mayek_final_consonant(c: char) -> Option<char> {
     Some(ret)
 }
 
+fn is_myanmar_consonant(c: char) -> bool {
+    ('\u{1000}'..='\u{1020}').contains(&c) || matches!(c, '\u{1050}' | '\u{1051}')
+}
+
+fn to_myanmar_subjoined_yrvh(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{101a}' => '\u{103b}',
+        '\u{101b}' => '\u{103c}',
+        '\u{101d}' => '\u{103d}',
+        '\u{101f}' => '\u{103e}',
+        _ => return None,
+    };
+    Some(ret)
+}
+
+fn to_myanmar_standard_yrvh(c: char) -> Option<char> {
+    let ret = match c {
+        '\u{103b}' => '\u{101a}',
+        '\u{103c}' => '\u{101b}',
+        '\u{103d}' => '\u{101d}',
+        '\u{103e}' => '\u{101f}',
+        _ => return None,
+    };
+    Some(ret)
+}
+
 fn is_tamil_superscript(c: char) -> bool {
     ['²', '³', '⁴'].contains(&c)
+}
+
+fn is_tai_tham_consonant(c: char) -> bool {
+    const TAI_THAM_LETTER_RUE: char = '\u{1a42}';
+    const TAI_THAM_LETTER_LUE: char = '\u{1a44}';
+
+    // Ignore RUE and LUE, which are used for vocalic R/L.
+    ('\u{1a20}'..='\u{1a4c}').contains(&c)
+        && !matches!(c, TAI_THAM_LETTER_RUE | TAI_THAM_LETTER_LUE)
 }
 
 /// Returns whether `c` denotes a Tamil marker that must precede the superscript sign.
@@ -243,7 +429,7 @@ impl<'a> Matcher<'a> {
         let mut chars = self.slice().chars();
         if let Some(x) = chars.next() {
             func(&mut self.buf, x);
-            self.i += self.char_offset_to_byte_offset(1);
+            self.i += x.len_utf8();
         }
     }
 
@@ -252,7 +438,7 @@ impl<'a> Matcher<'a> {
         let mut chars = self.slice().chars();
         if let (Some(x), Some(y)) = (chars.next(), chars.next()) {
             func(&mut self.buf, x, y);
-            self.i += self.char_offset_to_byte_offset(2);
+            self.i += x.len_utf8() + y.len_utf8();
         }
     }
 
@@ -261,7 +447,7 @@ impl<'a> Matcher<'a> {
         let mut chars = self.slice().chars();
         if let (Some(x), Some(y), Some(z)) = (chars.next(), chars.next(), chars.next()) {
             func(&mut self.buf, x, y, z);
-            self.i += self.char_offset_to_byte_offset(3);
+            self.i += x.len_utf8() + y.len_utf8() + z.len_utf8();
         }
     }
 
@@ -269,24 +455,28 @@ impl<'a> Matcher<'a> {
     fn push_next(&mut self) {
         self.take_1(|buf, x| buf.push(x));
     }
-
-    /// Converts a char offset to a byte offset.
-    fn char_offset_to_byte_offset(&self, i_char: usize) -> usize {
-        self.slice()
-            .chars()
-            .take(i_char)
-            .map(|c| c.len_utf8())
-            .sum()
-    }
 }
 
 /// Reshapes `input` before we run the main transliteration function.
 ///
-/// A `Cow` type lets us return either a `&str` or a `String`. We return a `Cow` because most
-/// schemes do not need to rewrite the input string at all and can return `&str` directly.
-pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
-    let mut m = Matcher::new(input);
+/// Once this function matures, we will consider switching to an iterator-based implementation.
+pub fn reshape_before(input: &str, from: Scheme, to: Scheme) -> String {
+    // Convert to NFC first to avoid certain transliteration errors.
+    // (See `iso_15919_bug_no_greedy_match_on_nfd` for an example of what we want to prevent.)
+    let input = unicode_norm::to_nfc(input);
+
+    let mut m = Matcher::new(&input);
     match from {
+        Scheme::Assamese | Scheme::Bengali => {
+            while m.not_empty() {
+                if m.match_1(|x| x == BENGALI_LETTER_KHANDA_TA) {
+                    m.take_1(|buf, _| buf.extend(&[BENGALI_LETTER_TA, BENGALI_VIRAMA]))
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
         Scheme::Bhaiksuki => {
             while m.not_empty() {
                 if m.match_1(|x| x == BHAIKSUKI_WORD_SEPARATOR) {
@@ -296,7 +486,51 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                     m.push_next();
                 }
             }
-            Cow::Owned(m.finish())
+            m.finish()
+        }
+        Scheme::Burmese | Scheme::Mon => {
+            while m.not_empty() {
+                if m.match_1(|x| to_myanmar_standard_yrvh(x).is_some()) {
+                    // word separator --> space
+                    m.take_1(|buf, x| {
+                        let x_new = to_myanmar_standard_yrvh(x).expect("yrvh");
+                        buf.extend(&[MYANMAR_SIGN_ASAT, x_new]);
+                    });
+                } else if m.match_1(|x| x == MYANMAR_SIGN_VIRAMA) {
+                    m.take_1(|buf, _| buf.push(MYANMAR_SIGN_ASAT));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::Devanagari => {
+            if to.is_alphabet() {
+                while m.not_empty() {
+                    if m.match_2(|x, y| is_ayogavaha(x) && is_svara(y)) {
+                        m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                    } else {
+                        m.push_next();
+                    }
+                }
+                m.finish()
+            } else {
+                input
+            }
+        }
+        Scheme::Javanese => {
+            while m.not_empty() {
+                if m.match_1(|x| from_javanese_medial(x).is_some()) {
+                    // word separator --> space
+                    m.take_1(|buf, x| {
+                        let x_new = from_javanese_medial(x).expect("medial");
+                        buf.extend(&[JAVANESE_PANGKON, x_new]);
+                    });
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
         }
         Scheme::Khmer => {
             // TODO: rewrite anusvara per Aksharamukha.
@@ -311,8 +545,49 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                     m.push_next();
                 }
             }
-            Cow::Owned(m.finish())
+            m.finish()
         }
+        Scheme::Limbu => {
+            while m.not_empty() {
+                if m.match_1(is_limbu_subjoined_yrv) {
+                    m.take_1(|buf, x| {
+                        buf.extend(&[LIMBU_SIGN_SA_I, to_limbu_standard_yrv(x).expect("yrv")])
+                    });
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::Malayalam => {
+            const MALAYALAM_SIGN_VIRAMA: char = '\u{0d4d}';
+
+            fn from_malayalam_chillu(c: char) -> Option<char> {
+                let ret = match c {
+                    '\u{0d7a}' => '\u{0d23}', // nna
+                    '\u{0d7b}' => '\u{0d28}', // na
+                    '\u{0d7c}' => '\u{0d30}', // rra
+                    '\u{0d7d}' => '\u{0d32}', // la
+                    '\u{0d7e}' => '\u{0d33}', // lla
+                    '\u{0d7f}' => '\u{0d15}', // ka
+                    _ => return None,
+                };
+                Some(ret)
+            }
+
+            while m.not_empty() {
+                if m.match_1(|x| from_malayalam_chillu(x).is_some()) {
+                    m.take_1(|buf, x| {
+                        let x_new = from_malayalam_chillu(x).expect("chillu");
+                        buf.extend(&[x_new, MALAYALAM_SIGN_VIRAMA])
+                    })
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+
         Scheme::MasaramGondi => {
             while m.not_empty() {
                 if m.match_2(|x, y| is_masaram_gondi_consonant(x) && y == MASARAM_GONDI_RA_KARA) {
@@ -334,7 +609,18 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                     m.push_next();
                 }
             }
-            Cow::Owned(m.finish())
+            m.finish()
+        }
+        Scheme::TaiTham => {
+            while m.not_empty() {
+                if m.match_1(|x| x == TAI_THAM_SIGN_SAKOT) {
+                    // combiner --> virama
+                    m.take_1(|buf, _| buf.push(TAI_THAM_SIGN_RA_HAAM));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
         }
         Scheme::Tamil => {
             while m.not_empty() {
@@ -345,7 +631,7 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                     m.push_next();
                 }
             }
-            Cow::Owned(m.finish())
+            m.finish()
         }
         Scheme::Thai => {
             while m.not_empty() {
@@ -359,7 +645,7 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                     m.push_next();
                 }
             }
-            Cow::Owned(m.finish())
+            m.finish()
         }
         Scheme::Tibetan => {
             const TIBETAN_CATURTHA_HALF: &[char] =
@@ -397,7 +683,7 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                 }
             }
 
-            Cow::Owned(m.finish())
+            m.finish()
         }
         Scheme::ZanabazarSquare => {
             const ZANABAZAR_SQUARE_MARK_TSHEG: char = '\u{11a41}';
@@ -412,9 +698,23 @@ pub fn reshape_before(input: &str, from: Scheme) -> Cow<str> {
                     m.push_next();
                 }
             }
-            Cow::Owned(m.finish())
+            m.finish()
         }
-        _ => Cow::Borrowed(input),
+        _ => input,
+    }
+}
+
+fn is_bengali_sound(c: char) -> bool {
+    match c {
+        // Signs, vowels, consonants
+        '\u{0981}'..='\u{09bc}' => true,
+        // Dependent vowels
+        '\u{09be}'..='\u{09cc}' => true,
+        // Other consonants and signs
+        '\u{09ce}'..='\u{09e3}' => true,
+        // Assamese
+        '\u{09f0}'..='\u{09f1}' => true,
+        _ => false,
     }
 }
 
@@ -423,11 +723,102 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
     let mut m = Matcher::new(&output);
 
     match to {
+        Scheme::Assamese | Scheme::Bengali => {
+            while m.not_empty() {
+                if m.match_2(|x, y| is_bengali_sound(x) && y == BENGALI_LETTER_YA) {
+                    m.take_2(|buf, x, _| {
+                        buf.push(x);
+                        buf.push_str(BENGALI_LETTER_YYA);
+                    })
+                } else if m.match_2(|x, y| x == BENGALI_LETTER_TA && y == BENGALI_VIRAMA) {
+                    let mut chars = m.slice().chars();
+                    let z = chars.nth(2);
+
+                    // virama + ta + (end) --> khanda ta + (end)
+                    // virama + ta + (non-sound) --> khanda ta + (non-sound)
+                    if z.map_or(true, |c| !is_bengali_sound(c)) {
+                        m.take_2(|buf, _, _| buf.push(BENGALI_LETTER_KHANDA_TA));
+                    } else {
+                        m.push_next();
+                    }
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
         Scheme::Bhaiksuki => {
             while m.not_empty() {
                 if m.match_1(|x| x == ' ') {
                     // space --> word separator
                     m.take_1(|buf, _| buf.push(BHAIKSUKI_WORD_SEPARATOR));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::Burmese | Scheme::Mon => {
+            while m.not_empty() {
+                if m.match_2(|x, y| x == MYANMAR_SIGN_ASAT && is_myanmar_consonant(y)) {
+                    m.take_2(|buf, _, y| {
+                        if let Some(y_new) = to_myanmar_subjoined_yrvh(y) {
+                            buf.extend(&[y_new]);
+                        } else {
+                            buf.extend(&[MYANMAR_SIGN_VIRAMA, y]);
+                        }
+                    });
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::Cham => {
+            const FAKE_VIRAMA: char = '\u{02be}';
+            while m.not_empty() {
+                if m.match_2(|x, y| x == FAKE_VIRAMA && is_cham_yrlv(y)) {
+                    m.take_2(|buf, _, y| {
+                        let y_new = to_cham_subjoined_yrlv(y).expect("yrlv");
+                        buf.push(y_new)
+                    })
+                } else {
+                    m.push_next();
+                }
+            }
+
+            // Substitution above blocks substitution here, so split into two Matchers.
+            let first = m.finish();
+            let mut m = Matcher::new(&first);
+            while m.not_empty() {
+                if m.match_2(|x, y| has_cham_final_consonant(x) && y == FAKE_VIRAMA) {
+                    m.take_2(|buf, x, _| {
+                        let x_new = to_cham_final_consonant(x).expect("has final");
+                        buf.push(x_new)
+                    });
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::Devanagari => {
+            while m.not_empty() {
+                if m.match_2(|x, y| is_svara(x) && is_ayogavaha(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::Javanese => {
+            while m.not_empty() {
+                if m.match_2(|x, y| x == JAVANESE_PANGKON && to_javanese_medial(y).is_some()) {
+                    m.take_2(|buf, _, y| {
+                        let y_new = to_javanese_medial(y).expect("medial");
+                        buf.extend(&[y_new]);
+                    });
                 } else {
                     m.push_next();
                 }
@@ -472,6 +863,16 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
             }
             m.finish()
         }
+        Scheme::Limbu => {
+            while m.not_empty() {
+                if m.match_2(|x, y| x == LIMBU_SIGN_SA_I && is_limbu_standard_yrv(y)) {
+                    m.take_2(|buf, _, y| buf.push(to_limbu_subjoined_yrv(y).expect("y r v")));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
         Scheme::MasaramGondi => {
             while m.not_empty() {
                 if m.match_3(|x, y, z| {
@@ -507,6 +908,31 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
                     } else {
                         m.push_next();
                     }
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+        Scheme::TaiTham => {
+            const RA: char = '\u{1a41}';
+            const LA: char = '\u{1a43}';
+            const MEDIAL_RA: char = '\u{1a55}';
+            const MEDIAL_LA: char = '\u{1a56}';
+
+            while m.not_empty() {
+                if m.match_2(|x, y| x == TAI_THAM_SIGN_RA_HAAM && matches!(y, RA | LA)) {
+                    m.take_2(|buf, _, y| {
+                        if y == RA {
+                            buf.push(MEDIAL_RA);
+                        } else {
+                            buf.push(MEDIAL_LA);
+                        }
+                    });
+                } else if m.match_2(|x, y| x == TAI_THAM_SIGN_RA_HAAM && is_tai_tham_consonant(y)) {
+                    m.take_2(|buf, _, y| {
+                        buf.extend(&[TAI_THAM_SIGN_SAKOT, y]);
+                    });
                 } else {
                     m.push_next();
                 }

@@ -1,12 +1,11 @@
 <div align="center">
 <h1><code>vidyut-lipi</code></h1>
-<p><i>A fast Sanskrit transliterator</i></p>
+<p><i>An Indic transliterator</i></p>
 </div>
 
-`vidyut-lipi` is an experimental Sanskrit transliteration library that also
+`vidyut-lipi` is a transliteration library for Sanskrit and Pali that also
 supports many of the scripts used within the Indosphere. Our goal is to provide
-a standard transliterator for the Sanskrit ecosystem that is easy to bind to
-other programming languages.
+a standard transliterator that is easy to bind to other programming languages.
 
 This [crate][crate] is under active development as part of the [Ambuda][ambuda]
 project. If you enjoy our work and wish to contribute to it, we encourage you

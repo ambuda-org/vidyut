@@ -32,6 +32,14 @@ pub(crate) enum Coverage {
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 #[wasm_bindgen]
 pub enum Scheme {
+    /// Assamese script.
+    ///
+    /// The Assamese script uses the same characters as the Bengali script, with a few minor
+    /// differences.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U0980.pdf>
+    Assamese,
+
     /// Balinese script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U1B00.pdf>
@@ -113,6 +121,11 @@ pub enum Scheme {
     /// Docs: <https://unicode.org/charts/PDF/U0C80.pdf>
     Kannada,
 
+    /// Kharoshthi script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U10A00.pdf>
+    Kharoshthi,
+
     /// Khmer script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U1780.pdf>
@@ -133,6 +146,11 @@ pub enum Scheme {
     /// Docs: <https://www.unicode.org/charts/PDF/U1900.pdf>
     Limbu,
 
+    /// Mahajani script.
+    ///
+    /// Docs: <https://www.unicode.org/charts/PDF/U11150.pdf>
+    /// Mahajani,
+
     /// Malayalam script.
     ///
     /// Docs: <https://unicode.org/charts/PDF/U0D00.pdf>
@@ -150,8 +168,13 @@ pub enum Scheme {
 
     /// Modi script.
     ///
-    /// <https://unicode.org/charts/PDF/U11600.pdf>
+    /// Docs: <https://unicode.org/charts/PDF/U11600.pdf>
     Modi,
+
+    /// Mon script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U1000.pdf>
+    Mon,
 
     /// Lao script.
     ///
@@ -204,6 +227,11 @@ pub enum Scheme {
     ///
     /// Docs: <https://unicode.org/charts/PDF/U0D80.pdf>
     Sinhala,
+
+    /// Soyombo script.
+    ///
+    /// Docs: <https://unicode.org/charts/PDF/U11A50.pdf>
+    Soyombo,
 
     /// Tai Tham script (Lanna)
     ///
@@ -272,9 +300,9 @@ pub enum Scheme {
     /// ITRANS 5.3 transliteration.
     ///
     /// Docs:
-    /// - https://www.aczoom.com/itrans/ (official ITRANS site for version 5.3)
-    /// - https://www.aczoom.com/itrans/html/dvng/node3.html (DEVNAG table)
-    /// - http://www.sanskritweb.net/itrans/itmanual2003.pdf (Itranslator 2003 manual)
+    /// - <https://www.aczoom.com/itrans/> (official ITRANS site for version 5.3)
+    /// - <https://www.aczoom.com/itrans/html/dvng/node3.html> (DEVNAG table)
+    /// - <http://www.sanskritweb.net/itrans/itmanual2003.pdf> (Itranslator 2003 manual)
     ///
     /// ITRANS appears in various versions, some of which conflict with each other. Version 5.3
     /// seems to be the most widely used, and it is supported by software like Itranslator 2003.
@@ -304,7 +332,7 @@ impl Scheme {
     pub fn iter() -> impl Iterator<Item = &'static Scheme> {
         use Scheme::*;
         const SCHEMES: &[Scheme] = &[
-            // Assamese,
+            Assamese,
             Balinese,
             BarahaSouth,
             Bengali,
@@ -325,13 +353,15 @@ impl Scheme {
             Javanese,
             Kaithi,
             Kannada,
+            Kharoshthi,
             Khmer,
             Khudawadi,
             Limbu,
             Malayalam,
-            MeeteiMayek,
             MasaramGondi,
+            MeeteiMayek,
             Modi,
+            Mon,
             Nandinagari,
             Newa,
             Odia,
@@ -341,7 +371,7 @@ impl Scheme {
             Siddham,
             Sinhala,
             Slp1,
-            // Soyombo,
+            Soyombo,
             TaiTham,
             Takri,
             Tamil,
@@ -350,7 +380,6 @@ impl Scheme {
             Tibetan,
             Tirhuta,
             Velthuis,
-            // Wancho,
             Wx,
             ZanabazarSquare,
         ];
@@ -362,6 +391,7 @@ impl Scheme {
 
         match self {
             // Abugidas
+            Scheme::Assamese => auto::ASSAMESE,
             Scheme::Balinese => auto::BALINESE,
             Scheme::Bengali => auto::BENGALI,
             Scheme::Bhaiksuki => auto::BHAIKSUKI,
@@ -377,6 +407,7 @@ impl Scheme {
             Scheme::Javanese => auto::JAVANESE,
             Scheme::Kaithi => auto::KAITHI,
             Scheme::Kannada => auto::KANNADA,
+            Scheme::Kharoshthi => auto::KHAROSHTHI,
             Scheme::Khmer => auto::KHMER,
             Scheme::Khudawadi => auto::KHUDAWADI,
             // Scheme::Lao => auto::LAO,
@@ -386,6 +417,7 @@ impl Scheme {
             Scheme::MeeteiMayek => auto::MEETEI_MAYEK,
             Scheme::MasaramGondi => auto::MASARAM_GONDI,
             Scheme::Modi => auto::MODI,
+            Scheme::Mon => auto::MON,
             Scheme::Nandinagari => auto::NANDINAGARI,
             Scheme::Newa => auto::NEWA,
             Scheme::Odia => auto::ORIYA,
@@ -394,6 +426,7 @@ impl Scheme {
             Scheme::Sharada => auto::SHARADA,
             Scheme::Siddham => auto::SIDDHAM,
             Scheme::Sinhala => auto::SINHALA,
+            Scheme::Soyombo => auto::SOYOMBO,
             Scheme::TaiTham => auto::TAI_THAM,
             Scheme::Takri => auto::TAKRI,
             Scheme::Tamil => auto::TAMIL,
@@ -407,7 +440,7 @@ impl Scheme {
             Scheme::BarahaSouth => auto::BARAHA,
             Scheme::HarvardKyoto => auto::HK,
             Scheme::Iast => auto::IAST,
-            Scheme::Iso15919 => auto::ISO,
+            Scheme::Iso15919 => auto::ISO_15919,
             Scheme::Itrans => auto::ITRANS,
             Scheme::Slp1 => auto::SLP1,
             Scheme::Velthuis => auto::VELTHUIS,
@@ -470,11 +503,12 @@ impl Scheme {
         // Use an exhaustive match (no `_`) so that we explicitly account for all schemes.
         match self {
             // Abugidas are all `true`.
-            Balinese | Bengali | Bhaiksuki | Brahmi | Burmese | Cham | Devanagari | Dogra
-            | Grantha | Gujarati | GunjalaGondi | Gurmukhi | Javanese | Kaithi | Kannada
-            | Khmer | Khudawadi | Limbu | Malayalam | MasaramGondi | MeeteiMayek | Modi
-            | Nandinagari | Newa | Odia | Saurashtra | Sharada | Siddham | Sinhala | TaiTham
-            | Takri | Tamil | Telugu | Thai | Tibetan | Tirhuta | ZanabazarSquare => true,
+            Assamese | Balinese | Bengali | Bhaiksuki | Brahmi | Burmese | Cham | Devanagari
+            | Dogra | Grantha | Gujarati | GunjalaGondi | Gurmukhi | Javanese | Kaithi
+            | Kannada | Khmer | Kharoshthi | Khudawadi | Limbu | Malayalam | MasaramGondi
+            | MeeteiMayek | Modi | Mon | Nandinagari | Newa | Odia | Saurashtra | Sharada
+            | Siddham | Sinhala | Soyombo | TaiTham | Takri | Tamil | Telugu | Thai | Tibetan
+            | Tirhuta | ZanabazarSquare => true,
 
             // Alphabets are all `false`.
             BarahaSouth | HarvardKyoto | Iso15919 | Itrans | Iast | OlChiki | Slp1 | Velthuis
@@ -544,13 +578,13 @@ mod tests {
             //
             // Don't use `_`, as that would defeat the point of this test.
             match s {
-                Balinese | BarahaSouth | Bengali | Bhaiksuki | Brahmi | Burmese | Cham
-                | Devanagari | Dogra | GunjalaGondi | Grantha | Gujarati | Gurmukhi
-                | HarvardKyoto | Iast | Iso15919 | Itrans | Javanese | Kaithi | Kannada | Khmer
-                | Khudawadi | Limbu | Malayalam | MasaramGondi | MeeteiMayek | Nandinagari
-                | Modi | Newa | Odia | OlChiki | Saurashtra | Sharada | Siddham | Sinhala
-                | Slp1 | TaiTham | Takri | Tamil | Telugu | Thai | Tibetan | Tirhuta | Velthuis
-                | Wx | ZanabazarSquare => {
+                Assamese | Balinese | BarahaSouth | Bengali | Bhaiksuki | Brahmi | Burmese
+                | Cham | Devanagari | Dogra | GunjalaGondi | Grantha | Gujarati | Gurmukhi
+                | HarvardKyoto | Iast | Iso15919 | Itrans | Javanese | Kaithi | Kannada
+                | Kharoshthi | Khmer | Khudawadi | Limbu | Malayalam | MasaramGondi
+                | MeeteiMayek | Nandinagari | Modi | Mon | Newa | Odia | OlChiki | Saurashtra
+                | Sharada | Siddham | Sinhala | Slp1 | Soyombo | TaiTham | Takri | Tamil
+                | Telugu | Thai | Tibetan | Tirhuta | Velthuis | Wx | ZanabazarSquare => {
                     expected.push(*s);
                 }
             }

@@ -4,6 +4,7 @@
 
 mod autogen_schemes;
 mod detect;
+mod errors;
 mod lipika;
 mod mapping;
 mod numerals;

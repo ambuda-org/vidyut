@@ -31,48 +31,51 @@ pub(crate) enum TokenKind {
     Consonant,
     /// A vowel mark, which generally must follow a consonant.
     VowelMark,
+    /// An ayogavaha (visarga, anusvara, candrabindu, etc.)
+    Ayogavaha,
+    /// An accent mark.
+    Accent,
     /// Any other token.
     Other,
 }
 
 impl TokenKind {
     fn from_devanagari_key(s: &str) -> Self {
-        const MARK_AA: u32 = 0x093e;
-        const MARK_AU: u32 = 0x094c;
-        const MARK_L: u32 = 0x0962;
-        const MARK_LL: u32 = 0x0963;
-        const MARK_PRISHTAMATRA_E: u32 = 0x094e;
-        const MARK_AW: u32 = 0x094f;
+        use TokenKind::*;
 
-        const CONS_KA: u32 = 0x0915;
-        const CONS_HA: u32 = 0x0939;
-        const CONS_QA: u32 = 0x0958;
-        const CONS_YYA: u32 = 0x095f;
-        const CONS_DDDA: u32 = 0x097e;
-        const CONS_BBA: u32 = 0x097f;
-        const NUKTA: u32 = 0x093c;
+        const MARK_AA: char = '\u{093e}';
+        const MARK_AU: char = '\u{094c}';
+        const MARK_L: char = '\u{0962}';
+        const MARK_LL: char = '\u{0963}';
+        const MARK_PRISHTAMATRA_E: char = '\u{094e}';
+        const MARK_AW: char = '\u{094f}';
+
+        const CONS_KA: char = '\u{0915}';
+        const CONS_HA: char = '\u{0939}';
+        const CONS_QA: char = '\u{0958}';
+        const CONS_YYA: char = '\u{095f}';
+        const CONS_DDDA: char = '\u{097e}';
+        const CONS_BBA: char = '\u{097f}';
+        const NUKTA: char = '\u{093c}';
+
+        const CANDRABINDU: char = '\u{0901}';
+        const VISARGA: char = '\u{0903}';
+
+        const SVARITA: char = '\u{0951}';
+        const ANUDATTA: char = '\u{0952}';
 
         if let Some(c) = s.chars().last() {
-            let code = c as u32;
-            if (MARK_AA..=MARK_AU).contains(&code)
-                || code == MARK_PRISHTAMATRA_E
-                || code == MARK_AW
-                || code == MARK_L
-                || code == MARK_LL
-            {
-                TokenKind::VowelMark
-            } else if (CONS_KA..=CONS_HA).contains(&code)
-                || (CONS_QA..=CONS_YYA).contains(&code)
-                || code == CONS_DDDA
-                || code == CONS_BBA
-                || code == NUKTA
-            {
-                TokenKind::Consonant
-            } else {
-                TokenKind::Other
+            match c {
+                (CONS_KA..=CONS_HA) | (CONS_QA..=CONS_YYA) | CONS_DDDA | CONS_BBA | NUKTA => {
+                    Consonant
+                }
+                (MARK_AA..=MARK_AU) | MARK_PRISHTAMATRA_E | MARK_AW | MARK_L | MARK_LL => VowelMark,
+                CANDRABINDU..=VISARGA => Ayogavaha,
+                SVARITA | ANUDATTA => Accent,
+                _ => Other,
             }
         } else {
-            TokenKind::Other
+            Other
         }
     }
 }
@@ -87,9 +90,9 @@ pub(crate) struct OneWayMapping {
     /// Maps from this scheme's digit chars to their numeric values.
     numeral_to_int: FxHashMap<String, u32>,
     /// The virama, or the empty string if not defined for this scheme.
-    virama: String,
+    pub(crate) virama: String,
     /// The letter representation of the "a" vowel.
-    letter_a: String,
+    pub(crate) letter_a: String,
 }
 
 impl OneWayMapping {
@@ -249,10 +252,8 @@ pub struct Mapping {
     pub(crate) all: FxHashMap<String, Token>,
     pub(crate) marks: FxHashMap<String, String>,
 
-    pub(crate) input_virama: String,
-    pub(crate) output_virama: String,
-    pub(crate) input_letter_a: String,
-    pub(crate) output_letter_a: String,
+    pub(crate) from_map: OneWayMapping,
+    pub(crate) to_map: OneWayMapping,
 
     pub(crate) len_longest_key: usize,
     pub(crate) numeral_to_int: FxHashMap<String, u32>,
@@ -364,18 +365,17 @@ impl Mapping {
             int_to_numeral.insert(*v, k.to_string());
         }
         let len_longest_key = all.keys().map(|a| a.len()).max().unwrap_or(0);
+        let numeral_to_int = a_map.numeral_to_int.clone();
 
         Self {
             from,
             to,
             all,
             marks,
-            input_virama: a_map.virama,
-            output_virama: b_map.virama,
-            input_letter_a: a_map.letter_a,
-            output_letter_a: b_map.letter_a,
+            from_map: a_map,
+            to_map: b_map,
             len_longest_key,
-            numeral_to_int: a_map.numeral_to_int.clone(),
+            numeral_to_int,
             int_to_numeral,
         }
     }
