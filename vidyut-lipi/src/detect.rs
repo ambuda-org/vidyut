@@ -2,6 +2,58 @@
 
 use crate::scheme::Scheme;
 
+type Range = std::ops::RangeInclusive<char>;
+
+// These are ranges of Unicode code points as defined by unicode.org. To see the official spec
+// for each scheme, see the comments on `Scheme`.
+const DEVANAGARI: Range = '\u{0900}'..='\u{097f}';
+const DEVANAGARI_EXTENDED: Range = '\u{a8e0}'..='\u{a8ff}';
+const DEVANAGARI_EXTENDED_A: Range = '\u{11b00}'..='\u{11b5f}';
+const VEDIC_EXTENSIONS: Range = '\u{1cd0}'..='\u{1cff}';
+const BENGALI: Range = '\u{0980}'..='\u{09ff}';
+const GURMUKHI: Range = '\u{0a00}'..='\u{0a7f}';
+const GUJARATI: Range = '\u{0a80}'..='\u{0aff}';
+const ORIYA: Range = '\u{0b00}'..='\u{0b7f}';
+const TAMIL: Range = '\u{0b80}'..='\u{0bff}';
+const TELUGU: Range = '\u{0c00}'..='\u{0c7f}';
+const KANNADA: Range = '\u{0c80}'..='\u{0cff}';
+const MALAYALAM: Range = '\u{0d00}'..='\u{0d7f}';
+const SINHALA: Range = '\u{0d80}'..='\u{0dff}';
+const THAI: Range = '\u{0e00}'..='\u{0e7f}';
+const TIBETAN: Range = '\u{0f00}'..='\u{0fff}';
+const MYANMAR: Range = '\u{1000}'..='\u{109f}';
+const TAI_THAM: Range = '\u{1a20}'..='\u{1aaf}';
+const OL_CHIKI: Range = '\u{1c50}'..='\u{1c7f}';
+const KHMER: Range = '\u{1780}'..='\u{17ff}';
+const LIMBU: Range = '\u{1900}'..='\u{194f}';
+const BALINESE: Range = '\u{1b00}'..='\u{1b7f}';
+const SAURASHTRA: Range = '\u{a880}'..='\u{a8df}';
+const JAVANESE: Range = '\u{a980}'..='\u{a9df}';
+const CHAM: Range = '\u{aa00}'..='\u{aa5f}';
+const MEETEI_MAYEK: Range = '\u{abc0}'..='\u{abff}';
+const KHAROSHTHI: Range = '\u{10a00}'..='\u{10a5f}';
+const BRAHMI: Range = '\u{11000}'..='\u{1107f}';
+const KAITHI: Range = '\u{11080}'..='\u{110cf}';
+const SHARADA: Range = '\u{11180}'..='\u{111df}';
+const KHUDAWADI: Range = '\u{112b0}'..='\u{112ff}';
+const GRANTHA: Range = '\u{11300}'..='\u{1137f}';
+const NEWA: Range = '\u{11400}'..='\u{1147f}';
+const TIRHUTA: Range = '\u{11480}'..='\u{114df}';
+const SIDDHAM: Range = '\u{11580}'..='\u{115ff}';
+const MODI: Range = '\u{11600}'..='\u{1165f}';
+const TAKRI: Range = '\u{11680}'..='\u{116cf}';
+const _AHOM: Range = '\u{11700}'..='\u{1174f}';
+const DOGRA: Range = '\u{11800}'..='\u{1184f}';
+const NANDINAGARI: Range = '\u{119a0}'..='\u{119ff}';
+const ZANABAZAR_SQUARE: Range = '\u{11a00}'..='\u{11a4f}';
+const SOYOMBO: Range = '\u{11a50}'..='\u{11aaf}';
+const BHAIKSUKI: Range = '\u{11c00}'..='\u{11c6f}';
+const MASARAM_GONDI: Range = '\u{11d00}'..='\u{11d5f}';
+const GUNJALA_GONDI: Range = '\u{11d60}'..='\u{11daf}';
+
+// Wraps all of the ranges above.
+const INDIC: Range = *DEVANAGARI.start()..=*GUNJALA_GONDI.end();
+
 /// Detects the scheme used by the given text.
 ///
 /// `detect` is ideal for interfaces where the user would otherwise need to manually choose which
@@ -12,7 +64,6 @@ use crate::scheme::Scheme;
 /// multiple schemes, we recommend splitting the text into smaller chunks and running `detect` on
 /// these chunks individually. For greater accuracy, we recommend using a more sophisticated
 /// approach than this crate provides.
-///
 ///
 /// ### Usage
 ///
@@ -42,162 +93,116 @@ pub fn detect(input: impl AsRef<str>) -> Option<Scheme> {
 fn detect_inner(input: &str) -> Option<Scheme> {
     use Scheme::*;
 
-    type Range = std::ops::RangeInclusive<u32>;
-
     // The Latin blocks below are used by IAST, ISO-15919, etc.
     //
     // Docs:
+    // - <https://unicode.org/charts/PDF/U0000.pdf>
     // - <https://unicode.org/charts/PDF/U0080.pdf>
     // - <https://unicode.org/charts/PDF/U0100.pdf>
     // - <https://unicode.org/charts/PDF/U1E00.pdf>
-    const LATIN_1_SUPPLEMENT: Range = 0x0080..=0x00ff;
-    const LATIN_EXTENDED_A: Range = 0x0100..=0x017f;
-    const LATIN_EXTENDED: Range = 0x01e00..=0x01eff;
+    const _LATIN_1_SUPPLEMENT: Range = '\u{0080}'..='\u{00ff}';
+    const _LATIN_EXTENDED_A: Range = '\u{0100}'..='\u{017f}';
+    const LATIN_EXTENDED: Range = '\u{01e00}'..='\u{01eff}';
 
-    // These are ranges of Unicode code points as defined by unicode.org. To see the official spec
-    // for each scheme, see the comments on `Scheme`.
-    const DEVANAGARI: Range = 0x0900..=0x097f;
-    const DEVANAGARI_EXTENDED: Range = 0xa8e0..=0xa8ff;
-    const DEVANAGARI_EXTENDED_A: Range = 0x11b00..=0x11b5f;
-    const VEDIC_EXTENSIONS: Range = 0x1cd0..=0x1cff;
-    const BENGALI: Range = 0x0980..=0x09ff;
-    const GURMUKHI: Range = 0x0a00..=0x0a7f;
-    const GUJARATI: Range = 0x0a80..=0x0aff;
-    const ORIYA: Range = 0x0b00..=0x0b7f;
-    const TAMIL: Range = 0x0b80..=0x0bff;
-    const TELUGU: Range = 0x0c00..=0x0c7f;
-    const KANNADA: Range = 0x0c80..=0x0cff;
-    const MALAYALAM: Range = 0x0d00..=0x0d7f;
-    const SINHALA: Range = 0x0d80..=0x0dff;
-    const THAI: Range = 0x0e00..=0x0e7f;
-    const TIBETAN: Range = 0x0f00..=0x0fff;
-    const MYANMAR: Range = 0x1000..=0x109f;
-    const TAI_THAM: Range = 0x1a20..=0x1aaf;
-    const OL_CHIKI: Range = 0x1c50..=0x1c7f;
-    const KHMER: Range = 0x1780..=0x17ff;
-    const LIMBU: Range = 0x1900..=0x194f;
-    const BALINESE: Range = 0x1b00..=0x1b7f;
-    const SAURASHTRA: Range = 0xa880..=0xa8df;
-    const JAVANESE: Range = 0xa980..=0xa9df;
-    const BRAHMI: Range = 0x11000..=0x1107f;
-    const KAITHI: Range = 0x11080..=0x110cf;
-    const SHARADA: Range = 0x11180..=0x111df;
-    const KHUDAWADI: Range = 0x112b0..=0x112ff;
-    const GRANTHA: Range = 0x11300..=0x1137f;
-    const NEWA: Range = 0x11400..=0x1147f;
-    const TIRHUTA: Range = 0x11480..=0x114df;
-    const SIDDHAM: Range = 0x11580..=0x115ff;
-    const MODI: Range = 0x11600..=0x1165f;
-    const TAKRI: Range = 0x11680..=0x116cf;
-    const _AHOM: Range = 0x11700..=0x1174f;
-    const DOGRA: Range = 0x11800..=0x1184f;
-    const NANDINAGARI: Range = 0x119a0..=0x119ff;
-    const ZANABAZAR_SQUARE: Range = 0x11a00..=0x11a4f;
-    const SOYOMBO: Range = 0x11a50..=0x11aaf;
-    const BHAIKSUKI: Range = 0x11c00..=0x11c6f;
-    const MASARAM_GONDI: Range = 0x11d00..=0x11d5f;
-    const GUNJALA_GONDI: Range = 0x11d60..=0x11daf;
+    let input = crate::unicode_norm::to_nfc(input);
 
-    // Wraps all of the ranges above.
-    const INDIC: Range = *DEVANAGARI.start()..=*GUNJALA_GONDI.end();
-    const ASCII: Range = 0..=0xff;
+    let is_latin_text = !input
+        .chars()
+        .any(|c| INDIC.contains(&c) && !LATIN_EXTENDED.contains(&c));
 
-    for (i, c) in input.char_indices() {
-        let code = c as u32;
+    if is_latin_text {
+        detect_latin(&input)
+    } else {
+        for c in input.chars() {
+            // Rust supports [range matching][1], but only if the range is "inlined" and not in a
+            // const. But having a bunch of inlined hex ranges (as opposed to our consts above) seems
+            // unreadable, so just use an if-else chain.
+            //
+            // [1]: https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html
 
-        // Rust supports [range matching][1], but only if the range is "inlined" and not in a
-        // const. But having a bunch of inlined hex ranges (as opposed to our consts above) seems
-        // unreadable, so just use an if-else chain.
-        //
-        // [1]: https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html
-        if LATIN_1_SUPPLEMENT.contains(&code)
-            || LATIN_EXTENDED_A.contains(&code)
-            || LATIN_EXTENDED.contains(&code)
-        {
-            // TODO: add Kolkata scheme and detection
-            if "āīūṛṝḷḹēōṃḥṅñṭḍṇśṣḻĀĪŪṚṜḶḸĒŌṂḤṄÑṬḌṆŚṢḺ".contains(c)
-            {
-                return Some(Iast);
-            }
-        } else if INDIC.contains(&code) {
-            println!("Checking code {code:x} from char {c} at index {i}");
-            let maybe = if DEVANAGARI.contains(&code)
-                || DEVANAGARI_EXTENDED.contains(&code)
-                || DEVANAGARI_EXTENDED_A.contains(&code)
-                || VEDIC_EXTENSIONS.contains(&code)
+            let maybe = if DEVANAGARI.contains(&c)
+                || DEVANAGARI_EXTENDED.contains(&c)
+                || DEVANAGARI_EXTENDED_A.contains(&c)
+                || VEDIC_EXTENSIONS.contains(&c)
             {
                 Some(Devanagari)
-            } else if BENGALI.contains(&code) {
+            } else if BENGALI.contains(&c) {
                 Some(Bengali)
-            } else if GURMUKHI.contains(&code) {
+            } else if GURMUKHI.contains(&c) {
                 Some(Gurmukhi)
-            } else if GUJARATI.contains(&code) {
+            } else if GUJARATI.contains(&c) {
                 Some(Gujarati)
-            } else if ORIYA.contains(&code) {
+            } else if ORIYA.contains(&c) {
                 Some(Odia)
-            } else if TAMIL.contains(&code) {
+            } else if TAMIL.contains(&c) {
                 Some(Tamil)
-            } else if TELUGU.contains(&code) {
+            } else if TELUGU.contains(&c) {
                 Some(Telugu)
-            } else if KANNADA.contains(&code) {
+            } else if KANNADA.contains(&c) {
                 Some(Kannada)
-            } else if MALAYALAM.contains(&code) {
+            } else if MALAYALAM.contains(&c) {
                 Some(Malayalam)
-            } else if SINHALA.contains(&code) {
+            } else if SINHALA.contains(&c) {
                 Some(Sinhala)
-            } else if THAI.contains(&code) {
+            } else if THAI.contains(&c) {
                 Some(Thai)
-            } else if TIBETAN.contains(&code) {
+            } else if TIBETAN.contains(&c) {
                 Some(Tibetan)
-            } else if MYANMAR.contains(&code) {
+            } else if MYANMAR.contains(&c) {
                 Some(Burmese)
-            } else if TAI_THAM.contains(&code) {
+            } else if TAI_THAM.contains(&c) {
                 Some(TaiTham)
-            } else if OL_CHIKI.contains(&code) {
+            } else if OL_CHIKI.contains(&c) {
                 Some(OlChiki)
-            } else if KHMER.contains(&code) {
+            } else if KHMER.contains(&c) {
                 Some(Khmer)
-            } else if LIMBU.contains(&code) {
+            } else if LIMBU.contains(&c) {
                 Some(Limbu)
-            } else if BALINESE.contains(&code) {
+            } else if BALINESE.contains(&c) {
                 Some(Balinese)
-            } else if SAURASHTRA.contains(&code) {
+            } else if SAURASHTRA.contains(&c) {
                 Some(Saurashtra)
-            } else if JAVANESE.contains(&code) {
+            } else if JAVANESE.contains(&c) {
                 Some(Javanese)
-            } else if BRAHMI.contains(&code) {
+            } else if CHAM.contains(&c) {
+                Some(Cham)
+            } else if MEETEI_MAYEK.contains(&c) {
+                Some(MeeteiMayek)
+            } else if KHAROSHTHI.contains(&c) {
+                Some(Kharoshthi)
+            } else if BRAHMI.contains(&c) {
                 Some(Brahmi)
-            } else if KAITHI.contains(&code) {
+            } else if KAITHI.contains(&c) {
                 Some(Kaithi)
-            } else if SHARADA.contains(&code) {
+            } else if SHARADA.contains(&c) {
                 Some(Sharada)
-            } else if KHUDAWADI.contains(&code) {
+            } else if KHUDAWADI.contains(&c) {
                 Some(Khudawadi)
-            } else if GRANTHA.contains(&code) {
+            } else if GRANTHA.contains(&c) {
                 Some(Grantha)
-            } else if NEWA.contains(&code) {
+            } else if NEWA.contains(&c) {
                 Some(Newa)
-            } else if TIRHUTA.contains(&code) {
+            } else if TIRHUTA.contains(&c) {
                 Some(Tirhuta)
-            } else if SIDDHAM.contains(&code) {
+            } else if SIDDHAM.contains(&c) {
                 Some(Siddham)
-            } else if MODI.contains(&code) {
+            } else if MODI.contains(&c) {
                 Some(Modi)
-            } else if TAKRI.contains(&code) {
+            } else if TAKRI.contains(&c) {
                 Some(Takri)
-            } else if DOGRA.contains(&code) {
+            } else if DOGRA.contains(&c) {
                 Some(Dogra)
-            } else if NANDINAGARI.contains(&code) {
+            } else if NANDINAGARI.contains(&c) {
                 Some(Nandinagari)
-            } else if ZANABAZAR_SQUARE.contains(&code) {
+            } else if ZANABAZAR_SQUARE.contains(&c) {
                 Some(ZanabazarSquare)
-            } else if SOYOMBO.contains(&code) {
+            } else if SOYOMBO.contains(&c) {
                 Some(Soyombo)
-            } else if BHAIKSUKI.contains(&code) {
+            } else if BHAIKSUKI.contains(&c) {
                 Some(Bhaiksuki)
-            } else if MASARAM_GONDI.contains(&code) {
+            } else if MASARAM_GONDI.contains(&c) {
                 Some(MasaramGondi)
-            } else if GUNJALA_GONDI.contains(&code) {
+            } else if GUNJALA_GONDI.contains(&c) {
                 Some(GunjalaGondi)
             } else {
                 None
@@ -205,29 +210,46 @@ fn detect_inner(input: &str) -> Option<Scheme> {
             if maybe.is_some() {
                 return maybe;
             }
-        } else if ASCII.contains(&code) {
+        }
+        None
+    }
+}
+
+fn detect_latin(input: &str) -> Option<Scheme> {
+    fn is_iso_15919_only(c: char) -> bool {
+        const COMBINING_RING: char = '\u{0325}';
+        matches!(c, 'ē' | 'ō' | COMBINING_RING | 'ṁ' | 'ẖ' | 'ḫ')
+    }
+
+    use Scheme::*;
+    if input.chars().all(|x| x.is_ascii()) {
+        const ITRANS_ONLY_TRIGRAMS: &[&[u8]] = &[b"chh", b"RRi", b"RRI", b"LLi", b"LLI"];
+        const ITRANS_ONLY_BIGRAMS: &[&[u8]] = &[
+            b"ee", b"oo", b"^i", b"^I", b"Ch", b"JN", b"sh", b"Sh", b"~N", b".a", b"N^",
+        ];
+        const SLP1_ONLY_BIGRAMS: &[&[u8]] = &[
+            b"kz", b"Nk", b"Ng", b"tT", b"dD", b"Sc", b"Sn", b"Gy", b"Gr", b"aR", b"AR", b"iR",
+            b"IR", b"uR", b"UR", b"eR", b"oR",
+        ];
+        const VELTHUIS_ONLY_BIGRAMS: &[&[u8]] = &[b"\"n", b"~s"];
+
+        for (i, c) in input.char_indices() {
+            // Trigrams
             if i + 3 <= input.len() {
-                const ITRANS_TRIGRAMS: &[&[u8]] = &[b"chh", b"RRi", b"RRI", b"LLi", b"LLI"];
-
                 let trigram = &input.as_bytes()[i..i + 3];
-                debug_assert!(trigram.len() == 3);
+                debug_assert!(trigram.len() == 3, "All ASCII");
 
-                if ITRANS_TRIGRAMS.contains(&trigram) {
+                if ITRANS_ONLY_TRIGRAMS.contains(&trigram) {
                     return Some(Itrans);
+                } else if matches!(trigram, b"kRu" | b"~lu" | b"~lU") {
+                    return Some(BarahaSouth);
                 }
             }
-            if i + 2 <= input.len() {
-                const ITRANS_ONLY_BIGRAMS: &[&[u8]] = &[
-                    b"ee", b"oo", b"^i", b"^I", b"Ch", b"JN", b"sh", b"Sh", b"~N", b".a", b"N^",
-                ];
-                const SLP1_ONLY_BIGRAMS: &[&[u8]] = &[
-                    b"kz", b"Nk", b"Ng", b"tT", b"dD", b"Sc", b"Sn", b"Gy", b"Gr", b"aR", b"AR",
-                    b"iR", b"IR", b"uR", b"UR", b"eR", b"oR",
-                ];
-                const VELTHUIS_ONLY_BIGRAMS: &[&[u8]] = &[b"\"n", b"~s"];
 
+            // Bigrams
+            if i + 2 <= input.len() {
                 let bigram = &input.as_bytes()[i..i + 2];
-                debug_assert!(bigram.len() == 2);
+                debug_assert!(bigram.len() == 2, "All ASCII");
 
                 if ITRANS_ONLY_BIGRAMS.contains(&bigram) {
                     return Some(Itrans);
@@ -237,6 +259,23 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                     || bigram[0] == b'.' && b"mhnrltds".contains(&bigram[1])
                 {
                     return Some(Velthuis);
+                } else if matches!(bigram[0], b'x' | b'X')
+                    && matches!(
+                        bigram[1],
+                        b'a' | b'A'
+                            | b'i'
+                            | b'I'
+                            | b'u'
+                            | b'U'
+                            | b'q'
+                            | b'Q'
+                            | b'e'
+                            | b'E'
+                            | b'o'
+                            | b'O'
+                    )
+                {
+                    return Some(Wx);
                 }
             }
 
@@ -244,167 +283,175 @@ fn detect_inner(input: &str) -> Option<Scheme> {
                 return Some(Slp1);
             }
         }
-    }
 
-    for (i, _) in input.char_indices() {
-        if i + 2 <= input.len() {
-            let bigram = &input.as_bytes()[i..i + 2];
-            const ITRANS_OR_VELTHUIS_BIGRAMS: &[&[u8]] = &[b"aa", b"ii", b"uu", b"~n"];
-            if ITRANS_OR_VELTHUIS_BIGRAMS.contains(&bigram) {
-                return Some(Itrans);
+        for (i, _) in input.char_indices() {
+            if i + 2 <= input.len() {
+                let bigram = &input.as_bytes()[i..i + 2];
+                const ITRANS_OR_VELTHUIS_BIGRAMS: &[&[u8]] = &[b"aa", b"ii", b"uu", b"~n"];
+                if ITRANS_OR_VELTHUIS_BIGRAMS.contains(&bigram) {
+                    return Some(Itrans);
+                }
             }
         }
-    }
 
-    None
+        Some(HarvardKyoto)
+    } else if input.chars().any(is_iso_15919_only) {
+        Some(Iso15919)
+    } else {
+        Some(Iast)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Lipika;
     use Scheme::*;
 
-    const TEST_CASES: &[(&str, Scheme)] = &[
-        // Indic
-        // -----
-        ("ᬅᬕ᭄ᬦᬶᬫ᭄", Balinese),
-        ("অগ্নিম্", Bengali),
-        ("𑰀𑰐𑰿𑰡𑰰𑰦𑰿", Bhaiksuki),
-        ("𑀅𑀕𑁆𑀦𑀺𑀫𑁆", Brahmi),
-        ("အဂ်နိမ်", Burmese),
-        ("अग्निम्", Devanagari),
-        ("𑠩𑠷𑠩𑠹𑠊𑠹𑠘𑠹𑠙𑠢𑠹", Dogra),
-        ("𑌅𑌗𑍍𑌨𑌿𑌮𑍍", Grantha),
-        ("𑶉𑶕𑶉𑶗𑵱𑶗𑵺𑶗𑵳𑵰", GunjalaGondi),
-        ("ਅਗ੍ਨਿਮ੍", Gurmukhi),
-        ("અગ્નિમ્", Gujarati),
-        ("ꦄꦒ꧀ꦤꦶꦩ꧀", Javanese),
-        ("𑂮𑂁𑂮𑂹𑂍𑂹𑂩𑂱𑂞𑂧𑂹", Kaithi),
-        ("ಅಗ್ನಿಮ್", Kannada),
-        ("អគ្និម៑", Khmer),
-        ("𑋝𑋟𑋝𑋪𑊺𑋪𑋙𑋡𑋍𑋗𑋪", Khudawadi),
-        ("ᤛᤲᤛ᤻ᤁ᤻ᤏ᤻ᤋᤶ", Limbu),
-        ("അഗ്നിമ്", Malayalam),
-        ("𑴫𑵀𑴫𑵅𑴌𑴶𑴛𑴤𑵄", MasaramGondi),
-        ("𑘀𑘐𑘿𑘡𑘱𑘦𑘿", Modi),
-        ("𑧍𑧞𑧍𑧠𑦮𑧖𑦽𑧆𑧠", Nandinagari),
-        ("𑚨𑚫𑚨𑚶𑚊𑚶𑚘𑚶𑚙𑚢𑚶", Takri),
-        ("𑐀𑐐𑑂𑐣𑐶𑐩𑑂", Newa),
-        ("ଅଗ୍ନିମ୍", Odia),
-        ("ᱥᱚᱝᱥᱠᱨᱩᱛᱚᱢ", OlChiki),
-        ("ꢂꢔ꣄ꢥꢶꢪ꣄", Saurashtra),
-        ("𑆃𑆓𑇀𑆤𑆴𑆩𑇀", Sharada),
-        ("𑖀𑖐𑖿𑖡𑖰𑖦𑖿", Siddham),
-        ("අග්නිම්", Sinhala),
-        ("𑪁𑪖𑪁𑪙𑩜𑩙𑩫𑩴", Soyombo),
-        ("அக்³நிம்", Tamil),
-        ("అగ్నిమ్", Telugu),
-        ("ཨགིམ", Tibetan),
-        ("𑒁𑒑𑓂𑒢𑒱𑒧𑓂", Tirhuta),
-        ("อคฺนิมฺ", Thai),
-        // IAST
-        // ----
-        ("rāga", Iast),
-        ("nadī", Iast),
-        ("vadhū", Iast),
-        ("kṛta", Iast),
-        ("pitṝn", Iast),
-        ("kḷpta", Iast),
-        ("ḹ", Iast),
-        ("tejasvī", Iast),
-        ("gomayaḥ", Iast),
-        ("haṃsa", Iast),
-        ("naraḥ", Iast),
-        ("aṅga", Iast),
-        ("añjana", Iast),
-        ("kuṭumba", Iast),
-        ("kaṭhora", Iast),
-        ("ḍamaru", Iast),
-        ("soḍhā", Iast),
-        ("aruṇa", Iast),
-        ("śveta", Iast),
-        ("ṣaṣ", Iast),
-        ("ḻa", Iast),
-        ("pāṇḍava", Iast),
-        ("śṛṇoti", Iast),
-        ("jñāna", Iast),
-        // ITRANS
-        // ------
-        ("raaga", Itrans),
-        ("nadii", Itrans),
-        ("nadee", Itrans),
-        ("vadhuu", Itrans),
-        ("vadhoo", Itrans),
-        ("kRRita", Itrans),
-        ("kR^ita", Itrans),
-        ("pitRRIn", Itrans),
-        ("pitR^In", Itrans),
-        ("kLLipta", Itrans),
-        ("kL^ipta", Itrans),
-        ("LLI", Itrans),
-        ("L^i", Itrans),
-        ("a~Nga", Itrans),
-        ("aN^ga", Itrans),
-        ("ChAyA", Itrans),
-        ("chhAyA", Itrans),
-        ("a~njana", Itrans),
-        ("aJNjana", Itrans),
-        ("shveta", Itrans),
-        ("ShaSh", Itrans),
-        ("shhashh", Itrans),
-        (".akarot", Itrans),
-        ("shRRiNoti", Itrans),
-        ("j~nAna", Itrans),
-        // SLP1
-        // ----
-        ("kfta", Slp1),
-        ("pitFn", Slp1),
-        ("xfpta", Slp1),
-        ("XkAra", Slp1),
-        ("kEvalya", Slp1),
-        ("kOsalya", Slp1),
-        ("arGya", Slp1),
-        ("aNka", Slp1),
-        ("aNga", Slp1),
-        ("CAyA", Slp1),
-        ("jYAna", Slp1),
-        ("kuwumba", Slp1),
-        ("kaWora", Slp1),
-        ("qamaru", Slp1),
-        ("soQA", Slp1),
-        ("pARqava", Slp1),
-        ("Pala", Slp1),
-        ("Bara", Slp1),
-        ("gacCati", Slp1),
-        ("zaRmAsa", Slp1),
-        ("SfRoti", Slp1),
-        ("aSvatTAman", Slp1),
-        ("yudDa", Slp1),
-        // Velthuis
-        // --------
-        ("k.rta", Velthuis),
-        ("pit.rrn", Velthuis),
-        ("k.lipta", Velthuis),
-        (".ll", Velthuis),
-        ("sa.myoga", Velthuis),
-        ("gomaya.h", Velthuis),
-        ("a\"nga", Velthuis),
-        ("ku.tumba", Velthuis),
-        ("ka.thora", Velthuis),
-        (".damaru", Velthuis),
-        ("so.dhaa", Velthuis),
-        ("aru.na", Velthuis),
-        ("~sveta", Velthuis),
-        (".sa.s", Velthuis),
+    const TEST_CASES: &[(Scheme, &[&str])] = &[
+        (BarahaSouth, &["namaskRutya", "k~lupta", "~lUkAra"]),
+        (
+            Iast,
+            &[
+                "rāga",
+                "nadī",
+                "vadhū",
+                "kṛta",
+                "pitṝn",
+                "kḷpta",
+                "ḹ",
+                "tejasvī",
+                "gomayaḥ",
+                "haṃsa",
+                "naraḥ",
+                "aṅga",
+                "añjana",
+                "kuṭumba",
+                "kaṭhora",
+                "ḍamaru",
+                "soḍhā",
+                "aruṇa",
+                "śveta",
+                "ṣaṣ",
+                "ḻa",
+                "pāṇḍava",
+                "śṛṇoti",
+                "jñāna",
+            ],
+        ),
+        (
+            Iso15919,
+            &[
+                "śr̥ṇōti",
+                "pitr̥̄n",
+                "kl̥pta",
+                "l̥̄",
+                "dēva",
+                "yōga",
+                "aṁ",
+                "aḫ",
+                "aẖ",
+            ],
+        ),
+        (
+            Itrans,
+            &[
+                "raaga",
+                "nadii",
+                "nadee",
+                "vadhuu",
+                "vadhoo",
+                "kRRita",
+                "kR^ita",
+                "pitRRIn",
+                "pitR^In",
+                "kLLipta",
+                "kL^ipta",
+                "LLI",
+                "L^i",
+                "a~Nga",
+                "aN^ga",
+                "ChAyA",
+                "chhAyA",
+                "a~njana",
+                "aJNjana",
+                "shveta",
+                "ShaSh",
+                "shhashh",
+                ".akarot",
+                "shRRiNoti",
+                "j~nAna",
+            ],
+        ),
+        (
+            Slp1,
+            &[
+                "kfta",
+                "pitFn",
+                "xfpta",
+                "XkAra",
+                "kEvalya",
+                "kOsalya",
+                "arGya",
+                "aNka",
+                "aNga",
+                "CAyA",
+                "jYAna",
+                "kuwumba",
+                "kaWora",
+                "qamaru",
+                "soQA",
+                "pARqava",
+                "Pala",
+                "Bara",
+                "gacCati",
+                "zaRmAsa",
+                "SfRoti",
+                "aSvatTAman",
+                "yudDa",
+            ],
+        ),
+        (Wx, &["xeva", "Xarma"]),
+        (
+            Velthuis,
+            &[
+                "k.rta", "pit.rrn", "k.lipta", ".ll", "sa.myoga", "gomaya.h", "a\"nga", "ku.tumba",
+                "ka.thora", ".damaru", "so.dhaa", "aru.na", "~sveta", ".sa.s",
+            ],
+        ),
     ];
 
     #[test]
     fn detect_basic() {
-        for (input, expected) in TEST_CASES {
+        for (scheme, inputs) in TEST_CASES {
+            for input in *inputs {
+                assert_eq!(
+                    detect(input),
+                    Some(*scheme),
+                    "\"{input}\" should be {scheme:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn detect_abugidas() {
+        use Scheme::*;
+
+        let schemes: Vec<Scheme> = Scheme::iter()
+            .map(|s| *s)
+            // Assamese is confused for Bengali, and Mon is confused for Burmese.
+            .filter(|s| s.is_abugida() && !matches!(*s, Assamese | Mon))
+            .collect();
+        assert!(!schemes.is_empty());
+
+        let mut lipika = Lipika::new();
+        for scheme in schemes {
+            let output = lipika.transliterate("saMskftam", Slp1, scheme);
             assert_eq!(
-                detect(input),
-                Some(*expected),
-                "\"{input}\" should be {expected:?}"
+                detect(&output),
+                Some(scheme),
+                "\"{output}\" should be {scheme:?}"
             );
         }
     }

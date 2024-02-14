@@ -160,7 +160,7 @@ KEY_NAMES = {
     "\u092b\u093c": "FA",
     "\u092f\u093c": "YYA",
     "\u0951": "SVARITA",
-    "\u1cda": "DOUBLE_SVARITA",
+    "\u1cda": "DIRGHA_SVARITA",
     "\u0952": "ANUDATTA",
     "\u0966": "DIGIT_0",
     "\u0967": "DIGIT_1",
@@ -204,34 +204,38 @@ KEY_NAMES = {
     "\ua8f0": "COMBINING_VI",
     "\ua8f1": "COMBINING_AVAGRAHA",
     "\ua8f3": "CANDRABINDU_VIRAMA",
+    "\ua8f4": "DOUBLE_CANDRABINDU_VIRAMA",
     "\u0b83": "TAMIL_AYTHAM",
     "\u200c": "ZERO_WIDTH_NON_JOINER",
     "\u200d": "ZERO_WIDTH_JOINER",
 }
 
+class AttributeDict(dict):
+    def __init__(self, d):
+        dict.__init__(self, **d)
+        for k, v in d.items():
+            setattr(self, k, v)
+
+C = AttributeDict({v: k for k, v in KEY_NAMES.items()})
+
+
 VOWEL_TO_MARK = {
-    "आ": "\u093e",
-    "इ": "\u093f",
-    "ई": "\u0940",
-    "उ": "\u0941",
-    "ऊ": "\u0942",
-    "ऋ": "\u0943",
-    "ॠ": "\u0944",
-    "ऌ": "\u0962",
-    "ॡ": "\u0963",
-    "ऎ": "\u0946",
-    "ए": "\u0947",
-    "ऐ": "\u0948",
-    "ऒ": "\u094a",
-    "ओ": "\u094b",
-    "औ": "\u094c",
+    "आ": C.SIGN_AA,
+    "इ": C.SIGN_I,
+    "ई": C.SIGN_II,
+    "उ": C.SIGN_U,
+    "ऊ": C.SIGN_UU,
+    "ऋ": C.SIGN_R,
+    "ॠ": C.SIGN_RR,
+    "ऌ": C.SIGN_L,
+    "ॡ": C.SIGN_LL,
+    "ऎ": C.SIGN_E,
+    "ए": C.SIGN_EE,
+    "ऐ": C.SIGN_AI,
+    "ऒ": C.SIGN_O,
+    "ओ": C.SIGN_OO,
+    "औ": C.SIGN_AU,
 }
-
-
-JIHVAMULIYA = "\u1cf5"
-UPADHMANIYA = "\u1cf6"
-DANDA = "\u0964"
-DOUBLE_DANDA = "\u0965"
 
 
 OVERRIDES = {
@@ -246,15 +250,16 @@ OVERRIDES = {
     },
     "GRANTHA": {
         # vowel sign AU
-        "\u094c": "\U0001134c",
+        C.SIGN_AU: "\U0001134c",
     },
     "GONDI_GUNJALA": {
         # No avagraha defined -- for now, use Devanagari avagraha as placeholder.
-        "\u093d": "\u093d",
+        C.AVAGRAHA: "\u093d",
+        C.VIRAMA: "\U00011d97",
     },
     "GONDI_MASARAM": {
         # Virama
-        "\u094d": "\U00011d45",
+        C.VIRAMA: "\U00011d45",
         # No avagraha defined -- for now, use Devanagari avagraha as placeholder.
         "\u093d": "\u093d",
         # Conjuncts
@@ -262,52 +267,63 @@ OVERRIDES = {
         "ज्ञ": "𑴯",
     },
     "GURMUKHI": {
-        "\u090b": "ਰੁ",  # letter vocalic r
-        "\u0960": "ਰੂ",  # letter vocalic rr
-        "\u090c": "ਲੁ",  # letter vocalic l
-        "\u0961": "ਲੂ",  # letter vocalic ll
-        "\u0943": "\u0a4dਰੁ",  # sign vocalic r
-        "\u0944": "\u0a4dਰੂ",  # sign vocalic rr
-        "\u0962": "\u0a4dਲੁ",  # sign vocalic l
-        "\u0963": "\u0a4dਲੂ",  # sign vocalic ll
-        "\u090e": "ਏ",  # letter short e
-        "\u0912": "ਓ",  # letter short o
-        "\u0946": "\u0a47",  # sign short e
-        "\u094a": "\u0a4b",  # sign short o
+        C.R: "ਰੁ",
+        C.RR: "ਰੂ",
+        C.L: "ਲੁ",
+        C.LL: "ਲੂ",
+        C.SIGN_R: "\u0a4dਰੁ",
+        C.SIGN_RR: "\u0a4dਰੂ",
+        C.SIGN_L: "\u0a4dਲੁ",
+        C.SIGN_LL: "\u0a4dਲੂ",
+        C.E: "ਏ",  # letter short e
+        C.O: "ਓ",  # letter short o
+        C.SIGN_E: "\u0a47",  # sign short e
+        C.SIGN_O: "\u0a4b",  # sign short o
+        C.RHA: "\u0a22\u0a3c",
     },
     "HK": {
-        DANDA: ".",
-        DOUBLE_DANDA: "..",
+        C.DANDA: ".",
+        C.DOUBLE_DANDA: "..",
     },
     "ISO": {
-        "।": ".",
-        "॥": "..",
-        "ख़": "k͟h",
+        C.DANDA: ".",
+        C.DOUBLE_DANDA: "..",
+        C.KHHA: "k͟h",
         # Delete -- common_maps maps this to "ḳ", which we need for aytam.
         # We'll add a valid mapping for क़: further below.
-        "क़": None,
+        C.QA: None,
         # Delete -- mistake, corrected below.
         "ḫ": None,
     },
     "IAST": {
         "ळ": "ḻ",
         "ऴ": None,
-        "।": ".",
-        "॥": "..",
+        C.DANDA: ".",
+        C.DOUBLE_DANDA: "..",
         # candrabindu
         "\u0901": "m̐",
     },
     "JAVANESE": {
-        DANDA: "\ua9c8",
-        DOUBLE_DANDA: "\ua9c9",
+        C.DANDA: "\ua9c8",
+        C.DOUBLE_DANDA: "\ua9c9",
+    },
+    "KAITHI": {
+        C.QA: "𑂍\U000110ba",
+        C.KHHA: "𑂎\U000110ba",
+        C.GHHA: "𑂏\U000110ba",
+        C.ZA: "𑂔\U000110ba",
+        C.DDDHA: "𑂙\U000110ba",
+        C.RHA: "𑂛\U000110ba",
+        C.FA: "𑂤\U000110ba",
+        C.YYA: "𑂨\U000110ba",
     },
     "KHAROSHTHI": {
-        "।": "\U00010a56",
-        "॥": "\U00010a57",
+        C.DANDA: "\U00010a56",
+        C.DOUBLE_DANDA: "\U00010a57",
     },
     "KHMER": {
-        "।": "។",
-        "॥": "៕",
+        C.DANDA: "។",
+        C.DOUBLE_DANDA: "៕",
     },
     "KHUDAWADI": {
         "\u090e": "\U000112b6",  # letter short e
@@ -330,14 +346,14 @@ OVERRIDES = {
         "\u094a": "\u1928",  # sign short o
     },
     "MANIPURI": {
-        DANDA: "꯫",
-        DOUBLE_DANDA: "꯫꯫",
+        C.DANDA: "꯫",
+        C.DOUBLE_DANDA: "꯫꯫",
     },
     "MALAYALAM": {
         # sign short o
         "\u094a": "\u0d4a",
         # sign au
-        "\u094c": "\u0d57",
+        C.SIGN_AU: "\u0d57",
     },
     "MODI": {
         "\u0907": "\U00011602",  # letter i
@@ -356,16 +372,21 @@ OVERRIDES = {
         "\u0961": "\U00011609",  # letter vocalic ll
         "\u0962": "\U00011637",  # sign vocalic l
         "\u0963": "\U00011638",  # sign vocalic ll
-        DANDA: "\U00011641",
-        DOUBLE_DANDA: "\U00011642",
+        C.DANDA: "\U00011641",
+        C.DOUBLE_DANDA: "\U00011642",
     },
     "MON": {
-        DANDA: "\u104a",
-        DOUBLE_DANDA: "\u104b",
+        C.DANDA: "\u104a",
+        C.DOUBLE_DANDA: "\u104b",
     },
     "NEWA": {
-        DANDA: "\U0001144b",
-        DOUBLE_DANDA: "\U0001144c",
+        C.DANDA: "\U0001144b",
+        C.DOUBLE_DANDA: "\U0001144c",
+    },
+    "SOYOMBO": {
+        # Errors in `common_maps`
+        "\U00011a9b": None,
+        "\U00011a9c": None,
     },
     "TAKRI": {
         "ख": "𑚸",
@@ -384,11 +405,24 @@ OVERRIDES = {
         "८": "8",
         "९": "9",
     },
+    "TELUGU": {
+        C.QA: None,
+        C.KHHA: None,
+        C.GHHA: None,
+        C.ZA: None,
+        C.DDDHA: None,
+        C.RHA: None,
+        C.FA: None,
+        C.YYA: None,
+    },
     "TIBETAN": {
         # Virama
-        "\u094d": "\u0f84",
+        C.VIRAMA: "\u0f84",
         # Use distinct "va" character instead of "ba".
         "व": "\u0f5d",
+    },
+    "TIRHUTA_MAITHILI": {
+        C.RRA: "𑒩\U000114C3",
     },
     "VELTHUIS":
     # These are part of the Velthuis spec but are errors in indic-transliteration.
@@ -406,18 +440,22 @@ OVERRIDES = {
         "ऽ": "Z",
     },
     "ZANBAZAR_SQUARE": {
-        "\u0943": "\U00011A34\U00011A2B\U00011A09",  # sign vocalic r
-        "\u0944": "\U00011A34\U00011A2B\U00011A09\U00011A0A",  # sign vocalic rr
-        "\u0962": "\U00011A34\U00011A2C\U00011A09",  # sign vocalic l
-        "\u0963": "\U00011A34\U00011A2C\U00011A09\U00011A0A",  # sign vocalic ll
+        C.SIGN_R: "\U00011A34\U00011A2B\U00011A09",  # sign vocalic r
+        C.SIGN_RR: "\U00011A34\U00011A2B\U00011A09\U00011A0A",  # sign vocalic rr
+        C.SIGN_L: "\U00011A34\U00011A2C\U00011A09",  # sign vocalic l
+        C.SIGN_LL: "\U00011A34\U00011A2C\U00011A09\U00011A0A",  # sign vocalic ll
     },
 }
 
 
 EXTENSIONS = {
+    "ASSAMESE": [
+        (C.CANDRABINDU_VIRAMA, "\u09fc"),
+        (C.ABBREVIATION_SIGN, "\u09fd"),
+    ],
     "BARAHA": [
         ("\u0914", "ou"),
-        ("\u094c", "ou"),
+        (C.SIGN_AU, "ou"),
         ("\u0939", "~h"),
         # Corrected accent marks:
         # - Horizontal line above ()
@@ -429,27 +467,32 @@ EXTENSIONS = {
         # - Double vertical line above (double svarita)
         ("\u1cda", "$"),
     ],
+    "BENGALI": [
+        (C.CANDRABINDU_VIRAMA, "\u09fc"),
+        (C.ABBREVIATION_SIGN, "\u09fd"),
+    ],
     "BRAHMI": [
-        (JIHVAMULIYA, "\U00011003"),
-        (UPADHMANIYA, "\U00011004"),
+        (C.JIHVAMULIYA, "\U00011003"),
+        (C.UPADHMANIYA, "\U00011004"),
     ],
     "DEVANAGARI": [
         # DEVANAGARI VOWEL SIGN PRISHTHAMATRA E (U+094E)
         # See comments on U+094E for details.
         ("\u0948", "\u0947\u094e"),
         ("\u094b", "\u093e\u094e"),
-        ("\u094c", "\u094b\u094e"),
-        # Vedic accents
-        ("\u1cd2", "\u1cd2"),
-        ("\u1cda", "\u1cda"),
-        ("\u1cdd", "\u1cdd"),
-        ("\ua8e0", "\ua8e0"),
+        (C.SIGN_AU, "\u094b\u094e"),
+
+        (C.PRENKHA, C.PRENKHA),
+        (C.DIRGHA_SVARITA, C.DIRGHA_SVARITA),
+        (C.VEDIC_DOT_BELOW, C.VEDIC_DOT_BELOW),
+        (C.COMBINING_DIGIT_0, C.COMBINING_DIGIT_0),
+        (C.DOUBLE_CANDRABINDU_VIRAMA, C.DOUBLE_CANDRABINDU_VIRAMA),
         # Punctuation
         ("\u0970", "\u0970"),
         ("\u0971", "\u0971"),
     ],
-    "GONDI_GUNJALA": [
-        ("\u094d", "\U00011D97"),
+    "DOGRA": [
+        (C.ABBREVIATION_SIGN, "\U0001183b"),
     ],
     "GONDI_MASARAM": [
         ("त्र", "𑴰"),
@@ -458,23 +501,33 @@ EXTENSIONS = {
         # OO (EE + AA length mark)
         ("\u094b", "\U00011347\U0001133e"),
         # AU length mark
-        ("\u094c", "\U00011357"),
+        (C.SIGN_AU, "\U00011357"),
         # AU (AA + AU length mark)
-        ("\u094c", "\U00011347\U00011357"),
-        # Vedic accents
-        ("\ua8e0", "\U00011366"),
-        ("\ua8e1", "\U00011367"),
-        ("\ua8e2", "\U00011368"),
-        ("\ua8e3", "\U00011369"),
-        ("\ua8e4", "\U0001136a"),
-        ("\ua8e5", "\U0001136b"),
-        ("\ua8e6", "\U0001136c"),
+        (C.SIGN_AU, "\U00011347\U00011357"),
+
+        (C.COMBINING_DIGIT_0, "\U00011366"),
+        (C.COMBINING_DIGIT_1, "\U00011367"),
+        (C.COMBINING_DIGIT_2, "\U00011368"),
+        (C.COMBINING_DIGIT_3, "\U00011369"),
+        (C.COMBINING_DIGIT_4, "\U0001136a"),
+        (C.COMBINING_DIGIT_5, "\U0001136b"),
+        (C.COMBINING_DIGIT_6, "\U0001136c"),
+        (C.NUKTA, "\U0001133c"),
+        (C.CANDRABINDU_VIRAMA, "\U0001135e"),
+        (C.DOUBLE_CANDRABINDU_VIRAMA, "\U0001135f"),
+
         # -- 3 reserved chars --
-        ("\ua8ea", "\U00011370"),  # a
-        ("\ua8ec", "\U00011371"),  # ka
-        ("\ua8ed", "\U00011372"),  # na
-        ("\ua8e6", "\U00011374"),  # pa
-        ("\ua8f0", "\U00011373"),  # vi
+        (C.COMBINING_A, "\U00011370"),
+        (C.COMBINING_KA, "\U00011371"),
+        (C.COMBINING_NA, "\U00011372"),
+        (C.COMBINING_PA, "\U00011374"),
+        (C.COMBINING_VI, "\U00011373"),
+    ],
+    "GUJARATI": [
+        (C.ABBREVIATION_SIGN, "\u0af0"),
+    ],
+    "GURMUKHI": [
+        (C.ABBREVIATION_SIGN, "\u0a76"),
     ],
     "ITRANS": [
         # Vedic anusvara (just render as candrabindu)
@@ -482,94 +535,106 @@ EXTENSIONS = {
         ("\u1cda", "\\\""),
     ],
     "ISO": [
-        # Aytam
-        ("\u0b83", "ḳ"),
-        (JIHVAMULIYA, "ẖ"),
-        (UPADHMANIYA, "ḫ"),
+        (C.TAMIL_AYTHAM, "ḳ"),
+        (C.QA, "q"),
+        (C.JIHVAMULIYA, "ẖ"),
+        (C.UPADHMANIYA, "ḫ"),
     ],
     "KANNADA": [
-        (JIHVAMULIYA, "\u0cf1"),
-        (UPADHMANIYA, "\u0cf2"),
+        (C.JIHVAMULIYA, "\u0cf1"),
+        (C.UPADHMANIYA, "\u0cf2"),
+    ],
+    "KAITHI": [
+        (C.NUKTA, "\U000110ba"),
+        (C.RRA, "𑂩\U000110ba"),
+        (C.ABBREVIATION_SIGN, "\U000110bb"),
+    ],
+    "KHUDAWADI": [
+        (C.NUKTA, "\U000112e9"),
+        (C.DDDHA, "\U000112ca"),
+        (C.RRA, "\U000112d9\U000112e9"),
     ],
     "MALAYALAM": [
         # AU archaic mark
-        ("\u094c", "\u0d4c"),
+        (C.SIGN_AU, "\u0d4c"),
+        (C.CANDRABINDU_VIRAMA, "\u0d04"),
+    ],
+    "MODI": [
+        (C.ABBREVIATION_SIGN, "\U00011643"),
     ],
     "NEWA": [
-        (JIHVAMULIYA, "\U00011460"),
-        (UPADHMANIYA, "\U00011461"),
+        (C.JIHVAMULIYA, "\U00011460"),
+        (C.UPADHMANIYA, "\U00011461"),
+        (C.NUKTA, "\U00011446"),
+        (C.RRA, "\U0001142c\U00011446"),
+        (C.CANDRABINDU_VIRAMA, "\U0001145f"),
+        (C.ABBREVIATION_SIGN, "\U0001144f"),
     ],
     "SHARADA": [
-        (JIHVAMULIYA, "\U000111c2"),
-        (UPADHMANIYA, "\U000111c3"),
+        (C.JIHVAMULIYA, "\U000111c2"),
+        (C.UPADHMANIYA, "\U000111c3"),
+        (C.ABBREVIATION_SIGN, "\U000111c7"),
+        # Discouraged "SHARADA OM," but support anyway.
+        (C.OM, "\U000111c4")
     ],
-    "SINHALA":
+    "SINHALA": 
     # Sinhala chandrabindu is not supported in the fonts I tried, so
     # use anusvara instead.
     [("\u0901", "\u0d82")],
     "SLP1": [
-        (JIHVAMULIYA, "Z"),
-        (UPADHMANIYA, "V"),
-        # Lha
+        (C.JIHVAMULIYA, "Z"),
+        (C.UPADHMANIYA, "V"),
         ("ळ्ह", "|"),
-        # Svarita
-        ("\u0951", "^"),
-        # Anudatta
-        ("\u0952", "\\"),
+        (C.SVARITA, "^"),
+        (C.ANUDATTA, "\\"),
     ],
     "SOYOMBO": [
-        (JIHVAMULIYA, "\U00011a84"),
-        (UPADHMANIYA, "\U00011a85"),
-        (DANDA, "\U00011a9b"),
-        (DOUBLE_DANDA, "\U00011a9c"),
+        (C.JIHVAMULIYA, "\U00011a84"),
+        (C.UPADHMANIYA, "\U00011a85"),
+        (C.DANDA, "\U00011a9b"),
+        (C.DOUBLE_DANDA, "\U00011a9c"),
+    ],
+    "TAKRI": [
+        (C.ABBREVIATION_SIGN, "\U000116b9"),
     ],
     "TAMIL_SUPERSCRIPTED": [
-        # Aytam
-        ("\u0b83", "\u0b83"),
+        (C.TAMIL_AYTHAM, "\u0b83"),
+    ],
+    "TELUGU": [
+        (C.NUKTA, "\u0c3c"),
     ],
     "TIBETAN": [
-        (JIHVAMULIYA, "\u0f88"),
-        (UPADHMANIYA, "\u0f89"),
+        (C.JIHVAMULIYA, "\u0f88"),
+        (C.UPADHMANIYA, "\u0f89"),
+    ],
+    "TIRHUTA_MAITHILI": [
+        (C.ABBREVIATION_SIGN, "\U000114c6"),
     ],
     "VELTHUIS": [
-        # Virama
-        ("\u094d", "&"),
+        (C.VIRAMA, "&"),
         # Chandrabindu variant
-        ("\u0901", "/"),
-        ("\u0945", "~a"),
-        ("\u0949", "~o"),
+        (C.CANDRABINDU, "/"),
+        (C.SIGN_CANDRA_E, "~a"),
+        (C.SIGN_CANDRA_O, "~o"),
         # Punctuation
         ("\u0970", "@"),
         ("\u0971", "#"),
-        # Consonants with nuqtas
-        ("\u0931", "^r"),
-        ("\u0915\u093c", "q"),
-        ("\u0916\u093c", ".kh"),
-        ("\u0957\u093c", ".g"),
-        ("\u091c\u093c", "z"),
-        ("\u0921\u093c", "R"),
-        ("\u0922\u093c", "Rh"),
-        ("\u092b\u093c", "f"),
+        # Consonants with nuktas
+        (C.RRA, "^r"),
+        (C.QA, "q"),
+        (C.KHHA, ".kh"),
+        (C.GHHA, ".g"),
+        (C.ZA, "z"),
+        (C.DDDHA, "R"),
+        (C.RHA, "Rh"),
+        (C.FA, "f"),
+        (C.YYA, ".y")
     ],
 }
 
 
 def _sanitize(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"')
-
-
-def _to_deva_nfd(s: str) -> str:
-    overrides = {
-        "\u0958": "\u0915\u093c",  # ka
-        "\u0959": "\u0916\u093c",  # kha
-        "\u095a": "\u0917\u093c",  # ga
-        "\u095b": "\u091c\u093c",  # ja
-        "\u095c": "\u0921\u093c",  # Da
-        "\u095d": "\u0922\u093c",  # Dha
-        "\u095e": "\u092b\u093c",  # pha
-        "\u095f": "\u092f\u093c",  # ya
-    }
-    return overrides.get(s, s)
 
 
 def to_unique(xs: list) -> list:
@@ -587,15 +652,16 @@ def _maybe_override(name: str, deva: str, raw: str) -> str | None:
 
 
 def _reorder_short_vowels(items: list) -> list:
-    # Rank show vowel items lower than long vowel items so that we prefer long vowels when reversing.
-    short_vowel_codes = {"\u0946", "\u094a", "\u090e", "\u0912"}
+    # Rank short vowels lower than long vowels so that our transliterator
+    # chooses long vowels when reversing.
+    short_vowel_codes = {C.E, C.O, C.SIGN_E, C.SIGN_O}
     no_short_e_o = [x for x in items if x[0] not in short_vowel_codes]
     short_e_o = [x for x in items if x[0] in short_vowel_codes]
     return no_short_e_o + short_e_o
 
 
 def _reorder_kharoshthi_n(items: list) -> list:
-    nga = {"\u0919"}
+    nga = {C.NGA}
     no_nga = [x for x in items if x[0] not in nga]
     nga = [x for x in items if x[0] in nga]
     return no_nga + nga
@@ -649,7 +715,7 @@ def main():
     common_maps = Path("common_maps")
     if not common_maps.exists():
         print("Cloning `common_maps` ...")
-        subprocess.run(f"git clone --depth 1 {repo}", shell=True)
+        # subprocess.run(f"git clone --depth 1 {repo}", shell=True)
 
     print("Creating schemes ...")
     buf = [
@@ -722,6 +788,7 @@ def main():
                                 scheme_items.append((mark, alt))
             else:
                 for deva, raw in data[category].items():
+                    deva = unicodedata.normalize("NFC", _sanitize(deva))
                     assert isinstance(deva, str)
                     assert isinstance(raw, str)
                     raw = _maybe_override(scheme_name, deva, raw)
@@ -740,35 +807,36 @@ def main():
                             assert isinstance(raw, str)
                             scheme_items.append((mark, raw))
 
-        scheme_items = [(_to_deva_nfd(x), _to_deva_nfd(y)) for (x, y) in scheme_items]
-        scheme_items = to_unique(scheme_items)
-
         # Add svarita and anudatta for Brahmic scripts that use Devanagari accent marks.
         if scheme_name in BRAHMIC_WITH_DEVA_ACCENTS:
             scheme_items.extend(
                 [
-                    # Svarita
-                    ("\u0951", "\u0951"),
-                    # Anudatta
-                    ("\u0952", "\u0952"),
-                    # Dirgha svarita
-                    ("\u1cda", "\u1cda"),
+                    (C.SVARITA, "\u0951"),
+                    (C.ANUDATTA, "\u0952"),
+                    (C.DIRGHA_SVARITA, C.DIRGHA_SVARITA),
                 ]
             )
         elif scheme_name == "GRANTHA":
             scheme_items.extend(
                 [
                     # Svarita (use chandra symbol)
-                    ("\u0951", "\u1cf4"),
+                    (C.SVARITA, "\u1cf4"),
                     # Dirgha svarita (use Devanagari svarita)
-                    ("\u1cda", "\u0951"),
+                    (C.DIRGHA_SVARITA, "\u0951"),
                     # Anudatta (use Devanagari)
-                    ("\u0952", "\u0952"),
+                    (C.ANUDATTA, "\u0952"),
                 ]
             )
 
         scheme_items.extend(EXTENSIONS.get(scheme_name, []))
 
+        scheme_items = _reorder_short_vowels(scheme_items)
+        if scheme_name == "OL_CHIKI":
+            scheme_items = _ol_chiki_consonants(scheme_items)
+        elif scheme_name == "KHAROSHTHI":
+            scheme_items = _reorder_kharoshthi_n(scheme_items)
+
+        # Finally, rename the scheme per our conventions.
         renames = {
             "GONDI_GUNJALA": "GUNJALA_GONDI",
             "GONDI_MASARAM": "MASARAM_GONDI",
@@ -778,21 +846,15 @@ def main():
             "TAMIL_SUPERSCRIPTED": "TAMIL",
             "TIRHUTA_MAITHILI": "TIRHUTA",
         }
-
         scheme_name = renames.get(scheme_name, scheme_name)
 
-        scheme_items = _reorder_short_vowels(scheme_items)
-        if scheme_name == "OL_CHIKI":
-            scheme_items = _ol_chiki_consonants(scheme_items)
-        elif scheme_name == "KHAROSHTHI":
-            scheme_items = _reorder_kharoshthi_n(scheme_items)
         buf.append(create_scheme_entry(scheme_name, scheme_items))
 
     with open(CRATE_DIR / "src/autogen_schemes.rs", "w") as f:
         f.write("\n".join(buf))
 
     print("Cleaning up ...")
-    shutil.rmtree(common_maps)
+    # shutil.rmtree(common_maps)
 
     print("Done.")
 

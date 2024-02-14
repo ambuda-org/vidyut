@@ -34,7 +34,6 @@ struct CachedMapping {
 ///
 /// If you need more precise control, please use `transliterate_with_mapping` directly.
 ///
-///
 /// ### Usage
 ///
 /// ```
@@ -77,7 +76,7 @@ impl Lipika {
     /// internal cache. If the mapping exists, `transliterate` will reuse it. Otherwise,
     /// `transliterate` will create a new mapping and store it for future use.
     ///
-    /// For details on the underlying algorithm, see the comments on the `transliterate` method.
+    /// For details on the underlying algorithm, see the comments on the `transliterate` function.
     pub fn transliterate(&mut self, input: impl AsRef<str>, from: Scheme, to: Scheme) -> String {
         let mapping = self.find_or_create_mapping(from, to);
         transliterate(input.as_ref(), mapping)

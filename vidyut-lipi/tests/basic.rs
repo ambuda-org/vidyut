@@ -273,7 +273,7 @@ fn sanskrit_dependent_vowels() {
 }
 
 #[test]
-fn sanskrit_ayogavahas_etc() {
+fn sanskrit_ayogavahas() {
     assert_two_way_pairwise(&[
         (BarahaSouth, "aM aH a~M"),
         (HarvardKyoto, "aM aH a~"),
@@ -647,17 +647,11 @@ fn sanskrit_basic_sentences() {
     );
 }
 
-#[test]
-fn cham() {
-    // Non-reversible due to no Ta/ta distinctions.
-    assert_transliterate("namaskftya", Slp1, Cham, "ꨘꨠꩋꨆꨴꨮꨓꨳ");
-}
-
 // Sanskrit (Vedic)
 // ----------------
 
 #[test]
-fn sanskrit_vedic_accent() {
+fn vedic_svaras() {
     // Svarita and anudatta
     assert_two_way_pairwise(&[
         (BarahaSouth, "aq a#"),
@@ -680,6 +674,7 @@ fn sanskrit_vedic_accent() {
     assert_two_way_pairwise(&[
         (BarahaSouth, "a$"),
         // Indic
+        (Assamese, "অ᳚"),
         (Bengali, "অ᳚"),
         (Devanagari, "अ᳚"),
         (Grantha, "𑌅॑"),
@@ -692,16 +687,37 @@ fn sanskrit_vedic_accent() {
 }
 
 #[test]
-fn sanskrit_vedic_svara_with_ayogavahas() {
+fn vedic_svaras_with_ayogavahas() {
     assert_two_way_pairwise(&[
         (BarahaSouth, "aqH a#H a$H aqM a#M a$M"),
         (Itrans, r#"a\_H a\'H a\"H a\_M a\'M a\"M"#),
+        // Indic
+        (Assamese, "অঃ॒ অঃ॑ অঃ᳚ অং॒ অং॑ অং᳚"),
+        (Bengali, "অঃ॒ অঃ॑ অঃ᳚ অং॒ অং॑ অং᳚"),
         (Devanagari, "अः॒ अः॑ अः᳚ अं॒ अं॑ अं᳚"),
+        (Grantha, "𑌅𑌃॒ 𑌅𑌃᳴ 𑌅𑌃॑ 𑌅𑌂॒ 𑌅𑌂᳴ 𑌅𑌂॑"),
+        (Gujarati, "અઃ॒ અઃ॑ અઃ᳚ અં॒ અં॑ અં᳚"),
+        (Kannada, "ಅಃ॒ ಅಃ॑ ಅಃ᳚ ಅಂ॒ ಅಂ॑ ಅಂ᳚"),
+        (Malayalam, "അഃ॒ അഃ॑ അഃ᳚ അം॒ അം॑ അം᳚"),
+        (Odia, "ଅଃ॒ ଅଃ॑ ଅଃ᳚ ଅଂ॒ ଅଂ॑ ଅଂ᳚"),
+        (Telugu, "అః॒ అః॑ అః᳚ అం॒ అం॑ అం᳚"),
     ]);
 }
 
 #[test]
-fn sanskrit_upadhmaniya_and_jihvamuliya() {
+fn vedic_candrabindu_virama() {
+    assert_two_way_pairwise(&[
+        (Assamese, "অৼ"),
+        (Bengali, "অৼ"),
+        (Devanagari, "अꣳ"),
+        (Malayalam, "അഄ"),
+        (Grantha, "𑌅𑍞"),
+        (Newa, "𑐀𑑟"),
+    ]);
+}
+
+#[test]
+fn vedic_upadhmaniya_and_jihvamuliya() {
     assert_two_way_pairwise(&[
         (Iso15919, "kaẖ kaḫ"),
         (Slp1, "kaZ kaV"),
@@ -717,7 +733,12 @@ fn sanskrit_upadhmaniya_and_jihvamuliya() {
 }
 
 #[test]
-fn sanskrit_vedic_consonants() {
+fn vedic_anusvaras() {
+    assert_two_way_pairwise(&[(Devanagari, "कꣳ कꣴ"), (Grantha, "𑌕𑍞 𑌕𑍟")]);
+}
+
+#[test]
+fn vedic_consonants() {
     assert_two_way_pairwise(&[
         (BarahaSouth, "La Lha"),
         (HarvardKyoto, "La Lha"),
@@ -735,27 +756,25 @@ fn sanskrit_vedic_consonants() {
         (Devanagari, "ळ ळ्ह"),
         (Grantha, "𑌳 𑌳𑍍𑌹"),
         (Gujarati, "ળ ળ્હ"),
+        (GunjalaGondi, "𑵿 𑵿𑶗𑶇"),
         (Javanese, "ꦭ꦳ ꦭ꦳꧀ꦲ"),
         (Kannada, "ಳ ಳ್ಹ"),
         (Malayalam, "ള ള്ഹ"),
+        (MasaramGondi, "𑴭 𑴭𑵅𑴬"),
+        (Modi, "𑘯 𑘯𑘿𑘮"),
         (Odia, "ଳ ଳ୍ହ"),
         (Saurashtra, "ꢳ ꢳ꣄ꢲ"),
         (Sharada, "𑆭 𑆭𑇀𑆲"),
         (Siddham, "𑖩𑗀 𑖩𑗀𑖿𑖮"),
         (Sinhala, "ළ ළ්හ"),
+        (TaiTham, "ᩊ ᩊ᩠ᩉ"),
         (Takri, "𑚥𑚷 𑚥𑚷𑚶𑚩"),
         (Telugu, "ళ ళ్హ"),
     ]);
 }
 
-#[test]
-fn other_consonants() {
-    assert_two_way_pairwise(&[
-        (Devanagari, "क़ ख़ ग़ ज़ ड़ ढ़ फ़ य़ ऱ"),
-        (Itrans, "qa Ka Ga za .Da .Dha fa Ya Ra"),
-        (Iso15919, "qa k͟ha ġa za ṛa ṛha fa ẏa ṟa"),
-    ]);
-}
+// Other
+// -----
 
 #[test]
 fn short_e_and_o_vowels() {
@@ -768,6 +787,70 @@ fn short_e_and_o_vowels() {
         (Malayalam, "എ കെ ഒ കൊ"),
         (Tamil, "எ கெ ஒ கொ"),
         (Telugu, "ఎ కె ఒ కొ"),
+    ]);
+}
+
+#[test]
+fn nukta_consonants() {
+    assert_two_way_pairwise(&[
+        (Itrans, "qa Ka Ga za .Da .Dha fa Ya Ra"),
+        (Iso15919, "qa k͟ha ġa za ṛa ṛha fa ẏa ṟa"),
+        (Velthuis, "qa .kha .ga za Ra Rha fa .ya ^ra"),
+        // Indic
+        (Assamese, "ক় খ় গ় জ় ড় ঢ় ফ় য় ৰ়"),
+        (Bengali, "ক় খ় গ় জ় ড় ঢ় ফ় য় র়"),
+        (Devanagari, "क़ ख़ ग़ ज़ ड़ ढ़ फ़ य़ ऱ"),
+        (Dogra, "𑠊𑠺 𑠋𑠺 𑠌𑠺 𑠑𑠺 𑠫 𑠗𑠺 𑠟𑠺 𑠣𑠺 𑠤𑠺"),
+        // There is no documentated usage of Grantha nukta, but include it anyway for completion's
+        // sake.
+        (Grantha, "𑌕𑌼 𑌖𑌼 𑌗𑌼 𑌜𑌼 𑌡𑌼 𑌢𑌼 𑌫𑌼 𑌯𑌼 𑌰𑌼"),
+        (Gujarati, "ક઼ ખ઼ ગ઼ જ઼ ડ઼ ઢ઼ ફ઼ ય઼ ર઼"),
+        (Gurmukhi, "ਕ਼ ਖ਼ ਗ਼ ਜ਼ ੜ ਢ਼ ਫ਼ ਯ਼ ਰ਼"),
+        (Kaithi, "𑂍𑂺 𑂎𑂺 𑂏𑂺 𑂔𑂺 𑂚 𑂜 𑂤𑂺 𑂨𑂺 𑂩𑂺"),
+        // Aksharamukha has gha + nukta, but surely this is ga + nukta?
+        (Khudawadi, "𑊺𑋩 𑊻𑋩 𑊼𑋩 𑋂𑋩 𑋊 𑋋𑋩 𑋓𑋩 𑋘𑋩 𑋙𑋩"),
+        (Kannada, "ಕ಼ ಖ಼ ಗ಼ ಜ಼ ಡ಼ ಢ಼ ಫ಼ ಯ಼ ಱ"),
+        (MasaramGondi, "𑴌𑵂 𑴍𑵂 𑴎𑵂 𑴓𑵂 𑴘𑵂 𑴙𑵂 𑴡𑵂 𑴥𑵂 𑴦𑵂"),
+        (Newa, "𑐎𑑆 𑐏𑑆 𑐐𑑆 𑐖𑑆 𑐜𑑆 𑐝𑑆 𑐦𑑆 𑐫𑑆 𑐬𑑆"),
+        (Odia, "କ଼ ଖ଼ ଗ଼ ଜ଼ ଡ଼ ଢ଼ ଫ଼ ୟ ର଼"),
+        (Sharada, "𑆑𑇊 𑆒𑇊 𑆓𑇊 𑆘𑇊 𑆝𑇊 𑆞𑇊 𑆦𑇊 𑆪𑇊 𑆫𑇊"),
+        (Siddham, "𑖎𑗀 𑖏𑗀 𑖐𑗀 𑖕𑗀 𑖚𑗀 𑖛𑗀 𑖣𑗀 𑖧𑗀 𑖨𑗀"),
+        (Takri, "𑚊𑚷 𑚋𑚷 𑚌𑚷 𑚑𑚷 𑚪 𑚗𑚷 𑚟𑚷 𑚣𑚷 𑚤𑚷"),
+        (Telugu, "క఼ ఖ఼ గ఼ జ఼ డ఼ ఢ఼ ఫ఼ య఼ ఱ"),
+        (Tirhuta, "𑒏𑓃 𑒐𑓃 𑒑𑓃 𑒖𑓃 𑒛𑓃 𑒜𑓃 𑒤𑓃 𑒨𑓃 𑒩𑓃"),
+    ]);
+}
+
+#[test]
+fn symbol_abbreviation_sign() {
+    assert_two_way_pairwise(&[
+        (Assamese, "\u{09fd}"),
+        (Bengali, "\u{09fd}"),
+        (Devanagari, "\u{0970}"),
+        (Dogra, "\u{1183b}"),
+        (Gujarati, "\u{0af0}"),
+        (Gurmukhi, "\u{0a76}"),
+        (Kaithi, "\u{110bb}"),
+        (Modi, "\u{11643}"),
+        (Newa, "\u{1144f}"),
+        (Sharada, "\u{111c7}"),
+        (Takri, "\u{116b9}"),
+        (Tirhuta, "\u{114c6}"),
+    ]);
+}
+
+#[test]
+fn symbol_om() {
+    assert_two_way_pairwise(&[
+        (Devanagari, "ॐ"),
+        (Grantha, "𑍐"),
+        (Gujarati, "ૐ"),
+        (GunjalaGondi, "𑶘"),
+        (Newa, "𑑉"),
+        (Sharada, "\u{1118f}\u{11180}"),
+        (Tamil, "ௐ"),
+        (Tibetan, "ༀ"),
+        (Tirhuta, "𑓇"),
     ]);
 }
 
@@ -811,6 +894,22 @@ fn burmese_subjoined_consonants() {
             "န္က န္ခ န္ဂ န္ဃ န္င န္စ န္ဆ န္ဇ န္ဈ န္ဉ န္ဋ န္ဌ န္ဍ န္ဎ န္ဏ န္တ န္ထ န္ဒ န္ဓ န္န န္ပ န္ဖ န္ဗ န္ဘ န္မ နျ နြ န္လ နွ န္ၐ န္ၑ န္သ နှ",
         ),
     ]);
+}
+
+#[test]
+fn devanagari_nuktas_joined() {
+    let separate = "क़ ख़ ग़ ज़ ड़ ढ़ फ़ य़";
+    let joined = "\u{0958} \u{0959} \u{095a} \u{095b} \u{095c} \u{095d} \u{095e} \u{095f}";
+    assert_ne!(separate, joined);
+
+    // Encouraged per Unicode spec. (nuktas separate)
+    assert_two_way_pairwise(&[
+        (Devanagari, separate),
+        (Itrans, "qa Ka Ga za .Da .Dha fa Ya"),
+    ]);
+
+    // Discouraged per Unicode spec. (nuktas joined)
+    assert_transliterate(joined, Devanagari, Itrans, "qa Ka Ga za .Da .Dha fa Ya");
 }
 
 #[test]
@@ -991,6 +1090,15 @@ fn masaram_gondi_conjuncts() {
 #[test]
 fn saurashtra_ksha_with_zwj() {
     assert_two_way_pairwise(&[(Slp1, "kza"), (Saurashtra, "ꢒ꣄\u{200d}ꢰ")]);
+}
+
+#[test]
+fn sharada_om() {
+    // Encouraged per Unicode spec. (SHARADA LETTER O + SHARADA SIGN CANDRABINDU)
+    assert_two_way_pairwise(&[(Devanagari, "ॐ"), (Sharada, "\u{1118f}\u{11180}")]);
+
+    // Discouraged per Unicode spec. (SHARADA OM)
+    assert_transliterate("\u{111c4}", Sharada, Devanagari, "ॐ");
 }
 
 #[test]

@@ -105,8 +105,51 @@ fn is_svara(c: char) -> bool {
     matches!(c, '\u{0951}' | '\u{0952}' | '\u{1cda}')
 }
 
-fn is_ayogavaha(c: char) -> bool {
+fn is_grantha_svara(c: char) -> bool {
+    matches!(c, '\u{1cf4}' | '\u{0951}' | '\u{0952}')
+}
+
+fn is_bengali_ayogavaha(c: char) -> bool {
+    ('\u{0981}'..='\u{0983}').contains(&c)
+}
+
+fn is_devanagari_ayogavaha(c: char) -> bool {
     ('\u{0901}'..='\u{0903}').contains(&c)
+}
+
+fn is_grantha_ayogavaha(c: char) -> bool {
+    ('\u{11300}'..='\u{11303}').contains(&c)
+}
+
+fn is_gujarati_ayogavaha(c: char) -> bool {
+    ('\u{0a81}'..='\u{0a83}').contains(&c)
+}
+
+fn is_kannada_ayogavaha(c: char) -> bool {
+    ('\u{0c80}'..='\u{0c83}').contains(&c)
+}
+
+fn is_malayalam_ayogavaha(c: char) -> bool {
+    ('\u{0d00}'..='\u{0d04}').contains(&c)
+}
+
+fn is_oriya_ayogavaha(c: char) -> bool {
+    ('\u{0b01}'..='\u{0b03}').contains(&c)
+}
+
+fn is_telugu_ayogavaha(c: char) -> bool {
+    ('\u{0c00}'..='\u{0c04}').contains(&c)
+}
+
+fn is_ayogavaha(c: char) -> bool {
+    is_bengali_ayogavaha(c)
+        || is_devanagari_ayogavaha(c)
+        || is_grantha_ayogavaha(c)
+        || is_gujarati_ayogavaha(c)
+        || is_kannada_ayogavaha(c)
+        || is_malayalam_ayogavaha(c)
+        || is_oriya_ayogavaha(c)
+        || is_telugu_ayogavaha(c)
 }
 
 fn is_cham_yrlv(c: char) -> bool {
@@ -460,7 +503,7 @@ impl<'a> Matcher<'a> {
 /// Reshapes `input` before we run the main transliteration function.
 ///
 /// Once this function matures, we will consider switching to an iterator-based implementation.
-pub fn reshape_before(input: &str, from: Scheme, to: Scheme) -> String {
+pub fn reshape_before(input: &str, from: Scheme) -> String {
     // Convert to NFC first to avoid certain transliteration errors.
     // (See `iso_15919_bug_no_greedy_match_on_nfd` for an example of what we want to prevent.)
     let input = unicode_norm::to_nfc(input);
@@ -469,7 +512,9 @@ pub fn reshape_before(input: &str, from: Scheme, to: Scheme) -> String {
     match from {
         Scheme::Assamese | Scheme::Bengali => {
             while m.not_empty() {
-                if m.match_1(|x| x == BENGALI_LETTER_KHANDA_TA) {
+                if m.match_2(|x, y| is_bengali_ayogavaha(x) && is_svara(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else if m.match_1(|x| x == BENGALI_LETTER_KHANDA_TA) {
                     m.take_1(|buf, _| buf.extend(&[BENGALI_LETTER_TA, BENGALI_VIRAMA]))
                 } else {
                     m.push_next();
@@ -504,19 +549,25 @@ pub fn reshape_before(input: &str, from: Scheme, to: Scheme) -> String {
             }
             m.finish()
         }
-        Scheme::Devanagari => {
-            if to.is_alphabet() {
-                while m.not_empty() {
-                    if m.match_2(|x, y| is_ayogavaha(x) && is_svara(y)) {
-                        m.take_2(|buf, x, y| buf.extend(&[y, x]));
-                    } else {
-                        m.push_next();
-                    }
+        Scheme::Devanagari | Scheme::Gujarati | Scheme::Kannada | Scheme::Odia | Scheme::Telugu => {
+            while m.not_empty() {
+                if m.match_2(|x, y| is_ayogavaha(x) && is_svara(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else {
+                    m.push_next();
                 }
-                m.finish()
-            } else {
-                input
             }
+            m.finish()
+        }
+        Scheme::Grantha => {
+            while m.not_empty() {
+                if m.match_2(|x, y| is_grantha_ayogavaha(x) && is_grantha_svara(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
         }
         Scheme::Javanese => {
             while m.not_empty() {
@@ -576,7 +627,9 @@ pub fn reshape_before(input: &str, from: Scheme, to: Scheme) -> String {
             }
 
             while m.not_empty() {
-                if m.match_1(|x| from_malayalam_chillu(x).is_some()) {
+                if m.match_2(|x, y| is_malayalam_ayogavaha(x) && is_svara(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else if m.match_1(|x| from_malayalam_chillu(x).is_some()) {
                     m.take_1(|buf, x| {
                         let x_new = from_malayalam_chillu(x).expect("chillu");
                         buf.extend(&[x_new, MALAYALAM_SIGN_VIRAMA])
@@ -725,7 +778,9 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
     match to {
         Scheme::Assamese | Scheme::Bengali => {
             while m.not_empty() {
-                if m.match_2(|x, y| is_bengali_sound(x) && y == BENGALI_LETTER_YA) {
+                if m.match_2(|x, y| is_svara(x) && is_bengali_ayogavaha(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else if m.match_2(|x, y| is_bengali_sound(x) && y == BENGALI_LETTER_YA) {
                     m.take_2(|buf, x, _| {
                         buf.push(x);
                         buf.push_str(BENGALI_LETTER_YYA);
@@ -802,7 +857,12 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
             }
             m.finish()
         }
-        Scheme::Devanagari => {
+        Scheme::Devanagari
+        | Scheme::Gujarati
+        | Scheme::Kannada
+        | Scheme::Malayalam
+        | Scheme::Odia
+        | Scheme::Telugu => {
             while m.not_empty() {
                 if m.match_2(|x, y| is_svara(x) && is_ayogavaha(y)) {
                     m.take_2(|buf, x, y| buf.extend(&[y, x]));
@@ -812,6 +872,17 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
             }
             m.finish()
         }
+        Scheme::Grantha => {
+            while m.not_empty() {
+                if m.match_2(|x, y| is_grantha_svara(x) && is_grantha_ayogavaha(y)) {
+                    m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else {
+                    m.push_next();
+                }
+            }
+            m.finish()
+        }
+
         Scheme::Javanese => {
             while m.not_empty() {
                 if m.match_2(|x, y| x == JAVANESE_PANGKON && to_javanese_medial(y).is_some()) {
@@ -826,6 +897,7 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
             m.finish()
         }
         Scheme::GunjalaGondi => {
+            println!("Before: {output}");
             const GUNJALA_GONDI_VIRAMA: char = '\u{11d97}';
             while m.not_empty() {
                 if m.match_2(|x, y| x == GUNJALA_GONDI_VIRAMA && !is_gunjala_gondi_consonant(y)) {

@@ -53,9 +53,7 @@ fn grantha_to_decimal(buffer: &mut String, numeral: &str, digit_to_int: &DigitTo
         }
 
         // Thousands, millions, etc.
-        for _ in 0..i_thousands {
-            glyph_groups.push("௲");
-        }
+        glyph_groups.resize(glyph_groups.len() + i_thousands, "௲");
         if i_thousands > 0 && group == 1 {
             continue;
         }

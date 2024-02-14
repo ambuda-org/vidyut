@@ -44,7 +44,7 @@ pub fn transliterate(input: impl AsRef<str>, mapping: &Mapping) -> String {
 /// pass. For more complex scheme pairs (such as `Tibetan` to `Khmer`), this code will make three
 /// passes total.
 fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
-    let input = reshape_before(input, mapping.from(), mapping.to());
+    let input = reshape_before(input, mapping.from());
 
     let is_to_alphabet = mapping.to.is_alphabet();
     let is_from_abugida = mapping.from.is_abugida();

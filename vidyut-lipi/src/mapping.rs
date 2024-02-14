@@ -263,6 +263,16 @@ pub struct Mapping {
 impl Mapping {
     /// Creates a mappping between the given `Scheme`s.
     ///
+    /// ### Usage
+    ///
+    /// ```
+    /// use vidyut_lipi::{Mapping, Scheme};
+    /// use Scheme::*;
+    ///
+    /// let m = Mapping::new(HarvardKyoto, Devanagari);
+    /// assert_eq!(m.from(), HarvardKyoto);
+    /// assert_eq!(m.to(), Devanagari);
+    /// ```
     ///
     /// ### Approach
     ///

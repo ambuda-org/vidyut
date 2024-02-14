@@ -315,7 +315,9 @@ pub enum Scheme {
 
     /// Velthuis transliteration.
     ///
-    /// Docs: <https://mirrors.mit.edu/CTAN/language/devanagari/velthuis/doc/manual.pdf>
+    /// Docs:
+    /// - <https://mirrors.mit.edu/CTAN/language/devanagari/velthuis/doc/manual.pdf> (Devanagari)
+    /// - <https://ctan.math.illinois.edu/language/bengali/pandey/doc/bengdoc.pdf> (Bengali)
     Velthuis,
 
     /// WX transliteration.
@@ -329,6 +331,16 @@ impl Scheme {
     ///
     /// We guarantee that all pre-defined `Scheme`s will be present exactly once. However, we make
     /// no guarantees on iteration order.
+    ///
+    /// ### Usage
+    ///
+    /// ```
+    /// from vidyut_lipi import Scheme;
+    ///
+    /// for scheme in Scheme::iter() {
+    ///     println!("- {scheme}");
+    /// }
+    /// ```
     pub fn iter() -> impl Iterator<Item = &'static Scheme> {
         use Scheme::*;
         const SCHEMES: &[Scheme] = &[
@@ -386,65 +398,260 @@ impl Scheme {
         SCHEMES.iter()
     }
 
+    /// Converts the given scheme to its ISO 15924 four-letter code, if one exists.
+    ///
+    /// ### Usage
+    ///
+    /// ```
+    /// from vidyut_lipi import Scheme;
+    ///
+    /// assert_eq!(Scheme::Devanagari.iso_15924_code(), "Deva");
+    /// ```
+    pub fn iso_15924_code(&self) -> &str {
+        use Scheme::*;
+        match self {
+            Assamese => "Beng",
+            Balinese => "Bali",
+            BarahaSouth => "Latn",
+            Bengali => "Beng",
+            Bhaiksuki => "Bhks",
+            Brahmi => "Brah",
+            Burmese => "Mymr",
+            Cham => "Cham",
+            Devanagari => "Deva",
+            Dogra => "Dogr",
+            Grantha => "Gran",
+            Gujarati => "Gujr",
+            GunjalaGondi => "Gong",
+            Gurmukhi => "Guru",
+            HarvardKyoto => "Latn",
+            Iast => "Latn",
+            Iso15919 => "Latn",
+            Itrans => "Latn",
+            Javanese => "Java",
+            Kaithi => "Kthi",
+            Kannada => "Knda",
+            Kharoshthi => "Khar",
+            Khmer => "Khmr",
+            Khudawadi => "Sind",
+            Limbu => "Limb",
+            Malayalam => "Mlym",
+            MasaramGondi => "Gonm",
+            MeeteiMayek => "Mtei",
+            Modi => "Modi",
+            Mon => "Mymr",
+            Nandinagari => "Nand",
+            Newa => "Newa",
+            Odia => "Orya",
+            OlChiki => "Olck",
+            Saurashtra => "Saur",
+            Sharada => "Shrd",
+            Siddham => "Sidd",
+            Sinhala => "Sinh",
+            Slp1 => "Latn",
+            Soyombo => "Soyo",
+            TaiTham => "Lana",
+            Takri => "Takr",
+            Tamil => "Taml",
+            Telugu => "Telu",
+            Thai => "Thai",
+            Tibetan => "Tibt",
+            Tirhuta => "Tirh",
+            Velthuis => "Latn",
+            Wx => "Latn",
+            ZanabazarSquare => "Zanb",
+        }
+    }
+
+    /// Converts the given scheme to its ISO 15924 numeric code, if one exists.
+    ///
+    /// ### Usage
+    ///
+    /// ```
+    /// from vidyut_lipi import Scheme;
+    ///
+    /// assert_eq!(Scheme::Devanagari.iso_15924_numeric_code(), 315);
+    /// ```
+    pub fn iso_15924_numeric_code(&self) -> u16 {
+        use Scheme::*;
+        match self {
+            Assamese => 325,
+            Balinese => 360,
+            BarahaSouth => 215,
+            Bengali => 325,
+            Bhaiksuki => 334,
+            Brahmi => 300,
+            Burmese => 350,
+            Cham => 358,
+            Devanagari => 315,
+            Dogra => 328,
+            Grantha => 343,
+            Gujarati => 320,
+            GunjalaGondi => 312,
+            Gurmukhi => 310,
+            HarvardKyoto => 215,
+            Iast => 215,
+            Iso15919 => 215,
+            Itrans => 215,
+            Javanese => 361,
+            Kaithi => 317,
+            Kannada => 345,
+            Kharoshthi => 305,
+            Khmer => 355,
+            Khudawadi => 318,
+            Limbu => 336,
+            Malayalam => 347,
+            MasaramGondi => 313,
+            MeeteiMayek => 337,
+            Modi => 324,
+            Mon => 350,
+            Nandinagari => 311,
+            Newa => 333,
+            Odia => 327,
+            OlChiki => 261,
+            Saurashtra => 344,
+            Sharada => 319,
+            Siddham => 302,
+            Sinhala => 348,
+            Slp1 => 215,
+            Soyombo => 329,
+            TaiTham => 351,
+            Takri => 321,
+            Tamil => 346,
+            Telugu => 340,
+            Thai => 352,
+            Tibetan => 330,
+            Tirhuta => 326,
+            Velthuis => 215,
+            Wx => 215,
+            ZanabazarSquare => 339,
+        }
+    }
+
+    /// Converts the given scheme to its ICU code, if one exists.
+    ///
+    /// ICU codes are defined in conformance with the values in the ICU4X `Script` impl [here][1].
+    ///
+    /// [1]: https://github.com/unicode-org/icu4x/tree/main/components/properties/src/props.rs
+    ///
+    /// ### Usage
+    ///
+    /// ```
+    /// from vidyut_lipi import Scheme;
+    ///
+    /// assert_eq!(Scheme::Devanagari.icu_code(), 10);
+    /// ```
+    pub fn icu_numeric_code(&self) -> u16 {
+        use Scheme::*;
+        match self {
+            Assamese => 4,
+            Balinese => 62,
+            BarahaSouth => 25,
+            Bengali => 4,
+            Bhaiksuki => 168,
+            Brahmi => 65,
+            Burmese => 28,
+            Cham => 66,
+            Devanagari => 10,
+            Dogra => 178,
+            Grantha => 137,
+            Gujarati => 15,
+            GunjalaGondi => 179,
+            Gurmukhi => 16,
+            HarvardKyoto => 25,
+            Iast => 25,
+            Iso15919 => 25,
+            Itrans => 25,
+            Javanese => 78,
+            Kaithi => 120,
+            Kannada => 21,
+            Kharoshthi => 57,
+            Khmer => 23,
+            Khudawadi => 145,
+            Limbu => 48,
+            Malayalam => 26,
+            MasaramGondi => 175,
+            MeeteiMayek => 115,
+            Modi => 163,
+            Mon => 28,
+            Nandinagari => 187,
+            Newa => 170,
+            Odia => 31,
+            OlChiki => 109,
+            Saurashtra => 111,
+            Sharada => 151,
+            Siddham => 166,
+            Sinhala => 33,
+            Slp1 => 25,
+            Soyombo => 176,
+            TaiTham => 106,
+            Takri => 153,
+            Tamil => 35,
+            Telugu => 36,
+            Thai => 38,
+            Tibetan => 39,
+            Tirhuta => 158,
+            Velthuis => 25,
+            Wx => 25,
+            ZanabazarSquare => 177,
+        }
+    }
+
     pub(crate) fn token_pairs(&self) -> &[Pair] {
         use autogen_schemes as auto;
+        use Scheme::*;
 
         match self {
-            // Abugidas
-            Scheme::Assamese => auto::ASSAMESE,
-            Scheme::Balinese => auto::BALINESE,
-            Scheme::Bengali => auto::BENGALI,
-            Scheme::Bhaiksuki => auto::BHAIKSUKI,
-            Scheme::Brahmi => auto::BRAHMI,
-            Scheme::Burmese => auto::BURMESE,
-            Scheme::Cham => auto::CHAM,
-            Scheme::Devanagari => auto::DEVANAGARI,
-            Scheme::Dogra => auto::DOGRA,
-            Scheme::Grantha => auto::GRANTHA,
-            Scheme::Gujarati => auto::GUJARATI,
-            Scheme::GunjalaGondi => auto::GUNJALA_GONDI,
-            Scheme::Gurmukhi => auto::GURMUKHI,
-            Scheme::Javanese => auto::JAVANESE,
-            Scheme::Kaithi => auto::KAITHI,
-            Scheme::Kannada => auto::KANNADA,
-            Scheme::Kharoshthi => auto::KHAROSHTHI,
-            Scheme::Khmer => auto::KHMER,
-            Scheme::Khudawadi => auto::KHUDAWADI,
-            // Scheme::Lao => auto::LAO,
-            // Scheme::Lepcha => auto::LEPCHA,
-            Scheme::Limbu => auto::LIMBU,
-            Scheme::Malayalam => auto::MALAYALAM,
-            Scheme::MeeteiMayek => auto::MEETEI_MAYEK,
-            Scheme::MasaramGondi => auto::MASARAM_GONDI,
-            Scheme::Modi => auto::MODI,
-            Scheme::Mon => auto::MON,
-            Scheme::Nandinagari => auto::NANDINAGARI,
-            Scheme::Newa => auto::NEWA,
-            Scheme::Odia => auto::ORIYA,
-            Scheme::OlChiki => auto::OL_CHIKI,
-            Scheme::Saurashtra => auto::SAURASHTRA,
-            Scheme::Sharada => auto::SHARADA,
-            Scheme::Siddham => auto::SIDDHAM,
-            Scheme::Sinhala => auto::SINHALA,
-            Scheme::Soyombo => auto::SOYOMBO,
-            Scheme::TaiTham => auto::TAI_THAM,
-            Scheme::Takri => auto::TAKRI,
-            Scheme::Tamil => auto::TAMIL,
-            Scheme::Telugu => auto::TELUGU,
-            Scheme::Thai => auto::THAI,
-            Scheme::Tibetan => auto::TIBETAN,
-            Scheme::Tirhuta => auto::TIRHUTA,
-            Scheme::ZanabazarSquare => auto::ZANABAZAR_SQUARE,
-
-            // Alphabets
-            Scheme::BarahaSouth => auto::BARAHA,
-            Scheme::HarvardKyoto => auto::HK,
-            Scheme::Iast => auto::IAST,
-            Scheme::Iso15919 => auto::ISO_15919,
-            Scheme::Itrans => auto::ITRANS,
-            Scheme::Slp1 => auto::SLP1,
-            Scheme::Velthuis => auto::VELTHUIS,
-            Scheme::Wx => auto::WX,
+            Assamese => auto::ASSAMESE,
+            Balinese => auto::BALINESE,
+            BarahaSouth => auto::BARAHA,
+            Bengali => auto::BENGALI,
+            Bhaiksuki => auto::BHAIKSUKI,
+            Brahmi => auto::BRAHMI,
+            Burmese => auto::BURMESE,
+            Cham => auto::CHAM,
+            Devanagari => auto::DEVANAGARI,
+            Dogra => auto::DOGRA,
+            Grantha => auto::GRANTHA,
+            Gujarati => auto::GUJARATI,
+            GunjalaGondi => auto::GUNJALA_GONDI,
+            Gurmukhi => auto::GURMUKHI,
+            HarvardKyoto => auto::HK,
+            Iast => auto::IAST,
+            Iso15919 => auto::ISO_15919,
+            Itrans => auto::ITRANS,
+            Javanese => auto::JAVANESE,
+            Kaithi => auto::KAITHI,
+            Kannada => auto::KANNADA,
+            Kharoshthi => auto::KHAROSHTHI,
+            Khmer => auto::KHMER,
+            Khudawadi => auto::KHUDAWADI,
+            Limbu => auto::LIMBU,
+            Malayalam => auto::MALAYALAM,
+            MasaramGondi => auto::MASARAM_GONDI,
+            MeeteiMayek => auto::MEETEI_MAYEK,
+            Modi => auto::MODI,
+            Mon => auto::MON,
+            Nandinagari => auto::NANDINAGARI,
+            Newa => auto::NEWA,
+            Odia => auto::ORIYA,
+            OlChiki => auto::OL_CHIKI,
+            Saurashtra => auto::SAURASHTRA,
+            Sharada => auto::SHARADA,
+            Siddham => auto::SIDDHAM,
+            Sinhala => auto::SINHALA,
+            Slp1 => auto::SLP1,
+            Soyombo => auto::SOYOMBO,
+            TaiTham => auto::TAI_THAM,
+            Takri => auto::TAKRI,
+            Tamil => auto::TAMIL,
+            Telugu => auto::TELUGU,
+            Thai => auto::THAI,
+            Tibetan => auto::TIBETAN,
+            Tirhuta => auto::TIRHUTA,
+            Velthuis => auto::VELTHUIS,
+            Wx => auto::WX,
+            ZanabazarSquare => auto::ZANABAZAR_SQUARE,
         }
     }
 
@@ -565,6 +772,7 @@ impl Scheme {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use codes_iso_15924::ALL_CODES;
     use unicode_normalization::UnicodeNormalization;
 
     #[test]
@@ -650,9 +858,47 @@ mod tests {
     }
 
     #[test]
-    fn is_abugida_or_alphabet() {
+    fn is_abugida_xor_is_alphabet() {
         for s in Scheme::iter() {
             assert!(s.is_abugida() != s.is_alphabet());
+        }
+    }
+
+    #[test]
+    fn iso_15924_codes() {
+        for expected in Scheme::iter() {
+            let code = expected.iso_15924_code();
+            assert!(
+                ALL_CODES.iter().find(|c| c.code() == code).is_some(),
+                "{code} is not a valid code."
+            );
+        }
+    }
+
+    #[test]
+    fn iso_15924_numeric_codes() {
+        for expected in Scheme::iter() {
+            let num = expected.iso_15924_numeric_code();
+            assert!(
+                ALL_CODES.iter().find(|c| c.numeric_code() == num).is_some(),
+                "{num} is not a valid numeric code."
+            );
+        }
+    }
+
+    // Checks that schemes with identical ISO codes also have identical ICU codes.
+    #[test]
+    fn icu_numeric_codes_agree_with_iso_numeric_codes() {
+        use std::collections::HashMap;
+        let mut map: HashMap<u16, u16> = HashMap::new();
+
+        for s in Scheme::iter() {
+            let key = s.iso_15924_numeric_code();
+            if let Some(seen_icu_numeric_code) = map.get(&key) {
+                assert_eq!(*seen_icu_numeric_code, s.icu_numeric_code());
+            } else {
+                map.insert(key, s.icu_numeric_code());
+            }
         }
     }
 
