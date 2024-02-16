@@ -14,6 +14,8 @@ project. If you enjoy our work and wish to contribute to it, please see the
 Discord server][discord], where you can meet other Sanskrit programmers and
 enthusiasts.
 
+An online demo is available [here][demo].
+
 - [Overview](#overview)
 - [Usage](#usage)
 - [Contributing](#contributing)
@@ -23,6 +25,7 @@ enthusiasts.
 [crate]: https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html
 [ambuda]: https://ambuda.org
 [discord]: https://discord.gg/7rGdTyWY7Z
+[demo]: https://ambuda-org.github.io/vidyullekha/
 
 
 Overview
