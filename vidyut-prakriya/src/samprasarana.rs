@@ -7,6 +7,7 @@ use crate::core::{Code, Prakriya};
 /// - Must follow atidesha so that suffixes have the kit/Nit annotations necessary to cause
 ///   samprasanara.
 use crate::dhatu_gana as gana;
+use crate::sounds;
 
 fn is_vaci_svapi(t: &Term) -> bool {
     t.is_dhatu()
@@ -64,11 +65,11 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
     ];
     const AFTER: &[&str] = &[
         // vaci-svapi
-        "uc", "uc", "sup", "ij", "up", "uh", "us", "u", "vI", "hU", "ud", "SU",
+        "uac", "uac", "suap", "iaj", "uap", "uah", "uas", "ue", "vie", "hue", "uad", "Sui",
         // grahi-jyA
-        "gfh", "ji", "uy", "uy", "viD", "uS", "vic", "vfsc", "pfC", "Bfsj",
+        "gfah", "jiA", "uay", "uay", "viaD", "uaS", "viac", "vfasc", "pfaC", "Bfasj",
         // other rules
-        "sim", "sim",
+        "siam", "siam",
     ];
     debug_assert!(BEFORE.len() == AFTER.len());
 
@@ -80,15 +81,32 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
     }
 }
 
+// Deletes the vowel that follows the samprasarana vowel.
+//
+// Example: "uac" --> "uc"
+fn run_samprasaranac_ca(p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
+    // The code here is inelegant, but it works.
+    let dhatu = p.get(i_dhatu)?;
+    for i in 0..dhatu.len() - 1 {
+        if let (Some(x), Some(y)) = (dhatu.get_at(i), dhatu.get_at(i + 1)) {
+            if sounds::is_ac(x) && sounds::is_ac(y) {
+                p.run_at("6.1.108", i_dhatu, |t| t.set_at(i + 1, ""));
+                return Some(());
+            }
+        }
+    }
+
+    Some(())
+}
+
 /// Runs a hacky version of samprasarana that runs 6.1.108 (samprasAraNAcca) immediately.
-///
-/// TODO: properly annotate 6.1.108 and related rules here.
-fn do_samprasarana(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
-    let after = find_samprasarana_match(p, i_dhatu)?;
+fn do_samprasarana_for_dhatu(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
+    let new_text = find_samprasarana_match(p, i_dhatu)?;
     p.run_at(rule, i_dhatu, |t| {
-        t.set_text(after);
+        t.set_text(new_text);
         t.add_tag(T::FlagSamprasarana);
     });
+    run_samprasaranac_ca(p, i_dhatu);
     Some(())
 }
 
@@ -99,6 +117,7 @@ fn do_samprasarana_for_abhyasa(rule: Code, p: &mut Prakriya, i_abhyasa: usize) -
         t.set_text(after);
         t.add_tag(T::FlagSamprasarana);
     });
+    run_samprasaranac_ca(p, i_dhatu);
     Some(())
 }
 
@@ -156,10 +175,10 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
     let is_ve = dhatu.has_u("ve\\Y");
     if dhatu.has_u("Yizva\\pa~") && n.has_u("Ric") && p.has(i_n + 1, |t| t.has_u("caN")) {
         // asUzupat
-        do_samprasarana("6.1.18", p, i);
+        do_samprasarana_for_dhatu("6.1.18", p, i);
     } else if dhatu.has_u_in(&["Yizva\\pa~", "syamu~", "vye\\Y"]) && n_is_yan {
         // sozupyate, sesimyate, vevIyate
-        do_samprasarana("6.1.19", p, i);
+        do_samprasarana_for_dhatu("6.1.19", p, i);
     } else if dhatu.has_u("vaSa~") && n_is_yan {
         // vAvaSyate (exception to grahi-jyA-...)
         p.step("6.1.20");
@@ -203,12 +222,12 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
     } else {
         // General rules
         if is_vaci_svapi(dhatu) && n.has_tag(T::kit) {
-            do_samprasarana("6.1.15", p, i);
+            do_samprasarana_for_dhatu("6.1.15", p, i);
         } else if is_grahi_jya(dhatu) && n.is_knit() {
             if dhatu.has_u("pra\\Ca~") && n.has_u("naN") {
                 // Per ashtadhyayi.com, skip samprasarana for praC + naN.
             } else {
-                do_samprasarana("6.1.16", p, i);
+                do_samprasarana_for_dhatu("6.1.16", p, i);
                 if p.has(i, |t| t.has_text("uy") && t.has_u("vayi~")) {
                     optional_set_text("6.1.39", p, "uv");
                 }

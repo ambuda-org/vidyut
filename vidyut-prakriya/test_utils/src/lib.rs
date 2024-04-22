@@ -996,23 +996,27 @@ fn debug_text(rule: Rule) -> String {
 /// Nicely prints out the given prakriyas.
 pub fn print_all_prakriyas(prakriyas: &[Prakriya]) {
     for p in prakriyas {
-        for step in p.history() {
-            let mut result = String::new();
-            for (i, t) in step.result().iter().enumerate() {
-                if i != 0 {
-                    result += " + ";
-                }
-                if t.was_changed() {
-                    result += &format!("[{}]", t.text());
-                } else {
-                    result += t.text();
-                }
-            }
-            println!("{} --> {}", debug_text(step.rule()), result);
-        }
-        println!("{:?}", p.rule_choices());
-        println!();
+        print_prakriya(p);
     }
+}
+
+pub fn print_prakriya(p: &Prakriya) {
+    for step in p.history() {
+        let mut result = String::new();
+        for (i, t) in step.result().iter().enumerate() {
+            if i != 0 {
+                result += " + ";
+            }
+            if t.was_changed() {
+                result += &format!("[{}]", t.text());
+            } else {
+                result += t.text();
+            }
+        }
+        println!("{} --> {}", debug_text(step.rule()), result);
+    }
+    println!("{:?}", p.rule_choices());
+    println!();
 }
 
 // Heavy assert helpers
@@ -1037,4 +1041,37 @@ pub fn assert_has_results(prakriyas: Vec<Prakriya>, expected: &[&str]) {
     }
 
     assert_eq!(expected, actuals);
+}
+
+pub fn assert_matches_prakriya(p: &Prakriya, expected: &[(Rule, Vec<&str>)]) {
+    let mut i_start = 0;
+    for (e_rule, e_result) in expected {
+        let i = p.history()[i_start..]
+            .iter()
+            .enumerate()
+            .find(|(_, x)| x.rule() == *e_rule)
+            .map(|x| x.0);
+
+        if i.is_none() {
+            print_prakriya(p);
+            assert!(
+                false,
+                "Could not find expected rule {:?} in prakriya.",
+                e_rule
+            );
+        }
+
+        i_start += i.unwrap();
+
+        let step = &p.history()[i_start];
+        let items: Vec<_> = step.result().iter().map(|x| x.text()).collect();
+        if &items != e_result {
+            print_prakriya(p);
+            assert!(
+                false,
+                "Mismatch for prakriya on code {:?}, {}.",
+                e_rule, i_start
+            );
+        }
+    }
 }

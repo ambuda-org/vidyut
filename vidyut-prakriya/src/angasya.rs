@@ -55,8 +55,11 @@ fn add_num(t: &mut Term) {
 
 /// Runs rules that lengthen a vowel in the anga.
 fn try_do_dirgha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+    p.debug(format!("TRY DO HALAH {i_anga}"));
     let anga = p.get_if(i_anga, |t| t.is_anga())?;
-    let n = p.get_if(i_anga + 1, |t| t.is_pratyaya())?;
+    // Also include yAsut-Agama for ji + yAs + t --> jIyAt.
+    // TODO: extend?
+    let n = p.get_if(i_anga + 1, |t| t.is_pratyaya() || t.has_u("yAsu~w"))?;
 
     // Exclude tin -- otherwise, we get "daDAntaH" instead of "daDantaH".
     // "kvisāhacaryeṇa tiṅbhinnasyaiva jhalādestatra grahaṇāt" -- Balamanorama on 6.4.48.
