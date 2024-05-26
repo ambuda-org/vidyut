@@ -334,7 +334,7 @@ impl Scheme {
     ///
     /// ### Usage
     ///
-    /// ```
+    /// ```rust,ignore
     /// from vidyut_lipi import Scheme;
     ///
     /// for scheme in Scheme::iter() {
