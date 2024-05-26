@@ -200,7 +200,14 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
         let is_exempt_pratipadika = p.has(i_x, |t| t.starts_with("srOGn"));
         if is_samana_pada && !is_exempt_pratipadika {
             // TODO: track loctaion of rzfF for better rule logging.
-            p.run("8.4.2", |p| p.set_char_at(i_n, "R"));
+
+            if i_rs + 1 == i_n {
+                // When R immediately follows r/z
+                p.run("8.4.1", |p| p.set_char_at(i_n, "R"));
+            } else {
+                // When r/z and R are intervened by at, ku, etc.
+                p.run("8.4.2", |p| p.set_char_at(i_n, "R"));
+            }
         } else if x.has_text_in(&["grAma", "agra"]) && y.has_u("RI\\Y") {
             // See Kashika on 3.2.61 and SK 2975.
             p.run(Rule::Kaumudi("2975"), |p| p.set_char_at(i_n, "R"));
