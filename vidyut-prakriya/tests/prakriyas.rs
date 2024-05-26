@@ -8,7 +8,7 @@ use vidyut_prakriya::args::*;
 use vidyut_prakriya::Rule;
 
 #[test]
-fn bhavadi() {
+fn bhavati() {
     let bhu = d("BU", Bhvadi);
     let args = Tinanta::builder()
         .dhatu(bhu)
@@ -34,4 +34,46 @@ fn bhavadi() {
             (A("6.1.78"), vec!["Bav", "a", "ti"]),
         ],
     );
+}
+
+// Test to make sure 8.4.1 applies in akzRoti (i.e when R immediately follows r/z)
+#[test]
+fn akshnoti() {
+    let akz = d("akzU~", Bhvadi);
+    let args = Tinanta::builder()
+        .dhatu(akz)
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .lakara(Lakara::Lat)
+        .build()
+        .unwrap();
+    let t = Tester::default();
+    let ps = t.derive_tinantas(&args);
+    let p = ps.iter().find(|p| p.text() == "akzRoti").unwrap();
+
+    use Rule::Ashtadhyayi as A;
+
+    assert_matches_prakriya(p, &[(A("8.4.1"), vec!["ak", "Ro", "ti"])]);
+}
+
+// Test to make sure 8.4.2 applies in when r/z and R are intervened by at, ku, etc.
+#[test]
+fn krinaati() {
+    let krii = d("qukrI\\Y", Kryadi);
+    let args = Tinanta::builder()
+        .dhatu(krii)
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .lakara(Lakara::Lat)
+        .build()
+        .unwrap();
+    let t = Tester::default();
+    let ps = t.derive_tinantas(&args);
+    let p = ps.iter().find(|p| p.text() == "krIRAti").unwrap();
+
+    use Rule::Ashtadhyayi as A;
+
+    assert_matches_prakriya(p, &[(A("8.4.2"), vec!["krI", "RA", "ti"])]);
 }
