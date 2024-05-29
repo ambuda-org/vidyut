@@ -247,4 +247,18 @@ impl Vidyut {
             serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
         }
     }
+
+    /// Wrapper for `Vyakarana::derive_dhatus`.
+    #[allow(non_snake_case)]
+    pub fn deriveDhatus(&self, code: &str) -> JsValue {
+        if let Some(dhatu) = self.dhatupatha.get(code) {
+            let v = Vyakarana::new();
+            let prakriyas = v.derive_dhatus(&dhatu);
+            let web_prakriyas = to_web_prakriyas(&prakriyas);
+            serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
+        } else {
+            error(&format!("[vidyut] Dhatu code not found: {code}"));
+            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+        }
+    }
 }

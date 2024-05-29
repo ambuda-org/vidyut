@@ -378,7 +378,7 @@ impl VyakaranaBuilder {
         self
     }
 
-    /// *(default: folse)* Controls whether or not to allow rules marked "chandasi," "mantre," etc..
+    /// *(default: false)* Controls whether or not to allow rules marked "chandasi," "mantre," etc..
     ///
     /// - If `true`, each `Prakriya` will have access to chAndasa rules.
     ///
@@ -388,7 +388,7 @@ impl VyakaranaBuilder {
         self
     }
 
-    /// *(default: folse)* Controls whether or not to run svara rules.
+    /// *(default: false)* Controls whether or not to run svara rules.
     ///
     /// - If `true`, each `Prakriya` will have its svaras marked.
     ///

@@ -36,31 +36,37 @@ function parseSutras(tsv) {
 const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
 const varttikas = fetch("/static/data/varttikas.tsv").then(resp => resp.text()).then(text => parseSutras(text));
 
-// Parse a dhatupatha string into separate objects.
-function parseDhatus(text) {
-    let dhatus = [];
-    text.split(/\r?\n/).forEach((line) => {
-        const [code, upadesha, artha] = line.split(/\t/);
-        if (!!code && code !== 'code') {
-            dhatus.push({
-                code,
-                upadesha,
-                upadeshaQuery: removeSlpSvaras(upadesha),
-                artha
-            });
-        }
-    });
-    return dhatus;
-}
-
 class Vidyut {
     // Call `init()` before calling this so that you initialize the WASM environment.
     constructor(dhatupatha) {
         this.wasm = VidyutWasm.init(dhatupatha);
-        this.dhatus = parseDhatus(dhatupatha);
+        this.dhatus = this.parseDhatus(dhatupatha);
         console.log("Constructed Vidyut.");
     }
 
+    // Parse a dhatupatha string into separate objects.
+    parseDhatus(tsvText) {
+        let dhatus = [];
+        tsvText.split(/\r?\n/).forEach((line) => {
+            const [code, upadesha, artha] = line.split(/\t/);
+            // Ignore TSV header, which is just the string "code".
+            if (!!code && code !== 'code') {
+                let normalDhatu = "";
+                if (upadesha !== "-") {
+                    // TODO: more than 1? for now, just take the first.
+                    normalDhatu = this.wasm.deriveDhatus(code)[0].text
+                }
+                dhatus.push({
+                    code,
+                    upadesha,
+                    upadeshaNoSvaras: removeSlpSvaras(upadesha),
+                    normalDhatu,
+                    artha
+                });
+            }
+        });
+        return dhatus;
+    }
 
     deriveTinantas(tinanta) {
         // For argument order, see wasm.rs.
@@ -315,14 +321,16 @@ const App = () => ({
     /** A filtered list of dhatus according to a user query. */
     filteredDhatus() {
         if (this.dhatuFilter !== null) {
-            let filter = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
-            let hkFilter = Sanscript.t(this.dhatuFilter, 'hk', 'slp1');
+            let slpQuery = Sanscript.t(this.dhatuFilter, 'devanagari', 'slp1');
+            let hkQuery = Sanscript.t(this.dhatuFilter, 'hk', 'slp1');
             return this.dhatus.filter(d =>
-                d.code.includes(filter)
-                || d.upadeshaQuery.includes(filter)
-                || d.artha.includes(filter)
-                || d.upadeshaQuery.includes(hkFilter)
-                || d.artha.includes(hkFilter)
+                d.code.includes(slpQuery)
+                || d.upadeshaNoSvaras.includes(slpQuery)
+                || d.artha.includes(slpQuery)
+                || d.normalDhatu.includes(slpQuery)
+                || d.upadeshaNoSvaras.includes(hkQuery)
+                || d.artha.includes(hkQuery)
+                || d.normalDhatu.includes(hkQuery)
             );
         } else {
             return this.dhatus;
@@ -331,10 +339,10 @@ const App = () => ({
 
     filteredSupPratipadikas() {
         if (this.supFilter !== null) {
-            const slpFilter = Sanscript.t(this.supFilter, 'devanagari', 'slp1');
-            const hkFilter = Sanscript.t(this.supFilter, 'hk', 'slp1');
+            const slpQuery = Sanscript.t(this.supFilter, 'devanagari', 'slp1');
+            const hkQuery = Sanscript.t(this.supFilter, 'hk', 'slp1');
             return this.supPratipadikas().filter(s =>
-                s.text.includes(slpFilter) || s.text.includes(hkFilter)
+                s.text.includes(slpQuery) || s.text.includes(hkQuery)
             );
         } else {
             return this.supPratipadikas();

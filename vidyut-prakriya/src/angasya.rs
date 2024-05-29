@@ -55,7 +55,6 @@ fn add_num(t: &mut Term) {
 
 /// Runs rules that lengthen a vowel in the anga.
 fn try_do_dirgha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
-    p.debug(format!("TRY DO HALAH {i_anga}"));
     let anga = p.get_if(i_anga, |t| t.is_anga())?;
     // Also include yAsut-Agama for ji + yAs + t --> jIyAt.
     // TODO: extend?

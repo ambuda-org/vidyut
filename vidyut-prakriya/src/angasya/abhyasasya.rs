@@ -343,7 +343,7 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
         //
         // We check gana 1 for `BU` and gana 2 for `as` replaced by `BU`. This check excludes BU
         // with gana 10.
-        p.run_at("7.4.73", i, op::text("ba"));
+        p.run_at("7.4.73", i, op::text("Ba"));
         // TODO: 7.4.74
     }
 

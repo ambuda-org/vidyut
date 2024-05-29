@@ -491,12 +491,11 @@ fn try_ardhadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
         p.optional_run_at("6.4.47", i, op::text("Barj"));
     } else if anga.ends_with("ya") && is_halah(p, i) && !anga.has_u("kyac") {
         // TODO: why block kyac? SK mentions the "sannipAta-pariBAzA" in 2658
-        p.run_at("6.4.49", i, |t| {
-            t.set_antya("");
-            t.set_antya("");
-            t.add_tag(T::FlagAtLopa);
-        });
-    } else if has_antya_a_asiddhavat(anga) {
+        p.run_at("6.4.49", i, |t| t.set_adi(""));
+    }
+
+    let anga = p.get(i)?;
+    if has_antya_a_asiddhavat(anga) {
         p.run_at("6.4.48", i, |t| {
             t.set_antya("");
             t.add_tag(T::FlagAtLopa);

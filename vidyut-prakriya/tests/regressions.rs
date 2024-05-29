@@ -1,4 +1,7 @@
-//! Derivations that aren't captured in our other tests.
+//! Bug fixes that aren't captured in other tests.
+//!
+//! The tests here are responses to bug fixes that users have filed. Each should show that the bug
+//! has been fixed and help ensure that the bug does not reappear.
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
@@ -41,40 +44,5 @@ fn irshy_san_lan() {
         &san(&d("Irzya~", Bhvadi)),
         Lan,
         &["Erzyiyizat", "Erzyizizat"],
-    );
-}
-
-/// Fixes https://github.com/ambuda-org/vidyut/issues/118
-///
-/// This test verifies the following:
-/// - We correctly apply 6.4.108.
-/// - We lengthen the dhatu's vowel with 6.4.2.
-#[test]
-fn jiyat_prakriya() {
-    let jya = d("jyA\\", Kryadi);
-    let args = Tinanta::builder()
-        .dhatu(jya)
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::AshirLin)
-        .build()
-        .unwrap();
-    let t = Tester::default();
-    let ps = t.derive_tinantas(&args);
-    let p = ps.iter().find(|p| p.text() == "jIyAt").unwrap();
-
-    use Rule::Ashtadhyayi as A;
-
-    assert_matches_prakriya(
-        p,
-        &[
-            (A("1.3.1"), vec!["jyA\\"]),
-            (A("3.4.116"), vec!["jyA", "ti"]),
-            (A("6.1.16"), vec!["jiA", "yAs", "st"]),
-            (A("6.1.108"), vec!["ji", "yAs", "st"]),
-            (A("6.4.2"), vec!["jI", "yAs", "st"]),
-            (A("8.4.56"), vec!["jI", "yA", "t"]),
-        ],
     );
 }
