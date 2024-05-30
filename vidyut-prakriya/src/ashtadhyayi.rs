@@ -371,6 +371,9 @@ fn run_main_rules(p: &mut Prakriya, lakara: Option<Lakara>, is_ardhadhatuka: boo
     ac_sandhi::try_sup_sandhi_before_angasya(p);
     angasya::run_before_dvitva(p);
 
+    // After guna
+    ardhadhatuka::try_aa_adesha_for_sedhayati(p);
+
     p.debug("==== Dvitva (default) ====");
     dvitva::run(p);
     if !used_dvirvacane_aci {

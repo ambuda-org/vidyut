@@ -294,9 +294,6 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u_in(&["qukrI\\Y", "i\\N", "ji\\"]) && n.has_u("Ric") {
         // krApayati, aDyApayati, jApayati
         p.run_at("6.1.48", i, op::antya("A"));
-    } else if dhatu.has_u("zi\\Du~") && n.has_u("Ric") {
-        // sADayati, seDayati
-        p.optional_run_at("6.1.49", i, op::upadha("A"));
     }
 
     // 6.1.50 has a circular dependency:
@@ -343,6 +340,23 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
         } else if dhatu.has_text("smi") {
             p.optional_run_at("6.1.57", i, op::antya("A"));
         }
+    }
+
+    Some(())
+}
+
+// Optional A-adesha for sADayati/seDayati.
+//
+// Per Neelesh Bodas, this should occur after guna, so for ease of use, I've put this in its own
+// function.
+pub fn try_aa_adesha_for_sedhayati(p: &mut Prakriya) -> Option<()> {
+    let i = p.find_first(T::Dhatu)?;
+    let dhatu = p.get(i)?;
+    let n = p.pratyaya(i + 1)?;
+
+    if dhatu.has_u("zi\\Du~") && n.has_u("Ric") {
+        // sADayati, seDayati
+        p.optional_run_at("6.1.49", i, op::upadha("A"));
     }
 
     Some(())

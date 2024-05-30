@@ -6,8 +6,6 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
-use vidyut_prakriya::args::*;
-use vidyut_prakriya::Rule;
 
 #[test]
 fn ambibat() {

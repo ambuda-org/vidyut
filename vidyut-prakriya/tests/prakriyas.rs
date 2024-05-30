@@ -4,26 +4,30 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::Rule;
+
+fn tip_args(dhatu: Dhatu, la: Lakara) -> Tinanta {
+    Tinanta::builder()
+        .dhatu(dhatu)
+        .prayoga(Prayoga::Kartari)
+        .purusha(Purusha::Prathama)
+        .vacana(Vacana::Eka)
+        .lakara(la)
+        .build()
+        .unwrap()
+}
 
 // Sample test for `Bavati`.
 #[test]
 fn bhavati() {
-    let bhu = d("BU", Bhvadi);
-    let args = Tinanta::builder()
-        .dhatu(bhu)
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lat)
-        .build()
-        .unwrap();
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(d("BU", Bhvadi), Lat);
     let t = Tester::default();
     let ps = t.derive_tinantas(&args);
     let p = ps.iter().find(|p| p.text() == "Bavati").unwrap();
-
-    use Rule::Ashtadhyayi as A;
 
     assert_matches_prakriya(
         p,
@@ -44,20 +48,12 @@ fn bhavati() {
 /// - We lengthen the dhatu's vowel with 6.4.2.
 #[test]
 fn jiyat() {
-    let jya = d("jyA\\", Kryadi);
-    let args = Tinanta::builder()
-        .dhatu(jya)
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::AshirLin)
-        .build()
-        .unwrap();
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(d("jyA\\", Kryadi), AshirLin);
     let t = Tester::default();
     let ps = t.derive_tinantas(&args);
     let p = ps.iter().find(|p| p.text() == "jIyAt").unwrap();
-
-    use Rule::Ashtadhyayi as A;
 
     assert_matches_prakriya(
         p,
@@ -78,6 +74,8 @@ fn jiyat() {
 /// - We correctly apply 6.4.49.
 #[test]
 fn paspardhyate() {
+    use Rule::Ashtadhyayi as A;
+
     let spardh = d("sparDa~\\", Bhvadi);
     let args = Tinanta::builder()
         .dhatu(spardh.with_sanadi(&[Sanadi::yaN]))
@@ -87,14 +85,10 @@ fn paspardhyate() {
         .lakara(Lakara::Lat)
         .build()
         .unwrap();
+
     let t = Tester::default();
     let ps = t.derive_tinantas(&args);
-    for p in &ps {
-        println!("{}", p.text());
-    }
     let p = ps.iter().find(|p| p.text() == "pAsparDyate").unwrap();
-
-    use Rule::Ashtadhyayi as A;
 
     assert_matches_prakriya(
         p,
@@ -111,41 +105,25 @@ fn paspardhyate() {
 // Test to make sure 8.4.1 applies in akzRoti (i.e when R immediately follows r/z)
 #[test]
 fn akshnoti() {
-    let akz = d("akzU~", Bhvadi);
-    let args = Tinanta::builder()
-        .dhatu(akz)
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lat)
-        .build()
-        .unwrap();
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(d("akzU~", Bhvadi), Lat);
     let t = Tester::default();
     let ps = t.derive_tinantas(&args);
     let p = ps.iter().find(|p| p.text() == "akzRoti").unwrap();
 
-    use Rule::Ashtadhyayi as A;
-
-    assert_matches_prakriya(p, &[(A("8.4.1"), vec!["ak", "Ro", "ti"])]);
+    assert_matches_prakriya(p, &[(A("8.4.1"), vec!["akz", "Ro", "ti"])]);
 }
 
 // Test to make sure 8.4.2 applies in when r/z and R are intervened by at, ku, etc.
 #[test]
 fn krinaati() {
-    let krii = d("qukrI\\Y", Kryadi);
-    let args = Tinanta::builder()
-        .dhatu(krii)
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lat)
-        .build()
-        .unwrap();
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(d("qukrI\\Y", Kryadi), Lat);
     let t = Tester::default();
     let ps = t.derive_tinantas(&args);
     let p = ps.iter().find(|p| p.text() == "krIRAti").unwrap();
-
-    use Rule::Ashtadhyayi as A;
 
     assert_matches_prakriya(p, &[(A("8.4.2"), vec!["krI", "RA", "ti"])]);
 }
@@ -156,26 +134,62 @@ fn krinaati() {
 // - We correctly apply 8.4.54 with 7.4.73
 #[test]
 fn babhuva() {
-    let bhu = d("BU", Bhvadi);
-    let args = Tinanta::builder()
-        .dhatu(bhu)
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lit)
-        .build()
-        .unwrap();
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(d("BU", Bhvadi), Lit);
     let t = Tester::default();
     let ps = t.derive_tinantas(&args);
     let p = ps.iter().find(|p| p.text() == "baBUva").unwrap();
-
-    use Rule::Ashtadhyayi as A;
 
     assert_matches_prakriya(
         p,
         &[
             (A("7.4.73"), vec!["Ba", "BU", "v", "a"]),
             (A("8.4.54"), vec!["ba", "BU", "v", "a"]),
+        ],
+    );
+}
+
+// Fixes https://github.com/ambuda-org/vidyut/issues/126
+//
+// This test verifies the following:
+// - we use 7.4.92 for carkarti, etc.
+#[test]
+fn carkarti_etc() {
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(yan_luk(&d("qukf\\Y", Tanadi)), Lat);
+    let t = Tester::default();
+    let ps = t.derive_tinantas(&args);
+
+    let p = ps.iter().find(|p| p.text() == "carkarti").unwrap();
+    assert_matches_prakriya(p, &[(A("7.4.92:ruk"), vec!["ca", "ru~k", "kf", ""])]);
+
+    let p = ps.iter().find(|p| p.text() == "carikarti").unwrap();
+    assert_matches_prakriya(p, &[(A("7.4.92:rik"), vec!["ca", "rik", "kf", ""])]);
+
+    let p = ps.iter().find(|p| p.text() == "carIkarti").unwrap();
+    assert_matches_prakriya(p, &[(A("7.4.92:rIk"), vec!["ca", "rIk", "kf", ""])]);
+}
+
+// Fixes https://github.com/ambuda-org/vidyut/issues/127
+//
+// This test verifies the following:
+// - we use 6.1.49 after guna.
+#[test]
+fn sadhayati() {
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(nic(&d("zi\\Du~", Divadi)), Lat);
+    let t = Tester::default();
+    let ps = t.derive_tinantas(&args);
+
+    let p = ps.iter().find(|p| p.text() == "sADayati").unwrap();
+    assert_matches_prakriya(
+        p,
+        &[
+            (A("7.3.86"), vec!["seD", "i"]),
+            (A("6.1.49"), vec!["sAD", "i"]),
         ],
     );
 }

@@ -412,6 +412,12 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
         added
     };
 
+    let add_agama = |rule, p: &mut Prakriya, i_dhatu, agama| -> bool {
+        p.run(rule, |p| op::insert_agama_before(p, i_dhatu, agama));
+        it_samjna::run(p, i_dhatu).ok();
+        true
+    };
+
     let abhyasa = p.get(i_abhyasa)?;
     let dhatu = p.get(i_dhatu)?;
     let is_yan_luk = p.has(i_yan, |t| t.is_empty());
@@ -463,22 +469,26 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
     } else if dhatu.text.contains('f') {
         // varIvfScyate, ...
         // (Check for "contains" and not "antya" to allow pfcC, vfSc, ...)
-        let mut added = false;
-        if is_yan_luk {
-            added = optional_add_agama("7.4.91:ruk", p, i_dhatu, "ru~k");
-            if !added {
-                added = optional_add_agama("7.4.91:rik", p, i_dhatu, "rik");
+        if is_yan_luk && dhatu.has_antya('f') {
+            // carkarti, carikarti, carIkarti, ...
+            _ = optional_add_agama("7.4.92:ruk", p, i_dhatu, "ru~k")
+                || optional_add_agama("7.4.92:rik", p, i_dhatu, "rik")
+                || add_agama("7.4.92:rIk", p, i_dhatu, "rIk");
+        } else {
+            let mut added = false;
+            // narnarti, narinarti
+            if is_yan_luk {
+                added = optional_add_agama("7.4.91:ruk", p, i_dhatu, "ru~k")
+                    || optional_add_agama("7.4.91:rik", p, i_dhatu, "rik");
             }
-        }
-        if !added {
-            let dhatu = p.get(i_dhatu)?;
-            if dhatu.has_upadha('f') {
-                // varIvftyate, varIvftIti, ...
-                op::insert_agama_at("7.4.90", p, i_dhatu, "rIk");
-            } else if dhatu.has_antya('f') {
-                op::insert_agama_at("7.4.92", p, i_dhatu, "rIk");
-            } else {
-                op::insert_agama_at(Varttika("7.4.90.1"), p, i_dhatu, "rIk");
+            if !added {
+                let dhatu = p.get(i_dhatu)?;
+                if dhatu.has_upadha('f') {
+                    // varIvftyate, varIvftIti, ...
+                    op::insert_agama_at("7.4.90", p, i_dhatu, "rIk");
+                } else {
+                    op::insert_agama_at(Varttika("7.4.90.1"), p, i_dhatu, "rIk");
+                }
             }
         }
     } else if abhyasa.has_antya('a') {
