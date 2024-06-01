@@ -1,10 +1,20 @@
 [package]
 name = "vidyut-kosha"
 version = "0.1.0"
+authors = ["Arun Prasad <ambuda.library@gmail.com>"]
+description = "A Sanskrit key-value store"
+homepage = "https://github.com/ambuda-org/vidyut"
+repository = "https://github.com/ambuda-org/vidyut"
+categories = ["text-processing"]
+keywords = ["sanskrit"]
+license = "MIT"
 edition = "2021"
+rust-version = "1.68"
 
 [dependencies]
-clap = { version = "4.0.12", features = ["derive"] }
+clap = { version = "4.3.24", features = ["derive"] }
+# needed to avoid complaints from `cargo publish`
+clap_derive = { version = "4.3.12" }
 env_logger = "0.9.1"
 log = "0.4.17"
 fst = "0.4.7"

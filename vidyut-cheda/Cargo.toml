@@ -9,7 +9,7 @@ edition = "2021"
 vidyut-kosha = { path = "../vidyut-kosha" }
 vidyut-sandhi = { path = "../vidyut-sandhi" }
 vidyut-lipi = { path = "../vidyut-lipi" }
-clap = { version = "4.0.12", features = ["derive"] }
+clap = { version = "4.3.24", features = ["derive"] }
 csv = "1.1.6"
 env_logger = "0.10.0"
 lazy_static = "1.4.0"

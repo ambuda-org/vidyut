@@ -14,7 +14,7 @@ edition = "2021"
 
 [dependencies]
 rustc-hash = "1.1.0"
-clap = { version = "4.0.12", features = ["derive"] }
+clap = { version = "4.3.24", features = ["derive"] }
 wasm-bindgen = "0.2"
 serde-wasm-bindgen = "0.4"
 console_error_panic_hook = "0.1.7"
