@@ -9,7 +9,6 @@ categories = ["text-processing"]
 keywords = ["sanskrit"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.68"
 
 [dependencies]
 console_error_panic_hook = "0.1.7"

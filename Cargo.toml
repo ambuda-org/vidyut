@@ -20,7 +20,6 @@ categories = ["text-processing"]
 keywords = ["sanskrit"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.73"
 
 [dependencies]
 vidyut-chandas = { path = "./vidyut-chandas" }
@@ -29,7 +28,7 @@ vidyut-kosha = { path = "./vidyut-kosha" }
 vidyut-lipi = { path = "./vidyut-lipi" }
 vidyut-sandhi = { path = "./vidyut-sandhi" }
 log = "0.4.17"
-clap = "4.3.24"
+clap = "4.1.4"
 csv = "1.1.6"
 multimap = "0.8.3"
 lazy_static = "1.4.0"
