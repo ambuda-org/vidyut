@@ -44,3 +44,20 @@ fn irshy_san_lan() {
         &["Erzyiyizat", "Erzyizizat"],
     );
 }
+
+// Fixes https://github.com/ambuda-org/vidyut/issues/120
+#[test]
+fn ayiyat() {
+    assert_has_tip(&[], &nic(&d("I\\N", Divadi)), Lun, &["Ayiyat"]);
+}
+
+// Fixes https://github.com/ambuda-org/vidyut/issues/121
+#[test]
+fn adhyajigapat_adhyapipat() {
+    assert_has_tip(
+        &["aDi"],
+        &nic(&d("i\\N", Adadi)),
+        Lun,
+        &["aDyajIgapat", "aDyApipat"],
+    );
+}

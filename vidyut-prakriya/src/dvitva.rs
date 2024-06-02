@@ -14,6 +14,7 @@ use lazy_static::lazy_static;
 
 lazy_static! {
     static ref AC: Set = s("ac");
+    static ref YAN: Set = s("yaR");
     static ref HAL: Set = s("hal");
     static ref NDR: Set = s("n d r");
 }
@@ -61,7 +62,12 @@ fn mark_abhyasta(p: &mut Prakriya, i_start: usize, i_end: usize) {
 fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     // First, run ac-sandhi (for div -> dudyUzati, etc.)
     ac_sandhi::run_antaranga(p);
+
     p.maybe_save_sthanivat();
+    // Force-save for dhatus that consist of a single vowel.
+    if p.has(i_dhatu, |t| t.has_adi(&*AC) && t.has_antya(&*YAN)) {
+        p.set(i_dhatu, |t| t.force_save_sthanivat());
+    }
 
     let i_n = p.find_next_where(i_dhatu, |t| {
         !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
@@ -252,7 +258,6 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
 ///
 /// - `i` should point to a dhatu.
 fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
-    p.debug("run at index");
     let dhatu = p.get_mut(i)?;
     debug_assert!(dhatu.is_dhatu());
 

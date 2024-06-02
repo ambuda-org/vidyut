@@ -56,7 +56,7 @@ test_tinantas:
 	  --hash "28293a6aa746f04dff1a5c3b822396c236df269460d691bd137ba01a2c80557f"
 	../target/release/test_tinantas \
   	--test-cases test-files/tinantas-nic-kartari.csv \
-    --hash "5d508a8b3a52ebe92a1524b0b51bbed90e27301f265669aa8e7a887d55bf1eff"
+    --hash "e4ab38f9c71d040bf8cbf7dbc6bb1951749b831240f9248288389a68b24ef413"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-kartari.csv \
 		--hash "ef278531cd45ba1df9af60e5b4b8ef582fdbe7a7eb31478fe35b9600c42380fc"
