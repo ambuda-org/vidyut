@@ -3,6 +3,9 @@
 <p><i>A Paninian word generator</i></p>
 </div>
 
+(Published as [A fast prakriyā generator][paper] at ISCLS 2024.)
+[paper]: https://iscls.github.io/assets/files/proceedings/2024.iscls.7.pdf
+
 `vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)
 according to the rules of Paninian grammar and currently implements around
 2,000 rules. Our long-term goal is to provide a complete implementation of the
@@ -47,8 +50,9 @@ Overview
    crate can be compiled to WebAssembly, which means that it can run in a
    modern web browser.
 
-`vidyut-prakriya` currently has strong support for basic verbs. For future plans,
-see our [roadmap](#roadmap).
+`vidyut-prakriya` has excellent support for Sanskrit's basic word types,
+including *subanta*s, *tiṅanta*s, *kṛdanta*s, and *taddhitānta*s. It has
+moderate support for *samāsa*s and weak support for accent rules.
 
 
 Usage

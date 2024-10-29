@@ -80,7 +80,6 @@ fn sutra_7_4_3() {
     assert_has_tip(&[], &d("pIqa~", Curadi), Lun, &["apIpiqat", "apipIqat"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_4_4() {
     let paa_nic = nic(&d("pA\\", Bhvadi));

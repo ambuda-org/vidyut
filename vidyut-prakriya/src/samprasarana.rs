@@ -130,7 +130,7 @@ pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
 
     let n = p.pratyaya(i_n)?;
     let n_is_lit = n.has_lakshana("li~w");
-    let n_will_be_abhyasta = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
+    let n_causes_dvitva = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.run_at(rule, i, |t| {
@@ -139,14 +139,14 @@ pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
         });
     };
 
-    if dhatu.has_text("hve") && n_will_be_abhyasta {
+    if dhatu.has_text("hve") && n_causes_dvitva {
         set_text("6.1.33", p, "hu");
     }
 
     Some(())
 }
 
-pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
+pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let i_n = p.find_next_where(i, |t| !t.is_empty())?;
 
@@ -156,7 +156,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
     let n = p.pratyaya(i_n)?;
     let n_is_yan = n.has_u("yaN");
     let n_is_lit = n.has_lakshana("li~w");
-    let n_will_be_abhyasta = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
+    let n_causes_dvitva = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.run_at(rule, i, |t| {
@@ -172,6 +172,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
         });
     };
 
+    let is_hve = dhatu.has_text("hve");
     let is_ve = dhatu.has_u("ve\\Y");
     if dhatu.has_u("Yizva\\pa~") && n.has_u("Ric") && p.has(i_n + 1, |t| t.has_u("caN")) {
         // asUzupat
@@ -204,8 +205,16 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("o~pyAyI~\\") && (n_is_yan || n_is_lit) {
         set_text("6.1.29", p, "pI");
     } else if dhatu.has_text("Svi") && (n_is_yan || n_is_lit) {
+        // SuSAva, SiSvAya
         optional_set_text("6.1.30", p, "Su");
-    } else if dhatu.has_text("hve") && n_will_be_abhyasta {
+    } else if dhatu.has_text("Svi") && is_sani_or_cani {
+        // SuSAvayizati, SiSvAyayizati; aSUsavat, aSisvayat
+        optional_set_text("6.1.31", p, "Su");
+    } else if is_hve && is_sani_or_cani {
+        // juhAvayizati; ajUhavat
+        set_text("6.1.32", p, "hu");
+    } else if is_hve && n_causes_dvitva {
+        // juhAva, johUyate, juhUzati
         set_text("6.1.33", p, "hu");
     } else if is_ve && n.has_lakshana("li~w") {
         p.step("6.1.40");

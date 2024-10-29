@@ -313,7 +313,8 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
     let mut num_loops = 0;
     let mut i = p.find_first_where(filter)?;
     loop {
-        let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+        // Skip pu~k and other kit-Agamas.
+        let i_n = p.find_next_where(i, |t| !t.is_empty() && !(t.is_agama() && t.is_knit()))?;
 
         // Run only if the next term starts with a vowel.
         // Check for `Ji` as well, which starts with a vowel.

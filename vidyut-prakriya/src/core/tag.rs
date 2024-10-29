@@ -262,6 +262,8 @@ pub enum Tag {
     FlagIttva,
     /// Blocks a rule that causes dirgha.
     FlagNoDirgha,
+    /// Blocks a rule that causes hrasva.
+    FlagNoHrasva,
     // Indicates replacement of f/F with f (acIkftat, ...).
     FlagUrRt,
     /// Indicates use of UW-adesha.

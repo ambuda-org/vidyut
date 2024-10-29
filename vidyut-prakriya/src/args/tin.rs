@@ -4,7 +4,7 @@ use crate::core::Tag;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The prayoga of some tinanta.
+/// The prayoga of some tiṅanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Prayoga {
@@ -33,7 +33,7 @@ impl Prayoga {
     }
 }
 
-/// The person of some tinanta.
+/// The person of some tiṅanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Purusha {
@@ -61,7 +61,7 @@ impl Purusha {
     }
 }
 
-/// The number of some tinanta or subanta.
+/// The number of some tiṅanta or subanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Vacana {
@@ -89,7 +89,7 @@ impl Vacana {
     }
 }
 
-/// The tense/mood of some tinanta.
+/// The tense/mood of some tiṅanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Lakara {
@@ -154,7 +154,7 @@ impl Lakara {
     }
 }
 
-/// The pada of some tinanta or krdanta.
+/// The pada of some tiṅanta or kṛdanta.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum DhatuPada {
@@ -178,10 +178,10 @@ impl DhatuPada {
     }
 }
 
-/// The information required to derive a tinanta in the grammar.
+/// The information required to derive a tiṅanta in the grammar.
 ///
-/// If a tinanta were just a matter of prayoga/purusha/lakara/vacana, a struct like this would not
-/// be necessary. However, a tinanta's derivation can have many other constraints, including:
+/// If a tiṅanta were just a matter of prayoga/purusha/lakara/vacana, a struct like this would not
+/// be necessary. However, a tiṅanta's derivation can have many other constraints, including:
 ///
 /// - specific upasargas or other prefixes
 /// - specific sanAdi pratyayas

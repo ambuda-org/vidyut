@@ -1,6 +1,6 @@
 //! ardhadhatuka
 
-use crate::args::{Gana, Lakara, Unadi};
+use crate::args::{Dhatu, Gana, Lakara, Sanadi, Unadi};
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
@@ -114,7 +114,11 @@ pub fn dhatu_adesha_before_pada(p: &mut Prakriya, la: Lakara) {
 ///
 /// These rules must run before we choose the vikarana because the results here affect which
 /// vikarana we add.
-fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Option<()> {
+fn try_dhatu_adesha_before_vikarana(
+    p: &mut Prakriya,
+    is_sani_or_cani: bool,
+    la: Option<Lakara>,
+) -> Option<()> {
     let i = p.find_first(T::Dhatu)?;
     let j = p.find_next_where(i, |t| !t.is_empty())?;
     let dhatu = p.get(i)?;
@@ -186,7 +190,10 @@ fn try_dhatu_adesha_before_vikarana(p: &mut Prakriya, la: Option<Lakara>) -> Opt
         let to_gaa = |p: &mut Prakriya| op::upadesha_no_it(p, i, "gAN");
         let mut run_it = false;
 
-        if p.has(i + 1, |t| t.has_u("Ric")) && p.has(i + 2, |t| t.has_u_in(&["san", "caN"])) {
+        if p.has(i + 1, |t| t.has_u("Ric")) && !p.has(i + 2, |_| true) && is_sani_or_cani {
+            // aDijigApayizati, aDyApipayizati; aDyajIgapat, aDyApipat
+            // Run in anticipation of san and caN, e.g.:
+            // https://www.sanskritam.world/vyakaranam/sutraani/2/4/51
             run_it = p.optional_run("2.4.51", to_gaa);
         } else if n.has_u("san") {
             // aDijigAMsate
@@ -384,6 +391,7 @@ pub fn try_add_am_agama(p: &mut Prakriya) -> Option<()> {
 
 pub fn run_before_vikarana(
     p: &mut Prakriya,
+    dhatu: Option<&Dhatu>,
     la: Option<Lakara>,
     la_is_ardhadhatuka: bool,
 ) -> Option<()> {
@@ -399,10 +407,20 @@ pub fn run_before_vikarana(
 
     let i = p.find_first(T::Dhatu)?;
 
-    // Check the following term in case we have `san`, etc.
+    // Check if the following pratyaya will be san or can, for 2.4.51 (णौ च सँश्चङोः)
+    let is_sani = match dhatu {
+        Some(Dhatu::Mula(d)) => d.sanadi().iter().any(|s| *s == Sanadi::san),
+        Some(Dhatu::Nama(d)) => d.other_sanadi().iter().any(|s| *s == Sanadi::san),
+        None => false,
+    };
+    let is_cani = la == Some(Lakara::Lun) && p.terms().last().map_or(false, |t| t.is_ni_pratyaya());
+    let is_sani_or_cani = is_sani || is_cani;
+
+    // These rules run both if the following prakriya is ArdhadhAtuka and if we must anticipate
+    // ArdhadhAtuka (e.g. from lakAra).
     if p.has(i + 1, |t| t.is_ardhadhatuka()) || la_is_ardhadhatuka {
         // Rules are under 2.4.35 "ArdhadhAtuke".
-        try_dhatu_adesha_before_vikarana(p, la);
+        try_dhatu_adesha_before_vikarana(p, is_sani_or_cani, la);
     }
 
     Some(())

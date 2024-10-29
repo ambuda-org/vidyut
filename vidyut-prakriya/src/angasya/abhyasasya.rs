@@ -272,8 +272,9 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
         }
     }
 
+    // no-hrasva is for pA --> apIpyat.
     let abhyasa = p.get(i)?;
-    if al::is_dirgha(abhyasa.antya()?) {
+    if al::is_dirgha(abhyasa.antya()?) && !abhyasa.has_tag(T::FlagNoHrasva) {
         let val = al::to_hrasva(abhyasa.antya()?)?;
         p.run_at("7.4.59", i, op::antya(&val.to_string()));
     }

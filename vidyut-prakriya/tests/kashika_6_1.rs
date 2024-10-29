@@ -400,17 +400,27 @@ fn sutra_6_1_29() {
 #[test]
 fn sutra_6_1_30() {
     let svi = d("wuo~Svi", Bhvadi);
-    assert_has_tinantas(&[], &svi, Lit, Prathama, Eka, &["SuSAva", "SiSvAya"]);
-    assert_has_tinantas(&[], &svi, Lit, Prathama, Dvi, &["SuSuvatuH", "SiSviyatuH"]);
-    assert_has_lat(&[], &yan(&svi), &["SoSUyate", "SeSvIyate"]);
+    assert_has_tip(&[], &svi, Lit, &["SuSAva", "SiSvAya"]);
+    assert_has_tas(&[], &svi, Lit, &["SuSuvatuH", "SiSviyatuH"]);
+    assert_has_ta(&[], &yan(&svi), Lat, &["SoSUyate", "SeSvIyate"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_1_31() {
     let svi = d("wuo~Svi", Bhvadi);
     assert_has_tip(&[], &nic_san(&svi), Lat, &["SuSAvayizati", "SiSvAyayizati"]);
-    assert_has_tip(&[], &nic(&svi), Lat, &["aSUSavat", "aSiSvayat"]);
+    assert_has_tip(&[], &nic(&svi), Lun, &["aSUSavat", "aSiSvayat"]);
+}
+
+#[test]
+fn sutra_6_1_32() {
+    let hve = d("hve\\Y", Bhvadi);
+    assert_has_tip(&[], &nic_san(&hve), Lat, &["juhAvayizati"]);
+    assert_has_tas(&[], &nic_san(&hve), Lat, &["juhAvayizataH"]);
+    assert_has_jhi(&[], &nic_san(&hve), Lat, &["juhAvayizanti"]);
+    assert_has_tip(&[], &nic(&hve), Lun, &["ajUhavat"]);
+    assert_has_tas(&[], &nic(&hve), Lun, &["ajUhavatAm"]);
+    assert_has_jhi(&[], &nic(&hve), Lun, &["ajUhavan"]);
 }
 
 #[test]

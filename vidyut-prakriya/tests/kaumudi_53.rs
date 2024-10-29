@@ -61,7 +61,6 @@ fn sk_2578() {
     assert_has_tip(&[], &cur, Lun, &["acUcurat"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2579() {
     let i = d("i\\N", Adadi);
@@ -82,6 +81,54 @@ fn sk_2585() {
 fn sk_2586() {
     let hve = &d("hve\\Y", Bhvadi);
     assert_has_tip(&[], &nic(&hve), Lun, &["ajUhavat", "ajuhAvat"]);
+}
+
+#[test]
+fn sk_2587() {
+    let paa = &d("pA\\", Bhvadi);
+    assert_has_tip(&[], &nic(&paa), Lun, &["apIpyat"]);
+
+    let r = &d("f\\", Bhvadi);
+    assert_has_tip(&[], &nic(&r), Lat, &["arpayati"]);
+
+    let hri = &d("hrI\\", Juhotyadi);
+    assert_has_tip(&[], &nic(&hri), Lat, &["hrepayati"]);
+
+    let vli = &d("vlI\\", Kryadi);
+    assert_has_tip(&[], &nic(&vli), Lat, &["vlepayati"]);
+
+    let ri = &d("rI\\N", Divadi);
+    assert_has_tip(&[], &nic(&ri), Lat, &["repayati"]);
+
+    let knuy = &d("knUyI~\\", Bhvadi);
+    assert_has_tip(&[], &nic(&knuy), Lat, &["knopayati"]);
+
+    let kshmay = &d("kzmAyI~\\", Bhvadi);
+    assert_has_tip(&[], &nic(&kshmay), Lat, &["kzmApayati"]);
+
+    let stha = &d("zWA\\", Bhvadi);
+    assert_has_tip(&[], &nic(&stha), Lat, &["sTApayati"]);
+}
+
+#[test]
+fn sk_2588() {
+    let stha = &d("zWA\\", Bhvadi);
+    assert_has_tip(&[], &nic(&stha), Lun, &["atizWipat"]);
+}
+
+#[test]
+fn skip_sk_2590() {
+    let va = d("vA\\", Adadi);
+    assert_has_tip(&[], &nic(&va), Lat, &["vAjayati", "vApayati"]);
+}
+
+#[test]
+fn skip_sk_2593() {}
+
+#[test]
+fn sk_2594_and_sk_2595() {
+    let bhi = d("YiBI\\", Juhotyadi);
+    assert_has_ta(&[], &nic(&bhi), Lat, &["BAyayate", "BIzayate", "BApayate"]);
 }
 
 #[test]
@@ -110,6 +157,12 @@ fn sk_2600() {
 }
 
 #[test]
+fn sk_2601() {
+    let svi = d("wuo~Svi", Bhvadi);
+    assert_has_tip(&[], &nic(&svi), Lun, &["aSUSavat", "aSiSvayat"]);
+}
+
+#[test]
 fn sk_2602() {
     let sidh = d("zi\\Du~", Divadi);
     assert_has_tip(&[], &nic(&sidh), Lat, &["sADayati", "seDayati"]);
@@ -128,14 +181,14 @@ fn sk_2604() {
     assert_has_tip(&[], &nic(&dus), Lat, &["dUzayati", "dozayati"]);
 }
 
-// All pass except apusParat
+// fails on apusParat
 #[ignore]
 #[test]
 fn sk_2605() {
     let dus = d("du\\za~", Divadi);
     assert_has_tip(&[], &nic(&dus), Lat, &["dUzayati", "dozayati"]);
 
-    assert_has_tip(&[], &nic(&d("Gawa~\\", Bhvadi)), Lat, &["Gawayati"]);
+    assert_has_tip(&[], &nic(&d_ghatadi("Gawa~\\", Bhvadi)), Lat, &["Gawayati"]);
     assert_has_tip(&[], &nic(&d("janI~\\", Divadi)), Lat, &["janayati"]);
     assert_has_tip(&[], &nic(&d("jFz", Divadi)), Lat, &["jarayati"]);
     assert_has_tip(&[], &nic(&d("jF", Kryadi)), Lat, &["jArayati"]);
@@ -160,4 +213,22 @@ fn sk_2605() {
 fn sk_2606() {
     let an = d("ana~", Adadi);
     assert_has_tip(&["pra"], &nic(&an), Lun, &["prARiRat"]);
+}
+
+// fails on Erzyiyat
+#[ignore]
+#[test]
+fn sk_2607() {
+    let gam = d("ga\\mx~", Bhvadi);
+    assert_has_tip(&[], &nic(&gam), Lat, &["gamayati"]);
+
+    let ik = d("i\\k", Adadi);
+    assert_has_tip(&["aDi"], &nic(&ik), Lat, &["aDigamayati"]);
+
+    let han = d("ha\\na~", Adadi);
+    assert_has_tip(&[], &nic(&han), Lat, &["GAtayati"]);
+
+    let irshy = d("Irzya~", Bhvadi);
+    assert_has_tip(&[], &nic(&irshy), Lat, &["Irzyayati"]);
+    assert_has_tip(&[], &nic(&irshy), Lun, &["Erzyiyat", "Erzizyat"]);
 }

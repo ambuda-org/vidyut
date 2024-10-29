@@ -1137,8 +1137,11 @@ fn try_cani_after_guna(p: &mut Prakriya) -> Option<()> {
     if i > 0 && dhatu.has_u("pA\\") && dhatu.has_gana(Bhvadi) {
         // apIpyat
         p.run("7.4.4", |p| {
+            p.set(i - 1, |t| {
+                t.set_antya("I");
+                t.add_tag(T::FlagNoHrasva);
+            });
             p.set(i, |t| t.set_antya(""));
-            p.set(i - 1, |t| t.set_antya("I"));
         });
         return None;
     } else if i > 0 && dhatu.has_u("zWA\\") {

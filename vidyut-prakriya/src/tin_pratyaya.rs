@@ -14,7 +14,6 @@
 //! All of these rules are found at the end of section 3.4 of the Ashtadhyayi.
 
 use crate::args::{Gana, Lakara, Purusha, Vacana};
-use crate::core::errors::Result;
 use crate::core::operators as op;
 use crate::core::{Code, Prakriya, Tag as T, Term};
 use crate::it_samjna;
@@ -86,152 +85,6 @@ pub fn adesha(p: &mut Prakriya, purusha: Purusha, vacana: Vacana) {
     }
 }
 
-fn maybe_replace_jhi_with_jus(p: &mut Prakriya, i: usize, la: Lakara) -> Option<()> {
-    let tin = p.get(i)?;
-    if !tin.has_u("Ji") {
-        return None;
-    }
-
-    if matches!(la, Lakara::AshirLin | Lakara::VidhiLin) {
-        op::adesha("3.4.108", p, i, "jus");
-    } else if la.is_nit() {
-        let i_prev = p.find_prev_where(i, |t| !t.is_empty())?;
-        let prev = p.get(i_prev)?;
-
-        let is_vid = prev.has_text("vid") && prev.has_gana(Gana::Adadi);
-        if prev.has_u("si~c") || prev.has_tag(T::Abhyasta) || is_vid {
-            op::adesha("3.4.109", p, i, "jus");
-        } else if prev.is_dhatu() {
-            if prev.has_antya('A') {
-                if la == Lakara::Lan {
-                    op::optional_adesha("3.4.111", p, i, "jus");
-                } else {
-                    op::adesha("3.4.110", p, i, "jus");
-                }
-            } else if prev.has_text("dviz") && la == Lakara::Lan {
-                op::optional_adesha("3.4.112", p, i, "jus");
-            }
-        }
-    }
-
-    Some(())
-}
-
-fn maybe_do_lut_siddhi(p: &mut Prakriya, i_la: usize, la: Lakara) -> bool {
-    let tin = match p.get(i_la) {
-        Some(t) => t,
-        _ => return false,
-    };
-    if tin.has_tag(T::Prathama) && la == Lakara::Lut {
-        let ending = if tin.has_tag(T::Ekavacana) {
-            "qA"
-        } else if tin.has_tag(T::Dvivacana) {
-            "rO"
-        } else {
-            "ras"
-        };
-        op::adesha("2.4.85", p, i_la, ending);
-        true
-    } else {
-        false
-    }
-}
-
-/// Applies tin-siddhi rules that apply to just loT.
-fn maybe_do_lot_only_siddhi(p: &mut Prakriya, i: usize) -> Option<()> {
-    let tin = p.get_if(i, |t| t.has_lakshana("lo~w"))?;
-
-    if tin.has_text("si") {
-        p.run_at("3.4.87", i, |t| {
-            t.set_u("hi");
-            t.set_text("hi");
-            t.remove_tag(T::pit);
-        });
-
-        if p.is_chandasi() {
-            p.optional_run_at("3.4.88", i, op::add_tag(T::Pit));
-        }
-    } else if tin.ends_with("mi") {
-        // BavAni
-        op::adesha("3.4.89", p, i, "ni");
-    } else if tin.has_antya('i') {
-        // Bavatu
-        p.run_at("3.4.86", i, op::antya("u"));
-    } else if tin.has_antya('e') {
-        if tin.has_tag(T::Uttama) && tin.has_antya('e') {
-            p.run_at("3.4.93", i, op::antya("E"));
-        } else if tin.ends_with("se") || tin.ends_with("ve") {
-            p.run_at("3.4.91", i, |t| {
-                let n = t.len();
-                if t.ends_with("se") {
-                    t.text.replace_range(n - 2.., "sva");
-                } else {
-                    t.text.replace_range(n - 2.., "vam");
-                }
-            });
-        } else {
-            p.run_at("3.4.90", i, op::antya("Am"));
-        }
-    }
-
-    let tin = p.get(i)?;
-    if tin.has_tag(T::Uttama) {
-        // BavAni
-        p.run("3.4.92", |p| {
-            let agama = Term::make_agama("Aw");
-            // Add pit to the pratyaya, not the Agama.
-            p.set(i, |t| t.add_tag(T::pit));
-            p.insert_before(i, agama);
-        });
-        it_samjna::run(p, i).ok()?;
-    }
-
-    Some(())
-}
-
-fn maybe_do_lin_siddhi(p: &mut Prakriya, i_tin: usize, la: Lakara) -> Result<()> {
-    let mut i = i_tin;
-
-    if !p.has(i, |t| t.has_lakshana("li~N")) {
-        return Ok(());
-    }
-    if p.has(i, |t| t.is_parasmaipada()) {
-        p.insert_before(i, Term::make_agama("yAsu~w"));
-        i += 1;
-
-        if la == Lakara::AshirLin {
-            // Add kit to the pratyaya, not the Agama.
-            p.add_tag_at("3.4.104", i, T::kit);
-        } else {
-            // Add Nit to the pratyaya, not the Agama.
-            p.add_tag_at("3.4.103", i, T::Nit);
-        }
-        it_samjna::run(p, i - 1)?;
-    } else {
-        p.insert_before(i, Term::make_agama("sIyu~w"));
-        i += 1;
-
-        p.step("3.4.102");
-        it_samjna::run(p, i - 1)?;
-
-        if p.has(i, |t| t.has_u("Ja")) {
-            op::adesha("3.4.105", p, i, "ran");
-        } else if p.has(i, |t| t.has_u("iw")) {
-            op::adesha("3.4.106", p, i, "a");
-        }
-    }
-
-    if p.has(i, |t| t.text.contains('t') || t.text.contains('T')) {
-        p.set(i, |t| {
-            t.find_and_replace_text("t", "st");
-            t.find_and_replace_text("T", "sT");
-        });
-        p.step("3.4.107");
-    }
-
-    Ok(())
-}
-
 fn yatha(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&str]) {
     p.run(rule, |p| op::upadesha_yatha(p, i, old, new));
     it_samjna::run(p, i).ok();
@@ -243,39 +96,21 @@ fn yatha_optional(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&
     }
 }
 
-// Includes lo~w by 3.4.85
-fn maybe_do_lot_and_nit_siddhi(p: &mut Prakriya, la: Lakara) {
-    let i = match p.find_last(T::Tin) {
-        Some(i) => i,
-        None => return,
-    };
-
-    if la == Lakara::Lot || la.is_nit() {
-        let tas_thas = &["tas", "Tas", "Ta", "mip"];
-        let taam_tam = &["tAm", "tam", "ta", "am"];
-        if p.has(i, |t| t.has_u_in(tas_thas)) {
-            yatha("3.4.101", p, i, tas_thas, taam_tam);
-        }
-
-        if p.has(i, |t| t.is_parasmaipada()) {
-            if p.has(i, |t| t.has_tag(T::Uttama) && t.has_antya('s')) {
-                p.run_at("3.4.99", i, op::antya(""));
-            }
-
-            // lo~w excluded by existence of 3.4.86
-            if p.has(i, |t| t.has_antya('i')) && la != Lakara::Lot {
-                p.run_at("3.4.100", i, op::antya(""));
-            }
-        }
-    }
-}
-
 fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     let i_dhatu = p.find_last(T::Dhatu)?;
     let i = p.find_last(T::Tin)?;
 
     // Special case: handle lut_siddhi first.
-    if maybe_do_lut_siddhi(p, i, la) {
+    let tin = p.get(i)?;
+    if tin.has_tag(T::Prathama) && la == Lakara::Lut {
+        let ending = if tin.has_tag(T::Ekavacana) {
+            "qA"
+        } else if tin.has_tag(T::Dvivacana) {
+            "rO"
+        } else {
+            "ras"
+        };
+        op::adesha("2.4.85", p, i, ending);
         return None;
     }
 
@@ -308,16 +143,166 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         }
     }
 
+    // leT-only rules.
     // TODO: 3.4.94 - 3.4.98
+    let tin = p.get(i)?;
+    if tin.has_lakshana("le~w") {
+        if tin.has_adi('A') {
+            // mantrayEte, mantrayETe ,...
+            p.run_at("3.4.95", i, op::adi("E"));
+        } else if tin.is_parasmaipada() && tin.has_antya('i') {
+            // jozizat, patAti, ...
+            p.optional_run_at("3.4.97", i, op::lopa);
+        }
+    }
 
-    maybe_do_lot_only_siddhi(p, i);
-    // Must occur before 3.4.100 in loT/nit siddhi.
-    maybe_replace_jhi_with_jus(p, i, la);
-    maybe_do_lot_and_nit_siddhi(p, la);
-    maybe_do_lin_siddhi(p, i, la).ok()?;
+    // Applies tin-siddhi rules that apply to just loT.
+    let tin = p.get(i)?;
+    if tin.has_lakshana("lo~w") {
+        if tin.has_text("si") {
+            p.run_at("3.4.87", i, |t| {
+                t.set_u("hi");
+                t.set_text("hi");
+                t.remove_tag(T::pit);
+            });
+
+            if p.is_chandasi() {
+                p.optional_run_at("3.4.88", i, op::add_tag(T::Pit));
+            }
+        } else if tin.ends_with("mi") {
+            // BavAni
+            op::adesha("3.4.89", p, i, "ni");
+        } else if tin.has_antya('i') {
+            // Bavatu
+            p.run_at("3.4.86", i, op::antya("u"));
+        } else if tin.has_antya('e') {
+            if tin.has_tag(T::Uttama) && tin.has_antya('e') {
+                // karavE, karavAvahE, karavAmahE
+                p.run_at("3.4.93", i, op::antya("E"));
+            } else if tin.ends_with("se") || tin.ends_with("ve") {
+                // pacasva, pacaDvam
+                p.run_at("3.4.91", i, |t| {
+                    let n = t.len();
+                    if t.ends_with("se") {
+                        t.text.replace_range(n - 2.., "sva");
+                    } else {
+                        t.text.replace_range(n - 2.., "vam");
+                    }
+                });
+            } else {
+                // pacatAm, pacetAm, pacantAm
+                p.run_at("3.4.90", i, op::antya("Am"));
+            }
+        }
+
+        let tin = p.get(i)?;
+        if tin.has_tag(T::Uttama) {
+            // BavAni
+            p.run("3.4.92", |p| {
+                let agama = Term::make_agama("Aw");
+                // Add pit to the pratyaya, not the Agama.
+                p.set(i, |t| t.add_tag(T::pit));
+                p.insert_before(i, agama);
+            });
+            it_samjna::run(p, i).ok()?;
+        }
+    }
+
+    // Substitution of jhi --> jus.
+    //
+    // Notes:
+    // - must occur before 3.4.100 when performing loT/nit siddhi.
+    let tin = p.get(i)?;
+    if tin.has_u("Ji") {
+        if matches!(la, Lakara::AshirLin | Lakara::VidhiLin) {
+            op::adesha("3.4.108", p, i, "jus");
+        } else if la.is_nit() {
+            let i_prev = p.find_prev_where(i, |t| !t.is_empty())?;
+            let prev = p.get(i_prev)?;
+
+            let is_vid = prev.has_text("vid") && prev.has_gana(Gana::Adadi);
+            if prev.has_u("si~c") || prev.has_tag(T::Abhyasta) || is_vid {
+                op::adesha("3.4.109", p, i, "jus");
+            } else if prev.is_dhatu() {
+                if prev.has_antya('A') {
+                    if la == Lakara::Lan {
+                        op::optional_adesha("3.4.111", p, i, "jus");
+                    } else {
+                        op::adesha("3.4.110", p, i, "jus");
+                    }
+                } else if prev.has_text("dviz") && la == Lakara::Lan {
+                    op::optional_adesha("3.4.112", p, i, "jus");
+                }
+            }
+        }
+    }
+
+    // lot and Nit siddhi.
+    // (Includes lo~w by 3.4.85)
+    let i = p.find_last(T::Tin)?;
+    if la == Lakara::Lot || la.is_nit() {
+        let tas_thas = &["tas", "Tas", "Ta", "mip"];
+        let taam_tam = &["tAm", "tam", "ta", "am"];
+        if p.has(i, |t| t.has_u_in(tas_thas)) {
+            yatha("3.4.101", p, i, tas_thas, taam_tam);
+        }
+
+        if p.has(i, |t| t.is_parasmaipada()) {
+            if p.has(i, |t| t.has_tag(T::Uttama) && t.has_antya('s')) {
+                p.run_at("3.4.99", i, op::antya(""));
+            }
+
+            // lo~w excluded by existence of 3.4.86
+            if p.has(i, |t| t.has_antya('i')) && la != Lakara::Lot {
+                p.run_at("3.4.100", i, op::antya(""));
+            }
+        }
+    }
+
+    // liN-only siddhi
+    if p.has(i, |t| t.has_lakshana("li~N")) {
+        if p.has(i, |t| t.is_parasmaipada()) {
+            p.insert_before(i, Term::make_agama("yAsu~w"));
+            if la == Lakara::AshirLin {
+                // ucyAt
+                // Add kit to the pratyaya, not the Agama.
+                p.add_tag_at("3.4.104", i + 1, T::kit);
+            } else {
+                // kuryAt
+                // Add Nit to the pratyaya, not the Agama.
+                p.add_tag_at("3.4.103", i + 1, T::Nit);
+            }
+            it_samjna::run(p, i).expect("agama");
+        } else {
+            // paceta; pakzIzwa
+            p.insert_before(i, Term::make_agama("sIyu~w"));
+            p.step("3.4.102");
+            it_samjna::run(p, i).expect("agama");
+
+            let i_tin = i + 1;
+            if p.has(i_tin, |t| t.has_u("Ja")) {
+                // paceran, yajeran, kfzIran
+                op::adesha("3.4.105", p, i_tin, "ran");
+            } else if p.has(i_tin, |t| t.has_u("iw")) {
+                // paceya, yajeya, kfzIya, hfzIya
+                op::adesha("3.4.106", p, i_tin, "a");
+            }
+        }
+
+        let i = p.find_last(T::Tin)?;
+        if p.has(i, |t| t.text.contains('t') || t.text.contains('T')) {
+            // kfzIzwa, kfzIyAstAm; kfzIzWAH, kfzIyAsTAm
+            p.set(i, |t| {
+                t.find_and_replace_text("t", "st");
+                t.find_and_replace_text("T", "sT");
+            });
+            p.step("3.4.107");
+        }
+    }
 
     // The 'S' of 'eS' is just for sarva-Adeza (1.1.55). If it is kept, it will
     // cause many problems when deriving li~T. So, remove it here.
+    let i = p.find_last(T::Tin)?;
     if p.has(i, |t| t.has_u("eS")) {
         p.set(i, |t| t.remove_tag(T::Sit));
     }
