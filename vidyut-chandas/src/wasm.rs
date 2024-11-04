@@ -56,14 +56,14 @@ impl From<rs::MatchType> for MatchType {
 #[allow(non_snake_case)]
 #[wasm_bindgen]
 #[derive(Serialize)]
-pub struct MatchResult {
+pub struct Match {
     vrtta: Option<String>,
     matchType: MatchType,
     aksharas: Vec<Vec<Akshara>>,
 }
 
-impl From<rs::MatchResult> for MatchResult {
-    fn from(m: rs::MatchResult) -> Self {
+impl From<rs::Match> for Match {
+    fn from(m: rs::Match) -> Self {
         let mut aksharas = Vec::new();
         for rs_row in m.aksharas() {
             let mut row = Vec::new();
@@ -72,11 +72,8 @@ impl From<rs::MatchResult> for MatchResult {
             }
             aksharas.push(row);
         }
-        MatchResult {
-            vrtta: match m.vrtta() {
-                Some(v) => Some(v.name().to_string()),
-                None => None,
-            },
+        Match {
+            vrtta: m.padya().as_ref().map(|v| v.name().to_string()),
             matchType: m.match_type().into(),
             aksharas,
         }
@@ -104,7 +101,7 @@ impl Chandas {
     }
 
     pub fn classify(&self, text: &str) -> JsValue {
-        let res: MatchResult = self.0.classify(text).into();
+        let res: Match = self.0.classify(text).into();
         serde_wasm_bindgen::to_value(&res).expect("wasm")
     }
 }

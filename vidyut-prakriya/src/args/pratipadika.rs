@@ -62,7 +62,7 @@ impl Pratipadika {
 
 impl From<&str> for Pratipadika {
     fn from(s: &str) -> Self {
-        Self::basic(s.to_string())
+        Self::basic(s)
     }
 }
 

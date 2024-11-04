@@ -321,7 +321,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
 pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
     match dhatu.pratipadika() {
         Pratipadika::Basic(basic) => {
-            pratipadika_karya::add_basic(p, &basic);
+            pratipadika_karya::add_basic(p, basic);
         }
         _ => panic!("Unsupported type for namadhatu"),
     }
@@ -331,7 +331,7 @@ pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
     su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::V1, T::Luk]);
     p.push(su);
 
-    try_add(p, &dhatu.nama_sanadi(), false);
+    try_add(p, dhatu.nama_sanadi(), false);
 
     Some(())
 }

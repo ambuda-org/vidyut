@@ -208,10 +208,7 @@ fn create_sound_props() -> HashMap<Sound, Uccarana> {
         (s("v"), Sthana::DantaOshtha),
     ]);
     for k in s("Yam M").to_string().chars() {
-        sthana
-            .entry(k)
-            .or_insert_with(Vec::new)
-            .push(Sthana::Nasika);
+        sthana.entry(k).or_default().push(Sthana::Nasika);
     }
 
     let ghosha = flatten(vec![

@@ -4,6 +4,7 @@
 </div>
 
 (Published as [A fast prakriyā generator][paper] at ISCLS 2024.)
+
 [paper]: https://iscls.github.io/assets/files/proceedings/2024.iscls.7.pdf
 
 `vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)

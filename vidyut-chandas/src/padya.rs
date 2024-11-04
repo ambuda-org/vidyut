@@ -1,5 +1,5 @@
 use crate::akshara::{Akshara, Weight};
-use std::error::Error;
+use crate::error::{ChandasError, Result};
 
 /// Models the weights that a vrtta can accept.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -74,12 +74,6 @@ impl Gana {
     }
 }
 
-fn to_counts(text: &str) -> Vec<usize> {
-    text.split_whitespace()
-        .filter_map(|n| n.parse().ok())
-        .collect()
-}
-
 /// Models a *pāda*, which is one of the four "feet" or "legs" of a verse.
 /// A *pāda* defines a specific pattern of light and heavy syllables and
 /// might also define one or more *yati*s (caesuras).
@@ -126,15 +120,12 @@ impl Vrtta {
     pub(crate) fn try_match(&self, aksharas: &[Vec<Akshara>]) -> MatchType {
         use PatternWeight::*;
 
-        eprintln!("Testing against: {}", self.name);
         for row in aksharas {
             let mut s = Vec::new();
             for a in row {
                 s.push(a.text.clone());
             }
-            eprintln!("{}", s.join(" "));
         }
-        eprintln!();
 
         let mut full = Vec::new();
 
@@ -152,8 +143,7 @@ impl Vrtta {
             *last = Any;
         }
 
-        let pattern_flat: Vec<PatternWeight> =
-            full.iter().map(|x| x.to_owned()).flatten().collect();
+        let pattern_flat: Vec<PatternWeight> = full.iter().flat_map(|x| x.to_owned()).collect();
         let aksharas_flat: Vec<&Akshara> = aksharas.iter().flatten().collect();
 
         let contains_aksharas = if pattern_flat.len() >= aksharas_flat.len() {
@@ -227,9 +217,9 @@ impl Vrtta {
 }
 
 impl TryFrom<&str> for Pada {
-    type Error = Box<dyn Error>;
+    type Error = ChandasError;
 
-    fn try_from(text: &str) -> Result<Self, Self::Error> {
+    fn try_from(text: &str) -> Result<Self> {
         let weights: Vec<PatternWeight> = text
             .chars()
             .filter_map(|c| match c {
@@ -249,58 +239,173 @@ impl TryFrom<&str> for Pada {
 }
 
 impl TryFrom<&str> for Vrtta {
-    type Error = Box<dyn Error>;
+    type Error = ChandasError;
 
-    fn try_from(text: &str) -> Result<Self, Self::Error> {
-        let fields: Vec<_> = text.split("\t").collect();
+    fn try_from(text: &str) -> Result<Self> {
+        let fields: Vec<_> = text.split('\t').collect();
         debug_assert_eq!(fields.len(), 3);
 
         let name = fields[0];
         let _ = fields[1];
         let pattern_str = fields[2];
-        let padas: Result<Vec<Pada>, Box<dyn Error>> =
-            pattern_str.split("/").map(|x| x.try_into()).collect();
+        let padas: Result<Vec<Pada>> = pattern_str.split('/').map(|x| x.try_into()).collect();
         let padas = padas?;
         Ok(Vrtta::new(name, padas))
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+pub(crate) enum JatiKind {
+    /// A default jati.
+    Basic,
+    /// Requires that each pada ends in ra-la-ga (_._._)
+    Vaitaliyam,
+    /// Requires that each pada ends in ra-ya (_._.__)
+    Aupacchandasikam,
+}
+
 /// Models a *jāti*, which defines a specific pattern of *mātrā*s (morae).
-#[allow(unused)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Jati {
+    /// The name of this jati.
     name: String,
-    matras: Vec<Vec<usize>>,
+    /// The matras required for this jati.
+    matras: Vec<i32>,
+    /// Any special conditions the jati must follow.
+    kind: JatiKind,
 }
 
 impl Jati {
     /// Creates a new `Jati` with the given name and matra pattern.
-    pub fn new(name: impl AsRef<str>, matras: Vec<Vec<usize>>) -> Self {
+    pub fn new(name: impl AsRef<str>, matras: Vec<i32>) -> Self {
         Self {
             name: name.as_ref().to_string(),
             matras,
+            kind: JatiKind::Basic,
         }
     }
 
-    #[allow(unused)]
-    pub(crate) fn matras(&self) -> &Vec<Vec<usize>> {
+    /// Creates a new `Jati` with the given name and matra pattern.
+    pub(crate) fn with_kind(name: impl AsRef<str>, matras: Vec<i32>, kind: JatiKind) -> Self {
+        Self {
+            name: name.as_ref().to_string(),
+            matras,
+            kind,
+        }
+    }
+
+    /// The name of this meter.
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    /// The matras that define this meter. The returned `Vec` has length 4.
+    pub fn matras(&self) -> &Vec<i32> {
         &self.matras
+    }
+
+    pub(crate) fn kind(&self) -> JatiKind {
+        self.kind
+    }
+
+    pub(crate) fn try_match(&self, aksharas: &[Akshara]) -> MatchType {
+        let mut cur_matras = 0;
+        let mut akshara_padas = Vec::new();
+        let mut i_offset = 0;
+
+        for (i, a) in aksharas.iter().enumerate() {
+            let i_pada = akshara_padas.len();
+            if let Some(pada_matras) = self.matras().get(i_pada) {
+                cur_matras += a.num_matras();
+
+                if cur_matras == *pada_matras || (i_pada % 2 == 1 && cur_matras + 1 == *pada_matras)
+                {
+                    akshara_padas.push(aksharas[i_offset..=i].to_vec());
+                    i_offset = i + 1;
+                    cur_matras = 0;
+                }
+            } else {
+                // More aksharas than padas -- not a match.
+                return MatchType::None;
+            }
+        }
+
+        // Incomplete match.
+        // TODO: decide how to handle this. Prefix?
+        if akshara_padas.len() != 4 {
+            return MatchType::None;
+        }
+
+        match self.kind() {
+            JatiKind::Vaitaliyam => {
+                // Each pada must end with ra-la-ga (_._._)
+                let all_match =
+                    akshara_padas
+                        .iter()
+                        .enumerate()
+                        .all(|(i, pada)| match pada.as_slice() {
+                            [.., a, b, c, d, e] => {
+                                use Weight::*;
+                                a.weight() == G
+                                && b.weight() == L
+                                && c.weight() == G
+                                && d.weight() == L
+                                // Laghu OK at end of even pada.
+                                && (e.weight() == G || (i % 2 == 1))
+                            }
+                            _ => false,
+                        });
+                if all_match {
+                    MatchType::Full
+                } else {
+                    MatchType::None
+                }
+            }
+            JatiKind::Aupacchandasikam => {
+                // Each pada must end with ra-ya (_._.__)
+                let all_match =
+                    akshara_padas
+                        .iter()
+                        .enumerate()
+                        .all(|(i, pada)| match pada.as_slice() {
+                            [.., a, b, c, d, e, f] => {
+                                use Weight::*;
+                                a.weight() == G
+                                && b.weight() == L
+                                && c.weight() == G
+                                && d.weight() == L
+                                && e.weight() == G
+                                // Laghu OK at end of even pada.
+                                && (f.weight() == G || (i % 2 == 1))
+                            }
+                            _ => false,
+                        });
+                if all_match {
+                    MatchType::Full
+                } else {
+                    MatchType::None
+                }
+            }
+            _ => MatchType::Full,
+        }
     }
 }
 
+/*
 impl TryFrom<&str> for Jati {
-    type Error = Box<dyn Error>;
+    type Error = ChandasError;
 
-    fn try_from(text: &str) -> Result<Self, Self::Error> {
-        let fields: Vec<_> = text.split("\t").collect();
+    fn try_from(text: &str) -> Result<Self> {
+        let fields: Vec<_> = text.split('\t').collect();
         debug_assert_eq!(fields.len(), 2);
 
         let name = fields[0];
         let pattern_str = fields[1];
-        let counts = pattern_str.split("/").map(to_counts).collect();
+        let counts = pattern_str.split('/').map(|n| n.parse().unwrap()).collect();
         Ok(Jati::new(name, counts))
     }
 }
+*/
 
 #[cfg(test)]
 mod tests {

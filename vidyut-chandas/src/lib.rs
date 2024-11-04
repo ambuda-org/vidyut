@@ -5,10 +5,11 @@
 mod akshara;
 mod chandas;
 mod error;
+mod padya;
 mod sounds;
-mod vrtta;
+
 mod wasm;
 
 pub use akshara::{Akshara, Weight};
-pub use chandas::{Chandas, MatchResult};
-pub use vrtta::{Jati, MatchType, Vrtta};
+pub use chandas::{Chandas, Match, Matches};
+pub use padya::{Jati, MatchType, Vrtta};

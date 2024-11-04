@@ -324,7 +324,7 @@ impl Vyakarana {
     /// # Ok::<(), Error>(())
     pub fn derive_samasas(&self, args: &Samasa) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
-        stack.find_all(|p| ashtadhyayi::derive_samasa(p, &args));
+        stack.find_all(|p| ashtadhyayi::derive_samasa(p, args));
         stack.prakriyas()
     }
 

@@ -73,7 +73,7 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
 
 fn get_upadesha(t: &Term) -> Result<&str> {
     match &t.u {
-        Some(s) => Ok(&s),
+        Some(s) => Ok(s),
         None => Err(Error::invalid_upadesha(&t.text)),
     }
 }
@@ -207,9 +207,9 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
 
     if let Some(t) = p.get(i_term) {
         let upadesha = get_upadesha(t)?;
-        let adi = match get_adi(&upadesha) {
+        let adi = match get_adi(upadesha) {
             Some(x) => x,
-            None => return Err(Error::invalid_upadesha(&upadesha)),
+            None => return Err(Error::invalid_upadesha(upadesha)),
         };
 
         if t.is_pratyaya() {

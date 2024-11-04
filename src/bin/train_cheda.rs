@@ -70,7 +70,7 @@ fn process_sentence(tokens: &[Token], s: &mut Statistics) {
         let c = s
             .transitions
             .entry(prev_state)
-            .or_insert_with(HashMap::new)
+            .or_default()
             .entry(cur_state)
             .or_insert(0);
         *c += 1;
@@ -81,7 +81,7 @@ fn process_sentence(tokens: &[Token], s: &mut Statistics) {
         let c = s
             .emissions
             .entry(cur_state)
-            .or_insert_with(HashMap::new)
+            .or_default()
             .entry(to_slp1(lemma))
             .or_insert(0);
         *c += 1;

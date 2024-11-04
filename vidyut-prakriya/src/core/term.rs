@@ -195,7 +195,7 @@ impl Term {
 
     /// Returns the last sound in the term if it exists.
     pub fn antya(&self) -> Option<char> {
-        self.text.chars().rev().next()
+        self.text.chars().next_back()
     }
 
     /// Returns the penultimate sound in the term if it exists.
@@ -694,8 +694,7 @@ impl Term {
             .bytes()
             .enumerate()
             .rev()
-            .filter(|(_, c)| sounds::is_ac(*c as char))
-            .next();
+            .find(|(_, c)| sounds::is_ac(*c as char));
         if let Some((i, _)) = result {
             self.set_at(i, s);
         }
@@ -744,8 +743,8 @@ impl Term {
             // Don't save asiddha sounds.
             return;
         } else {
-            let sthanivat_antya = self.sthanivat.chars().rev().next().expect("ok");
-            let text_antya = self.text.chars().rev().next().expect("ok");
+            let sthanivat_antya = self.sthanivat.chars().next_back().expect("ok");
+            let text_antya = self.text.chars().next_back().expect("ok");
             if sounds::is_ac(sthanivat_antya) {
                 if text_antya == 'y' || text_antya == 'v' {
                     // Don't save changes to the final vowel.

@@ -26,7 +26,7 @@ fn write_rules(rules: &[Rule], path: &Path) -> Result<()> {
 fn main() {
     let args = Args::parse();
     let rules = generate_rules();
-    let config = Config::new(&args.data_dir);
+    let config = Config::new(args.data_dir);
 
     if let Err(err) = write_rules(&rules, config.sandhi()) {
         println!("{}", err);

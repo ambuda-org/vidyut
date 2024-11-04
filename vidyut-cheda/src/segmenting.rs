@@ -288,7 +288,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
             new.score = ctx.model.score(&new, &token_pool);
             viterbi_cache
                 .entry(new.remaining.clone())
-                .or_insert_with(HashMap::new)
+                .or_default()
                 .insert("STATE".to_string(), new.clone());
 
             let new_score = new.score;
@@ -329,7 +329,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                 // Use state "STATE" for now since we don't have any states implemented.
                 let maybe_rival = viterbi_cache
                     .entry(new.remaining.clone())
-                    .or_insert_with(HashMap::new)
+                    .or_default()
                     .get("STATE");
                 let new_score = new.score;
                 if let Some(rival) = maybe_rival {
@@ -339,7 +339,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                 };
                 viterbi_cache
                     .entry(new.remaining.clone())
-                    .or_insert_with(HashMap::new)
+                    .or_default()
                     .insert("STATE".to_string(), new.clone());
                 pq.push(new, new_score);
             }

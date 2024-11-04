@@ -10,10 +10,10 @@ rm -Rf dcs-data 2&> /dev/null
 set -e
 
 # Create necessary directories.
-mkdir -p "data/build/${1}"
+OUTPUT_DIR="data/build/vidyut-latest"
 
 echo "========================="
-echo "| DCS corpus data       |"
+echo "Data fetch"
 echo "========================="
 echo
 if [ -e "data/raw/dcs" ]; then
@@ -25,10 +25,6 @@ else
     mv dcs-data/dcs/data/conllu data/raw/dcs/conllu
     rm -Rf dcs-data
 fi
-echo
-echo "========================="
-echo "| Linguistic data fetch |"
-echo "========================="
 echo
 if [ -e "data/raw/lex" ]; then
     echo "Lexical data already exists -- skipping fetch."
@@ -42,12 +38,38 @@ else
 fi
 echo
 echo "========================="
-echo "| Vidyut build          |"
+echo "vidyut-chandas"
 echo "========================="
+mkdir -p "${OUTPUT_DIR}/chandas"
+cp -r vidyut-chandas/data "${OUTPUT_DIR}/chandas"
+echo "Copied files to output dir."
 echo
+echo "========================="
+echo "vidyut-kosha"
+echo "========================="
 make create_kosha
 make test_kosha
+echo
+echo "========================="
+echo "vidyut-lipi"
+echo "========================="
+echo "(no data files needed)"
+echo
+echo "========================="
+echo "vidyut-prakriya"
+echo "========================="
+mkdir -p "${OUTPUT_DIR}/prakriya"
+cp -r "vidyut-prakriya/data/" "${OUTPUT_DIR}/prakriya"
+echo "Copied files to output dir."
+echo
+echo "========================="
+echo "vidyut-sandhi"
+echo "========================="
 make create_sandhi_rules
+echo
+echo "========================="
+echo "vidyut-cheda"
+echo "========================="
 make train_cheda
 make eval_cheda
 echo

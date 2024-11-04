@@ -253,7 +253,7 @@ impl Vidyut {
     pub fn deriveDhatus(&self, code: &str) -> JsValue {
         if let Some(dhatu) = self.dhatupatha.get(code) {
             let v = Vyakarana::new();
-            let prakriyas = v.derive_dhatus(&dhatu);
+            let prakriyas = v.derive_dhatus(dhatu);
             let web_prakriyas = to_web_prakriyas(&prakriyas);
             serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
         } else {
