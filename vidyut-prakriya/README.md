@@ -3,7 +3,7 @@
 <p><i>A Paninian word generator</i></p>
 </div>
 
-(Published as [A fast prakriyā generator][paper] at ISCLS 2024.)
+(Published at ISCLS 2024 as [A fast prakriyā generator][paper].)
 
 [paper]: https://iscls.github.io/assets/files/proceedings/2024.iscls.7.pdf
 

@@ -26,6 +26,7 @@ vidyut-chandas = { path = "./vidyut-chandas" }
 vidyut-cheda = { path = "./vidyut-cheda" }
 vidyut-kosha = { path = "./vidyut-kosha" }
 vidyut-lipi = { path = "./vidyut-lipi" }
+vidyut-prakriya = { path = "./vidyut-prakriya" }
 vidyut-sandhi = { path = "./vidyut-sandhi" }
 log = "0.4.17"
 clap = "4.1.4"
