@@ -1,6 +1,6 @@
 use crate::args::{Subanta, Tinanta};
 
-/// Models a Sanskrit pada.
+/// The information required to derive a word.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Pada {
     /// A nominal word or an indeclinable.

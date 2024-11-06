@@ -4951,6 +4951,7 @@ pub const IAST: &[(&str, &str)] = &[
     (RR, "r̥̄"),
     (SIGN_RR, "r̥̄"),
     (COMBINING_DIGIT_1, "¹"),
+    (CANDRABINDU, "̃"),
     (E, "è"),
     (O, "ò"),
     (SIGN_E, "è"),

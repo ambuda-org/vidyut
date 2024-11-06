@@ -37,7 +37,9 @@ create_sandhi_rules:
 # Creates a koshas and write it to disk.
 create_kosha:
 	RUST_LOG=info cargo run --release --bin create_kosha -- \
-			 --input-dir data/raw/lex --output-dir data/build/vidyut-latest
+			 --input-dir data/raw/lex \
+			 --dhatupatha vidyut-prakriya/data/dhatupatha.tsv \
+			 --output-dir data/build/vidyut-latest
 
 # Trains a padaccheda model and saves important features to disk.
 # NOTE: when training, exclude the file paths used in `make eval`.

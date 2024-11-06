@@ -19,6 +19,7 @@ fst = "0.4.7"
 modular-bitfield = "0.11.2"
 rustc-hash = "1.1.0"
 serde = { version = "1.0.152", optional = true, features = ["derive"] }
+vidyut-prakriya = { path = "../vidyut-prakriya" }
 
 [dev-dependencies]
 bencher = "0.1.5"

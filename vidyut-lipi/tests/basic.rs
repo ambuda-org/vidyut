@@ -453,6 +453,24 @@ fn sanskrit_consonants_non_vedic() {
     );
 }
 
+// Test only Latin schemes, since most Brahmic schemes will just use a candrabindu here.
+#[test]
+fn sanskrit_nasal_semivowels() {
+    // Example from https://list.indology.info/pipermail/indology/2023-October/058252.html
+    let deva_text = "त्रील्ँलोकान्";
+
+    assert_two_way_pairwise(&[
+        (Devanagari, deva_text),
+        (Iast, "trīlm̐lokān"),
+        (Iso15919, "trīlm̐lōkān"),
+        (Slp1, "trIl~lokAn"),
+    ]);
+
+    // Alternate for IAST.
+    // TODO: or should this be preferred?
+    assert_transliterate("trīl̃lokān", Iast, Devanagari, deva_text);
+}
+
 #[test]
 fn sanskrit_symbols() {
     assert_two_way_pairwise(&[

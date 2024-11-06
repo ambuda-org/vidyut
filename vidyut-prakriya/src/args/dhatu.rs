@@ -105,7 +105,7 @@ enum_boilerplate!(Antargana, {
 ///
 /// For details on what these pratyayas mean and what kinds of words they produce, see the comments
 /// below.
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
 #[wasm_bindgen]
 pub enum Sanadi {

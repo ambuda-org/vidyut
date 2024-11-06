@@ -335,7 +335,7 @@ impl Scheme {
     /// ### Usage
     ///
     /// ```rust,ignore
-    /// from vidyut_lipi import Scheme;
+    /// use vidyut_lipi::Scheme;
     ///
     /// for scheme in Scheme::iter() {
     ///     println!("- {scheme}");
@@ -403,7 +403,7 @@ impl Scheme {
     /// ### Usage
     ///
     /// ```
-    /// from vidyut_lipi import Scheme;
+    /// use vidyut_lipi::Scheme;
     ///
     /// assert_eq!(Scheme::Devanagari.iso_15924_code(), "Deva");
     /// ```
@@ -468,7 +468,7 @@ impl Scheme {
     /// ### Usage
     ///
     /// ```
-    /// from vidyut_lipi import Scheme;
+    /// use vidyut_lipi::Scheme;
     ///
     /// assert_eq!(Scheme::Devanagari.iso_15924_numeric_code(), 315);
     /// ```
@@ -537,9 +537,9 @@ impl Scheme {
     /// ### Usage
     ///
     /// ```
-    /// from vidyut_lipi import Scheme;
+    /// use vidyut_lipi::Scheme;
     ///
-    /// assert_eq!(Scheme::Devanagari.icu_code(), 10);
+    /// assert_eq!(Scheme::Devanagari.icu_numeric_code(), 10);
     /// ```
     pub fn icu_numeric_code(&self) -> u16 {
         use Scheme::*;

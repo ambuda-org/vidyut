@@ -121,7 +121,10 @@ impl DhatuTable {
 
         let mut ret = Vec::new();
         for line in reader.lines() {
-            ret.push(Dhatu(line?.to_string()));
+            match line?.parse() {
+                Ok(s) => ret.push(s),
+                _ => {}
+            }
         }
         Ok(Self(ret))
     }
@@ -131,8 +134,8 @@ impl DhatuTable {
         let data: String = self
             .0
             .iter()
-            .map(|d| &d.0)
-            .fold(String::new(), |x, y| x + y + "\n");
+            .map(|d| d.as_str())
+            .fold(String::new(), |x, y| x + &y + "\n");
         std::fs::write(path, data)?;
 
         Ok(())
@@ -243,19 +246,19 @@ pub enum PackedVibhakti {
     /// Unknown or missing vibhakti.
     None,
     /// The first *vibhakti* (nominative case).
-    V1,
+    Prathama,
     /// The second *vibhakti* (accusative case).
-    V2,
+    Dvitiya,
     /// The third *vibhakti* (instrumental case).
-    V3,
+    Trtiya,
     /// The fourth *vibhakti* (dative case).
-    V4,
+    Caturthi,
     /// The fifth *vibhakti* (ablative case).
-    V5,
+    Panchami,
     /// The sixth *vibhakti* (genitive case).
-    V6,
+    Sasthi,
     /// The seventh *vibhakti* (locative case).
-    V7,
+    Saptami,
     /// The first *vibhakti* in the condition of *sambodhana* (vocative case).
     Sambodhana,
 }
@@ -263,7 +266,7 @@ pub enum PackedVibhakti {
 boilerplate!(
     PackedVibhakti,
     Vibhakti,
-    [V1, V2, V3, V4, V5, V6, V7, Sambodhana]
+    [Prathama, Dvitiya, Trtiya, Caturthi, Panchami, Sasthi, Saptami, Sambodhana]
 );
 
 /// Semantics for a *subanta*.
@@ -551,7 +554,7 @@ mod tests {
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V6),
+            vibhakti: Some(Vibhakti::Sasthi),
             is_purvapada: false,
         });
         let narasya = Pada::Subanta(Subanta {
@@ -561,7 +564,7 @@ mod tests {
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V6),
+            vibhakti: Some(Vibhakti::Sasthi),
             is_purvapada: false,
         });
 
@@ -578,7 +581,7 @@ mod tests {
     #[test]
     fn test_tinanta_packing() -> TestResult {
         let gacchati = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu("gam".to_string()),
+            dhatu: Dhatu::mula("gam".to_string()),
             purusha: Purusha::Prathama,
             vacana: Vacana::Eka,
             lakara: Lakara::Lat,
@@ -586,7 +589,7 @@ mod tests {
         });
 
         let carati = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu("car".to_string()),
+            dhatu: Dhatu::mula("car".to_string()),
             purusha: Purusha::Prathama,
             vacana: Vacana::Eka,
             lakara: Lakara::Lat,

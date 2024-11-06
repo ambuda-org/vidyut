@@ -4,8 +4,10 @@
 //! has been fixed and help ensure that the bug does not reappear.
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
+use vidyut_prakriya::args::Linga::*;
 
 #[test]
 fn ambibat() {
@@ -60,4 +62,13 @@ fn adhyajigapat_adhyapipat() {
         Lun,
         &["aDyajIgapat", "aDyApipat"],
     );
+}
+
+// Verifies that Sap-pratyaya is added when Satf follows.
+#[test]
+fn shap_shatr() {
+    let bhavat = krdanta(&[], &d("BU", Bhvadi), BaseKrt::Satf);
+    assert_has_sup_1s(&bhavat, Pum, &["Bavan"]);
+    assert_has_sup_1d(&bhavat, Pum, &["BavantO"]);
+    assert_has_sup_1p(&bhavat, Pum, &["BavantaH"]);
 }

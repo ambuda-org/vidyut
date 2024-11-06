@@ -1,4 +1,4 @@
-//! Models the morphology of Sanskrit words, including their stems and endings.
+//! Models the morphology of Sanskrit words, including their bases and endings.
 //!
 //! For details on how we represent morphological data, see the `Pada` enum and its comments.
 //!
@@ -20,6 +20,7 @@ use modular_bitfield::prelude::*;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
+use vidyut_prakriya::args as vp;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -74,10 +75,24 @@ macro_rules! enum_boilerplate {
     }
 }
 
+macro_rules! from_vidyut_prakriya {
+    ($Enum:ident, [ $( $variant:ident ),* $(,)? ]) => {
+        impl From<vp::$Enum> for $Enum {
+            fn from(val: vp::$Enum) -> Self {
+                match val {
+                    $(
+                        vp::$Enum::$variant => $Enum::$variant,
+                    )*
+                }
+            }
+        }
+    }
+}
+
 /// Lemma for `None` semantics or any other case where the lemma is unknown.
 pub const NONE_LEMMA: &str = "[none]";
 
-/// Utility struct for reading complex serialized enums.
+/// Utility struct for reading complex serialized data.
 struct FeatureMap(HashMap<String, String>);
 
 impl FeatureMap {
@@ -102,8 +117,8 @@ impl FeatureMap {
 }
 
 /// The *liṅga* (gender) of a *subanta*.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd, BitfieldSpecifier)]
 #[bits = 2]
 pub enum Linga {
     /// The masculine gender.
@@ -120,9 +135,11 @@ enum_boilerplate!(Linga, {
     Napumsaka => "n",
 });
 
+from_vidyut_prakriya!(Linga, [Pum, Stri, Napumsaka]);
+
 /// The *vacana* (number) of a *subanta* or *tiṅanta*.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd, BitfieldSpecifier)]
 #[bits = 2]
 pub enum Vacana {
     /// The singular.
@@ -139,46 +156,53 @@ enum_boilerplate!(Vacana, {
     Bahu => "p",
 });
 
+from_vidyut_prakriya!(Vacana, [Eka, Dvi, Bahu]);
+
 /// The *vibhakti* (case) of a *subanta*.
 ///
 /// The term *vibhakti* refers generally to any triad of inflectional endings for a *subanta*
 /// or *tiṅanta*. Here, `Vibhakti` refers specifically to the *subanta* tridas.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 4]
 pub enum Vibhakti {
     /// The first *vibhakti* (nominative case).
-    V1,
+    Prathama,
     /// The second *vibhakti* (accusative case).
-    V2,
+    Dvitiya,
     /// The third *vibhakti* (instrumental case).
-    V3,
+    Trtiya,
     /// The fourth *vibhakti* (dative case).
-    V4,
+    Caturthi,
     /// The fifth *vibhakti* (ablative case).
-    V5,
+    Panchami,
     /// The sixth *vibhakti* (genitive case).
-    V6,
+    Sasthi,
     /// The seventh *vibhakti* (locative case).
-    V7,
+    Saptami,
     /// The first *vibhakti* in the condition of *sambodhana* (vocative case).
     Sambodhana,
 }
 
 enum_boilerplate!(Vibhakti, {
-    V1 => "1",
-    V2 => "2",
-    V3 => "3",
-    V4 => "4",
-    V5 => "5",
-    V6 => "6",
-    V7 => "7",
+    Prathama => "1",
+    Dvitiya => "2",
+    Trtiya => "3",
+    Caturthi => "4",
+    Panchami => "5",
+    Sasthi => "6",
+    Saptami => "7",
     Sambodhana => "8",
 });
 
+from_vidyut_prakriya!(
+    Vibhakti,
+    [Prathama, Dvitiya, Trtiya, Caturthi, Panchami, Sasthi, Saptami, Sambodhana]
+);
+
 /// The *puruṣa* (person) of a *tiṅanta*.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd, BitfieldSpecifier)]
 #[bits = 2]
 pub enum Purusha {
     /// The first *puruṣa* (third person).
@@ -195,12 +219,14 @@ enum_boilerplate!(Purusha, {
      Uttama => "1",
 });
 
+from_vidyut_prakriya!(Purusha, [Prathama, Madhyama, Uttama]);
+
 /// The *lakāra* (tense/mood) of a *tiṅanta*.
 ///
 /// The *lakāras* are morphological categories, but each typically expresses a specific meaning.
 /// For example, *laṭ-lakāra* almost always expresses an action in the present tense.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd, BitfieldSpecifier)]
 #[bits = 4]
 pub enum Lakara {
     /// *laṭ-lakāra* (present indicative).
@@ -244,6 +270,11 @@ enum_boilerplate!(Lakara, {
     Lrn => "lrn",
 });
 
+from_vidyut_prakriya!(
+    Lakara,
+    [Lat, Lit, Lut, Lrt, Let, Lot, Lan, VidhiLin, AshirLin, Lun, Lrn]
+);
+
 /// A *pratyaya* (suffix) that creates a new *dhātu* (verb root)
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -257,63 +288,9 @@ pub enum DhatuPratyaya {
     Yan,
 }
 
-/// A *kṛt-pratyaya* (root or primary suffix).
-///
-/// This list is not exhaustive.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum KrtPratyaya {
-    /// The *-tum* suffix (infinitive).
-    Tumun,
-    /// The *-tvā* suffix (unprefixed gerund).
-    Ktva,
-    /// The *-ya* suffix (prefixed gerund).
-    Lyap,
-
-    /// The *-vas* suffix (perfect participle).
-    Kvasu,
-    /// The -*āna* suffix (perfect participle).
-    Kanac,
-
-    /// The *-ta* suffix (past passive participle).
-    Kta,
-    /// The *-tavat* suffix (past active participle).
-    Ktavat,
-
-    /// The *-at* suffix (present active participle).
-    Shatr,
-    /// The *-āna* suffix (present middle participle).
-    Shanac,
-    /// The *-ya vikaraṇa* followed by the *-āna* suffix (present passive participle).
-    YakShanac,
-
-    /// The *-sya vikaraṇa* followed by the *-at* suffix (future active participle).
-    SyaShatr,
-    /// The *-sya vikaraṇa* followed by the *-āna* suffix (future middle participle).
-    SyaShanac,
-    /// The *-tavya*, *-anīya*, and *-ya* suffixes, etc. (future past participle, gerundive).
-    Krtya,
-}
-
-enum_boilerplate!(KrtPratyaya, {
-    Tumun => "tumun",
-    Ktva => "ktvA",
-    Lyap => "lyap",
-    Kvasu => "kvasu",
-    Kanac => "kAnac",
-    Kta => "kta",
-    Ktavat => "ktavat",
-    Shatr => "Satf",
-    Shanac => "SAnac",
-    YakShanac => "yak-SAnac",
-    SyaShatr => "sya-Satf",
-    SyaShanac => "sya-SAnac",
-    Krtya => "kftya",
-});
-
 /// The *pada* and *prayoga* of the *tiṅanta*. Roughly, these correspond respectively to the
 /// concepts of "voice" and "thematic relation."
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, BitfieldSpecifier)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Ord, PartialOrd, BitfieldSpecifier)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[bits = 2]
 pub enum PadaPrayoga {
@@ -332,21 +309,108 @@ enum_boilerplate!(PadaPrayoga, {
 });
 
 /// Models the semantics of a *dhātu* (verb root).
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Dhatu(pub String);
+pub struct Dhatu {
+    /// The prefixes that this dhatu uses.
+    prefixes: Vec<String>,
+    /// The sanAdi-pratyayas that this dhatu uses.
+    sanadi: Vec<vp::Sanadi>,
+    /// The base text of the dhatu.
+    text: String,
+}
 
 impl Dhatu {
+    /// Creates a new `Dhatu`.
+    pub fn mula(text: String) -> Self {
+        Self {
+            prefixes: Vec::new(),
+            sanadi: Vec::new(),
+            text,
+        }
+    }
+
+    /// Sets prefixes on the dhatu.
+    pub fn with_prefixes(mut self, prefixes: Vec<String>) -> Self {
+        self.prefixes = prefixes;
+        self
+    }
+
+    /// Sets sanAdi-pratyayas on the dhatu.
+    pub fn with_sanadi(mut self, sanadi: Vec<vp::Sanadi>) -> Self {
+        self.sanadi = sanadi;
+        self
+    }
+
+    /// Returns the prefixes that this dhatu uses.
+    pub fn prefixes(&self) -> &[String] {
+        &self.prefixes
+    }
+
+    /// Returns the sanAdi-pratyayas that this dhatu uses.
+    pub fn sanadi(&self) -> &[vp::Sanadi] {
+        &self.sanadi
+    }
+
     /// The text of this dhatu.
     pub fn text(&self) -> &String {
-        &self.0
+        &self.text
+    }
+
+    /// Returns a string representation of this dhatu.
+    pub fn as_str(&self) -> String {
+        let prefixes = self.prefixes.join("-");
+        let sanadi_strings: Vec<_> = self.sanadi.iter().map(|s| s.to_string()).collect();
+        let text = self.text();
+        let sanadi = sanadi_strings.join("-");
+        format!("{prefixes},{text},{sanadi}")
+    }
+}
+
+impl From<vp::Dhatu> for Dhatu {
+    fn from(vp: vp::Dhatu) -> Self {
+        Dhatu {
+            prefixes: vp.prefixes().clone(),
+            sanadi: vp.sanadi().clone(),
+            text: match vp.upadesha() {
+                Some(s) => s.to_string(),
+                None => String::new(),
+            },
+        }
+    }
+}
+
+impl FromStr for Dhatu {
+    type Err = Error;
+
+    /// Parses the string representation of this dhatu.
+    fn from_str(text: &str) -> Result<Self> {
+        let fields: Vec<_> = text.split(',').collect();
+
+        let prefixes = fields.get(0).map_or(Vec::new(), |s| {
+            if s.is_empty() {
+                Vec::new()
+            } else {
+                s.split("-").map(|s| s.to_string()).collect()
+            }
+        });
+        let text = fields.get(1).map_or(String::new(), |s| s.to_string());
+        let sanadi: Vec<vp::Sanadi> = fields.get(2).map_or(Vec::new(), |s| {
+            s.split("-").flat_map(|s| vp::Sanadi::from_str(s)).collect()
+        });
+
+        Ok(Dhatu {
+            prefixes,
+            sanadi,
+            text,
+        })
     }
 }
 
 /// Models the semantics of a *prātipadika*.
 ///
 /// An *prātipadika* is generally synonymous with a nominal base.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Pratipadika {
     /// A basic *prātipadika* that cannot be analyzed further.
@@ -361,8 +425,26 @@ pub enum Pratipadika {
         /// The dhatu on which this krdanta is based.
         dhatu: Dhatu,
         /// The pratyaya that created this krdanta.
-        pratyaya: KrtPratyaya,
+        krt: Krt,
     },
+}
+
+/// A *kṛt-pratyaya* (root or primary suffix).
+///
+/// This list is not exhaustive.
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
+pub struct Krt(vp::Krt);
+
+impl Krt {
+    /// Creates a new `Krt` pratyaya.
+    pub fn new(k: impl Into<vp::Krt>) -> Self {
+        Self(k.into())
+    }
+
+    /// Returns the underlying krt-pratyaya.
+    pub fn value(&self) -> vp::Krt {
+        self.0
+    }
 }
 
 impl Pratipadika {
@@ -370,7 +452,7 @@ impl Pratipadika {
     pub fn lemma(&self) -> &str {
         match &self {
             Pratipadika::Basic { text, .. } => text,
-            Pratipadika::Krdanta { dhatu, .. } => &dhatu.0,
+            Pratipadika::Krdanta { dhatu, .. } => &dhatu.text(),
         }
     }
 
@@ -385,8 +467,8 @@ impl Pratipadika {
                     .join(",");
                 format!("basic:text={text}|lingas={lingas}")
             }
-            Pratipadika::Krdanta { dhatu, pratyaya } => {
-                format!("krdanta:dhatu={}|pratyaya={}", dhatu.0, pratyaya.as_str())
+            Pratipadika::Krdanta { dhatu, krt } => {
+                format!("krdanta:dhatu={}|krt={}", dhatu.as_str(), krt.0.as_str())
             }
         }
     }
@@ -413,12 +495,15 @@ impl FromStr for Pratipadika {
         } else if let Some(s) = s.strip_prefix("krdanta:") {
             let kv = FeatureMap::from_str(s);
 
-            let dhatu = kv.get("dhatu")?.clone();
-            let pratyaya = (kv.get("pratyaya")?).parse()?;
+            let dhatu_str = kv.get("dhatu")?.clone();
+            let krt = Krt(vp::BaseKrt::from_str(kv.get("krt")?)
+                // TODO: expect is dangerous here
+                .expect("ok")
+                .into());
 
             Ok(Pratipadika::Krdanta {
-                dhatu: Dhatu(dhatu),
-                pratyaya,
+                dhatu: dhatu_str.parse()?,
+                krt,
             })
         } else {
             Err(Error::ParseEnum("Pratipadika", s.to_string()))
@@ -468,7 +553,7 @@ enum_boilerplate!(POSTag, {
 /// | ṅi        । os        । sup       |
 ///
 /// For *avyaya*s (indeclinables), see `Avyaya`.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Subanta {
     /// The nominal's stem.
@@ -501,7 +586,7 @@ pub struct Subanta {
 ///
 /// A *tiṅanta* expresses person, number, tense/mood, and voice in addition to whatever semantics
 /// are conveyed by the *dhātu* and its prefixes.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Tinanta {
     /// The verb's root.
@@ -521,8 +606,8 @@ pub struct Tinanta {
 /// An *avyaya*s (indeclinable) is traditionally modeled as a subtype of the *subanta* that has had
 /// its *sup* suffix elided. But we model the *avyaya* separately because we felt that doing so
 /// would be easier to reason about in downstream code.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Avyaya {
     /// The indeclinable's stem.
     pub pratipadika: Pratipadika,
@@ -531,8 +616,8 @@ pub struct Avyaya {
 /// Models the semantics of a Sanskrit *pada* (word).
 ///
 /// This enum can be packed into an unsigned integer via the `packing` module.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum Pada {
     /// Unknown or missing semantics.
     Unknown,
@@ -556,7 +641,7 @@ impl Pada {
     /// In Sanskrit, a lemma is either a *dhātu* or a *prātipadika*.
     pub fn lemma(&self) -> &str {
         match &self {
-            Pada::Tinanta(t) => &t.dhatu.0,
+            Pada::Tinanta(t) => &t.dhatu.text(),
             Pada::Subanta(s) => s.pratipadika.lemma(),
             Pada::Avyaya(a) => a.pratipadika.lemma(),
             Pada::Unknown => NONE_LEMMA,
@@ -600,7 +685,9 @@ mod tests {
     #[test]
     fn test_vibhakti_serde() -> TestResult {
         use Vibhakti::*;
-        for val in [V1, V2, V3, V4, V5, V6, V7, Sambodhana] {
+        for val in [
+            Prathama, Dvitiya, Trtiya, Caturthi, Panchami, Sasthi, Saptami, Sambodhana,
+        ] {
             assert_eq!(val, val.as_str().parse()?);
         }
         Ok(())
@@ -627,18 +714,6 @@ mod tests {
     }
 
     #[test]
-    fn test_krt_pratyaya_serde() -> TestResult {
-        use KrtPratyaya::*;
-        for val in [
-            Tumun, Ktva, Lyap, Kvasu, Kanac, Kta, Ktavat, Shatr, Shanac, YakShanac, SyaShatr,
-            SyaShanac, Krtya,
-        ] {
-            assert_eq!(val, val.as_str().parse()?);
-        }
-        Ok(())
-    }
-
-    #[test]
     fn test_pada_prayoga() -> TestResult {
         use PadaPrayoga::*;
         for val in [Parasmaipada, AtmanepadaKartari, AtmanepadaNotKartari] {
@@ -648,9 +723,24 @@ mod tests {
     }
 
     #[test]
-    fn test_dhatu() {
-        let d = Dhatu("BU".to_string());
-        assert_eq!(d.text(), "BU");
+    fn test_dhatu() -> TestResult {
+        let bhu = Dhatu::mula("BU".to_string());
+        assert_eq!(bhu, bhu.as_str().parse()?);
+
+        let abhibhu = Dhatu::mula("BU".to_string()).with_prefixes(vec!["aBi".to_string()]);
+        assert_eq!(abhibhu, abhibhu.as_str().parse()?);
+
+        let abhibobhuya = Dhatu::mula("BU".to_string())
+            .with_prefixes(vec!["aBi".to_string()])
+            .with_sanadi(vec![vp::Sanadi::yaN]);
+        assert_eq!(abhibobhuya, abhibobhuya.as_str().parse()?);
+
+        let pratyabhibubhushaya = Dhatu::mula("BU".to_string())
+            .with_prefixes(vec!["prati".to_string(), "aBi".to_string()])
+            .with_sanadi(vec![vp::Sanadi::san, vp::Sanadi::Ric]);
+        assert_eq!(pratyabhibubhushaya, pratyabhibubhushaya.as_str().parse()?);
+
+        Ok(())
     }
 
     #[test]
@@ -666,8 +756,8 @@ mod tests {
     #[test]
     fn test_pratipadika_serde_with_krdanta() -> TestResult {
         let p = Pratipadika::Krdanta {
-            dhatu: Dhatu("gam".to_string()),
-            pratyaya: KrtPratyaya::Shatr,
+            dhatu: Dhatu::mula("gam".to_string()),
+            krt: Krt(vp::BaseKrt::Satf.into()),
         };
         assert_eq!(p, p.as_str().parse()?);
         Ok(())
@@ -682,7 +772,7 @@ mod tests {
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V2),
+            vibhakti: Some(Vibhakti::Dvitiya),
             is_purvapada: false,
         });
         assert_eq!(p.lemma(), "agni");
@@ -692,12 +782,12 @@ mod tests {
     fn test_subanta_lemma_with_krdanta_stem() {
         let p = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Krdanta {
-                dhatu: Dhatu("gam".to_string()),
-                pratyaya: KrtPratyaya::Shatr,
+                dhatu: Dhatu::mula("gam".to_string()),
+                krt: Krt(vp::BaseKrt::Satf.into()),
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V2),
+            vibhakti: Some(Vibhakti::Dvitiya),
             is_purvapada: false,
         });
         assert_eq!(p.lemma(), "gam");
@@ -706,7 +796,7 @@ mod tests {
     #[test]
     fn test_tinanta_lemma() {
         let p = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu("gam".to_string()),
+            dhatu: Dhatu::mula("gam".to_string()),
             purusha: Purusha::Prathama,
             vacana: Vacana::Eka,
             lakara: Lakara::Lat,
@@ -730,8 +820,8 @@ mod tests {
     fn test_avyaya_lemma_with_krdanta_stem() {
         let p = Pada::Avyaya(Avyaya {
             pratipadika: Pratipadika::Krdanta {
-                dhatu: Dhatu("gam".to_string()),
-                pratyaya: KrtPratyaya::Tumun,
+                dhatu: Dhatu::mula("gam".to_string()),
+                krt: Krt(vp::BaseKrt::tumun.into()),
             },
         });
         assert_eq!(p.lemma(), "gam");

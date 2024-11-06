@@ -104,10 +104,8 @@ impl<'a> GunaVrddhiPrakriya<'a> {
             self.block("1.1.5");
         } else if anga.has_u_in(&["dIDIN", "vevIN"]) || anga.is_it_agama() {
             self.block("1.1.6");
-        } else {
-            if !n.has_tag(T::Pratyaya) {
-                self.done = true;
-            }
+        } else if !n.has_tag(T::Pratyaya) {
+            self.done = true;
         }
     }
 

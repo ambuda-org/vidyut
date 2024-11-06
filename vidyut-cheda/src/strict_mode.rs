@@ -120,7 +120,7 @@ mod tests {
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V7),
+            vibhakti: Some(Vibhakti::Saptami),
             is_purvapada: false,
         });
 

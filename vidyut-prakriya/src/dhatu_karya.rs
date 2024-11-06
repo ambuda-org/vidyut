@@ -266,7 +266,7 @@ pub fn try_add_prefixes(p: &mut Prakriya, prefixes: &[String]) -> Option<()> {
 
     // TODO: prefixes that aren't upasargas?
     for prefix in prefixes {
-        let t = Term::make_upadesha(&prefix);
+        let t = Term::make_upadesha(prefix);
         p.insert_before(i_offset, t);
         samjna::try_nipata_rules(p, i_offset);
 

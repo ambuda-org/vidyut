@@ -54,10 +54,11 @@ impl Entry {
     }
 }
 
-/// An interface to the Dhatupatha used on <ashtadhyayi.com>.
+/// An interface to the Dhatupatha.
 ///
 /// Different traditional texts might use different dhatupathas. This struct manages the data for
-/// the dhatupatha on ashtadhyayi.com, which is a superset of the dhatus from five sources:
+/// the dhatupatha on <https://ashtadhyayi.com>, which is a superset of the dhatus from five
+/// sources:
 ///
 /// - the *Siddhāntakaumudī*
 /// - the *Bṛhaddhātukusumākaraḥ*
@@ -65,7 +66,7 @@ impl Entry {
 /// - the *Kṣīrataraṅgiṇī*
 /// - the *Dhātupradīpaḥ*
 ///
-/// The specific dhatupatha we use matters: for certain dhatus, we can determine their metadata
+/// The specific Dhatupatha we use matters: for certain dhatus, we can determine their metadata
 /// only if we know exactly where they are located. (For an example, see our implementation of the
 /// private `maybe_find_antargana` function.)
 pub struct Dhatupatha(Vec<Entry>);
@@ -172,6 +173,11 @@ impl Dhatupatha {
             Err(_) => None,
         }
     }
+
+    /// Returns an iterator over this dhatupatha's contents.
+    pub fn iter(&self) -> std::slice::Iter<Entry> {
+        self.0.iter()
+    }
 }
 
 impl IntoIterator for Dhatupatha {
@@ -183,26 +189,34 @@ impl IntoIterator for Dhatupatha {
     }
 }
 
+impl<'a> IntoIterator for &'a Dhatupatha {
+    type Item = &'a Entry;
+    type IntoIter = std::slice::Iter<'a, Entry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+/// Returns the antargana of the dhatu at location `number` within `gana.`
+///
+/// We need to check the numeric position explicitly because some dhatus appear multiple times in
+/// their respective ganas with identical forms. (We can usually distinguish these dhatus by
+/// meaning, but vidyut-prakriya has poor support for modeling and comparing dhatu meanings.)
 fn maybe_find_antargana(gana: Gana, number: u16) -> Option<Antargana> {
     if gana == Gana::Bhvadi && (867..=932).contains(&number) {
-        // Need to check range explicitly because some of these roots appear multiple times in the
-        // gana, e.g. svana~.
         Some(Antargana::Ghatadi)
     } else if gana == Gana::Tudadi && (93..=137).contains(&number) {
-        // Need to check range explicitly because some of these roots appear multiple times in the
-        // gana, e.g. juqa~.
+        // juqa~, etc.
         Some(Antargana::Kutadi)
     } else if gana == Gana::Curadi && (192..=236).contains(&number) {
-        // Need to check range explicitly because some of these roots appear multiple times in the
-        // gana, e.g. lakza~.
+        // lakza~, etc.
         Some(Antargana::Akusmiya)
     } else if gana == Gana::Curadi && (279..=337).contains(&number) {
-        // Need to check range explicitly because some of these roots appear multiple times in the
-        // gana, e.g. tuji~.
+        // tuji~, etc.
         Some(Antargana::Asvadiya)
     } else if gana == Gana::Curadi && (338..=388).contains(&number) {
-        // Need to check range explicitly because some of these roots appear multiple times in the
-        // gana, e.g. SraTa~.
+        // SraTa~, etc.
         Some(Antargana::Adhrshiya)
     } else {
         None

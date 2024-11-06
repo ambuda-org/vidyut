@@ -11,7 +11,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 ///
 /// NOTE: we generated this list programmatically. Many of these pratyayas have typos.
 #[allow(dead_code, non_camel_case_types)]
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 #[wasm_bindgen]
 pub enum Unadi {
     /// -a

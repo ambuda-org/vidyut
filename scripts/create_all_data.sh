@@ -22,6 +22,8 @@ else
     echo "Training data does not exist -- fetching."
     mkdir -p "data/raw/dcs"
     git clone --depth 1 https://github.com/OliverHellwig/sanskrit.git dcs-data
+    # Use a fixed commit to avoid breakages from later changes.
+    pushd dcs-data && git reset --hard 1bc281e && popd
     mv dcs-data/dcs/data/conllu data/raw/dcs/conllu
     rm -Rf dcs-data
 fi

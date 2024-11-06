@@ -15,13 +15,13 @@ pub enum Pratipadika {
     Basic(BasicPratipadika),
     /// A krdanta.
     Krdanta(Box<Krdanta>),
-    /// A taddhitanta.
+    /// A *taddhitānta*.
     Taddhitanta(Box<Taddhitanta>),
-    /// A samasa.
+    /// A *samāsa*.
     Samasa(Box<Samasa>),
 }
 
-/// Models a basic pratipadika.
+/// Models a basic *prātipadika* that is not created with any other *pratyaya*s.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct BasicPratipadika {
     pub(crate) text: String,

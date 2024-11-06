@@ -106,7 +106,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                     output.pop();
                 }
 
-                output += &token.text;
+                output += &token.text();
 
                 if is_to_alphabet && token.is_consonant() {
                     // Add an implicit "a" vowel.
@@ -122,7 +122,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                     output.pop();
                     had_virama = false;
                 } else {
-                    let mut text = &token.text;
+                    let mut text = token.text();
                     if had_virama {
                         if let Some(mark) = mapping.marks.get(key) {
                             output.pop();

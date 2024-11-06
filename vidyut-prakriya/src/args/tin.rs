@@ -4,7 +4,9 @@ use crate::core::Tag;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The prayoga of some tiṅanta.
+/// The *prayoga* of some *tiṅanta*.
+///
+/// *Prayoga* is roughly similar to the Western concept of verb *voice*.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Prayoga {
@@ -13,7 +15,7 @@ pub enum Prayoga {
     /// Usage coreferent with the object, e.g. "The village *is gone to* by the horse."
     Karmani,
     /// Usage without a referent, e.g. "*There is motion* by the horse to the village."
-    /// bhAve prayoga generally produces the same forms as karmani prayoga.
+    /// *bhāve prayoga* generally produces the same forms as karmani prayoga.
     Bhave,
 }
 
@@ -33,7 +35,7 @@ impl Prayoga {
     }
 }
 
-/// The person of some tiṅanta.
+/// The person of some *tiṅanta*.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Purusha {
@@ -61,7 +63,7 @@ impl Purusha {
     }
 }
 
-/// The number of some tiṅanta or subanta.
+/// The number of some *tiṅanta* or *subanta*.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Vacana {
@@ -89,7 +91,7 @@ impl Vacana {
     }
 }
 
-/// The tense/mood of some tiṅanta.
+/// The tense/mood of some *tiṅanta*.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Lakara {
@@ -154,13 +156,13 @@ impl Lakara {
     }
 }
 
-/// The pada of some tiṅanta or kṛdanta.
+/// The pada of some *tiṅanta* or *kṛdanta*.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum DhatuPada {
-    /// Parasmaipada.
+    /// *Parasmaipada*.
     Parasmai,
-    /// Atmanepada.
+    /// *Ātmanepada*.
     Atmane,
 }
 
@@ -178,12 +180,12 @@ impl DhatuPada {
     }
 }
 
-/// The information required to derive a tiṅanta in the grammar.
+/// The information required to derive a *tiṅanta*.
 ///
-/// If a tiṅanta were just a matter of prayoga/purusha/lakara/vacana, a struct like this would not
-/// be necessary. However, a tiṅanta's derivation can have many other constraints, including:
+/// If a *tiṅanta* were just a matter of prayoga/purusha/lakara/vacana, a struct like this would
+/// not be necessary. However, a *tiṅanta*'s derivation can have many other constraints, including:
 ///
-/// - specific upasargas or other prefixes
+/// - specific *upasarga*s or other prefixes
 /// - specific sanAdi pratyayas
 /// - other constraints on the overall derivation
 ///
@@ -240,7 +242,7 @@ impl Tinanta {
         self.lakara
     }
 
-    /// The vacana to use in the derivation.
+    /// The *vacana* to use in the derivation.
     pub fn vacana(&self) -> Vacana {
         self.vacana
     }

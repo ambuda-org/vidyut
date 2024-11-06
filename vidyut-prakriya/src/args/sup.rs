@@ -5,7 +5,7 @@ use crate::core::Tag;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The gender of some subanta.
+/// The gender of some *subanta*.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Linga {
@@ -33,7 +33,13 @@ impl Linga {
     }
 }
 
-/// The case ending of some subanta.
+/// The case ending of some *subanta*.
+///
+/// A *vibhakti* is a set of 3 endings that share all of the same properties except for their
+/// number (singular, dual, plural). While *tiṅanta*s also have *vibhakti*s, in practice the term
+/// *vibhakti* refers more specifically to the endings used with *subanta*s.
+///
+/// *Vibhakti* is broadly similar to the Western notion of grammatical case.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[wasm_bindgen]
 pub enum Vibhakti {
@@ -86,7 +92,7 @@ impl Vibhakti {
     }
 }
 
-/// The information required to derive a subanta in the grammar.
+/// The information required to derive a *subanta*.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Subanta {
     pratipadika: Pratipadika,
@@ -114,7 +120,7 @@ impl Subanta {
         }
     }
 
-    /// Creates a subanta.
+    /// Defines a *subanta* that is also an *avyaya*.
     pub fn avyaya(pratipadika: impl Into<Pratipadika>) -> Self {
         let pratipadika = pratipadika.into();
         Self {
@@ -141,17 +147,17 @@ impl Subanta {
         self.linga
     }
 
-    /// The vacana to use in the derivation.
+    /// The *vacana* to use in the derivation.
     pub fn vacana(&self) -> Vacana {
         self.vacana
     }
 
-    /// The vibhakti to use in the derivation.
+    /// The *vibhakti* to use in the derivation.
     pub fn vibhakti(&self) -> Vibhakti {
         self.vibhakti
     }
 
-    /// Returns whether or not this subanta is an avyaya.
+    /// Returns whether or not this *subanta* is an *avyaya*.
     pub fn is_avyaya(&self) -> bool {
         self.is_avyaya
     }
@@ -179,13 +185,13 @@ impl SubantaBuilder {
         self
     }
 
-    /// Sets the vacana to use in the derivation.
+    /// Sets the *vacana* to use in the derivation.
     pub fn vacana(&mut self, val: Vacana) -> &mut Self {
         self.vacana = Some(val);
         self
     }
 
-    /// Sets the vibhakti to use in the derivation.
+    /// Sets the *vibhakti* to use in the derivation.
     pub fn vibhakti(&mut self, val: Vibhakti) -> &mut Self {
         self.vibhakti = Some(val);
         self

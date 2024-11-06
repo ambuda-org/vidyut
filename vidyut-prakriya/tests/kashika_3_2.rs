@@ -1057,7 +1057,6 @@ fn sutra_3_2_123() {
     assert_has_tip(&[], &d("paWa~", Bhvadi), Lat, &["paWati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_2_124() {
     let pac = d("qupa\\ca~^z", Bhvadi);
@@ -1065,7 +1064,13 @@ fn sutra_3_2_124() {
     assert_has_krdanta(&[], &pac, Krt::SAnac, &["pacamAna"]);
     // others
     assert_has_krdanta(&[], &d("asa~", Adadi), Krt::Satf, &["sat"]);
-    // TODO: more
+}
+
+#[test]
+fn sutra_3_2_125() {
+    let pac = d("qupa\\ca~^z", Bhvadi);
+    assert_has_krdanta(&[], &pac, Krt::Satf, &["pacat"]);
+    assert_has_krdanta(&[], &pac, Krt::SAnac, &["pacamAna"]);
 }
 
 #[test]
@@ -1081,6 +1086,13 @@ fn sutra_3_2_127() {
 fn sutra_3_2_128() {
     assert_has_krdanta(&[], &d("pUN", Bhvadi), Krt::SAnan, &["pavamAna"]);
     assert_has_krdanta(&[], &d("ya\\ja~^", Bhvadi), Krt::SAnan, &["yajamAna"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_3_2_130() {
+    assert_has_krdanta(&["aDi"], &d("i\\N", Adadi), Krt::Satf, &["aDIyat"]);
+    assert_has_krdanta(&[], &d("Df\\Y", Bhvadi), Krt::Satf, &["DArayat"]);
 }
 
 #[test]

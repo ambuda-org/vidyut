@@ -576,7 +576,7 @@ fn try_anga_adesha_before_vibhakti_changes(p: &mut Prakriya, i_anga: usize) -> O
 
         let anga = p.get(i_anga)?;
         if sau
-            && (anga.text.contains("d") || anga.text.contains("t"))
+            && (anga.text.contains('d') || anga.text.contains('t'))
             && (!anga.has_antya('d') && !anga.has_antya('t'))
         {
             p.run_at("7.2.106", i_anga, |t| {

@@ -206,7 +206,7 @@ impl Term {
     }
 
     pub fn last_vowel(&self) -> Option<char> {
-        self.chars().rev().filter(|c| sounds::is_ac(*c)).next()
+        self.chars().rev().find(|c| sounds::is_ac(*c))
     }
 
     /// Returns the sound at index `i` if it exists.
@@ -339,7 +339,7 @@ impl Term {
     /// Returns whether the term has a specific aupadeshika form.
     pub fn has_u(&self, s: &str) -> bool {
         match &self.u {
-            Some(u) => u == &s,
+            Some(u) => u == s,
             None => false,
         }
     }
@@ -357,7 +357,7 @@ impl Term {
     }
 
     pub fn has_lakshana(&self, u: &str) -> bool {
-        self.lakshanas.iter().any(|s| s == &u)
+        self.lakshanas.iter().any(|s| s == u)
     }
 
     pub fn has_lakshana_in(&self, us: &[&str]) -> bool {
@@ -742,7 +742,7 @@ impl Term {
         } else if self.text.contains('x') {
             // Don't save asiddha sounds.
             return;
-        } else {
+        } else if !self.sthanivat.is_empty() {
             let sthanivat_antya = self.sthanivat.chars().next_back().expect("ok");
             let text_antya = self.text.chars().next_back().expect("ok");
             if sounds::is_ac(sthanivat_antya) {

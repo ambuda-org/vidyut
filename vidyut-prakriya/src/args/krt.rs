@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// case explicitly here so that we can name pratyayas more concisely with SLP1. Doing so helps us
 /// distinguish between pratyayas like `naN` and `nan`.
 #[allow(dead_code, non_camel_case_types)]
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 #[wasm_bindgen]
 pub enum BaseKrt {
     /// -a
@@ -327,7 +327,7 @@ enum_boilerplate!(BaseKrt, {
 });
 
 /// Models a krt-pratyaya.
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Krt {
     /// An ordinary krt-pratyaya as declared in the Ashtadhyayi.
     Base(BaseKrt),
@@ -344,6 +344,32 @@ impl From<BaseKrt> for Krt {
 impl From<Unadi> for Krt {
     fn from(unadi: Unadi) -> Krt {
         Krt::Unadi(unadi)
+    }
+}
+
+impl Krt {
+    /// Returns whether the krt suffix is an *ārdhadhātuka* suffix.
+    ///
+    /// We must track this explicitly so that we can "look ahead" and potentially add `-Aya` or
+    /// other *pratyaya*s for certain *dhātu*s. For details, see the implementation of rules 3.1.28
+    /// - 3.1.31.
+    pub fn is_ardhadhatuka(&self) -> bool {
+        use BaseKrt::*;
+        match self {
+            Krt::Base(k) => !matches!(k, Sa | Satf | SAnac | SAnan | cAnaS | KaS),
+            Krt::Unadi(_) => true,
+        }
+    }
+
+    /// Returns a simple human-readable string that represents this enum's value.
+    ///
+    /// This mapping is not reversible. This is because some pratyayas are in both `Base` and
+    /// `Unadi`.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Krt::Base(b) => b.as_str(),
+            Krt::Unadi(u) => u.as_str(),
+        }
     }
 }
 
@@ -367,35 +393,10 @@ pub enum KrtArtha {
     Desha,
 }
 
-impl Krt {
-    /// Returns whether the krt suffix is an ArdhadhAtuka suffix.
-    ///
-    /// We must track this explicitly so that we can "look ahead" and potentially add -Aya or other
-    /// pratyayas for certain dhAtus. For details, see the implementation of rules 3.1.28 - 3.1.31.
-    pub fn is_ardhadhatuka(&self) -> bool {
-        use BaseKrt::*;
-        match self {
-            Krt::Base(k) => !matches!(k, Sa | Satf | SAnac | SAnan | cAnaS | KaS),
-            Krt::Unadi(_) => true,
-        }
-    }
-
-    /// Returns a simple human-readable string that represents this enum's value.
-    ///
-    /// This mapping is not reversible. This is because some pratyayas are in both `Base` and
-    /// `Unadi`.
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Krt::Base(b) => b.as_str(),
-            Krt::Unadi(u) => u.as_str(),
-        }
-    }
-}
-
-/// The information required to derive a krdanta in the grammar.
+/// The information required to derive a krdanta.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Krdanta {
-    /// The dhatu to add the krt-pratyaya to.
+    /// The dhatu to which we will add our krt-pratyaya.
     dhatu: Dhatu,
     /// The krt-pratyaya to use.
     krt: Krt,
@@ -404,7 +405,7 @@ pub struct Krdanta {
     /// Whether this krdanta must replace a specific `Lakara`. If unset, default to `Lat` if
     /// necessary.
     lakara: Option<Lakara>,
-    /// Whether this krdanta is allowed only with a specific upapada.
+    /// Whether this krdanta is allowed only with a specific *upapada*.
     upapada: Option<Subanta>,
     /// Whether the derived krdanta must have exactly the specified value.
     require: Option<String>,
@@ -435,7 +436,7 @@ impl Krdanta {
         &self.dhatu
     }
 
-    /// The krt pratyaya to use in the derivation.
+    /// The krt-pratyaya to use in the derivation.
     pub fn krt(&self) -> Krt {
         self.krt
     }

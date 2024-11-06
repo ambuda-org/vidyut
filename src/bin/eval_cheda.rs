@@ -11,6 +11,7 @@ use vidyut_cheda::Result;
 use vidyut_cheda::{Chedaka, Config, Token};
 use vidyut_kosha::morph::*;
 use vidyut_lipi::{transliterate, Mapping, Scheme};
+use vidyut_prakriya::args as vp;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -85,9 +86,9 @@ fn as_code(w: &Token) -> String {
         Pada::Avyaya(a) => {
             let val = match &a.pratipadika {
                 Pratipadika::Basic { .. } => "i",
-                Pratipadika::Krdanta { pratyaya, .. } => match pratyaya {
-                    KrtPratyaya::Ktva => "ktva",
-                    KrtPratyaya::Tumun => "tumun",
+                Pratipadika::Krdanta { krt, .. } => match krt.value() {
+                    vp::Krt::Base(vp::BaseKrt::ktvA) => "ktva",
+                    vp::Krt::Base(vp::BaseKrt::tumun) => "tumun",
                     _ => "_",
                 },
             };

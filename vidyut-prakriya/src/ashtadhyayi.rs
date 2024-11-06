@@ -99,7 +99,9 @@ fn prepare_dhatu(
             dhatu_karya::try_add_prefixes(p, n.prefixes());
             sanadi::try_create_namadhatu(p, n);
             if !p.terms().last().expect("ok").is_dhatu() {
-                println!("{:#?}", p);
+                if cfg!(debug_assertions) {
+                    println!("{:#?}", p);
+                }
                 return Err(Error::Abort(p.rule_choices().clone()));
             }
         }
@@ -155,7 +157,9 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
     }
     let added = krt::run(p, args);
     if !added {
-        println!("{:#?}", p);
+        if cfg!(debug_assertions) {
+            println!("{:#?}", p);
+        }
         return Err(Error::Abort(p.rule_choices().clone()));
     }
 
@@ -327,7 +331,7 @@ fn run_main_rules(
 
     p.debug("==== Vikaranas ====");
     ardhadhatuka::run_before_vikarana(p, dhatu_args, lakara, is_ardhadhatuka);
-    vikarana::run(p)?;
+    vikarana::run(p);
     samjna::run(p);
 
     if let Some(lakara) = lakara {
@@ -499,7 +503,9 @@ pub fn derive_subanta(mut prakriya: Prakriya, args: &Subanta) -> Result<Prakriya
 pub fn derive_krdanta(mut prakriya: Prakriya, args: &Krdanta) -> Result<Prakriya> {
     let p = &mut prakriya;
     prepare_krdanta(p, args)?;
-    run_main_rules(p, None, None, true)?;
+
+    let is_ardhadhatuka = p.terms().last().map_or(false, |t| t.is_ardhadhatuka());
+    run_main_rules(p, None, None, is_ardhadhatuka)?;
     tripadi::run(p);
 
     Ok(prakriya)

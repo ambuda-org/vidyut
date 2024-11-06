@@ -3,6 +3,7 @@
 //!
 //! Implementation
 //! --------------
+//!
 //! We implement our kosha as a finite state transducer using the `fst` crate. Finite state
 //! transducers are a generalization of tries in that they support both shared prefixes and shared
 //! suffixes.
@@ -306,6 +307,7 @@ mod tests {
     use crate::morph::*;
     use fst::Streamer;
     use tempfile::tempdir;
+    use vidyut_prakriya::args as vp;
 
     type TestResult = Result<()>;
 
@@ -322,7 +324,7 @@ mod tests {
     #[test]
     fn write_and_load() -> TestResult {
         let tin = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu("gam".to_string()),
+            dhatu: Dhatu::mula("gam".to_string()),
             purusha: Purusha::Prathama,
             vacana: Vacana::Eka,
             lakara: Lakara::Lat,
@@ -330,12 +332,12 @@ mod tests {
         });
         let krdanta = Pada::Subanta(Subanta {
             pratipadika: Pratipadika::Krdanta {
-                dhatu: Dhatu("gam".to_string()),
-                pratyaya: KrtPratyaya::Shatr,
+                dhatu: Dhatu::mula("gam".to_string()),
+                krt: Krt::new(vp::BaseKrt::Satf),
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V2),
+            vibhakti: Some(Vibhakti::Dvitiya),
             is_purvapada: false,
         });
         let sup = Pada::Subanta(Subanta {
@@ -345,7 +347,7 @@ mod tests {
             },
             linga: Some(Linga::Pum),
             vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::V2),
+            vibhakti: Some(Vibhakti::Dvitiya),
             is_purvapada: false,
         });
 

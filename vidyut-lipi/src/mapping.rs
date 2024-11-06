@@ -7,7 +7,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub(crate) struct Token {
     /// The text of this token.
-    pub text: String,
+    text: String,
     /// The token type. `kind` controls how this token combines with neighboring tokens.
     pub kind: TokenKind,
 }
@@ -16,6 +16,11 @@ impl Token {
     /// Creates a new `Token`.
     pub fn new(text: String, kind: TokenKind) -> Self {
         Self { text, kind }
+    }
+
+    /// Returns the string value of this token.
+    pub fn text(&self) -> &str {
+        &self.text
     }
 
     /// Returns whether this token represents a consonant.
@@ -27,7 +32,7 @@ impl Token {
 /// Models how a token behaves in relation to other tokens.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub(crate) enum TokenKind {
-    /// A consonant. A following vowel generally a vowel mark.
+    /// A consonant. A following vowel is generally a vowel mark.
     Consonant,
     /// A vowel mark, which generally must follow a consonant.
     VowelMark,
@@ -410,8 +415,8 @@ impl Mapping {
         items.sort_by(|x, y| x.0.cmp(y.0));
         for (k, v) in items {
             let k_codes: Vec<_> = k.chars().map(|c| c as u32).collect();
-            let v_codes: Vec<_> = v.text.chars().map(|c| c as u32).collect();
-            println!("{k} ({k_codes:x?}) --> {} ({v_codes:x?})", v.text);
+            let v_codes: Vec<_> = v.text().chars().map(|c| c as u32).collect();
+            println!("{k} ({k_codes:x?}) --> {} ({v_codes:x?})", v.text());
         }
     }
 }

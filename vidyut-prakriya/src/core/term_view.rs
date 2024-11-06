@@ -15,13 +15,6 @@ use crate::sounds::Pattern;
 ///
 /// `TermView` provides an API for working with these sequences. It provides a simple API that
 /// mirrors the `Term` API, and it provides raw access to its underlying `Term`s as escape hatches.
-///
-/// Instead of creating TermView directly, we recommend using the [`pada`], [`nyap_pratipadika`],
-/// or [`pratyaya`] methods on `Prakriya.
-///
-/// [`pada`]: Prakriya::get
-/// [`nyap_pratipadika`]: Prakriya::nyap_pratipadika
-/// [`pratyaya`]: Prakriya::view
 #[derive(Debug)]
 pub struct TermView<'a> {
     /// All of the terms in the prakriya. We store the entire `Term` list so that our internal
@@ -136,12 +129,9 @@ impl<'a> TermView<'a> {
     ///
     /// `end_non_empty` is useful if the view ends in an empty pratyaya, such as a kvip-pratyaya.
     pub fn end_non_empty(&self) -> Option<usize> {
-        for i in (self.start..=self.end).rev() {
-            if !self.terms.get(i).expect("present").is_empty() {
-                return Some(i);
-            }
-        }
-        None
+        (self.start..=self.end)
+            .rev()
+            .find(|&i| !self.terms.get(i).expect("present").is_empty())
     }
 
     /// Returns whether the view's text is empty.

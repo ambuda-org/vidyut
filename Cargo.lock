@@ -57,9 +57,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.0.2"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "487f1e0fcbe47deb8b0574e646def1c903389d95241dd1bbcc6ce4a715dfc0c1"
+checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
 
 [[package]]
 name = "block-buffer"
@@ -156,7 +156,7 @@ version = "4.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42dfd32784433290c51d92c438bb72ea5063797fc3cc9a21a8c4346bebbb2098"
 dependencies = [
- "bitflags 2.0.2",
+ "bitflags 2.6.0",
  "clap_derive",
  "clap_lex",
  "is-terminal",
@@ -798,9 +798,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.17.1"
+version = "1.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
+checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
 
 [[package]]
 name = "opaque-debug"
@@ -1466,6 +1466,7 @@ dependencies = [
  "vidyut-cheda",
  "vidyut-kosha",
  "vidyut-lipi",
+ "vidyut-prakriya",
  "vidyut-sandhi",
 ]
 
@@ -1499,6 +1500,7 @@ dependencies = [
  "tempfile",
  "vidyut-kosha",
  "vidyut-lipi",
+ "vidyut-prakriya",
  "vidyut-sandhi",
 ]
 
@@ -1517,6 +1519,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "tempfile",
+ "vidyut-prakriya",
 ]
 
 [[package]]

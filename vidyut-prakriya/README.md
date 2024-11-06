@@ -59,7 +59,13 @@ moderate support for *samāsa*s and weak support for accent rules.
 Usage
 -----
 
-To generate all basic tinantas in kartari prayoga, run:
+`vidyut-prakriya` supports two modes of use:
+
+### Command-line use
+
+The first way to use `vidyut-prakriya` is as a command-line tool for generating
+Sanskrit words. For example, you can generate all basic *tiṅanta*s in *kartari
+prayoga* by using the following command:
 
 ```shell
 $ make create_tinantas > output.csv
@@ -70,7 +76,13 @@ first compile `vidyut-prakriya`. After this initial compilation step, however,
 subsequent runs will be much faster, and `make create_tinantas` will likely
 compile and complete within a few seconds.
 
-To generate prakriyas programmatically, you can use the starter code below:
+You can find other example commands by exploring the `Makefile` and in
+particular the various invocations in `create_test_files`.
+
+### Programmatic use
+
+The second way to use `vidyut-prakriya` is programmatically. For example, we
+can generate simple verbs like so:
 
 ```rust
 use vidyut_prakriya::Vyakarana;
@@ -102,7 +114,7 @@ for p in prakriyas {
 }
 ```
 
-Output of the code above:
+Given the code above, the output is as follows:
 
 ```text
 Bavati
@@ -129,23 +141,26 @@ Bavati
 ---------------------------
 ```
 
-The left column shows a simple string label for each rule that was applied
-during the derivation, and you can find details about what values these labels
-can take in the comments on the `Rule` type. We suggest using `ashtadhyayi.com`
-to learn more about these rules.
+Here, the left column shows a simple string label for each rule that was
+applied during the derivation. You can find details about what values these
+labels can take in the comments on the `Rule` type. To learn more about these
+rules, we suggest using [ashtadhyayi.com](https://ashtadhyayi.com).
 
 The right column shows the in-progress prakriya. We use an output convention
 that is common on other Ashtadhyayi websites. The encoding format for this
-text is SLP1, which is the encoding format we use throughout the crate.
+text is SLP1, which is the encoding format we use by default in all Vidyut
+crates.
 
-[sv]: https://github.com/drdhaval2785/SanskritVerb
-
-For more details, see the following methods on the `Vyakarana` struct:
+For specific API details, see the following methods on the `Vyakarana` struct:
 
 - `derive_tinantas` (for verbs)
 - `derive_subantas` (for nominals)
 - `derive_krdantas` (for verbal suffixes)
 - `derive_taddhitantas` (for nominal suffixes)
+
+Our test suite also contains numerous examples of invoking various parts of
+`vidyut-prakriya`. We also have simpler examples available in the `examples`
+directory.
 
 
 Contributing
@@ -209,11 +224,11 @@ copied value. Then, run `make test_all` again and confirm that all tests pass.
 Data
 ----
 
-This crate includes a Dhatupatha sourced from [ashtadhyayi.com][a-com],
-and the author of ashtadhyayi.com has graciously agreed to share this file with
-us under an MIT license.
+This crate includes a *Dhātupāṭha* sourced from [ashtadhyayi.com][a-com],
+and the author of [ashtadhyayi.com][a-com] has graciously agreed to share this
+file with us under an MIT license.
 
-For details on the lineage of this Dhatupatha, see our separate [data
+For details on the lineage of this *Dhātupāṭha*, see our separate [data
 README][data-readme].
 
 [a-com]: https://ashtadhyayi.com

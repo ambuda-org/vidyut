@@ -2,7 +2,7 @@ use crate::akshara::{scan_lines, Akshara};
 use crate::error::Result;
 use crate::padya::{Jati, JatiKind, MatchType, Vrtta};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 /// Models a padya type.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -89,7 +89,7 @@ impl Matches {
 /// let chandas = Chandas::new(vrttas);
 ///
 /// let result = chandas.classify("mAtaH samastajagatAM maDukEwaBAreH");
-/// assert_eq!(result.vrtta().as_ref().unwrap().name(), "vasantatilakA");
+/// assert_eq!(result.padya().as_ref().unwrap().name(), "vasantatilakA");
 /// assert_eq!(result.match_type(), MatchType::Pada);
 /// ```
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
@@ -125,15 +125,22 @@ impl Chandas {
     ///
     /// We recommend using this constructor when the program does not have access to the
     /// filesystem, e.g. when using this code in WebAssembly.
-    pub fn from_text(data: &str) -> Result<Self> {
-        let vrttas: Result<Vec<_>> = data.lines().map(Vrtta::try_from).collect();
+    pub fn from_text(data: impl AsRef<str>) -> Result<Self> {
+        let vrttas: Result<Vec<_>> = data.as_ref().lines().map(Vrtta::try_from).collect();
         Ok(Self::new(vrttas?))
     }
 
     /// Creates a new classifier from the given data path.
-    pub fn from_file(path: &Path) -> Result<Self> {
-        let path = PathBuf::from(path).join(path);
-        let data = fs::read_to_string(path)?;
+    ///
+    /// ### Usage
+    ///
+    /// ```no_run
+    /// use vidyut_chandas::Chandas;
+    ///
+    /// let c = Chandas::from_file("/path/to/meters.tsv").unwrap();
+    /// ```
+    pub fn from_file(path: impl AsRef<Path>) -> Result<Self> {
+        let data = fs::read_to_string(path.as_ref())?;
         let vrttas: Result<Vec<_>> = data.lines().map(Vrtta::try_from).collect();
 
         Ok(Self::new(vrttas?))
@@ -151,7 +158,15 @@ impl Chandas {
 
     /// Classifies the input string against an internal list of meters.
     ///
-    /// Currently, this function supports only vrttas.
+    /// ### Usage
+    ///
+    /// ```no_run
+    /// use vidyut_chandas::Chandas;
+    ///
+    /// let c = Chandas::from_file("/path/to/meters.tsv").unwrap();
+    /// let text = "kaScitkAntAvirahaguruRA svADikArapramattaH";
+    /// let res = c.classify(text);
+    /// ```
     pub fn classify(&self, text: impl AsRef<str>) -> Match {
         self.classify_inner(text.as_ref())
     }

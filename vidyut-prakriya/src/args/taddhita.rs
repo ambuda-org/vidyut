@@ -830,7 +830,7 @@ impl TaddhitaArtha {
     }
 }
 
-/// The information required to derive a taddhitanta in the grammar.
+/// The information required to derive a *taddhitānta*.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Taddhitanta {
     pratipadika: Pratipadika,

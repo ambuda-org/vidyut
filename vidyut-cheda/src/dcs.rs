@@ -5,6 +5,7 @@ use crate::segmenting::Token;
 use compact_str::CompactString;
 use vidyut_kosha::morph::*;
 use vidyut_lipi::{transliterate, Mapping, Scheme};
+use vidyut_prakriya::args::BaseKrt;
 
 fn to_slp1(text: &str) -> String {
     let mapping = Mapping::new(Scheme::Iast, Scheme::Slp1);
@@ -113,7 +114,7 @@ fn parse_verb(t: &EvalToken) -> Result<Pada> {
     let lakara = parse_lakara(&t.features)?.unwrap_or(Lakara::Lat);
     let pada = parse_verb_pada(&t.features);
     Ok(Pada::Tinanta(Tinanta {
-        dhatu: Dhatu(root),
+        dhatu: Dhatu::mula(root),
         purusha,
         vacana,
         lakara,
@@ -137,8 +138,8 @@ fn parse_krdanta(t: &EvalToken) -> Result<Pada> {
 /// Reshapes a DCS krdanta subanta.
 fn parse_krdanta_subanta(t: &EvalToken) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
-        dhatu: Dhatu(standardize_lemma(&t.lemma)),
-        pratyaya: parse_krt_pratyaya(&t.features)?.unwrap_or(KrtPratyaya::Kta),
+        dhatu: Dhatu::mula(standardize_lemma(&t.lemma)),
+        krt: parse_krt_pratyaya(&t.features)?.unwrap_or(Krt::new(BaseKrt::kta)),
     };
     let linga = parse_linga(&t.features)?;
     let vibhakti = parse_vibhakti(&t.features)?;
@@ -157,9 +158,9 @@ fn parse_krdanta_subanta(t: &EvalToken) -> Result<Pada> {
 /// Reshapes a DCS krdanta avyaya.
 fn parse_krdanta_avyaya(t: &EvalToken) -> Result<Pada> {
     let stem = Pratipadika::Krdanta {
-        dhatu: Dhatu(standardize_lemma(&t.lemma)),
+        dhatu: Dhatu::mula(standardize_lemma(&t.lemma)),
         // Use an arbitrary default.
-        pratyaya: parse_krt_pratyaya(&t.features)?.unwrap_or(KrtPratyaya::Kta),
+        krt: parse_krt_pratyaya(&t.features)?.unwrap_or(Krt::new(BaseKrt::kta)),
     };
 
     Ok(Pada::Avyaya(Avyaya { pratipadika: stem }))
@@ -174,13 +175,13 @@ fn parse_stem(t: &EvalToken) -> Pratipadika {
 }
 
 /// Reshapes a DCS tense into a Vidyut tense.
-fn parse_krt_pratyaya(f: &TokenFeatures) -> Result<Option<KrtPratyaya>> {
+fn parse_krt_pratyaya(f: &TokenFeatures) -> Result<Option<Krt>> {
     let val = match f.get("Tense") {
         Some(s) => match s.as_str() {
             // FIXME: not enough information to reconstruct.
-            "Pres" => Some(KrtPratyaya::Shatr),
-            "Past" => Some(KrtPratyaya::Kta),
-            "Fut" => Some(KrtPratyaya::SyaShatr),
+            "Pres" => Some(Krt::new(BaseKrt::Satf)),
+            "Past" => Some(Krt::new(BaseKrt::kta)),
+            "Fut" => Some(Krt::new(BaseKrt::Satf)),
             &_ => return Err(Error::parse_dcs("Tense", s)),
         },
         None => None,
@@ -207,13 +208,13 @@ fn parse_vibhakti(f: &TokenFeatures) -> Result<Option<Vibhakti>> {
     use Vibhakti::*;
     let val = match f.get("Case") {
         Some(s) => match s.as_str() {
-            "Nom" => Some(V1),
-            "Acc" => Some(V2),
-            "Ins" => Some(V3),
-            "Dat" => Some(V4),
-            "Abl" => Some(V5),
-            "Gen" => Some(V6),
-            "Loc" => Some(V7),
+            "Nom" => Some(Prathama),
+            "Acc" => Some(Dvitiya),
+            "Ins" => Some(Trtiya),
+            "Dat" => Some(Caturthi),
+            "Abl" => Some(Panchami),
+            "Gen" => Some(Sasthi),
+            "Loc" => Some(Saptami),
             "Voc" => Some(Sambodhana),
             "Cpd" => None,
             &_ => return Err(Error::parse_dcs("Case", s)),
@@ -278,6 +279,7 @@ fn parse_lakara(f: &TokenFeatures) -> Result<Option<Lakara>> {
         ("Aor", "Jus") => Lakara::LunNoAgama,
         ("Aor", "Prec") => Lakara::AshirLin,
         ("Fut", "Cond") => Lakara::Lrn,
+        ("Fut", "Pot") => Lakara::Lrn,
         ("Fut", "Ind") => Lakara::Lrt,
         ("Impf", "Ind") => Lakara::Lan,
         ("Perf", "Ind") => Lakara::Lit,

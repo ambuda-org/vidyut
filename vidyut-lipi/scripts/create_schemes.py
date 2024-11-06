@@ -300,8 +300,7 @@ OVERRIDES = {
         "ऴ": None,
         C.DANDA: ".",
         C.DOUBLE_DANDA: "..",
-        # candrabindu
-        "\u0901": "m̐",
+        C.CANDRABINDU: "m̐",
     },
     "JAVANESE": {
         C.DANDA: "\ua9c8",
@@ -528,6 +527,9 @@ EXTENSIONS = {
     ],
     "GURMUKHI": [
         (C.ABBREVIATION_SIGN, "\u0a76"),
+    ],
+    "IAST": [
+        (C.CANDRABINDU, "\u0303"),
     ],
     "ITRANS": [
         # Vedic anusvara (just render as candrabindu)

@@ -110,7 +110,9 @@ In Rust, components of this kind are called *crates*.
 
 ### [`vidyut-chandas`][vidyut-chandas]
 
-`vidyut-chandas` is an experimental classifier for Sanskrit meters.
+`vidyut-chandas` identifies the meter in some piece of Sanskrit text. This
+crate is experimental, and while it is useful for common and basic use cases,
+it is not a state-of-the-art solution.
 
 For details, see the [vidyut-chandas README][vidyut-chandas].
 

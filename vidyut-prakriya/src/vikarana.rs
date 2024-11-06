@@ -17,7 +17,6 @@
 // substitutions by lopa that block the prakarana.
 
 use crate::args::Gana::*;
-use crate::core::errors::*;
 use crate::core::operators as op;
 use crate::core::{Prakriya, Rule, Rule::Varttika, Tag as T, Term};
 use crate::dhatu_gana::{DYUT_ADI, PUSH_ADI, TAN_ADI};
@@ -590,17 +589,17 @@ fn try_pratyaya_lopa(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run(p: &mut Prakriya) -> Result<()> {
+pub fn run(p: &mut Prakriya) -> Option<()> {
+    p.dump();
+
     // Skip if a vikarana is already present, e.g. when adding a subanta to a krdanta that has
     // already been created.
     if p.find_first(T::Vikarana).is_some() {
-        return Ok(());
+        return None;
     }
 
-    let tin = match p.terms().last() {
-        Some(t) => t,
-        None => return Ok(()),
-    };
+    let i_tin = p.find_last_where(|t| t.is_sarvadhatuka())?;
+    let tin = p.get(i_tin)?;
 
     if tin.has_lakshana_in(&["lf~w", "lf~N", "lu~w"]) {
         if tin.has_lakshana_in(&["lf~w", "lf~N"]) {
@@ -626,7 +625,7 @@ pub fn run(p: &mut Prakriya) -> Result<()> {
         try_pratyaya_lopa(p);
         // Run it-samjna-prakarana only after the lopa phase is complete.
         if p.has(i_vikarana, |t| !t.is_empty()) {
-            it_samjna::run(p, i_vikarana)?;
+            it_samjna::run(p, i_vikarana).ok()?;
         }
     }
 
@@ -634,12 +633,12 @@ pub fn run(p: &mut Prakriya) -> Result<()> {
     // it blocks `AtmanepadezvanataH` && `Ato GitaH`.
     let i = match p.find_first(T::Dhatu) {
         Some(i) => i,
-        None => return Ok(()),
+        None => return None,
     };
     if p.has(i, |t| t.has_u("gA\\N")) && p.has(i + 1, |t| t.has_text("a")) {
         p.set(i + 1, |t| t.text.clear());
         p.step("6.1.101");
     }
 
-    Ok(())
+    None
 }

@@ -22,7 +22,7 @@ pub enum SamasaType {
     SamaharaDvandva,
 }
 
-/// The information required to derive a samasa in the grammar.
+/// The information required to derive a *samāsa*.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Samasa {
     /// The items to combine in the samasa.
@@ -61,7 +61,7 @@ impl Samasa {
     }
 }
 
-/// Convenience struct for building a `SamasaARgs` struct.
+/// Convenience struct for building a `SamasaArgs` struct.
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct SamasaBuilder {
     padas: Vec<Subanta>,

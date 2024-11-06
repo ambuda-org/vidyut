@@ -3,7 +3,7 @@
 <p><i>A Sanskrit metrical classifier</i></p>
 </div>
 
-`vidyut-chandas` is an experimental classifier for Sanskrit meters.
+`vidyut-chandas` identifies the meter in some piece of Sanskrit text.
 
 This [crate][crate] is under active development as part of the [Ambuda][ambuda]
 project. If you enjoy our work and wish to contribute to it, we encourage you
@@ -11,6 +11,12 @@ to [join our Discord server][discord], where you can meet other Sanskrit
 programmers and enthusiasts.
 
 An online demo is available [here][demo].
+
+`vidyut-chandas` is not a state-of-the-art solution, and you might consider
+exploring and using these other projects instead:
+
+- [Skrutable](https://github.com/tylergneill/skrutable)
+- [sanskritmetres](https://github.com/shreevatsa/sanskrit)
 
 [crate]: https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html
 [ambuda]: https://ambuda.org
@@ -42,18 +48,11 @@ Usage
 
 We recommend using `vidyut-chandas` through our `Chandas` API:
 
-```rust
+```rust,no_run
 use vidyut_chandas::{Chandas, MatchType, Vrtta};
 
-let vrttas: Vec<Vrtta> = vec![
-    "vasantatilakA\tvrtta\tGGLGLLLGLLGLGG".try_into().unwrap(),
-    "mandAkrAntA\tvrtta\tGGGGLLLLLGGLGGLGG".try_into().unwrap(),
-    "puzpitAgrA\tvrtta\tLLLLLLGLGLGG/LLLLGLLGLGLGG".try_into().unwrap(),
-    "udgatA\tvrtta\tLLGLGLLLGL/LLLLLGLGLG/GLLLLLLGLLG/LLGLGLLLGLGLG".try_into().unwrap()
-];
-let chandas = Chandas::new(vrttas);
-
+let chandas = Chandas::from_file("/path/to/meters.tsv").unwrap();
 let result = chandas.classify("mAtaH samastajagatAM maDukEwaBAreH");
-assert_eq!(result.vrtta().as_ref().unwrap().name(), "vasantatilakA");
+assert_eq!(result.padya().as_ref().unwrap().name(), "vasantatilakA");
 assert_eq!(result.match_type(), MatchType::Pada);
 ```
