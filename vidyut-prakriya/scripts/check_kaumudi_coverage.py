@@ -29,6 +29,6 @@ for i in range(178, 2679):
         continue
 
     if i in tested_rules:
-        print(f"{RULE_OK} {i}")
+        pass # print(f"{RULE_OK} {i}")
     else:
         print(f"{RULE_MISSING} {i}")

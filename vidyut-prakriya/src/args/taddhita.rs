@@ -3,13 +3,17 @@ use crate::core::errors::*;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The complete list of taddhita-pratyayas.
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+/// The complete list of *taddhita pratyaya*s.
 ///
 /// Rust's naming convention is to start enum values with capital letters. However, we allow mixed
 /// case explicitly here so that we can name pratyayas more concisely with SLP1. Doing so helps us
 /// distinguish between pratyayas like `naN` and `nan`.
 #[allow(dead_code, non_camel_case_types)]
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Taddhita {
     /// a
@@ -533,11 +537,13 @@ enum_boilerplate!(Taddhita, {
     ha => "ha",
 });
 
-/// Models the meaning of a taddhita.
+/// Models the meaning of a *taddhita pratyaya*.
 ///
-/// Generally, taddhitas are available only in specific senses. A given taddhita might be allowed
-/// in one sense but blocked in another. To model and test this behavior, we use the enum below.
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+/// Generally, *taddhita*s are available only in specific senses. A given *taddhita* might be
+/// allowed in one sense but blocked in another. To model and test this behavior, we use the enum
+/// below.
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum TaddhitaArtha {
     /// Descendant. (4.1.92)
     TasyaApatyam,
@@ -831,7 +837,8 @@ impl TaddhitaArtha {
 }
 
 /// The information required to derive a *taddhitānta*.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Taddhitanta {
     pratipadika: Pratipadika,
     taddhita: Taddhita,
@@ -845,12 +852,12 @@ impl Taddhitanta {
         TaddhitantaBuilder::default()
     }
 
-    /// The pratipadika to use in the derivation.
+    /// The *prātipadika* to use in the derivation.
     pub fn pratipadika(&self) -> &Pratipadika {
         &self.pratipadika
     }
 
-    /// The taddhita-pratyaya to use in the derivation.
+    /// The *taddhita pratyaya* to use in the derivation.
     pub fn taddhita(&self) -> Taddhita {
         self.taddhita
     }
@@ -860,12 +867,12 @@ impl Taddhitanta {
         self.artha
     }
 
-    /// The value that the krdanta must match, if defined.
+    /// The value that the *kṛdanta* must match, if defined.
     pub fn require(&self) -> &Option<String> {
         &self.require
     }
 
-    /// Sets the required value for this taddhitanta.
+    /// Sets the required value for this *taddhitānta*.
     pub fn with_require(mut self, s: impl AsRef<str>) -> Self {
         self.require = Some(s.as_ref().to_string());
         self

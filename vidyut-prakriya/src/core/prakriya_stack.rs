@@ -14,6 +14,8 @@ pub(crate) struct PrakriyaStack {
     is_chandasi: bool,
     /// Whether svara rules are enabled.
     use_svaras: bool,
+    /// Whether NLP mode is enabled.
+    nlp_mode: bool,
 
     /// Completed prakriyas.
     prakriyas: Vec<Prakriya>,
@@ -23,13 +25,14 @@ pub(crate) struct PrakriyaStack {
 
 impl PrakriyaStack {
     /// Creates an empty `PrakriyaStack`.
-    pub fn new(log_steps: bool, is_chandasi: bool, use_svaras: bool) -> Self {
+    pub fn new(log_steps: bool, is_chandasi: bool, use_svaras: bool, nlp_mode: bool) -> Self {
         Self {
             prakriyas: Vec::new(),
             paths: Vec::new(),
             log_steps,
             is_chandasi,
             use_svaras,
+            nlp_mode,
         }
     }
 
@@ -40,6 +43,7 @@ impl PrakriyaStack {
             log_steps: self.log_steps,
             is_chandasi: self.is_chandasi,
             use_svaras: self.use_svaras,
+            nlp_mode: self.nlp_mode,
         })
     }
 
@@ -88,7 +92,7 @@ impl PrakriyaStack {
     ///
     /// > Decline(A), Decline(B)
     /// > Decline(A), Accept(B), Decline(D)
-    fn add_new_paths(&mut self, choices: &Vec<RuleChoice>, initial_choices: &[RuleChoice]) {
+    fn add_new_paths(&mut self, choices: &[RuleChoice], initial_choices: &[RuleChoice]) {
         let offset = initial_choices.len();
         for i in offset..choices.len() {
             let mut path = choices[..=i].to_vec();

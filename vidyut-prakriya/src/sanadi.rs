@@ -1,4 +1,4 @@
-//! Runs rules that add sanAdi-pratyayas to the end of a dhatu or subanta.
+//! Runs rules that add *sanādi pratyaya*s to the end of a dhatu or subanta.
 use crate::args::Gana::*;
 use crate::args::{Namadhatu, Pratipadika, Sanadi};
 use crate::core::errors::*;
@@ -25,7 +25,7 @@ const AYADAYA: &[&str] = &[
 
 struct SanadiPrakriya<'a> {
     p: &'a mut Prakriya,
-    /// The index after which we will insert the sanadi-pratyaya.
+    /// The index after which we will insert the *sanādi pratyaya*.
     i_base: usize,
 }
 
@@ -83,7 +83,7 @@ impl<'a> SanadiPrakriya<'a> {
     }
 }
 
-/// Tries to add a sanAdi-pratyaya to the prakriya `p`.
+/// Tries to add a *sanādi pratyaya* to the prakriya `p`.
 ///
 /// This function supports two different use cases:
 ///
@@ -100,7 +100,8 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
 
     let mut sp = SanadiPrakriya::new(p, i_last);
     let base = sp.p.get(i_base)?;
-    let sup = sp.p.has(i_base + 1, |t| t.is_sup());
+    let sup = sp.p.has(i_base + 1, |t| t.is_sup())
+        || (sp.p.has(i_base + 1, |t| t.is_nyap_pratyaya()) && sp.p.has(i_base + 2, |t| t.is_sup()));
 
     // `Gana` is required so that we can exclude "03.0021 kita~".
     if base.is_dhatu() && base.has_u_in(&["gupa~\\", "tija~\\", "kita~"]) && base.has_gana(Bhvadi) {
@@ -317,7 +318,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
     Some(())
 }
 
-/// Tries to create a namadhatu using the given arguments.
+/// Tries to create a *nāmadhātu* using the given arguments.
 pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
     match dhatu.pratipadika() {
         Pratipadika::Basic(basic) => {
@@ -349,7 +350,7 @@ pub fn try_add_optional(p: &mut Prakriya, sanadi: Sanadi) -> Result<()> {
     if matches!(sanadi, Sanadi::yaN | Sanadi::yaNluk) {
         if let Some(t) = p.terms().last() {
             if !(t.has_u("yaN") && t.is_pratyaya()) {
-                return Err(Error::Abort(p.rule_choices().clone()));
+                return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
     }

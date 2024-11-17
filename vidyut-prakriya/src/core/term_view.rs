@@ -19,7 +19,7 @@ use crate::sounds::Pattern;
 pub struct TermView<'a> {
     /// All of the terms in the prakriya. We store the entire `Term` list so that our internal
     /// indices line up with the indices we would use on `Prakriya`.
-    terms: &'a Vec<Term>,
+    terms: &'a [Term],
     /// Index of the first term in the view (inclusive).
     start: usize,
     /// Index of the last term in the view (inclusive).
@@ -28,7 +28,7 @@ pub struct TermView<'a> {
 
 impl<'a> TermView<'a> {
     /// Creates a new term view over the interval `[start, end]``
-    pub fn new(terms: &'a Vec<Term>, start: usize, end: usize) -> Option<Self> {
+    pub fn new(terms: &'a [Term], start: usize, end: usize) -> Option<Self> {
         if end < terms.len() {
             Some(TermView { terms, start, end })
         } else {
@@ -36,7 +36,7 @@ impl<'a> TermView<'a> {
         }
     }
 
-    pub fn with_start(terms: &'a Vec<Term>, start: usize) -> Option<Self> {
+    pub fn with_start(terms: &'a [Term], start: usize) -> Option<Self> {
         if start >= terms.len() {
             return None;
         }

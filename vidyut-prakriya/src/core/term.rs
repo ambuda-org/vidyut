@@ -568,12 +568,12 @@ impl Term {
         self.has_tag(Tag::Sankhya)
     }
 
-    /// Returns whether the term is an unAdi-pratyaya.
+    /// Returns whether the term is an *uṇādi pratyaya*.
     pub fn is_unadi(&self) -> bool {
         self.has_tag(Tag::Unadi)
     }
 
-    /// Returns whether the term is an unAdi-pratyaya.
+    /// Returns whether the term is an *uṇādi pratyaya*.
     pub fn has_unadi(&self, unadi: Unadi) -> bool {
         self.has_tag(Tag::Unadi) && self.has_u(unadi.as_str())
     }

@@ -1,7 +1,11 @@
 use crate::args::{Subanta, Tinanta};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// The information required to derive a word.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Pada {
     /// A nominal word or an indeclinable.
     Subanta(Subanta),

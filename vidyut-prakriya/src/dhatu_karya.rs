@@ -28,7 +28,7 @@ lazy_static! {
     static ref HAL: Set = s("hal");
 }
 
-/// Adds the mula-dhatu to the prakriya.
+/// Adds the *mūla-dhātu* to the prakriya.
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Muladhatu) {
     p.run("1.3.1", |p| {
         let mut dhatu = Term::make_dhatu(dhatu.upadesha(), dhatu.gana(), dhatu.antargana());

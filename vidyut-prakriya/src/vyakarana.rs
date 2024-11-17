@@ -36,8 +36,6 @@ use crate::core::Tag;
 #[derive(Debug, Default)]
 pub struct Vyakarana {
     // Options we hope to add in the future:
-    // - `nlp_mode` -- if set, preserve the final `s` and `r` of a pada, since these are important
-    //   to preserve for certain NLP use cases.
     // - `svara`    -- if set, enable accent rules.
     // - `extended` -- if set, enable rare rules that are less useful, such as 8.4.48 (aco
     //   rahAbhyAM dve), which creates words like *kAryyate*, *brahmmA*, etc.
@@ -48,6 +46,9 @@ pub struct Vyakarana {
     is_chandasi: bool,
     // If set, use svara rules. If unset, output will have no svaras.
     use_svaras: bool,
+    // If set, preserve the final `s` and `r` of a pada, since these are important to preserve for
+    // certain NLP use cases.
+    nlp_mode: bool,
 }
 
 // TODO: better error handling.
@@ -58,6 +59,7 @@ impl Vyakarana {
             log_steps: true,
             is_chandasi: false,
             use_svaras: false,
+            nlp_mode: false,
         }
     }
 
@@ -99,7 +101,7 @@ impl Vyakarana {
     /// assert_eq!(prakriyas[0].text(), "upasaNgam");
     /// ```
     ///
-    /// A *mūla-dhātu* with one or more *sanādi-pratyaya*s:
+    /// A *mūla-dhātu* with one or more *sanādi pratyaya*s:
     ///
     /// ```
     /// # use vidyut_prakriya::Vyakarana;
@@ -128,7 +130,7 @@ impl Vyakarana {
     /// assert_eq!(prakriyas[0].text(), "vivandizi");
     /// ```
     ///
-    /// A *nāma-dhātu* with an optional *sanādi-pratyaya*:
+    /// A *nāma-dhātu* with an optional *sanādi pratyaya*:
     ///
     /// ```
     /// # use vidyut_prakriya::Vyakarana;
@@ -140,7 +142,7 @@ impl Vyakarana {
     /// assert_eq!(prakriyas[0].text(), "putrIya");
     /// ```
     ///
-    /// A *nāma-dhātu* with a mandatory *sanādi-pratyaya* from some other sutra:
+    /// A *nāma-dhātu* with a mandatory *sanādi pratyaya* from some other sutra:
     ///
     /// ```
     /// # use vidyut_prakriya::Vyakarana;
@@ -167,9 +169,9 @@ impl Vyakarana {
     /// A basic *tiṅanta*:
     ///
     /// ```
+    /// # use vidyut_prakriya::Error;
     /// use vidyut_prakriya::Vyakarana;
     /// use vidyut_prakriya::args::*;
-    /// use vidyut_prakriya::Error;
     ///
     /// let v = Vyakarana::new();
     ///
@@ -180,15 +182,16 @@ impl Vyakarana {
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "Bavati");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *tiṅanta* with one or more *upasarga*s:
     ///
     /// ```
+    /// # use vidyut_prakriya::Error;
     /// # use vidyut_prakriya::Vyakarana;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
@@ -199,16 +202,16 @@ impl Vyakarana {
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "aBiBavati");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
-    /// A *tiṅanta* whose *dhātu* has one or more *sanādi-pratyaya*s:
+    /// A *tiṅanta* whose *dhātu* has one or more *sanādi pratyaya*s:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
     /// let bobhuya = Dhatu::mula("BU", Gana::Bhvadi).with_sanadi(&[Sanadi::yaN]);
@@ -218,17 +221,17 @@ impl Vyakarana {
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "boBUyate");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *tiṅanta* that must use *ātmanepada*. If the *dhātu* cannot support the requested *pada*,
     /// this method returns no results:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
     /// let kr = Dhatu::mula("qukf\\Y", Gana::Tanadi);
@@ -239,10 +242,10 @@ impl Vyakarana {
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
     ///     .pada(DhatuPada::Atmane)
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "kurute");
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_tinantas(&self, args: &Tinanta) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
@@ -272,8 +275,7 @@ impl Vyakarana {
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
-    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     /// let args = Subanta::builder()
@@ -297,11 +299,10 @@ impl Vyakarana {
     ///
     /// ### Example
     ///
-    /// Using a basic krt-pratyaya.
+    /// Using a basic *kṛt pratyaya*:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
-    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     /// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
@@ -311,7 +312,7 @@ impl Vyakarana {
     /// # Ok::<(), Error>(())
     /// ```
     ///
-    /// Using an unadi-pratyaya:
+    /// Using an *uṇādi pratyaya*:
     ///
     /// ```
     /// # use vidyut_prakriya::*;
@@ -329,24 +330,23 @@ impl Vyakarana {
         stack.prakriyas()
     }
 
-    /// Returns all possible taddhitanta prakriyas that can be derived with the given initial
+    /// Returns all possible *taddhitānta prakriyā*s that can be derived with the given initial
     /// conditions.
     ///
     ///
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
-    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     /// let args = Taddhitanta::builder()
     ///     .pratipadika(Pratipadika::basic("nara"))
     ///     .taddhita(Taddhita::matup)
-    ///     .build()
-    ///     .unwrap();
+    ///     .build()?;
     /// let prakriyas = v.derive_taddhitantas(&args);
     /// assert_eq!(prakriyas[0].text(), "naravat");
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_taddhitantas(&self, spec: &Taddhitanta) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
@@ -380,7 +380,7 @@ impl Vyakarana {
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     ///
@@ -397,6 +397,7 @@ impl Vyakarana {
     ///
     /// let prakriyas = v.derive_samasas(&args);
     /// assert_eq!(prakriyas[0].text(), "rAjapuruza");
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_samasas(&self, args: &Samasa) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
@@ -425,11 +426,16 @@ impl Vyakarana {
 
     /// Creates a prakriya stack that generates prakriyas according to our derivation options.
     fn create_prakriya_stack(&self) -> PrakriyaStack {
-        PrakriyaStack::new(self.log_steps, self.is_chandasi, self.use_svaras)
+        PrakriyaStack::new(
+            self.log_steps,
+            self.is_chandasi,
+            self.use_svaras,
+            self.nlp_mode,
+        )
     }
 }
 
-/// A builder for creating an `Vyakarana` struct.
+/// A builder for creating a `Vyakarana` struct.
 pub struct VyakaranaBuilder {
     vyakarana: Vyakarana,
 }
@@ -472,6 +478,17 @@ impl VyakaranaBuilder {
     /// - If `false`, each `Prakriya` will leave svaras unset.
     pub fn use_svaras(mut self, value: bool) -> Self {
         self.vyakarana.use_svaras = value;
+        self
+    }
+
+    /// *(default: false)* Controls whether this output will be used for natural-language
+    /// processing applications.
+    ///
+    /// - If `true`, final `s` and `r` will not be changed to the visarga.
+    ///
+    /// - If `false`, final `s` and `r` will change to the visarga.
+    pub fn nlp_mode(mut self, value: bool) -> Self {
+        self.vyakarana.nlp_mode = value;
         self
     }
 

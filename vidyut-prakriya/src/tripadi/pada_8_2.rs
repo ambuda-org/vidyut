@@ -766,7 +766,7 @@ fn try_change_final_s(p: &mut Prakriya) -> Option<()> {
             {
                 // vidvadByAm, uKAsradByAm, ...
                 p.run_at("8.2.72", i, |t| t.set_antya("d"));
-            } else if is_sa_sajush {
+            } else if is_sa_sajush && !p.nlp_mode() {
                 // agnir atra, sajUr ftuBiH, ...
                 do_ru_adesha("8.2.66", p, i);
             }

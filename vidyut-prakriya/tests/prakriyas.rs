@@ -193,3 +193,11 @@ fn sadhayati() {
         ],
     );
 }
+
+// Verifies that `nlp_mode` works.
+#[test]
+fn nlp_mode() {
+    let t = Tester::with_nlp_mode();
+    t.assert_has_tas(&[], &d("BU", Bhvadi), Lat, &["Bavatas"]);
+    t.assert_has_sup_1s("dvAr", Linga::Pum, &["dvAr"]);
+}

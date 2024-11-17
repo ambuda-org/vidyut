@@ -9,6 +9,10 @@ structs in this module.
 For extra flexibility, all of the pratyaya enums here provides `as_str` and `from_str` methods. For
 details on which strings are valid arguments in `from_str`, please read the source code directly.
 */
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 mod macros;
 
 pub(crate) mod dhatu;
@@ -31,11 +35,12 @@ pub use taddhita::*;
 pub use tin::*;
 pub use unadi::Unadi;
 
-/// Models a semantic condition that applies to the prakriya.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+/// Models a semantic condition that applies to the *prakriyā* as a whole.
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Artha {
-    /// A semantic condition for a krdanta derivation.
+    /// A semantic condition for a *kṛdanta* derivation.
     Krt(KrtArtha),
-    /// A semantic condition for a taddhitanta derivation.
+    /// A semantic condition for a *taddhitānta* derivation.
     Taddhita(TaddhitaArtha),
 }

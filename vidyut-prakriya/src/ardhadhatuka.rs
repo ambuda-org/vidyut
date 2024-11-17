@@ -396,7 +396,7 @@ pub fn run_before_vikarana(
     la_is_ardhadhatuka: bool,
 ) -> Option<()> {
     /*
-    // If this prakriy has a sanAdi-pratyaya that is non-final, then we've run these rules already
+    // If this prakriya has a *sanādi pratyaya* that is non-final, then we've run these rules already
     // and should skip them to avoid re-substitutions.
     if let Some(i_sanadi) = p.find_last_where(|t| t.is_dhatu && t.is_pratyaya()) {
         if i_sanadi() != p.terms().len() {

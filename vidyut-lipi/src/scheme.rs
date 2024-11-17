@@ -1,4 +1,5 @@
 use crate::autogen_schemes;
+use crate::errors::LipiError;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 type Pair = (&'static str, &'static str);
@@ -7,7 +8,7 @@ type Pair = (&'static str, &'static str);
 ///
 /// This code is not part of any APIs or used internally. We use it only to record the strength of
 /// different schemes.
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Coverage {
     /// Supports all Indic sounds.
     Complete,
@@ -29,7 +30,7 @@ pub(crate) enum Coverage {
 /// - writing system (alphabet vs. abugida)
 /// - text encoding (ASCII vs. Unicode)
 /// - support for Sanskrit (complete vs. partial)
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 #[wasm_bindgen]
 pub enum Scheme {
     /// Assamese script.
@@ -327,77 +328,6 @@ pub enum Scheme {
 }
 
 impl Scheme {
-    /// Returns an iterator over all available `Scheme`s.
-    ///
-    /// We guarantee that all pre-defined `Scheme`s will be present exactly once. However, we make
-    /// no guarantees on iteration order.
-    ///
-    /// ### Usage
-    ///
-    /// ```rust,ignore
-    /// use vidyut_lipi::Scheme;
-    ///
-    /// for scheme in Scheme::iter() {
-    ///     println!("- {scheme}");
-    /// }
-    /// ```
-    pub fn iter() -> impl Iterator<Item = &'static Scheme> {
-        use Scheme::*;
-        const SCHEMES: &[Scheme] = &[
-            Assamese,
-            Balinese,
-            BarahaSouth,
-            Bengali,
-            Bhaiksuki,
-            Brahmi,
-            Burmese,
-            Cham,
-            Devanagari,
-            Dogra,
-            Grantha,
-            Gujarati,
-            GunjalaGondi,
-            Gurmukhi,
-            HarvardKyoto,
-            Iast,
-            Iso15919,
-            Itrans,
-            Javanese,
-            Kaithi,
-            Kannada,
-            Kharoshthi,
-            Khmer,
-            Khudawadi,
-            Limbu,
-            Malayalam,
-            MasaramGondi,
-            MeeteiMayek,
-            Modi,
-            Mon,
-            Nandinagari,
-            Newa,
-            Odia,
-            OlChiki,
-            Saurashtra,
-            Sharada,
-            Siddham,
-            Sinhala,
-            Slp1,
-            Soyombo,
-            TaiTham,
-            Takri,
-            Tamil,
-            Telugu,
-            Thai,
-            Tibetan,
-            Tirhuta,
-            Velthuis,
-            Wx,
-            ZanabazarSquare,
-        ];
-        SCHEMES.iter()
-    }
-
     /// Converts the given scheme to its ISO 15924 four-letter code, if one exists.
     ///
     /// ### Usage
@@ -769,11 +699,126 @@ impl Scheme {
     }
 }
 
+/// Defines various Scheme utils without the boilerplate.
+macro_rules! scheme_utils {
+    [$( $variant:ident ),*] => {
+        impl Scheme {
+            /// Returns an iterator over all available `Scheme`s.
+            ///
+            /// We guarantee that all pre-defined `Scheme`s will be present exactly once. However, we make
+            /// no guarantees on iteration order.
+            ///
+            /// ### Usage
+            ///
+            /// ```rust,ignore
+            /// use vidyut_lipi::Scheme;
+            ///
+            /// for scheme in Scheme::iter() {
+            ///     println!("- {scheme}");
+            /// }
+            /// ```
+            pub fn iter() -> impl Iterator<Item = &'static Scheme> {
+                use Scheme::*;
+                const SCHEMES: &[Scheme] = &[
+                    $(
+                        $variant,
+                    )*
+                ];
+                SCHEMES.iter()
+            }
+
+            /// Returns a string representation of the given `Scheme`.
+            pub fn as_str(&self) -> &str {
+                match self {
+                    $(
+                        Self::$variant => stringify!($variant),
+                    )*
+                }
+            }
+        }
+
+        impl std::str::FromStr for Scheme {
+            type Err = LipiError;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    $(
+                        stringify!($variant) => Ok(Self::$variant),
+                    )*
+                    _ => Err(LipiError::ParseError)
+                }
+            }
+        }
+    }
+}
+
+scheme_utils![
+    Assamese,
+    Balinese,
+    BarahaSouth,
+    Bengali,
+    Bhaiksuki,
+    Brahmi,
+    Burmese,
+    Cham,
+    Devanagari,
+    Dogra,
+    Grantha,
+    Gujarati,
+    GunjalaGondi,
+    Gurmukhi,
+    HarvardKyoto,
+    Iast,
+    Iso15919,
+    Itrans,
+    Javanese,
+    Kaithi,
+    Kannada,
+    Kharoshthi,
+    Khmer,
+    Khudawadi,
+    Limbu,
+    Malayalam,
+    MasaramGondi,
+    MeeteiMayek,
+    Modi,
+    Mon,
+    Nandinagari,
+    Newa,
+    Odia,
+    OlChiki,
+    Saurashtra,
+    Sharada,
+    Siddham,
+    Sinhala,
+    Slp1,
+    Soyombo,
+    TaiTham,
+    Takri,
+    Tamil,
+    Telugu,
+    Thai,
+    Tibetan,
+    Tirhuta,
+    Velthuis,
+    Wx,
+    ZanabazarSquare
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use codes_iso_15924::ALL_CODES;
     use unicode_normalization::UnicodeNormalization;
+
+    #[test]
+    fn as_str_round_trip() {
+        for scheme in Scheme::iter() {
+            let text = scheme.as_str();
+            let from: Scheme = text.parse().expect("defined");
+            assert_eq!(*scheme, from);
+        }
+    }
 
     #[test]
     fn iter_contains_all_defined_schemes() {

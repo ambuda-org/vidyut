@@ -118,7 +118,7 @@ fn to_web_prakriyas(prakriyas: &[Prakriya]) -> Vec<WebPrakriya> {
         .collect()
 }
 
-/// Expands a mula dhatu by adding sanadi-pratyayas and upasargas, as needed.
+/// Expands a mula dhatu by adding *sanādi pratyaya*s and upasargas, as needed.
 fn try_expand_dhatu(dhatu: &Dhatu, sanadi: Option<Sanadi>, upasarga: Option<String>) -> Dhatu {
     let mut ret = dhatu.clone();
     if let Some(s) = sanadi {

@@ -13,7 +13,7 @@ use enumset::EnumSet;
 /// A simple string label for some rule in the grammar.
 pub type Code = &'static str;
 
-/// A rule applied in the prakriya.
+/// A rule applied in the *prakriyā*.
 ///
 /// Most of a derivation's rules come directly from the Ashtadhyayi. But, some derivations use
 /// rules from other sources. We use this model to clearly define where different rules come from.
@@ -87,7 +87,7 @@ impl Step {
     }
 
     /// The result of applying `rule`.
-    pub fn result(&self) -> &Vec<StepTerm> {
+    pub fn result(&self) -> &[StepTerm] {
         &self.result
     }
 }
@@ -129,6 +129,7 @@ pub(crate) struct Config {
     pub log_steps: bool,
     pub is_chandasi: bool,
     pub use_svaras: bool,
+    pub nlp_mode: bool,
 }
 
 impl Config {
@@ -198,14 +199,14 @@ impl Prakriya {
 
     /// Returns all of the optional rules that were encountered during the derivation and whether
     /// they were accepted or rejected.
-    pub fn rule_choices(&self) -> &Vec<RuleChoice> {
+    pub fn rule_choices(&self) -> &[RuleChoice] {
         &self.rule_choices
     }
 
     /// Returns all of the rules that were applied during the derivation and the output of each
     /// step. If history logging has been disabled on `Vyakarana`, then `history()` will return
     /// an empty `Vec`.
-    pub fn history(&self) -> &Vec<Step> {
+    pub fn history(&self) -> &[Step] {
         &self.history
     }
 
@@ -281,7 +282,7 @@ impl Prakriya {
     }
 
     /// Returns all terms.
-    pub(crate) fn terms(&self) -> &Vec<Term> {
+    pub(crate) fn terms(&self) -> &[Term] {
         &self.terms
     }
 
@@ -820,6 +821,11 @@ impl Prakriya {
     /// Returns whether the prakriya allows chAndasa rules.
     pub(crate) fn use_svaras(&self) -> bool {
         self.config.use_svaras
+    }
+
+    /// Returns whether this prakriya should use NLP mode.
+    pub(crate) fn nlp_mode(&self) -> bool {
+        self.config.nlp_mode
     }
 
     pub(crate) fn is_allowed(&mut self, r: impl Into<Rule>) -> bool {

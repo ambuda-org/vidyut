@@ -81,7 +81,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     {
         // Case 1: sanAdi ajAdi dhAtu
         //
-        // In this case, the dhatu will likely include at least some of the sanAdi-pratyaya.
+        // In this case, the dhatu will likely include at least some of the *sanādi pratyaya*.
 
         // Case 1a: special case for Irzya~
         if dhatu.has_u("Irzya~") && next.first().has_u("iw") {

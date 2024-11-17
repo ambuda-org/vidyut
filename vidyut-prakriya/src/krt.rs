@@ -6,7 +6,7 @@ mod unadipatha;
 mod utils;
 
 pub fn run(p: &mut Prakriya, args: &Krdanta) -> bool {
-    // First, check if the pratyaya is an unAdi-pratyaya.
+    // First, check if the pratyaya is an *uṇādi pratyaya*.
     let mut added = unadipatha::run(p, args.krt());
     if !added {
         added = basic::run(p, args.krt());

@@ -57,6 +57,12 @@ impl Tester {
             vyakarana: Vyakarana::builder().use_svaras(true).build(),
         }
     }
+
+    pub fn with_nlp_mode() -> Self {
+        Self {
+            vyakarana: Vyakarana::builder().nlp_mode(true).build(),
+        }
+    }
 }
 
 impl Default for Tester {

@@ -13,7 +13,7 @@ The pratyayas in the Unadipatha enter the Ashtadhyayi through rule 3.3.1:
 
 ### Design notes
 
-Should ordinary krt-pratyayas and unadi-pratyayas be stored on the same enum? Points in favor:
+Should ordinary krt-pratyayas and *uṇādi pratyaya*s be stored on the same enum? Points in favor:
 
 - Unadi pratyayas are "just" krt pratyayas, so it makes sense to store them in the same way.
 - Storing all krt pratyayas in the same way is simpler for downstream code. For example, storing
@@ -22,7 +22,7 @@ Should ordinary krt-pratyayas and unadi-pratyayas be stored on the same enum? Po
 
 Points against:
 
-- There is a real difference between general krt pratyayas and unAdi pratyayas. Roughly, the
+- There is a real difference between general krt pratyayas and *uṇādi pratyaya*s. Roughly, the
   unAdi list is much larger and much less interesting for most applications.
 - Our system cannot distinguish between these two kinds of pratyayas, which affects how
   downstream code interacts with this project.
@@ -185,7 +185,7 @@ fn try_misc_rules(kp: &mut KrtPrakriya, krt: Unadi) -> Option<bool> {
     Some(kp.has_krt)
 }
 
-/// Tries to add the given unAdi-pratyaya to the prakriya.
+/// Tries to add the given *uṇādi pratyaya* to the prakriya.
 ///
 /// Returns: whether the function added a pratyaya.
 pub fn try_add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {

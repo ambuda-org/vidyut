@@ -42,7 +42,7 @@ impl Match {
     }
 
     /// The aksharas in this query.
-    pub fn aksharas(&self) -> &Vec<Vec<Akshara>> {
+    pub fn aksharas(&self) -> &[Vec<Akshara>] {
         &self.aksharas
     }
 }
@@ -57,17 +57,17 @@ pub struct Matches {
 
 impl Matches {
     /// The padya matches for the query.
-    pub fn padyas(&self) -> &Vec<Padya> {
+    pub fn padyas(&self) -> &[Padya] {
         &self.padyas
     }
 
     /// The match type for this query.
-    pub fn match_types(&self) -> &Vec<MatchType> {
+    pub fn match_types(&self) -> &[MatchType] {
         &self.match_types
     }
 
     /// The aksharas in this query.
-    pub fn aksharas(&self) -> &Vec<Vec<Akshara>> {
+    pub fn aksharas(&self) -> &[Vec<Akshara>] {
         &self.aksharas
     }
 }
@@ -147,12 +147,12 @@ impl Chandas {
     }
 
     /// The vrttas available to this classifier.
-    pub fn vrttas(&self) -> &Vec<Vrtta> {
+    pub fn vrttas(&self) -> &[Vrtta] {
         &self.vrttas
     }
 
     /// The jatis available to this classifier.
-    pub fn jatis(&self) -> &Vec<Jati> {
+    pub fn jatis(&self) -> &[Jati] {
         &self.jatis
     }
 
@@ -267,7 +267,9 @@ mod tests {
     fn new_chandas() -> Chandas {
         Chandas::new(vec![
             "vasantatilakA\tvrtta\tGGLGLLLGLLGLGG".try_into().unwrap(),
-            "mandAkrAntA\tvrtta\tGGGGLLLLLGGLGGLGG".try_into().unwrap(),
+            "mandAkrAntA\tvrtta\tGGGG|LLLLLG|GLGGLGG"
+                .try_into()
+                .unwrap(),
             "puzpitAgrA\tvrtta\tLLLLLLGLGLGG/LLLLGLLGLGLGG"
                 .try_into()
                 .unwrap(),

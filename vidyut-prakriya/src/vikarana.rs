@@ -590,8 +590,6 @@ fn try_pratyaya_lopa(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
-    p.dump();
-
     // Skip if a vikarana is already present, e.g. when adding a subanta to a krdanta that has
     // already been created.
     if p.find_first(T::Vikarana).is_some() {

@@ -79,7 +79,7 @@ fn is_sani_or_cani(p: &mut Prakriya, dhatu: Option<&Dhatu>, la: Option<Lakara>) 
 /// - adding upasargas
 /// - replacing initial `R` and `z`  with `n` and `s`, respectively.
 /// - recording and removing any it-samjnas
-/// - adding any necessary sanAdi-pratyayas.
+/// - adding any necessary *sanādi pratyaya*s.
 ///
 /// Notes:
 /// - `future_lakara` is the lakara we anticipate adding to the dhatu. This is mainly for 2.4.51
@@ -100,9 +100,9 @@ fn prepare_dhatu(
             sanadi::try_create_namadhatu(p, n);
             if !p.terms().last().expect("ok").is_dhatu() {
                 if cfg!(debug_assertions) {
-                    println!("{:#?}", p);
+                    println!("invalid: {:#?}", p);
                 }
-                return Err(Error::Abort(p.rule_choices().clone()));
+                return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
     }
@@ -133,7 +133,7 @@ fn prepare_dhatu(
     Ok(())
 }
 
-/// Adds the basic terms necessary to create a krdanta.
+/// Adds the basic terms necessary to create a *kṛdanta*.
 fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
     // If defined, set the meaning condition that this prakriya must follow.
     if let Some(artha) = args.artha() {
@@ -160,7 +160,7 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
         if cfg!(debug_assertions) {
             println!("{:#?}", p);
         }
-        return Err(Error::Abort(p.rule_choices().clone()));
+        return Err(Error::Abort(p.rule_choices().to_vec()));
     }
 
     if args.upapada().is_some() {
@@ -179,7 +179,7 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
     use Pratipadika as Prati;
     match pratipadika {
         Pratipadika::Krdanta(k) if k.require().is_some() => {
-            let mut stack = PrakriyaStack::new(false, false, false);
+            let mut stack = PrakriyaStack::new(false, false, false, false);
             stack.find_all(|p| derive_krdanta(p, k));
 
             let mut added = false;
@@ -193,11 +193,11 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
                 }
             }
             if !added {
-                return Err(Error::Abort(p.rule_choices().clone()));
+                return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
         Pratipadika::Taddhitanta(t) if t.require().is_some() => {
-            let mut stack = PrakriyaStack::new(false, false, false);
+            let mut stack = PrakriyaStack::new(false, false, false, false);
             stack.find_all(|p| derive_taddhitanta(p, t));
 
             let mut added = false;
@@ -211,7 +211,7 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
                 }
             }
             if !added {
-                return Err(Error::Abort(p.rule_choices().clone()));
+                return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
         Prati::Basic(basic) => pratipadika_karya::add_basic(p, basic),
@@ -245,7 +245,7 @@ fn prepare_taddhitanta(p: &mut Prakriya, args: &Taddhitanta) -> Result<()> {
         if cfg!(debug_assertions) {
             println!("{:?}: {:#?}", args.taddhita(), p);
         }
-        return Err(Error::Abort(p.rule_choices().clone()));
+        return Err(Error::Abort(p.rule_choices().to_vec()));
     }
 
     angasya::run_before_stritva(p);
@@ -281,7 +281,7 @@ fn prepare_samasa(p: &mut Prakriya, args: &Samasa) -> Result<()> {
 
     let added = samasa::run(p, args);
     if !added {
-        return Err(Error::Abort(p.rule_choices().clone()));
+        return Err(Error::Abort(p.rule_choices().to_vec()));
     }
 
     pratipadika_karya::run_napumsaka_rules(p);
@@ -579,7 +579,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
     for pada in padas {
         match pada {
             Pada::Subanta(s) => {
-                let mut stack = PrakriyaStack::new(false, false, false);
+                let mut stack = PrakriyaStack::new(false, false, false, false);
                 stack.find_all(|p| derive_subanta(p, s));
 
                 if let Some(p) = stack.prakriyas().first() {
@@ -587,7 +587,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
                 }
             }
             Pada::Tinanta(t) => {
-                let mut stack = PrakriyaStack::new(false, false, false);
+                let mut stack = PrakriyaStack::new(false, false, false, false);
                 stack.find_all(|p| derive_tinanta(p, t));
 
                 if let Some(p) = stack.prakriyas().first() {

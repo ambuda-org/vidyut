@@ -897,7 +897,6 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
             m.finish()
         }
         Scheme::GunjalaGondi => {
-            println!("Before: {output}");
             const GUNJALA_GONDI_VIRAMA: char = '\u{11d97}';
             while m.not_empty() {
                 if m.match_2(|x, y| x == GUNJALA_GONDI_VIRAMA && !is_gunjala_gondi_consonant(y)) {

@@ -2,7 +2,7 @@ use crate::akshara::{Akshara, Weight};
 use crate::error::{ChandasError, Result};
 
 /// Models the weights that a vrtta can accept.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PatternWeight {
     /// A heavy syllable.
     G,
@@ -74,10 +74,10 @@ impl Gana {
     }
 }
 
-/// Models a *pāda*, which is one of the four "feet" or "legs" of a verse.
+/// Models a *pāda*, which is one of the four "feet" or "legs" of a vrtta.
 /// A *pāda* defines a specific pattern of light and heavy syllables and
 /// might also define one or more *yati*s (caesuras).
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Pada {
     weights: Vec<PatternWeight>,
     yati: Vec<usize>,
@@ -87,10 +87,49 @@ impl Pada {
     fn new(weights: Vec<PatternWeight>, yati: Vec<usize>) -> Self {
         Pada { weights, yati }
     }
+
+    /// Returns the weights that this pada uses.
+    pub fn weights(&self) -> &[PatternWeight] {
+        &self.weights
+    }
+
+    /// Returns the caesurae (yati) that occur in this pada.
+    pub fn yati(&self) -> &[usize] {
+        &self.yati
+    }
+
+    /// Returns the ganas that define this pada.
+    pub fn ganas(&self) -> Vec<Gana> {
+        use Gana::*;
+        use PatternWeight::*;
+
+        let mut ganas = Vec::new();
+        for chunk in self.weights.chunks(3) {
+            match chunk {
+                [L, G, G] => ganas.push(Ya),
+                [G, G, G] => ganas.push(Ma),
+                [G, G, L] => ganas.push(Ta),
+                [G, L, G] => ganas.push(Ra),
+                [L, G, L] => ganas.push(Ja),
+                [G, L, L] => ganas.push(Bha),
+                [L, L, L] => ganas.push(Na),
+                [L, L, G] => ganas.push(Sa),
+                _ => {
+                    for a in chunk {
+                        match a {
+                            L => ganas.push(La),
+                            Any | G => ganas.push(Ga),
+                        }
+                    }
+                }
+            }
+        }
+        ganas
+    }
 }
 
 /// Models a *vṛtta*, which defines a specific pattern of light and heavy syllables.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Vrtta {
     name: String,
     padas: Vec<Pada>,
@@ -112,8 +151,8 @@ impl Vrtta {
         &self.name
     }
 
-    #[allow(unused)]
-    pub(crate) fn padas(&self) -> &Vec<Pada> {
+    /// Returns the padas that constitute this vrtta.
+    pub fn padas(&self) -> &[Pada] {
         &self.padas
     }
 
@@ -178,42 +217,6 @@ impl Vrtta {
             MatchType::None
         }
     }
-
-    #[allow(unused)]
-    pub(crate) fn ganas(&self) -> Vec<Vec<Gana>> {
-        use Gana::*;
-        use PatternWeight::*;
-
-        let mut result = Vec::new();
-
-        for pada in &self.padas {
-            let mut ganas = Vec::new();
-
-            for chunk in pada.weights.chunks(3) {
-                match chunk {
-                    [L, G, G] => ganas.push(Ya),
-                    [G, G, G] => ganas.push(Ma),
-                    [G, G, L] => ganas.push(Ta),
-                    [G, L, G] => ganas.push(Ra),
-                    [L, G, L] => ganas.push(Ja),
-                    [G, L, L] => ganas.push(Bha),
-                    [L, L, L] => ganas.push(Na),
-                    [L, L, G] => ganas.push(Sa),
-                    _ => {
-                        for a in chunk {
-                            match a {
-                                L => ganas.push(La),
-                                Any | G => ganas.push(Ga),
-                            }
-                        }
-                    }
-                }
-            }
-            result.push(ganas);
-        }
-
-        result
-    }
 }
 
 impl TryFrom<&str> for Pada {
@@ -254,7 +257,7 @@ impl TryFrom<&str> for Vrtta {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum JatiKind {
     /// A default jati.
     Basic,
@@ -265,7 +268,7 @@ pub(crate) enum JatiKind {
 }
 
 /// Models a *jāti*, which defines a specific pattern of *mātrā*s (morae).
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Jati {
     /// The name of this jati.
     name: String,
@@ -300,7 +303,7 @@ impl Jati {
     }
 
     /// The matras that define this meter. The returned `Vec` has length 4.
-    pub fn matras(&self) -> &Vec<i32> {
+    pub fn matras(&self) -> &[i32] {
         &self.matras
     }
 
@@ -416,14 +419,23 @@ mod tests {
         use Gana::*;
 
         let vasantatilaka: Vrtta = "vasantatilakA\tvrtta\tGGLGLLLGLLGLGG".try_into().unwrap();
-        assert_eq!(vasantatilaka.ganas()[0], vec![Ta, Bha, Ja, Ja, Ga, Ga]);
+        assert_eq!(
+            vasantatilaka.padas()[0].ganas(),
+            vec![Ta, Bha, Ja, Ja, Ga, Ga]
+        );
 
         let mandakranta: Vrtta = "mandAkrAntA\tvrtta\tGGGGLLLLLGGLGGLGG".try_into().unwrap();
-        assert_eq!(mandakranta.ganas()[0], vec![Ma, Bha, Na, Ta, Ta, Ga, Ga]);
+        assert_eq!(
+            mandakranta.padas()[0].ganas(),
+            vec![Ma, Bha, Na, Ta, Ta, Ga, Ga]
+        );
 
         let shardula: Vrtta = "SArdUlavikrIqita\tvrtta\tGGGLLGLGLLLGGGLGGLG"
             .try_into()
             .unwrap();
-        assert_eq!(shardula.ganas()[0], vec![Ma, Sa, Ja, Sa, Ta, Ta, Ga]);
+        assert_eq!(
+            shardula.padas()[0].ganas(),
+            vec![Ma, Sa, Ja, Sa, Ta, Ta, Ga]
+        );
     }
 }

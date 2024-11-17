@@ -12,4 +12,4 @@ mod wasm;
 
 pub use akshara::{Akshara, Weight};
 pub use chandas::{Chandas, Match, Matches};
-pub use padya::{Jati, MatchType, Vrtta};
+pub use padya::{Jati, MatchType, Pada, PatternWeight, Vrtta};

@@ -2035,14 +2035,14 @@ pub const URAH_PRABHRTI: &[&str] = &[
     "SAli",
 ];
 
-// 5.4.29 yAvAviByaH kan (252)
-// TODO: others
+/// 5.4.29 yAvAviByaH kan (252)
+/// TODO: others
 pub const YAVA_ADI: &[&str] = &[
     "yAva", "maRi", "asTi", "caRqa", "pIta", "stamBa", "ftu", "paSu", "aRu", "putra", "snAta",
     "SUnya", "dAna", "tanu", "jYAta",
 ];
 
-// 5.4.34 vinayAdiByaz Wak (253)
+/// 5.4.34 vinayAdiByaz Wak (253)
 pub const VINAYA_ADI: &[&str] = &[
     "vinaya",
     "samaya",
@@ -2061,8 +2061,8 @@ pub const VINAYA_ADI: &[&str] = &[
     "atyaya",
 ];
 
-// 6.1.203 vfzAdInAM ca (210)
-// TODO: SamaraRa
+/// 6.1.203 vfzAdInAM ca (210)
+/// TODO: SamaraRa
 pub const VRSHA_ADI: &[&str] = &[
     "vfza", "jana", "jvara", "graha", "haya", "maya", "gaya", "tAya", "taya", "caya", "ama",
     "veda", "sUda", "aMSa", "guhA", "mantra", "SAnti", "kAma", "yAma", "ArA", "DArA", "kArA",

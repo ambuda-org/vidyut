@@ -370,8 +370,8 @@ impl Dhatu {
 impl From<vp::Dhatu> for Dhatu {
     fn from(vp: vp::Dhatu) -> Self {
         Dhatu {
-            prefixes: vp.prefixes().clone(),
-            sanadi: vp.sanadi().clone(),
+            prefixes: vp.prefixes().to_vec(),
+            sanadi: vp.sanadi().to_vec(),
             text: match vp.upadesha() {
                 Some(s) => s.to_string(),
                 None => String::new(),

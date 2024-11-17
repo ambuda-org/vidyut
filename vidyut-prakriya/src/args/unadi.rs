@@ -1,9 +1,11 @@
 use crate::core::errors::*;
 use crate::enum_boilerplate;
-
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The complete list of unadi-pratyayas.
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+/// The complete list of *uṇādi pratyaya*s.
 ///
 /// Rust's naming convention is to start enum values with capital letters. However, we allow mixed
 /// case explicitly here so that we can name pratyayas more concisely with SLP1. Doing so helps us
@@ -12,6 +14,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// NOTE: we generated this list programmatically. Many of these pratyayas have typos.
 #[allow(dead_code, non_camel_case_types)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Unadi {
     /// -a

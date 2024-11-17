@@ -1,5 +1,8 @@
 use crate::args::{Krdanta, Samasa, Taddhitanta};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// A nominal stem.
 ///
 /// Rules 1.2.45 and 1.2.46 define a pratipadika as either:
@@ -9,7 +12,8 @@ use crate::args::{Krdanta, Samasa, Taddhitanta};
 ///
 /// A pratipadika is the base to which we add sup-pratyayas. Through this process, we create
 /// subantas (nominals), which are complete words.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Pratipadika {
     /// A simple string that receives the pratipadika-samjna by rule 1.2.45.
     Basic(BasicPratipadika),
@@ -22,7 +26,8 @@ pub enum Pratipadika {
 }
 
 /// Models a basic *prātipadika* that is not created with any other *pratyaya*s.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BasicPratipadika {
     pub(crate) text: String,
     pub(crate) is_avyaya: bool,

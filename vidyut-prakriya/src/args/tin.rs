@@ -4,10 +4,14 @@ use crate::core::Tag;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// The *prayoga* of some *tiṅanta*.
 ///
 /// *Prayoga* is roughly similar to the Western concept of verb *voice*.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Prayoga {
     /// Usage coreferent with the agent, e.g. "The horse *goes* to the village."
@@ -36,7 +40,8 @@ impl Prayoga {
 }
 
 /// The person of some *tiṅanta*.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Purusha {
     /// The third person.
@@ -64,7 +69,8 @@ impl Purusha {
 }
 
 /// The number of some *tiṅanta* or *subanta*.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Vacana {
     /// The singular.
@@ -92,7 +98,8 @@ impl Vacana {
 }
 
 /// The tense/mood of some *tiṅanta*.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Lakara {
     /// Describes action in the present tense. Ssometimes called the *present indicative*.
@@ -157,7 +164,8 @@ impl Lakara {
 }
 
 /// The pada of some *tiṅanta* or *kṛdanta*.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum DhatuPada {
     /// *Parasmaipada*.
@@ -186,12 +194,13 @@ impl DhatuPada {
 /// not be necessary. However, a *tiṅanta*'s derivation can have many other constraints, including:
 ///
 /// - specific *upasarga*s or other prefixes
-/// - specific sanAdi pratyayas
+/// - specific *sanādi pratyaya*s
 /// - other constraints on the overall derivation
 ///
 /// Since we want to keep these args manageable and don't want to repeatedly break our main API, we
 /// decided to wrap args in this struct and expose its values through accessors.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Tinanta {
     dhatu: Dhatu,
     prayoga: Prayoga,

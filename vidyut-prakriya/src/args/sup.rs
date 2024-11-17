@@ -5,8 +5,12 @@ use crate::core::Tag;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// The gender of some *subanta*.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Linga {
     /// The masculine.
@@ -40,26 +44,27 @@ impl Linga {
 /// *vibhakti* refers more specifically to the endings used with *subanta*s.
 ///
 /// *Vibhakti* is broadly similar to the Western notion of grammatical case.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[wasm_bindgen]
 pub enum Vibhakti {
-    /// The first vibhakti . Sometimes called the *nominative case*.
+    /// The first *vibhakti*. Sometimes called the *nominative case*.
     Prathama,
-    /// The second vibhakti. Sometimes called the *accusative case*.
+    /// The second *vibhakti*. Sometimes called the *accusative case*.
     Dvitiya,
-    /// The third vibhakti. Sometimes called the *instrumental case*.
+    /// The third *vibhakti*. Sometimes called the *instrumental case*.
     Trtiya,
-    /// The fourth vibhakti. Sometimes called the *dative case*.
+    /// The fourth *vibhakti*. Sometimes called the *dative case*.
     Caturthi,
-    /// The fifth vibhakti. Sometimes called the *ablative case*.
+    /// The fifth *vibhakti*. Sometimes called the *ablative case*.
     Panchami,
-    /// The sixth vibhakti. Sometimes called the *genitive case*.
+    /// The sixth *vibhakti*. Sometimes called the *genitive case*.
     Sasthi,
-    /// The seventh vibhakti. Sometimes called the *locative case*.
+    /// The seventh *vibhakti*. Sometimes called the *locative case*.
     Saptami,
-    /// The first vibhakti used in the sense of *sambodhana*. Sometimes called the *vocative case*.
+    /// The first *vibhakti* used in the sense of *sambodhana*. Sometimes called the *vocative case*.
     ///
-    /// *Sambodhana* is technically not a *vibhakti but rather an additional semantic condition
+    /// *Sambodhana* is technically not a *vibhakti* but rather an additional semantic condition
     /// on the first vibhakti. But we felt that users would find it more convenient to have this
     /// condition available on `Vibhakti` directly rather than have to define the *sambodhana*
     /// condition separately.
@@ -93,7 +98,8 @@ impl Vibhakti {
 }
 
 /// The information required to derive a *subanta*.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Subanta {
     pratipadika: Pratipadika,
     linga: Linga,

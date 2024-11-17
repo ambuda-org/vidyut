@@ -26,7 +26,7 @@ use vidyut_prakriya::{Dhatupatha, Vyakarana};
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Args {
-    /// Name of the sanadi-pratyaya to use. If not set, defaults to `None`.
+    /// Name of the *sanādi pratyaya* to use. If not set, defaults to `None`.
     #[arg(long)]
     sanadi: Option<Sanadi>,
     /// Name of the prayoga to use. If not set, defaults to kartari.

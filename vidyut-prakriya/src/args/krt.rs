@@ -6,14 +6,18 @@ use crate::core::errors::*;
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
-/// The complete list of ordinary krt-pratyayas.
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+/// The complete list of ordinary *kṛt pratyaya*s.
 ///
 /// Rust's naming convention is to start enum values with capital letters. However, we allow mixed
 /// case explicitly here so that we can name pratyayas more concisely with SLP1. Doing so helps us
 /// distinguish between pratyayas like `naN` and `nan`.
 #[allow(dead_code, non_camel_case_types)]
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 #[wasm_bindgen]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum BaseKrt {
     /// -a
     a,
@@ -326,12 +330,13 @@ enum_boilerplate!(BaseKrt, {
     zvun => "zvu~n",
 });
 
-/// Models a krt-pratyaya.
+/// Models a *kṛt pratyaya*.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Krt {
-    /// An ordinary krt-pratyaya as declared in the Ashtadhyayi.
+    /// An ordinary *kṛt pratyaya* as declared in the Ashtadhyayi.
     Base(BaseKrt),
-    /// An unadi-pratyaya as declared in the Unadipatha.
+    /// An *uṇādi pratyaya* as declared in the Unadipatha.
     Unadi(Unadi),
 }
 
@@ -373,28 +378,30 @@ impl Krt {
     }
 }
 
-/// Models the meaning of a krt-pratyaya.
+/// Models the meaning of a *kṛt pratyaya*.
 ///
-/// krts are often available only in specific senses. A given krt might be allowed in one sense
-/// but blocked in another. To model and test this behavior, we use the enum below.
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+/// *kṛt*s are often available only in specific senses. A given *kṛt* might be allowed in one sense
+/// but blocked in another.
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum KrtArtha {
-    /// Agent. (3.4.67)
-    Karta,
+    /// Having a habit, nature, or skill. (3.2.134)
+    TacchilaTaddharmaTatsadhukara,
     /// Existence. (3.3.18)
     Bhava,
-    /// Having a habit, nature, or skill.
-    TacchilaTaddharmaTatsadhukara,
-    /// Designation. (3.3.118)
-    Samjna,
     /// Solidity. (3.3.77)
     Murti,
     /// Location. (3.3.78)
     Desha,
+    /// Designation. (3.3.118)
+    Samjna,
+    /// Agent. (3.4.67)
+    Karta,
 }
 
-/// The information required to derive a krdanta.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+/// The information required to derive a *kṛdanta*.
+#[derive(Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Krdanta {
     /// The dhatu to which we will add our krt-pratyaya.
     dhatu: Dhatu,

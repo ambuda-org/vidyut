@@ -71,8 +71,11 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
                 }
                 // Otherwise, we have gIrzu, etc.
             } else {
-                // vfkzaH, ...
-                p.run_at("8.3.15", i, |t| t.set_antya("H"));
+                let should_run = if p.nlp_mode() { !is_avasane } else { true };
+                if should_run {
+                    // vfkzaH, ...
+                    p.run_at("8.3.15", i, |t| t.set_antya("H"));
+                }
             }
         }
     }
@@ -307,7 +310,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         return None;
     }
 
-    // Skip unAdi-pratyayas that don't allow satva.
+    // Skip *uṇādi pratyaya*s that don't allow satva.
     if t.is_krt() && t.has_u("isan") {
         return None;
     }
