@@ -14,6 +14,7 @@ import shutil
 
 CRATE_DIR = Path(__file__).parent.parent
 
+# Scripts to use from `common_maps.git`
 ALLOWED = {
     "AHOM",
     "ASSAMESE",
@@ -71,6 +72,7 @@ ALLOWED = {
 }
 
 
+# Human-readable names for Unicode combos
 KEY_NAMES = {
     "\u0905": "A",
     "\u0906": "AA",
@@ -216,6 +218,7 @@ class AttributeDict(dict):
         for k, v in d.items():
             setattr(self, k, v)
 
+# Mapping from names to Unicode sequences
 C = AttributeDict({v: k for k, v in KEY_NAMES.items()})
 
 
@@ -238,15 +241,16 @@ VOWEL_TO_MARK = {
 }
 
 
+# Tweaks to the defaults in common_map
 OVERRIDES = {
     "BARAHA":
     # Existing accent marks seem to be mostly wrong -- delete so that we
     # can redefine them elsewhere.
     {
         "\u1ce1": None,
-        "\ua8e1": None,
-        "\ua8e2": None,
-        "\ua8e3": None,
+        C.COMBINING_DIGIT_1: None,
+        C.COMBINING_DIGIT_2: None,
+        C.COMBINING_DIGIT_3: None,
     },
     "GRANTHA": {
         # vowel sign AU
@@ -447,6 +451,7 @@ OVERRIDES = {
 }
 
 
+# Additional characters not present in common_map (or deleted in OVERRIDES)
 EXTENSIONS = {
     "ASSAMESE": [
         (C.CANDRABINDU_VIRAMA, "\u09fc"),
@@ -541,6 +546,16 @@ EXTENSIONS = {
         (C.QA, "q"),
         (C.JIHVAMULIYA, "ẖ"),
         (C.UPADHMANIYA, "ḫ"),
+        (C.KA + C.VIRAMA + C.HA, "k:h"),
+        (C.GA + C.VIRAMA + C.HA, "g:h"),
+        (C.CA + C.VIRAMA + C.HA, "c:h"),
+        (C.JA + C.VIRAMA + C.HA, "j:h"),
+        (C.TTA + C.VIRAMA + C.HA, "ṭ:h"),
+        (C.DDA + C.VIRAMA + C.HA, "ḍ:h"),
+        (C.TA + C.VIRAMA + C.HA, "t:h"),
+        (C.DA + C.VIRAMA + C.HA, "d:h"),
+        (C.PA + C.VIRAMA + C.HA, "p:h"),
+        (C.BA + C.VIRAMA + C.HA, "b:h"),
     ],
     "KANNADA": [
         (C.JIHVAMULIYA, "\u0cf1"),
@@ -640,6 +655,7 @@ def _sanitize(s: str) -> str:
 
 
 def to_unique(xs: list) -> list:
+    """Remove duplicates from `xs`."""
     seen = set()
     ret = []
     for x in xs:

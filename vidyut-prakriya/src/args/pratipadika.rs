@@ -3,6 +3,22 @@ use crate::args::{Krdanta, Samasa, Taddhitanta};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+/// Models a basic *prātipadika* that is not created with any other *pratyaya*s.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct BasicPratipadika {
+    pub(crate) text: String,
+    pub(crate) is_avyaya: bool,
+    pub(crate) is_nyap: bool,
+}
+
+impl BasicPratipadika {
+    /// Returns the text that constitutes this pratipadika.
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+}
+
 /// A nominal stem.
 ///
 /// Rules 1.2.45 and 1.2.46 define a pratipadika as either:
@@ -23,15 +39,6 @@ pub enum Pratipadika {
     Taddhitanta(Box<Taddhitanta>),
     /// A *samāsa*.
     Samasa(Box<Samasa>),
-}
-
-/// Models a basic *prātipadika* that is not created with any other *pratyaya*s.
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct BasicPratipadika {
-    pub(crate) text: String,
-    pub(crate) is_avyaya: bool,
-    pub(crate) is_nyap: bool,
 }
 
 impl Pratipadika {

@@ -1,7 +1,7 @@
 use crate::sounds;
 
 /// The weight of an akshara.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Weight {
     /// A *guru* or heavy syllable.
     G,
@@ -18,7 +18,7 @@ pub enum Weight {
 /// - It must not start with an anusvara or visarga.
 ///
 /// Together, these three rurles mean that an input string has exactly one division into aksharas.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Akshara {
     pub(crate) text: String,
     pub(crate) weight: Weight,

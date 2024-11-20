@@ -847,6 +847,17 @@ pub struct Taddhitanta {
 }
 
 impl Taddhitanta {
+    /// Defines a simple `Taddhitanta`.
+    ///
+    /// For more options, use `Taddhitanta::builder()` instead.
+    pub fn new(pratipadika: Pratipadika, taddhita: Taddhita) -> Self {
+        Self {
+            pratipadika,
+            taddhita,
+            artha: None,
+            require: None,
+        }
+    }
     /// Returns a new builder for this struct.
     pub fn builder() -> TaddhitantaBuilder {
         TaddhitantaBuilder::default()

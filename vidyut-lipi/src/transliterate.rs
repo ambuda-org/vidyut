@@ -70,6 +70,29 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
             }
         }
 
+        // Special case: from ISO-15959 separator logic for a:i, a:u
+        //
+        // (consonants are handled in the mapping. We can't do the same for a:i and a:u because the
+        // implicit 'a' vowel causes problems.)
+        // TODO: is there a better place to put this?
+        if mapping.from == Scheme::Iso15919
+            && (input[i..].starts_with("a:i") || input[i..].starts_with("a:u"))
+        {
+            if is_to_abugida && had_virama {
+                // 'a' means we should pop virama.
+                output.pop();
+                had_virama = false;
+            } else {
+                // Otherwise, add independent 'a' vowel.
+                if let Some(x) = mapping.get("a") {
+                    output.push_str(x.text());
+                }
+            }
+            // Increment past "a:"
+            i += 2;
+            continue;
+        }
+
         // 1. Find the largest prefix of `input[i..]` that is defined in `mapping`.
         //
         // We must check for the *largest* match to distinguish between `b` and `bh`, `R` and `RR`,
@@ -140,6 +163,20 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                         had_virama = true;
                     }
                 }
+            }
+
+            // Special case: to ISO-15959 separator logic for a:i, a:u
+            //
+            // (consonants are handled in the mapping. We can't do the same for a:i and a:u because
+            // the implicit 'a' vowel causes problems.)
+            // TODO: is there a better place to put this?
+            if mapping.to == Scheme::Iso15919
+                && (output.ends_with("ai") || output.ends_with("au"))
+                && matches!(token.text(), "i" | "u")
+            {
+                output.pop();
+                output.push(':');
+                output.push_str(token.text());
             }
         } else {
             // ITRANS: `\` skips the next character.

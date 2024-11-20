@@ -13,7 +13,7 @@ pub enum PatternWeight {
 }
 
 /// Describes how a vrtta matches some input.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MatchType {
     /// No match.
     None,
@@ -26,7 +26,7 @@ pub enum MatchType {
 }
 
 /// A traditional shorthand for vrtta weights.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Gana {
     /// *ya* (L G G)
     Ya,
@@ -257,7 +257,7 @@ impl TryFrom<&str> for Vrtta {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum JatiKind {
     /// A default jati.
     Basic,

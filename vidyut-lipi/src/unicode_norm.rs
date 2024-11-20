@@ -27,6 +27,7 @@
 
 use crate::scheme::Scheme;
 use rustc_hash::FxHashMap;
+use unicode_normalization::UnicodeNormalization;
 
 type Table = &'static [(&'static str, &'static str)];
 
@@ -117,6 +118,7 @@ pub const DEVANAGARI_NFD: Table = &[
 ];
 
 /// Characters that should not be created during NFD --> NFC.
+#[cfg(target_arch = "wasm32")]
 pub const DEVANAGARI_COMPOSITION_EXCLUSIONS: &[&str] = &[
     "\u{0958}", // ka
     "\u{0959}", // kha
@@ -139,6 +141,7 @@ pub const BENGALI_NFD: Table = &[
 ];
 
 /// Characters that should not be created during NFD --> NFC.
+#[cfg(target_arch = "wasm32")]
 pub const BENGALI_COMPOSITION_EXCLUSIONS: &[&str] = &["\u{09dc}", "\u{09dd}", "\u{09df}"];
 
 /// Spec: <https://unicode.org/charts/PDF/U1000.pdf>
@@ -178,6 +181,7 @@ pub const GURMUKHI_NFD: Table = &[
 ];
 
 /// Spec: <https://unicode.org/charts/PDF/U0A00.pdf>
+#[cfg(target_arch = "wasm32")]
 pub const GURMUKHI_COMPOSITION_EXCLUSIONS: &[&str] = &[
     "\u{0a33}", "\u{0a36}", "\u{0a59}", "\u{0a5a}", "\u{0a5b}", "\u{0a5e}",
 ];
@@ -207,6 +211,7 @@ pub const ORIYA_NFD: Table = &[
     ("\u{0b5d}", "\u{0b22}\u{0b3c}"), // letter rha
 ];
 
+#[cfg(target_arch = "wasm32")]
 pub const ORIYA_COMPOSITION_EXCLUSIONS: &[&str] = &["\u{0b5c}", "\u{0b5d}"];
 
 /// Spec: <https://unicode.org/charts/PDF/U11580.pdf>
@@ -253,9 +258,17 @@ pub const TIRHUTA_NFD: Table = &[
 ///
 /// Only characters that appear in one of our `Scheme`s will be converted. All other characters
 /// will be left as-is.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn to_nfc(s: &str) -> String {
+    s.nfc().collect()
+}
+
+/// WASM-only version of `to_nfc`.
 ///
-/// TODO: consider using `unicode_normalization` in non-WASM with conditional compilation. Leaning
-/// against due to having to reason about two different systems.
+/// The `unicode_normalization` implementation of this logic is substantially faster (which
+/// motivates using it in non-WASM builds) but also much larger (which motivates avoiding it in
+/// WASM builds).
+#[cfg(target_arch = "wasm32")]
 pub(crate) fn to_nfc(s: &str) -> String {
     let mut map = FxHashMap::default();
     let mut len_longest_key = 0;
@@ -305,6 +318,7 @@ pub(crate) fn to_nfc(s: &str) -> String {
 ///
 /// Our version of `to_nfd` supports only those characters that are part of a `Scheme`. All other
 /// characters are left unchanged.
+#[allow(unused)]
 pub(crate) fn to_nfd(s: &str) -> String {
     let mut map: FxHashMap<String, String> = FxHashMap::default();
 

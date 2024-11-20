@@ -613,6 +613,7 @@ impl Scheme {
         }
     }
 
+    #[cfg(target_arch = "wasm32")]
     pub(crate) fn unicode_composition_exclusions(&self) -> &[&str] {
         use crate::unicode_norm as u;
         use Scheme::*;

@@ -10,6 +10,6 @@ fn main() {
     }
 
     let mut lipika = Lipika::new();
-    let output = lipika.transliterate(input, Scheme::Slp1, Scheme::Tibetan);
-    println!("{output}");
+    let output = lipika.transliterate(input, Scheme::Slp1, Scheme::Devanagari);
+    _ = lipika.transliterate(output, Scheme::Devanagari, Scheme::Slp1);
 }

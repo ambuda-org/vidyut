@@ -983,6 +983,56 @@ fn iso_15919_bug_no_greedy_match_on_nfd() {
 }
 
 #[test]
+fn iso_15919_colon_separator() {
+    // Consonants
+    assert_two_way_pairwise(&[
+        (
+            Iso15919,
+            "k:ha g:ha c:ha j:ha ṭ:ha ḍ:ha t:ha d:ha p:ha b:ha",
+        ),
+        (Slp1, "kha gha cha jha wha qha tha dha pha bha"),
+        (Devanagari, "क्ह ग्ह च्ह ज्ह ट्ह ड्ह त्ह द्ह प्ह ब्ह"),
+        (Kannada, "ಕ್ಹ ಗ್ಹ ಚ್ಹ ಜ್ಹ ಟ್ಹ ಡ್ಹ ತ್ಹ ದ್ಹ ಪ್ಹ ಬ್ಹ"),
+    ]);
+
+    // Consonants with marks
+    assert_two_way_pairwise(&[
+        (
+            Iso15919,
+            "k:hā g:hā c:hā j:hā ṭ:hā ḍ:hā t:hā d:hā p:hā b:hā",
+        ),
+        (Slp1, "khA ghA chA jhA whA qhA thA dhA phA bhA"),
+        (Devanagari, "क्हा ग्हा च्हा ज्हा ट्हा ड्हा त्हा द्हा प्हा ब्हा"),
+        (Kannada, "ಕ್ಹಾ ಗ್ಹಾ ಚ್ಹಾ ಜ್ಹಾ ಟ್ಹಾ ಡ್ಹಾ ತ್ಹಾ ದ್ಹಾ ಪ್ಹಾ ಬ್ಹಾ"),
+    ]);
+
+    // Consonants with viramas
+    assert_two_way_pairwise(&[
+        (Iso15919, "k:h g:h c:h j:h ṭ:h ḍ:h t:h d:h p:h b:h"),
+        (Slp1, "kh gh ch jh wh qh th dh ph bh"),
+        (Devanagari, "क्ह् ग्ह् च्ह् ज्ह् ट्ह् ड्ह् त्ह् द्ह् प्ह् ब्ह्"),
+        (Kannada, "ಕ್ಹ್ ಗ್ಹ್ ಚ್ಹ್ ಜ್ಹ್ ಟ್ಹ್ ಡ್ಹ್ ತ್ಹ್ ದ್ಹ್ ಪ್ಹ್ ಬ್ಹ್"),
+    ]);
+
+    // Vowels
+    assert_two_way_pairwise(&[
+        (Iso15919, "a:i a:u ka:i ka:u"),
+        (Slp1, "ai au kai kau"),
+        (Devanagari, "अइ अउ कइ कउ"),
+        (Kannada, "ಅಇ ಅಉ ಕಇ ಕಉ"),
+    ]);
+
+    // Regular colons -- ignore
+    // TODO: what's the best policy for handling these?
+    assert_two_way_pairwise(&[
+        (Iso15919, "a: ka: k: a:ā k:ta"),
+        (Slp1, "a: ka: k: a:A k:ta"),
+        (Devanagari, "अ: क: क्: अ:आ क्:त"),
+        (Kannada, "ಅ: ಕ: ಕ್: ಅ:ಆ ಕ್:ತ"),
+    ]);
+}
+
+#[test]
 fn iso_15919_tamil_aytam() {
     assert_transliterate("ஃ", Tamil, Iso15919, "ḳ");
     assert_transliterate("\u{1e33}", Iso15919, Tamil, "ஃ");

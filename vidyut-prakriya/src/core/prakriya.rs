@@ -17,29 +17,39 @@ pub type Code = &'static str;
 ///
 /// Most of a derivation's rules come directly from the Ashtadhyayi. But, some derivations use
 /// rules from other sources. We use this model to clearly define where different rules come from.
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Rule {
-    /// A sutra from the Ashtadhyayi. The string data here is an adhyaya-pada-sutra string, e.g.
-    /// "3.1.68".
+    /// A sutra from the Ashtadhyayi.
+    ///
+    /// Format: "<adhyaya>.<pada>.<sutra>"
     Ashtadhyayi(&'static str),
-    /// A varttika on the Ashtadhyayi. The first string is an adhyaya-pada-sutra string, e.g.
-    /// "3.1.68",a nd the second string is an integer corresponding to the vArttika's position on
-    /// the sutra, e.g. "2" for the second vArttika on some sUtra.
+    /// A varttika on the Ashtadhyayi.
+    ///
+    /// Format: "<adhyaya>.<pada>.<sutra>.<varttika>"
     Varttika(&'static str),
-    /// A sutra from the Dhatupatha. The string data here is a gana-sutra string, e.g. "10.0493".
+    /// A sutra from the Dhatupatha.
+    ///
+    /// Format: "<gana>.<sutra>"
     Dhatupatha(&'static str),
-    /// A sutra from the Unadipatha. The string here is a gana-sutra string, e.g. "1.1".
+    /// A sutra from the Unadipatha.
+    ///
+    /// Format: "<gana>.<sutra>"
     Unadipatha(&'static str),
-    /// A sutra from the Paniniya-Linganushasanam. The string here is the sutra's position in the
-    /// text, e.g. "40".
+    /// A sutra from the Paniniya-Linganushasanam.
+    ///
+    /// Format: "<sutra>"
     Linganushasana(&'static str),
-    /// A sutra from the Phit Sutras. The string here is a gana-sutra string, e.g. "1.1".
+    /// A sutra from the Phit Sutras.
+    ///
+    /// Format: "<gana>.<sutra>"
     Phit(&'static str),
-    /// A comment in the Kashika-vrtti on a specific sutra. The string data here is an
-    /// adhyaya-pada-sutra string that describes the sutra being commented on.
+    /// A comment in the Kashika-vrtti on a specific sutra.
+    ///
+    /// Format: "<adhyaya>.<pada>.<sutra>"
     Kashika(&'static str),
-    /// A quotation from the Vaiyakarana-siddhanta-kaumudi. The string here is the position of the
-    /// sutra being commented on in Kaumudi order, e.g. "446".
+    /// A quotation from the Vaiyakarana-siddhanta-kaumudi.
+    ///
+    /// Format: "<sutra>"
     Kaumudi(&'static str),
 }
 
@@ -74,7 +84,7 @@ impl From<&'static str> for Rule {
 /// structure with more information about the specific change. For example, we might explicitly
 /// indicate which term in the result was changed, which kind of rule was replied, and whether this
 /// rule was optional.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Step {
     rule: Rule,
     result: Vec<StepTerm>,
@@ -93,7 +103,7 @@ impl Step {
 }
 
 /// One of the terms in the derivation.
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub struct StepTerm {
     text: String,
     // NOTE: keep `tags` private.
@@ -114,7 +124,7 @@ impl StepTerm {
 }
 
 /// Records whether an optional rule was accepted or declined.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum RuleChoice {
     /// Indicates that a rule was accepted during the derivation.
     Accept(Rule),
@@ -123,7 +133,7 @@ pub enum RuleChoice {
 }
 
 /// Configuration options that affect how a `Prakriya` behaves during the derivation.
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub(crate) struct Config {
     pub rule_choices: Vec<RuleChoice>,
     pub log_steps: bool,
@@ -167,7 +177,7 @@ impl Config {
 /// For example, we might want the derivation to use *chandasi* rules, or we might wish to block
 /// such rules. Or, we might want to skip history logging so that we can generate words more
 /// quickly.
-#[derive(Default, Debug)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Prakriya {
     terms: Vec<Term>,
     tags: EnumSet<Tag>,
