@@ -260,7 +260,14 @@ pub const TIRHUTA_NFD: Table = &[
 /// will be left as-is.
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn to_nfc(s: &str) -> String {
-    s.nfc().collect()
+    // `.collect()` seems not to pre-allocate.
+    //
+    // Result: 8.27s --> 7.89s (-5%)
+    let mut ret = String::with_capacity(s.len());
+    for c in s.nfc() {
+        ret.push(c);
+    }
+    ret
 }
 
 /// WASM-only version of `to_nfc`.

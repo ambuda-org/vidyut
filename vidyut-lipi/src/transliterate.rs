@@ -47,8 +47,9 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
     let input = reshape_before(input, mapping.from());
 
     let is_to_alphabet = mapping.to.is_alphabet();
-    let is_from_abugida = mapping.from.is_abugida();
     let is_to_abugida = mapping.to.is_abugida();
+    let is_from_abugida = mapping.from.is_abugida();
+    let is_from_alphabet = mapping.from.is_alphabet();
     let is_from_itrans = mapping.from == Scheme::Itrans;
 
     let uses_non_decimal =
@@ -85,7 +86,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
             } else {
                 // Otherwise, add independent 'a' vowel.
                 if let Some(x) = mapping.get("a") {
-                    output.push_str(x.text());
+                    output.push_str(&x.value);
                 }
             }
             // Increment past "a:"
@@ -97,55 +98,55 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
         //
         // We must check for the *largest* match to distinguish between `b` and `bh`, `R` and `RR`,
         // etc.
-        let mut token = None;
-        let mut key: &str = "";
-        let mut next_i = i;
-        for len_key in (1..=mapping.len_longest_key).rev() {
-            // `nth` is 0-indexed.
-            let j = input[i..].char_indices().nth(len_key).map(|(i, _)| i);
-            next_i = if let Some(j) = j { i + j } else { input.len() };
 
-            key = &input[i..next_i];
-            token = mapping.get(key);
-            if token.is_some() {
-                break;
-            }
-        }
-        debug_assert!(next_i > i, "next_i = {next_i}, i = {i}");
+        // New approach.
+        let slice = &input[i..];
+        let c = match slice.chars().next() {
+            Some(c) => c,
+            None => break,
+        };
+        let span = mapping
+            .spans_starting_with(c)
+            .iter()
+            .filter(|t| slice.starts_with(&t.key))
+            .max_by_key(|t| t.key.len());
 
         // 2. Append the mapped result, if it exists.
-        if let Some(token) = token {
+        if let Some(span) = span {
+            let key = &span.key;
             // `letter_a` is "a" for Latin scripts but takes other values for non-Latin scripts
             // like Ol Chiki.
 
-            // Abugidas and alphabets have distinct logic here, so keep their code neatly separate.
-            if is_from_abugida {
+            // Abugidas and alphabets have distinct logic, so keep their code neatly separate.
+            if is_from_abugida && is_to_alphabet {
                 let a = &mapping.to_map.letter_a;
-                if output.ends_with(a)
-                    && (mapping.marks.contains_key(key) || key == mapping.from_map.virama)
-                {
-                    // `key` maps to a token that blocks the default "a" vowel, so pop the "a" that
-                    // we added in the previous iteration.
+                if output.ends_with(a) && (span.is_mark() || key == &mapping.from_map.virama) {
+                    // `key` maps to a token that blocks the default "a" vowel:
+                    //
+                    // - a vowel mark inserts a different vowel sound instead.
+                    // - the virama prevents "a" from being added.
+                    //
+                    // So, pop the "a" that we added in the previous iteration.
                     output.pop();
                 }
 
-                output += &token.text();
+                output += &span.value;
 
-                if is_to_alphabet && token.is_consonant() {
+                if span.is_consonant() {
                     // Add an implicit "a" vowel.
                     //
                     // (The next loop iteration might pop this "a" off of `output`.)
                     output += a;
                 }
-            } else {
+            } else if is_from_alphabet && is_to_abugida {
                 // Transliterate from alphabet
-                if had_virama && key == mapping.from_map.letter_a {
+                if had_virama && key == &mapping.from_map.letter_a {
                     // `key` is the default "a" vowel, so pop the virama that we added in the
                     // previous iteration.
                     output.pop();
                     had_virama = false;
                 } else {
-                    let mut text = token.text();
+                    let mut text = &span.value;
                     if had_virama {
                         if let Some(mark) = mapping.marks.get(key) {
                             output.pop();
@@ -155,7 +156,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
 
                     output += text;
 
-                    if token.is_consonant() && is_to_abugida {
+                    if span.is_consonant() {
                         // We have not seen a vowel mark yet, so push a virama for now.
                         //
                         // (The next loop iteration might pop this virama off of `output`.)
@@ -163,6 +164,8 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
                         had_virama = true;
                     }
                 }
+            } else {
+                output += &span.value;
             }
 
             // Special case: to ISO-15959 separator logic for a:i, a:u
@@ -172,33 +175,32 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
             // TODO: is there a better place to put this?
             if mapping.to == Scheme::Iso15919
                 && (output.ends_with("ai") || output.ends_with("au"))
-                && matches!(token.text(), "i" | "u")
+                && matches!(span.value.as_str(), "i" | "u")
             {
                 output.pop();
                 output.push(':');
-                output.push_str(token.text());
+                output.push_str(&span.value);
             }
-        } else {
+
+            // Prepare for next loop.
+            debug_assert!(!span.key.is_empty());
+            i += span.key.len();
+        } else if is_from_itrans && c == '\\' {
             // ITRANS: `\` skips the next character.
-            if is_from_itrans {
-                let mut chars = input[i..].chars();
-                if chars.next() == Some('\\') {
-                    i += 1;
-                    if let Some(c) = chars.next() {
-                        output.push(c);
-                        i += c.len_utf8();
-                    }
-                    continue;
-                }
+            i += c.len_utf8();
+            if let Some(c) = slice.chars().nth(1) {
+                output.push(c);
+                i += c.len_utf8();
             }
-
+            continue;
+        } else {
             // Use the original character as-is.
-            output.push_str(key);
+            output.push(c);
             had_virama = false;
-        }
 
-        // Prepare for next loop.
-        i = next_i;
+            // Prepare for next loop.
+            i += c.len_utf8();
+        }
     }
 
     reshape_after(output, mapping.to())

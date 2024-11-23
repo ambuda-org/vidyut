@@ -1242,3 +1242,12 @@ fn velthuis_basic() {
     // Extended consonants
     assert_has("qa .kha .ga za Ra Rha fa", "क़ ख़ ग़ ज़ ड़ ढ़ फ़");
 }
+
+// Other bugs
+// ----------
+
+/// Tests that skipping unmappable content doesn't land within a char boundry.
+#[test]
+fn test_mixed_content() {
+    assert_transliterate("saMskftam 漢語", HarvardKyoto, Devanagari, "संस्क्फ़्तम् 漢語");
+}

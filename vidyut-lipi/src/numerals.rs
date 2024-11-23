@@ -224,7 +224,7 @@ pub fn transliterate_numeral(buffer: &mut String, numeral: &str, mapping: &Mappi
             let glyph_str = c.encode_utf8(&mut temp);
             mapping.all.get(glyph_str)
         }) {
-            buffer.push_str(glyph.text());
+            buffer.push_str(&glyph.value);
         }
     }
 }

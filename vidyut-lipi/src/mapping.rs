@@ -3,35 +3,40 @@
 use crate::scheme::Scheme;
 use rustc_hash::{FxHashMap, FxHashSet};
 
-/// An output token, which we append to our output string when transliterating.
+/// A mapping between a span of input text and a span of output text.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub(crate) struct Token {
-    /// The text of this token.
-    text: String,
+pub(crate) struct Span {
+    /// The key of this token.
+    pub key: String,
+    /// The value of this token.
+    pub value: String,
     /// The token type. `kind` controls how this token combines with neighboring tokens.
-    pub kind: TokenKind,
+    pub kind: SpanKind,
 }
 
-impl Token {
-    /// Creates a new `Token`.
-    pub fn new(text: String, kind: TokenKind) -> Self {
-        Self { text, kind }
+impl Span {
+    /// Creates a new `Span`.
+    pub fn new(key: String, text: String, kind: SpanKind) -> Self {
+        Self {
+            key,
+            value: text,
+            kind,
+        }
     }
 
-    /// Returns the string value of this token.
-    pub fn text(&self) -> &str {
-        &self.text
+    pub fn is_mark(&self) -> bool {
+        self.kind == SpanKind::VowelMark
     }
 
     /// Returns whether this token represents a consonant.
     pub fn is_consonant(&self) -> bool {
-        self.kind == TokenKind::Consonant
+        self.kind == SpanKind::Consonant
     }
 }
 
 /// Models how a token behaves in relation to other tokens.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-pub(crate) enum TokenKind {
+pub(crate) enum SpanKind {
     /// A consonant. A following vowel is generally a vowel mark.
     Consonant,
     /// A vowel mark, which generally must follow a consonant.
@@ -44,9 +49,9 @@ pub(crate) enum TokenKind {
     Other,
 }
 
-impl TokenKind {
+impl SpanKind {
     fn from_devanagari_key(s: &str) -> Self {
-        use TokenKind::*;
+        use SpanKind::*;
 
         const MARK_AA: char = '\u{093e}';
         const MARK_AU: char = '\u{094c}';
@@ -213,8 +218,8 @@ impl OneWayMapping {
             let v = vals.first()?;
             out.push_str(v);
 
-            let token_kind = TokenKind::from_devanagari_key(&deva_char);
-            if self.to_scheme.is_alphabet() && token_kind == TokenKind::Consonant {
+            let token_kind = SpanKind::from_devanagari_key(&deva_char);
+            if self.to_scheme.is_alphabet() && token_kind == SpanKind::Consonant {
                 out.push('a');
             }
         }
@@ -254,15 +259,16 @@ impl OneWayMapping {
 pub struct Mapping {
     pub(crate) from: Scheme,
     pub(crate) to: Scheme,
-    pub(crate) all: FxHashMap<String, Token>,
+    pub(crate) all: FxHashMap<String, Span>,
     pub(crate) marks: FxHashMap<String, String>,
 
     pub(crate) from_map: OneWayMapping,
     pub(crate) to_map: OneWayMapping,
 
-    pub(crate) len_longest_key: usize,
     pub(crate) numeral_to_int: FxHashMap<String, u32>,
     pub(crate) int_to_numeral: FxHashMap<u32, String>,
+
+    tokens_by_first_char: FxHashMap<char, Vec<Span>>,
 }
 
 impl Mapping {
@@ -290,7 +296,6 @@ impl Mapping {
     ///
     /// 1. A mapping `a --> x` without a corresponding `x --> b`. For example, consider `| --> ळ`,
     ///    where `|` is an SLP1 character and `ळ` is not defined in B. In this case, we
-    ///    transliterate `x` to scheme `B` then programmatically create a new `a --> b` mapping.
     ///
     /// 2. A mapping `x --> b` without a corresponding `a --> x`. For example, consider `ळ --> |`,
     ///    where `|` is again an SLP1 character and `ळ` is not defined in A. In this case, we
@@ -320,8 +325,8 @@ impl Mapping {
                     None => continue,
                 };
 
-                let token_kind = TokenKind::from_devanagari_key(deva_key);
-                if token_kind == TokenKind::VowelMark {
+                let token_kind = SpanKind::from_devanagari_key(deva_key);
+                if token_kind == SpanKind::VowelMark {
                     marks.insert(a.to_string(), b.to_string());
                 }
 
@@ -332,14 +337,17 @@ impl Mapping {
                 //
                 // - If a sound has alternates, we store only the first.
                 if !all.contains_key(a) {
-                    all.insert(a.to_string(), Token::new(b.to_string(), token_kind));
+                    all.insert(
+                        a.to_string(),
+                        Span::new(a.to_string(), b.to_string(), token_kind),
+                    );
                     seen_b.insert(b);
                 }
             }
         }
 
         for (deva_key, a) in from.token_pairs() {
-            let token_kind = TokenKind::from_devanagari_key(deva_key);
+            let token_kind = SpanKind::from_devanagari_key(deva_key);
             if !all.contains_key(*a) && b_map.get(deva_key).is_none() {
                 // Mapping `a --> x` doesn't have a corresponding `x --> b`.
                 // So, create one.
@@ -348,10 +356,10 @@ impl Mapping {
                     None => continue,
                 };
 
-                if token_kind == TokenKind::VowelMark {
+                if token_kind == SpanKind::VowelMark {
                     marks.insert(a.to_string(), new_b.clone());
                 }
-                all.insert(a.to_string(), Token::new(new_b, token_kind));
+                all.insert(a.to_string(), Span::new(a.to_string(), new_b, token_kind));
             }
         }
 
@@ -365,13 +373,16 @@ impl Mapping {
                 None => continue,
             };
 
-            let token_kind = TokenKind::from_devanagari_key(deva_key);
+            let token_kind = SpanKind::from_devanagari_key(deva_key);
 
             if !new_a.is_empty() && !all.contains_key(&new_a) {
-                if token_kind == TokenKind::VowelMark {
+                if token_kind == SpanKind::VowelMark {
                     marks.insert(new_a.clone(), b.to_string());
                 }
-                all.insert(new_a, Token::new(b.to_string(), token_kind));
+                all.insert(
+                    new_a.to_string(),
+                    Span::new(new_a.to_string(), b.to_string(), token_kind),
+                );
             }
         }
 
@@ -381,8 +392,18 @@ impl Mapping {
         }
         // Take length in *chars*, not in *bytes*.
         // (Using chars over bytes offers a ~3x speedup in the core transliterate loop.)
-        let len_longest_key = all.keys().map(|a| a.chars().count()).max().unwrap_or(0);
         let numeral_to_int = a_map.numeral_to_int.clone();
+
+        let mut tokens_by_first_char = FxHashMap::default();
+        for t in all.values() {
+            if let Some(first_char) = t.key.chars().next() {
+                debug_assert!(!t.key.is_empty());
+                tokens_by_first_char
+                    .entry(first_char)
+                    .or_insert(Vec::new())
+                    .push(t.clone());
+            }
+        }
 
         Self {
             from,
@@ -391,9 +412,9 @@ impl Mapping {
             marks,
             from_map: a_map,
             to_map: b_map,
-            len_longest_key,
             numeral_to_int,
             int_to_numeral,
+            tokens_by_first_char,
         }
     }
 
@@ -407,8 +428,15 @@ impl Mapping {
         self.to
     }
 
-    pub(crate) fn get(&self, key: &str) -> Option<&Token> {
+    pub(crate) fn get(&self, key: &str) -> Option<&Span> {
         self.all.get(key)
+    }
+
+    pub(crate) fn spans_starting_with(&self, c: char) -> &[Span] {
+        match self.tokens_by_first_char.get(&c) {
+            Some(v) => v,
+            None => &[],
+        }
     }
 
     /// Dumps this mapping's data to stdout.
@@ -418,8 +446,8 @@ impl Mapping {
         items.sort_by(|x, y| x.0.cmp(y.0));
         for (k, v) in items {
             let k_codes: Vec<_> = k.chars().map(|c| c as u32).collect();
-            let v_codes: Vec<_> = v.text().chars().map(|c| c as u32).collect();
-            println!("{k} ({k_codes:x?}) --> {} ({v_codes:x?})", v.text());
+            let v_codes: Vec<_> = v.value.chars().map(|c| c as u32).collect();
+            println!("{k} ({k_codes:x?}) --> {} ({v_codes:x?})", v.value);
         }
     }
 }
@@ -431,9 +459,9 @@ mod tests {
 
     #[test]
     fn test_decide_token_type() {
-        let is_mark = |c| TokenKind::from_devanagari_key(c) == TokenKind::VowelMark;
-        let is_consonant = |c| TokenKind::from_devanagari_key(c) == TokenKind::Consonant;
-        let is_other = |c| TokenKind::from_devanagari_key(c) == TokenKind::Other;
+        let is_mark = |c| SpanKind::from_devanagari_key(c) == SpanKind::VowelMark;
+        let is_consonant = |c| SpanKind::from_devanagari_key(c) == SpanKind::Consonant;
+        let is_other = |c| SpanKind::from_devanagari_key(c) == SpanKind::Other;
 
         assert!(is_mark("\u{093e}"));
         assert!(is_mark("\u{093f}"));
@@ -483,36 +511,36 @@ mod tests {
 
     #[test]
     fn test_mapping() {
-        let other = |x: &str| Token::new(x.to_string(), TokenKind::Other);
-        let mark = |x: &str| Token::new(x.to_string(), TokenKind::VowelMark);
+        let other = |x: &str, y: &str| Span::new(x.to_string(), y.to_string(), SpanKind::Other);
+        let mark = |x: &str, y: &str| Span::new(x.to_string(), y.to_string(), SpanKind::VowelMark);
 
         let m = Mapping::new(Devanagari, Itrans);
 
         assert_eq!(m.from(), Devanagari);
         assert_eq!(m.to(), Itrans);
 
-        let assert_has = |m: &Mapping, x: &str, y: &Token| {
+        let assert_has = |m: &Mapping, x: &str, y: &Span| {
             assert_eq!(m.get(x).unwrap(), y);
         };
 
         let m = Mapping::new(Devanagari, Itrans);
-        assert_has(&m, "आ", &other("A"));
-        assert_has(&m, "\u{093e}", &mark("A"));
-        assert_has(&m, "ए", &other("e"));
-        assert_has(&m, "\u{0947}", &mark("e"));
+        assert_has(&m, "आ", &other("आ", "A"));
+        assert_has(&m, "\u{093e}", &mark("\u{093e}", "A"));
+        assert_has(&m, "ए", &other("ए", "e"));
+        assert_has(&m, "\u{0947}", &mark("\u{0947}", "e"));
 
         let m = Mapping::new(Bengali, Itrans);
-        assert_has(&m, "\u{09be}", &mark("A"));
-        assert_has(&m, "\u{09c7}", &mark("e"));
+        assert_has(&m, "\u{09be}", &mark("\u{09be}", "A"));
+        assert_has(&m, "\u{09c7}", &mark("\u{09c7}", "e"));
     }
 
     #[test]
     fn test_mapping_with_unicode_decompositions() {
         // Maps to NFD
         let m = Mapping::new(Velthuis, Devanagari);
-        let cons = |x: &str| Token::new(x.to_string(), TokenKind::Consonant);
-        assert_eq!(m.get("R").unwrap(), &cons("\u{0921}\u{093c}"));
-        assert_eq!(m.get("Rh").unwrap(), &cons("\u{0922}\u{093c}"));
+        let cons = |x: &str, y: &str| Span::new(x.to_string(), y.to_string(), SpanKind::Consonant);
+        assert_eq!(m.get("R").unwrap(), &cons("R", "\u{0921}\u{093c}"));
+        assert_eq!(m.get("Rh").unwrap(), &cons("Rh", "\u{0922}\u{093c}"));
 
         // Maps from NFD and composed
         let m = Mapping::new(Devanagari, Velthuis);
@@ -527,8 +555,11 @@ mod tests {
         assert_eq!(velthuis.data.get("\u{0921}\u{093c}").unwrap(), &vec!["R"]);
         assert_eq!(velthuis.data.get("\u{095c}"), None);
 
-        assert_eq!(m.get("\u{0921}\u{093c}").unwrap(), &cons("R"));
-        assert_eq!(m.get("\u{095c}").unwrap(), &cons("R"));
-        assert_eq!(m.get("\u{095d}").unwrap(), &cons("Rh"));
+        assert_eq!(
+            m.get("\u{0921}\u{093c}").unwrap(),
+            &cons("\u{0921}\u{093c}", "R")
+        );
+        assert_eq!(m.get("\u{095c}").unwrap(), &cons("\u{095c}", "R"));
+        assert_eq!(m.get("\u{095d}").unwrap(), &cons("\u{095d}", "Rh"));
     }
 }
