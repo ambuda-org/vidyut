@@ -556,11 +556,6 @@ pub fn run(p: &mut Prakriya) {
     if p.terms().iter().any(|t| t.text.contains('a')) {
         p.step("8.4.68");
     }
-
-    // Mark terms as Final so they won't be altered further in future derivations.
-    for t in p.terms_mut() {
-        t.add_tag(T::Final);
-    }
 }
 
 #[cfg(test)]

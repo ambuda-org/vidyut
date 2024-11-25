@@ -22,6 +22,7 @@ pub mod private {
 }
 
 // Data structures and utilities
+mod caching;
 mod core;
 mod sounds;
 

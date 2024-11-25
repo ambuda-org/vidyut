@@ -72,3 +72,26 @@ fn shap_shatr() {
     assert_has_sup_1d(&bhavat, Pum, &["BavantO"]);
     assert_has_sup_1p(&bhavat, Pum, &["BavantaH"]);
 }
+
+// Broken during refactor.
+#[test]
+fn tfmhyat() {
+    assert_has_tip(&[], &d("tfha~", Rudhadi), VidhiLin, &["tfMhyAt"])
+}
+
+// Broken during refactor.
+#[test]
+fn acikat() {
+    assert_has_tip(&[], &nic(&d_ghatadi("aka~", Bhvadi)), Lun, &["Acikat"])
+}
+
+// Broken during refactor.
+#[test]
+fn ahidi() {
+    assert_has_ta_k(
+        &[],
+        &nic(&d_ghatadi("heqa~", Bhvadi)),
+        Lun,
+        &["ahIqi", "ahiqi"],
+    )
+}

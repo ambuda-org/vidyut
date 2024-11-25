@@ -50,7 +50,6 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
         let is_pada = || p.is_pada(i_prati);
 
         if prati.is_pratipadika() && prati.has_antya('n') && is_pada() {
-            let prati = p.get(i_prati)?;
             if prati.has_u("ahan") {
                 // Special exception for ahan
                 if p.has(i_prati + 1, |t| t.is_empty()) {
@@ -80,12 +79,9 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
                 }
             }
 
-            let prati = p.get(i_prati)?;
-            if !blocked && !prati.is_upasarga() && !prati.has_tag(T::FlagPratipadikaTiLopa) {
+            if !blocked {
                 // rAjA, rAjaByAm, ...
-                // (these can be called `pada` by 1.4.17.
-                // HACK to ignore upasargas for unnI, due to multiple passes of
-                // tripadi. The real fix is to run the tripadi exactly once.
+                // (these can be called `pada` by 1.4.17.)
                 p.run_at("8.2.7", i_prati, op::antya(""));
             }
         }
@@ -178,7 +174,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
         let i_prev = p.find_prev_where(i, |t| !t.is_empty());
         let i_next = p.find_next_where(i, |t| !t.is_empty());
 
-        let x = p.custom_view(0, i)?.upadha()?;
+        let x = p.view(0, i)?.upadha()?;
         let y = t_y.antya()?;
 
         if y == 's' && p.has(i_next?, |t| t.has_adi('D')) {
@@ -223,6 +219,11 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
             let x = bytes.get(i).expect("present");
             let x = *x as char;
 
+            let sk = x == 's' || x == 'k';
+            if !sk {
+                return false;
+            }
+
             // Check that this is the start of a samyoga as opposed to a portion of a larger
             // samyoga. This check is necessary to prevent `saMstti -> santti`.
             //
@@ -253,9 +254,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
                 false
             };
 
-            let sk = x == 's' || x == 'k';
-
-            if !sk || !is_first_hal {
+            if !is_first_hal {
                 return false;
             }
 
@@ -307,7 +306,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
     iter_terms(p, |p, i| {
         if p.is_pada(i) && p.has(i, |t| !t.is_empty()) {
             loop {
-                let view = p.custom_view(0, i)?;
+                let view = p.view(0, i)?;
                 if view
                     .last()
                     .has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa])
@@ -390,7 +389,7 @@ fn iter_terms(p: &mut Prakriya, func: impl Fn(&mut Prakriya, usize) -> Option<()
     }
 }
 
-fn try_ch_to_s(p: &mut Prakriya) {
+fn try_talavya_to_s(p: &mut Prakriya) {
     const VRASC_ADI: &[&str] = &[
         "o~vrascU~",
         "Bra\\sja~^",
@@ -439,13 +438,7 @@ fn try_ch_to_s(p: &mut Prakriya) {
 
 fn per_term_1a(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
-        let x = p.get_if(i, |t| {
-            if t.is_final() {
-                !t.has_antya('Y')
-            } else {
-                true
-            }
-        })?;
+        let x = p.get(i)?;
 
         if x.has_tag_in(&[T::FlagPratipadikaTiLopa, T::FlagAntyaAcSandhi]) {
             continue;
@@ -508,10 +501,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
     // vyartha:
     // - s for 8.2.66 (sasajuSo ruH)
     for i in 0..p.terms().len() {
-        // HACK to avoid re-processing catuzwaya when deriving catuzwayI. Likewise for catuzpAd
-        let c = p.get_if(i, |t| {
-            !(t.is_final() && p.has(i + 1, |t| t.is_taddhita() || (t.is_sup() && t.is_lupta())))
-        });
+        let c = p.get(i);
         if c.is_none() {
             continue;
         }
@@ -731,7 +721,7 @@ fn is_sa_sajush(p: &Prakriya, i: usize) -> bool {
     t.has_antya('s') || (t.has_antya('z') && p.has_pratipadika(i, "sajuz"))
 }
 
-fn try_change_final_s(p: &mut Prakriya) -> Option<()> {
+fn try_change_final_s_and_others(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let t = p.get(i)?;
 
@@ -776,7 +766,7 @@ fn try_change_final_s(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-fn try_add_final_r(p: &mut Prakriya) -> Option<()> {
+fn try_change_final_r(p: &mut Prakriya) -> Option<()> {
     // 6.1.113 and 6.1.114 are not part of the tripAdi, but they have no scope to apply otherwise.
     xy_rule(
         p,
@@ -823,12 +813,12 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) {
             Some(c) => al::is_hal(c),
             None => false,
         };
-        let before_upadha = |t: &Term| t.chars().rev().nth(2);
+        let before_upadha = |t: &Term| t.get_rev(2);
         // Use a view for pipaWiH -> pipaWIH (pi + paW + i + z)
         let dhatu_view = if dhatu.is_pratyaya() {
-            p.custom_view(0, i)?
+            p.view(0, i)?
         } else {
-            p.custom_view(i, i)?
+            p.view(i, i)?
         };
 
         // karotereva tatra grahaRAd ityAhuH (SK 2536)
@@ -919,20 +909,39 @@ fn try_rules_for_adas(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) {
+    let s = p.sound_set();
+
     // 8.2.7 - 8.2.8
-    try_na_lopa(p);
+    if s.contains('n') {
+        try_na_lopa(p);
+    }
+
     // 8.2.9 - 8.2.10
-    try_matup_to_vatup(p);
+    if s.contains('m') {
+        try_matup_to_vatup(p);
+    }
+
     // 8.2.18 - 8.2.21
-    try_change_r_to_l(p);
+    if s.contains_any("rf") {
+        try_change_r_to_l(p);
+    }
+
     // 8.2.23 - 8.2.29
     try_lopa_of_samyoganta_and_s(p);
+
     // 8.2.31 - 8.2.35
-    try_ha_adesha(p);
+    if s.contains('h') {
+        try_ha_adesha(p);
+    }
+
     // 8.2.36
-    try_ch_to_s(p);
+    if s.contains_any("cCSj") {
+        try_talavya_to_s(p);
+    }
+
     // 8.2.30 -- general rule for ha and ch_s
     per_term_1a(p);
+
     // 8.2.37 - 8.2.41
     per_term_1b(p);
 
@@ -940,10 +949,14 @@ pub fn run(p: &mut Prakriya) {
     run_misc_rules_2(p);
 
     // 8.2.66 -- 8.2.75
-    try_change_final_s(p);
-    try_add_final_r(p);
+    try_change_final_s_and_others(p);
+
+    // 6.1.113 - 6.1.114
+    try_change_final_r(p);
+
     // 8.2.77 - 8.2.79
     try_lengthen_dhatu_vowel(p);
+
     // 8.2.80 -
     try_rules_for_adas(p);
 }

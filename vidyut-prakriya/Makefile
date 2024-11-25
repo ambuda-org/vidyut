@@ -34,10 +34,14 @@ create_test_files:
 	../target/release/create_tinantas --sanadi san --prayoga kartari > test-files/tinantas-san-kartari.csv
 	../target/release/create_tinantas --sanadi yaN --prayoga kartari > test-files/tinantas-yan-kartari.csv
 	../target/release/create_tinantas --sanadi yaNluk --prayoga kartari > test-files/tinantas-yan-luk-kartari.csv
+	../target/release/create_tinantas --sanadi san,Ric --prayoga kartari > test-files/tinantas-san-nic-kartari.csv
+	../target/release/create_tinantas --sanadi Ric,san --prayoga kartari > test-files/tinantas-nic-san-kartari.csv
 	../target/release/create_tinantas --prayoga karmani > test-files/tinantas-basic-karmani.csv
 	../target/release/create_tinantas --sanadi Ric --prayoga karmani > test-files/tinantas-nic-karmani.csv
 	../target/release/create_tinantas --sanadi san --prayoga karmani > test-files/tinantas-san-karmani.csv
 	../target/release/create_tinantas --sanadi yaN --prayoga karmani > test-files/tinantas-yan-karmani.csv
+	../target/release/create_tinantas --sanadi san,Ric --prayoga karmani > test-files/tinantas-san-nic-karmani.csv
+	../target/release/create_tinantas --sanadi Ric,san --prayoga karmani > test-files/tinantas-nic-san-karmani.csv
 	../target/release/create_krdantas --krt ktvA > test-files/krdantas-ktvA.csv
 	../target/release/create_krdantas --krt kta > test-files/krdantas-kta.csv
 
@@ -50,7 +54,7 @@ create_test_files:
 test_all: test_tinantas test_krdantas
 
 test_tinantas:
-	cargo build --release
+	cargo build --release --bin test_tinantas
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-kartari.csv \
 	  --hash "6964b61ad01cfe81b9b8c58cee957cb10db4462cecfded394ebb4631011c742a"
@@ -67,6 +71,12 @@ test_tinantas:
 		--test-cases test-files/tinantas-yan-luk-kartari.csv \
 		--hash "8e55532333708504593040b4b1025a8568f6d23a07cedd3a8f31e155ae0cc2fb"
 	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-san-nic-kartari.csv \
+		--hash "0758ec35cdd3867f8d58c9854ca60a5f09f919db375ffb2f83cd2dd117a0b4ab"
+	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-nic-san-kartari.csv \
+		--hash "093720f3fba8a5d9585cb56d78523cd99c877c63b070d898791bbb89ee4e2267"
+	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-basic-karmani.csv \
     --hash "4878aa3ec45bef354f7bface2d877ca5cc0fa23ab45b5f52507c4ef3c0a1fc06"
 	../target/release/test_tinantas \
@@ -78,9 +88,15 @@ test_tinantas:
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-karmani.csv \
     --hash "4e7399574447252f72eb2d36cd85eba8f5f20bd9d38aac8802825ec8aa3fb2dd"
+	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-san-nic-karmani.csv \
+		--hash "47e9dda53ba167b10deafb29dcb534b1a41f41f378695544091a425cc9bb1f7a"
+	../target/release/test_tinantas \
+		--test-cases test-files/tinantas-nic-san-karmani.csv \
+		--hash "4e39dea3512a2331e4d3b907a2bf8393759563882b82d5e84a5521d66eacda41"
 
 test_krdantas:
-	cargo build --release
+	cargo build --release --bin test_krdantas
 	../target/release/test_krdantas \
 		--test-cases test-files/krdantas-ktvA.csv \
 	    --hash "1f41354393e7490afe73a2cb7f873bc75c6495a6188f739f5ecac08a2ee725a4"
@@ -102,7 +118,7 @@ check_rule_coverage:
 # Profiles the program's execution time on OSX. This command will probably not
 # work on other operating systems.
 profile-time-osx:
-	cargo instruments -t time --release --example create_all_tinantas > /dev/null
+	cargo instruments -t time --release --example bench
 
 
 # Other

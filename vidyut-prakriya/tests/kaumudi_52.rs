@@ -668,7 +668,7 @@ fn sk_2573() {
 
     let pati = Dhatu::nama("pawu".into(), Some(Sanadi::Ric));
     assert_has_tip(&[], &pati, Lat, &["pawayati"]);
-    // TODO: pawayati, apIpawat, apapawat, ...
+    // TODO: apIpawat, apapawat, ...
 }
 
 #[test]

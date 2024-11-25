@@ -21,6 +21,7 @@ pub enum Tag {
     // Morpheme types
     Upasarga,
     Gati,
+    Anga,
     Dhatu,
     Ghu,
     Avyaya,
@@ -298,10 +299,6 @@ pub enum Tag {
 
     Pragrhya,
     Complete,
-
-    // Indicates that a derivation phase is complete, e.g. to avoid running abhyAsa rules
-    // twice.
-    Final,
 
     /// Indicates use of ru-Adesha.
     Ru,

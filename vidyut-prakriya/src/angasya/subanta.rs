@@ -90,11 +90,10 @@ fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
                 let sub = al::to_dirgha(anga.upadha()?)?;
                 p.run_at("6.4.8", i_anga, op::upadha(&sub.to_string()));
             }
-        } else if (anga.ends_with("ns") && anga.len() >= 3)
-            || p.custom_view(0, i_anga)?.has_text("mahant")
+        } else if (anga.ends_with("ns") && anga.len() >= 3) || p.view(0, i_anga)?.has_text("mahant")
         {
             let c = anga.len() - 3;
-            let sub = al::to_dirgha(anga.get_at(c)?)?;
+            let sub = al::to_dirgha(anga.get(c)?)?;
             p.run_at("6.4.10", i_anga, |t| {
                 t.set_at(c, &sub.to_string());
             });
@@ -782,7 +781,7 @@ pub fn run_before_stritva(p: &mut Prakriya) -> Option<()> {
 /// Applies various rules before the "bhasya" section in 6.4.
 fn run_before_bhasya(p: &mut Prakriya) -> Option<()> {
     // Process *all* sup-pratyayas, including those that are part of aluk-samAsas.
-    for i_anga in 0..p.terms().len() {
+    for i_anga in 0..p.len() {
         let i_sup = i_anga + 1;
         let term = p.get(i_anga)?;
         if term.is_pratipadika_or_nyapu() {

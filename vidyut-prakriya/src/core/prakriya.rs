@@ -4,9 +4,10 @@ Manages the derivation state.
 Users interested in understanding this module should start by reading the comments on the
 `Prakriya` struct, which manages a derivation from start to finish.
 */
-use crate::args::{Artha, Lakara};
+use crate::args::Artha;
 use crate::core::Tag;
 use crate::core::{Term, TermView};
+use crate::sounds::Set;
 use compact_str::CompactString;
 use enumset::EnumSet;
 
@@ -124,7 +125,7 @@ impl StepTerm {
 }
 
 /// Records whether an optional rule was accepted or declined.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum RuleChoice {
     /// Indicates that a rule was accepted during the derivation.
     Accept(Rule),
@@ -133,7 +134,7 @@ pub enum RuleChoice {
 }
 
 /// Configuration options that affect how a `Prakriya` behaves during the derivation.
-#[derive(Clone, Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) struct Config {
     pub rule_choices: Vec<RuleChoice>,
     pub log_steps: bool,
@@ -177,7 +178,7 @@ impl Config {
 /// For example, we might want the derivation to use *chandasi* rules, or we might wish to block
 /// such rules. Or, we might want to skip history logging so that we can generate words more
 /// quickly.
-#[derive(Clone, Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Prakriya {
     terms: Vec<Term>,
     tags: EnumSet<Tag>,
@@ -185,7 +186,6 @@ pub struct Prakriya {
     artha: Option<Artha>,
     config: Config,
     rule_choices: Vec<RuleChoice>,
-    lakara: Option<Lakara>,
 }
 
 /// Public API
@@ -266,7 +266,6 @@ impl Prakriya {
             artha: None,
             config: Config::new(),
             rule_choices: Vec::new(),
-            lakara: None,
         }
     }
 
@@ -289,6 +288,11 @@ impl Prakriya {
             ret.push_str(&t.text);
         }
         ret
+    }
+
+    /// Returns the number of terms in the prakriya.
+    pub(crate) fn len(&self) -> usize {
+        self.terms.len()
     }
 
     /// Returns all terms.
@@ -324,10 +328,20 @@ impl Prakriya {
         None
     }
 
+    pub(crate) fn sound_set(&self) -> Set {
+        let mut ret = Set::new();
+        for t in self.terms() {
+            for c in t.chars() {
+                ret.add(c);
+            }
+        }
+        ret
+    }
+
     // Views
     // -----
 
-    pub(crate) fn custom_view(&self, start: usize, end: usize) -> Option<TermView> {
+    pub(crate) fn view(&self, start: usize, end: usize) -> Option<TermView> {
         TermView::new(self.terms(), start, end)
     }
 
@@ -612,14 +626,6 @@ impl Prakriya {
     #[allow(unused)]
     pub(crate) fn remove_tag(&mut self, tag: Tag) {
         self.tags.remove(tag);
-    }
-
-    pub(crate) fn set_lakara(&mut self, lakara: Lakara) {
-        self.lakara = Some(lakara);
-    }
-
-    pub(crate) fn has_lakara(&self, lakara: Lakara) -> bool {
-        self.lakara == Some(lakara)
     }
 
     pub(crate) fn add_tags(&mut self, tags: &[Tag]) {

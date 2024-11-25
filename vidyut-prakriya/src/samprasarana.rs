@@ -88,7 +88,7 @@ fn run_samprasaranac_ca(p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     // The code here is inelegant, but it works.
     let dhatu = p.get(i_dhatu)?;
     for i in 0..dhatu.len() - 1 {
-        if let (Some(x), Some(y)) = (dhatu.get_at(i), dhatu.get_at(i + 1)) {
+        if let (Some(x), Some(y)) = (dhatu.get(i), dhatu.get(i + 1)) {
             if sounds::is_ac(x) && sounds::is_ac(y) {
                 p.run_at("6.1.108", i_dhatu, |t| t.set_at(i + 1, ""));
                 return Some(());

@@ -137,7 +137,7 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let prati = p.get(i)?;
     let adi_ac = prati.text.find(al::is_ac)?;
-    if al::is_vrddhi(prati.get_at(adi_ac)?) {
+    if al::is_vrddhi(prati.get(adi_ac)?) {
         p.add_tag_at("1.1.73", i, T::Vrddha);
     } else if prati.has_u_in(TYAD_ADI) {
         p.add_tag_at("1.1.74", i, T::Vrddha);

@@ -267,10 +267,10 @@ mod tests {
         assert_eq!(t.upadha(), Some('a'));
         assert_eq!(t.antya(), Some('m'));
 
-        assert_eq!(t.get_at(0), Some('g'));
-        assert_eq!(t.get_at(1), Some('a'));
-        assert_eq!(t.get_at(2), Some('m'));
-        assert_eq!(t.get_at(3), None);
+        assert_eq!(t.get(0), Some('g'));
+        assert_eq!(t.get(1), Some('a'));
+        assert_eq!(t.get(2), Some('m'));
+        assert_eq!(t.get(3), None);
     }
 
     #[test]

@@ -41,9 +41,19 @@ pub fn antya(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_antya(sub)
 }
 
+/// Replaces the last sound with nothing.
+pub fn antya_lopa(t: &mut Term) {
+    t.antya_lopa()
+}
+
 /// Replaces the penultimate sound in the given term.
 pub fn upadha(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_upadha(sub)
+}
+
+/// Replaces the last sound with nothing.
+pub fn upadha_lopa(t: &mut Term) {
+    t.upadha_lopa()
 }
 
 /// Replaces the penultimate vowel in the term with a short vowel.

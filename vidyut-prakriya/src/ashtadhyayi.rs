@@ -32,6 +32,7 @@ use crate::args::{
 };
 use crate::atidesha;
 use crate::atmanepada;
+use crate::caching::{calculate_hash, Cache};
 use crate::core::errors::*;
 use crate::core::prakriya_stack::PrakriyaStack;
 use crate::core::Prakriya;
@@ -49,6 +50,7 @@ use crate::samasa;
 use crate::samjna;
 use crate::samprasarana;
 use crate::sanadi;
+use crate::sounds::Set;
 use crate::stritva;
 use crate::sup_karya;
 use crate::svara;
@@ -57,10 +59,32 @@ use crate::tin_pratyaya;
 use crate::tripadi;
 use crate::uttarapade;
 use crate::vikarana;
+use crate::RuleChoice;
+use core::cell::RefCell;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref AC: Set = Set::from("ac");
+}
+
+/// Enough to hold a term changed by up to 4 optional rules (2^4 = 16), plus an extra 2x seems to
+/// help.
+const CACHE_SIZE: usize = 32;
+
+#[derive(Copy, Clone, Default, Hash)]
+struct MainArgs {
+    lakara: Option<Lakara>,
+    is_ardhadhatuka: bool,
+}
+
+enum CachedPrakriya {
+    Good(Prakriya),
+    Fail(Vec<RuleChoice>),
+}
 
 // Returns whether this prakriya and its args trigger the `saMscaNoH` condition, which affects
 // various dhatu substitutions.
-fn is_sani_or_cani(p: &mut Prakriya, dhatu: Option<&Dhatu>, la: Option<Lakara>) -> bool {
+fn is_sani_or_cani(p: &mut Prakriya, dhatu: Option<&Dhatu>, is_lun: bool) -> bool {
     use crate::args::Sanadi;
 
     // Check if the following pratyaya will be san or can, for 2.4.51 (णौ च सँश्चङोः)
@@ -69,11 +93,10 @@ fn is_sani_or_cani(p: &mut Prakriya, dhatu: Option<&Dhatu>, la: Option<Lakara>) 
         Some(Dhatu::Nama(d)) => d.other_sanadi().iter().any(|s| *s == Sanadi::san),
         None => false,
     };
-    let is_cani = la == Some(Lakara::Lun) && p.terms().last().map_or(false, |t| t.is_ni_pratyaya());
+    let is_cani = is_lun && p.terms().last().map_or(false, |t| t.is_ni_pratyaya());
 
     is_sani || is_cani
 }
-
 /// Adds a dhatu to the prakriya and runs basic follow-up tasks, such as:
 ///
 /// - adding upasargas
@@ -90,7 +113,52 @@ fn prepare_dhatu(
     future_lakara: Option<Lakara>,
     is_ardhadhatuka: bool,
 ) -> Result<()> {
+    use CachedPrakriya as CP;
+
+    thread_local! {
+        static CACHE: RefCell<Cache<(u64, u64, u64), CachedPrakriya>> = RefCell::new(Cache::new(CACHE_SIZE));
+    };
+
+    let main_args = MainArgs {
+        lakara: future_lakara,
+        is_ardhadhatuka,
+    };
+
+    let mut cache_hit = false;
+    let mut cache_ret = Ok(());
+    let cache_key = (
+        calculate_hash(p),
+        calculate_hash(dhatu),
+        calculate_hash(&main_args),
+    );
+    CACHE.with_borrow_mut(|cache| {
+        if let Some(val) = cache.read(&cache_key) {
+            match val {
+                CP::Good(val) => *p = val.clone(),
+                CP::Fail(choices) => cache_ret = Err(Error::Abort(choices.clone())),
+            }
+            cache_hit = true;
+        }
+    });
+
+    if cache_hit {
+        cache_ret
+    } else {
+        let ret = prepare_dhatu_inner(p, dhatu, main_args);
+        let payload = match ret {
+            Ok(()) => CP::Good(p.clone()),
+            Err(_) => CP::Fail(p.rule_choices().to_vec()),
+        };
+        CACHE.with_borrow_mut(|cache| cache.write(cache_key, payload));
+        ret
+    }
+}
+
+fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> {
+    let is_ardhadhatuka = args.is_ardhadhatuka;
+
     p.debug("~~~~~~~~~~~~~~ <prepare-dhatu> ~~~~~~~~~~~~~~~~~~");
+
     match dhatu {
         Dhatu::Mula(m) => {
             dhatu_karya::run(p, m)?;
@@ -110,11 +178,10 @@ fn prepare_dhatu(
     sanadi::try_add_required(p, is_ardhadhatuka);
     if p.terms().last().expect("ok").is_pratyaya() {
         samjna::run(p);
-        run_main_rules(p, Some(dhatu), None, false)?;
-        // Defer tripadi until we add other pratyayas.
+        run_main_rules(p, Some(dhatu), args);
     }
 
-    if let Dhatu::Mula(_) = dhatu {
+    if matches!(dhatu, Dhatu::Mula(_)) {
         for s in dhatu.sanadi() {
             // HACK: reset padas for next sanadi.
             p.remove_tag(Tag::Parasmaipada);
@@ -123,13 +190,13 @@ fn prepare_dhatu(
             sanadi::try_add_optional(p, *s)?;
             samjna::run(p);
             atmanepada::run(p);
-            run_main_rules(p, Some(dhatu), future_lakara, false)?;
-            // Defer tripadi until we add other pratyayas.
+            run_main_rules(p, Some(dhatu), args);
         }
     }
 
     p.debug("~~~~~~~~~~~~~~ </prepare-dhatu> ~~~~~~~~~~~~~~~~~~");
 
+    // Defer tripadi until we add other pratyayas.
     Ok(())
 }
 
@@ -157,9 +224,6 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
     }
     let added = krt::run(p, args);
     if !added {
-        if cfg!(debug_assertions) {
-            println!("{:#?}", p);
-        }
         return Err(Error::Abort(p.rule_choices().to_vec()));
     }
 
@@ -176,7 +240,40 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
 }
 
 fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()> {
-    use Pratipadika as Prati;
+    use CachedPrakriya as CP;
+
+    thread_local! {
+        static CACHE: RefCell<Cache<(u64, u64), CachedPrakriya>> = RefCell::new(Cache::new(CACHE_SIZE));
+    };
+
+    // Read cache
+    let mut cache_hit = false;
+    let mut cache_ret = Ok(());
+    let cache_key = (calculate_hash(p), calculate_hash(pratipadika));
+    CACHE.with_borrow_mut(|cache| {
+        if let Some(payload) = cache.read(&cache_key) {
+            match payload {
+                CP::Good(val) => *p = val.clone(),
+                CP::Fail(choices) => cache_ret = Err(Error::Abort(choices.clone())),
+            }
+            cache_hit = true;
+        }
+    });
+
+    if cache_hit {
+        return cache_ret;
+    } else {
+        let ret = prepare_pratipadika_inner(p, pratipadika);
+        let payload = match ret {
+            Ok(()) => CP::Good(p.clone()),
+            Err(_) => CP::Fail(p.rule_choices().to_vec()),
+        };
+        CACHE.with_borrow_mut(|cache| cache.write(cache_key, payload));
+        ret
+    }
+}
+
+fn prepare_pratipadika_inner(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()> {
     match pratipadika {
         Pratipadika::Krdanta(k) if k.require().is_some() => {
             let mut stack = PrakriyaStack::new(false, false, false, false);
@@ -214,10 +311,10 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
                 return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
-        Prati::Basic(basic) => pratipadika_karya::add_basic(p, basic),
-        Prati::Krdanta(krdanta) => prepare_krdanta(p, krdanta)?,
-        Prati::Taddhitanta(taddhitanta) => prepare_taddhitanta(p, taddhitanta)?,
-        Prati::Samasa(samasa) => prepare_samasa(p, samasa)?,
+        Pratipadika::Basic(basic) => pratipadika_karya::add_basic(p, basic),
+        Pratipadika::Krdanta(krdanta) => prepare_krdanta(p, krdanta)?,
+        Pratipadika::Taddhitanta(taddhitanta) => prepare_taddhitanta(p, taddhitanta)?,
+        Pratipadika::Samasa(samasa) => prepare_samasa(p, samasa)?,
     }
 
     samjna::try_decide_pratipadika(p);
@@ -242,9 +339,6 @@ fn prepare_taddhitanta(p: &mut Prakriya, args: &Taddhitanta) -> Result<()> {
 
     let added = taddhita::run(p, taddhita);
     if !added {
-        if cfg!(debug_assertions) {
-            println!("{:?}: {:#?}", args.taddhita(), p);
-        }
         return Err(Error::Abort(p.rule_choices().to_vec()));
     }
 
@@ -313,29 +407,32 @@ fn add_lakara_and_decide_pada(p: &mut Prakriya, lakara: Lakara) {
 }
 
 /// Scope: all prakriyas
-fn run_main_rules(
-    p: &mut Prakriya,
-    dhatu_args: Option<&Dhatu>,
-    lakara: Option<Lakara>,
-    is_ardhadhatuka: bool,
-) -> Result<()> {
+///
+/// This function is responsible for around 50% of runtime.
+fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) {
+    let lakara = args.lakara;
+    let is_ardhadhatuka = args.is_ardhadhatuka;
+
+    let is_tinanta = p.terms().last().map_or(false, |t| t.is_tin());
+    let is_lit_or_ashirlin = matches!(lakara, Some(Lakara::Lit) | Some(Lakara::AshirLin));
+    let is_lun = lakara == Some(Lakara::Lun);
+
     p.debug("==== Tin-siddhi ====");
     // Do lit-siddhi and AzIrlin-siddhi first to support the valAdi vArttika for aj -> vi.
-    let is_lit_or_ashirlin = matches!(lakara, Some(Lakara::Lit) | Some(Lakara::AshirLin));
-    if let Some(lakara) = lakara {
-        if is_lit_or_ashirlin {
+    if is_tinanta && is_lit_or_ashirlin {
+        if let Some(lakara) = lakara {
             tin_pratyaya::try_general_siddhi(p, lakara);
             tin_pratyaya::try_siddhi_for_jhi(p, lakara);
         }
     }
 
     p.debug("==== Vikaranas ====");
-    ardhadhatuka::run_before_vikarana(p, dhatu_args, lakara, is_ardhadhatuka);
+    ardhadhatuka::run_before_vikarana(p, dhatu_args, is_ardhadhatuka, is_lun, lakara);
     vikarana::run(p);
     samjna::run(p);
 
-    if let Some(lakara) = lakara {
-        if !is_lit_or_ashirlin {
+    if is_tinanta && !is_lit_or_ashirlin {
+        if let Some(lakara) = lakara {
             tin_pratyaya::try_general_siddhi(p, lakara);
         }
     }
@@ -347,7 +444,7 @@ fn run_main_rules(
 
     p.debug("==== Dhatu tasks ====");
     {
-        let is_sani_or_cani = is_sani_or_cani(p, dhatu_args, lakara);
+        let is_sani_or_cani = is_sani_or_cani(p, dhatu_args, is_lun);
 
         // Needed transitively for dhatu-samprasarana.
         angasya::try_pratyaya_adesha(p);
@@ -391,8 +488,8 @@ fn run_main_rules(
     // If Ji causes dvitva, that dvitva will be performed in `try_dvirvacane_aci` above.
     // So by this point, it's safe to replace Ji. (See 3.4.109, which replaces Ji if it follows a
     // term called `abhyasta`.)
-    if let Some(lakara) = lakara {
-        if !is_lit_or_ashirlin {
+    if is_tinanta && !is_lit_or_ashirlin {
+        if let Some(lakara) = lakara {
             tin_pratyaya::try_siddhi_for_jhi(p, lakara);
         }
     }
@@ -406,7 +503,7 @@ fn run_main_rules(
     angasya::maybe_do_jha_adesha(p);
 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
-    angasya::run_before_dvitva(p);
+    angasya::run_before_dvitva(p, is_lun);
 
     // After guna
     ardhadhatuka::try_aa_adesha_for_sedhayati(p);
@@ -430,15 +527,20 @@ fn run_main_rules(
     }
 
     // Run tripadi rules separately.
-
-    Ok(())
 }
 
 /// Derives a single dhatu from the given conditions.
 pub fn derive_dhatu(mut prakriya: Prakriya, args: &Dhatu) -> Result<Prakriya> {
     let p = &mut prakriya;
     prepare_dhatu(p, args, None, false)?;
-    run_main_rules(p, Some(args), None, false)?;
+    run_main_rules(
+        p,
+        Some(args),
+        MainArgs {
+            lakara: None,
+            is_ardhadhatuka: false,
+        },
+    );
     tripadi::run(p);
 
     Ok(prakriya)
@@ -451,8 +553,6 @@ pub fn derive_tinanta(mut prakriya: Prakriya, args: &Tinanta) -> Result<Prakriya
     let lakara = args.lakara();
     let purusha = args.purusha();
     let vacana = args.vacana();
-    p.add_tags(&[prayoga.as_tag(), purusha.as_tag(), vacana.as_tag()]);
-    p.set_lakara(lakara);
 
     // Prayogas other than kartari will never be sarvadhatuka, since yak-vikarana is not
     // sarvadhatuka.
@@ -460,12 +560,22 @@ pub fn derive_tinanta(mut prakriya: Prakriya, args: &Tinanta) -> Result<Prakriya
         Prayoga::Kartari => lakara.is_ardhadhatuka(),
         _ => true,
     };
-
+    p.add_tags(&[prayoga.as_tag()]);
     prepare_dhatu(p, args.dhatu(), Some(lakara), is_ardhadhatuka)?;
+    // Add these AFTER `prepare_dhatu` for better caching.
+    p.add_tags(&[purusha.as_tag(), vacana.as_tag()]);
+
     add_lakara_and_decide_pada(p, lakara);
     tin_pratyaya::adesha(p, purusha, vacana);
     samjna::run(p);
-    run_main_rules(p, None, Some(lakara), is_ardhadhatuka)?;
+    run_main_rules(
+        p,
+        None,
+        MainArgs {
+            lakara: Some(lakara),
+            is_ardhadhatuka,
+        },
+    );
     tripadi::run(p);
 
     Ok(prakriya)
@@ -493,7 +603,7 @@ pub fn derive_subanta(mut prakriya: Prakriya, args: &Subanta) -> Result<Prakriya
     angasya::run_before_stritva(p);
     stritva::run(p);
 
-    run_main_rules(p, None, None, false)?;
+    run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
 
     Ok(prakriya)
@@ -505,7 +615,14 @@ pub fn derive_krdanta(mut prakriya: Prakriya, args: &Krdanta) -> Result<Prakriya
     prepare_krdanta(p, args)?;
 
     let is_ardhadhatuka = p.terms().last().map_or(false, |t| t.is_ardhadhatuka());
-    run_main_rules(p, None, None, is_ardhadhatuka)?;
+    run_main_rules(
+        p,
+        None,
+        MainArgs {
+            lakara: None,
+            is_ardhadhatuka,
+        },
+    );
     tripadi::run(p);
 
     Ok(prakriya)
@@ -515,7 +632,7 @@ pub fn derive_taddhitanta(mut prakriya: Prakriya, args: &Taddhitanta) -> Result<
     let p = &mut prakriya;
     prepare_taddhitanta(p, args)?;
 
-    run_main_rules(p, None, None, false)?;
+    run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
 
     Ok(prakriya)
@@ -529,7 +646,7 @@ pub fn derive_stryanta(mut prakriya: Prakriya, pratipadika: &Pratipadika) -> Res
 
     stritva::run(p);
     samjna::run(p);
-    run_main_rules(p, None, None, false)?;
+    run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
 
     Ok(prakriya)
@@ -569,7 +686,7 @@ pub fn derive_samasa(mut prakriya: Prakriya, args: &Samasa) -> Result<Prakriya> 
 
     samjna::try_decide_pratipadika(p);
 
-    run_main_rules(p, None, None, false)?;
+    run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
 
     Ok(prakriya)
@@ -612,7 +729,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
 
     let p = &mut prakriya;
     samjna::try_pragrhya_rules(p);
-    run_main_rules(p, None, None, false)?;
+    run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
 
     Ok(prakriya)

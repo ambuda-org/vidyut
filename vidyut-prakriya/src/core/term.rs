@@ -33,10 +33,11 @@ pub(crate) type TermString = String;
 
 lazy_static! {
     static ref AC: Set = s("ac");
+    static ref HAL: Set = s("hal");
 }
 
 /// Models the svaras on a particular `Term`.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Svara {
     /// Indicates that the entire `Term` has the *anudAtta* accent.
     Anudatta,
@@ -65,7 +66,7 @@ pub(crate) enum Svara {
 ///
 /// `Term` provides a rich API that is concise yet readable. Almost all mutations to a `Prakriya`
 /// occur through the use of the `Term` API.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Term {
     /// The *aupadeshika* form of this term, if one exists.
     ///
@@ -172,7 +173,11 @@ impl Term {
 
     /// Returns the number of vowels contained in this term's text.
     pub fn num_vowels(&self) -> usize {
-        self.text.chars().filter(|c| AC.contains(*c)).count()
+        self.text
+            .as_bytes()
+            .iter()
+            .filter(|c| AC.contains(**c as char))
+            .count()
     }
 
     /// Wrapper over `TermString::len`.
@@ -185,33 +190,46 @@ impl Term {
         self.text.chars()
     }
 
+    /// Wrapper over `TermString::as_bytes`.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.text.as_bytes()
+    }
+
     // Sound selectors
     // ---------------
 
     /// Returns the first sound in the term if it exists.
     pub fn adi(&self) -> Option<char> {
-        self.text.chars().next()
+        self.get(0)
     }
 
     /// Returns the last sound in the term if it exists.
     pub fn antya(&self) -> Option<char> {
-        self.text.chars().next_back()
+        self.get_rev(0)
     }
 
     /// Returns the penultimate sound in the term if it exists.
     ///
     /// (1.1.65 alo'ntyāt pūrva upadhā)
     pub fn upadha(&self) -> Option<char> {
-        self.text.chars().rev().nth(1)
+        self.get_rev(1)
     }
 
     pub fn last_vowel(&self) -> Option<char> {
-        self.chars().rev().find(|c| sounds::is_ac(*c))
+        self.as_bytes()
+            .iter()
+            .rev()
+            .find(|c| sounds::is_ac(**c as char))
+            .map(|b| *b as char)
     }
 
     /// Returns the sound at index `i` if it exists.
-    pub fn get_at(&self, i: usize) -> Option<char> {
-        self.text.as_bytes().get(i).map(|x| *x as char)
+    pub fn get(&self, i: usize) -> Option<char> {
+        self.as_bytes().get(i).map(|x| *x as char)
+    }
+
+    pub fn get_rev(&self, i: usize) -> Option<char> {
+        self.as_bytes().iter().rev().nth(i).map(|c| *c as char)
     }
 
     // Sound properties
@@ -245,7 +263,7 @@ impl Term {
 
     /// Returns whether the term has a sound at index `i` that matches the given pattern.
     pub fn has_at(&self, i: usize, pattern: impl Pattern) -> bool {
-        self.matches_sound_pattern(self.get_at(i), pattern)
+        self.matches_sound_pattern(self.get(i), pattern)
     }
 
     /// Returns whether the term has exactly one vowel.
@@ -261,12 +279,26 @@ impl Term {
 
     /// Returns whether the term begins with a conjunct consonant.
     pub fn is_samyogadi(&self) -> bool {
-        sounds::is_samyogadi(&self.text)
+        if self.get(0).map_or(false, sounds::is_hal) {
+            if self.get(1).map_or(false, sounds::is_hal) {
+                return true;
+            }
+        }
+        false
     }
 
     /// Returns whether the term ends in a conjunct consonant.
     pub fn is_samyoganta(&self) -> bool {
-        sounds::is_samyoganta(&self.text)
+        if let Some(x) = self.get_rev(0) {
+            // HACK: always treat a string ending with `C` as samyogAnta since it either follows a
+            // consonant or will become cC by 6.1.73.
+            if x == 'C' {
+                return true;
+            }
+            sounds::is_hal(x) && self.get_rev(1).map_or(false, sounds::is_hal)
+        } else {
+            false
+        }
     }
 
     /// Returns whether the last sound of the term is a short vowel.
@@ -283,27 +315,6 @@ impl Term {
             Some(c) => sounds::is_dirgha(c),
             None => false,
         }
-    }
-
-    /// Returns whether the first syllable of the term is or could be laghu.
-    #[allow(dead_code)]
-    pub fn is_laghu_adi(&self) -> bool {
-        let mut had_ac = false;
-        let mut num_consonants = 0;
-        for c in self.text.chars() {
-            if sounds::is_ac(c) {
-                if sounds::is_dirgha(c) {
-                    return false;
-                }
-                had_ac = true;
-            } else if had_ac {
-                num_consonants += 1;
-                if num_consonants > 1 {
-                    return false;
-                }
-            }
-        }
-        true
     }
 
     /// Returns whether the last syllable of the term is or could be laghu.
@@ -461,19 +472,6 @@ impl Term {
         self.has_tag(Tag::Avyaya)
     }
 
-    /// Returns whether the term is "final," i.e. whether it has been through at least one full
-    /// pass of the grammar.
-    ///
-    /// We track "finality" so that we can avoid re-running rules on terms where doing so makes no
-    /// sense.
-    ///
-    /// Examples:
-    /// - We should not change the Qa of rUQA to eya (7.1.2).
-    /// - We should not change the DO of DOta to DA (6.1.45).
-    pub fn is_final(&self) -> bool {
-        self.has_tag(Tag::Final)
-    }
-
     pub fn is_ekavacana(&self) -> bool {
         self.has_tag(Tag::Ekavacana)
     }
@@ -482,8 +480,7 @@ impl Term {
     ///
     /// (experimental)
     pub fn is_anga(&self) -> bool {
-        // `is_pratyaya` is for Snu (sunoti).
-        self.is_dhatu() || self.is_pratipadika_or_nyapu() || self.is_pratyaya()
+        self.has_tag(Tag::Anga)
     }
 
     /// Returns whether the term has the `Dhatu` samjna.
@@ -522,7 +519,7 @@ impl Term {
 
     /// Returns whether the term is `Ric` or `RiN`.
     pub fn is_ni_pratyaya(&self) -> bool {
-        self.has_u_in(&["Ric", "RiN"])
+        self.has_tag(Tag::Pratyaya) && self.has_u_in(&["Ric", "RiN"])
     }
 
     /// Returns whether the term has the `Krt` samjna.
@@ -688,6 +685,19 @@ impl Term {
         }
     }
 
+    /// Removes the term's last sound.
+    pub fn antya_lopa(&mut self) {
+        self.text.pop();
+    }
+
+    /// Removes the term's last sound.
+    pub fn upadha_lopa(&mut self) {
+        if let Some(c) = self.text.pop() {
+            self.text.pop();
+            self.text.push(c);
+        }
+    }
+
     pub fn set_last_vowel(&mut self, s: &str) {
         let result = self
             .text
@@ -788,5 +798,25 @@ impl Term {
         for t in tags {
             self.tags.remove(*t);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_samyogadi() {
+        assert!(Term::make_text("krI").is_samyogadi());
+        assert!(!Term::make_text("kf").is_samyogadi());
+        assert!(!Term::make_text("IS").is_samyogadi());
+    }
+
+    #[test]
+    fn test_is_samyoganta() {
+        assert!(Term::make_text("praC").is_samyoganta());
+        assert!(Term::make_text("vind").is_samyoganta());
+        assert!(!Term::make_text("kf").is_samyoganta());
+        assert!(!Term::make_text("BU").is_samyoganta());
     }
 }

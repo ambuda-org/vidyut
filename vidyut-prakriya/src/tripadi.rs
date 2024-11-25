@@ -17,6 +17,8 @@ mod pada_8_4;
 use crate::core::Prakriya;
 
 /// Runs all rules of the tripadi.
+///
+/// This function is responsible for around 25% of runtime.
 pub fn run(p: &mut Prakriya) {
     pada_8_2::run(p);
     pada_8_3::run(p);

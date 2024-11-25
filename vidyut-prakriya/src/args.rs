@@ -36,7 +36,7 @@ pub use tin::*;
 pub use unadi::Unadi;
 
 /// Models a semantic condition that applies to the *prakriyā* as a whole.
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Artha {
     /// A semantic condition for a *kṛdanta* derivation.

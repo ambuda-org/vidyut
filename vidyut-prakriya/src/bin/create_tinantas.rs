@@ -14,8 +14,8 @@ use vidyut_prakriya::{Dhatupatha, Vyakarana};
 struct Args {
     #[arg(long)]
     prayoga: Option<Prayoga>,
-    #[arg(long)]
-    sanadi: Option<Sanadi>,
+    #[arg(long, value_delimiter = ',')]
+    sanadi: Vec<Sanadi>,
 }
 
 // TODO: reuse with other binaries?
@@ -70,11 +70,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let v = Vyakarana::builder().log_steps(false).build();
 
-    let sanadi = match args.sanadi {
-        Some(x) => vec![x],
-        None => Vec::new(),
-    };
-
+    let sanadi = args.sanadi;
     for entry in d {
         let dhatu = to_mula(entry.dhatu());
 

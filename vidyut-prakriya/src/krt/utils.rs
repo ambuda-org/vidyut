@@ -224,8 +224,6 @@ impl<'a> KrtPrakriya<'a> {
         let rule = rule.into();
         let krt = krt.into();
 
-        self.p.debug(format!("try_add: {:?} --> {krt:?}", rule));
-
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
             // Insert term with it-samjna-prakarana.

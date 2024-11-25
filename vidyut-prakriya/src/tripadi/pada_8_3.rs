@@ -124,19 +124,16 @@ fn try_mn_to_anusvara(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    // TODO: a-padAnta
     let mut cp = CharPrakriya::new(p);
     cp.for_chars(
         xy(|x, y| (x == 'm' || x == 'n') && JHAL.contains(y)),
         |p, _, i| {
             if let Some((i_term, i_offset)) = get_term_and_offset_indices(p, i) {
                 let t = p.get(i_term).expect("ok");
-                if t.is_pada() && i_offset + 1 == t.len() {
-                    false
-                } else if t.is_unadi() && t.has_u("qumsu~n") {
-                    // for qumsun-pratyaya
-                    false
-                } else if t.has_text("pums") && !p.has(i_term + 1, |t| t.is_pada()) {
+                if t.is_pada() && i_offset + 1 == t.len()
+                    || t.is_unadi() && t.has_u("qumsu~n")
+                    || t.has_text("pums") && !p.has(i_term + 1, |t| t.is_pada())
+                {
                     // Don't make this change for "m" in a pratipadika, so that we can derive
                     // "supums".
                     false
@@ -298,7 +295,6 @@ impl<'a> ShaPrakriya<'a> {
 }
 
 fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()> {
-    sp.p.debug(format!("shatva, term={} char={}", sp.i_term, sp.i_char));
     use Gana::*;
 
     let i = sp.i_term;
@@ -780,16 +776,33 @@ fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) {
-    try_ra_lopa(p);
-    try_mn_to_anusvara(p);
-    try_add_dhut_agama(p);
-    try_visarjaniyasya(p);
+    // Use `set` for performance to avoid running useless rules.
+    let set = p.sound_set();
 
-    // Runs rules that make a sound mUrdhanya when certain sounds precede.
-    //
-    // Example: `nesyati -> nezyati`
-    //
-    // (8.3.55 - 8.3.119)
-    run_shatva_rules(p);
-    try_murdhanya_for_dha_in_tinanta(p);
+    if set.contains('r') {
+        try_ra_lopa(p);
+    }
+
+    if set.contains('m') || set.contains('n') {
+        try_mn_to_anusvara(p);
+    }
+
+    if set.contains('q') {
+        try_add_dhut_agama(p);
+    }
+
+    if set.contains_any("rsH") {
+        try_visarjaniyasya(p);
+
+        // Runs rules that make a sound mUrdhanya when certain sounds precede.
+        //
+        // Example: `nesyati -> nezyati`
+        //
+        // (8.3.55 - 8.3.119)
+        run_shatva_rules(p);
+    }
+
+    if set.contains('D') {
+        try_murdhanya_for_dha_in_tinanta(p);
+    }
 }

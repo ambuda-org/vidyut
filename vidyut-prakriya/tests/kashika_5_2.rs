@@ -262,8 +262,7 @@ fn sutra_5_2_42() {
     assert_has_artha_taddhita("daSan", Avasana, T::tayap, &["daSataya"]);
     assert_has_artha_taddhita("catur", Avasana, T::tayap, &["catuzwaya"]);
 
-    let catushtaya = create_taddhitanta("catuzwaya", "catur", T::tayap);
-    assert_has_sup_1s(&catushtaya, Stri, &["catuzwayI"]);
+    assert_has_sup_1s(&taddhitanta("catur", T::tayap), Stri, &["catuzwayI"]);
 }
 
 #[test]

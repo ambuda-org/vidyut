@@ -70,9 +70,17 @@ impl Set {
         res
     }
 
+    pub fn add(&mut self, c: Sound) {
+        self.0[c as usize] = 1;
+    }
+
     /// Returns whether the set contains the given sound.
     pub const fn contains(&self, c: Sound) -> bool {
         self.0[c as usize] == 1
+    }
+
+    pub fn contains_any(&self, s: &str) -> bool {
+        s.chars().any(|c| self.0[c as usize] == 1)
     }
 }
 
@@ -274,30 +282,6 @@ pub fn is_ac(c: Sound) -> bool {
 /// Returns whether the given sound is a consonant.
 pub fn is_hal(c: Sound) -> bool {
     HAL.contains(c)
-}
-
-/// Returns whether the given text starts with two or more consecutive consonants.
-pub fn is_samyogadi(text: &str) -> bool {
-    let mut chars = text.chars();
-    if let Some(x) = chars.next() {
-        if let Some(y) = chars.next() {
-            return HAL.contains(x) && HAL.contains(y);
-        }
-    }
-    false
-}
-
-/// Returns whether the given text starts with two or more consecutive consonants.
-pub fn is_samyoganta(text: &str) -> bool {
-    let mut chars = text.chars().rev();
-    if let Some(x) = chars.next() {
-        if let Some(y) = chars.next() {
-            // HACK: always treat a string ending with `C` as samyogAnta since it either follows a
-            // consonant or will become cC by 6.1.73.
-            return (HAL.contains(x) && HAL.contains(y)) || x == 'C';
-        }
-    }
-    false
 }
 
 /// Converts the sound to its guna replacement, including any "rapara" sounds (1.1.51).
@@ -690,20 +674,5 @@ mod tests {
         assert!(is_savarna('d', 'd'));
         assert!(is_savarna('d', 'D'));
         assert!(!is_savarna('d', 'g'));
-    }
-
-    #[test]
-    fn test_is_samyogadi() {
-        assert!(is_samyogadi("krI"));
-        assert!(!is_samyogadi("kf"));
-        assert!(!is_samyogadi("IS"));
-    }
-
-    #[test]
-    fn test_is_samyoganta() {
-        assert!(is_samyoganta("praC"));
-        assert!(is_samyoganta("vind"));
-        assert!(!is_samyoganta("kf"));
-        assert!(!is_samyoganta("BU"));
     }
 }

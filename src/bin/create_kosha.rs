@@ -645,13 +645,13 @@ fn create_inflected_krdantas(
                         .with_prefixes(group);
 
                     for krt in all_krts {
-                        for (linga, vibhakti, vacana) in &linga_vibhakti_vacana {
-                            let krdanta = vp::Krdanta::builder()
-                                .dhatu(dhatu.clone())
-                                .krt(*krt)
-                                .build()
-                                .expect("ok");
+                        let krdanta = vp::Krdanta::builder()
+                            .dhatu(dhatu.clone())
+                            .krt(*krt)
+                            .build()
+                            .expect("ok");
 
+                        for (linga, vibhakti, vacana) in &linga_vibhakti_vacana {
                             let args =
                                 vp::Subanta::new(krdanta.clone(), *linga, *vibhakti, *vacana);
 

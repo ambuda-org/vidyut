@@ -53,9 +53,9 @@ impl<'a> PadaPrakriya<'a> {
 
     /// Checks whether the prakriya has any of the given upasargas and any of the given
     /// dhatu-upadeshas.
-    fn is(&self, upasargas: &[&str], upadeshas: &[&str]) -> bool {
+    fn is(&self, upasargas: &[&str], dhatu_upadeshas: &[&str]) -> bool {
         let i_dhatu = self.i_dhatu;
-        let has_dhatu = self.p.has(i_dhatu, |t| t.has_u_in(upadeshas));
+        let has_dhatu = self.p.has(i_dhatu, |t| t.has_u_in(dhatu_upadeshas));
         let has_upasarga = match upasargas.is_empty() {
             true => true,
             false => self.p.terms()[..i_dhatu]

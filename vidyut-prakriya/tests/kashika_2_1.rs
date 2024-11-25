@@ -10,6 +10,10 @@ pub fn create_kta(text: &str, prefixes: &[&str], d: &Dhatu) -> Krdanta {
     create_krdanta(text, prefixes, d, Krt::kta)
 }
 
+pub fn kta(prefixes: &[&str], d: &Dhatu) -> Krdanta {
+    krdanta(prefixes, d, Krt::kta)
+}
+
 #[test]
 fn sutra_2_1_1() {
     assert_has_dvitiya_tatpurusha("kazwa", "Srita", &["kazwaSrita"]);
@@ -130,16 +134,16 @@ fn sutra_2_1_24() {
 
 #[test]
 fn sutra_2_1_25() {
-    let dhauta = create_kta("DOta", &[], &d("DAvu~^", Bhvadi));
-    let vilina = create_kta("vilIna", &["vi"], &d("lI\\N", Divadi));
+    let dhauta = kta(&[], &d("DAvu~^", Bhvadi));
+    let vilina = kta(&["vi"], &d("lI\\N", Divadi));
     assert_has_avyaya_tatpurusha("svayam", &dhauta, &["svayanDOta"]);
     assert_has_avyaya_tatpurusha("svayam", &vilina, &["svayaMvilIna"]);
 }
 
 #[test]
 fn sutra_2_1_26() {
-    let arudha = create_kta("ArUQa", &["AN"], &d("ru\\ha~", Bhvadi));
-    let pluta = create_kta("pluta", &[], &d("plu\\N", Bhvadi));
+    let arudha = kta(&["AN"], &d("ru\\ha~", Bhvadi));
+    let pluta = kta(&[], &d("plu\\N", Bhvadi));
     assert_has_dvitiya_tatpurusha("KawvA", &arudha, &["KawvArUQa"]);
     assert_has_dvitiya_tatpurusha("KawvA", &pluta, &["KawvApluta"]);
 }
@@ -199,7 +203,7 @@ fn sutra_2_1_33() {
     let chedya = create_krdanta("Cedya", &[], &d("Ci\\di~^r", Rudhadi), Krt::Ryat);
     assert_has_trtiya_tatpurusha("bAzpa", &chedya, &["bAzpacCedya"]);
 
-    let sanceya = create_krdanta("saYceya", &["sam"], &d("ci\\Y", Svadi), Krt::yat);
+    let sanceya = krdanta(&["sam"], &d("ci\\Y", Svadi), Krt::yat);
     assert_has_trtiya_tatpurusha("kaRwaka", &sanceya, &["kaRwakasaYceya"]);
 }
 
