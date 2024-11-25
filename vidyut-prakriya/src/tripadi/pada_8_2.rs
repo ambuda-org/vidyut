@@ -425,7 +425,7 @@ fn try_talavya_to_s(p: &mut Prakriya) {
             p.run_at("8.2.36", i, |t| {
                 t.text.replace_range(n.., "z");
             });
-        } else if !x.has_antya('k') {
+        } else if x.has_antya(&*HAL) && !x.has_antya('k') {
             // HACK: check for explicit k to avoid errors with `yaj -> yiyakza -> yiyakzati`. The
             // more principled fix might be to disable the tripAdi for the dhAtu after the first
             // round, but that will require extensive updates elsewhere.

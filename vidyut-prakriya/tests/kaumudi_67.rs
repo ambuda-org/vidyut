@@ -838,6 +838,16 @@ fn unadi_2_20() {
 }
 
 #[test]
+fn unadi_2_21() {
+    assert_has_krdanta(&[], &d("kftI~", Tudadi), rak, &["kfcCra", "krUra"]);
+}
+
+#[test]
+fn unadi_2_22() {
+    assert_has_krdanta(&[], &nic(&d("rudi~r", Adadi)), rak, &["rudra"]);
+}
+
+#[test]
 fn unadi_2_25() {
     assert_has_krdanta(&[], &d("zu\\Y", Adadi), kran, &["sura"]);
     assert_has_krdanta(&[], &d("zU", Adadi), kran, &["sUra"]);
@@ -1053,6 +1063,21 @@ fn unadi_2_83() {
 }
 
 #[test]
+fn unadi_2_84() {
+    assert_has_krdanta(&[], &d("pfzu~", Bhvadi), ati, &["pfzat"]);
+    assert_has_krdanta(&[], &d("bfha~", Bhvadi), ati, &["bfhat"]);
+    assert_has_krdanta(&[], &d("maha~", Bhvadi), ati, &["mahat"]);
+    assert_has_krdanta(&[], &d("ga\\mx~", Bhvadi), ati, &["jagat"]);
+}
+
+#[test]
+fn unadi_2_85() {
+    assert_has_krdanta(&["sam"], &d("ci\\Y", Svadi), ati, &["saMScat"]);
+    assert_has_krdanta(&[], &d("YitfzA~", Divadi), ati, &["tfzat"]);
+    assert_has_krdanta(&["vi"], &d("ha\\na~", Adadi), ati, &["vehat"]);
+}
+
+#[test]
 fn unadi_2_87() {
     assert_has_krdanta(&[], &d("fji~\\", Bhvadi), asAnac, &["fYjasAna"]);
     assert_has_krdanta(&[], &d("vfDu~\\", Bhvadi), asAnac, &["vfDasAna"]);
@@ -1085,6 +1110,32 @@ fn unadi_2_91() {
 #[test]
 fn unadi_2_92() {
     assert_has_krdanta(&[], &d("SvitA~\\", Bhvadi), Anac, &["SiSvidAna"]);
+}
+
+#[ignore]
+#[test]
+fn unadi_2_95() {
+    assert_has_krdanta(&[], &d("patx~", Bhvadi), tfn, &["naptf"]);
+    assert_has_krdanta(&[], &d("RI\\Y", Bhvadi), tfn, &["nezwf"]);
+    assert_has_krdanta(&[], &d("tvi\\za~^", Bhvadi), tfn, &["tvazwf"]);
+    assert_has_krdanta(&[], &d("hu\\", Bhvadi), tfn, &["hotf"]);
+    assert_has_krdanta(&[], &d("pUY", Kryadi), tfn, &["potf"]);
+    assert_has_krdanta(&[], &d("BrAjf~\\", Bhvadi), tfn, &["BrAtf"]);
+    assert_has_krdanta(&[], &d("mA\\", Adadi), tfn, &["jAmAtf"]);
+    assert_has_krdanta(&[], &d("mAna~", Curadi), tfn, &["mAtf"]);
+    assert_has_krdanta(&[], &d("pA\\", Adadi), tfn, &["pitf"]);
+    assert_has_krdanta(&[], &d("du\\ha~^", Adadi), tfn, &["duhitf"]);
+
+    assert_has_krdanta(&[], &d("patx~", Bhvadi), tfc, &["naptf"]);
+    assert_has_krdanta(&[], &d("RI\\Y", Bhvadi), tfc, &["nezwf"]);
+    assert_has_krdanta(&[], &d("tvi\\za~^", Bhvadi), tfc, &["tvazwf"]);
+    assert_has_krdanta(&[], &d("hu\\", Bhvadi), tfc, &["hotf"]);
+    assert_has_krdanta(&[], &d("pUY", Kryadi), tfc, &["potf"]);
+    assert_has_krdanta(&[], &d("BrAjf~\\", Bhvadi), tfc, &["BrAtf"]);
+    assert_has_krdanta(&[], &d("mA\\", Adadi), tfc, &["jAmAtf"]);
+    assert_has_krdanta(&[], &d("mAna~", Curadi), tfc, &["mAtf"]);
+    assert_has_krdanta(&[], &d("pA\\", Adadi), tfc, &["pitf"]);
+    assert_has_krdanta(&[], &d("du\\ha~^", Adadi), tfc, &["duhitf"]);
 }
 
 #[test]

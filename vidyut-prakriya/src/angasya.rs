@@ -307,7 +307,7 @@ fn try_shiti(p: &mut Prakriya) -> Option<()> {
     } else if anga.has_text("kram") && last.is_parasmaipada() {
         // krAmati
         p.run_at("7.3.76", i, op::text("krAm"));
-    } else if anga.has_u_in(&["izu~", "ga\\mx~", "ya\\ma~"]) {
+    } else if anga.has_u_in(&["izu~", "ga\\mx~", "ya\\ma~"]) && !n.is_unadi() {
         // icCati, gacCati, yacCati
         p.run_at("7.3.77", i, op::antya("C"));
     } else if anga.has_u_in(pa_ghra) && !anga.has_gana(Adadi) && !anga.has_gana(Juhotyadi) {

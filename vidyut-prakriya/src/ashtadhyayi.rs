@@ -167,9 +167,6 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
             dhatu_karya::try_add_prefixes(p, n.prefixes());
             sanadi::try_create_namadhatu(p, n);
             if !p.terms().last().expect("ok").is_dhatu() {
-                if cfg!(debug_assertions) {
-                    println!("invalid: {:#?}", p);
-                }
                 return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
