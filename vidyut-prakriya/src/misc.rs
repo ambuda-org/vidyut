@@ -1,3 +1,5 @@
+//! Content that should go somewhere else, eventually.
+
 use crate::core::operators as op;
 use crate::core::Prakriya;
 
@@ -13,6 +15,8 @@ const PAD_ADI: &[&str] = &[
 ];
 
 pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
+    use crate::args::Sup::*;
+
     let i_prati = p.find_first_where(|t| t.is_pratipadika())?;
     let i_next = i_prati + 1;
     let prati = p.get(i_prati)?;
@@ -20,7 +24,7 @@ pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
         // HACK: exclude None, which is a placeholder form for upapada-krdantas.
         t.is_vibhakti()
             && !t.is_lupta()
-            && !t.has_u_in(&["su~", "O", "jas", "am", "Ow"])
+            && ![su, O, jas, am, Ow].iter().any(|s| t.is(*s))
             && t.u.is_some()
     });
 

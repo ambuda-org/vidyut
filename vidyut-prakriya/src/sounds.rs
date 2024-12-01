@@ -35,32 +35,38 @@ We chose SLP1 over something like [WX][wx] merely because we have more familiari
 [wx]: https://en.wikipedia.org/wiki/WX_notation
 */
 use lazy_static::lazy_static;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use std::fmt;
 
 type Sound = char;
 
+pub const AK: Set = s(&["ak"]);
+pub const AC: Set = s(&["ac"]);
+pub const JHAL: Set = s(&["Jal"]);
+pub const IK: Set = s(&["ik"]);
+pub const HAL: Set = s(&["hal"]);
+pub const YAN: Set = s(&["yaR"]);
+pub const VAL: Set = s(&["val"]);
+
 lazy_static! {
-    static ref SOUND_PROPS: HashMap<Sound, Uccarana> = create_sound_props();
-    static ref AC: Set = s("ac");
-    static ref HAL: Set = s("hal");
+    static ref SOUND_PROPS: FxHashMap<Sound, Uccarana> = create_sound_props();
 }
 
 /// A set of Sanskrit sounds.
 ///
-/// Internally, a `Set` is just a 256-byte array where `array[i]` is 1 if the char with `u8`
+/// Internally, a `Set` is just a 128-byte array where `array[i]` is 1 if the char with `u8`
 /// value `i` is present in the set and 0 otherwise.
-pub struct Set([u8; 256]);
+pub struct Set([u8; 128]);
 
 impl Set {
     /// Creates an empty set.
     pub const fn new() -> Self {
-        Set([0; 256])
+        Set([0; 128])
     }
 
     /// Creates a set whose members are the characters in `string`.
     pub const fn from(text: &str) -> Self {
-        let mut res = Set([0; 256]);
+        let mut res = Set([0; 128]);
         let mut i = 0;
         while i < text.len() {
             let c = text.as_bytes()[i] as char;
@@ -74,13 +80,27 @@ impl Set {
         self.0[c as usize] = 1;
     }
 
+    const fn add_const(mut self, c: Sound) -> Self {
+        self.0[c as usize] = 1;
+        self
+    }
+
+    const fn or_const(mut self, other: &Set) -> Self {
+        let mut i = 0;
+        while i < self.0.len() {
+            self.0[i] |= other.0[i];
+            i += 1;
+        }
+        self
+    }
+
     /// Returns whether the set contains the given sound.
     pub const fn contains(&self, c: Sound) -> bool {
         self.0[c as usize] == 1
     }
 
     pub fn contains_any(&self, s: &str) -> bool {
-        s.chars().any(|c| self.0[c as usize] == 1)
+        s.as_bytes().iter().any(|c| self.0[*c as usize] == 1)
     }
 }
 
@@ -105,16 +125,16 @@ impl Default for Set {
 
 /// Maps one Sanskrit sound to another.
 ///
-/// Internally, a `Set` is just a 256-byte array where `array[key]` is `value` if the value is
+/// Internally, a `Set` is just a 128-byte array where `array[key]` is `value` if the value is
 /// present or `0` otherwise. All sounds are represented as `char`s, which we cast internally to
 /// `u8`.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Map([u8; 256]);
+pub struct Map([u8; 128]);
 
 impl Map {
     /// Creates an empty map.
     pub fn new() -> Self {
-        Self([0; 256])
+        Self([0; 128])
     }
 
     /// Inserts the given key-value pair. The old value is overwritten.
@@ -184,9 +204,9 @@ impl Sutra {
     }
 }
 
-fn create_sound_props() -> HashMap<Sound, Uccarana> {
-    fn flatten_multi<T: Copy>(data: Vec<(Set, T)>) -> HashMap<Sound, Vec<T>> {
-        let mut mapping = HashMap::default();
+fn create_sound_props() -> FxHashMap<Sound, Uccarana> {
+    fn flatten_multi<T: Copy>(data: Vec<(Set, T)>) -> FxHashMap<Sound, Vec<T>> {
+        let mut mapping = FxHashMap::default();
         for (ks, v) in data {
             for k in ks.to_string().chars() {
                 mapping.entry(k).or_insert_with(Vec::new).push(v);
@@ -195,8 +215,8 @@ fn create_sound_props() -> HashMap<Sound, Uccarana> {
         mapping
     }
 
-    fn flatten<T: Copy>(data: Vec<(Set, T)>) -> HashMap<Sound, T> {
-        let mut mapping = HashMap::default();
+    fn flatten<T: Copy>(data: Vec<(Set, T)>) -> FxHashMap<Sound, T> {
+        let mut mapping = FxHashMap::default();
         for (ks, v) in data {
             for k in ks.to_string().chars() {
                 mapping.insert(k, v);
@@ -206,35 +226,38 @@ fn create_sound_props() -> HashMap<Sound, Uccarana> {
     }
 
     let mut sthana = flatten_multi(vec![
-        (s("a ku~ h H"), Sthana::Kantha),
-        (s("i cu~ y S"), Sthana::Talu),
-        (s("f wu~ r z"), Sthana::Murdha),
-        (s("x tu~ l s"), Sthana::Danta),
-        (s("u pu~"), Sthana::Oshtha),
-        (s("e E"), Sthana::KanthaTalu),
-        (s("o O"), Sthana::KanthaOshtha),
-        (s("v"), Sthana::DantaOshtha),
+        (s(&["a", "ku~", "h", "H"]), Sthana::Kantha),
+        (s(&["i", "cu~", "y", "S"]), Sthana::Talu),
+        (s(&["f", "wu~", "r", "z"]), Sthana::Murdha),
+        (s(&["x", "tu~", "l", "s"]), Sthana::Danta),
+        (s(&["u", "pu~"]), Sthana::Oshtha),
+        (s(&["e", "E"]), Sthana::KanthaTalu),
+        (s(&["o", "O"]), Sthana::KanthaOshtha),
+        (s(&["v"]), Sthana::DantaOshtha),
     ]);
-    for k in s("Yam M").to_string().chars() {
+    for k in s(&["Yam", "M"]).to_string().chars() {
         sthana.entry(k).or_default().push(Sthana::Nasika);
     }
 
     let ghosha = flatten(vec![
-        (s("ac haS M"), Ghosha::Ghoshavat),
-        (s("Kar H"), Ghosha::Aghosha),
+        (s(&["ac", "haS", "M"]), Ghosha::Ghoshavat),
+        (s(&["Kar", "H"]), Ghosha::Aghosha),
     ]);
     let prana = flatten(vec![
-        (s("ac yam jaS car M"), Prana::Alpaprana),
-        (s("K G C J W Q T D P B h"), Prana::Mahaprana),
+        (s(&["ac", "yam", "jaS", "car", "M"]), Prana::Alpaprana),
+        (
+            s(&["K", "G", "C", "J", "W", "Q", "T", "D", "P", "B", "h"]),
+            Prana::Mahaprana,
+        ),
     ]);
     let prayatna = flatten(vec![
-        (s("yaR Sar"), Prayatna::Ishat),
-        (s("ac h"), Prayatna::Vivrta),
-        (s("Yay"), Prayatna::Sprshta),
+        (s(&["yaR", "Sar"]), Prayatna::Ishat),
+        (s(&["ac", "h"]), Prayatna::Vivrta),
+        (s(&["Yay"]), Prayatna::Sprshta),
     ]);
 
-    let mut res = HashMap::default();
-    for k in s("al H M").to_string().chars() {
+    let mut res = FxHashMap::default();
+    for k in s(&["al", "H", "M"]).to_string().chars() {
         let sthana = match sthana.get(&k) {
             Some(s) => s.clone(),
             None => Vec::new(),
@@ -255,7 +278,7 @@ fn create_sound_props() -> HashMap<Sound, Uccarana> {
 }
 
 /// Returns whether the given sound is a short vowel.
-pub fn is_hrasva(c: Sound) -> bool {
+pub const fn is_hrasva(c: Sound) -> bool {
     matches!(c, 'a' | 'i' | 'u' | 'f' | 'x')
 }
 
@@ -334,7 +357,7 @@ pub fn to_hrasva(s: Sound) -> Option<Sound> {
 /// Converts the sound to its dIrgha (long) replacement.
 ///
 /// 1.1.48 UkAlojjhrasvadIrghaplutaH
-pub fn to_dirgha(s: Sound) -> Option<Sound> {
+pub const fn to_dirgha(s: Sound) -> Option<Sound> {
     let res = match s {
         'a' | 'A' => 'A',
         'i' | 'I' => 'I',
@@ -355,7 +378,7 @@ pub fn to_dirgha(s: Sound) -> Option<Sound> {
 /// Since the it letter `R` appears twice in the Maheshvara sutras, we disambiguate as follows:
 /// - `R` refers to the first `R` (a i u R).
 /// - `R2` refers to the second `R` (la R).
-fn pratyahara(s: &str) -> Set {
+const fn pratyahara(s: &str) -> Set {
     const SUTRAS: &[Sutra] = &[
         Sutra::new("aiu", 'R'),
         Sutra::new("fx", 'k'),
@@ -373,9 +396,16 @@ fn pratyahara(s: &str) -> Set {
         Sutra::new("h", 'l'),
     ];
 
-    let first = s.as_bytes()[0] as char;
+    let bytes = s.as_bytes();
+    let first = bytes[0] as char;
 
-    let use_second_n = s.ends_with("R2");
+    let n = bytes.len();
+    let use_second_n = if n >= 2 {
+        bytes[n - 2] == b'R' && bytes[n - 1] == b'2'
+    } else {
+        false
+    };
+
     let it = if use_second_n {
         'R'
     } else {
@@ -384,21 +414,31 @@ fn pratyahara(s: &str) -> Set {
 
     let mut started = false;
     let mut saw_first_n = false;
-    let mut res = String::new();
+    let mut ret = Set::new();
 
-    for sutra in SUTRAS.iter() {
-        for sound in sutra.sounds.chars() {
+    let mut i = 0;
+    loop {
+        let sutra = &SUTRAS[i];
+        let sounds = sutra.sounds.as_bytes();
+        let mut j = 0;
+        loop {
+            let sound = sounds[j] as char;
             if first == sound {
                 started = true;
             }
             if started {
-                res.push(sound);
+                ret = ret.add_const(sound);
 
                 // Add long vowels, which are not explictly included in the
                 // Shiva Sutras.
-                if is_hrasva(sound) {
-                    res.push(to_dirgha(sound).expect("should be ac"));
+                if let Some(s) = to_dirgha(sound) {
+                    ret = ret.add_const(s);
                 }
+            }
+
+            j += 1;
+            if j == sounds.len() {
+                break;
             }
         }
 
@@ -409,11 +449,14 @@ fn pratyahara(s: &str) -> Set {
                 break;
             }
         }
+
+        i += 1;
+        if i == SUTRAS.len() {
+            break;
+        }
     }
 
-    // This function is not part of the public API, so the `assert` is reasonable.
-    assert!(!res.is_empty(), "Could not parse pratyahara `{s}`");
-    Set::from(&res)
+    ret
 }
 
 /// Parses a list of terms and returns the sound set it specifies.
@@ -426,10 +469,38 @@ fn pratyahara(s: &str) -> Set {
 ///
 /// `s` is an abbrevation for "sound_set." Since this function is so frequent in the codebase, we
 /// have shortened its name for brevity.
-pub fn s(terms: &str) -> Set {
-    let mut ret = String::new();
+pub const fn s(terms: &[&str]) -> Set {
+    const AK: Set = Set::from("aAiIuUfFxX");
+    let mut ret = Set::new();
+
+    let mut t = 0;
+    while t < terms.len() {
+        let term = terms[t];
+        let bytes = term.as_bytes();
+        let n = bytes.len();
+
+        let is_udit = n > 1 && bytes[n - 2] == b'u' && bytes[n - 1] == b'~';
+        let is_ak = n == 1 && AK.contains(bytes[0] as char);
+        if is_udit || is_ak {
+            let set = savarna(bytes[0] as char);
+            ret = ret.or_const(&set);
+        } else if bytes.len() == 1 {
+            ret = ret.add_const(bytes[0] as char);
+        } else {
+            let set = pratyahara(term);
+            ret = ret.or_const(&set);
+        }
+
+        t += 1;
+    }
+
+    ret
+}
+
+pub fn s_old(terms: &str) -> Set {
     const AK: &[&str] = &["a", "A", "i", "I", "u", "U", "f", "F", "x", "X"];
 
+    let mut ret = String::new();
     for term in terms.split_whitespace() {
         if term.ends_with("u~") || AK.contains(&term) {
             let first = term.chars().next().expect("non-empty");
@@ -535,7 +606,7 @@ impl Uccarana {
 }
 
 /// Maps a sound to itself and all of the sounds that are savarna with it.
-fn savarna_str(c: Sound) -> &'static str {
+const fn savarna_str(c: Sound) -> &'static str {
     match c {
         'a' | 'A' => "aA",
         'i' | 'I' => "iI",
@@ -556,14 +627,14 @@ pub fn is_savarna(x: Sound, y: Sound) -> bool {
 }
 
 /// Creates a `savarna` set for the given sound.
-pub fn savarna(c: Sound) -> Set {
+pub const fn savarna(c: Sound) -> Set {
     Set::from(savarna_str(c))
 }
 
 /// Maps the sounds in `keys` to the sounds is `values` according to their phonetic similarity.
 pub(crate) fn map(keys: &str, values: &str) -> Map {
-    let keys = s(keys);
-    let values = s(values);
+    let keys = s_old(keys);
+    let values = s_old(values);
 
     let mut map = Map::new();
     for key in keys.to_string().chars() {
@@ -591,7 +662,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_s() {
+    fn test_s2() {
         let tests = vec![
             ("ac", "aAiIuUfFxXeEoO"),
             ("iR", "iIuU"),
@@ -601,16 +672,18 @@ mod tests {
             ("Yam", "NYRnm"),
             ("Sar", "Szs"),
             ("a", "aA"),
+            ("i", "iI"),
             ("e", "e"),
             ("ku~", "kKgGN"),
             ("cu~", "cCjJY"),
-            ("i cu~", "iIcCjJY"),
-            ("a ku~ h H", "aAHkKgGNh"),
         ];
         for (input, expected) in tests {
-            let actual = s(input).to_string();
+            let actual = s(&[input]).to_string();
             assert_eq!(actual, expected, "input: `{input}`");
         }
+
+        assert_eq!(s(&["tu~", "s", "m"]).to_string(), "tTdDnms");
+        assert_eq!(s(&["l", "S", "ku~"]).to_string(), "kKgGNlS");
     }
 
     #[test]

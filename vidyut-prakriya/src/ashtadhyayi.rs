@@ -27,17 +27,15 @@ use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
-    Artha, Dhatu, Krdanta, Lakara, Pada, Pratipadika, Prayoga, Samasa, Subanta, Taddhitanta,
-    Tinanta,
+    Artha, Dhatu, Krdanta, Lakara, Pada, Pratipadika, Prayoga, Samasa, Subanta, Sup, Taddhitanta,
+    Tinanta, Upasarga,
 };
 use crate::atidesha;
 use crate::atmanepada;
 use crate::caching::{calculate_hash, Cache};
 use crate::core::errors::*;
 use crate::core::prakriya_stack::PrakriyaStack;
-use crate::core::Prakriya;
-use crate::core::Tag;
-use crate::core::Term;
+use crate::core::{Morph, Prakriya, Tag, Term};
 use crate::dhatu_karya;
 use crate::dvitva;
 use crate::it_agama;
@@ -50,7 +48,6 @@ use crate::samasa;
 use crate::samjna;
 use crate::samprasarana;
 use crate::sanadi;
-use crate::sounds::Set;
 use crate::stritva;
 use crate::sup_karya;
 use crate::svara;
@@ -61,17 +58,12 @@ use crate::uttarapade;
 use crate::vikarana;
 use crate::RuleChoice;
 use core::cell::RefCell;
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref AC: Set = Set::from("ac");
-}
 
 /// Enough to hold a term changed by up to 4 optional rules (2^4 = 16), plus an extra 2x seems to
 /// help.
 const CACHE_SIZE: usize = 32;
 
-#[derive(Copy, Clone, Default, Hash)]
+#[derive(Copy, Clone, Debug, Default, Hash)]
 struct MainArgs {
     lakara: Option<Lakara>,
     is_ardhadhatuka: bool,
@@ -120,7 +112,17 @@ fn prepare_dhatu(
     };
 
     let main_args = MainArgs {
-        lakara: future_lakara,
+        lakara: match dhatu.upadesha() {
+            // Zero out the lakara for most dhatus to increase the cache hit rate.
+            Some(s) => {
+                if s == "aja~" || matches!(future_lakara, Some(Lakara::Lun)) {
+                    future_lakara
+                } else {
+                    None
+                }
+            }
+            None => future_lakara,
+        },
         is_ardhadhatuka,
     };
 
@@ -258,7 +260,7 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
     });
 
     if cache_hit {
-        return cache_ret;
+        cache_ret
     } else {
         let ret = prepare_pratipadika_inner(p, pratipadika);
         let payload = match ret {
@@ -656,17 +658,18 @@ fn make_sup_pratyaya(vibhakti: crate::args::Vibhakti) -> Term {
     use crate::args::Vibhakti::*;
     use crate::core::Tag as T;
     let (u, vibhakti) = match vibhakti {
-        Prathama | Sambodhana => ("su~", T::V1),
-        Dvitiya => ("am", T::V2),
-        Trtiya => ("wA", T::V3),
-        Caturthi => ("Ne", T::V4),
-        Panchami => ("Nasi~", T::V5),
-        Sasthi => ("Nas", T::V6),
-        Saptami => ("Ni", T::V7),
+        Prathama | Sambodhana => (Sup::su, T::V1),
+        Dvitiya => (Sup::am, T::V2),
+        Trtiya => (Sup::wA, T::V3),
+        Caturthi => (Sup::Ne, T::V4),
+        Panchami => (Sup::Nasi, T::V5),
+        Sasthi => (Sup::Nas, T::V6),
+        Saptami => (Sup::Ni, T::V7),
     };
 
-    let mut su = Term::make_upadesha(u);
+    let mut su = Term::make_upadesha(u.as_str());
     su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::Pada, vibhakti]);
+    su.morph = Morph::Sup(u);
     su
 }
 
@@ -714,7 +717,10 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
                 prakriya.push(pada);
             }
             Pada::Nipata(s) => {
-                let mut pada = Term::make_upadesha(s);
+                let mut pada = match s.parse::<Upasarga>() {
+                    Ok(u) => u.into(),
+                    _ => Term::make_upadesha(s),
+                };
                 pada.add_tags(&[Tag::Pada, Tag::Avyaya, Tag::Nipata]);
                 if pada.has_antya('N') || pada.has_antya('Y') {
                     pada.set_antya("");

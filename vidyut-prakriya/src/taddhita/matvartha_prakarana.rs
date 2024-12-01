@@ -1,3 +1,4 @@
+use crate::args::Agama as A;
 use crate::args::Taddhita;
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha;
@@ -48,7 +49,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
                 // ekadaSaH, ...
                 let added = tp.try_add("5.2.48", qaw);
                 if added {
-                    op::insert_agama_at("5.2.49", tp.p, tp.i_prati + 1, "maw");
+                    op::insert_before("5.2.49", tp.p, tp.i_prati + 1, A::maw);
                 }
             }
         }

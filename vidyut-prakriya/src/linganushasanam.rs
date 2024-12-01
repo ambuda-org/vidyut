@@ -2,6 +2,8 @@
 Implements rules from the pāṇiṇīyaliṅgānuśāśanam, which assigns lingas to various terms.
 */
 
+use crate::args::BaseKrt as K;
+use crate::args::Taddhita as D;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
 
@@ -137,7 +139,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if last.is_unadi() && last.has_u_in(&["mi", "ni"]) {
         // BUmi, glAni, ...
         lp.mark_stri(L("6"));
-    } else if last.is_pratyaya() && last.has_u("ktin") {
+    } else if last.is_pratyaya() && last.is(K::ktin) {
         // kfti, ...
         lp.mark_stri(L("9"));
     } else if last.is_pratyaya() && last.has_antya('I') {
@@ -146,7 +148,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if last.is_pratyaya() && (last.has_antya('U') || last.has_u("NAp")) {
         // kurUH, vidyA, ...
         lp.mark_stri(L("11"));
-    } else if last.is_taddhita() && last.has_u("tal") {
+    } else if last.is_taddhita() && last.is(D::tal) {
         // SuklatA, ...
         lp.mark_stri(L("17"));
     } else if last.has_text_in(&["BUmi", "vidyut", "sarit", "latA", "vanitA"]) {
@@ -178,8 +180,9 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // Bayam, ...
             lp.mark_napumsaka(L("38"));
         } else if last.has_u_in(&["GaY", "ap"]) {
+        } else if last.is(K::GaY) || last.is(K::ap) {
             lp.mark_pum(L("36"));
-        } else if last.has_u_in(&["Ga", "ac"]) {
+        } else if last.is(K::Ga) || last.is(K::ac) {
             lp.mark_pum(L("37"));
         } else if last.has_u("naN") {
             if dhatu.has_text("yAc") {

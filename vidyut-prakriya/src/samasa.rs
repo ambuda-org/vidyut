@@ -151,19 +151,19 @@ impl<'a> TermView<'a> {
 
 impl Prakriya {
     pub(crate) fn is_trtiya_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first(T::V3).is_some()
+        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V3).is_some()
     }
 
     pub(crate) fn is_caturthi_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first(T::V4).is_some()
+        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V4).is_some()
     }
 
     pub(crate) fn is_panchami_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first(T::V5).is_some()
+        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V5).is_some()
     }
 
     pub(crate) fn is_saptami_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first(T::V7).is_some()
+        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V7).is_some()
     }
 }
 

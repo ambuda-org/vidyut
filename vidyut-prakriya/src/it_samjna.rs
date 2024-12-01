@@ -5,36 +5,35 @@
 //! The most "core" prakaraṇa is the it-saṁjñā-prakaraṇa, which identifies remove different `it`
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
 use crate::args::Gana;
+use crate::args::Sanadi as S;
+use crate::args::Taddhita as D;
+use crate::args::Unadi as U;
 use crate::core::errors::*;
 use crate::core::Prakriya;
 use crate::core::Rule::Varttika;
 use crate::core::{Tag as T, Term};
-use crate::sounds::{s, Set};
-use lazy_static::lazy_static;
+use crate::sounds::{s, Set, AC, HAL};
 
 // Common constants. Benchmark indicates that switching to `const` has negligible or negative
 // impact:
 //
 // lazy_static:
-//     Benchmark 1: ../target/release/create_tinantas > /dev/null
+//     Benchmark 1: hyperfine "../target/release/create_tinantas > /dev/null"
 //       Time (mean ± σ):      7.604 s ±  0.095 s    [User: 7.545 s, System: 0.021 s]
 //       Range (min … max):    7.502 s …  7.793 s    10 runs
 //
 // const:
-//     Benchmark 1: ../target/release/create_tinantas > /dev/null
+//     Benchmark 1: hyperfine "../target/release/create_tinantas > /dev/null"
 //       Time (mean ± σ):      7.768 s ±  0.122 s    [User: 7.714 s, System: 0.021 s]
 //       Range (min … max):    7.596 s …  7.984 s    10 runs
 //
 // The poor results for `const` are surprising to me. I'm not sure how to explain them.
-lazy_static! {
-    // FIXME: find a better approach for `s`.
-    static ref AC: Set = s("ac");
-    static ref HAL: Set = s("hal");
-    static ref TUSMA: Set = s("tu~ s m");
-    static ref CUTU: Set = s("cu~ wu~");
-    static ref CUTU_EXCEPTION: Set = s("C J W Q");
-    static ref LASHAKU: Set = s("l S ku~");
-}
+//
+// Update 2024-11-27 -- the difference is negligble if I bench `const` before `lazy_static`.
+const TUSMA: Set = s(&["tu~", "s", "m"]);
+const CUTU: Set = s(&["cu~", "wu~"]);
+const CUTU_EXCEPTION: Set = Set::from("CJWQ");
+const LASHAKU: Set = s(&["l", "S", "ku~"]);
 
 fn get_adi(s: &str) -> Option<char> {
     s.as_bytes().first().map(|u| *u as char)
@@ -43,21 +42,24 @@ fn get_adi(s: &str) -> Option<char> {
 fn is_exempt_from_cutu(t: &Term) -> bool {
     // The sounds C, J, W, and Q are replaced later in the grammar. If we substitute them now,
     // those rules will become vyartha.
-    if t.has_adi(&*CUTU_EXCEPTION) {
+    if t.has_adi(CUTU_EXCEPTION) {
         true
-    } else if t.is_unadi() && t.has_u_in(&["Ru", "ci~k", "wan"]) {
+    } else if t.is_any_unadi(&[U::Ru, U::cik, U::wan]) {
         true
     } else {
-        t.is_taddhita() && t.has_u_in(&["jAtIyar", "caraw", "cuYcup", "caRap", "jAhac", "wIwac"])
+        t.is_any_taddhita(&[
+            D::jAtIyar,
+            D::caraw,
+            D::cuYcup,
+            D::caRap,
+            D::jAhac,
+            D::wIwac,
+        ])
     }
 }
 
 fn is_exempt_from_lakshaku(t: &Term) -> bool {
-    const LAKARAS: &[&str] = &[
-        "la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w", "la~N", "li~N", "lu~N", "lf~N",
-    ];
-
-    if t.has_tag(T::La) && t.has_u_in(LAKARAS) {
+    if t.lakara.is_some() && t.has_adi('l') {
         // Keep the first "l" of the lakAras. Otherwise, rule 3.4.77 will become vyartha.
         true
     } else if t.is_unadi()
@@ -67,7 +69,7 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
     {
         true
     } else {
-        t.is_pratyaya() && t.has_u_in(&["kAmyac"])
+        t.is(S::kAmyac)
     }
 }
 
@@ -194,7 +196,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
             // - But, at-pratyaya *should* have its final t deleted.
             //
             // For now, hard-code an exception.
-            let is_vibhakti_exception = t.has_u("at") && t.is_taddhita();
+            let is_vibhakti_exception = t.is(D::at) && t.is_taddhita();
             if vibhaktau_tusmah && !is_vibhakti_exception {
                 p.step("1.3.4");
             } else {
@@ -221,7 +223,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
                 p.add_tag_at("1.3.7", i_term, T::parse_it(adi)?);
                 changed = true;
                 i_start += 1;
-            } else if !t.is_taddhita() && t.has_adi(&*LASHAKU) && !is_exempt_from_lakshaku(t) {
+            } else if !t.is_taddhita() && t.has_adi(LASHAKU) && !is_exempt_from_lakshaku(t) {
                 p.add_tag_at("1.3.8", i_term, T::parse_it(adi)?);
                 changed = true;
                 i_start += 1;
@@ -336,16 +338,19 @@ mod tests {
 
     #[test]
     fn test_pratyaya() {
+        use crate::args::Lakara;
+
         let tests = [
             ("kta", "ta", vec![T::Pratyaya, T::kit]),
+            ("Sap", "a", vec![T::Pratyaya, T::Sit, T::pit]),
             ("Ric", "i", vec![T::Pratyaya, T::Rit, T::cit]),
-            ("la~w", "l", vec![T::Pratyaya, T::La, T::adit, T::wit]),
+            ("la~w", "l", vec![T::Pratyaya, T::adit, T::wit]),
         ];
         for (raw, expected, tags) in tests {
             let mut start = Term::make_upadesha(raw);
             start.add_tag(T::Pratyaya);
             if raw == "la~w" {
-                start.add_tag(T::La);
+                start.lakara = Some(Lakara::Lat)
             }
 
             let t = check(start);

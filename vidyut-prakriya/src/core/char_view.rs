@@ -1,168 +1,6 @@
 use crate::core::Prakriya;
+use crate::core::Rule;
 use crate::core::Term;
-use compact_str::CompactString;
-
-/// A wrapper for `Prakriya` that has stronger support for sound rules that apply within and across
-/// term boundaries.
-///
-/// Internally, `CharPrakriya` saves `prakriya.text()` to an ordinary string, which facilitates
-/// applying character-based rules. `CharPrakriya` ensures that this string is up to date by
-/// rebuilding the string whenever the system adds a new rule to the prakriya.
-pub(crate) struct CharPrakriya<'a> {
-    // The string representation of the prakriya.
-    text: CompactString,
-    // The prakriya that this struct wraps. `p` is private so that callers cannot mutate `p`
-    // without also updating `is_stale`.
-    p: &'a mut Prakriya,
-    // Whether `text` is in sync with the latest state in `p`. If `is_stale` is true, then
-    // `for_chars` will update `text` before beginning execution.
-    is_stale: bool,
-}
-
-impl<'a> CharPrakriya<'a> {
-    pub fn new(p: &'a mut Prakriya) -> Self {
-        let text = p.compact_text();
-        Self {
-            p,
-            text,
-            is_stale: false,
-        }
-    }
-
-    /// Exits the `CharPrakriya` context and returns a reference to the original prakriya.
-    pub fn p(self) -> &'a mut Prakriya {
-        self.p
-    }
-
-    /// Iterates over all characters in the prakriya. If `filter` applies at some index `i`, this
-    /// method applies `operator` to the same index `i`.
-    ///
-    /// For `filter`, we recommend using our `xy` and `xyz` functions, which are easier to manage.
-    ///
-    ///
-    /// ### API design
-    ///
-    /// A more natural way to implement this kind of logic is through a `for` loop over a sliding
-    /// window of characters, which we can call `char_window()` for the sake of this example.
-    /// Unfortunately, we have found this kind of approach difficult to implement in Rust. The
-    /// reason is that `.char_window()` and the body of the `for` loop would both require a mutable
-    /// reference to `CharPrakriya`, which violates Rust's restrictions on mutable memory access.
-    ///
-    /// Therefore, we have opted instead for this closure-based approach, which strictly controls
-    /// access to the mutable `CharPrakriya` struct.
-    pub fn for_chars(
-        &mut self,
-        filter: impl Fn(&mut Prakriya, &str, usize) -> bool,
-        operator: impl Fn(&mut Prakriya, &str, usize) -> bool,
-    ) {
-        if self.is_stale {
-            self.text = self.p.compact_text();
-            self.is_stale = false;
-        }
-
-        let mut change_counter = 0;
-        let mut i = 0;
-        let mut len = self.text.len();
-        while i < len {
-            let mut changed = false;
-            if filter(self.p, &self.text, i) {
-                // TODO: consider checking the state of `self.text` manually instead of requiring a
-                // boolean value from `operator`. In theory, `operator` can change any part of
-                // `text`, so we cannot measure a change unless we make a direct string comparison.
-                changed = operator(self.p, &self.text, i);
-            }
-
-            if changed {
-                change_counter += 1;
-                self.text = self.p.compact_text();
-                len = self.text.len();
-            } else {
-                i += 1;
-            }
-
-            assert!(
-                change_counter <= 10,
-                "Possible infinite loop: {:?}",
-                self.p.history()
-            );
-        }
-    }
-
-    /// Iterates over all characters in the prakriya in reverse order. If `filter` applies at some
-    /// index `i`, this method applies `operator` to the same index `i`.
-    ///
-    /// We have both `for_chars` and `for_chars_rev` because certain rules depend on applying these
-    /// changes in reverse order. For an example, see rule 8.3.61 (stautiṇyoreva ṣaṇyabhyāsāt),
-    /// which conditions ṣatva for the dhatu on ṣatva in san-pratyaya.
-    ///
-    /// TODO: consider standardizing on reverse-order iteration everywhere.
-    pub fn for_chars_rev(
-        &mut self,
-        filter: impl Fn(&mut Prakriya, &str, usize) -> bool,
-        operator: impl Fn(&mut Prakriya, &str, usize) -> bool,
-    ) {
-        if self.is_stale {
-            self.text = self.p.compact_text();
-            self.is_stale = false;
-        }
-
-        let mut change_counter = 0;
-        if self.text.is_empty() {
-            return;
-        }
-        let mut i = self.text.len();
-
-        while i > 0 {
-            let mut changed = false;
-            if filter(self.p, &self.text, i - 1) {
-                changed = operator(self.p, &self.text, i - 1);
-            }
-
-            if changed {
-                change_counter += 1;
-                self.text = self.p.compact_text();
-            } else {
-                i -= 1;
-            }
-
-            assert!(
-                change_counter <= 10,
-                "Possible infinite loop: {:?}",
-                self.p.history()
-            );
-        }
-    }
-
-    /// Processes a sliding window of terms, where each term is non-empty.
-    ///
-    /// - `filter` receives two consecutive terms and returns whether the rule should apply.
-    /// - `op` receives the prakriya and the indices of the two terms.
-    pub fn for_non_empty_terms(
-        &mut self,
-        filter: impl Fn(&Term, &Term) -> bool,
-        op: impl Fn(&mut Prakriya, usize, usize),
-    ) -> Option<()> {
-        let n = self.p.terms().len();
-        for i in 0..n - 1 {
-            let j = self.p.find_next_where(i, |t| !t.is_empty())?;
-            let x = self.p.get(i)?;
-            let y = self.p.get(j)?;
-            if filter(x, y) {
-                op(self.p, i, j);
-                self.is_stale = true;
-            }
-        }
-
-        Some(())
-    }
-
-    pub fn for_terms(&mut self, func: impl Fn(&mut Prakriya, usize) -> Option<()>) {
-        for i in 0..self.p.terms().len() {
-            func(self.p, i);
-        }
-        self.is_stale = true;
-    }
-}
 
 /// Gets the indices corresponding to the character at absolute index `i`.
 pub fn get_term_and_offset_indices(p: &Prakriya, i_absolute: usize) -> Option<(usize, usize)> {
@@ -178,58 +16,228 @@ pub fn get_term_and_offset_indices(p: &Prakriya, i_absolute: usize) -> Option<(u
     None
 }
 
-/// Gets the term corresponding to character `i` of the current prakriya.
-pub fn get_at(p: &Prakriya, index: usize) -> Option<&Term> {
-    let mut cur = 0;
-    for t in p.terms() {
-        let delta = t.text.len();
-        if (cur..cur + delta).contains(&index) {
-            return Some(t);
+/// A wrapper for `Prakriya` that has stronger support for iterating through characters.
+pub struct IndexPrakriya<'a> {
+    pub p: &'a mut Prakriya,
+}
+
+impl<'a> IndexPrakriya<'a> {
+    pub fn new(p: &'a mut Prakriya) -> Self {
+        Self { p }
+    }
+
+    /// Exits the `CharPrakriya` context and returns a reference to the original prakriya.
+    pub fn into_p(self) -> &'a mut Prakriya {
+        self.p
+    }
+
+    pub fn iter(&mut self, func: impl Fn(&mut IndexPrakriya, &CharIndex) -> Option<CharIndex>) {
+        let mut index = self.first();
+        while let Some(idx) = index {
+            index = func(self, &idx);
         }
-        cur += delta;
     }
-    None
-}
 
-/// Gets the term corresponding to character `i` of the current prakriya.
-pub fn get_term_index_at(p: &Prakriya, index: usize) -> Option<usize> {
-    let mut cur = 0;
-    for (i, t) in p.terms().iter().enumerate() {
-        let delta = t.text.len();
-        if (cur..cur + delta).contains(&index) {
-            return Some(i);
+    /// Iterates over all characters in the prakriya in reverse order.
+    ///
+    /// We have both `iter` and `iter_rev` because certain rules depend on applying these
+    /// changes in reverse order. For an example, see rule 8.3.61 (stautiṇyoreva ṣaṇyabhyāsāt),
+    /// which conditions ṣatva for the dhatu on ṣatva in san-pratyaya.
+    pub fn iter_rev(&mut self, func: impl Fn(&mut IndexPrakriya, &CharIndex) -> Option<CharIndex>) {
+        let mut index = self.last();
+        while let Some(idx) = index {
+            index = func(self, &idx);
         }
-        cur += delta;
     }
-    None
+
+    pub fn for_non_empty_terms(
+        &mut self,
+        operator: impl Fn(&mut IndexPrakriya, usize, usize) -> Option<usize>,
+    ) {
+        let mut index = self.p.find_first_where(|t| !t.is_empty());
+        while let Some(i) = index {
+            let next = self.p.next_not_empty(i);
+            if let Some(j) = next {
+                operator(self, i, j);
+            }
+            index = next;
+        }
+    }
+
+    /// Returns the first term with content.
+    fn first(&self) -> Option<CharIndex> {
+        for (i, t) in self.p.terms().iter().enumerate() {
+            if !t.is_empty() {
+                return Some(CharIndex::new(i, 0));
+            }
+        }
+        None
+    }
+
+    /// Returns the last term with content.
+    fn last(&self) -> Option<CharIndex> {
+        for (i, t) in self.p.terms().iter().enumerate().rev() {
+            if !t.is_empty() {
+                return Some(CharIndex::new(i, t.text.len() - 1));
+            }
+        }
+        None
+    }
+
+    pub fn prev(&self, i: &CharIndex) -> Option<CharIndex> {
+        if i.i_char > 0 {
+            // Prev char in same term.
+            Some(CharIndex::new(i.i_term, i.i_char - 1))
+        } else if i.i_term == 0 {
+            // Out of chars.
+            None
+        } else {
+            // Next char in first non-empty term.
+            let new_i = self.p.prev_not_empty(i.i_term)?;
+            let t = self.p.get(new_i)?;
+            Some(CharIndex::new(new_i, t.len() - 1))
+        }
+    }
+
+    pub fn next(&self, i: &CharIndex) -> Option<CharIndex> {
+        let t = &self.p.terms()[i.i_term];
+        let i_char_next = i.i_char + 1;
+        if i_char_next < t.len() {
+            // Next char in same term.
+            Some(CharIndex::new(i.i_term, i_char_next))
+        } else {
+            // Next char in first non-empty term.
+            // `?` means we return None if no next term can be found.
+            let new_i = self.p.next_not_empty(i.i_term)?;
+            Some(CharIndex::new(new_i, 0))
+        }
+    }
+
+    // Update index after deletion.
+    pub fn update(&self, index: &CharIndex) -> Option<CharIndex> {
+        let t = self.term_at(index);
+        if index.i_char < t.len() {
+            // Happy case -- index still fits.
+            Some(index.clone())
+        } else {
+            // TODO: what if deleting more than one char?
+            let i_n = self.p.next_not_empty(index.i_term)?;
+            let next = CharIndex::new(i_n, 0);
+            Some(next)
+        }
+    }
+
+    pub fn term_at(&self, index: &CharIndex) -> &Term {
+        &self.p.terms()[index.i_term]
+    }
+
+    pub fn term_at_mut(&mut self, index: &CharIndex) -> &mut Term {
+        self.p.terms_mut().get_mut(index.i_term).expect("present")
+    }
+
+    pub fn char_at(&self, index: &CharIndex) -> char {
+        self.p.terms()[index.i_term].text.as_bytes()[index.i_char] as char
+    }
+
+    pub fn term_char_at(&self, term: &Term, index: &CharIndex) -> char {
+        term.text.as_bytes()[index.i_char] as char
+    }
+
+    pub fn set_char_at(&mut self, index: &CharIndex, sub: &str) {
+        self.p.terms_mut()[index.i_term].set_at(index.i_char, sub);
+    }
+
+    pub fn run(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut IndexPrakriya)) -> bool {
+        func(self);
+        self.p.step(rule);
+        true
+    }
+
+    pub fn run_for_char(&mut self, rule: impl Into<Rule>, index: &CharIndex, sub: &str) {
+        self.p.run(rule.into(), |p| {
+            p.terms_mut()[index.i_term].set_at(index.i_char, sub)
+        });
+    }
+
+    pub fn optional_run_for_char(
+        &mut self,
+        rule: impl Into<Rule>,
+        index: &CharIndex,
+        sub: &str,
+    ) -> bool {
+        self.p.optional_run(rule.into(), |p| {
+            p.terms_mut()[index.i_term].set_at(index.i_char, sub)
+        })
+    }
+
+    pub fn is_term_end(&self, index: &CharIndex) -> bool {
+        index.i_char + 1 == self.p.terms()[index.i_term].len()
+    }
 }
 
-/// Helper function for iterating over a sliding window that is two characters long.
-pub fn xy(inner: impl Fn(char, char) -> bool) -> impl Fn(&mut Prakriya, &str, usize) -> bool {
-    move |_, text, i| {
-        let x = text.as_bytes().get(i);
-        let y = text.as_bytes().get(i + 1);
-        let (x, y) = match (x, y) {
-            (Some(a), Some(b)) => (*a as char, *b as char),
-            _ => return false,
-        };
-        inner(x, y)
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CharIndex {
+    pub i_term: usize,
+    pub i_char: usize,
+}
+
+impl CharIndex {
+    fn new(i: usize, j: usize) -> Self {
+        Self {
+            i_term: i,
+            i_char: j,
+        }
+    }
+
+    #[allow(unused)]
+    pub fn is_first(&self) -> bool {
+        self.i_term == 0 && self.i_char == 0
     }
 }
 
-/// Helper function for iterating over a sliding window that is three characters long.
-pub fn xyz(
-    inner: impl Fn(char, char, char) -> bool,
-) -> impl Fn(&mut Prakriya, &str, usize) -> bool {
-    move |_, text, i| {
-        let bytes = text.as_bytes();
-        let x = bytes.get(i);
-        let y = bytes.get(i + 1);
-        let z = bytes.get(i + 2);
-        let (x, y, z) = match (x, y, z) {
-            (Some(x), Some(y), Some(z)) => (*x as char, *y as char, *z as char),
-            _ => return false,
-        };
-        inner(x, y, z)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn index_prakriya() {
+        let terms = vec![
+            Term::make_text("Bav"),
+            Term::make_text("a"),
+            Term::make_text("ti"),
+        ];
+        let mut p = Prakriya::new();
+        p.extend(&terms);
+        let ip = IndexPrakriya::new(&mut p);
+
+        let indices = &[
+            CharIndex::new(0, 0),
+            CharIndex::new(0, 1),
+            CharIndex::new(0, 2),
+            CharIndex::new(1, 0),
+            CharIndex::new(2, 0),
+            CharIndex::new(2, 1),
+        ];
+
+        let chars = &['B', 'a', 'v', 'a', 't', 'i'];
+        for i in 0..indices.len() {
+            let idx = &indices[i];
+            assert_eq!(ip.char_at(idx), chars[i]);
+        }
+
+        for i in 1..indices.len() {
+            let idx = &indices[i];
+            println!("{idx:?}");
+            let prev = ip.prev(idx).unwrap();
+            assert_eq!(prev, indices[i - 1]);
+            assert_eq!(ip.next(&prev).unwrap(), *idx);
+        }
+
+        for i in 0..(indices.len() - 1) {
+            let idx = &indices[i];
+            let next = ip.next(idx).unwrap();
+            assert_eq!(next, indices[i + 1]);
+            assert_eq!(ip.prev(&next).unwrap(), *idx);
+        }
     }
 }

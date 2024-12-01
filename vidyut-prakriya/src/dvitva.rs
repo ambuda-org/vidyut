@@ -2,22 +2,19 @@
 ///
 /// TODO: the code here is repetitive and can be consolidated with a bit more thought.
 use crate::ac_sandhi;
+use crate::args::Agama as A;
+use crate::args::Lakara::*;
+use crate::args::Vikarana as V;
 use crate::core::operators as op;
 use crate::core::Rule::{Kashika, Varttika};
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Code, Prakriya};
 use crate::sounds as al;
-use crate::sounds::{s, Set};
+use crate::sounds::{Set, AC, HAL, YAN};
 use compact_str::CompactString;
-use lazy_static::lazy_static;
 
-lazy_static! {
-    static ref AC: Set = s("ac");
-    static ref YAN: Set = s("yaR");
-    static ref HAL: Set = s("hal");
-    static ref NDR: Set = s("n d r");
-}
+const NDR: Set = Set::from("ndr");
 
 /// Finds the character span that should be duplicated in the given text.
 fn find_abhyasa_span(text: &CompactString) -> Option<(usize, usize)> {
@@ -65,7 +62,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
 
     p.maybe_save_sthanivat();
     // Force-save for dhatus that consist of a single vowel.
-    if p.has(i_dhatu, |t| t.has_adi(&*AC) && t.has_antya(&*YAN)) {
+    if p.has(i_dhatu, |t| t.has_adi(AC) && t.has_antya(YAN)) {
         p.set(i_dhatu, |t| t.force_save_sthanivat());
     }
 
@@ -75,7 +72,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
     let dhatu = p.get(i_dhatu)?;
     let next = p.pratyaya(i_n)?;
 
-    if dhatu.has_adi(&*AC)
+    if dhatu.has_adi(AC)
         && next.last().is_pratyaya()
         && next.last().has_u_in(&["san", "Ric", "yaN", "RiN"])
     {
@@ -84,7 +81,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
         // In this case, the dhatu will likely include at least some of the *sanādi pratyaya*.
 
         // Case 1a: special case for Irzya~
-        if dhatu.has_u("Irzya~") && next.first().has_u("iw") {
+        if dhatu.has_u("Irzya~") && next.first().is(A::iw) {
             let i_it = next.start();
             let i_pratyaya = next.end();
             let done = p.optional_run(Kashika("6.1.3"), |p| {
@@ -264,7 +261,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let jaksh_adi = &[
         "jakza~", "jAgf", "daridrA", "cakAsf~", "SAsu~", "dIDIN", "vevIN",
     ];
-    if p.has(i, |t| t.has_u_in(jaksh_adi)) {
+    if p.has(i, |t| t.has_dhatu_u_in(jaksh_adi)) {
         // These are termed abhyasta, but they can still undergo dvitva because
         // the rules below are conditioned specifically on "anabhyAsasya" ("not having an abhyasa")
         // from 6.1.8.
@@ -276,7 +273,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         !(t.is_agama() && t.has_tag(T::kit) && !t.is_it_agama())
     })?;
     let n = p.pratyaya(i_n)?;
-    if n.has_lakshana("li~w") {
+    if n.has_lakara(Lit) {
         let dhatu = p.get(i)?;
         // kAshikA:
         //   dayateḥ iti dīṅo grahaṇaṃ na tu daya dāne ityasya.
@@ -293,7 +290,7 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         try_dvitva("6.1.9", p, i);
     } else if n.has_tag(T::Slu) {
         try_dvitva("6.1.10", p, i);
-    } else if p.find_next_where(i, |t| t.has_u("caN")).is_some() {
+    } else if p.find_next_where(i, |t| t.is(V::caN)).is_some() {
         // `last()` to avoid `it`.
         try_dvitva("6.1.11", p, i);
     }
@@ -320,7 +317,7 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
         // Check for `Ji` as well, which starts with a vowel.
         // Exclude it_agama so that we can derive `aririzati` etc.
         let n = p.get(i_n)?;
-        if (n.has_adi(&*AC) && !n.is_it_agama()) || n.has_text("Ji") {
+        if (n.has_adi(AC) && !n.is_it_agama()) || n.has_text("Ji") {
             run_at_index(p, i);
         }
 

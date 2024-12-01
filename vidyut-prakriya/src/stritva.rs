@@ -14,47 +14,16 @@ Generally, these pratyayas are of two types:
 2. NI (NIp, NIz, ...), which creates stems that end in I.
 */
 
-use crate::core::errors::Error;
+use crate::args::Agama;
+use crate::args::BaseKrt as K;
+use crate::args::Stri;
+use crate::args::Taddhita as D;
 use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Prakriya, Rule};
-use crate::enum_boilerplate;
 use crate::ganapatha as gana;
 use crate::it_samjna;
-
-/// Models a strI-pratyaya.
-///
-/// We use this enum for consistency with `BaseKrt`, `Unadi`, and `Taddhita`.
-#[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
-enum Stri {
-    cAp,
-    wAp,
-    qAp,
-    NIn,
-    NIp,
-    NIz,
-    UN,
-}
-
-impl Stri {
-    fn to_term(self) -> Term {
-        let mut stri = Term::make_upadesha(self.as_str());
-        stri.add_tags(&[T::Pratyaya, T::Nyap, T::Stri]);
-        stri
-    }
-}
-
-enum_boilerplate!(Stri, {
-    cAp => "cAp",
-    wAp => "wAp",
-    qAp => "qAp",
-    NIn => "NIn",
-    NIp => "NIp",
-    NIz => "NIz",
-    UN => "UN",
-});
 
 const INDRA_ADI: &[&str] = &[
     "indra", "varuRa", "Bava", "Sarva", "rudra", "mfqa", "hima", "araRya", "yava", "yavana",
@@ -105,14 +74,16 @@ impl<'a> StriPrakriya<'a> {
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         if !self.done {
-            self.p.terms_mut().insert(self.i_prati + 1, stri.to_term());
+            let i_stri = self.i_prati + 1;
+            self.p.terms_mut().insert(i_stri, stri.into());
+
             func(self.p);
             self.p.step(rule.into());
-            it_samjna::run(self.p, self.i_prati + 1).expect("should never fail");
+            it_samjna::run(self.p, i_stri).expect("should never fail");
 
             // HACK: nadi for NIz, etc.
             if stri.as_str().contains('I') {
-                self.p.add_tag_at("1.4.3", self.i_prati + 1, T::Nadi);
+                self.p.add_tag_at("1.4.3", i_stri, T::Nadi);
             }
 
             self.done = true;
@@ -122,12 +93,12 @@ impl<'a> StriPrakriya<'a> {
         }
     }
 
-    fn try_add_with_agama(&mut self, rule: impl Into<Rule>, stri: Stri, agama: &str) -> bool {
+    fn try_add_with_agama(&mut self, rule: impl Into<Rule>, stri: Stri, agama: Agama) -> bool {
         if !self.done {
             let i_prati = self.i_prati;
             let terms = self.p.terms_mut();
-            terms.insert(i_prati + 1, Term::make_agama(agama));
-            terms.insert(i_prati + 2, stri.to_term());
+            terms.insert(i_prati + 1, agama.into());
+            terms.insert(i_prati + 2, stri.into());
             self.p.step(rule);
 
             it_samjna::run(self.p, i_prati + 1).expect("should never fail");
@@ -181,11 +152,12 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // we enumerate them manually. But, we ignore the literal "Qa"-pratyaya because it's
             // always napumsaka.
             || last.has_u_in(&["Qak", "QaY"])
+            || last.is_any_taddhita(&[D::Qak, D::QaY])
             // Other pratyayas are as given.
             // Include "ayac" which replaces "tayap" by 5.2.43.
-            || last.has_u_in(&[
-                "aR", "aY", "dvayasac", "daGnac", "mAtrac", "tayap", "ayac", "Wak", "WaY", "kaY", "kvarap",
-            ])
+            || last.is_any_taddhita(&[
+                D::aR, D::aY, D::dvayasac, D::daGnac, D::mAtrac, D::tayap, D::Wak, D::WaY])
+            || last.is(K::kaY) || last.is(K::kvarap)
         {
             sp.try_add("4.1.15", NIp);
         } else if last.has_u("yaY") {
@@ -198,7 +170,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             sp.optional_try_add("4.1.45", NIz);
         } else if last.has_text_in(INDRA_ADI) {
             // indrARI, ...
-            sp.try_add_with_agama("4.1.49", NIz, "Anu~k");
+            sp.try_add_with_agama("4.1.49", NIz, Agama::Anuk);
         } else if last.has_text_in(&["saKi", "aSiSu"]) {
             let sub = if last.has_text("saKi") {
                 "saK"
@@ -208,7 +180,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             // saKI, ...
             sp.p.run("4.1.62", |p| {
                 p.set(i_prati, |t| t.set_text(sub));
-                p.insert_after(i_prati, Stri::NIz.to_term());
+                p.insert_after(i_prati, Stri::NIz);
             });
             it_samjna::run(sp.p, i_prati + 1).expect("ok");
         }
@@ -246,10 +218,10 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if sp.p.is_chandasi() && last.has_text_in(&["kadru", "kamaRqalu"]) {
         // kadrUH, ...
         sp.try_add("4.1.71", UN);
-    } else if last.has_text("SArNgarava") || last.has_u("aY") {
+    } else if last.has_text("SArNgarava") || last.is(D::aY) {
         // SArNgaravI, ...
         sp.try_add("4.1.73", NIn);
-    } else if last.has_u_in(&["YyaN", "zyaN"]) {
+    } else if last.is_any_taddhita(&[D::YyaN, D::zyaN]) {
         sp.try_add("4.1.74", NIn);
     } else if last.has_text("Avawya") {
         // AvawyA, ...

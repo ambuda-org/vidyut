@@ -1,5 +1,5 @@
 use core::hash::{Hash, Hasher};
-use std::collections::hash_map::DefaultHasher;
+use rustc_hash::FxHasher;
 
 /// A simple LRU hash.
 pub(crate) struct Cache<K: Eq, V> {
@@ -64,7 +64,7 @@ impl<K: Eq, V> Cache<K, V> {
 }
 
 pub(crate) fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
+    let mut s = FxHasher::default();
     t.hash(&mut s);
     s.finish()
 }

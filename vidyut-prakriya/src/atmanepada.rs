@@ -11,7 +11,10 @@
 //! context. Then when we introduce the correct tiN suffix, we will assign *parasmaipada* or
 //! *Atmanepada* to that pratyaya as appropriate.
 
-use crate::args::Gana;
+use crate::args::Lakara::*;
+use crate::args::Sanadi as S;
+use crate::args::Upasarga as U;
+use crate::args::{Gana, Upasarga};
 use crate::core::Rule::Kaumudi;
 use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
@@ -53,19 +56,19 @@ impl<'a> PadaPrakriya<'a> {
 
     /// Checks whether the prakriya has any of the given upasargas and any of the given
     /// dhatu-upadeshas.
-    fn is(&self, upasargas: &[&str], dhatu_upadeshas: &[&str]) -> bool {
+    fn is(&self, upasargas: &[Upasarga], dhatu_upadeshas: &[&str]) -> bool {
         let i_dhatu = self.i_dhatu;
-        let has_dhatu = self.p.has(i_dhatu, |t| t.has_u_in(dhatu_upadeshas));
         let has_upasarga = match upasargas.is_empty() {
             true => true,
             false => self.p.terms()[..i_dhatu]
                 .iter()
-                .any(|t| t.has_u_in(upasargas)),
+                .any(|t| t.is_any_upasarga(upasargas)),
         };
-        has_dhatu && has_upasarga
+        let has_dhatu = || self.p.has(i_dhatu, |t| t.has_u_in(dhatu_upadeshas));
+        has_upasarga && has_dhatu()
     }
 
-    fn has_all_upasargas(&self, upasargas: &[&str]) -> bool {
+    fn has_all_upasargas(&self, upasargas: &[Upasarga]) -> bool {
         let n = upasargas.len();
         if self.i_dhatu < n {
             // Not enough room for upasargas
@@ -74,13 +77,13 @@ impl<'a> PadaPrakriya<'a> {
             upasargas
                 .iter()
                 .enumerate()
-                .all(|(i, text)| self.p.has(self.i_dhatu + i - n, |t| t.has_text(text)))
+                .all(|(i, u)| self.p.has(self.i_dhatu + i - n, |t| t.is(*u)))
         }
     }
 
     /// Checks whether the prakriya has any of the given upasargas and any of the given
     /// dhatu-upadeshas + ganas.
-    fn is_exactly(&self, upasargas: &[&str], upadeshas: &[(&str, Gana)]) -> bool {
+    fn is_exactly(&self, upasargas: &[Upasarga], upadeshas: &[(&str, Gana)]) -> bool {
         let i_dhatu = self.i_dhatu;
         let has_dhatu = upadeshas
             .iter()
@@ -89,7 +92,7 @@ impl<'a> PadaPrakriya<'a> {
             true => true,
             false => self.p.terms()[..i_dhatu]
                 .iter()
-                .any(|t| t.has_u_in(upasargas)),
+                .any(|t| t.is_any_upasarga(upasargas)),
         };
         has_dhatu && has_upasarga
     }
@@ -129,7 +132,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     if p.is_bhave_or_karmani() {
         p.run("1.3.13", op_atmanepada);
         return None;
-    } else if p.has(i, |t| t.has_u("Ric"))
+    } else if p.has(i, |t| t.is(S::Ric))
         && i > 0
         && p.has(i - 1, |t| t.has_tag(T::Nit) && t.has_gana(Gana::Curadi))
     {
@@ -143,53 +146,53 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let mut pp = PadaPrakriya::new(p, i);
 
     let la = pp.p.terms().last()?;
-    let is_vidhi_lin = la.has_u("li~N") && !pp.p.has_tag(T::Ashih);
+    let is_vidhi_lin = la.has_lakara(VidhiLin);
     // Needed for rules 1.3.60 and 1.3.61 below.
     // TODO: remove hack for san.
-    let is_sarvadhatuka = (is_vidhi_lin || la.has_u_in(&["la~w", "lo~w", "la~N"]))
-        && !pp.p.has(i + 1, |t| t.has_u("san"));
+    let is_sarvadhatuka =
+        (is_vidhi_lin || la.has_lakara_in(&[Lat, Lot, Lan])) && !pp.p.has(i + 1, |t| t.is(S::san));
     // Needed for rule 1.3.61 below.
     let is_lun_lin = la.has_u_in(&["lu~N", "li~N"]);
 
     let has_san =
-        pp.p.find_first_where(|t| t.has_u("san") && t.is_pratyaya())
+        pp.p.find_first_where(|t| t.is(S::san) && t.is_pratyaya())
             .is_some();
-    let sya_san = || pp.p.has(i + 1, |t| t.has_u("san")) || la.has_u_in(&["lf~w", "lf~N"]);
+    let sya_san = || pp.p.has(i + 1, |t| t.is(S::san)) || la.has_u_in(&["lf~w", "lf~N"]);
 
     let dhatu = pp.p.get(i)?;
 
-    if pp.is(&["ni"], &["vi\\Sa~"]) {
+    if pp.is(&[U::ni], &["vi\\Sa~"]) {
         pp.atma("1.3.17");
-    } else if pp.is(&["pari", "vi", "ava"], &["qukrI\\Y"]) {
+    } else if pp.is(&[U::pari, U::vi, U::ava], &["qukrI\\Y"]) {
         pp.atma("1.3.18");
-    } else if pp.is(&["vi", "parA"], &["ji\\"]) {
+    } else if pp.is(&[U::vi, U::parA], &["ji\\"]) {
         pp.atma("1.3.19");
-    } else if pp.is(&["AN"], &["qudA\\Y"]) {
+    } else if pp.is(&[U::AN], &["qudA\\Y"]) {
         pp.optional_atma("1.3.20");
-    } else if pp.is(&["AN", "anu", "sam", "pari"], &["krIqf~"]) {
+    } else if pp.is(&[U::AN, U::anu, U::sam, U::pari], &["krIqf~"]) {
         pp.atma("1.3.21");
     } else if pp.is(&[], &["nATf~\\"]) {
         pp.optional_para("1.3.21.v7");
-    } else if pp.is(&["sam", "ava", "pra", "vi"], &["zWA\\"]) {
+    } else if pp.is(&[U::sam, U::ava, U::pra, U::vi], &["zWA\\"]) {
         pp.atma("1.3.22");
-    } else if pp.is(&["AN"], &["zWA\\"]) {
+    } else if pp.is(&[U::AN], &["zWA\\"]) {
         pp.optional_atma(Varttika("1.3.22.1"));
     } else if pp.is(&[], &["zWA\\"]) {
         pp.optional_atma("1.3.23");
-    } else if pp.is(&["ud"], &["zWA\\"]) {
+    } else if pp.is(&[U::ud], &["zWA\\"]) {
         pp.optional_atma("1.3.24");
-    } else if pp.is(&["upa"], &["zWA\\"]) {
+    } else if pp.is(&[U::upa], &["zWA\\"]) {
         pp.optional_atma("1.3.25");
         // 1.3.26 can be handled with 1.3.25.
-    } else if pp.is(&["ud", "vi"], &["ta\\pa~"]) {
+    } else if pp.is(&[U::ud, U::vi], &["ta\\pa~"]) {
         pp.optional_atma("1.3.27");
-    } else if pp.is(&["AN"], &["ya\\ma~", "ha\\na~"]) {
+    } else if pp.is(&[U::AN], &["ya\\ma~", "ha\\na~"]) {
         pp.optional_atma("1.3.28");
-    } else if pp.is_exactly(&["sam"], GAMY_RCCHI) {
+    } else if pp.is_exactly(&[U::sam], GAMY_RCCHI) {
         pp.optional_atma("1.3.29");
-    } else if pp.is(&["sam"], &["dfS"]) {
+    } else if pp.is(&[U::sam], &["dfS"]) {
         pp.optional_atma(Varttika("1.3.29.1"));
-    } else if pp.is(&["ni", "sam", "upa", "vi"], &["hve\\Y"]) {
+    } else if pp.is(&[U::ni, U::sam, U::upa, U::vi], &["hve\\Y"]) {
         pp.atma("1.3.30");
     } else if has_upasargas && dhatu.has_u_in(&["asu~", "Uha~\\"]) {
         let code = Varttika("1.3.30.1");
@@ -198,57 +201,57 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         } else {
             pp.optional_para(code);
         }
-    } else if pp.is(&["AN"], &["hve\\Y"]) {
+    } else if pp.is(&[U::AN], &["hve\\Y"]) {
         // Ahvayate
         pp.optional_atma("1.3.31");
-    } else if pp.is(&["aDi"], &["qukf\\Y"]) {
+    } else if pp.is(&[U::aDi], &["qukf\\Y"]) {
         // aDikurute, aDikaroti
         pp.optional_atma("1.3.33");
-    } else if pp.is(&["vi"], &["qukf\\Y"]) {
+    } else if pp.is(&[U::vi], &["qukf\\Y"]) {
         // vikurute, vikaroti
         pp.optional_atma("1.3.34");
     } else if pp.is(&[], &["kramu~"]) {
-        if pp.is(&["upa", "parA"], &["kramu~"]) {
+        if pp.is(&[U::upa, U::parA], &["kramu~"]) {
             pp.optional_atma("1.3.39");
-        } else if pp.is(&["AN"], &["kramu~"]) {
+        } else if pp.is(&[U::AN], &["kramu~"]) {
             pp.optional_atma("1.3.40");
-        } else if pp.is(&["vi"], &["kramu~"]) {
+        } else if pp.is(&[U::vi], &["kramu~"]) {
             pp.optional_atma("1.3.41");
-        } else if pp.is(&["pra", "upa"], &["kramu~"]) {
+        } else if pp.is(&[U::pra, U::upa], &["kramu~"]) {
             pp.optional_atma("1.3.42");
         } else if !has_upasargas {
             // TODO: diff between this and 1.3.38?
             pp.optional_atma("1.3.43");
         }
-    } else if pp.is(&["apa"], &["jYA\\"]) {
+    } else if pp.is(&[U::apa], &["jYA\\"]) {
         pp.optional_atma("1.3.44");
     // 1.3.45 can be handled with 1.3.76.
-    } else if pp.is(&["sam", "prati"], &["jYA\\"]) {
+    } else if pp.is(&[U::sam, U::prati], &["jYA\\"]) {
         pp.optional_atma("1.3.46");
-    } else if pp.has_all_upasargas(&["sam", "pra"]) && dhatu.has_u("vada~") {
+    } else if pp.has_all_upasargas(&[U::sam, U::pra]) && dhatu.has_u("vada~") {
         pp.optional_atma("1.3.48");
-    } else if pp.has_all_upasargas(&["vi", "pra"]) && dhatu.has_u("vada~") {
+    } else if pp.has_all_upasargas(&[U::vi, U::pra]) && dhatu.has_u("vada~") {
         pp.optional_atma("1.3.49");
     } else if pp.is(&[], &["vada~"]) {
         pp.optional_atma("1.3.47");
         // 1.3.48 - 1.3.50 can be handled with 1.3.47.
-    } else if pp.is(&["ava"], &["gF"]) {
+    } else if pp.is(&[U::ava], &["gF"]) {
         pp.atma("1.3.51");
-    } else if pp.is(&["sam"], &["gF"]) {
+    } else if pp.is(&[U::sam], &["gF"]) {
         pp.optional_atma("1.3.52");
-    } else if pp.is(&["ud"], &["cara~"]) {
+    } else if pp.is(&[U::ud], &["cara~"]) {
         pp.optional_atma("1.3.53");
-    } else if pp.is(&["sam"], &["cara~"]) {
+    } else if pp.is(&[U::sam], &["cara~"]) {
         pp.optional_atma("1.3.54");
-    } else if pp.is(&["sam"], &["dA\\R"]) {
+    } else if pp.is(&[U::sam], &["dA\\R"]) {
         pp.optional_atma("1.3.55");
-    } else if pp.is(&["upa"], &["ya\\ma~"]) {
+    } else if pp.is(&[U::upa], &["ya\\ma~"]) {
         pp.optional_atma("1.3.56");
         // TODO: 1.3.62 - 1.3.63.
-    } else if has_san && pp.is(&["anu"], &["jYA\\"]) {
+    } else if has_san && pp.is(&[U::anu], &["jYA\\"]) {
         // Takes priority over 1.3.57 below.
         pp.para("1.3.58");
-    } else if has_san && pp.is(&["prati", "AN"], &["Sru\\"]) {
+    } else if has_san && pp.is(&[U::prati, U::AN], &["Sru\\"]) {
         // Takes priority over 1.3.57 below.
         pp.para("1.3.59");
     } else if has_san && pp.is(&[], &["jYA\\", "Sru\\", "smf", "smf\\", "df\\Si~r"]) {
@@ -257,56 +260,55 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         // Technically the condition here is "Siti", but sArvadhAtuka is close
         // enough.
         pp.atma("1.3.60");
-    } else if pp.is(&["pra", "upa"], &["yu\\ji~^r"]) {
+    } else if pp.is(&[U::pra, U::upa], &["yu\\ji~^r"]) {
         pp.optional_atma("1.3.64");
     } else if pp.is(&[], &["mf\\N"]) {
         if !(is_sarvadhatuka || is_lun_lin) {
             pp.para("1.3.61");
         }
-    } else if pp.is(&["sam"], &["kzRu"]) {
+    } else if pp.is(&[U::sam], &["kzRu"]) {
         pp.atma("1.3.65");
     } else if pp.is(&[], &["Bu\\ja~"]) {
         pp.optional_atma("1.3.66");
-    } else if dhatu.has_u("Ric") && i > 0 && pp.p.has(i - 1, |t| t.has_u_in(&["YiBI\\", "zmi\\N"]))
-    {
+    } else if dhatu.is(S::Ric) && i > 0 && pp.p.has(i - 1, |t| t.has_u_in(&["YiBI\\", "zmi\\N"])) {
         // If this option is declined, we'll use the general rule below (1.3.74). Thus we get
         // BAyayati/BAyayate per the normal rules and BApayate/BIzayate if 1.3.68 is accepted.
         pp.p.optional_run("1.3.68", |p| {
             op_atmanepada(p);
             p.add_tag(T::FlagHetuBhaya);
         });
-    } else if pp.is(&["apa"], &["vad"]) {
+    } else if pp.is(&[U::apa], &["vad"]) {
         // TODO: 1.3.67 - 1.3.71.
         // 1.3.72 is further below.
         pp.optional_atma("1.3.73");
-    } else if pp.is(&["sam", "ud", "AN"], &["ya\\ma~"]) {
+    } else if pp.is(&[U::sam, U::ud, U::AN], &["ya\\ma~"]) {
         // 1.3.74 is further below.
         pp.optional_atma("1.3.75");
     } else if pp.is(&[], &["jYA\\"]) && !has_upasargas {
         pp.optional_atma("1.3.76");
-    } else if pp.is(&["anu", "parA"], &["qukf\\Y"]) {
+    } else if pp.is(&[U::anu, U::parA], &["qukf\\Y"]) {
         // 1.3.77 has similar scope to 1.3.72.
         // 1.3.78 is further below.
         pp.para("1.3.79");
-    } else if pp.is(&["aBi", "prati", "ati"], &["kzi\\pa~^"]) {
+    } else if pp.is(&[U::aBi, U::prati, U::ati], &["kzi\\pa~^"]) {
         pp.para("1.3.80");
-    } else if pp.is(&["pra"], &["va\\ha~^"]) {
+    } else if pp.is(&[U::pra], &["va\\ha~^"]) {
         pp.para("1.3.81");
-    } else if pp.is(&["pari"], &["mfza~^"]) {
+    } else if pp.is(&[U::pari], &["mfza~^"]) {
         pp.para("1.3.82");
-    } else if pp.is(&["vi", "AN", "pari"], &["ra\\mu~\\", "ra\\ma~\\"]) {
+    } else if pp.is(&[U::vi, U::AN, U::pari], &["ra\\mu~\\", "ra\\ma~\\"]) {
         pp.para("1.3.83");
-    } else if pp.is(&["upa"], &["ra\\ma~\\"]) {
+    } else if pp.is(&[U::upa], &["ra\\ma~\\"]) {
         // 1.3.84 sets anuvrtti for 1.3.85
         pp.optional_para("1.3.85");
     } else if dhatu.has_u("kyaz") {
         // lohitAyati, lohitAyate, ...
         pp.optional_atma("1.3.90");
-    } else if dhatu.has_u_in(DYUT_ADI) && dhatu.has_gana(Gana::Bhvadi) && la.has_u("lu~N") {
+    } else if dhatu.has_u_in(DYUT_ADI) && dhatu.has_gana(Gana::Bhvadi) && la.has_lakara(Lun) {
         pp.optional_para("1.3.91");
     } else if dhatu.has_u_in(VRT_ADI) && dhatu.has_gana(Gana::Bhvadi) && sya_san() {
         pp.optional_para("1.3.92");
-    } else if dhatu.has_u("kfpU~\\") && (sya_san() || la.has_u("lu~w")) {
+    } else if dhatu.has_u("kfpU~\\") && (sya_san() || la.has_lakara(Lut)) {
         pp.optional_para("1.3.93");
     }
 
@@ -321,7 +323,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     // General rules
 
     let dhatu = pp.p.get(i)?;
-    if pp.p.any(&[T::Parasmaipada, T::Atmanepada]) {
+    if pp.p.has_tag_in(&[T::Parasmaipada, T::Atmanepada]) {
         // Matched above already
     } else if dhatu.has_tag_in(&[T::Nit, T::anudattet]) && !dhatu.is_empty() {
         // Check `is_empty` is to skip yaN-luk.
@@ -330,7 +332,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_tag_in(&[T::Yit, T::svaritet]) {
         // karoti, kurute
         pp.optional_atma("1.3.72");
-    } else if i > 0 && dhatu.has_u("Ric") {
+    } else if i > 0 && dhatu.is(S::Ric) {
         const BUDH_ADI: &[&str] = &[
             "bu\\Da~\\",
             "yu\\Da~\\",
@@ -345,8 +347,8 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         let default = "1.3.74";
         let mula = pp.p.get(i - 1)?;
         // -3 since list is [upasarga, sup-luk, dhatu, nic].
-        // let has_aa = i >= 3 && pp.p.has(i - 3, |t| t.has_u("AN"));
-        // let has_pari = i >= 3 && pp.p.has(i - 3, |t| t.has_u("pari"));
+        // let has_aa = i >= 3 && pp.p.has(i - 3, |t| t.has_u(U::AN));
+        // let has_pari = i >= 3 && pp.p.has(i - 3, |t| t.has_u(U::pari));
         if mula.has_u_in(BUDH_ADI) {
             // boDayati, ...
             pp.para("1.3.86");
@@ -383,7 +385,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     // Otherwise (e.g. for sanAdi dhatus), skip this check.
     let la = pp.p.terms().last()?;
     if la.has_tag(T::La) {
-        debug_assert!(p.any(&[T::Parasmaipada, T::Atmanepada]));
+        debug_assert!(p.has_tag_in(&[T::Parasmaipada, T::Atmanepada]));
     }
 
     Some(())

@@ -95,3 +95,33 @@ fn ahidi() {
         &["ahIqi", "ahiqi"],
     )
 }
+
+#[test]
+fn arpipat() {
+    assert_has_tip(&[], &nic(&d("f\\", Bhvadi)), Lun, &["Arpipat"]);
+}
+
+#[test]
+fn adhayishata() {
+    assert_has_jha_k(
+        &[],
+        &d("De\\w", Bhvadi),
+        Lun,
+        &["aDAyizata", "aDizata", "adaDanta"],
+    );
+}
+
+#[test]
+fn aninivat() {
+    assert_has_tip(&[], &nic(&d("RIva~", Bhvadi)), Lun, &["anInivat"]);
+}
+
+#[test]
+fn vavati() {
+    assert_has_tip(
+        &[],
+        &yan_luk(&d("vaya~\\", Bhvadi)),
+        Lat,
+        &["vAvati", "vAvayIti"],
+    );
+}

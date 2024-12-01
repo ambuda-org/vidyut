@@ -348,6 +348,10 @@ pub enum Taddhita {
     zWal,
     /// Ayana
     zPak,
+    /// -ya
+    zyaN,
+    /// -ya
+    zyaY,
     /// -sa
     sa,
     /// -sna
@@ -529,6 +533,8 @@ enum_boilerplate!(Taddhita, {
     zWan => "zWan",
     zWal => "zWal",
     zPak => "zPak",
+    zyaN => "zyaN",
+    zyaY => "zyaY",
     sa => "sa",
     sna => "sna",
     sAti => "sAti~",

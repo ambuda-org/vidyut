@@ -60,7 +60,7 @@ test_tinantas:
 	  --hash "6964b61ad01cfe81b9b8c58cee957cb10db4462cecfded394ebb4631011c742a"
 	../target/release/test_tinantas \
   	--test-cases test-files/tinantas-nic-kartari.csv \
-    --hash "b95f59ca9b070c2eb09edefbea198ef6d4089f28fb494f06993a7a64864fec61"
+    --hash "68356a81e3b19ba979d549af983ac20b26fd2b98fa719a68dfedd580cf12672a"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-kartari.csv \
 		--hash "f6d9f65013aa7b420ce57e138872a1acf72285ccfa860a0b2bcf3789e9867a79"
@@ -69,7 +69,7 @@ test_tinantas:
 		--hash "3badfc693401fb722c640875e06fb3169bd8e04176503c6501a1cd2f24fcec37"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-yan-luk-kartari.csv \
-		--hash "8e55532333708504593040b4b1025a8568f6d23a07cedd3a8f31e155ae0cc2fb"
+		--hash "e1fcbd4fa51885e2547a62a81a9e797483ca7905c5e961c622f5c49be454e1d4"
 	../target/release/test_tinantas \
 		--test-cases test-files/tinantas-san-nic-kartari.csv \
 		--hash "0758ec35cdd3867f8d58c9854ca60a5f09f919db375ffb2f83cd2dd117a0b4ab"

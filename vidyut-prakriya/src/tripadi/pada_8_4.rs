@@ -1,38 +1,34 @@
+use crate::args::Aupadeshika as Au;
 use crate::args::Gana;
-use crate::core::char_view::{
-    get_at, get_term_and_offset_indices, get_term_index_at, xy, xyz, CharPrakriya,
-};
+use crate::args::Lakara::*;
+use crate::args::Vikarana as V;
+use crate::core::char_view::{get_term_and_offset_indices, IndexPrakriya};
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
-use crate::sounds::{map, s, Map, Set};
+use crate::sounds::{map, s, Map, Set, AC, HAL, JHAL};
 use lazy_static::lazy_static;
 
+const AT_KU_PU_M: Set = s(&["aw", "ku~", "pu~", "M"]);
+const AA: Set = s(&["a"]);
+const AN: Set = s(&["aR"]);
+const TU: Set = s(&["tu~"]);
+const JHAR: Set = s(&["Jar"]);
+const JHASH: Set = s(&["JaS"]);
+const KHAR: Set = s(&["Kar"]);
+const YAM: Set = s(&["yam"]);
+const YAR: Set = s(&["yar"]);
+const ANUNASIKA: Set = s(&["Yam"]);
+const JASH_CAR: Set = s(&["jaS", "car"]);
+const YAY: Set = s(&["yay"]);
+const JHAY: Set = s(&["Jay"]);
+const AT: Set = s(&["aw"]);
+
 lazy_static! {
-    static ref AT_KU_PU_M: Set = s("aw ku~ pu~ M");
-    static ref AA: Set = s("a");
-    static ref AC: Set = s("ac");
-    static ref AN: Set = s("aR");
-    static ref YAN: Set = s("yaR");
-    static ref CU: Set = s("cu~");
-    static ref TU: Set = s("tu~");
-    static ref JHAL: Set = s("Jal");
-    static ref JHAR: Set = s("Jar");
-    static ref JHASH: Set = s("JaS");
-    static ref KHAR: Set = s("Kar");
-    static ref YAM: Set = s("yam");
-    static ref YAR: Set = s("yar");
-    static ref ANUNASIKA: Set = s("Yam");
     static ref JHAL_TO_CAR: Map = map("Jal", "car");
     static ref JHAL_TO_JASH: Map = map("Jal", "jaS");
     static ref JHAL_TO_JASH_CAR: Map = map("Jal", "jaS car");
-    static ref JASH_CAR: Set = s("jaS car");
-    static ref IK: Set = s("ik");
-    static ref YAY: Set = s("yay");
-    static ref JHAY: Set = s("Jay");
-    static ref HAL: Set = s("hal");
-    static ref AT: Set = s("aw");
 }
 
 fn find_natva_spans(text: &str) -> Vec<(usize, usize)> {
@@ -70,13 +66,13 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
     let i_last = len - 1;
 
     // Exceptions to Ratva.
-    if let Some(i) = p.find_first(T::Dhatu) {
+    if let Some(i) = p.find_first_with_tag(T::Dhatu) {
         let dhatu = p.get(i)?;
         if let Some(next) = p.get(i + 1) {
             if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
                 || (dhatu.has_u("skanBu~") && next.has_u_in(&["SnA", "Snu"]))
-                || (dhatu.has_u("tfpa~") && next.has_u("Snu"))
-                || (dhatu.has_u("nftI~") && next.has_u("yaN"))
+                || (dhatu.has_u("tfpa~") && next.is(V::Snu))
+                || (dhatu.has_u("nftI~") && next.is_yan())
             {
                 p.step("8.4.39");
                 return None;
@@ -137,15 +133,15 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
         let i_dhatu = p.find_next_where(i_x, |t| t.is_dhatu() && !t.is_empty())?;
         let dhatu = p.get(i_dhatu)?;
 
-        let is_hinu = || (dhatu.has_text("hi") && y.has_u("Snu"));
-        let is_mina = || (dhatu.has_text("mI") && y.has_u("SnA"));
+        let is_hinu = || (dhatu.has_text("hi") && y.is(V::Snu));
+        let is_mina = || (dhatu.has_text("mI") && y.is(V::SnA));
 
         if y.has_adi('n') && y.has_tag(T::FlagNaAdeshadi) {
             p.run("8.4.14", |p| p.set_char_at(i_n, "R"));
         } else if is_hinu() || is_mina() {
             // prahiRoti
             p.run("8.4.15", |p| p.set_char_at(i_n, "R"));
-        } else if y.has_lakshana("lo~w") && y.has_u("ni") {
+        } else if y.has_lakara(Lot) && y.has_u("ni") {
             if x.has_u("dur") {
                 // TODO: extend
                 p.step(Varttika("1.4.60.3"));
@@ -171,7 +167,7 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
             if dhatu.has_tag(T::Abhyasta) {
                 p.run_at("8.4.21", i_dhatu, |t| t.set_adi("R"));
             }
-        } else if dhatu.has_u("ha\\na~") && dhatu.has_upadha('a') {
+        } else if dhatu.is_u(Au::hana) && dhatu.has_upadha('a') {
             let i_z = p.find_next_where(i_y, |t| !t.is_empty())?;
             if p.has(i_z, |t| t.has_adi('v') || t.has_adi('m')) {
                 p.optional_run("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
@@ -181,9 +177,9 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
         } else if y.is_krt() {
             let (_, i_y_offset) = get_term_and_offset_indices(p, i_n)?;
             let acah = if i_y_offset == 0 {
-                i_y > 0 && p.has(i_y - 1, |t| t.has_antya(&*AC))
+                i_y > 0 && p.has(i_y - 1, |t| t.has_antya(AC))
             } else {
-                let prev = y.text.as_bytes()[i_y_offset - 1] as char;
+                let prev = y.as_bytes()[i_y_offset - 1] as char;
                 AC.contains(prev)
             };
             if acah {
@@ -259,298 +255,315 @@ fn stu_to_swu(c: char) -> Option<&'static str> {
     Some(res)
 }
 
-fn try_change_stu_to_parasavarna(cp: &mut CharPrakriya) {
-    lazy_static! {
-        static ref SCU: Set = s("S cu~");
-        static ref SWU: Set = s("z wu~");
-        static ref STU: Set = s("s tu~");
-        static ref TU: Set = s("tu~");
-    };
+fn try_change_stu_to_parasavarna(ip: &mut IndexPrakriya) {
+    const SCU: Set = s(&["S", "cu~"]);
+    const SWU: Set = s(&["z", "wu~"]);
+    const STU: Set = s(&["s", "tu~"]);
+    const TU: Set = s(&["tu~"]);
+    const WU: Set = s(&["wu~"]);
 
-    cp.for_chars(
-        xy(|x, y| (STU.contains(x) && SCU.contains(y)) || (SCU.contains(x) && STU.contains(y))),
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let y = text.as_bytes()[i + 1] as char;
+    ip.iter(|ip, i_x| {
+        let x = ip.char_at(i_x);
+        let i_y = ip.next(i_x)?;
+        let y = ip.char_at(&i_y);
+
+        let stu_x = STU.contains(x);
+        if (stu_x && SCU.contains(y)) || (SCU.contains(x) && STU.contains(y)) {
             if x == 'S' {
-                p.step("8.4.44");
-                false
+                ip.p.step("8.4.44");
+                ip.next(&i_y)
             } else {
                 if STU.contains(x) {
                     let sub = stu_to_scu(x).expect("");
-                    p.set_char_at(i, sub);
+                    ip.set_char_at(i_x, sub);
                 } else {
                     let sub = stu_to_scu(y).expect("");
-                    p.set_char_at(i + 1, sub);
+                    ip.set_char_at(&i_y, sub);
                 }
-                p.step("8.4.40");
-                true
+                ip.p.step("8.4.40");
+                ip.next(&i_y)
             }
-        },
-    );
-
-    const WU: Set = Set::from("wWqQR");
-    cp.for_chars(
-        xy(|x, y| (STU.contains(x) && SWU.contains(y)) || (SWU.contains(x) && STU.contains(y))),
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let y = text.as_bytes()[i + 1] as char;
-            let i_term = get_term_index_at(p, i).expect("defined");
-            let t_x = p.get(i_term).expect("defined");
-            if p.is_pada(i_term)
+        } else if (stu_x && SWU.contains(y)) || (SWU.contains(x) && STU.contains(y)) {
+            let t_x = ip.term_at(i_x);
+            if ip.p.is_pada(i_x.i_term)
                 && t_x.has_antya(WU)
-                && !p.has(i_term + 2, |t| t.is_vibhakti() && t.has_u("Am"))
+                && !ip
+                    .p
+                    .has(i_x.i_term + 2, |t| t.is_vibhakti() && t.has_u("Am"))
             {
-                p.step("8.4.42");
-                false
+                ip.p.step("8.4.42");
+                ip.next(&i_y)
             } else if TU.contains(x) && y == 'z' {
-                p.step("8.4.43");
-                false
+                ip.p.step("8.4.43");
+                ip.next(&i_y)
             } else {
-                if STU.contains(x) {
-                    let sub = stu_to_swu(x).expect("");
-                    p.set_char_at(i, sub);
+                if stu_x {
+                    let sub = stu_to_swu(x).expect("ok");
+                    ip.set_char_at(i_x, sub);
                 } else {
-                    let sub = stu_to_swu(y).expect("");
-                    p.set_char_at(i + 1, sub);
+                    let sub = stu_to_swu(y).expect("ok");
+                    ip.set_char_at(&i_y, sub);
                 }
-                p.step("8.4.41");
-                true
+                ip.p.step("8.4.41");
+                Some(i_y)
             }
-        },
-    );
+        } else {
+            Some(i_y)
+        }
+    });
 }
 
 /// Runs rules for retroflex Dha.
 ///
 /// This rule is in section 8.3, but it has scope to apply only if it follows 8.4.41.
-fn try_dha_lopa(cp: &mut CharPrakriya) {
-    cp.for_non_empty_terms(
-        |x, y| x.has_antya('Q') && y.has_adi('Q'),
-        |p, i, _| {
-            p.run_at("8.3.13", i, op::antya(""));
+fn try_dha_lopa(ip: &mut IndexPrakriya) {
+    ip.for_non_empty_terms(|ip, i, j| {
+        let x = &ip.p.terms()[i];
+        let y = &ip.p.terms()[j];
+
+        if x.has_antya('Q') && y.has_adi('Q') {
+            ip.p.run_at("8.3.13", i, op::antya(""));
 
             // Placed here, otherwise this is vyartha
-            let x = p.get(i).expect("ok");
+            let x = &ip.p.terms()[i];
             // matches aN (no f, x)
-            if x.has_antya(&*AN) {
-                if x.has_u_in(&["zaha~\\", "va\\ha~^"]) && x.has_antya(&*AA) {
+            if x.has_antya(AN) {
+                if x.has_u_in(&["zaha~\\", "va\\ha~^"]) && x.has_antya(AA) {
                     // soQA, voQA, ...
-                    p.run_at("6.3.112", i, op::antya("o"));
+                    ip.p.run_at("6.3.112", i, |t| t.set_antya_char('o'));
                 } else {
                     let sub = al::to_dirgha(x.antya().expect("ok")).expect("ok");
-                    p.run_at("6.3.111", i, op::antya(&sub.to_string()));
+                    ip.p.run_at("6.3.111", i, |t| t.set_antya_char(sub));
                 }
             }
-        },
-    );
+        }
+
+        Some(j)
+    });
 }
 
-fn try_to_anunasika(cp: &mut CharPrakriya) {
-    cp.for_terms(|p, i| {
-        let j = p.find_next_where(i, |t| !t.is_empty())?;
-        let x = p.get_if(i, |t| !t.is_empty())?;
-        let y = p.get(j)?;
+fn try_to_anunasika(ip: &mut IndexPrakriya) {
+    ip.for_non_empty_terms(|ip, i, j| {
+        let x = ip.p.get(i)?;
+        let y = ip.p.get(j)?;
 
-        if p.is_pada(i) && x.has_antya(&*YAR) && y.has_adi(&*ANUNASIKA) {
-            let x = p.get(i).expect("defined");
+        if ip.p.is_pada(i) && x.has_antya(YAR) && y.has_adi(ANUNASIKA) {
             // For now, apply the rule to just these sounds.
             let sub = match x.antya().expect("ok") {
-                'k' | 'g' => Some("N"),
-                'c' | 'j' => Some("Y"),
-                'w' | 'q' => Some("R"),
-                't' | 'd' => Some("n"),
-                'p' | 'b' => Some("m"),
+                'k' | 'g' => Some('N'),
+                'c' | 'j' => Some('Y'),
+                'w' | 'q' => Some('R'),
+                't' | 'd' => Some('n'),
+                'p' | 'b' => Some('m'),
                 // TODO: support others.
                 _ => None,
             };
             if let Some(sub) = sub {
                 // By convention, this rule is always applied in classical Sanskrit.
-                p.run_at("8.4.45", i, |t| t.set_antya(sub));
+                ip.p.run_at("8.4.45", i, |t| t.set_antya_char(sub));
             }
         }
 
-        Some(())
+        Some(j)
     });
 }
 
-fn try_jhal_adesha(cp: &mut CharPrakriya) -> Option<()> {
-    cp.for_chars_rev(
-        xy(|x, y| JHAL.contains(x) && JHASH.contains(y)),
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let sub = JHAL_TO_JASH.get(x).expect("should be present");
-            if x != sub {
-                p.run("8.4.53", |p| p.set_char_at(i, &sub.to_string()));
-                true
-            } else {
-                false
-            }
-        },
-    );
+fn try_jhal_adesha(ip: &mut IndexPrakriya) -> Option<()> {
+    ip.iter_rev(|ip, i_y| {
+        let i_x = ip.prev(i_y)?;
+        let x = ip.char_at(&i_x);
+        let y = ip.char_at(i_y);
 
-    cp.for_non_empty_terms(
+        let sub = JHAL_TO_JASH.get(x);
+        if sub.is_some() && JHASH.contains(y) {
+            let sub = sub.expect("present");
+            if x != sub {
+                ip.run_for_char("8.4.53", &i_x, &sub.to_string());
+            }
+        }
+        Some(i_x)
+    });
+
+    ip.for_non_empty_terms(|ip, i, _j| {
+        let x = &ip.p.terms()[i];
+
         // Check for jaz-car to avoid applying a rule that causes no changee.
-        |x, _| x.is_abhyasa() && x.has_adi(&*JHAL) && !x.has_adi(&*JASH_CAR),
-        |p, i, _| {
-            let abhyasa = p.get(i).expect("ok");
-            let sub = JHAL_TO_JASH_CAR
-                .get(abhyasa.adi().expect("ok"))
-                .expect("ok")
-                .to_string();
-            p.run_at("8.4.54", i, op::adi(&sub));
-        },
-    );
+        if x.is_abhyasa() && x.has_adi(JHAL) && !x.has_adi(JASH_CAR) {
+            let sub = JHAL_TO_JASH_CAR.get(x.adi().expect("ok")).expect("ok");
+            ip.p.run_at("8.4.54", i, |t| t.set_adi_char(sub));
+        }
+
+        Some(i)
+    });
 
     // 8.2.38, but indicated here by use of "dadhas" in the rule.
-    cp.for_non_empty_terms(
-        |x, y| {
-            x.has_u("quDA\\Y")
-                && x.has_text_in(&["D", "d"])
-                && (y.has_adi('t')
-                    || y.has_adi('T')
-                    || y.has_adi('s')
-                    || (y.is_pratyaya() && y.starts_with("Dv")))
-        },
-        |p, i, _| {
-            p.set(i - 1, |t| t.set_text("Da"));
-            p.set(i, |t| t.set_text("d"));
-            p.step("8.2.38")
-        },
-    );
-    cp.for_chars_rev(
-        xy(|x, y| JHAL.contains(x) && KHAR.contains(y)),
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let sub = JHAL_TO_CAR.get(x).expect("present");
-            if x != sub {
-                p.run("8.4.55", |p| p.set_char_at(i, &sub.to_string()));
-                true
-            } else {
-                false
+    ip.for_non_empty_terms(|ip, i, j| {
+        let x = &ip.p.terms()[i];
+        let y = &ip.p.terms()[j];
+
+        if i > 0
+            && x.is_u(Au::quDAY)
+            && x.has_text_in(&["D", "d"])
+            && (y.has_adi('t')
+                || y.has_adi('T')
+                || y.has_adi('s')
+                || (y.is_pratyaya() && y.starts_with("Dv")))
+        {
+            ip.p.set(i - 1, |t| t.set_text("Da"));
+            ip.p.set(i, |t| t.set_text("d"));
+            ip.p.step("8.2.38")
+        }
+
+        Some(i)
+    });
+
+    ip.iter_rev(|ip, i_y| {
+        let i_x = ip.prev(i_y)?;
+        let x = ip.char_at(&i_x);
+        let y = ip.char_at(i_y);
+
+        if let Some(sub) = JHAL_TO_CAR.get(x) {
+            if KHAR.contains(y) {
+                if x != sub {
+                    ip.run_for_char("8.4.55", &i_x, &sub.to_string());
+                }
             }
-        },
-    );
-    cp.for_chars(
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            JHAL.contains(x) && i == text.len() - 1 && p.terms().last().expect("present").is_pada()
-        },
-        |p, text, i| {
-            let x = text.as_bytes()[i] as char;
-            let sub = JHAL_TO_CAR.get(x).expect("present");
+        }
+        Some(i_x)
+    });
+
+    ip.iter(|ip, i_x| {
+        let x = ip.char_at(i_x);
+        let sub = JHAL_TO_CAR.get(x);
+        if let Some(sub) = sub {
+            let last = ip.p.terms().last()?;
             if x != sub {
-                p.optional_run("8.4.56", |p| {
-                    p.set_char_at(i, &sub.to_string());
-                })
-            } else {
-                false
+                if ip.next(i_x).is_none() && last.is_pada() {
+                    ip.optional_run_for_char("8.4.56", i_x, &sub.to_string());
+                }
             }
-        },
-    );
+        }
+        ip.next(i_x)
+    });
 
     Some(())
 }
 
 /// Runs rules that convert sounds to their savarna version.
-fn try_to_savarna(cp: &mut CharPrakriya) {
-    cp.for_chars(xy(|x, y| x == 'M' && YAY.contains(y)), |p, text, i| {
-        let y = text.as_bytes()[i + 1] as char;
-        let sub = match y {
-            'k' | 'K' | 'g' | 'G' | 'N' => "N",
-            'c' | 'C' | 'j' | 'J' | 'Y' => "Y",
-            'w' | 'W' | 'q' | 'Q' | 'R' => "R",
-            't' | 'T' | 'd' | 'D' | 'n' => "n",
-            'p' | 'P' | 'b' | 'B' | 'm' => "m",
-            _ => "M",
-        };
-        p.run("8.4.58", |p| p.set_char_at(i, sub));
-        // "M' is possible per 7.4.86 -- see the comments on that rule.
-        // To prevent an infinite loop, return true only if the new sound is not an anusvara.
-        sub != "M"
-    });
+fn try_to_savarna(ip: &mut IndexPrakriya) {
+    ip.iter(|ip, i_x| {
+        let x = ip.char_at(i_x);
+        let i_y = ip.next(i_x)?;
+        let y = ip.char_at(&i_y);
 
-    cp.for_chars(xyz(|x, y, _| TU.contains(x) && y == 'l'), |p, text, i| {
-        p.run("8.4.60", |p| {
-            let x = text.as_bytes()[i] as char;
+        if x == 'M' && YAY.contains(y) {
+            let sub = match y {
+                'k' | 'K' | 'g' | 'G' | 'N' => "N",
+                'c' | 'C' | 'j' | 'J' | 'Y' => "Y",
+                'w' | 'W' | 'q' | 'Q' | 'R' => "R",
+                't' | 'T' | 'd' | 'D' | 'n' => "n",
+                'p' | 'P' | 'b' | 'B' | 'm' => "m",
+                _ => "M",
+            };
+            ip.run_for_char("8.4.58", i_x, sub);
+        } else if TU.contains(x) && y == 'l' {
             if x == 'n' {
-                p.set_char_at(i, "~l")
+                ip.set_char_at(i_x, "~l")
             } else {
-                p.set_char_at(i, "l")
+                ip.set_char_at(i_x, "l")
             }
-        });
-        true
+            ip.p.step("8.4.60");
+        }
+
+        Some(i_y)
     });
 
-    cp.for_non_empty_terms(
+    ip.for_non_empty_terms(
         // TODO: which stanbh-dhAtus should we include?
-        |x, y| {
-            x.is_upasarga()
+        |ip, i, j| {
+            let x = &ip.p.terms()[i];
+            let y = &ip.p.terms()[j];
+
+            if x.is_upasarga()
                 && x.has_u("ud")
                 && y.has_adi('s')
                 && y.has_u_in(&["zWA\\", "zwaBi~\\", "stanBu~"])
-        },
-        |p, _, j| {
-            // "atrāghoṣasya sasya tādṛśa eva thakāraḥ" (SK)
-            p.run_at("8.4.61", j, |t| t.set_adi("T"));
+            {
+                // "atrāghoṣasya sasya tādṛśa eva thakāraḥ" (SK)
+                ip.p.run_at("8.4.61", j, |t| t.set_adi("T"));
+            }
+            Some(j)
         },
     );
 
-    cp.for_chars(xy(|x, y| JHAY.contains(x) && y == 'h'), |p, text, i| {
-        let sub = match text.as_bytes().get(i).map(|x| *x as char) {
-            Some('k') => Some("G"),
-            Some('g') => Some("G"),
-            Some('c') => Some("J"),
-            Some('j') => Some("J"),
-            Some('w') => Some("Q"),
-            Some('q') => Some("Q"),
-            Some('t') => Some("D"),
-            Some('d') => Some("D"),
-            Some('p') => Some("B"),
-            Some('b') => Some("B"),
-            _ => None,
+    ip.iter(|ip, i_x| {
+        let x = ip.char_at(i_x);
+        let i_y = ip.next(i_x)?;
+        let y = ip.char_at(&i_y);
+
+        if JHAY.contains(x) && y == 'h' {
+            let sub = match x {
+                'k' => Some("G"),
+                'g' => Some("G"),
+                'c' => Some("J"),
+                'j' => Some("J"),
+                'w' => Some("Q"),
+                'q' => Some("Q"),
+                't' => Some("D"),
+                'd' => Some("D"),
+                'p' => Some("B"),
+                'b' => Some("B"),
+                _ => None,
+            };
+
+            if let Some(sub) = sub {
+                ip.optional_run_for_char("8.4.62", &i_y, sub);
+            };
+            return Some(i_y);
+        }
+
+        let i_z = match ip.next(&i_y) {
+            Some(i_z) => i_z,
+            None => return Some(i_y),
         };
-        if let Some(sub) = sub {
-            p.optional_run("8.4.62", |p| p.set_char_at(i + 1, sub))
+        let z = ip.char_at(&i_z);
+
+        if JHAY.contains(x) && y == 'S' && AT.contains(z) {
+            let term = ip.term_at(i_x);
+            // Exception for akSAsIt, etc
+            if !term.has_u("kSAY") {
+                ip.optional_run_for_char("8.4.63", &i_y, "C");
+            }
+            Some(i_y)
+        } else if HAL.contains(x) && YAM.contains(y) && y == z {
+            if ip.optional_run_for_char("8.4.64", &i_y, "") {
+                Some(i_x.clone())
+            } else {
+                Some(i_y)
+            }
+        } else if HAL.contains(x) && JHAR.contains(y) && JHAR.contains(z) && al::is_savarna(y, z) {
+            if ip.optional_run_for_char("8.4.65", &i_y, "") {
+                Some(i_x.clone())
+            } else {
+                Some(i_y)
+            }
         } else {
-            false
+            Some(i_y)
         }
     });
-
-    cp.for_chars(
-        |p, text, i| {
-            let cond = xyz(|x, y, z| JHAY.contains(x) && y == 'S' && AT.contains(z))(p, text, i);
-            let term = get_at(p, i).expect("ok");
-            let is_ksha = term.has_u("kSAY");
-            cond && !is_ksha
-        },
-        |p, _, i| p.optional_run("8.4.63", |p| p.set_char_at(i + 1, "C")),
-    );
-
-    cp.for_chars(
-        xyz(|x, y, z| HAL.contains(x) && YAM.contains(y) && YAM.contains(z) && y == z),
-        |p, _, i| p.optional_run("8.4.64", |p| p.set_char_at(i + 1, "")),
-    );
-
-    cp.for_chars(
-        xyz(|x, y, z| {
-            HAL.contains(x) && JHAR.contains(y) && JHAR.contains(z) && al::is_savarna(y, z)
-        }),
-        |p, _, i| p.optional_run("8.4.65", |p| p.set_char_at(i + 1, "")),
-    );
 }
 
 pub fn run(p: &mut Prakriya) {
     run_natva_rules(p);
 
-    let mut cp = CharPrakriya::new(p);
-    try_change_stu_to_parasavarna(&mut cp);
-    try_dha_lopa(&mut cp);
-    try_to_anunasika(&mut cp);
-    try_jhal_adesha(&mut cp);
-    try_to_savarna(&mut cp);
+    let mut ip = IndexPrakriya::new(p);
+    try_change_stu_to_parasavarna(&mut ip);
+    try_dha_lopa(&mut ip);
+    try_to_anunasika(&mut ip);
+    try_jhal_adesha(&mut ip);
+    try_to_savarna(&mut ip);
 
-    let p = cp.p();
+    let p = ip.into_p();
 
     // a a iti
     if p.terms().iter().any(|t| t.text.contains('a')) {

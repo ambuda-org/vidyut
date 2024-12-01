@@ -1,22 +1,19 @@
 //! Runs rules that add *sanādi pratyaya*s to the end of a dhatu or subanta.
+use crate::args::Agama as A;
 use crate::args::Gana::*;
+use crate::args::Sup;
 use crate::args::{Namadhatu, Pratipadika, Sanadi};
 use crate::core::errors::*;
 use crate::core::operators as op;
 use crate::core::Tag as T;
-use crate::core::Term;
+use crate::core::{Morph, Term};
 use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana;
 use crate::ganapatha as gana;
 use crate::it_samjna;
 use crate::pratipadika_karya;
-use crate::sounds::{s, Set};
+use crate::sounds::HAL;
 use crate::Rule::Varttika;
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref HAL: Set = s("hal");
-}
 
 // These dhatus use their pratyaya optionally if followed by an ArdhadhAtuka-pratyaya.
 const AYADAYA: &[&str] = &[
@@ -44,6 +41,17 @@ impl<'a> SanadiPrakriya<'a> {
         p.run(rule, |p| {
             let mut pratyaya = Term::make_upadesha(upadesha);
             pratyaya.add_tags(&[T::Pratyaya]);
+            // TODO: do others. (Refactoring.) These are the most important.
+            match upadesha {
+                "san" => pratyaya.morph = Morph::Sanadi(Sanadi::san),
+                "yaN" => pratyaya.morph = Morph::Sanadi(Sanadi::yaN),
+                "Ric" => pratyaya.morph = Morph::Sanadi(Sanadi::Ric),
+                "kyaN" => pratyaya.morph = Morph::Sanadi(Sanadi::kyaN),
+                "kyac" => pratyaya.morph = Morph::Sanadi(Sanadi::kyac),
+                "kAmyac" => pratyaya.morph = Morph::Sanadi(Sanadi::kAmyac),
+                _ => (),
+            }
+
             p.insert_after(i_base, pratyaya);
             func(p);
 
@@ -59,7 +67,7 @@ impl<'a> SanadiPrakriya<'a> {
 
     /// Adds `upadesha` as a pratyaya after the dhatu at index `i_dhatu`.
     fn add(&mut self, rule: impl Into<Rule>, upadesha: &str) {
-        self.add_with(rule, upadesha, |_| {});
+        SanadiPrakriya::run_for(self.p, self.i_base, rule, upadesha, |_| {});
     }
 
     fn add_with(&mut self, rule: impl Into<Rule>, upadesha: &str, func: impl Fn(&mut Prakriya)) {
@@ -147,7 +155,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
         // BfSAyate, ..
         sp.add_with("3.1.12", kyaN.as_str(), |p| {
             p.set(i_base, |t| {
-                if t.has_antya(&*HAL) {
+                if t.has_antya(HAL) {
                     t.set_antya("");
                 }
             })
@@ -227,14 +235,14 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
             || base.has_u_in(&["awa~", "f\\", "aSa~", "aSU~\\", "UrRuY"])
         {
             sp.add(Varttika("3.1.22.1"), yaN.as_str());
-        } else if base.is_ekac() && base.has_adi(&*HAL) {
+        } else if base.is_ekac() && base.has_adi(HAL) {
             sp.add("3.1.22", yaN.as_str());
         }
 
         if matches!(sanadi, Some(Sanadi::yaNluk)) {
             use Rule::Dhatupatha as DP;
 
-            let i_yan = p.find_last_where(|t| t.is_pratyaya() && t.has_u("yaN"))?;
+            let i_yan = p.find_last_where(|t| t.is_pratyaya() && t.is(yaN))?;
 
             // Apply luk.
             p.run_at("2.4.74", i_yan, op::luk);
@@ -256,7 +264,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
         let base = sp.p.get(i_base)?;
         if sup && base.has_text_in(&["satya", "arTa", "veda"]) {
             // satyApayati, arTApayati, vedApayati
-            op::insert_agama_at(Varttika("3.1.25.1"), sp.p, i_base + 2, "Apu~k");
+            op::insert_before(Varttika("3.1.25.1"), sp.p, i_base + 2, A::Apuk);
         }
     } else if matches!(sanadi, Some(Ric)) {
         // kArayati, ...
@@ -329,6 +337,7 @@ pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
 
     let mut su = Term::make_upadesha("su~");
     su.set_text("");
+    su.morph = Morph::Sup(Sup::su);
     su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::V1, T::Luk]);
     p.push(su);
 

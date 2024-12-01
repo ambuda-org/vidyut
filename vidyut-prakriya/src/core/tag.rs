@@ -228,10 +228,12 @@ pub enum Tag {
     // Certain conditions cross prakaranas in a way that is difficult to track.
     // Since these conditions are limited, we just keep track of them with
     // these flags.
+    Adesha,
 
     // Flags on the `Term`:
     FlagGunaApavada,
     FlagGuna,
+    FlagVrddhi,
 
     FlagTrjvat,
 

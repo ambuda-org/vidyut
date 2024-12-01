@@ -1,15 +1,11 @@
+use crate::args::BaseKrt as K;
+use crate::args::Sup;
+use crate::args::Upasarga as U;
 use crate::core::term::Svara::*;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::ganapatha as gana;
 use crate::phit_sutraani;
-use crate::sounds::{s, Set};
-
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref JHAL: Set = s("Jal");
-    static ref HAL: Set = s("hal");
-}
+use crate::sounds::{HAL, JHAL};
 
 /// Clear all svaras for the terms in [i_start, i_end].
 fn set_anudattas(p: &mut Prakriya, i_start: usize, i_end: usize) {
@@ -120,25 +116,25 @@ fn run_at(sp: &mut SvaraPrakriya, i_x: usize) -> Option<SvaraState> {
         None => &temp,
     };
 
-    if (x.has_u("kf\\za~") || x.has_antya('A')) && y.has_u("GaY") {
+    if (x.has_u("kf\\za~") || x.has_antya('A')) && y.is(K::GaY) {
         // ka/rzaH
         sp.mark_antya_udatta("6.1.156", i_y?);
         return Some(SvaraState::Break);
-    } else if (x.has_tag(T::zaw) || x.has_u_in(&["tri", "catur"])) && next.has_adi(&*HAL) {
-        if y.has_adi(&*JHAL) && x.num_vowels() >= 2 {
+    } else if (x.has_tag(T::zaw) || x.has_u_in(&["tri", "catur"])) && next.has_adi(HAL) {
+        if y.has_adi(JHAL) && x.num_vowels() >= 2 {
             // paYca/BiH
             sp.mark_antya_udatta("6.1.180", i_x);
         } else {
             // paYcAnA/m
             sp.mark_antya_udatta("6.1.179", i_y?);
         }
-    } else if x.has_text("tisr") && y.has_u("jas") {
+    } else if x.has_text("tisr") && y.is(Sup::jas) {
         // tisra/H
         sp.mark_antya_udatta("6.1.166", i_y?);
-    } else if x.has_u("catur") && y.has_u("Sas") {
+    } else if x.has_u("catur") && y.is(Sup::Sas) {
         // catu/raH
         sp.mark_antya_udatta("6.1.167", i_x);
-    } else if x.has_text("dyu") && y.has_adi(&*JHAL) {
+    } else if x.has_text("dyu") && y.has_adi(JHAL) {
         // dyu/BiH
         sp.mark_anudatta("6.1.183", i_y?);
     } else if x.has_tag(T::tit) {
@@ -175,10 +171,10 @@ fn run_at(sp: &mut SvaraPrakriya, i_x: usize) -> Option<SvaraState> {
     } else if x.has_text_in(gana::VRSHA_ADI) {
         sp.mark_adi_udatta("6.1.203", i_x);
     } else if x.has_u_in(&["yuzmad", "asmad"]) {
-        if y.has_u("Nasi") {
+        if y.is(Sup::Nasi) {
             // ta/va, ma/ma
             sp.mark_adi_udatta("6.1.211", i_x);
-        } else if y.has_u("Ne") {
+        } else if y.is(Sup::Ne) {
             // tu/Byam, ma/hyam
             sp.mark_adi_udatta("6.1.212", i_x);
         }
@@ -226,19 +222,19 @@ fn run_for_samasa(sp: &mut SvaraPrakriya) -> Option<()> {
         // antarvaRa/H
         sp.mark_antya_udatta("6.2.179", i_uttara);
     } else if purva.is_upasarga() && uttara.has_u("antar") {
-        if purva.has_u_in(&["ni", "vi"]) {
+        if purva.is_any_upasarga(&[U::ni, U::vi]) {
             sp.p.step("6.2.181");
         } else {
             // prAnta/H
             sp.mark_antya_udatta("6.2.180", i_uttara);
         }
-    } else if purva.has_u("aBi") && uttara.has_u("muKa") {
+    } else if purva.is(U::aBi) && uttara.has_u("muKa") {
         // aBimuKa/H
         sp.mark_antya_udatta("6.2.185", i_uttara);
-    } else if purva.has_u("apa") && uttara.has_u("muKa") {
+    } else if purva.is(U::apa) && uttara.has_u("muKa") {
         // apawmuKa/H
         sp.mark_antya_udatta("6.2.186", i_uttara);
-    } else if purva.has_u("apa")
+    } else if purva.is(U::apa)
         && uttara.has_u_in(&[
             "sPiga", "pUta", "vIRA", "aYjas", "aDvan", "kukzi", "sIra", "nAman",
         ])

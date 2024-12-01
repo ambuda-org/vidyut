@@ -1,7 +1,6 @@
 use crate::args::{Artha, BaseKrt, Krt, KrtArtha};
 use crate::core::operators as op;
-use crate::core::Tag as T;
-use crate::core::Term;
+use crate::core::{Morph, Tag as T, Term};
 use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
 
@@ -44,7 +43,7 @@ pub(crate) struct KrtPrakriya<'a> {
     /// The first index of the dhatu.
     pub i_dhatu: usize,
     /// The krt-pratyaya that the caller wishes to add.
-    pub krt: Krt,
+    pub krt: BaseKrt,
     pub rule_artha: Option<KrtArtha>,
     pub had_match: bool,
     pub has_krt: bool,
@@ -52,12 +51,12 @@ pub(crate) struct KrtPrakriya<'a> {
 
 impl<'a> KrtPrakriya<'a> {
     /// Creates a new `KrtPrakriya` struct.
-    pub fn new(p: &'a mut Prakriya, krt: impl Into<Krt>) -> Self {
+    pub fn new(p: &'a mut Prakriya, krt: BaseKrt) -> Self {
         let i_dhatu = p.find_first_where(|t| t.is_dhatu()).unwrap_or(0);
         KrtPrakriya {
             p,
             i_dhatu,
-            krt: krt.into(),
+            krt,
             rule_artha: None,
             had_match: false,
             has_krt: false,
@@ -102,8 +101,8 @@ impl<'a> KrtPrakriya<'a> {
         }
     }
 
-    pub fn expects_krt(&self, krt: impl Into<Krt>) -> bool {
-        self.krt == krt.into()
+    pub fn expects_krt(&self, krt: BaseKrt) -> bool {
+        self.krt == krt
     }
 
     /// Runs the rules in `closure` under the meaning condition defined in `artha`.
@@ -157,7 +156,7 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: impl Into<Krt>) -> bool {
+    pub fn try_add(&mut self, rule: impl Into<Rule>, krt: BaseKrt) -> bool {
         self.try_add_with(rule, krt, |_| {})
     }
 
@@ -168,9 +167,8 @@ impl<'a> KrtPrakriya<'a> {
         &mut self,
         rule: impl Into<Rule>,
         i_lakara: usize,
-        krt: impl Into<Krt>,
+        krt: BaseKrt,
     ) -> bool {
-        let krt = krt.into();
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
             self.p.set(i_lakara, |t| {
@@ -192,7 +190,8 @@ impl<'a> KrtPrakriya<'a> {
 
             // For later rules, also push an empty version of the pratyaya.
             // (Example: 8.2.62 kvin-pratyayasya kuH)
-            let mut t = self.krt.to_term();
+            let mut t = Krt::Base(self.krt).to_term();
+            t.morph = Morph::Krt(self.krt);
             t.set_text("");
             p.push(t);
         });
@@ -218,20 +217,21 @@ impl<'a> KrtPrakriya<'a> {
     pub fn try_add_with(
         &mut self,
         rule: impl Into<Rule>,
-        krt: impl Into<Krt>,
+        krt: BaseKrt,
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         let rule = rule.into();
-        let krt = krt.into();
 
         self.had_match = true;
         if self.krt == krt && !self.has_krt {
             // Insert term with it-samjna-prakarana.
             self.p.run(rule, |p| {
-                p.push(krt.to_term());
+                p.push(Krt::Base(krt).to_term());
                 func(p);
             });
+
             let i_last = self.p.terms().len() - 1;
+            self.p.set(i_last, |x| x.morph = Morph::Krt(krt));
             it_samjna::run(self.p, i_last).expect("should never fail");
 
             // update bookkeeping.
@@ -251,11 +251,10 @@ impl<'a> KrtPrakriya<'a> {
     pub fn optional_try_add_with(
         &mut self,
         rule: impl Into<Rule> + Copy,
-        krt: impl Into<Krt>,
+        krt: BaseKrt,
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         let rule = rule.into();
-        let krt = krt.into();
 
         if krt == self.krt && !self.has_krt {
             // TODO: resolve inconsistency with TaddhitaPratyaya::optional_try_add_with.
@@ -272,8 +271,8 @@ impl<'a> KrtPrakriya<'a> {
     /// If there's a match, optionally adds the given `krt` pratyaya.
     ///
     /// This method does nothing if a krt pratyaya has already been added.
-    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: impl Into<Krt>) -> bool {
-        self.optional_try_add_with(rule, krt.into(), |_| {})
+    pub fn optional_try_add(&mut self, rule: impl Into<Rule> + Copy, krt: BaseKrt) -> bool {
+        self.optional_try_add_with(rule, krt, |_| {})
     }
 
     /// Like `optional` but indicates a specific choice of artha. Not sure how to use this yet, but

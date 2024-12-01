@@ -12,7 +12,7 @@ pub fn xy_rule(
 ) -> Option<()> {
     let n = p.terms().len();
     for i in 0..n - 1 {
-        let j = p.find_next_where(i, |t| !t.is_empty())?;
+        let j = p.next_not_empty(i)?;
 
         let x = p.get(i)?;
         let y = p.get(j)?;

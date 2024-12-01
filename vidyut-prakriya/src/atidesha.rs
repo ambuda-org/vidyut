@@ -4,21 +4,19 @@ atidesha (1.2.1 - 1.2.17)
 */
 
 use crate::args::Antargana;
+use crate::args::Aupadeshika as Au;
+use crate::args::BaseKrt as K;
+use crate::args::Lakara::*;
+use crate::args::Vikarana as V;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
-use crate::sounds::{s, Set};
-use lazy_static::lazy_static;
+use crate::sounds::{s, Set, HAL, IK, JHAL};
 
-lazy_static! {
-    static ref F: Set = s("f");
-    static ref I_U: Set = s("i u");
-    static ref IK: Set = s("ik");
-    static ref JHAL: Set = s("Jal");
-    static ref RAL: Set = s("ral");
-    static ref HAL: Set = s("hal");
-}
+const F: Set = s(&["f"]);
+const I_U: Set = s(&["i", "u"]);
+const RAL: Set = s(&["ral"]);
 
 /// Extends `Prakriya` with helper functions. In addition, this wrapper remembers whether a rule
 /// has been applied or not, which helps simplify our overall control flow.
@@ -78,12 +76,12 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let apit = !n.has_tag(T::pit);
     let iti = n.first().is_it_agama();
-    let gan_kutadi = cur.has_u("gAN") || cur.has_antargana(Antargana::Kutadi);
+    let gan_kutadi = cur.is_u(Au::gAN) || cur.has_antargana(Antargana::Kutadi);
     let i_n = n.end();
 
     if gan_kutadi && !n.has_tag_in(&[T::Rit, T::Yit]) {
         ap.add_nit("1.2.1", i_n);
-    } else if cur.has_u("vyaca~")
+    } else if cur.is_u(Au::vyaca)
         && n.last().is_krt()
         && !n.has_tag_in(&[T::Rit, T::Yit])
         && !n.has_u("asi~")
@@ -91,7 +89,7 @@ fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
         // vyaceḥ kuṭāditvamanasīti tu neha pravartate, anasīti paryudāsena kṛnmātraviṣayatvāt
         // -- SK 655
         ap.add_nit(Varttika("1.2.1.1"), i_n);
-    } else if cur.has_u_in(&["o~vijI~\\", "o~vijI~"]) && iti {
+    } else if cur.is_u_in(&[Au::ovijI_u, Au::ovijI_a]) && iti {
         // Just for these `vij` dhatus, according to the Kashika.
         ap.add_nit("1.2.2", i_n);
     } else if cur.has_text("UrRu") && iti {
@@ -124,10 +122,10 @@ fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool>
     {
         // ruditvA, viditvA, ..., rurutizati, vividizati, ...
         wrap.add_kit("1.2.8", i_n);
-    } else if cur.has_antya(&*IK) && n.has_u("san") {
+    } else if cur.has_antya(IK) && n.first().is_san() {
         // cicIzati, tuzwUzati, ...
         wrap.add_kit("1.2.9", i_n);
-    } else if cur.has_last_vowel(&*IK) && cur.has_antya(&*HAL) && n.has_u("san") {
+    } else if cur.has_last_vowel(IK) && cur.has_antya(HAL) && n.first().is_san() {
         // titfkzati, DIpsati, ...
         //
         // (Per commentaries, "halantAt" here allows multiple hals in a row.
@@ -146,8 +144,8 @@ fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
     let last = wrap.p.terms().last()?;
     let i_n = n.end();
 
-    let sic = n.has_u("si~c");
-    let lin_or_sic = last.has_lakshana("li~N") || sic;
+    let sic = n.first().is(V::sic);
+    let lin_or_sic = last.has_lin_lakara() || sic;
     let atmanepadesu = last.is_atmanepada();
 
     if (cur.has_text("sTA") || cur.has_tag(T::Ghu)) && sic && atmanepadesu {
@@ -158,15 +156,15 @@ fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
         });
 
         Some(true)
-    } else if lin_or_sic && atmanepadesu && n.has_adi(&*JHAL) {
+    } else if lin_or_sic && atmanepadesu && n.has_adi(JHAL) {
         let t = wrap.p.get(i)?;
         let is_dhatu = t.is_dhatu();
-        let is_ik_halanta = t.has_upadha(&*IK) && t.has_antya(&*HAL);
+        let is_ik_halanta = t.has_upadha(IK) && t.has_antya(HAL);
 
         if is_dhatu && is_ik_halanta {
             // BitsIzwa, ...
             wrap.add_kit("1.2.11", i_n);
-        } else if is_dhatu && t.has_antya(&*F) {
+        } else if is_dhatu && t.has_antya(F) {
             // kfzIzwa, ...
             wrap.add_kit("1.2.12", i_n);
         } else if cur.has_text("gam") {
@@ -203,14 +201,14 @@ fn try_remove_kit_for_set_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let nistha = n.last().has_tag(T::Nistha);
-    let ktva = n.last().has_u("ktvA");
-    let san = n.last().has_u("san");
+    let ktva = n.last().is(K::ktvA);
+    let san = n.last().is_san();
 
     // TODO: 1.2.21
     if (nistha || ktva) && cur.has_u("pUN") {
         // pavitaH
         wrap.remove_kit("1.2.22", i_n);
-    } else if (ktva || san) && cur.has_upadha(&*I_U) && cur.has_antya(&*RAL) && cur.has_adi(&*HAL) {
+    } else if (ktva || san) && cur.has_upadha(I_U) && cur.has_antya(RAL) && cur.has_adi(HAL) {
         // dyutitvA, dyotitvA, ..., didyutizate, didyotizate, ...
         wrap.optional("1.2.26", |p| {
             let n = p.get_mut(i_n).expect("ok");
@@ -254,7 +252,7 @@ fn run_before_it_agama_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let i_n = n.end();
 
     let apit = !n.has_tag(T::pit);
-    let n_is_lit = n.has_lakshana("li~w");
+    let n_is_lit = n.has_lakara(Lit);
 
     if !cur.is_samyoganta() && n_is_lit && !n.has_tag(T::pit) {
         ap.add_kit("1.2.5", i_n);
@@ -317,14 +315,14 @@ pub fn run_before_attva(p: &mut Prakriya) {
 /// 3. Ad-Adesha --> iT-Agama (A)
 /// 4. iT-Agama (A) --> atidesha and samprasarana (A)
 pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_first(T::Dhatu)?;
+    let i = p.find_first_with_tag(T::Dhatu)?;
     let n = p.pratyaya(i + 1)?;
     let i_tin = p.terms().len() - 1;
 
     let dhatu = p.get(i)?;
     let tin = p.get(i_tin)?;
     let stha_ghu = dhatu.has_text("sTA") || dhatu.has_tag(T::Ghu);
-    if stha_ghu && tin.is_atmanepada() && n.has_u("si~c") {
+    if stha_ghu && tin.is_atmanepada() && n.first().is(V::sic) {
         let i_n_end = n.end();
         p.run("1.2.17", |p| {
             p.set(i, op::antya("i"));

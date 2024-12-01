@@ -1,3 +1,5 @@
+use crate::args::Agama;
+use crate::args::Lakara;
 use crate::core::Tag;
 use crate::core::Term;
 use crate::sounds::Pattern;
@@ -36,25 +38,31 @@ impl<'a> TermView<'a> {
         }
     }
 
-    pub fn with_start(terms: &'a [Term], start: usize) -> Option<Self> {
-        if start >= terms.len() {
+    pub fn with_start(terms: &'a [Term], i: usize) -> Option<Self> {
+        if i >= terms.len() {
             return None;
         }
 
-        let mut end = start;
-        for (i, t) in terms.iter().enumerate().filter(|(i, _)| *i >= start) {
-            // A `kit` Agama is part of the term it follows, i.e. there is no view available here.
-            // Exception: iw-Agama marked as kit.
-            if i == start && t.has_all_tags(&[Tag::Agama, Tag::kit]) && !t.has_u("iw") {
-                return None;
-            }
+        let first = &terms[i];
+        // A `kit` Agama is part of the term it follows, i.e. there is no view available here.
+        // Exception: iw-Agama marked as kit.
+        if first.has_all_tags(&[Tag::Agama, Tag::kit]) && !first.is(Agama::iw) {
+            return None;
+        }
 
-            if !t.has_tag(Tag::Agama) {
-                end = i;
-                break;
+        for j in i..terms.len() {
+            let last = &terms[j];
+
+            if !last.has_tag(Tag::Agama) {
+                return Some(TermView {
+                    terms,
+                    start: i,
+                    end: j,
+                });
             }
         }
-        Some(TermView { terms, start, end })
+
+        None
     }
 
     /// Returns this view's text.
@@ -167,9 +175,9 @@ impl<'a> TermView<'a> {
         let mut i = 0;
         // O(n) is the best I can think of:
         for t in self.slice().iter().rev() {
-            for c in t.text.chars().rev() {
+            for c in t.text.bytes().rev() {
                 if i == nth_rev {
-                    return Some(c);
+                    return Some(c as char);
                 }
                 i += 1;
             }
@@ -198,10 +206,7 @@ impl<'a> TermView<'a> {
     }
 
     pub fn has_u(&self, u: &str) -> bool {
-        match self.slice().first() {
-            Some(t) => t.has_u(u),
-            None => false,
-        }
+        self.first().has_u(u)
     }
 
     pub fn has_u_in(&self, us: &[&str]) -> bool {
@@ -212,12 +217,8 @@ impl<'a> TermView<'a> {
         self.slice().iter().any(|t| t.has_tag(tag))
     }
 
-    pub fn has_lakshana(&self, s: &str) -> bool {
-        self.last().has_lakshana(s)
-    }
-
-    pub fn has_lakshana_in(&self, items: &[&str]) -> bool {
-        self.last().has_lakshana_in(items)
+    pub fn has_lakara(&self, la: Lakara) -> bool {
+        self.last().has_lakara(la)
     }
 
     pub fn has_tag_in(&self, tags: &[Tag]) -> bool {

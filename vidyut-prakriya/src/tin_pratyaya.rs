@@ -13,54 +13,25 @@
 //!
 //! All of these rules are found at the end of section 3.4 of the Ashtadhyayi.
 
-use crate::args::{Gana, Lakara, Purusha, Vacana};
+use crate::args::{Agama as A, DhatuPada, Gana, Lakara, Purusha, Tin, Vacana, Vikarana as V};
 use crate::core::operators as op;
-use crate::core::{Code, Prakriya, Tag as T, Term};
+use crate::core::{Code, Morph, Prakriya, Tag as T};
 use crate::it_samjna;
 
 const TIN_PARA: &[&str] = &["tip", "tas", "Ji", "sip", "Tas", "Ta", "mip", "vas", "mas"];
 const NAL_PARA: &[&str] = &["Ral", "atus", "us", "Tal", "aTus", "a", "Ral", "va", "ma"];
 
-fn find_tin_parasmai(purusha: Purusha, vacana: Vacana) -> &'static str {
-    match (purusha, vacana) {
-        (Purusha::Prathama, Vacana::Eka) => "tip",
-        (Purusha::Prathama, Vacana::Dvi) => "tas",
-        (Purusha::Prathama, Vacana::Bahu) => "Ji",
-        (Purusha::Madhyama, Vacana::Eka) => "sip",
-        (Purusha::Madhyama, Vacana::Dvi) => "Tas",
-        (Purusha::Madhyama, Vacana::Bahu) => "Ta",
-        (Purusha::Uttama, Vacana::Eka) => "mip",
-        (Purusha::Uttama, Vacana::Dvi) => "vas",
-        (Purusha::Uttama, Vacana::Bahu) => "mas",
-    }
-}
-
-fn find_tin_atmane(purusha: Purusha, vacana: Vacana) -> &'static str {
-    match (purusha, vacana) {
-        (Purusha::Prathama, Vacana::Eka) => "ta",
-        (Purusha::Prathama, Vacana::Dvi) => "AtAm",
-        (Purusha::Prathama, Vacana::Bahu) => "Ja",
-        (Purusha::Madhyama, Vacana::Eka) => "TAs",
-        (Purusha::Madhyama, Vacana::Dvi) => "ATAm",
-        (Purusha::Madhyama, Vacana::Bahu) => "Dvam",
-        (Purusha::Uttama, Vacana::Eka) => "iw",
-        (Purusha::Uttama, Vacana::Dvi) => "vahi",
-        (Purusha::Uttama, Vacana::Bahu) => "mahiN",
-    }
-}
-
 /// Replaces the lakAra with a tiN-pratyaya.
 pub fn adesha(p: &mut Prakriya, purusha: Purusha, vacana: Vacana) {
-    let (tin, pada) = if p.has_tag(T::Parasmaipada) {
-        let e = find_tin_parasmai(purusha, vacana);
-        (e, T::Parasmaipada)
+    let pada = if p.has_tag(T::Parasmaipada) {
+        DhatuPada::Parasmai
     } else {
         assert!(p.has_tag(T::Atmanepada));
-        let e = find_tin_atmane(purusha, vacana);
-        (e, T::Atmanepada)
+        DhatuPada::Atmane
     };
+    let tin = Tin::from_args(pada, purusha, vacana);
 
-    if let Some(i) = p.find_last(T::Pratyaya) {
+    if let Some(i) = p.find_last_with_tag(T::Pratyaya) {
         p.set(i, |t| {
             t.add_tags(&[
                 // 1.4.104
@@ -68,10 +39,11 @@ pub fn adesha(p: &mut Prakriya, purusha: Purusha, vacana: Vacana) {
                 T::Tin,
                 purusha.as_tag(),
                 vacana.as_tag(),
-                pada,
+                pada.as_tag(),
             ]);
+            t.morph = Morph::Tin(tin);
         });
-        op::adesha("3.4.78", p, i, tin);
+        op::adesha("3.4.78", p, i, tin.as_str());
 
         // Ignore Nit-tva that we get from the lakAra. Kashika on 3.4.103:
         //
@@ -97,8 +69,10 @@ fn yatha_optional(rule: Code, p: &mut Prakriya, i: usize, old: &[&str], new: &[&
 }
 
 fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
-    let i_dhatu = p.find_last(T::Dhatu)?;
-    let i = p.find_last(T::Tin)?;
+    use Lakara::*;
+
+    let i_dhatu = p.find_last_with_tag(T::Dhatu)?;
+    let i = p.find_last_with_tag(T::Tin)?;
 
     // Special case: handle lut_siddhi first.
     let tin = p.get(i)?;
@@ -116,22 +90,21 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
 
     let dhatu = p.get(i_dhatu)?;
     let tin = p.get(i)?;
-    // Matching for "w" will cause errors because the ending 'iw' has 'w' as an
-    // anubandha. So, match the wit-lakAras by name so we can exclude 'iw':
-    let wits = &["la~w", "li~w", "lu~w", "lf~w", "le~w", "lo~w"];
-    if tin.is_atmanepada() && tin.has_lakshana_in(wits) {
+    let la = tin.lakara?;
+
+    if tin.is_atmanepada() && !la.is_nit() {
         let ta_jha = &["ta", "Ja"];
         let es_irec = &["eS", "irec"];
-        if tin.has_lakshana("li~w") && tin.has_text_in(ta_jha) {
+        if tin.has_lakara(Lit) && tin.has_text_in(ta_jha) {
             yatha("3.4.81", p, i, ta_jha, es_irec);
-        } else if tin.has_text("TAs") {
+        } else if tin.is(Tin::TAs) {
             op::adesha("3.4.80", p, i, "se");
         } else {
             p.run_at("3.4.79", i, op::ti("e"));
         }
-    } else if tin.has_lakshana("li~w") && tin.is_parasmaipada() {
+    } else if tin.has_lakara(Lit) && tin.is_parasmaipada() {
         yatha("3.4.82", p, i, TIN_PARA, NAL_PARA);
-    } else if tin.has_lakshana("la~w") && tin.is_parasmaipada() {
+    } else if tin.has_lakara(Lat) && tin.is_parasmaipada() {
         if dhatu.has_u("vida~") && tin.has_u_in(TIN_PARA) {
             yatha_optional("3.4.83", p, i, TIN_PARA, NAL_PARA);
         } else if dhatu.has_text("brU") && tin.has_u_in(&TIN_PARA[..5]) {
@@ -146,7 +119,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     // leT-only rules.
     // TODO: 3.4.94 - 3.4.98
     let tin = p.get(i)?;
-    if tin.has_lakshana("le~w") {
+    if tin.has_lakara(Let) {
         if tin.has_adi('A') {
             // mantrayEte, mantrayETe ,...
             p.run_at("3.4.95", i, op::adi("E"));
@@ -158,8 +131,8 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
 
     // Applies tin-siddhi rules that apply to just loT.
     let tin = p.get(i)?;
-    if tin.has_lakshana("lo~w") {
-        if tin.has_text("si") {
+    if tin.has_lakara(Lot) {
+        if tin.is(Tin::sip) {
             p.run_at("3.4.87", i, |t| {
                 t.set_u("hi");
                 t.set_text("hi");
@@ -199,10 +172,9 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         if tin.has_tag(T::Uttama) {
             // BavAni
             p.run("3.4.92", |p| {
-                let agama = Term::make_agama("Aw");
                 // Add pit to the pratyaya, not the Agama.
                 p.set(i, |t| t.add_tag(T::pit));
-                p.insert_before(i, agama);
+                p.insert_before(i, A::Aw);
             });
             it_samjna::run(p, i).ok()?;
         }
@@ -213,15 +185,15 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     // Notes:
     // - must occur before 3.4.100 when performing loT/nit siddhi.
     let tin = p.get(i)?;
-    if tin.has_u("Ji") {
+    if tin.is(Tin::Ji) {
         if matches!(la, Lakara::AshirLin | Lakara::VidhiLin) {
             op::adesha("3.4.108", p, i, "jus");
         } else if la.is_nit() {
-            let i_prev = p.find_prev_where(i, |t| !t.is_empty())?;
+            let i_prev = p.prev_not_empty(i)?;
             let prev = p.get(i_prev)?;
 
             let is_vid = prev.has_text("vid") && prev.has_gana(Gana::Adadi);
-            if prev.has_u("si~c") || prev.has_tag(T::Abhyasta) || is_vid {
+            if prev.is(V::sic) || prev.has_tag(T::Abhyasta) || is_vid {
                 op::adesha("3.4.109", p, i, "jus");
             } else if prev.is_dhatu() {
                 if prev.has_antya('A') {
@@ -239,7 +211,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
 
     // lot and Nit siddhi.
     // (Includes lo~w by 3.4.85)
-    let i = p.find_last(T::Tin)?;
+    let i = p.find_last_with_tag(T::Tin)?;
     if la == Lakara::Lot || la.is_nit() {
         let tas_thas = &["tas", "Tas", "Ta", "mip"];
         let taam_tam = &["tAm", "tam", "ta", "am"];
@@ -260,9 +232,9 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     }
 
     // liN-only siddhi
-    if p.has(i, |t| t.has_lakshana("li~N")) {
+    if p.has(i, |t| t.has_lin_lakara()) {
         if p.has(i, |t| t.is_parasmaipada()) {
-            p.insert_before(i, Term::make_agama("yAsu~w"));
+            p.insert_before(i, A::yAsuw);
             if la == Lakara::AshirLin {
                 // ucyAt
                 // Add kit to the pratyaya, not the Agama.
@@ -275,21 +247,21 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
             it_samjna::run(p, i).expect("agama");
         } else {
             // paceta; pakzIzwa
-            p.insert_before(i, Term::make_agama("sIyu~w"));
+            p.insert_before(i, A::sIyuw);
             p.step("3.4.102");
             it_samjna::run(p, i).expect("agama");
 
             let i_tin = i + 1;
-            if p.has(i_tin, |t| t.has_u("Ja")) {
+            if p.has(i_tin, |t| t.is(Tin::Ja)) {
                 // paceran, yajeran, kfzIran
                 op::adesha("3.4.105", p, i_tin, "ran");
-            } else if p.has(i_tin, |t| t.has_u("iw")) {
+            } else if p.has(i_tin, |t| t.is(Tin::iw)) {
                 // paceya, yajeya, kfzIya, hfzIya
                 op::adesha("3.4.106", p, i_tin, "a");
             }
         }
 
-        let i = p.find_last(T::Tin)?;
+        let i = p.find_last_with_tag(T::Tin)?;
         if p.has(i, |t| t.text.contains('t') || t.text.contains('T')) {
             // kfzIzwa, kfzIyAstAm; kfzIzWAH, kfzIyAsTAm
             p.set(i, |t| {
@@ -302,7 +274,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
 
     // The 'S' of 'eS' is just for sarva-Adeza (1.1.55). If it is kept, it will
     // cause many problems when deriving li~T. So, remove it here.
-    let i = p.find_last(T::Tin)?;
+    let i = p.find_last_with_tag(T::Tin)?;
     if p.has(i, |t| t.has_u("eS")) {
         p.set(i, |t| t.remove_tag(T::Sit));
     }
@@ -312,7 +284,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
 
 /// Applies substitutions to the given tin suffix.
 pub fn try_general_siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
-    if !p.terms().last()?.has_u("Ji") {
+    if !p.terms().last()?.is(Tin::Ji) {
         siddhi(p, la);
     }
     Some(())
@@ -323,7 +295,7 @@ pub fn try_general_siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
 /// Due to rule 3.4.109 ("sic-abhyasta-vidibhyaH ca"), this should run after dvitva and the
 /// insertion of vikaraNas.
 pub fn try_siddhi_for_jhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
-    if p.terms().last()?.has_u("Ji") {
+    if p.terms().last()?.is(Tin::Ji) {
         siddhi(p, la);
     }
     Some(())

@@ -3,9 +3,9 @@ Implements the taddhita rules in the "prAg vatez Wan" section of pada 5.1.
 
 (5.1.18 - 5.1.114)
 */
+use crate::args::Agama as A;
 use crate::args::Taddhita;
 use crate::args::TaddhitaArtha::*;
-use crate::core::operators as op;
 use crate::core::{Rule, Term};
 use crate::ganapatha as gana;
 use crate::it_samjna;
@@ -42,11 +42,11 @@ fn try_base_cases_arhiya(tp: &mut TaddhitaPrakriya, code: &'static str) {
             let code = "5.1.21";
             tp.try_add(code, P::Wan);
             tp.try_add(code, P::yat);
-        } else if prati.has_u("vatu~p") {
+        } else if prati.is(P::vatup) {
             let i_prati = tp.i_prati;
             // tAvatika
             tp.optional_try_add_with("5.1.23", P::kan, |p| {
-                op::insert_agama_after(p, i_prati, "iw");
+                p.insert_after(i_prati, A::iw);
                 it_samjna::run(p, i_prati + 1).expect("ok");
             });
         }

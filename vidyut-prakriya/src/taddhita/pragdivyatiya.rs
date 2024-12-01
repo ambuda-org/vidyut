@@ -3,6 +3,7 @@ Implements the taddhita rules in the "prAg dIvyato 'R" section of pada 4.1.
 
 (4.1.83 - 4.3.168)
 */
+use crate::args::Agama as A;
 use crate::args::Taddhita;
 use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
@@ -13,11 +14,8 @@ use crate::ganapatha as gana;
 use crate::it_samjna;
 use crate::sounds::{s, Set};
 use crate::taddhita::utils::TaddhitaPrakriya;
-use lazy_static::lazy_static;
 
-lazy_static! {
-    static ref UU: Set = s("u");
-}
+const UU: Set = s(&["u"]);
 
 /// Tries various exceptional sutras, which take priority over all other prAgdIvyatIya pratyayas.
 fn try_exceptions(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
@@ -175,9 +173,7 @@ fn try_shaishika_rules(tp: &mut TaddhitaPrakriya, rule: &'static str) {
     }
 
     let prati = tp.prati();
-    if prati.has_text_in(&["yuzmad", "asmad"])
-        && tp.p.has(i_prati + 1, |t| t.has_u_in(&["KaY", "aR"]))
-    {
+    if prati.has_text_in(&["yuzmad", "asmad"]) && tp.p.has(i_prati + 1, |t| t.is(KaY) || t.is(aR)) {
         tp.p.run_at("4.3.2", i_prati, |t| {
             if t.has_text("yuzmad") {
                 t.set_text("yuzmAka");
@@ -330,9 +326,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_text_in(&["vikarRa", "kuzItaka"]) {
             tp.optional_try_add("4.1.124", Qak);
         } else if prati.has_text("BrU") {
-            if tp.try_add_with("4.1.125", Qak, |p| {
-                op::insert_agama_after(p, i_prati, "vu~k")
-            }) {
+            if tp.try_add_with("4.1.125", Qak, |p| p.insert_after(i_prati, A::vuk)) {
                 it_samjna::run(tp.p, i_prati + 1).expect("ok");
             }
         } else if prati.has_text_in(gana::KALYANI_ADI) {
@@ -651,7 +645,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             tp.try_add("4.2.87", qmatup);
         } else {
             // Base cases
-            if prati.has_antya(&*UU) {
+            if prati.has_antya(UU) {
                 tp.try_add("4.2.71", aY);
             } else {
                 // This is the fourfold sense in which these pratyayas are added.
@@ -876,7 +870,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             tp.try_add("4.3.137", aR);
         } else if prati.has_text_in(&["trapu", "jatu"]) {
             tp.try_add_with("4.3.138", aR, |p| p.set(i_prati, |t| t.text += "z"));
-        } else if prati.has_antya(&*UU) {
+        } else if prati.has_antya(UU) {
             tp.try_add("4.3.139", aY);
         } else if prati.has_text_in(&[
             "palASa",

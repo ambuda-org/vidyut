@@ -11,12 +11,9 @@ use crate::core::{Prakriya, Rule};
 use crate::ganapatha as gana;
 use crate::it_samjna;
 use crate::sounds::{s, Set};
-use lazy_static::lazy_static;
 
-lazy_static! {
-    static ref CU: Set = s("cu~");
-    static ref JHAY: Set = s("Jay");
-}
+const CU: Set = s(&["cu~"]);
+const JHAY: Set = s(&["Jay"]);
 
 impl Prakriya {
     pub(crate) fn is_bahuvrihi(&self) -> bool {
@@ -42,7 +39,7 @@ fn add(rule: impl Into<Rule>, p: &mut Prakriya, taddhita: Taddhita) -> bool {
         .expect("ok");
     let rule = rule.into();
     // Insert after pratipadika but before any subantas
-    p.run(rule, |p| p.insert_after(i_antya, taddhita.to_term()));
+    p.run(rule, |p| p.insert_after(i_antya, taddhita));
     it_samjna::run(p, i_antya + 1).expect("should never fail");
 
     true
@@ -104,7 +101,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         if uttara.ends_with("an") {
             // uparAjam, ...
             add("5.4.108", p, wac);
-        } else if uttara.has_antya(&*JHAY) {
+        } else if uttara.has_antya(JHAY) {
             // upasamiDa, upasamit, ...
             optional_add("5.4.111", p, wac);
         } else if uttara.has_text("giri") {

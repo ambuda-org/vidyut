@@ -31,7 +31,7 @@ fn run(dhatupatha: Dhatupatha) -> Result<(), Box<dyn Error>> {
     let dhatu_sample: Vec<_> = dhatupatha
         .iter()
         .enumerate()
-        .filter(|(i, _)| i % 10 == 0)
+        .filter(|(i, _)| *i % 10 == 0)
         .map(|(_, x)| x)
         .collect();
 

@@ -1,3 +1,7 @@
+use crate::args::Lakara::*;
+use crate::args::Sanadi as S;
+use crate::args::Upasarga as U;
+use crate::args::Vikarana as V;
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Code, Prakriya};
@@ -122,15 +126,16 @@ fn do_samprasarana_for_abhyasa(rule: Code, p: &mut Prakriya, i_abhyasa: usize) -
 }
 
 pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
-    let i = p.find_first(T::Dhatu)?;
-    let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+    let i = p.find_first_with_tag(T::Dhatu)?;
+    let i_n = p.next_not_empty(i)?;
 
     // Don't apply samprasarana rules twice (for sanAdi-dhatus)
     let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagSamprasarana))?;
 
     let n = p.pratyaya(i_n)?;
-    let n_is_lit = n.has_lakshana("li~w");
-    let n_causes_dvitva = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
+    let n_is_lit = n.has_lakara(Lit);
+    let last = n.last();
+    let n_causes_dvitva = n_is_lit || last.is(V::caN) || n.has_u_in(&["san", "yaN", "Slu"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.run_at(rule, i, |t| {
@@ -147,16 +152,17 @@ pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> Option<()> {
-    let i = p.find_first(T::Dhatu)?;
-    let i_n = p.find_next_where(i, |t| !t.is_empty())?;
+    let i = p.find_first_with_tag(T::Dhatu)?;
+    let i_n = p.next_not_empty(i)?;
 
     // Don't apply samprasarana rules twice (for sanAdi-dhatus)
     let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagSamprasarana))?;
 
     let n = p.pratyaya(i_n)?;
     let n_is_yan = n.has_u("yaN");
-    let n_is_lit = n.has_lakshana("li~w");
-    let n_causes_dvitva = n_is_lit || n.has_u_in(&["san", "yaN", "Slu", "caN"]);
+    let n_is_lit = n.has_lakara(Lit);
+    let last = n.last();
+    let n_causes_dvitva = n_is_lit || last.is(V::caN) || n.has_u_in(&["san", "yaN", "Slu"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.run_at(rule, i, |t| {
@@ -174,7 +180,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
 
     let is_hve = dhatu.has_text("hve");
     let is_ve = dhatu.has_u("ve\\Y");
-    if dhatu.has_u("Yizva\\pa~") && n.has_u("Ric") && p.has(i_n + 1, |t| t.has_u("caN")) {
+    if dhatu.has_u("Yizva\\pa~") && n.last().is(S::Ric) && p.has(i_n + 1, |t| t.is(V::caN)) {
         // asUzupat
         do_samprasarana_for_dhatu("6.1.18", p, i);
     } else if dhatu.has_u_in(&["Yizva\\pa~", "syamu~", "vye\\Y"]) && n_is_yan {
@@ -191,7 +197,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
         set_text("6.1.22", p, "sPI");
     } else if dhatu.has_text("styE")
         && n.has_tag(T::Nistha)
-        && p.has_prev_non_empty(i, |t| t.has_u("pra"))
+        && p.has_prev_non_empty(i, |t| t.is(U::pra))
     {
         // prastIta
         set_text("6.1.23", p, "sti");
@@ -216,14 +222,14 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
     } else if is_hve && n_causes_dvitva {
         // juhAva, johUyate, juhUzati
         set_text("6.1.33", p, "hu");
-    } else if is_ve && n.has_lakshana("li~w") {
+    } else if is_ve && n.has_lakara(Lit) {
         p.step("6.1.40");
     } else if is_ve && n.has_u("lyap") {
         p.step("6.1.41");
     } else if dhatu.has_u("jyA\\") && n.has_u("lyap") {
         p.step("6.1.42");
     } else if dhatu.has_u("vye\\Y") && n.has_u("lyap") {
-        if p.has_prev_non_empty(i, |t| t.has_u("pari")) {
+        if p.has_prev_non_empty(i, |t| t.is(U::pari)) {
             optional_set_text("6.1.44", p, "vi");
         } else {
             p.step("6.1.43");
@@ -252,7 +258,7 @@ pub fn run_for_abhyasa(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get_if(i_abhyasa + 1, |t| t.is_dhatu())?;
     let last = p.terms().last()?;
 
-    if last.has_lakshana("li~w") {
+    if last.has_lakara(Lit) {
         // yadā ca dhātorna bhavati tadā "liṭyabhyāsasya ubhayeṣām"
         // ityabhyāsasya api na bhavati -- kāśikā.
         if is_vaci_svapi(dhatu) && !dhatu.starts_with("Sv") {

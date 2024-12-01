@@ -1,20 +1,8 @@
 use crate::args::{Artha, Taddhita, TaddhitaArtha};
-use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::TermView;
 use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
-
-impl Taddhita {
-    /// Converts this taddhita to a term that can be added to the prakriya.
-    pub(crate) fn to_term(self) -> Term {
-        let mut taddhita = Term::make_upadesha(self.as_str());
-        // `Pratyaya` by 3.1.1.
-        // `Taddhita` by 4.1.76.
-        taddhita.add_tags(&[T::Pratyaya, T::Taddhita]);
-        taddhita
-    }
-}
 
 /// Wrapper for `Prakriya` with the following features:
 ///
@@ -121,7 +109,7 @@ impl<'a> TaddhitaPrakriya<'a> {
         self.had_match = true;
         if taddhita == self.taddhita && !self.has_taddhita {
             self.p.run(rule, |p| {
-                p.push(taddhita.to_term());
+                p.push(taddhita.into());
                 func(p);
             });
             if let Some(a) = self.rule_artha {
@@ -143,7 +131,7 @@ impl<'a> TaddhitaPrakriya<'a> {
     pub fn try_prepend(&mut self, rule: impl Into<Rule>, taddhita: Taddhita) -> bool {
         if taddhita == self.taddhita && !self.has_taddhita {
             self.p.run(rule, |p| {
-                p.terms_mut().insert(0, taddhita.to_term());
+                p.terms_mut().insert(0, taddhita.into());
             });
 
             it_samjna::run(self.p, 0).expect("should never fail");

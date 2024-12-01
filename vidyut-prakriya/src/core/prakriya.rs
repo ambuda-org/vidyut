@@ -385,7 +385,7 @@ impl Prakriya {
 
     /// Returns whether the given prakriya express bhAve/karmani prayoga.
     pub(crate) fn is_bhave_or_karmani(&self) -> bool {
-        self.any(&[Tag::Bhave, Tag::Karmani])
+        self.has_tag_in(&[Tag::Bhave, Tag::Karmani])
     }
 
     /// Returns whether the term at the given index can be called "pada".
@@ -431,52 +431,49 @@ impl Prakriya {
 
     /// Returns the index of the first `Term` that has the given tag or `None` if no such term
     /// exists.
-    pub(crate) fn find_first(&self, tag: Tag) -> Option<usize> {
+    pub(crate) fn find_first_with_tag(&self, tag: Tag) -> Option<usize> {
         self.find_first_where(|t| t.has_tag(tag))
     }
 
     pub(crate) fn find_prev_where(
         &self,
-        start_index: usize,
+        index: usize,
         filter: impl Fn(&Term) -> bool,
     ) -> Option<usize> {
-        if self.terms.get(start_index).is_some() {
-            self.terms
-                .iter()
-                .enumerate()
-                .filter(|(i, t)| *i < start_index && filter(t))
-                .rev()
-                .map(|(i, _)| i)
-                .next()
-        } else {
-            None
+        for i in (0..index).rev() {
+            let t = &self.terms[i];
+            if filter(t) {
+                return Some(i);
+            }
         }
+        None
     }
 
     pub(crate) fn find_next_where(
         &self,
-        start_index: usize,
+        index: usize,
         filter: impl Fn(&Term) -> bool,
     ) -> Option<usize> {
-        if self.terms.get(start_index).is_some() {
-            self.terms
-                .iter()
-                .enumerate()
-                .filter(|(i, t)| *i > start_index && filter(t))
-                .map(|(i, _)| i)
-                .next()
-        } else {
-            None
+        for i in (index + 1)..self.terms.len() {
+            let t = &self.terms[i];
+            if filter(t) {
+                return Some(i);
+            }
         }
+        None
     }
 
-    pub(crate) fn find_next_not_empty(&self, index: usize) -> Option<usize> {
+    pub(crate) fn prev_not_empty(&self, index: usize) -> Option<usize> {
+        self.find_prev_where(index, |t| !t.is_empty())
+    }
+
+    pub(crate) fn next_not_empty(&self, index: usize) -> Option<usize> {
         self.find_next_where(index, |t| !t.is_empty())
     }
 
-    pub(crate) fn find_last_where(&self, f: impl Fn(&Term) -> bool) -> Option<usize> {
+    pub(crate) fn find_last_where(&self, func: impl Fn(&Term) -> bool) -> Option<usize> {
         for (i, t) in self.terms.iter().enumerate().rev() {
-            if f(t) {
+            if func(t) {
                 return Some(i);
             }
         }
@@ -485,7 +482,7 @@ impl Prakriya {
 
     /// Returns the index of the last `Term` that has the given tag or `None` if no such term
     /// exists.
-    pub(crate) fn find_last(&self, tag: Tag) -> Option<usize> {
+    pub(crate) fn find_last_with_tag(&self, tag: Tag) -> Option<usize> {
         for (i, t) in self.terms.iter().enumerate().rev() {
             if t.has_tag(tag) {
                 return Some(i);
@@ -550,16 +547,12 @@ impl Prakriya {
         }
     }
 
-    /// Returns whether the prakriya has any of the given `tags`.
-    pub(crate) fn any(&self, tags: &[Tag]) -> bool {
-        tags.iter().any(|t| self.tags.contains(*t))
-    }
-
     /// Returns whether the prakriya has the given `tag`.
     pub(crate) fn has_tag(&self, tag: Tag) -> bool {
         self.tags.contains(tag)
     }
 
+    /// Returns whether the prakriya has any of the given `tags`.
     pub(crate) fn has_tag_in(&self, tags: &[Tag]) -> bool {
         tags.iter().any(|t| self.tags.contains(*t))
     }
@@ -570,11 +563,15 @@ impl Prakriya {
     /// a taddhitanta, or a samasa) can extend over multiple terms. This method is a unified API
     /// that checks for either type of pratipadika.
     pub(crate) fn has_pratipadika(&self, index: usize, text: &str) -> bool {
+        if index >= self.len() {
+            return false;
+        }
+
         // Strategy: iterate backward term by term until we have matched all chars in `text`. If
         // there is any mismatch, return false.
         let mut offset = text.len();
         for i in (0..=index).rev() {
-            let t = self.get(i).expect("present");
+            let t = &self.terms[i];
             let slice = &text[0..offset];
             if slice.ends_with(t.text.as_str()) {
                 // No risk of overflow here because `t.text` is at least as long as `slice`.
@@ -592,15 +589,15 @@ impl Prakriya {
     }
 
     pub(crate) fn has_prev_non_empty(&self, index: usize, func: impl Fn(&Term) -> bool) -> bool {
-        match self.find_prev_where(index, |t| !t.is_empty()) {
-            Some(i) => func(self.get(i).expect("ok")),
+        match self.prev_not_empty(index) {
+            Some(i) => func(&self.terms[i]),
             None => false,
         }
     }
 
     pub(crate) fn has_next_non_empty(&self, index: usize, func: impl Fn(&Term) -> bool) -> bool {
-        match self.find_next_where(index, |t| !t.is_empty()) {
-            Some(i) => func(self.get(i).expect("ok")),
+        match self.next_not_empty(index) {
+            Some(i) => func(&self.terms[i]),
             None => false,
         }
     }
@@ -640,12 +637,12 @@ impl Prakriya {
         }
     }
 
-    pub(crate) fn insert_before(&mut self, i: usize, t: Term) {
-        self.terms.insert(i, t);
+    pub(crate) fn insert_before(&mut self, i: usize, t: impl Into<Term>) {
+        self.terms.insert(i, t.into());
     }
 
-    pub(crate) fn insert_after(&mut self, i: usize, t: Term) {
-        self.terms.insert(i + 1, t);
+    pub(crate) fn insert_after(&mut self, i: usize, t: impl Into<Term>) {
+        self.terms.insert(i + 1, t.into());
     }
 
     /// Adds the given term to the end of the term list.

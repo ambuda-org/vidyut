@@ -39,7 +39,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) -> Option<()> {
     }
 
     let last = tp.p.terms().last().expect("present");
-    if last.is_taddhita() && last.has_u("DA") {
+    if last.is_taddhita() && last.is(DA) {
         let i_last = tp.p.terms().len() - 1;
         let prati = tp.prati();
         if prati.has_text("eka") {
@@ -72,9 +72,10 @@ pub fn run(tp: &mut TaddhitaPrakriya) -> Option<()> {
     tp.try_add(code, tarap);
     tp.try_add(code, Iyasun);
 
-    if tp.p.terms().last()?.has_u_in(&["Iyasu~n", "izWan"]) {
+    let last = tp.p.terms().last()?;
+    if last.is(Iyasun) || last.is(izWan) {
         let prati = tp.prati();
-        if prati.has_text("praSasya") && tp.p.terms().last()?.has_u_in(&["Iyasu~n", "izWan"]) {
+        if prati.has_text("praSasya") {
             // Sreyas, SrezWa
             let done =
                 tp.p.optional_run_at("5.3.60", tp.i_prati, |t| t.set_text("Sra"));

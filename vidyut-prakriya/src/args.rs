@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 mod macros;
 
 pub(crate) mod dhatu;
+mod internal;
 mod krt;
 mod pada;
 mod pratipadika;
@@ -26,6 +27,7 @@ mod tin;
 mod unadi;
 
 pub use dhatu::*;
+pub(crate) use internal::*;
 pub use krt::*;
 pub use pada::*;
 pub use pratipadika::*;

@@ -9,8 +9,8 @@ Operations here include:
 - applying gana sutras
 */
 use crate::args::dhatu::Muladhatu;
-use crate::args::Antargana;
-use crate::args::Gana;
+use crate::args::Upasarga as U;
+use crate::args::{Antargana, Gana, Upasarga};
 use crate::core::errors::*;
 use crate::core::operators as op;
 use crate::core::Rule::Kaumudi;
@@ -21,12 +21,6 @@ use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::samjna;
-use crate::sounds::{s, Set};
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref HAL: Set = s("hal");
-}
 
 /// Adds the *mūla-dhātu* to the prakriya.
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Muladhatu) {
@@ -83,17 +77,17 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
             is_mit_blocked = true;
         } else if dhatu.has_u("Samo~") {
             is_mit_blocked = p.optional_run(DP("01.0938"), |_| {})
-        } else if dhatu.has_u("yama~") && is_bhvadi && p.has_prev_non_empty(i, |t| t.has_u("AN")) {
+        } else if dhatu.has_u("yama~") && is_bhvadi && p.has_prev_non_empty(i, |t| t.is(U::AN)) {
             // AyAmayati
             // (include only "yama~ aparivezaRe")
             p.step(DP("01.0939"));
             is_mit_blocked = true;
         } else if dhatu.has_u("sKadi~\\r") {
-            if p.has_prev_non_empty(i, |t| t.has_u_in(&["ava", "pari"])) {
+            if p.has_prev_non_empty(i, |t| t.is_any_upasarga(&[U::ava, U::pari])) {
                 // avasKAdayati, parisKAdayati
                 p.step(DP("01.0940"));
                 is_mit_blocked = true;
-            } else if p.has_prev_non_empty(i, |t| t.has_u("apa")) {
+            } else if p.has_prev_non_empty(i, |t| t.is(U::apa)) {
                 // apasKAdayati, apasKadayati
                 is_mit_blocked = p.optional_run(Kaumudi("2353"), |_| {});
             }
@@ -262,11 +256,14 @@ fn try_add_num_agama(p: &mut Prakriya, i: usize) {
 
 /// Adds prefixes from `dhatu` into the prakriya.
 pub fn try_add_prefixes(p: &mut Prakriya, prefixes: &[String]) -> Option<()> {
-    let mut i_offset = p.find_first(T::Dhatu).unwrap_or(0);
+    let mut i_offset = p.find_first_with_tag(T::Dhatu).unwrap_or(0);
 
     // TODO: prefixes that aren't upasargas?
     for prefix in prefixes {
-        let t = Term::make_upadesha(prefix);
+        let t: Term = match prefix.parse::<Upasarga>() {
+            Ok(u) => u.into(),
+            _ => Term::make_upadesha(prefix),
+        };
         p.insert_before(i_offset, t);
         samjna::try_nipata_rules(p, i_offset);
 
