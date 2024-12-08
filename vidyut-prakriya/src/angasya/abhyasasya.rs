@@ -8,14 +8,17 @@ Runs rules that modify the abhyāsa.
 
 use crate::args::Agama as A;
 use crate::args::Agama;
+use crate::args::Aupadeshika;
+use crate::args::Aupadeshika as Au;
 use crate::args::Gana;
 use crate::args::Lakara::*;
+use crate::args::Sanadi as S;
 use crate::args::Vikarana as V;
 use crate::core::operators as op;
 use crate::core::term::TermString;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::sounds as al;
@@ -110,7 +113,7 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
         if !p.optional_run_at("7.4.56.1", i, |t| t.set_at(1, "i")) {
             p.run_at("7.4.56.2", i, |t| t.set_at(1, "I"));
         }
-    } else if dhatu.has_text("muc") && p.has_tag(T::Atmanepada) {
+    } else if dhatu.has_text("muc") && p.has_tag(PT::Atmanepada) {
         // mokzate, mumukzate
         do_abhyasa_lopa = p.optional_run("7.4.57", |p| {
             p.set(i, op::text("moc"));
@@ -130,16 +133,16 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
 
 /// `i` is the index of an abhyasa.
 fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
-    const SMR_DR: &[&str] = &[
-        "smf",
-        "dF",
-        "YitvarA~\\",
-        "praTa~",
-        "mrada~\\",
-        "stFY",
+    const SMR_DR: &[Aupadeshika] = &[
+        Au::smf_u,
+        Au::dF,
+        Au::YitvarA,
+        Au::praTa_u,
+        Au::mrada,
+        Au::stFY,
         // TODO: include both spaS dhAtus?
-        "spaSa~^",
-        "spaSa~",
+        Au::spaSa_u,
+        Au::spaSa_s,
     ];
 
     let i_abhyasta = p.find_next_where(i, |t| t.is_abhyasta())?;
@@ -162,7 +165,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let abhyasa = p.get(i)?;
     let dhatu = p.get(i + 1)?;
-    if dhatu.has_u_in(SMR_DR) && is_cani {
+    if dhatu.is_any_u(SMR_DR) && is_cani {
         // asasmarat, adadarat,
         p.run_at("7.4.95", i, op::antya("a"));
     } else {
@@ -189,7 +192,7 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
             } else if is_laghu_cani {
                 if !dhatu.is_samyogadi() {
                     if let Some(sub) = al::to_dirgha(abhyasa.antya()?) {
-                        p.run_at("7.4.94", i, op::antya(&sub.to_string()));
+                        p.run_at("7.4.94", i, op::antya_char(&sub));
                     }
                 }
             }
@@ -199,9 +202,9 @@ fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     let anga = p.get(i_abhyasta)?;
     // TODO: scope of this? Sarvadhatuka only?
-    if anga.has_u_in(gana::MAN_BADHA) {
+    if anga.is_any_u(gana::MAN_BADHA) {
         let sub = al::to_dirgha(abhyasa.antya()?)?;
-        p.run_at("3.1.6", i, op::antya(&sub.to_string()));
+        p.run_at("3.1.6", i, op::antya_char(&sub));
     }
 
     Some(())
@@ -268,10 +271,10 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i_dhatu)?;
     if let Some(val) = KUH_CU.get(abhyasa.adi()?) {
         let n = p.get(i_dhatu + 1)?;
-        if dhatu.has_u("ku\\N") && dhatu.has_gana(Gana::Bhvadi) && n.has_u("yaN") {
+        if dhatu.has_u("ku\\N") && dhatu.has_gana(Gana::Bhvadi) && n.is(S::yaN) {
             p.step("7.4.63");
         } else {
-            p.run_at("7.4.62", i, op::adi(&val.to_string()));
+            p.run_at("7.4.62", i, op::adi_char(&val));
         }
     }
 
@@ -279,7 +282,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let abhyasa = p.get(i)?;
     if al::is_dirgha(abhyasa.antya()?) && !abhyasa.has_tag(T::FlagNoHrasva) {
         let val = al::to_hrasva(abhyasa.antya()?)?;
-        p.run_at("7.4.59", i, op::antya(&val.to_string()));
+        p.run_at("7.4.59", i, op::antya_char(&val));
     }
 
     if p.has(i, |t| t.has_antya('f')) {
@@ -393,7 +396,7 @@ fn try_rules_for_slu(p: &mut Prakriya, i: usize) -> Option<()> {
 
 /// Runs rules that modify the abhyAsa for yaNanta dhAtus.
 fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
-    let i_yan = p.find_last_where(|t| t.has_u("yaN"))?;
+    let i_yan = p.find_last_where(|t| t.is(S::yaN))?;
 
     let i_dhatu = i_abhyasa + 1;
     let abhyasa = p.get(i_abhyasa)?;

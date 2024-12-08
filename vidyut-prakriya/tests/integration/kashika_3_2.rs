@@ -1130,7 +1130,7 @@ fn sutra_3_2_136() {
         &["alaNkarizRu"],
     );
     assert_has_krdanta(
-        &["nis", "A"],
+        &["nis", "AN"],
         &d("qukf\\Y", Tanadi),
         Krt::izRuc,
         &["nirAkarizRu"],

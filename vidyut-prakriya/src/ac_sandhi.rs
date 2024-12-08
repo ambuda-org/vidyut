@@ -11,7 +11,7 @@ use crate::args::Upasarga as U;
 use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::Prakriya;
-use crate::core::Tag as T;
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
@@ -59,11 +59,16 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
 }
 
 /// Runs various general rules of vowel sandhi.
-pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
+pub fn apply_general_ac_sandhi(p: &mut Prakriya, i_start: usize, i_end: usize) {
     let mut ip = IndexPrakriya::new(p);
 
     ip.iter(|ip, i_x| {
         let i_y = ip.next(i_x)?;
+
+        // Quick HACK to skip indices out of range.
+        if i_x.i_term < i_start || i_y.i_term > i_end {
+            return Some(i_y);
+        }
 
         let x = ip.char_at(i_x);
         if !(AC.contains(x)) {
@@ -100,9 +105,9 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya) {
                 return Some(i_y);
             }
 
-            let sub = al::to_dirgha(x)?.to_string();
+            let sub = al::to_dirgha(x)?;
             ip.run("6.1.101", |ip| {
-                ip.set_char_at(i_x, &sub);
+                ip.swap_char_at(i_x, sub);
                 ip.set_char_at(&i_y, "");
                 if i_x.i_term != i_y.i_term {
                     ip.term_at_mut(i_x).add_tag(T::FlagAntyaAcSandhi);
@@ -216,6 +221,7 @@ pub fn try_sup_sandhi_before_angasya(p: &mut Prakriya) -> Option<()> {
 
 /// Helper function for `try_sup_sandhi_after_angasya` to avoid too much nesting.
 fn try_sup_sandhi_after_angasya_for_term(p: &mut Prakriya, i_sup: usize) -> Option<()> {
+    p.debug("sup_sandhi after angasya");
     let i_anga = p.find_prev_where(i_sup, |t| !t.is_empty())?;
     let anga = p.get(i_anga)?;
     let sup = p.get(i_sup)?;
@@ -229,10 +235,10 @@ fn try_sup_sandhi_after_angasya_for_term(p: &mut Prakriya, i_sup: usize) -> Opti
             p.step("6.1.105");
         } else if sup.has_adi(AC) {
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.run_at("6.1.102", i_sup, op::adi(&sub.to_string()));
+            p.run_at("6.1.102", i_sup, op::adi_char(&sub));
 
             let sup = p.get(i_sup)?;
-            if p.has_tag(T::Pum) && sup.is(Sup::Sas) {
+            if p.has_tag(PT::Pum) && sup.is(Sup::Sas) {
                 p.run_at("6.1.103", i_sup, op::antya("n"));
             }
         }
@@ -292,7 +298,8 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
             let sub = if t.has_antya('o') { "av" } else { "Av" };
             p.run_at("6.1.79", i, op::antya(sub));
         }
-    } else if hal_ni_ap_dirgha() && y.is_aprkta() && y.has_u_in(&["su~", "tip", "sip"]) {
+    } else if hal_ni_ap_dirgha() && y.is_aprkta() && (y.is(Sup::su) || y.has_u_in(&["tip", "sip"]))
+    {
         // rAjA, kumArI, KawvA
         p.run_at("6.1.68", j, op::lopa);
     } else if (x.is_hrasva() || x.has_antya(EN)) && y.has_tag(T::Sambuddhi) {
@@ -336,10 +343,13 @@ fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
         // Ignore 6.1.139, which creates the same result as 6.1.137.
     } else if dhatu.has_u("kF") {
         if prev.is(U::upa) {
+            // upakirati, upaskirati
             optional_add_sut_agama("6.1.140", p, i_dhatu);
-        } else if prev.has_u("prati") {
+        } else if prev.is(U::prati) {
+            // pratikirati, pratiskirati
             optional_add_sut_agama("6.1.141", p, i_dhatu);
         } else if prev.is(U::apa) {
+            // apakirati, apaskirati
             optional_add_sut_agama("6.1.142", p, i_dhatu);
         }
     } else if prev.is(U::pra) && dhatu.has_u("tunpa~") {
@@ -403,7 +413,7 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    apply_general_ac_sandhi(p);
+    apply_general_ac_sandhi(p, 0, p.len() - 1);
     hacky_apply_ni_asiddhavat_rules(p);
 
     try_sut_kat_purva(p);

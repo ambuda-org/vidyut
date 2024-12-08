@@ -10,8 +10,8 @@ pub fn xy_rule(
     filter: impl Fn(&Term, &Term) -> bool,
     op: impl Fn(&mut Prakriya, usize, usize),
 ) -> Option<()> {
-    let n = p.terms().len();
-    for i in 0..n - 1 {
+    let mut index = p.find_first_where(|t| !t.is_empty());
+    while let Some(i) = index {
         let j = p.next_not_empty(i)?;
 
         let x = p.get(i)?;
@@ -19,6 +19,7 @@ pub fn xy_rule(
         if filter(x, y) {
             op(p, i, j);
         }
+        index = Some(j);
     }
     Some(())
 }

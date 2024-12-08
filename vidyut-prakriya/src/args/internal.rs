@@ -16,6 +16,10 @@ macro_rules! internal_term {
         #[allow(unused)]
         impl $Enum {
             pub fn as_str(&self) -> &'static str {
+                self.aupadeshika()
+            }
+
+            pub fn aupadeshika(&self) -> &'static str {
                 match self {
                     $(
                         $Enum::$variant => $str,
@@ -54,6 +58,10 @@ macro_rules! internal_term_non_unique {
         #[allow(unused)]
         impl $Enum {
             pub fn as_str(&self) -> &'static str {
+                self.aupadeshika()
+            }
+
+            pub fn aupadeshika(&self) -> &'static str {
                 match self {
                     $(
                         $Enum::$variant => $str,
@@ -228,6 +236,54 @@ internal_term!(Aupadeshika, {
     quDAY => "quDA\\Y",
     qukfY => "qukf\\Y",
     vyaca => "vyaca~",
+    Sadx => "Sa\\dx~",
+    dAR => "dA\\R",
+    dfSir => "df\\Si~r",
+    f => "f\\",
+    mnA => "mnA\\",
+    pA => "pA\\",
+    sf => "sf\\",
+    zWA => "zWA\\",
+    zadx => "za\\dx~",
+    hveY => "hve\\Y",
+    quvapa => "quva\\pa~^",
+    vada_1 => "vada~",
+    vaha => "va\\ha~^",
+    vasa_1 => "va\\sa~",
+    veY => "ve\\Y",
+    vyeY => "vye\\Y",
+    wuoSvi => "wuo~Svi",
+    yaja => "ya\\ja~^",
+    Brasja => "Bra\\sja~^",
+    graha => "graha~^",
+    jyA => "jyA\\",
+    ovrascU => "o~vrascU~",
+    praCa => "pra\\Ca~",
+    vayi => "vayi~",
+    vaSa => "vaSa~",
+    vyaDa => "vya\\Da~",
+    dIDIN => "dIDIN",
+    vevIN => "vevIN",
+    YitvarA => "YitvarA~\\",
+    dF => "dF",
+    mrada => "mrada~\\",
+    praTa_u => "praTa~",
+    smf_u => "smf",
+    spaSa_u => "spaSa~",
+    spaSa_s => "spaSa~^",
+    stFY => "stFY",
+    aja => "aja~",
+    vraja => "vraja~",
+    vaca => "va\\ca~",
+    Yizvapa => "Yizva\\pa~",
+    SAna => "SAna~^",
+    baDa_a => "baDa~\\",
+    dAna => "dAna~^",
+    mAna_a => "mAna~\\",
+    hi => "hi\\",
+    vancu => "vancu~",
+    vida_2 => "vida~",
+    opyAyI => "o~pyAyI~\\",
 });
 
 impl Sup {

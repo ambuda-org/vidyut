@@ -18,20 +18,6 @@ struct Args {
     sanadi: Vec<Sanadi>,
 }
 
-// TODO: reuse with other binaries?
-const LAKARA: &[Lakara] = &[
-    Lakara::Lat,
-    Lakara::Lit,
-    Lakara::Lut,
-    Lakara::Lrt,
-    Lakara::Lot,
-    Lakara::Lan,
-    Lakara::AshirLin,
-    Lakara::VidhiLin,
-    Lakara::Lun,
-    Lakara::Lrn,
-];
-
 const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
     (Purusha::Prathama, Vacana::Eka),
     (Purusha::Prathama, Vacana::Dvi),
@@ -43,8 +29,6 @@ const TIN_SEMANTICS: &[(Purusha, Vacana)] = &[
     (Purusha::Uttama, Vacana::Dvi),
     (Purusha::Uttama, Vacana::Bahu),
 ];
-
-const PRAYOGAS: &[Prayoga] = &[Prayoga::Kartari, Prayoga::Karmani];
 
 #[derive(Debug, Serialize)]
 struct Row<'a> {
@@ -86,15 +70,17 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
         let dhatu = builder.build()?;
         let mula = to_mula(&dhatu);
 
-        for prayoga in PRAYOGAS {
+        for prayoga in Prayoga::iter() {
             // Filter prayoga based on args
             if let Some(p) = args.prayoga {
                 if *prayoga != p {
                     continue;
                 }
             }
-
-            for lakara in LAKARA {
+            for lakara in Lakara::iter() {
+                if *lakara == Lakara::Let {
+                    continue;
+                }
                 for (purusha, vacana) in TIN_SEMANTICS {
                     let tinanta = Tinanta::builder()
                         .dhatu(dhatu.clone())

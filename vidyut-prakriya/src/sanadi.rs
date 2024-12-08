@@ -6,7 +6,7 @@ use crate::args::{Namadhatu, Pratipadika, Sanadi};
 use crate::core::errors::*;
 use crate::core::operators as op;
 use crate::core::Tag as T;
-use crate::core::{Morph, Term};
+use crate::core::Term;
 use crate::core::{Prakriya, Rule};
 use crate::dhatu_gana;
 use crate::ganapatha as gana;
@@ -39,20 +39,22 @@ impl<'a> SanadiPrakriya<'a> {
         func: impl Fn(&mut Prakriya),
     ) {
         p.run(rule, |p| {
-            let mut pratyaya = Term::make_upadesha(upadesha);
-            pratyaya.add_tags(&[T::Pratyaya]);
             // TODO: do others. (Refactoring.) These are the most important.
-            match upadesha {
-                "san" => pratyaya.morph = Morph::Sanadi(Sanadi::san),
-                "yaN" => pratyaya.morph = Morph::Sanadi(Sanadi::yaN),
-                "Ric" => pratyaya.morph = Morph::Sanadi(Sanadi::Ric),
-                "kyaN" => pratyaya.morph = Morph::Sanadi(Sanadi::kyaN),
-                "kyac" => pratyaya.morph = Morph::Sanadi(Sanadi::kyac),
-                "kAmyac" => pratyaya.morph = Morph::Sanadi(Sanadi::kAmyac),
-                _ => (),
-            }
+            let sanadi = match upadesha {
+                "san" => Term::from(Sanadi::san),
+                "yaN" => Term::from(Sanadi::yaN),
+                "Ric" => Term::from(Sanadi::Ric),
+                "kyaN" => Term::from(Sanadi::kyaN),
+                "kyac" => Term::from(Sanadi::kyac),
+                "kAmyac" => Term::from(Sanadi::kAmyac),
+                _ => {
+                    let mut t = Term::make_upadesha(upadesha);
+                    t.add_tags(&[T::Pratyaya]);
+                    t
+                }
+            };
 
-            p.insert_after(i_base, pratyaya);
+            p.insert_after(i_base, sanadi);
             func(p);
 
             if !p.has(i_base, |t| t.is_dhatu()) {
@@ -117,7 +119,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
         sp.add_with("3.1.5", san.as_str(), |p| {
             p.set(i_base + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
         });
-    } else if base.is_dhatu() && base.has_u_in(dhatu_gana::MAN_BADHA) {
+    } else if base.is_any_u(dhatu_gana::MAN_BADHA) {
         // mImAMsate, etc.
         sp.add_with("3.1.6", san.as_str(), |p| {
             // TODO: optional by extension of "vA" from 3.1.7 per Kashika?
@@ -335,10 +337,9 @@ pub fn try_create_namadhatu(p: &mut Prakriya, dhatu: &Namadhatu) -> Option<()> {
         _ => panic!("Unsupported type for namadhatu"),
     }
 
-    let mut su = Term::make_upadesha("su~");
+    let mut su = Term::from(Sup::su);
     su.set_text("");
-    su.morph = Morph::Sup(Sup::su);
-    su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::V1, T::Luk]);
+    su.add_tags(&[T::Vibhakti, T::V1, T::Luk]);
     p.push(su);
 
     try_add(p, dhatu.nama_sanadi(), false);
@@ -358,7 +359,7 @@ pub fn try_add_optional(p: &mut Prakriya, sanadi: Sanadi) -> Result<()> {
     // that can fail.
     if matches!(sanadi, Sanadi::yaN | Sanadi::yaNluk) {
         if let Some(t) = p.terms().last() {
-            if !(t.has_u("yaN") && t.is_pratyaya()) {
+            if !(t.is(Sanadi::yaN) && t.is_pratyaya()) {
                 return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }

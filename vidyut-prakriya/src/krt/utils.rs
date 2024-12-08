@@ -1,13 +1,13 @@
-use crate::args::{Artha, BaseKrt, Krt, KrtArtha};
+use crate::args::{Artha, BaseKrt, Krt, KrtArtha, Upasarga};
 use crate::core::operators as op;
+use crate::core::{Decision, Prakriya, Rule};
 use crate::core::{Morph, Tag as T, Term};
-use crate::core::{Prakriya, Rule};
 use crate::it_samjna;
 
 impl Krt {
     /// Converts this krt-pratyaya to an appropriate `Term`.
     pub fn to_term(self) -> Term {
-        let mut krt = Term::make_upadesha(self.as_str());
+        let mut krt = Term::make_text(self.as_str());
         krt.add_tags(&[T::Pratyaya, T::Krt]);
 
         if let Krt::Base(b) = self {
@@ -22,10 +22,6 @@ impl Krt {
             ) {
                 krt.add_tag(T::Krtya);
             }
-        }
-
-        if let Krt::Unadi(_) = self {
-            krt.add_tag(T::Unadi);
         }
 
         krt
@@ -92,10 +88,19 @@ impl<'a> KrtPrakriya<'a> {
         }
     }
 
-    /// Returns whether the term before the dhatu has one of the given upapada values.
-    pub fn has_upapada_in(&self, upadeshas: &[&str]) -> bool {
+    /// Returns whether the term before the dhatu has the given upapada.
+    pub fn has_upasarga(&self, u: Upasarga) -> bool {
         if let Some(i_upapada) = self.i_upapada() {
-            self.p.has(i_upapada, |t| t.has_u_in(upadeshas))
+            self.p.has(i_upapada, |t| t.is(u))
+        } else {
+            false
+        }
+    }
+
+    /// Returns whether the term before the dhatu has one of the given upapada values.
+    pub fn has_upasarga_in(&self, upasargas: &[Upasarga]) -> bool {
+        if let Some(i_upapada) = self.i_upapada() {
+            self.p.has(i_upapada, |t| t.is_any_upasarga(upasargas))
         } else {
             false
         }
@@ -142,12 +147,12 @@ impl<'a> KrtPrakriya<'a> {
         }
     }
 
-    pub fn has_prefixes(&self, values: &[&str; 2]) -> bool {
+    pub fn has_both_upasargas(&self, first: Upasarga, second: Upasarga) -> bool {
         if let Some(i_upapada) = self.i_upapada() {
             let i_before = self.p.find_prev_where(i_upapada, |t| !t.is_empty());
             if let Some(i_before) = i_before {
-                return self.p.has(i_before, |t| t.has_text(values[0]))
-                    && self.p.has(i_upapada, |t| t.has_text(values[1]));
+                return self.p.has(i_before, |t| t.is(first))
+                    && self.p.has(i_upapada, |t| t.is(second));
             }
         }
         false
@@ -258,14 +263,21 @@ impl<'a> KrtPrakriya<'a> {
 
         if krt == self.krt && !self.has_krt {
             // TODO: resolve inconsistency with TaddhitaPratyaya::optional_try_add_with.
-            if self.p.is_allowed(rule) {
-                self.try_add_with(rule, krt, func);
-                return true;
-            } else {
-                self.p.decline(rule);
+            let decision = self.p.decide(rule);
+            match decision {
+                Some(Decision::Accept) | None => {
+                    self.try_add_with(rule, krt, func);
+                    self.p.log_accepted(rule);
+                    true
+                }
+                Some(Decision::Decline) => {
+                    self.p.log_declined(rule);
+                    false
+                }
             }
+        } else {
+            false
         }
-        false
     }
 
     /// If there's a match, optionally adds the given `krt` pratyaya.

@@ -4,8 +4,9 @@
 //! has been fixed and help ensure that the bug does not reappear.
 extern crate test_utils;
 use test_utils::*;
-use vidyut_prakriya::args::BaseKrt;
+use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
+use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 
@@ -67,7 +68,7 @@ fn adhyajigapat_adhyapipat() {
 // Verifies that Sap-pratyaya is added when Satf follows.
 #[test]
 fn shap_shatr() {
-    let bhavat = krdanta(&[], &d("BU", Bhvadi), BaseKrt::Satf);
+    let bhavat = krdanta(&[], &d("BU", Bhvadi), Krt::Satf);
     assert_has_sup_1s(&bhavat, Pum, &["Bavan"]);
     assert_has_sup_1d(&bhavat, Pum, &["BavantO"]);
     assert_has_sup_1p(&bhavat, Pum, &["BavantaH"]);
@@ -123,5 +124,63 @@ fn vavati() {
         &yan_luk(&d("vaya~\\", Bhvadi)),
         Lat,
         &["vAvati", "vAvayIti"],
+    );
+}
+
+#[test]
+fn rnjitva() {
+    assert_has_krdanta(&[], &d("fji~\\", Bhvadi), Krt::ktvA, &["fYjitvA"]);
+}
+
+#[test]
+fn bibhavaizitavya() {
+    let krt = Krdanta::builder()
+        .dhatu(nic_san(&d("BU", Bhvadi)))
+        .krt(Krt::tavya)
+        .build()
+        .unwrap();
+    assert_has_sup_1s(&krt, Stri, &["biBAvayizitavyA"]);
+}
+
+// Breaks if we process the wrong terms when doing ac sandhi for 6.4.51.
+#[test]
+fn bhavaniya_nic_sup_stri() {
+    let krt = Krdanta::builder()
+        .dhatu(nic(&d("BU", Bhvadi)))
+        .krt(Krt::anIyar)
+        .build()
+        .unwrap();
+    assert_has_sup_1p(&krt, Pum, &["BAvanIyAH"]);
+
+    assert_has_sup_1d(&krt, Stri, &["BAvanIye"]);
+    assert_has_sup_2d(&krt, Stri, &["BAvanIye"]);
+    assert_has_sup_3p(&krt, Stri, &["BAvanIyABiH"]);
+    assert_has_sup_4p(&krt, Stri, &["BAvanIyAByaH"]);
+    assert_has_sup_5s(&krt, Stri, &["BAvanIyAyAH"]);
+    assert_has_sup_6s(&krt, Stri, &["BAvanIyAyAH"]);
+    assert_has_sup_6d(&krt, Stri, &["BAvanIyayoH"]);
+    assert_has_sup_7p(&krt, Stri, &["BAvanIyAsu"]);
+}
+
+#[test]
+fn ajighasam() {
+    assert_has_mip(&[], &nic(&d("Gasx~", Bhvadi)), Lun, &["ajIGasam"]);
+}
+
+// Breaks if we process the wrong terms when doing ac sandhi for 6.4.51.
+#[test]
+fn adhyapidhvam() {
+    assert_has_dhvam_k(
+        &["aDi"],
+        &nic(&d("i\\N", Adadi)),
+        Lun,
+        &[
+            "aDyApayiDvam",
+            "aDyApayiQvam",
+            "aDyApiQvam",
+            "aDyagApayiDvam",
+            "aDyagApayiQvam",
+            "aDyagApiDvam",
+        ],
     );
 }

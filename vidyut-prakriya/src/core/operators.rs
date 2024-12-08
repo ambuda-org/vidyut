@@ -37,9 +37,19 @@ pub fn adi(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_adi(sub)
 }
 
+/// Replaces the first sound in the given term.
+pub fn adi_char(sub: &char) -> impl Fn(&mut Term) + '_ {
+    |t| t.set_adi_char(*sub)
+}
+
 /// Replaces the last sound in the given term.
 pub fn antya(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_antya(sub)
+}
+
+/// Replaces the last sound in the given term.
+pub fn antya_char(sub: &char) -> impl Fn(&mut Term) + '_ {
+    |t| t.set_antya_char(*sub)
 }
 
 /// Replaces the last sound with nothing.
@@ -50,6 +60,11 @@ pub fn antya_lopa(t: &mut Term) {
 /// Replaces the penultimate sound in the given term.
 pub fn upadha(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_upadha(sub)
+}
+
+/// Replaces the penultimate sound in the given term.
+pub fn upadha_char(sub: &char) -> impl Fn(&mut Term) + '_ {
+    |t| t.set_upadha_char(*sub)
 }
 
 /// Replaces the last sound with nothing.

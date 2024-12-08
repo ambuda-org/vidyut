@@ -9,7 +9,7 @@ use crate::args::Taddhita::*;
 use crate::args::TaddhitaArtha::*;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::ganapatha as gana;
 use crate::it_samjna;
 use crate::sounds::{s, Set};
@@ -579,12 +579,12 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_text_in(gana::PASHA_ADI) {
             tp.try_add_with("4.2.49", ya, |p| {
                 // By convention, this `ya` uses strI-linga.
-                p.add_tag(T::Stri);
+                p.add_tag(PT::Stri);
             });
         } else if prati.has_text_in(&["Kala", "go", "raTa"]) {
             tp.try_add_with("4.2.50", ya, |p| {
                 // By convention, this `ya` uses strI-linga.
-                p.add_tag(T::Stri);
+                p.add_tag(PT::Stri);
             });
         }
 

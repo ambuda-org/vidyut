@@ -8,7 +8,7 @@ use crate::args::{Dhatu, Krdanta, Pada, Pratipadika, Samasa, Subanta, Taddhitant
 use crate::ashtadhyayi;
 use crate::core::prakriya_stack::PrakriyaStack;
 use crate::core::Prakriya;
-use crate::core::Tag;
+use crate::core::PrakriyaTag as PT;
 
 /// An interface to the Ashtadhyayi and its related works.
 ///
@@ -260,8 +260,10 @@ impl Vyakarana {
         if let Some(pada) = args.pada() {
             use crate::args::DhatuPada;
             prakriyas.retain(|p| match pada {
-                DhatuPada::Parasmai => p.has_tag(pada.as_tag()) && !p.has_tag(Tag::AmAtmanepada),
-                DhatuPada::Atmane => p.has_tag_in(&[pada.as_tag(), Tag::AmAtmanepada]),
+                DhatuPada::Parasmai => {
+                    p.has_tag(pada.as_tag().into()) && !p.has_tag(PT::AmAtmanepada)
+                }
+                DhatuPada::Atmane => p.has_tag_in(&[pada.as_tag().into(), PT::AmAtmanepada]),
             });
         }
 

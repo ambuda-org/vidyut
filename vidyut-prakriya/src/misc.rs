@@ -22,10 +22,7 @@ pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
     let prati = p.get(i_prati)?;
     let is_shas_prabhrti = p.has(i_next, |t| {
         // HACK: exclude None, which is a placeholder form for upapada-krdantas.
-        t.is_vibhakti()
-            && !t.is_lupta()
-            && ![su, O, jas, am, Ow].iter().any(|s| t.is(*s))
-            && t.u.is_some()
+        t.is_vibhakti() && !t.is_lupta() && !t.is_any_sup(&[su, O, jas, am, Ow])
     });
 
     if is_shas_prabhrti {

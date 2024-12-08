@@ -42,6 +42,7 @@ type Sound = char;
 
 pub const AK: Set = s(&["ak"]);
 pub const AC: Set = s(&["ac"]);
+pub const AL: Set = s(&["al"]);
 pub const JHAL: Set = s(&["Jal"]);
 pub const IK: Set = s(&["ik"]);
 pub const HAL: Set = s(&["hal"]);

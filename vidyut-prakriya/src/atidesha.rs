@@ -67,188 +67,18 @@ impl<'a> AtideshaPrakriya<'a> {
     }
 }
 
-/// Tries rules that add `Nit` to a term.
-fn try_add_nit(p: &mut Prakriya, i: usize) -> Option<()> {
-    let mut ap = AtideshaPrakriya::new(p);
-
-    let cur = ap.p.get(i)?;
-    let n = ap.p.pratyaya(i + 1)?;
-
-    let apit = !n.has_tag(T::pit);
-    let iti = n.first().is_it_agama();
-    let gan_kutadi = cur.is_u(Au::gAN) || cur.has_antargana(Antargana::Kutadi);
-    let i_n = n.end();
-
-    if gan_kutadi && !n.has_tag_in(&[T::Rit, T::Yit]) {
-        ap.add_nit("1.2.1", i_n);
-    } else if cur.is_u(Au::vyaca)
-        && n.last().is_krt()
-        && !n.has_tag_in(&[T::Rit, T::Yit])
-        && !n.has_u("asi~")
-    {
-        // vyaceḥ kuṭāditvamanasīti tu neha pravartate, anasīti paryudāsena kṛnmātraviṣayatvāt
-        // -- SK 655
-        ap.add_nit(Varttika("1.2.1.1"), i_n);
-    } else if cur.is_u_in(&[Au::ovijI_u, Au::ovijI_a]) && iti {
-        // Just for these `vij` dhatus, according to the Kashika.
-        ap.add_nit("1.2.2", i_n);
-    } else if cur.has_text("UrRu") && iti {
-        ap.optional_add_nit("1.2.3", i_n);
-    } else if n.has_tag(T::Sarvadhatuka) && apit {
-        ap.add_nit("1.2.4", i_n);
+/// Runs atidesha rules that must apply before it-agama.
+pub fn run_before_it_agama(p: &mut Prakriya) {
+    for i in 0..p.terms().len() {
+        run_before_it_agama_at_index(p, i);
     }
-
-    Some(())
-}
-
-/// Tries rules that add `kit` to various pratyayas (liw, ktvA, san, ...)
-fn try_add_kit_for_various_pratyayas(p: &mut Prakriya, i: usize) -> Option<bool> {
-    let mut wrap = AtideshaPrakriya::new(p);
-
-    let cur = wrap.p.get(i)?;
-    let n = wrap.p.pratyaya(i + 1)?;
-    if cur.is_agama() {
-        return None;
-    }
-
-    let i_n = n.end();
-    if cur.has_text_in(&["mfq", "mfd", "guD", "kuz", "kliS", "vad", "vas"])
-        && n.last().has_u("ktvA")
-    {
-        // mfqitvA, mfditvA, ...
-        wrap.add_kit("1.2.7", i_n);
-    } else if cur.has_text_in(&["rud", "vid", "muz", "grah", "svap", "praC"])
-        && n.last().has_u_in(&["ktvA", "san"])
-    {
-        // ruditvA, viditvA, ..., rurutizati, vividizati, ...
-        wrap.add_kit("1.2.8", i_n);
-    } else if cur.has_antya(IK) && n.first().is_san() {
-        // cicIzati, tuzwUzati, ...
-        wrap.add_kit("1.2.9", i_n);
-    } else if cur.has_last_vowel(IK) && cur.has_antya(HAL) && n.first().is_san() {
-        // titfkzati, DIpsati, ...
-        //
-        // (Per commentaries, "halantAt" here allows multiple hals in a row.
-        wrap.add_kit("1.2.10", i_n);
-    }
-
-    Some(wrap.added)
-}
-
-/// Tries rules that add `kit` to sic-pratyaya.
-fn try_add_kit_for_sic(p: &mut Prakriya, i: usize) -> Option<bool> {
-    let mut wrap = AtideshaPrakriya::new(p);
-
-    let cur = wrap.p.get(i)?;
-    let n = wrap.p.pratyaya(i + 1)?;
-    let last = wrap.p.terms().last()?;
-    let i_n = n.end();
-
-    let sic = n.first().is(V::sic);
-    let lin_or_sic = last.has_lin_lakara() || sic;
-    let atmanepadesu = last.is_atmanepada();
-
-    if (cur.has_text("sTA") || cur.has_tag(T::Ghu)) && sic && atmanepadesu {
-        // upAsTita, aDita, ...
-        wrap.p.run("1.2.17", |p| {
-            p.set(i, |t| t.set_antya("i"));
-            p.set(i_n, |t| t.add_tag(T::kit));
-        });
-
-        Some(true)
-    } else if lin_or_sic && atmanepadesu && n.has_adi(JHAL) {
-        let t = wrap.p.get(i)?;
-        let is_dhatu = t.is_dhatu();
-        let is_ik_halanta = t.has_upadha(IK) && t.has_antya(HAL);
-
-        if is_dhatu && is_ik_halanta {
-            // BitsIzwa, ...
-            wrap.add_kit("1.2.11", i_n);
-        } else if is_dhatu && t.has_antya(F) {
-            // kfzIzwa, ...
-            wrap.add_kit("1.2.12", i_n);
-        } else if cur.has_text("gam") {
-            // samagaMsta, samagata
-            wrap.optional_add_kit("1.2.13", i_n);
-        } else if sic {
-            if cur.has_text("han") {
-                // Ahata, Ahasata
-                wrap.add_kit("1.2.14", i_n);
-            } else if cur.has_text("yam") {
-                // udAyata, ...
-                // TODO: conditioned on specific upasargas?
-                wrap.optional_add_kit("1.2.15", i_n);
-                // 1.2.16 is like 1.2.15 but conditions on a different sense.
-            }
-        }
-
-        Some(wrap.added)
-    } else {
-        Some(false)
-    }
-}
-
-/// Tries rules that remove `kit` for various pratyayas that have an iw-Agama.
-fn try_remove_kit_for_set_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
-    let mut wrap = AtideshaPrakriya::new(p);
-
-    let cur = wrap.p.get(i)?;
-    let n = wrap.p.pratyaya(i + 1)?;
-    let i_n = n.end();
-
-    if !n.first().is_it_agama() {
-        return None;
-    }
-
-    let nistha = n.last().has_tag(T::Nistha);
-    let ktva = n.last().is(K::ktvA);
-    let san = n.last().is_san();
-
-    // TODO: 1.2.21
-    if (nistha || ktva) && cur.has_u("pUN") {
-        // pavitaH
-        wrap.remove_kit("1.2.22", i_n);
-    } else if (ktva || san) && cur.has_upadha(I_U) && cur.has_antya(RAL) && cur.has_adi(HAL) {
-        // dyutitvA, dyotitvA, ..., didyutizate, didyotizate, ...
-        wrap.optional("1.2.26", |p| {
-            let n = p.get_mut(i_n).expect("ok");
-            n.add_tag(T::kit);
-        });
-    } else if nistha {
-        if cur.has_text_in(&["SI", "svid", "mid", "kzvid", "Dfz"]) {
-            // Sayita, svedita, medita, kzvedita, Darzita
-            wrap.remove_kit("1.2.19", i_n);
-        } else if cur.has_text("mfz") {
-            // marzitaH, mfzita
-            wrap.optional_remove_kit("1.2.20", i_n);
-        }
-    } else if ktva {
-        if cur.has_upadha('n') && (cur.has_antya('T') || cur.has_antya('P')) {
-            wrap.optional_block("1.2.23");
-        } else if cur.has_text_in(&["vanc", "lunc", "ft"]) {
-            wrap.optional_block("1.2.24");
-        } else if cur.has_text_in(&["tfz", "mfz", "kfS"]) {
-            // tfzitvA, tarzitvA; mfzitvA, marzitvA; kfSitvA, karSitvA
-            wrap.optional_block("1.2.25");
-        }
-    }
-
-    if ktva && !wrap.added {
-        wrap.remove_kit("1.2.18", i_n);
-    }
-
-    Some(())
 }
 
 fn run_before_it_agama_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let mut ap = AtideshaPrakriya::new(p);
 
-    let cur = ap.p.get(i)?;
+    let cur = ap.p.get_if(i, |t| t.is_dhatu())?;
     let n = ap.p.pratyaya(i + 1)?;
-    if cur.is_agama() {
-        return None;
-    }
-
     let i_n = n.end();
 
     let apit = !n.has_tag(T::pit);
@@ -272,29 +102,187 @@ fn run_before_it_agama_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn run_before_attva_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
-    try_add_nit(p, i);
-    let added_1 = try_add_kit_for_various_pratyayas(p, i).unwrap_or(false);
-    let added_2 = try_add_kit_for_sic(p, i).unwrap_or(false);
-
-    if !(added_1 || added_2) {
-        try_remove_kit_for_set_pratyaya(p, i);
-    }
-
-    Some(())
-}
-
-/// Runs atidesha rules that must apply before it-agama.
-pub fn run_before_it_agama(p: &mut Prakriya) {
-    for i in 0..p.terms().len() {
-        run_before_it_agama_at_index(p, i);
-    }
-}
-
 /// Runs most atidesha rules.
 pub fn run_before_attva(p: &mut Prakriya) {
     for i in 0..p.terms().len() {
-        run_before_attva_at_index(p, i);
+        run_before_attva_for_index(p, i);
+    }
+}
+
+fn run_before_attva_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
+    let t = &p.terms()[i];
+
+    let is_dhatu = t.is_dhatu();
+    let is_pratyaya = t.is_pratyaya();
+    if !(is_dhatu || is_pratyaya) {
+        return None;
+    }
+
+    let n = p.pratyaya(i + 1)?;
+    let i_n = n.start();
+    let i_p = n.end();
+
+    // Rules that add `Nit` to a term.
+    {
+        let mut ap = AtideshaPrakriya::new(p);
+
+        let cur = ap.p.get(i)?;
+        let n = ap.p.view(i_n, i_p)?;
+
+        if is_dhatu {
+            let gan_kutadi = cur.is_u(Au::gAN) || cur.has_antargana(Antargana::Kutadi);
+            let iti = n.first().is_it_agama();
+            if gan_kutadi && !n.has_tag_in(&[T::Rit, T::Yit]) {
+                ap.add_nit("1.2.1", i_p);
+            } else if cur.is_u(Au::vyaca)
+                && n.last().is_krt()
+                && !n.has_tag_in(&[T::Rit, T::Yit])
+                && !n.has_u("asi~")
+            {
+                // vyaceḥ kuṭāditvamanasīti tu neha pravartate, anasīti paryudāsena kṛnmātraviṣayatvāt
+                // -- SK 655
+                ap.add_nit(Varttika("1.2.1.1"), i_p);
+            } else if cur.is_any_u(&[Au::ovijI_u, Au::ovijI_a]) && iti {
+                // Just for these `vij` dhatus, according to the Kashika.
+                ap.add_nit("1.2.2", i_p);
+            } else if cur.has_text("UrRu") && iti {
+                ap.optional_add_nit("1.2.3", i_p);
+            }
+        }
+
+        let end = ap.p.get(i_p)?;
+        if end.has_tag(T::Sarvadhatuka) && !end.has_tag(T::pit) {
+            ap.add_nit("1.2.4", i_p);
+        }
+    }
+
+    // Rules that add `kit` to a term.
+    {
+        if !is_dhatu {
+            return None;
+        }
+
+        let mut ap = AtideshaPrakriya::new(p);
+
+        // Rules that add `kit` to various pratyayas (liw, ktvA, san, ...)
+        let cur = ap.p.get(i)?;
+        let n = ap.p.view(i_n, i_p)?;
+        let last = n.last();
+
+        if cur.has_text_in(&["mfq", "mfd", "guD", "kuz", "kliS", "vad", "vas"]) && last.is(K::ktvA)
+        {
+            // mfqitvA, mfditvA, ...
+            ap.add_kit("1.2.7", i_p);
+        } else if cur.has_text_in(&["rud", "vid", "muz", "grah", "svap", "praC"])
+            && (last.is(K::ktvA) || last.is_san())
+        {
+            // ruditvA, viditvA, ..., rurutizati, vividizati, ...
+            ap.add_kit("1.2.8", i_p);
+        } else if n.first().is_san() {
+            if cur.has_antya(IK) {
+                // cicIzati, tuzwUzati, ...
+                ap.add_kit("1.2.9", i_p);
+            } else if cur.has_last_vowel(IK) && cur.has_antya(HAL) {
+                // titfkzati, DIpsati, ...
+                //
+                // Per commentaries, "halantAt" here allows multiple hals in a row. So, we must use
+                // `has_last_vowel` instead of `has_upadha`.
+                ap.add_kit("1.2.10", i_p);
+            }
+        }
+
+        // Rules that add `kit` to sic-pratyaya.
+        let dhatu = ap.p.get(i)?;
+        let n = ap.p.view(i_n, i_p)?;
+        let last = ap.p.terms().last()?;
+
+        let sic = n.first().is(V::sic);
+        let lin_or_sic = last.is_lin_lakara() || sic;
+        let atmanepadesu = last.is_atmanepada();
+
+        if (dhatu.has_text("sTA") || dhatu.has_tag(T::Ghu)) && sic && atmanepadesu {
+            // upAsTita, aDita, ...
+            ap.p.run("1.2.17", |p| {
+                p.set(i, |t| t.set_antya("i"));
+                p.set(i_p, |t| t.add_tag(T::kit));
+            });
+            ap.added = true;
+        } else if lin_or_sic && atmanepadesu && n.has_adi(JHAL) {
+            let t = ap.p.get(i)?;
+            let is_dhatu = t.is_dhatu();
+            let is_ik_halanta = t.has_upadha(IK) && t.has_antya(HAL);
+
+            if is_dhatu && is_ik_halanta {
+                // BitsIzwa, ...
+                ap.add_kit("1.2.11", i_p);
+            } else if is_dhatu && t.has_antya(F) {
+                // kfzIzwa, ...
+                ap.add_kit("1.2.12", i_p);
+            } else if dhatu.has_text("gam") {
+                // samagaMsta, samagata
+                ap.optional_add_kit("1.2.13", i_p);
+            } else if sic {
+                if dhatu.has_text("han") {
+                    // Ahata, Ahasata
+                    ap.add_kit("1.2.14", i_p);
+                } else if dhatu.has_text("yam") {
+                    // udAyata, ...
+                    // TODO: conditioned on specific upasargas?
+                    ap.optional_add_kit("1.2.15", i_p);
+                    // 1.2.16 is like 1.2.15 but conditions on a different sense.
+                }
+            }
+        }
+
+        // Rules that block `kit` for various pratyayas that have an iw-Agama.
+        if !ap.added {
+            let cur = ap.p.get(i)?;
+            let n = ap.p.view(i_n, i_p)?;
+
+            if !n.first().is_it_agama() {
+                return None;
+            }
+
+            let nistha = n.last().has_tag(T::Nistha);
+            let ktva = n.last().is(K::ktvA);
+            let san = n.last().is_san();
+
+            // TODO: 1.2.21
+            if (nistha || ktva) && cur.has_u("pUN") {
+                // pavitaH
+                ap.remove_kit("1.2.22", i_p);
+            } else if (ktva || san) && cur.has_upadha(I_U) && cur.has_antya(RAL) && cur.has_adi(HAL)
+            {
+                // dyutitvA, dyotitvA, ..., didyutizate, didyotizate, ...
+                ap.optional("1.2.26", |p| {
+                    let n = p.get_mut(i_p).expect("ok");
+                    n.add_tag(T::kit);
+                });
+            } else if nistha {
+                if cur.has_text_in(&["SI", "svid", "mid", "kzvid", "Dfz"]) {
+                    // Sayita, svedita, medita, kzvedita, Darzita
+                    ap.remove_kit("1.2.19", i_p);
+                } else if cur.has_text("mfz") {
+                    // marzitaH, mfzita
+                    ap.optional_remove_kit("1.2.20", i_p);
+                }
+            } else if ktva {
+                if cur.has_upadha('n') && (cur.has_antya('T') || cur.has_antya('P')) {
+                    ap.optional_block("1.2.23");
+                } else if cur.has_text_in(&["vanc", "lunc", "ft"]) {
+                    ap.optional_block("1.2.24");
+                } else if cur.has_text_in(&["tfz", "mfz", "kfS"]) {
+                    // tfzitvA, tarzitvA; mfzitvA, marzitvA; kfSitvA, karSitvA
+                    ap.optional_block("1.2.25");
+                }
+            }
+
+            if ktva && !ap.added {
+                ap.remove_kit("1.2.18", i_p);
+            }
+        }
+
+        Some(())
     }
 }
 

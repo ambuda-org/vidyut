@@ -5,12 +5,13 @@ use crate::args::BaseKrt as K;
 use crate::args::Lakara::*;
 use crate::args::Sanadi as S;
 use crate::args::Upasarga as U;
+use crate::args::Vikarana as V;
 use crate::args::{Dhatu, Gana, Lakara, Sanadi, Unadi};
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
 use crate::core::TermView;
-use crate::core::{Prakriya, Rule};
+use crate::core::{Morph, Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
 use crate::sounds::{s, Set, AC, JHAL, VAL};
 
@@ -29,7 +30,7 @@ fn will_cause_guna(n: &TermView) -> bool {
     let is_apit = !n.has_tag(T::pit);
     !(
         // Parasmaipada Ashir-liN will use yAsuT-Agama, which is kit.
-        (n.last().has_lin_lakara() && n.last().has_all_tags(&[T::Ardhadhatuka, T::Parasmaipada]))
+        (n.last().is_lin_lakara() && n.last().has_all_tags(&[T::Ardhadhatuka, T::Parasmaipada]))
         // sArvadhAtukam apit will be Nit.
         || (n.has_tag(T::Sarvadhatuka) && is_apit)
         // apit liT when not after samyoga will be kit.
@@ -41,14 +42,14 @@ fn will_cause_guna(n: &TermView) -> bool {
 
 /// A special case of `op::adesha` that also supports yaN-luk.
 fn do_vadha_adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize) {
-    let is_yan_luk = i >= 2 && p.has(i + 1, |t| t.has_u("yaN") && t.is_lupta());
+    let is_yan_luk = i >= 2 && p.has(i + 1, |t| t.is(S::yaN) && t.is_lupta());
     if is_yan_luk {
         p.set(i, |t| {
             t.add_tag(T::Adesha);
             t.set_u("vaDa");
             t.set_text("vaDa");
         });
-        if i >= 2 && p.has(i + 1, |t| t.has_u("yaN") && t.is_lupta()) {
+        if i >= 2 && p.has(i + 1, |t| t.is(S::yaN) && t.is_lupta()) {
             // Delete abhyasa
             p.terms_mut().remove(i - 2);
             // Delete Muk-Agama
@@ -121,7 +122,7 @@ fn dhatu_adesha_after_vikarana(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get(i)?;
     if dhatu.has_u("i\\N") && p.terms().get(i + 2).is_some() {
         let n2 = p.terms().get(i + 2)?;
-        if n.last().is(S::Ric) && n2.has_u_in(&["san", "caN"]) {
+        if n.last().is(S::Ric) && (n2.is_san() || n2.is(V::caN)) {
             let done = p.optional_run("2.4.50", |p| op::set_aupadeshika(p, i, Au::gAN));
             if done {
                 it_samjna::run(p, i).ok()?;
@@ -129,7 +130,7 @@ fn dhatu_adesha_after_vikarana(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    if p.has(i + 1, |t| t.has_u("yaN")) && p.has(i + 2, |t| t.is(K::ac)) {
+    if p.has(i + 1, |t| t.is(S::yaN) && !t.is_lupta()) && p.has(i + 2, |t| t.is(K::ac)) {
         p.run_at("2.4.74", i + 1, op::luk);
         p.set(i + 1, |t| t.add_tag(T::FlagAtLopa));
     }
@@ -196,7 +197,7 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
     } else if dhatu.has_u("vI\\") && dhatu.has_gana(Gana::Adadi) && nau {
         // Check gana to avoid aj -> vI
         p.optional_run_at("6.1.55", i, op::antya("A"));
-    } else if nau && p.has_tag(T::FlagHetuBhaya) {
+    } else if nau && p.has_tag(PT::FlagHetuBhaya) {
         if dhatu.has_u("YiBI\\") {
             p.optional_run_at("6.1.56", i, op::antya("A"));
         } else if dhatu.has_text("smi") {
@@ -283,7 +284,7 @@ pub fn run_before_vikarana(
         if n.has_lakara(Lun) || n.last().is_san() {
             // aGasat, jiGatsati
             op::adesha("2.4.37", p, i, "Gasx~");
-        } else if n.has_u_in(&["GaY", "ap"]) {
+        } else if n.last().is_any_krt(&[K::GaY, K::ap]) {
             // GAsa, praGasa
             op::adesha("2.4.38", p, i, "Gasx~");
         } else if n.has_lakara(Lit) {
@@ -295,9 +296,11 @@ pub fn run_before_vikarana(
         }
         // Skip 2.4.39 (bahulaM chandasi).
     } else if dhatu.has_u("ve\\Y") && n.has_lakara(Lit) {
-        op::optional_adesha("2.4.41", p, i, "vayi~");
+        if op::optional_adesha("2.4.41", p, i, "vayi~") {
+            p.set(i, |t| t.morph = Morph::Dhatu(Au::vayi))
+        }
     } else if dhatu.has_text("han") {
-        if n.last().has_lin_lakara() {
+        if n.last().is_lin_lakara() {
             // vaDyAt
             do_vadha_adesha("2.4.42", p, i);
         } else if n.has_lakara(Lun) {
@@ -367,7 +370,7 @@ pub fn run_before_vikarana(
     } else if dhatu.has_u("brUY") {
         // anudAtta to prevent iT
         op::adesha("2.4.53", p, i, "va\\ci~");
-    } else if dhatu.has_u("aja~") && !n.has_u_in(&["GaY", "ap"]) {
+    } else if dhatu.has_u("aja~") && !n.last().is_any_krt(&[K::GaY, K::ap]) {
         let mut run = true;
         if n.last().is(K::lyuw) {
             run = !p.optional_run("2.4.57", |_| {});
@@ -389,7 +392,7 @@ pub fn run_before_vikarana(
         // As a crude fix, just check for endings that we expect will start with
         // vowels.
         let n = p.get(j)?;
-        let will_yasut = la == Some(Lakara::AshirLin) && p.has_tag(T::Parasmaipada);
+        let will_yasut = la == Some(Lakara::AshirLin) && p.has_tag(PT::Parasmaipada);
         let is_lit_ajadi = la == Some(Lakara::Lit) && p.terms().last()?.has_adi(AC);
         let will_have_valadi = !(will_yasut || is_lit_ajadi);
         // HACK: ignore Rvul, since it will be replaced with -aka.

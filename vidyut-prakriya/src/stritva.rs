@@ -19,9 +19,9 @@ use crate::args::BaseKrt as K;
 use crate::args::Stri;
 use crate::args::Taddhita as D;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
 use crate::core::Term;
-use crate::core::{Prakriya, Rule};
+use crate::core::{Decision, Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::ganapatha as gana;
 use crate::it_samjna;
 
@@ -117,11 +117,17 @@ impl<'a> StriPrakriya<'a> {
     fn optional_try_add(&mut self, rule: impl Into<Rule>, stri: Stri) -> bool {
         let rule = rule.into();
         if !self.done {
-            if self.p.is_allowed(rule) {
-                self.try_add(rule, stri)
-            } else {
-                self.p.decline(rule);
-                false
+            let decision = self.p.decide(rule);
+            match decision {
+                Some(Decision::Accept) | None => {
+                    self.try_add(rule, stri);
+                    self.p.log_accepted(rule);
+                    true
+                }
+                Some(Decision::Decline) => {
+                    self.p.log_declined(rule);
+                    false
+                }
             }
         } else {
             false
@@ -133,7 +139,7 @@ impl<'a> StriPrakriya<'a> {
 pub fn run(p: &mut Prakriya) -> Option<()> {
     use Stri::*;
 
-    if !p.has_tag(T::Stri) {
+    if !p.has_tag(PT::Stri) {
         return None;
     }
 
@@ -147,11 +153,10 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     }
 
     if !last.has_tag(T::Upasarjana) {
-        if (last.has_tag(T::wit) && last.has_antya('a') && !last.has_tag(T::La))
+        if (last.has_tag(T::wit) && last.has_antya('a') && !last.lakara.is_some())
             // The rule has "Qa" which indicates the class of Qa-pratyayas. For simplicity,
             // we enumerate them manually. But, we ignore the literal "Qa"-pratyaya because it's
             // always napumsaka.
-            || last.has_u_in(&["Qak", "QaY"])
             || last.is_any_taddhita(&[D::Qak, D::QaY])
             // Other pratyayas are as given.
             // Include "ayac" which replaces "tayap" by 5.2.43.
@@ -160,7 +165,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             || last.is(K::kaY) || last.is(K::kvarap)
         {
             sp.try_add("4.1.15", NIp);
-        } else if last.has_u("yaY") {
+        } else if last.is(D::yaY) {
             sp.try_add("4.1.16", NIp);
         } else if last.has_tag(T::zit) || last.has_text_in(gana::GAURA_ADI) {
             // nartanI, gOrI

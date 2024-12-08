@@ -5,14 +5,21 @@ Users interested in understanding this module should start by reading the commen
 `Prakriya` struct, which manages a derivation from start to finish.
 */
 use crate::args::Artha;
-use crate::core::Tag;
-use crate::core::{Term, TermView};
+use crate::core::{PrakriyaTag, PrakriyaTag as PT, Tag, Term, TermView};
 use crate::sounds::Set;
-use compact_str::CompactString;
 use enumset::EnumSet;
 
 /// A simple string label for some rule in the grammar.
 pub type Code = &'static str;
+
+/// A rule decision.
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Decision {
+    /// Indicates that a rule was accepted during the derivation.
+    Accept,
+    /// Indicates that a rule was declined during the derivation.
+    Decline,
+}
 
 /// A rule applied in the *prakriyā*.
 ///
@@ -126,11 +133,21 @@ impl StepTerm {
 
 /// Records whether an optional rule was accepted or declined.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum RuleChoice {
-    /// Indicates that a rule was accepted during the derivation.
-    Accept(Rule),
-    /// Indicates that a rule was declined during the derivation.
-    Decline(Rule),
+pub struct RuleChoice {
+    pub(crate) rule: Rule,
+    pub(crate) decision: Decision,
+}
+
+impl RuleChoice {
+    /// The rule for which we made a decision.
+    pub fn rule(&self) -> Rule {
+        self.rule
+    }
+
+    /// The decision made.
+    pub fn decision(&self) -> Decision {
+        self.decision
+    }
 }
 
 /// Configuration options that affect how a `Prakriya` behaves during the derivation.
@@ -181,11 +198,11 @@ impl Config {
 #[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Prakriya {
     terms: Vec<Term>,
-    tags: EnumSet<Tag>,
+    tags: EnumSet<PrakriyaTag>,
     history: Vec<Step>,
     artha: Option<Artha>,
     config: Config,
-    rule_choices: Vec<RuleChoice>,
+    pub(crate) rule_choices: Vec<RuleChoice>,
 }
 
 /// Public API
@@ -245,10 +262,10 @@ impl Prakriya {
 /// method that works as follows:
 ///
 /// ```rust,ignore
-/// # use vidyut_prakriya::{Prakriya, Tag};
+/// # use vidyut_prakriya::{Prakriya, PrakriyaTag};
 /// // Mark that `prakriya` contains a dhatu that should accept an atmanepada-pratyaya.
 /// prakriya.optionally("1.2.3", |rule, p| {
-///     p.run(rule, |p| p.add_tag(Tag::Atmanepada));
+///     p.run(rule, |p| p.add_tag(PrakriyaTag::Atmanepada));
 /// })
 /// ```
 ///
@@ -278,17 +295,6 @@ impl Prakriya {
 
     // Accessors
     // ---------
-
-    /// Like `text` but creates a `CompactString`.
-    ///
-    /// `CompactString` is an implementation detail that we don't wish to expose in the public API.
-    pub(crate) fn compact_text(&self) -> CompactString {
-        let mut ret = CompactString::from("");
-        for t in &self.terms {
-            ret.push_str(&t.text);
-        }
-        ret
-    }
 
     /// Returns the number of terms in the prakriya.
     pub(crate) fn len(&self) -> usize {
@@ -380,12 +386,12 @@ impl Prakriya {
     // ----------
 
     pub(crate) fn is_karmadharaya(&self) -> bool {
-        self.has_tag(Tag::Karmadharaya)
+        self.has_tag(PT::Karmadharaya)
     }
 
     /// Returns whether the given prakriya express bhAve/karmani prayoga.
     pub(crate) fn is_bhave_or_karmani(&self) -> bool {
-        self.has_tag_in(&[Tag::Bhave, Tag::Karmani])
+        self.has_tag_in(&[PT::Bhave, PT::Karmani])
     }
 
     /// Returns whether the term at the given index can be called "pada".
@@ -491,35 +497,8 @@ impl Prakriya {
         None
     }
 
-    /// Finds the term that contains the char at index `i_char` in `self.text()`.
-    pub(crate) fn find_for_char_at(&self, i_char: usize) -> Option<usize> {
-        let mut cur = 0;
-        for (i, t) in self.terms().iter().enumerate() {
-            let delta = t.text.len();
-            if (cur..cur + delta).contains(&i_char) {
-                return Some(i);
-            }
-            cur += delta;
-        }
-        None
-    }
-
-    /// Replaces character `i` of the current prakriya with the given substitute.
-    pub(crate) fn set_char_at(&mut self, i_char: usize, substitute: &str) {
-        let mut cur = 0;
-        for t in self.terms_mut() {
-            let delta = t.text.len();
-            if (cur..cur + delta).contains(&i_char) {
-                let i_offset = i_char - cur;
-                t.text.replace_range(i_offset..=i_offset, substitute);
-                return;
-            }
-            cur += delta;
-        }
-    }
-
     /// Sets the penultimate sound within the range `[start, end]` to the given value.
-    pub(crate) fn set_upadha_within_range(&mut self, start: usize, end: usize, substitute: &str) {
+    pub(crate) fn set_upadha_within_range(&mut self, start: usize, end: usize, sub: char) {
         debug_assert!(start <= end);
 
         let mut cur = 0;
@@ -527,7 +506,9 @@ impl Prakriya {
         for t in self.terms[start..=end].iter_mut().rev() {
             for (i_char, _) in t.text.bytes().enumerate().rev() {
                 if cur == nth_rev {
-                    t.text.replace_range(i_char..=i_char, substitute);
+                    let mut buf: [u8; 4] = [0; 4];
+                    let sub_str: &str = sub.encode_utf8(&mut buf);
+                    t.text.replace_range(i_char..=i_char, sub_str);
                     return;
                 }
                 cur += 1;
@@ -548,12 +529,12 @@ impl Prakriya {
     }
 
     /// Returns whether the prakriya has the given `tag`.
-    pub(crate) fn has_tag(&self, tag: Tag) -> bool {
+    pub(crate) fn has_tag(&self, tag: PrakriyaTag) -> bool {
         self.tags.contains(tag)
     }
 
     /// Returns whether the prakriya has any of the given `tags`.
-    pub(crate) fn has_tag_in(&self, tags: &[Tag]) -> bool {
+    pub(crate) fn has_tag_in(&self, tags: &[PrakriyaTag]) -> bool {
         tags.iter().any(|t| self.tags.contains(*t))
     }
 
@@ -606,8 +587,8 @@ impl Prakriya {
     // --------------
 
     /// Adds a tag to the prakriya.
-    pub(crate) fn add_tag(&mut self, tag: Tag) {
-        self.tags.insert(tag);
+    pub(crate) fn add_tag(&mut self, tag: PrakriyaTag) {
+        self.tags.insert(tag.into());
     }
 
     /// Returns whether the prakriya has the given artha.
@@ -620,12 +601,11 @@ impl Prakriya {
         self.artha = Some(artha);
     }
 
-    #[allow(unused)]
-    pub(crate) fn remove_tag(&mut self, tag: Tag) {
+    pub(crate) fn remove_tag(&mut self, tag: PrakriyaTag) {
         self.tags.remove(tag);
     }
 
-    pub(crate) fn add_tags(&mut self, tags: &[Tag]) {
+    pub(crate) fn add_tags(&mut self, tags: &[PrakriyaTag]) {
         for t in tags {
             self.tags.insert(*t);
         }
@@ -704,7 +684,7 @@ impl Prakriya {
         self.run_at(rule.into(), index, |t| t.add_tag(tag));
     }
 
-    /// Runs `func` optionally and records whether the option was accepted or rejected.
+    /// Runs `func` optionally and updates our decision history accordingly.
     ///
     /// Returns: whether the option was accepted.
     pub(crate) fn optionally(
@@ -713,12 +693,21 @@ impl Prakriya {
         func: impl FnOnce(Rule, &mut Prakriya),
     ) -> bool {
         let rule = rule.into();
-        if self.is_allowed(rule) {
-            func(rule, self);
-            true
-        } else {
-            self.decline(rule);
-            false
+        let decision = self.decide(rule);
+        match decision {
+            Some(Decision::Accept) | None => {
+                func(rule, self);
+                /*
+                if !self.rule_choices.iter().any(|rc| rc.rule == rule) {
+                }
+                */
+                self.log_accepted(rule);
+                true
+            }
+            Some(Decision::Decline) => {
+                self.log_declined(rule);
+                false
+            }
         }
     }
 
@@ -776,18 +765,10 @@ impl Prakriya {
         let mut result: Vec<StepTerm> = self
             .terms
             .iter()
-            .map(|t| {
-                let mut tags = t.tags;
-                // HACK: remove a flag that is not added by any rule, to avoid spurious
-                // highlighting.
-                // TODO: move flags to their own field to avoid these and similar issues, and so
-                // that we might refactor `Tag` into a `Samjna` type in the future.
-                tags.remove(Tag::FlagIttva);
-                StepTerm {
-                    text: t.text_with_svaras(),
-                    tags,
-                    was_changed: false,
-                }
+            .map(|t| StepTerm {
+                text: t.text_with_svaras(),
+                tags: t.tags,
+                was_changed: false,
             })
             .collect();
 
@@ -841,35 +822,35 @@ impl Prakriya {
         self.config.nlp_mode
     }
 
-    pub(crate) fn is_allowed(&mut self, r: impl Into<Rule>) -> bool {
+    pub(crate) fn decide(&self, r: impl Into<Rule>) -> Option<Decision> {
         let r = r.into();
-        for option in &self.config.rule_choices {
-            match option {
-                RuleChoice::Accept(rule) => {
-                    if r == *rule {
-                        self.accept(r);
-                        return true;
-                    }
-                }
-                RuleChoice::Decline(rule) => {
-                    if r == *rule {
-                        return false;
-                    }
-                }
+        for choice in &self.config.rule_choices {
+            if choice.rule == r {
+                return Some(choice.decision);
             }
         }
 
-        // If not in options, allow this rule by default.
-        self.accept(r);
-        true
+        None
     }
 
-    pub(crate) fn accept(&mut self, rule: impl Into<Rule>) {
-        self.rule_choices.push(RuleChoice::Accept(rule.into()));
+    pub(crate) fn log_accepted(&mut self, rule: impl Into<Rule>) {
+        let rule = rule.into();
+        if !self.rule_choices.iter().any(|rc| rc.rule == rule) {
+            self.rule_choices.push(RuleChoice {
+                rule,
+                decision: Decision::Accept,
+            });
+        }
     }
 
-    pub(crate) fn decline(&mut self, rule: impl Into<Rule>) {
-        self.rule_choices.push(RuleChoice::Decline(rule.into()));
+    pub(crate) fn log_declined(&mut self, rule: impl Into<Rule>) {
+        let rule = rule.into();
+        if !self.rule_choices.iter().any(|rc| rc.rule == rule) {
+            self.rule_choices.push(RuleChoice {
+                rule,
+                decision: Decision::Decline,
+            });
+        }
     }
 
     // Debugging code
@@ -905,4 +886,23 @@ impl Prakriya {
     #[allow(unused)]
     #[cfg(not(debug_assertions))]
     pub(crate) fn dump(&mut self) {}
+
+    /// Shows size estimates for the prakriya.
+    #[allow(unused)]
+    pub(crate) fn show_sizes(&self) {
+        use std::mem::size_of;
+
+        let base = size_of::<Prakriya>();
+        println!("{}", self.text());
+        println!("Base: {base}B");
+        for t in &self.terms {
+            let t_base = size_of::<Term>();
+            let u_size = match &t.u {
+                Some(u) => u.capacity(),
+                None => 0,
+            };
+            let text_size = t.text.capacity();
+            println!("- Term: base = {t_base}B, u = {u_size}B, text = {text_size}B");
+        }
+    }
 }

@@ -175,6 +175,8 @@ pub enum BaseKrt {
     tfc,
     /// -tf
     tfn,
+    /// -os
+    tosun,
     /// -Taka (gATaka)
     Takan,
     /// -na
@@ -304,6 +306,7 @@ enum_boilerplate!(BaseKrt, {
     tumun => "tumu~n",
     tfc => "tfc",
     tfn => "tfn",
+    tosun => "tosu~n",
     Takan => "Takan",
     naN => "naN",
     najiN => "naji~N",
@@ -375,6 +378,12 @@ impl Krt {
             Krt::Base(b) => b.as_str(),
             Krt::Unadi(u) => u.as_str(),
         }
+    }
+}
+
+impl BaseKrt {
+    pub(crate) fn aupadeshika(&self) -> &'static str {
+        self.as_str()
     }
 }
 

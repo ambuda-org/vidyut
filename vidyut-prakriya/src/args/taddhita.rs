@@ -543,6 +543,12 @@ enum_boilerplate!(Taddhita, {
     ha => "ha",
 });
 
+impl Taddhita {
+    pub(crate) fn aupadeshika(&self) -> &'static str {
+        self.as_str()
+    }
+}
+
 /// Models the meaning of a *taddhita pratyaya*.
 ///
 /// Generally, *taddhita*s are available only in specific senses. A given *taddhita* might be

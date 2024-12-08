@@ -5,8 +5,8 @@ Implements the taddhita rules in the "samAsAntAH" section of pada 5.4.
 */
 use crate::args::Taddhita;
 use crate::args::Taddhita::*;
+use crate::core::PrakriyaTag as PT;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
 use crate::ganapatha as gana;
 use crate::it_samjna;
@@ -17,19 +17,19 @@ const JHAY: Set = s(&["Jay"]);
 
 impl Prakriya {
     pub(crate) fn is_bahuvrihi(&self) -> bool {
-        self.has_tag(T::Bahuvrihi)
+        self.has_tag(PT::Bahuvrihi)
     }
 
     pub(crate) fn is_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha)
+        self.has_tag(PT::Tatpurusha)
     }
 
     pub(crate) fn is_avyayibhava(&self) -> bool {
-        self.has_tag(T::Avyayibhava)
+        self.has_tag(PT::Avyayibhava)
     }
 
     fn is_samahara_dvandva(&self) -> bool {
-        self.has_tag(T::Dvandva) && self.has_tag(T::Samahara)
+        self.has_tag(PT::Dvandva) && self.has_tag(PT::Samahara)
     }
 }
 

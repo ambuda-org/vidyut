@@ -1,38 +1,39 @@
+//! Applies samprasarana changes as needed.
+//!
+//! Order of operations:
+//! - Must follow atidesha so that suffixes have the kit/Nit annotations necessary to cause
+//!   samprasanara.
+
+use crate::args::Aupadeshika as Au;
+use crate::args::BaseKrt as K;
 use crate::args::Lakara::*;
 use crate::args::Sanadi as S;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
 use crate::core::Tag as T;
-use crate::core::Term;
 use crate::core::{Code, Prakriya};
-/// Applies samprasarana changes as needed.
-///
-/// Order of operations:
-/// - Must follow atidesha so that suffixes have the kit/Nit annotations necessary to cause
-///   samprasanara.
+use crate::core::{Term, TermView};
 use crate::dhatu_gana as gana;
 use crate::sounds;
 
 fn is_vaci_svapi(t: &Term) -> bool {
     t.is_dhatu()
-        && (t.has_u_in(&["va\\ca~", "Yizva\\pa~"])
-            || t.has_u_in(gana::YAJ_ADI)
-            || t.has_u("va\\ci~"))
+        && (t.is_any_u(&[Au::vaca, Au::Yizvapa]) || t.is_any_u(gana::YAJ_ADI) || t.has_u("va\\ci~"))
 }
 
 fn is_grahi_jya(t: &Term) -> bool {
     t.is_dhatu()
-        && t.has_u_in(&[
-            "graha~^",
-            "jyA\\",
+        && t.is_any_u(&[
+            Au::graha,
+            Au::jyA,
             // vayi~ replaces ve\\Y in 2.4.41
-            "vayi~",
-            "vya\\Da~",
-            "vaSa~",
-            "vyaca~",
-            "o~vrascU~",
-            "pra\\Ca~",
-            "Bra\\sja~^",
+            Au::vayi,
+            Au::vyaDa,
+            Au::vaSa,
+            Au::vyaca,
+            Au::ovrascU,
+            Au::praCa,
+            Au::Brasja,
         ])
 }
 
@@ -125,6 +126,12 @@ fn do_samprasarana_for_abhyasa(rule: Code, p: &mut Prakriya, i_abhyasa: usize) -
     Some(())
 }
 
+fn causes_dvitva(n: &TermView) -> bool {
+    let n_is_lit = n.has_lakara(Lit);
+    let last = n.last();
+    n_is_lit || last.is(V::caN) || last.is(S::san) || last.is_yan() || last.has_tag(T::Slu)
+}
+
 pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
     let i = p.find_first_with_tag(T::Dhatu)?;
     let i_n = p.next_not_empty(i)?;
@@ -133,9 +140,6 @@ pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
     let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagSamprasarana))?;
 
     let n = p.pratyaya(i_n)?;
-    let n_is_lit = n.has_lakara(Lit);
-    let last = n.last();
-    let n_causes_dvitva = n_is_lit || last.is(V::caN) || n.has_u_in(&["san", "yaN", "Slu"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.run_at(rule, i, |t| {
@@ -144,7 +148,7 @@ pub fn run_for_dhatu_before_atidesha(p: &mut Prakriya) -> Option<()> {
         });
     };
 
-    if dhatu.has_text("hve") && n_causes_dvitva {
+    if dhatu.has_text("hve") && causes_dvitva(&n) {
         set_text("6.1.33", p, "hu");
     }
 
@@ -159,10 +163,8 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
     let dhatu = p.get_if(i, |t| !t.has_tag(T::FlagSamprasarana))?;
 
     let n = p.pratyaya(i_n)?;
-    let n_is_yan = n.has_u("yaN");
+    let n_is_yan = n.last().is_yan();
     let n_is_lit = n.has_lakara(Lit);
-    let last = n.last();
-    let n_causes_dvitva = n_is_lit || last.is(V::caN) || n.has_u_in(&["san", "yaN", "Slu"]);
 
     let set_text = |rule, p: &mut Prakriya, text| {
         p.run_at(rule, i, |t| {
@@ -201,14 +203,14 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
     {
         // prastIta
         set_text("6.1.23", p, "sti");
-    } else if dhatu.has_u("o~pyAyI~\\") && n.has_tag(T::Nistha) {
+    } else if dhatu.is_u(Au::opyAyI) && n.has_tag(T::Nistha) {
         let code = "6.1.28";
         if i == 0 {
             set_text(code, p, "pI");
         } else {
             optional_set_text(code, p, "pI");
         }
-    } else if dhatu.has_u("o~pyAyI~\\") && (n_is_yan || n_is_lit) {
+    } else if dhatu.is_u(Au::opyAyI) && (n_is_yan || n_is_lit) {
         set_text("6.1.29", p, "pI");
     } else if dhatu.has_text("Svi") && (n_is_yan || n_is_lit) {
         // SuSAva, SiSvAya
@@ -219,7 +221,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
     } else if is_hve && is_sani_or_cani {
         // juhAvayizati; ajUhavat
         set_text("6.1.32", p, "hu");
-    } else if is_hve && n_causes_dvitva {
+    } else if is_hve && causes_dvitva(&n) {
         // juhAva, johUyate, juhUzati
         set_text("6.1.33", p, "hu");
     } else if is_ve && n.has_lakara(Lit) {
@@ -239,7 +241,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
         if is_vaci_svapi(dhatu) && n.has_tag(T::kit) {
             do_samprasarana_for_dhatu("6.1.15", p, i);
         } else if is_grahi_jya(dhatu) && n.is_knit() {
-            if dhatu.has_u("pra\\Ca~") && n.has_u("naN") {
+            if dhatu.has_u("pra\\Ca~") && n.last().is(K::naN) {
                 // Per ashtadhyayi.com, skip samprasarana for praC + naN.
             } else {
                 do_samprasarana_for_dhatu("6.1.16", p, i);

@@ -35,8 +35,8 @@ use crate::args::Vikarana as V;
 use crate::args::{Tin, Upasarga};
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
-use crate::core::{Prakriya, Rule};
+use crate::core::{Decision, Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::core::{Term, TermView};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
@@ -143,12 +143,17 @@ impl<'a> ItPrakriya<'a> {
     fn optional_try_add(&mut self, rule: impl Into<Rule>) -> bool {
         let rule = rule.into();
         if !self.done {
-            if self.p.is_allowed(rule) {
-                self.try_add(rule);
-                true
-            } else {
-                self.p.decline(rule);
-                false
+            let decision = self.p.decide(rule);
+            match decision {
+                Some(Decision::Accept) | None => {
+                    self.try_add(rule);
+                    self.p.log_accepted(rule);
+                    true
+                }
+                Some(Decision::Decline) => {
+                    self.p.log_declined(rule);
+                    false
+                }
             }
         } else {
             false
@@ -167,10 +172,11 @@ impl<'a> ItPrakriya<'a> {
     fn optional_try_block(&mut self, rule: impl Into<Rule>) {
         let rule = rule.into();
         if !self.done {
-            if self.p.is_allowed(rule) {
-                self.try_block(rule);
-            } else {
-                self.p.decline(rule);
+            let ret = self.p.optionally(rule, |rule, p| {
+                p.step(rule);
+            });
+            if ret {
+                self.done = true;
             }
         }
     }
@@ -197,7 +203,7 @@ fn try_dirgha_for_it_agama(p: &mut Prakriya, i_it: usize) -> Option<()> {
             p.run_at("7.2.37", i_it, op::text("I"));
         }
     } else if dhatu.has_antya('F') || dhatu.has_u_in(&["vfN", "vfY"]) {
-        if last.has_lin_lakara() {
+        if last.is_lin_lakara() {
             p.step("7.2.39");
         } else if n.slice().iter().any(|t| t.is(V::sic)) && last.is_parasmaipada() {
             p.step("7.2.40");
@@ -220,7 +226,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         return None;
     }
 
-    let ktvi = n.last().has_u("ktvA");
+    let ktvi = n.last().is(K::ktvA);
 
     if n.has_u("kvasu~") {
         // kvasu~ rules should take priority over `li~w` below.
@@ -302,11 +308,16 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                             // 7.2.63 Rto bhAradvAjasya
                             // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
                             // other roots, this condition is optional:
-                            if ip.p.is_allowed(code) {
-                                ip.try_add(code);
-                            } else {
-                                ip.p.decline(code);
-                                ip.try_block(code);
+                            let decision = ip.p.decide(code);
+                            match decision {
+                                Some(Decision::Accept) | None => {
+                                    ip.try_add(code);
+                                    ip.p.log_accepted(code);
+                                }
+                                Some(Decision::Decline) => {
+                                    ip.try_block(code);
+                                    ip.p.log_declined(code);
+                                }
                             }
                         } else {
                             ip.try_block(code);
@@ -472,7 +483,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         if anga.has_tag(T::Adit) {
             let mut can_run = true;
             // TODO: Adikarmani.
-            if ip.p.has_tag_in(&[T::Bhave]) {
+            if ip.p.has_tag_in(&[PT::Bhave]) {
                 can_run = ip.p.optional_run("7.2.17", |_| {});
             }
             if can_run {
@@ -491,7 +502,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
 
     let anga = ip.anga();
     let n = ip.next();
-    let has_parasmaipada = ip.p.has_tag(T::Parasmaipada);
+    let has_parasmaipada = ip.p.has_tag(PT::Parasmaipada);
     let se = n.has_adi('s');
 
     let ishu_saha = &["izu~", "zaha~\\", "luBa~", "ruza~", "riza~"];
@@ -529,7 +540,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         ip.try_block("7.2.60");
     } else if anga.has_text_in(&["snu", "kram"]) && n.has_adi(VAL) {
         // prasnozIzwa, prakraMsIzwa
-        if ip.p.has_tag(T::Atmanepada) {
+        if ip.p.has_tag(PT::Atmanepada) {
             ip.try_block("7.2.36");
         }
     }
@@ -544,14 +555,14 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             // - if lun and using ksa, must use anit.
             // - if lun and not using ksa, must use set.
             // - otherwise, vet.
-            if ip.p.has_tag(T::FlagHasAnitKsa) {
+            if ip.p.has_tag(PT::FlagHasAnitKsa) {
                 ip.try_block("7.2.44");
-            } else if ip.p.has_tag(T::FlagHagSetSic) {
+            } else if ip.p.has_tag(PT::FlagHasSetSic) {
                 // Do nothing; the control flow will fall through and pick up 7.2.35 further below.
             } else {
                 ip.optional_try_block("7.2.44")
             }
-        } else if (n.last().has_lin_lakara() || n.last().is(V::sic)) && last.is_atmanepada() {
+        } else if (n.last().is_lin_lakara() || n.last().is(V::sic)) && last.is_atmanepada() {
             let vr_rt = anga.has_u_in(&["vfN", "vfY"]) || anga.has_antya('F');
             if vr_rt && n.has_tag(T::Ardhadhatuka) {
                 // By default, all of these roots are seT.

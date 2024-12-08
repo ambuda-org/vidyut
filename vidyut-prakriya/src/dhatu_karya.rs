@@ -9,15 +9,16 @@ Operations here include:
 - applying gana sutras
 */
 use crate::args::dhatu::Muladhatu;
+use crate::args::Sup;
 use crate::args::Upasarga as U;
 use crate::args::{Antargana, Gana, Upasarga};
 use crate::core::errors::*;
 use crate::core::operators as op;
 use crate::core::Rule::Kaumudi;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::samjna;
@@ -26,7 +27,7 @@ use crate::samjna;
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Muladhatu) {
     p.run("1.3.1", |p| {
         let mut dhatu = Term::make_dhatu(dhatu.upadesha(), dhatu.gana(), dhatu.antargana());
-        dhatu.add_tag(T::Dhatu);
+        dhatu.add_tags(&[T::Dhatu, T::MulaDhatu]);
         p.push(dhatu);
     });
 }
@@ -187,9 +188,9 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
         let dhatu = p.get(i)?;
         if !dhatu.has_tag(T::FlagNoNic) {
             if dhatu.has_antargana(Antargana::Akusmiya) {
-                p.run(DP("10.0496"), |p| p.add_tag(T::Atmanepada));
+                p.run(DP("10.0496"), |p| p.add_tag(PT::Atmanepada));
             } else if dhatu.has_u_in(gana::AA_GARVIYA) {
-                p.run(DP("10.0497"), |p| p.add_tag(T::Atmanepada));
+                p.run(DP("10.0497"), |p| p.add_tag(PT::Atmanepada));
             }
         }
     }
@@ -267,8 +268,8 @@ pub fn try_add_prefixes(p: &mut Prakriya, prefixes: &[String]) -> Option<()> {
         p.insert_before(i_offset, t);
         samjna::try_nipata_rules(p, i_offset);
 
-        let mut su = Term::make_upadesha("su~");
-        su.add_tags(&[T::Pada, T::V1, T::Sup, T::Ekavacana, T::Luk, T::Pratyaya]);
+        let mut su = Term::from(Sup::su);
+        su.add_tags(&[T::Pada, T::V1, T::Ekavacana, T::Luk]);
         su.set_text("");
         p.insert_before(i_offset + 1, su);
 

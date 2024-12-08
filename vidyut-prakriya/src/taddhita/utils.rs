@@ -1,7 +1,7 @@
 use crate::args::{Artha, Taddhita, TaddhitaArtha};
 use crate::core::Term;
 use crate::core::TermView;
-use crate::core::{Prakriya, Rule};
+use crate::core::{Decision, Prakriya, Rule};
 use crate::it_samjna;
 
 /// Wrapper for `Prakriya` with the following features:
@@ -160,12 +160,20 @@ impl<'a> TaddhitaPrakriya<'a> {
         func: impl Fn(&mut Prakriya),
     ) -> bool {
         if taddhita == self.taddhita && !self.has_taddhita {
-            if self.p.is_allowed(rule) {
-                return self.try_add_with(rule, taddhita, func);
-            } else {
-                self.p.decline(rule);
+            let decision = self.p.decide(rule);
+            match decision {
+                Some(Decision::Accept) | None => {
+                    self.try_add_with(rule, taddhita, func);
+                    self.p.log_accepted(rule);
+                    true
+                }
+                Some(Decision::Decline) => {
+                    self.p.log_declined(rule);
+                    false
+                }
             }
+        } else {
+            false
         }
-        false
     }
 }

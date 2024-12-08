@@ -1,15 +1,14 @@
 use crate::args::{BasicPratipadika, Stri, Upasarga};
 use crate::core::operators as op;
 use crate::core::Prakriya;
-use crate::core::Tag as T;
-use crate::core::{Morph, Term};
+use crate::core::{Morph, PrakriyaTag as PT, Tag as T, Term};
 use crate::sounds as al;
 
 /// FOO
 pub fn add_basic(p: &mut Prakriya, basic: &BasicPratipadika) {
     let mut base = match basic.text.parse::<Upasarga>() {
         Ok(u) => u.into(),
-        _ => Term::make_upadesha(&basic.text),
+        _ => Term::make_pratipadika(&basic.text),
     };
 
     // HACK: old implemenation of `Pratipadika` has these tags, so keep them here for consistency
@@ -45,12 +44,12 @@ pub fn add_basic(p: &mut Prakriya, basic: &BasicPratipadika) {
 
 /// Runs rurles specific to napumsaka-pratipadikas.
 pub fn run_napumsaka_rules(p: &mut Prakriya) -> Option<()> {
-    if p.has_tag(T::Napumsaka) {
+    if p.has_tag(PT::Napumsaka) {
         let i_last_not_empty = p.find_last_where(|t| !t.is_empty() && !t.is_sup())?;
         let t = p.get(i_last_not_empty)?;
         let sub = al::to_hrasva(t.antya()?)?;
         if !t.has_antya(sub) {
-            p.run_at("1.2.47", i_last_not_empty, op::antya(&sub.to_string()));
+            p.run_at("1.2.47", i_last_not_empty, op::antya_char(&sub));
         }
     }
     None

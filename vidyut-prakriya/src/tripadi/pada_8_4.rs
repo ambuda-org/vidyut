@@ -1,8 +1,10 @@
 use crate::args::Aupadeshika as Au;
 use crate::args::Gana;
 use crate::args::Lakara::*;
+use crate::args::Sup;
+use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
-use crate::core::char_view::{get_term_and_offset_indices, IndexPrakriya};
+use crate::core::char_view::{CharIndex, IndexPrakriya};
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
@@ -31,57 +33,37 @@ lazy_static! {
     static ref JHAL_TO_JASH_CAR: Map = map("Jal", "jaS car");
 }
 
-fn find_natva_spans(text: &str) -> Vec<(usize, usize)> {
-    let mut ret = Vec::new();
-    let mut i_rasha = None;
-    for (i, c) in text.chars().enumerate() {
-        if "rzfF".contains(c) {
-            i_rasha = Some(i);
-        } else if c == 'n' {
-            if let Some(i_rasha) = i_rasha {
-                ret.push((i_rasha, i));
-            }
-            i_rasha = None;
-        } else if c == '~' {
-            // Ignore nasal vowel markings.
-        } else if !AT_KU_PU_M.contains(c) {
-            // By 8.4.2, reset if we see a sound that is not in at-ku-pu-AN-num.
-            i_rasha = None;
-        }
-    }
-    ret
-}
-
 /// Runs rules that change `n` to `R`.
 /// Example: krInAti -> krIRAti.
 ///
 /// `i_rs` is the index of the `r`/`z` sound that triggers the change, and `i_n` is the index of
 /// the `n` sound that we might change.
-fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> Option<()> {
-    let i_x = p.find_for_char_at(i_rs)?;
-    let i_y = p.find_for_char_at(i_n)?;
-
-    let len = text.len();
-    debug_assert!(len > 0);
-    let i_last = len - 1;
+fn try_natva_for_span(
+    ip: &mut IndexPrakriya,
+    i_rs: &CharIndex,
+    i_n: &CharIndex,
+    is_last: bool,
+) -> Option<()> {
+    let i_x = i_rs.i_term;
+    let i_y = i_n.i_term;
 
     // Exceptions to Ratva.
-    if let Some(i) = p.find_first_with_tag(T::Dhatu) {
-        let dhatu = p.get(i)?;
-        if let Some(next) = p.get(i + 1) {
-            if (dhatu.has_u("kzuBa~") && next.has_u_in(&["SnA", "SAnac"]))
-                || (dhatu.has_u("skanBu~") && next.has_u_in(&["SnA", "Snu"]))
+    if let Some(i) = ip.p.find_first_with_tag(T::Dhatu) {
+        let dhatu = ip.p.get(i)?;
+        if let Some(next) = ip.p.get(i + 1) {
+            if (dhatu.has_u("kzuBa~") && (next.is(V::SnA) || next.has_u("SAnac")))
+                || (dhatu.has_u("skanBu~") && (next.is(V::SnA) || next.is(V::Snu)))
                 || (dhatu.has_u("tfpa~") && next.is(V::Snu))
                 || (dhatu.has_u("nftI~") && next.is_yan())
             {
-                p.step("8.4.39");
+                ip.p.step("8.4.39");
                 return None;
             }
         }
     }
 
-    let x = p.get(i_x)?;
-    let y = p.get(i_y)?;
+    let x = ip.p.get(i_x)?;
+    let y = ip.p.get(i_y)?;
 
     /*
     if y.is_samasa() {
@@ -93,15 +75,15 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
     }
     */
 
-    if i_x != i_y && p.is_pada(i_x) && x.has_antya('z') {
+    if i_x != i_y && ip.p.is_pada(i_x) && x.has_antya('z') {
         // nizpAna, ...
-        p.step("8.4.35");
+        ip.p.step("8.4.35");
     } else if y.has_u("Ra\\Sa~") && (y.has_antya('z') || y.has_antya('k')) {
         // pranazwa, ...
-        p.step("8.4.36");
-    } else if i_n == i_last {
+        ip.p.step("8.4.36");
+    } else if is_last {
         // akurvan, caran, ...
-        p.step("8.4.37");
+        ip.p.step("8.4.37");
     } else if x.is_upasarga() || x.has_u("antar") {
         // Allow "antar" per 1.4.65.v1.
         // Check !is_pratyaya to allow nirvAna -> nirvARa
@@ -130,83 +112,82 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
             items.iter().any(|(u, g)| d.has_gana(*g) && d.has_u(u))
         };
 
-        let i_dhatu = p.find_next_where(i_x, |t| t.is_dhatu() && !t.is_empty())?;
-        let dhatu = p.get(i_dhatu)?;
+        let i_dhatu =
+            ip.p.find_next_where(i_x, |t| t.is_dhatu() && !t.is_empty())?;
+        let dhatu = ip.p.get(i_dhatu)?;
 
         let is_hinu = || (dhatu.has_text("hi") && y.is(V::Snu));
         let is_mina = || (dhatu.has_text("mI") && y.is(V::SnA));
 
         if y.has_adi('n') && y.has_tag(T::FlagNaAdeshadi) {
-            p.run("8.4.14", |p| p.set_char_at(i_n, "R"));
+            ip.run_for_char("8.4.14", i_n, "R");
         } else if is_hinu() || is_mina() {
             // prahiRoti
-            p.run("8.4.15", |p| p.set_char_at(i_n, "R"));
+            ip.run_for_char("8.4.15", i_n, "R");
         } else if y.has_lakara(Lot) && y.has_u("ni") {
-            if x.has_u("dur") {
+            if x.is(U::dur) {
                 // TODO: extend
-                p.step(Varttika("1.4.60.3"));
+                ip.p.step(Varttika("1.4.60.3"));
             } else if x.has_u("antar") {
                 // TODO: extend
-                p.step(Varttika("1.4.65.1"));
+                ip.p.step(Varttika("1.4.65.1"));
             } else {
                 // pravapARi
-                p.run("8.4.16", |p| p.set_char_at(i_n, "R"));
+                ip.run_for_char("8.4.16", i_n, "R");
             }
-        } else if y.is_upasarga() && y.has_u("ni") {
+        } else if y.is(U::ni) {
             if dhatu_in(dhatu, GAD_ADI) || dhatu.has_tag(T::Ghu) {
-                p.run("8.4.17", |p| p.set_char_at(i_n, "R"));
+                ip.run_for_char("8.4.17", i_n, "R");
             } else if !(dhatu.has_adi('k') || dhatu.has_adi('K') || dhatu.has_tag(T::FlagShanta)) {
-                p.optional_run("8.4.18", |p| p.set(i_y, |t| t.set_adi("R")));
+                ip.p.optional_run("8.4.18", |p| p.set(i_y, |t| t.set_adi("R")));
             } else {
                 // pranikaroti, pranikhAdati
             }
         } else if dhatu.has_u("ana~") {
-            p.run("8.4.19", |p| p.set_char_at(i_n, "R"));
+            ip.run_for_char("8.4.19", i_n, "R");
 
-            let dhatu = p.get(i_dhatu)?;
+            let dhatu = ip.p.get(i_dhatu)?;
             if dhatu.has_tag(T::Abhyasta) {
-                p.run_at("8.4.21", i_dhatu, |t| t.set_adi("R"));
+                ip.p.run_at("8.4.21", i_dhatu, |t| t.set_adi("R"));
             }
         } else if dhatu.is_u(Au::hana) && dhatu.has_upadha('a') {
-            let i_z = p.find_next_where(i_y, |t| !t.is_empty())?;
-            if p.has(i_z, |t| t.has_adi('v') || t.has_adi('m')) {
-                p.optional_run("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
+            let i_z = ip.p.find_next_where(i_y, |t| !t.is_empty())?;
+            if ip.p.has(i_z, |t| t.has_adi('v') || t.has_adi('m')) {
+                ip.p.optional_run("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
             } else {
-                p.run_at("8.4.22", i_dhatu, |t| t.set_antya("R"));
+                ip.p.run_at("8.4.22", i_dhatu, |t| t.set_antya("R"));
             }
         } else if y.is_krt() {
-            let (_, i_y_offset) = get_term_and_offset_indices(p, i_n)?;
-            let acah = if i_y_offset == 0 {
-                i_y > 0 && p.has(i_y - 1, |t| t.has_antya(AC))
+            let prev_is_ac = if let Some(i) = ip.prev(i_n) {
+                AC.contains(ip.char_at(&i))
             } else {
-                let prev = y.as_bytes()[i_y_offset - 1] as char;
-                AC.contains(prev)
+                false
             };
-            if acah {
-                p.run_at("8.4.22", i_y, |t| t.find_and_replace_text("n", "R"));
+            if prev_is_ac {
+                ip.p.run_at("8.4.22", i_y, |t| t.find_and_replace_text("n", "R"));
             }
         }
     } else {
         // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.
-        let is_samana_pada = !p.terms()[i_x..i_y].iter().any(|t| {
+        let is_samana_pada = !ip.p.terms()[i_x..i_y].iter().any(|t| {
             t.has_tag_in(&[T::Sup, T::Tin])
                 || (t.has_tag(T::Pada) && !t.is_pratipadika() && !t.is_nyap_pratyaya())
         });
         // Allow "carman -> carmaRA" but disallow "sruGna -> *sruGRa"
-        let is_exempt_pratipadika = p.has(i_x, |t| t.starts_with("srOGn"));
+        let is_exempt_pratipadika = ip.p.has(i_x, |t| t.starts_with("srOGn"));
         if is_samana_pada && !is_exempt_pratipadika {
             // TODO: track loctaion of rzfF for better rule logging.
 
-            if i_rs + 1 == i_n {
+            if ip.next(i_rs) == Some(i_n.clone()) {
                 // When R immediately follows r/z
-                p.run("8.4.1", |p| p.set_char_at(i_n, "R"));
+                ip.run_for_char("8.4.1", i_n, "R");
             } else {
                 // When r/z and R are intervened by at, ku, etc.
-                p.run("8.4.2", |p| p.set_char_at(i_n, "R"));
+                ip.run_for_char("8.4.2", i_n, "R");
             }
         } else if x.has_text_in(&["grAma", "agra"]) && y.has_u("RI\\Y") {
             // See Kashika on 3.2.61 and SK 2975.
-            p.run(Rule::Kaumudi("2975"), |p| p.set_char_at(i_n, "R"));
+            ip.run_for_char(Rule::Kaumudi("2975"), i_n, "R");
         }
     }
 
@@ -220,10 +201,30 @@ fn try_natva_for_span(p: &mut Prakriya, text: &str, i_rs: usize, i_n: usize) -> 
  */
 
 /// (8.4.1 - 8.4.39)
-fn run_natva_rules(p: &mut Prakriya) {
-    let text = p.compact_text();
-    for (i_rs, i_n) in find_natva_spans(&text) {
-        try_natva_for_span(p, &text, i_rs, i_n);
+fn run_natva_rules(ip: &mut IndexPrakriya) {
+    const RS: Set = Set::from("rzfF");
+
+    let mut index = ip.first();
+    let mut i_rs = None;
+    while let Some(i) = index {
+        let c = ip.char_at(&i);
+
+        if RS.contains(c) {
+            i_rs = Some(i.clone());
+        } else if c == 'n' {
+            if let Some(i_rasha) = i_rs {
+                let is_last = ip.next(&i).is_none();
+                try_natva_for_span(ip, &i_rasha, &i, is_last);
+            }
+            i_rs = None;
+        } else if c == '~' {
+            // Ignore nasal vowel markings.
+        } else if !AT_KU_PU_M.contains(c) {
+            // By 8.4.2, reset if we see a sound that is not in at-ku-pu-AN-num.
+            i_rs = None;
+        }
+
+        index = ip.next(&i);
     }
 }
 
@@ -287,9 +288,7 @@ fn try_change_stu_to_parasavarna(ip: &mut IndexPrakriya) {
             let t_x = ip.term_at(i_x);
             if ip.p.is_pada(i_x.i_term)
                 && t_x.has_antya(WU)
-                && !ip
-                    .p
-                    .has(i_x.i_term + 2, |t| t.is_vibhakti() && t.has_u("Am"))
+                && !ip.p.has(i_x.i_term + 2, |t| t.is(Sup::Am))
             {
                 ip.p.step("8.4.42");
                 ip.next(&i_y)
@@ -485,7 +484,7 @@ fn try_to_savarna(ip: &mut IndexPrakriya) {
             let y = &ip.p.terms()[j];
 
             if x.is_upasarga()
-                && x.has_u("ud")
+                && x.is(U::ud)
                 && y.has_adi('s')
                 && y.has_u_in(&["zWA\\", "zwaBi~\\", "stanBu~"])
             {
@@ -554,9 +553,9 @@ fn try_to_savarna(ip: &mut IndexPrakriya) {
 }
 
 pub fn run(p: &mut Prakriya) {
-    run_natva_rules(p);
-
     let mut ip = IndexPrakriya::new(p);
+
+    run_natva_rules(&mut ip);
     try_change_stu_to_parasavarna(&mut ip);
     try_dha_lopa(&mut ip);
     try_to_anunasika(&mut ip);
@@ -568,15 +567,5 @@ pub fn run(p: &mut Prakriya) {
     // a a iti
     if p.terms().iter().any(|t| t.text.contains('a')) {
         p.step("8.4.68");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_allows_natva() {
-        assert_eq!(find_natva_spans("krInAti"), vec![(1, 3)]);
-        assert_eq!(find_natva_spans("gacCati"), vec![]);
     }
 }

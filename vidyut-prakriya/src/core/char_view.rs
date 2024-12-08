@@ -2,18 +2,39 @@ use crate::core::Prakriya;
 use crate::core::Rule;
 use crate::core::Term;
 
-/// Gets the indices corresponding to the character at absolute index `i`.
-pub fn get_term_and_offset_indices(p: &Prakriya, i_absolute: usize) -> Option<(usize, usize)> {
-    let mut offset = 0;
-    for (i_term, t) in p.terms().iter().enumerate() {
-        let delta = t.text.len();
-        if (offset..offset + delta).contains(&i_absolute) {
-            return Some((i_term, i_absolute - offset));
+impl Prakriya {
+    pub(crate) fn prev_char_index(&self, i: &CharIndex) -> Option<CharIndex> {
+        if i.i_char > 0 {
+            // Prev char in same term.
+            Some(CharIndex::new(i.i_term, i.i_char - 1))
+        } else if i.i_term == 0 {
+            // Out of chars.
+            None
         } else {
-            offset += delta;
+            // Next char in first non-empty term.
+            let new_i = self.prev_not_empty(i.i_term)?;
+            let t = self.get(new_i)?;
+            Some(CharIndex::new(new_i, t.len() - 1))
         }
     }
-    None
+
+    pub(crate) fn next_char_index(&self, i: &CharIndex) -> Option<CharIndex> {
+        let t = &self.terms()[i.i_term];
+        let i_char_next = i.i_char + 1;
+        if i_char_next < t.len() {
+            // Next char in same term.
+            Some(CharIndex::new(i.i_term, i_char_next))
+        } else {
+            // Next char in first non-empty term.
+            // `?` means we return None if no next term can be found.
+            let new_i = self.next_not_empty(i.i_term)?;
+            Some(CharIndex::new(new_i, 0))
+        }
+    }
+
+    pub(crate) fn char_at_index(&self, index: &CharIndex) -> Option<char> {
+        Some(*self.get(index.i_term)?.text.as_bytes().get(index.i_char)? as char)
+    }
 }
 
 /// A wrapper for `Prakriya` that has stronger support for iterating through characters.
@@ -65,7 +86,7 @@ impl<'a> IndexPrakriya<'a> {
     }
 
     /// Returns the first term with content.
-    fn first(&self) -> Option<CharIndex> {
+    pub fn first(&self) -> Option<CharIndex> {
         for (i, t) in self.p.terms().iter().enumerate() {
             if !t.is_empty() {
                 return Some(CharIndex::new(i, 0));
@@ -75,7 +96,7 @@ impl<'a> IndexPrakriya<'a> {
     }
 
     /// Returns the last term with content.
-    fn last(&self) -> Option<CharIndex> {
+    pub fn last(&self) -> Option<CharIndex> {
         for (i, t) in self.p.terms().iter().enumerate().rev() {
             if !t.is_empty() {
                 return Some(CharIndex::new(i, t.text.len() - 1));
@@ -85,32 +106,11 @@ impl<'a> IndexPrakriya<'a> {
     }
 
     pub fn prev(&self, i: &CharIndex) -> Option<CharIndex> {
-        if i.i_char > 0 {
-            // Prev char in same term.
-            Some(CharIndex::new(i.i_term, i.i_char - 1))
-        } else if i.i_term == 0 {
-            // Out of chars.
-            None
-        } else {
-            // Next char in first non-empty term.
-            let new_i = self.p.prev_not_empty(i.i_term)?;
-            let t = self.p.get(new_i)?;
-            Some(CharIndex::new(new_i, t.len() - 1))
-        }
+        self.p.prev_char_index(i)
     }
 
     pub fn next(&self, i: &CharIndex) -> Option<CharIndex> {
-        let t = &self.p.terms()[i.i_term];
-        let i_char_next = i.i_char + 1;
-        if i_char_next < t.len() {
-            // Next char in same term.
-            Some(CharIndex::new(i.i_term, i_char_next))
-        } else {
-            // Next char in first non-empty term.
-            // `?` means we return None if no next term can be found.
-            let new_i = self.p.next_not_empty(i.i_term)?;
-            Some(CharIndex::new(new_i, 0))
-        }
+        self.p.next_char_index(i)
     }
 
     // Update index after deletion.
@@ -145,6 +145,12 @@ impl<'a> IndexPrakriya<'a> {
 
     pub fn set_char_at(&mut self, index: &CharIndex, sub: &str) {
         self.p.terms_mut()[index.i_term].set_at(index.i_char, sub);
+    }
+
+    pub fn swap_char_at(&mut self, index: &CharIndex, sub: char) {
+        let mut buf: [u8; 4] = [0; 4];
+        let sub_str: &str = sub.encode_utf8(&mut buf);
+        self.p.terms_mut()[index.i_term].set_at(index.i_char, sub_str);
     }
 
     pub fn run(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut IndexPrakriya)) -> bool {
@@ -182,7 +188,7 @@ pub struct CharIndex {
 }
 
 impl CharIndex {
-    fn new(i: usize, j: usize) -> Self {
+    pub fn new(i: usize, j: usize) -> Self {
         Self {
             i_term: i,
             i_char: j,
@@ -227,7 +233,6 @@ mod tests {
 
         for i in 1..indices.len() {
             let idx = &indices[i];
-            println!("{idx:?}");
             let prev = ip.prev(idx).unwrap();
             assert_eq!(prev, indices[i - 1]);
             assert_eq!(ip.next(&prev).unwrap(), *idx);

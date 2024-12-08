@@ -4,6 +4,7 @@ Implements the taddhita rules in the "prAg diSo viBaktiH" section of pada 5.3.
 (5.3.1 - 5.3.26)
 */
 use crate::args::Taddhita;
+use crate::args::Upasarga as U;
 use crate::core::Tag as T;
 use crate::taddhita::utils::TaddhitaPrakriya;
 
@@ -26,7 +27,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         P::tasil => {
             if prati.has_u_in(&["kim", "bahu"]) || prati.has_tag(T::Sarvanama) {
                 add("5.3.7", tp, t);
-            } else if prati.has_u_in(&["pari", "aBi"]) {
+            } else if prati.is(U::pari) || prati.is(U::aBi) {
                 add("5.3.9", tp, t);
             }
         }

@@ -46,14 +46,14 @@ impl<'a> TermView<'a> {
         let first = &terms[i];
         // A `kit` Agama is part of the term it follows, i.e. there is no view available here.
         // Exception: iw-Agama marked as kit.
-        if first.has_all_tags(&[Tag::Agama, Tag::kit]) && !first.is(Agama::iw) {
+        if first.is_agama() && first.has_tag(Tag::kit) && !first.is(Agama::iw) {
             return None;
         }
 
         for j in i..terms.len() {
             let last = &terms[j];
 
-            if !last.has_tag(Tag::Agama) {
+            if !last.is_agama() {
                 return Some(TermView {
                     terms,
                     start: i,

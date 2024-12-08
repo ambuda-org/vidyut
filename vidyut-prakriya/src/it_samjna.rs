@@ -11,7 +11,7 @@ use crate::args::Unadi as U;
 use crate::core::errors::*;
 use crate::core::Prakriya;
 use crate::core::Rule::Varttika;
-use crate::core::{Tag as T, Term};
+use crate::core::{Morph, Tag as T, Term};
 use crate::sounds::{s, Set, AC, HAL};
 
 // Common constants. Benchmark indicates that switching to `const` has negligible or negative
@@ -63,8 +63,17 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
         // Keep the first "l" of the lakAras. Otherwise, rule 3.4.77 will become vyartha.
         true
     } else if t.is_unadi()
-        && t.has_u_in(&[
-            "kan", "Ka", "SvaR", "Sun", "ga", "gan", "gaR", "gak", "karan", "lak",
+        && t.is_any_unadi(&[
+            U::kan,
+            U::Ka,
+            U::SvaR,
+            U::Sun,
+            U::ga,
+            U::gan,
+            U::gaR,
+            U::gak,
+            U::karan,
+            U::lak,
         ])
     {
         true
@@ -76,7 +85,24 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
 fn get_upadesha(t: &Term) -> Result<&str> {
     match &t.u {
         Some(s) => Ok(s),
-        None => Err(Error::invalid_upadesha(&t.text)),
+        None => {
+            if let Some(la) = t.lakara {
+                Ok(la.aupadeshika())
+            } else {
+                match t.morph {
+                    Morph::Agama(val) => Ok(val.aupadeshika()),
+                    Morph::Krt(val) => Ok(val.aupadeshika()),
+                    Morph::Sanadi(val) => Ok(val.aupadeshika()),
+                    Morph::Stri(val) => Ok(val.aupadeshika()),
+                    Morph::Sup(val) => Ok(val.aupadeshika()),
+                    Morph::Taddhita(val) => Ok(val.aupadeshika()),
+                    Morph::Unadi(val) => Ok(val.as_str()),
+                    Morph::Upasarga(val) => Ok(val.aupadeshika()),
+                    Morph::Vikarana(val) => Ok(val.aupadeshika()),
+                    _ => Err(Error::invalid_upadesha(&t.text)),
+                }
+            }
+        }
     }
 }
 

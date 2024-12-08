@@ -1,9 +1,11 @@
+use crate::args::BaseKrt as K;
 use crate::args::Samasa;
 use crate::args::SamasaType;
+use crate::args::Sup;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
-use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::core::{Term, TermView};
 use crate::ganapatha as gana;
 use crate::it_samjna;
@@ -24,7 +26,7 @@ impl<'a> SamasaPrakriya<'a> {
 }
 
 impl<'a> SamasaPrakriya<'a> {
-    fn mark_as_type(&mut self, rule: Rule, samasa_tag: T) {
+    fn mark_as_type(&mut self, rule: Rule, samasa_tag: PT) {
         self.p.run(rule, |p| {
             p.add_tag(samasa_tag);
             p.terms_mut().last_mut().expect("ok").add_tag(T::Samasa);
@@ -32,23 +34,23 @@ impl<'a> SamasaPrakriya<'a> {
         self.done = true;
     }
     fn mark_avyayibhava(&mut self, rule: impl Into<Rule>) {
-        self.mark_as_type(rule.into(), T::Avyayibhava);
+        self.mark_as_type(rule.into(), PT::Avyayibhava);
     }
 
     fn mark_tatpurusha(&mut self, rule: impl Into<Rule>) {
-        self.mark_as_type(rule.into(), T::Tatpurusha);
+        self.mark_as_type(rule.into(), PT::Tatpurusha);
     }
 
     fn mark_bahuvrihi(&mut self, rule: impl Into<Rule>) {
-        self.mark_as_type(rule.into(), T::Bahuvrihi);
+        self.mark_as_type(rule.into(), PT::Bahuvrihi);
     }
 
     fn mark_dvandva(&mut self, rule: impl Into<Rule>, args: &Samasa) {
         let is_samahara = args.is_samahara_dvandva();
         self.p.run(rule, |p| {
-            p.add_tag(T::Dvandva);
+            p.add_tag(PT::Dvandva);
             if is_samahara {
-                p.add_tag(T::Samahara);
+                p.add_tag(PT::Samahara);
             }
             p.terms_mut().last_mut().expect("ok").add_tag(T::Samasa);
         });
@@ -145,32 +147,32 @@ impl<'a> TermView<'a> {
     }
 
     fn is_kta(&self) -> bool {
-        self.last().has_u("kta")
+        self.last().is(K::kta)
     }
 }
 
 impl Prakriya {
     pub(crate) fn is_trtiya_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V3).is_some()
+        self.has_tag(PT::Tatpurusha) && self.find_first_with_tag(T::V3).is_some()
     }
 
     pub(crate) fn is_caturthi_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V4).is_some()
+        self.has_tag(PT::Tatpurusha) && self.find_first_with_tag(T::V4).is_some()
     }
 
     pub(crate) fn is_panchami_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V5).is_some()
+        self.has_tag(PT::Tatpurusha) && self.find_first_with_tag(T::V5).is_some()
     }
 
     pub(crate) fn is_saptami_tatpurusha(&self) -> bool {
-        self.has_tag(T::Tatpurusha) && self.find_first_with_tag(T::V7).is_some()
+        self.has_tag(PT::Tatpurusha) && self.find_first_with_tag(T::V7).is_some()
     }
 }
 
 fn make_su_pratyaya() -> Term {
-    let mut su = Term::make_upadesha("su~");
+    let mut su = Term::from(Sup::su);
     su.set_text("");
-    su.add_tags(&[T::Pratyaya, T::Sup, T::Vibhakti, T::Pada, T::V1]);
+    su.add_tags(&[T::Vibhakti, T::Pada, T::V1]);
     su
 }
 
@@ -392,8 +394,8 @@ pub fn try_sup_luk(p: &mut Prakriya) -> Option<()> {
 
 pub fn run_rules_for_avyayibhava(p: &mut Prakriya) {
     p.debug("run_rules_for_avyayibhava");
-    if p.has_tag(T::Avyayibhava) {
-        p.run("2.4.17", |p| p.add_tag(T::Napumsaka));
+    if p.has_tag(PT::Avyayibhava) {
+        p.run("2.4.17", |p| p.add_tag(PT::Napumsaka));
 
         let i_last = p.terms().len() - 1;
         if p.has(i_last, |t| !t.is_sup()) {
@@ -414,8 +416,8 @@ pub fn run(p: &mut Prakriya, args: &Samasa) -> bool {
         _ => return false,
     }
 
-    if p.has_tag(T::Tatpurusha) && args.is_karmadharaya() {
-        p.run("1.2.42", |p| p.add_tag(T::Karmadharaya));
+    if p.has_tag(PT::Tatpurusha) && args.is_karmadharaya() {
+        p.run("1.2.42", |p| p.add_tag(PT::Karmadharaya));
     }
 
     true

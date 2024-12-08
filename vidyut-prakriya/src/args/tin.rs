@@ -1,6 +1,6 @@
 use crate::args::dhatu::Dhatu;
 use crate::core::errors::Error;
-use crate::core::Tag;
+use crate::core::{PrakriyaTag, Tag};
 use crate::enum_boilerplate;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -30,11 +30,11 @@ enum_boilerplate!(Prayoga, {
 });
 
 impl Prayoga {
-    pub(crate) fn as_tag(&self) -> Tag {
+    pub(crate) fn as_tag(&self) -> PrakriyaTag {
         match self {
-            Self::Kartari => Tag::Kartari,
-            Self::Karmani => Tag::Karmani,
-            Self::Bhave => Tag::Bhave,
+            Self::Kartari => PrakriyaTag::Kartari,
+            Self::Karmani => PrakriyaTag::Karmani,
+            Self::Bhave => PrakriyaTag::Bhave,
         }
     }
 }
@@ -141,6 +141,23 @@ enum_boilerplate!(Lakara, {
 });
 
 impl Lakara {
+    pub(crate) fn aupadeshika(&self) -> &'static str {
+        use Lakara::*;
+        match self {
+            Lat => "la~w",
+            Lit => "li~w",
+            Lut => "lu~w",
+            Lrt => "lr~w",
+            Let => "le~w",
+            Lot => "lo~w",
+            Lan => "laN",
+            VidhiLin => "li~N",
+            AshirLin => "li~N",
+            Lun => "lu~N",
+            Lrn => "lf~N",
+        }
+    }
+
     /// Returns whether or not this lakara is Nit.
     pub(crate) fn is_nit(&self) -> bool {
         matches![

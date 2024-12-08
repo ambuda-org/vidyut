@@ -13,9 +13,11 @@
 //!
 //! All of these rules are found at the end of section 3.4 of the Ashtadhyayi.
 
-use crate::args::{Agama as A, DhatuPada, Gana, Lakara, Purusha, Tin, Vacana, Vikarana as V};
+use crate::args::{
+    Agama as A, Aupadeshika as Au, DhatuPada, Gana, Lakara, Purusha, Tin, Vacana, Vikarana as V,
+};
 use crate::core::operators as op;
-use crate::core::{Code, Morph, Prakriya, Tag as T};
+use crate::core::{Code, Morph, Prakriya, PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
 
 const TIN_PARA: &[&str] = &["tip", "tas", "Ji", "sip", "Tas", "Ta", "mip", "vas", "mas"];
@@ -23,10 +25,10 @@ const NAL_PARA: &[&str] = &["Ral", "atus", "us", "Tal", "aTus", "a", "Ral", "va"
 
 /// Replaces the lakAra with a tiN-pratyaya.
 pub fn adesha(p: &mut Prakriya, purusha: Purusha, vacana: Vacana) {
-    let pada = if p.has_tag(T::Parasmaipada) {
+    let pada = if p.has_tag(PT::Parasmaipada) {
         DhatuPada::Parasmai
     } else {
-        assert!(p.has_tag(T::Atmanepada));
+        assert!(p.has_tag(PT::Atmanepada));
         DhatuPada::Atmane
     };
     let tin = Tin::from_args(pada, purusha, vacana);
@@ -105,7 +107,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     } else if tin.has_lakara(Lit) && tin.is_parasmaipada() {
         yatha("3.4.82", p, i, TIN_PARA, NAL_PARA);
     } else if tin.has_lakara(Lat) && tin.is_parasmaipada() {
-        if dhatu.has_u("vida~") && tin.has_u_in(TIN_PARA) {
+        if dhatu.is_u(Au::vida_2) && tin.has_u_in(TIN_PARA) {
             yatha_optional("3.4.83", p, i, TIN_PARA, NAL_PARA);
         } else if dhatu.has_text("brU") && tin.has_u_in(&TIN_PARA[..5]) {
             p.optional_run("3.4.84", |p| {
@@ -232,7 +234,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     }
 
     // liN-only siddhi
-    if p.has(i, |t| t.has_lin_lakara()) {
+    if p.has(i, |t| t.is_lin_lakara()) {
         if p.has(i, |t| t.is_parasmaipada()) {
             p.insert_before(i, A::yAsuw);
             if la == Lakara::AshirLin {

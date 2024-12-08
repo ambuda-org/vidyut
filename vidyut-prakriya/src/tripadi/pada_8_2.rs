@@ -1,6 +1,7 @@
 use crate::args::Agama as A;
 use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
+use crate::args::Sanadi as S;
 use crate::args::Taddhita as D;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
@@ -10,7 +11,7 @@ use crate::core::iterators::xy_rule;
 use crate::core::operators as op;
 use crate::core::term::TermString;
 use crate::core::Rule::Varttika;
-use crate::core::{Prakriya, Rule, Tag as T, Term};
+use crate::core::{Prakriya, PrakriyaTag as PT, Rule, Tag as T, Term};
 use crate::dhatu_gana;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set, AC, HAL, IK, JHAL};
@@ -65,7 +66,7 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
             let sup = p.pratyaya(i_prati + 1)?;
             let is_ni = sup.last().is(Sup::Ni);
             if sup.last().is_sambuddhi() || is_ni {
-                if p.has_tag(T::Napumsaka) {
+                if p.has_tag(PT::Napumsaka) {
                     // "vA napuMsakAnAm"
                     // (nAman, nAma)
                     blocked = p.optional_run(Varttika("8.2.8.3"), |_| {});
@@ -120,19 +121,20 @@ fn try_matup_to_vatup(p: &mut Prakriya) -> Option<()> {
 /// Example: girati -> gilati.
 ///
 /// (8.2.18 - 8.2.21)
-fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
+fn try_change_r_to_l(p: &mut Prakriya) {
     let do_ra_la = |t: &mut Term| {
         t.find_and_replace_text("f", "x");
         t.find_and_replace_text("r", "l");
     };
 
-    for i in 0..p.terms().len() {
-        let j = p.next_not_empty(i)?;
-        let x = p.get(i)?;
-        let y = p.get_if(j, |t| !t.is_unadi())?;
+    let mut ip = IndexPrakriya::new(p);
+    ip.for_non_empty_terms(|ip, i, j| {
+        let x = ip.p.get(i)?;
+        // Exclude unadi so we don't derive "galuqa", etc.
+        let y = ip.p.get_if(j, |t| !t.is_unadi())?;
 
         if x.has_dhatu_u_in(&["kfpU~\\", "kfpa~\\", "kfpa~"]) {
-            p.run("8.2.18", |p| {
+            ip.p.run("8.2.18", |p| {
                 if let Some(t) = p.get_mut(i) {
                     do_ra_la(t);
                 }
@@ -143,20 +145,19 @@ fn try_change_r_to_l(p: &mut Prakriya) -> Option<()> {
             });
         } else if y.has_u("aya~\\") {
             if x.has_upadha('r') || x.has_antya('r') {
-                p.run_at("8.2.19", i, do_ra_la);
+                ip.p.run_at("8.2.19", i, do_ra_la);
             }
         } else if x.has_u("gF") {
-            if y.has_u("yaN") {
-                p.run_at("8.2.20", i, do_ra_la);
-            } else if x.has_gana(Gana::Tudadi) && y.has_adi(AC) && !y.is_unadi() {
-                // Exclude unadi so we don't derive "galuqa".
+            if y.is(S::yaN) {
+                ip.p.run_at("8.2.20", i, do_ra_la);
+            } else if x.has_gana(Gana::Tudadi) && y.has_adi(AC) {
                 // TODO: why only tudAdi?
-                p.optional_run_at("8.2.21", i, do_ra_la);
+                ip.p.optional_run_at("8.2.21", i, do_ra_la);
             }
         }
-    }
 
-    Some(())
+        Some(j)
+    });
 }
 
 /// Runs rules that perform `lopa` for samyogas and `s`.
@@ -268,10 +269,10 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
         }
 
         let is_jhali = |i_y: &CharIndex| {
-            let mut i_end = ip.next(&i_y);
+            let mut i_end = ip.next(i_y);
             while let Some(i) = i_end {
                 let t = ip.term_at(&i);
-                let c = ip.term_char_at(&t, &i);
+                let c = ip.term_char_at(t, &i);
                 if !HAL.contains(c) {
                     return false;
                 }
@@ -296,7 +297,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
             // first 's' of the dhatu.
             ip.run_for_char(code, &i_y, "");
         } else {
-            ip.run_for_char(code, &i_x, "");
+            ip.run_for_char(code, i_x, "");
         }
 
         ip.update(i_x)
@@ -561,7 +562,7 @@ fn run_rules_for_nistha_t(p: &mut Prakriya) -> Option<()> {
         let code = "8.2.55";
         if dhatu.has_u("YiPalA~") && !has_upasarga {
             // "ktavatvantasya apyetal latvam iṣyate, phullaḥ, phullavāniti" (KV)
-            if k.has_u("kta") {
+            if k.last().is(K::kta) {
                 p.run(code, op::nipatana("Pulla"));
             } else {
                 p.run(code, op::nipatana("Pullavat"));
@@ -761,19 +762,23 @@ fn try_change_final_s_and_others(p: &mut Prakriya) -> Option<()> {
 
 fn try_change_final_r(p: &mut Prakriya) -> Option<()> {
     // 6.1.113 and 6.1.114 are not part of the tripAdi, but they have no scope to apply otherwise.
-    xy_rule(
-        p,
-        |x, y| x.ends_with("ar") && x.has_tag(T::Ru) && y.has_adi('a'),
-        |p, i, j| {
-            p.run("6.1.113", |p| {
-                p.set(i, |t| {
+    let mut ip = IndexPrakriya::new(p);
+    ip.for_non_empty_terms(|ip, i_x, i_y| {
+        let x = &ip.p.terms()[i_x];
+        let y = &ip.p.terms()[i_y];
+        if x.ends_with("ar") && x.has_tag(T::Ru) && y.has_adi('a') {
+            ip.p.run("6.1.113", |p| {
+                p.set(i_x, |t| {
                     t.set_antya("");
                     t.set_antya("o");
                 });
-                p.set(j, |t| t.set_adi(""));
+                p.set(i_y, |t| t.set_adi(""));
             });
-        },
-    );
+        }
+
+        Some(i_y)
+    });
+
     xy_rule(
         p,
         |x, y| x.ends_with("ar") && x.has_tag(T::Ru) && y.has_adi(HASH),
@@ -823,7 +828,7 @@ fn try_lengthen_dhatu_vowel(p: &mut Prakriya) {
                 // pipaWIH, ...
                 let sub = al::to_dirgha(dhatu_view.upadha()?)?;
                 p.run("8.2.76", |p| {
-                    p.set_upadha_within_range(0, i, &sub.to_string());
+                    p.set_upadha_within_range(0, i, sub);
                 });
             } else if p.has(i_n?, |t| t.has_adi(HAL)) {
                 let sub = al::to_dirgha(dhatu.upadha()?)?;

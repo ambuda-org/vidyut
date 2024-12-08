@@ -2,6 +2,7 @@ use crate::args::Agama as A;
 use crate::args::Aupadeshika as Au;
 use crate::args::Gana;
 use crate::args::Lakara::*;
+use crate::args::Sanadi as S;
 use crate::args::Unadi;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
@@ -86,7 +87,7 @@ impl<'a> GunaVrddhiPrakriya<'a> {
     }
 
     /// Returns the term that might condition guna/vrddhi.
-    fn next(&self) -> TermView {
+    fn next_view(&self) -> TermView {
         self.p.view(self.i_next, self.i_p).expect("ok")
     }
 
@@ -97,7 +98,7 @@ impl<'a> GunaVrddhiPrakriya<'a> {
         }
 
         let anga = self.anga();
-        let n = self.next();
+        let n = self.next_view();
 
         if anga.has_tag_in(&[T::FlagAtLopa, T::FlagGunaApavada]) {
             self.locked = true;
@@ -108,7 +109,7 @@ impl<'a> GunaVrddhiPrakriya<'a> {
             self.try_block("1.1.4");
         } else if n.is_knit() {
             self.try_block("1.1.5");
-        } else if anga.has_dhatu_u_in(&["dIDIN", "vevIN"]) || anga.is_it_agama() {
+        } else if anga.is_any_u(&[Au::dIDIN, Au::vevIN]) || anga.is_it_agama() {
             self.try_block("1.1.6");
         } else if !n.has_tag(T::Pratyaya) {
             self.locked = true;
@@ -155,17 +156,17 @@ fn try_taddhita_vrddhi(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()
         return None;
     };
 
-    if anga.has_text_in(&["devikA", "SiMSapA", "dityavAh", "dIrGasatra", "Sreyas"]) {
+    if anga.is_any_phit(&["devikA", "SiMSapA", "dityavAh", "dIrGasatra", "Sreyas"]) {
         // dAvikA, ...
         let adi_ac = anga.text.find(al::is_ac)?;
         p.run_at("7.3.1", i_anga, |t| t.set_at(adi_ac, "A"));
-    } else if anga.has_text_in(&["kekaya", "mitrayu", "pralaya"]) {
+    } else if anga.is_any_phit(&["kekaya", "mitrayu", "pralaya"]) {
         p.run_at("7.3.2", i_anga, |t| t.find_and_replace_text("y", "iy"));
     } else if anga.starts_with("vy") {
         // HACK: should properly be only with vi-upasarga.
         // TODO: also apply for sv-, .etc.
         p.run_at("7.3.3", i_anga, |t| t.text.replace_range(..2, "vEy"));
-    } else if anga.has_u_in(DVARA_ADI) {
+    } else if anga.is_any_phit(DVARA_ADI) {
         // dvAra -> dOvArika, ...
         p.run_at("7.3.4", i_anga, |t| {
             let i_yan = t.text.rfind(|c| c == 'y' || c == 'v').expect("ok");
@@ -196,40 +197,45 @@ fn try_taddhita_vrddhi(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()
 /// (7.2.115 - 7.3.35)
 /// Taddhita rules: 7.2.117 - 7.3.31
 fn try_nnit_vrddhi(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
-    let n = p.pratyaya(i_n)?;
-    let i_p = n.end();
-    let mut gp = GunaVrddhiPrakriya::new(p, i_anga, i_n, i_p);
-
-    let n = gp.next();
+    let n = p.get(i_n)?;
     if !n.has_tag_in(&[T::Yit, T::Rit]) {
+        return None;
+    }
+
+    let anga_has_kit_agama = p.has(i_anga + 1, |t| {
+        t.is_agama() && t.is_knit() && !t.is_it_agama()
+    });
+    if anga_has_kit_agama {
         return None;
     }
 
     // Allow RiN even though it is Nit. Without this check, RiN will be excluded by
     // `can_use_guna_or_vrddhi`.
     if !n.has_u("RiN") {
+        let mut gp = GunaVrddhiPrakriya::new(p, i_anga, i_n, i_n);
         gp.check_blocking_rules();
         if gp.locked {
+            p.debug("locked, returning");
             return None;
         }
     }
 
-    let anga = gp.anga();
-    let n = gp.next();
-    let is_cin = n.last().is(V::ciR) || n.has_tag(T::Cinvat);
+    let anga = p.get(i_anga)?;
+    let n = p.get(i_n)?;
+    let is_cin = n.is(V::ciR) || n.has_tag(T::Cinvat);
     let is_cin_krt = is_cin || n.has_tag(T::Krt);
     let has_udatta = !anga.has_tag(T::Anudatta);
 
     let is_aacam_adi = {
         let is_aacam = anga.has_u("camu~")
             && anga.has_gana(Gana::Bhvadi)
-            && gp.p.find_prev_where(i_anga, |t| t.is(U::AN)).is_some();
+            && p.find_prev_where(i_anga, |t| t.is(U::AN)).is_some();
         is_aacam || anga.has_u_in(&["kamu~\\", "wuvama~"])
     };
 
     if is_cin_krt && has_udatta && anga.has_antya('m') && !is_aacam_adi {
         p.step("7.3.34");
-    } else if is_cin_krt && anga.has_text_in(&["jan", "vaD"]) && !n.has_u("YuR") {
+    } else if is_cin_krt && anga.has_text_in(&["jan", "vaD"]) && !n.is(Unadi::YuR) {
         // ajani, avaDi, ...
         p.step("7.3.35");
     } else if is_cin_krt && anga.has_antya('A') {
@@ -265,7 +271,7 @@ fn try_nnit_vrddhi(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
 /// Example: kf + i + ta -> kArita
 fn try_vrddhi_adesha(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
     let anga = p.get_if(i_anga, |t| !t.has_tag(T::FlagGunaApavada))?;
-    let n = p.pratyaya(i_n)?;
+    let n = p.view(i_anga + 1, i_n)?;
     let i_p = n.end();
 
     if anga.has_text("mfj") && !n.last().is_knit() {
@@ -286,53 +292,71 @@ fn try_vrddhi_adesha(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> 
 
 /// Runs rules that replace an anga's vowel with its corresponding guna.
 /// Example: buD + a + ti -> boDati
-fn try_guna_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
-    let _ = p.get_if(i_anga, |t| !t.is_agama() && !t.has_tag(T::FlagGunaApavada))?;
-    let i_n = p.find_next_where(i_anga, |t| !t.is_empty() && !t.is(A::puk))?;
-    let n = p.pratyaya(i_n)?;
-    let i_p = n.end();
+fn try_guna_adesha(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
+    let anga = p.get(i_anga)?;
+    if anga.has_tag(T::FlagGunaApavada)
+        || !anga.has_tag_in(&[T::Dhatu, T::Sarvadhatuka, T::Ardhadhatuka])
+    {
+        return None;
+    }
 
-    let mut gp = GunaVrddhiPrakriya::new(p, i_anga, i_n, i_p);
+    let n = p.get_if(i_n, |t| !t.is_empty())?;
+    let is_sarva_ardha = n.has_tag_in(&[T::Sarvadhatuka, T::Ardhadhatuka]);
+    if !is_sarva_ardha {
+        return None;
+    }
+
+    let has_only_wit_agamas = p.terms()[i_anga + 1..i_n]
+        .iter()
+        .all(|t| t.is_empty() || t.has_tag(T::wit));
+    let is_puganta = p.has(i_anga + 1, |t| t.is(A::puk));
+    if !has_only_wit_agamas && !is_puganta {
+        return None;
+    }
+
+    let i_n_start = p.find_next_where(i_anga, |t| !t.is_empty())?;
+    let mut gp = GunaVrddhiPrakriya::new(p, i_anga, i_n_start, i_n);
+
     let anga = gp.anga();
-    let n = gp.next();
+    let n_view = gp.next_view();
+    let n_adi = n_view.first().adi()?;
+    let n = gp.p.get(i_n)?;
+    let piti_sarvadhatuke = n.has_all_tags(&[T::pit, T::Sarvadhatuka]);
 
-    let is_sarva_ardha = n.last().has_tag_in(&[T::Sarvadhatuka, T::Ardhadhatuka]);
-    let piti_sarvadhatuke = n.last().has_all_tags(&[T::pit, T::Sarvadhatuka]);
-
-    if anga.is_u_in(&[Au::Divi, Au::kfvi]) {
+    if anga.is_any_u(&[Au::Divi, Au::kfvi]) {
         // Per commentary on 3.1.81, these roots don't take guna.
     } else if anga.has_text("mid") && n.has_tag(T::Sit) {
         // medyati
         gp.try_run("7.3.82", |t| t.try_upadha_guna());
-    } else if anga.has_antya(IK) && n.has_u("jus") {
+    } else if anga.has_antya(IK) && n_view.first().has_u("jus") {
         // ajuhavuH
         gp.try_run("7.3.83", |t| t.try_antya_guna());
     } else if anga.has_text("tfnah")
-        && n.has_adi(HAL)
+        && HAL.contains(n_adi)
         && piti_sarvadhatuke
-        && !n.last().has_tag(T::Nit)
+        && !n.has_tag(T::Nit)
     {
         // tfneQi; otherwise, tfRahAni, tfRQaH.
         // HACK: check for absence of `Nit` on first term to prevent tfnhyAt -> tfRihyAt
         p.run_at("7.3.92", i_anga, op::mit("i"));
-    } else if is_sarva_ardha {
-        let is_yan_luk = || gp.p.has(i_anga + 1, |t| t.has_u("yaN") && t.is_lupta());
+    } else {
+        let is_yan_luk = || gp.p.has(i_anga + 1, |t| t.is(S::yaN) && t.is_lupta());
         // Exceptions
         if anga.has_text_in(&["BU", "sU"])
-            && n.last().has_tag(T::Tin)
+            && n.is_tin()
             && piti_sarvadhatuke
             // See KV on 7.3.88 for why we exclude yaN-luk forms (boBoti, etc.)
             && !is_yan_luk()
         {
             // aBUt, ...
             gp.try_block("7.3.88");
-        } else if anga.has_antya('u') && n.has_adi(HAL) && piti_sarvadhatuke {
+        } else if anga.has_antya('u') && HAL.contains(n_adi) && piti_sarvadhatuke {
             gp.check_blocking_rules();
+            let n = gp.p.get(i_n)?;
 
             let anga = gp.anga();
-            let n = gp.next();
             if anga.has_u("UrRuY") {
-                if n.last().is_aprkta() {
+                if n.is_aprkta() {
                     // prOrRot
                     gp.try_run("7.3.91", |t| t.try_antya_guna());
                 } else {
@@ -353,13 +377,11 @@ fn try_guna_adesha(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
         // Main guna rules.
         let anga = gp.anga();
-        let n = gp.next();
-        let is_puganta = gp.p.has(i_anga + 1, |t| t.is(A::puk));
         let is_laghu_upadha = anga.has_upadha(HRASVA);
 
         // HACK to ignore antya A and avoid applying guna to it.
         if is_puganta || is_laghu_upadha {
-            if anga.is_abhyasta() && piti_sarvadhatuke && n.has_adi(AC) {
+            if anga.is_abhyasta() && piti_sarvadhatuke && AC.contains(n_adi) {
                 // e.g. nenijAma
                 gp.try_block("7.3.87");
             } else {
@@ -447,9 +469,8 @@ fn try_r_guna_before_lit(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn run_for_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+fn run_for_index(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
-    let i_n = p.find_next_where(i_anga, |t| !t.is_empty())?;
     let n = p.get(i_n)?;
 
     if anga.is_dhatu()
@@ -478,7 +499,7 @@ fn run_for_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         // Vrddhi takes priority over guna. For example, Ric is Ardhadhatuka (guna)
         // and Rit (vrddhi), but it will cause vrddhi if possible.
         try_vrddhi_adesha(p, i_anga, i_n);
-        try_guna_adesha(p, i_anga);
+        try_guna_adesha(p, i_anga, i_n);
         // TODO: 7.4.23-4
     }
 
@@ -488,14 +509,16 @@ fn run_for_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 }
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
-    for i in 0..p.len() {
-        if p.has(i, |t| {
-            t.is_anga() && !t.has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa])
-        }) {
-            run_for_index(p, i);
-        }
-    }
+    let mut i = p.find_first_where(|t| t.is_anga())?;
 
-    p.maybe_save_sthanivat();
-    Some(())
+    loop {
+        let j = p.find_next_where(i, |t| !t.is_agama() && (!t.is_empty() || !t.is_lupta()))?;
+        let t = p.get(i)?;
+
+        if t.is_anga() && !t.has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa]) {
+            run_for_index(p, i, j);
+        }
+
+        i = j;
+    }
 }

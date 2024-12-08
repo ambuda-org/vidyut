@@ -37,9 +37,9 @@ use crate::args::Upasarga as Up;
 use crate::args::{Agama, Upasarga};
 use crate::args::{Krt, Unadi};
 use crate::core::operators as op;
-use crate::core::Tag as T;
 use crate::core::Term;
-use crate::core::{Prakriya, Rule};
+use crate::core::{Decision, Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set, AC, IK};
@@ -125,7 +125,7 @@ fn try_misc_rules(up: &mut UnadiPrakriya) -> Option<bool> {
         }
     } else if matches!(krt, U::al | U::ac) {
         let is_drnati = d.has_u("dF") && d.has_gana(Kryadi);
-        if is_drnati && up.has_upapada("ud") {
+        if is_drnati && up.has_upasarga(Up::ud) {
             // udara
             up.add_with(UP("5.19"), |p| {
                 let j = p.prev_not_empty(i).expect("ok");
@@ -254,12 +254,18 @@ impl<'a> UnadiPrakriya<'a> {
         if self.added {
             return false;
         }
-        if self.p.is_allowed(rule) {
-            self.add_with(rule, func);
-            true
-        } else {
-            self.p.decline(rule);
-            false
+
+        let decision = self.p.decide(rule);
+        match decision {
+            Some(Decision::Accept) | None => {
+                self.add_with(rule, func);
+                self.p.log_accepted(rule);
+                true
+            }
+            Some(Decision::Decline) => {
+                self.p.log_declined(rule);
+                false
+            }
         }
     }
 
@@ -509,7 +515,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                             t.set_text("miT");
                             t.add_tag(T::FlagGunaApavada);
                         });
-                        p.add_tag(T::Stri);
+                        p.add_tag(PT::Stri);
                     }
                 });
             }
@@ -752,7 +758,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.is_u(Au::SIN) {
                 // SiKA
                 up.add_with(UP("5.24"), set_text_no_guna("Si"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             }
         }
         U::Wa => {
@@ -788,7 +794,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_u("UrRuY") {
                 // UrRA
                 up.add(UP("5.47"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             }
         }
         U::AlaY => {
@@ -1022,7 +1028,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_text("nind") {
                 // nidrA
                 up.add_with(UP("2.17"), set_upadha(""));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             } else if dhatu.has_text("ard") {
                 // Ardra
                 up.add_with(UP("2.18"), set_adi("A"));
@@ -1168,7 +1174,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 // siMha
                 up.add_with(UP("5.62"), set_text("sinh"));
             } else if up.has_upasarga(Up::AN)
-                && up.p.has(0, |t| t.has_u("vi"))
+                && up.p.has(0, |t| t.is(Up::vi))
                 && dhatu.has_u("GrA\\")
             {
                 // vyAGra
@@ -1490,14 +1496,14 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_text("van") {
                 // vennA
                 up.add_with(UP("3.8"), set_upadha("i"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             } else if dhatu.has_u("De\\w") {
                 // Dena
                 up.add_with(UP("3.11"), set_antya("i"));
             } else if dhatu.has_text("su") {
                 // sUnA
                 up.add_with(UP("3.13"), set_text_no_guna("sU"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             } else if dhatu.has_text("ram") {
                 // ratna
                 up.add_with(UP("3.14"), set_text("rat"));
@@ -1605,7 +1611,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
 
                         let antya = t.antya().expect("ok");
                         if let Some(s) = al::to_dirgha(antya) {
-                            t.set_antya(&s.to_string());
+                            t.set_antya_char(s);
                         }
                     })
                 });
@@ -1792,7 +1798,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                         t.set_text("tAn");
                     }
                 });
-            } else if up.has_upapada("su") && dhatu.has_text("ram") {
+            } else if up.has_upasarga(Up::su) && dhatu.has_text("ram") {
                 // sUrata
                 up.add_with(UP("5.14"), |p| {
                     let j = p.prev_not_empty(i).expect("ok");
@@ -1952,7 +1958,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             if dhatu.has_text("vft") {
                 // varttikA
                 up.add(UP("3.146"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             } else if dhatu.has_text_in(&["kft", "Bid", "lat"]) {
                 up.add_with(UP("3.147"), mark_as(T::kit));
             }
@@ -1963,7 +1969,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 up.add_with(UP("3.148"), |p| {
                     p.set(i, |t| t.add_tag(T::FlagGunaApavada));
                 });
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             }
         }
         U::taSan | U::taSasun => {
@@ -2091,7 +2097,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             if dhatu.has_u("SF") {
                 // SarkarA
                 up.add(UP("4.4"));
-                up.p.add_tag(T::Stri)
+                up.p.add_tag(PT::Stri)
             } else if dhatu.has_text("puz") {
                 // puzkara
                 up.add_with(UP("4.5"), mark_as(T::kit));
@@ -2099,7 +2105,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
         }
         U::ini => {
             if dhatu.has_u("ga\\mx~") {
-                if up.has_upapada("AN") {
+                if up.has_upasarga(Up::AN) {
                     up.add_with(UP("4.7"), mark_as(T::Rit));
                 } else {
                     up.add(UP("4.6"));
@@ -2107,7 +2113,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_u("BU") {
                 up.add_with(UP("4.8"), mark_as(T::Rit));
             } else if dhatu.has_u("zWA\\") {
-                if up.has_upapada("pra") {
+                if up.has_upasarga(Up::pra) {
                     // prasTAyin
                     up.add_with(UP("4.9"), mark_as(T::Rit));
                 } else {
@@ -2539,7 +2545,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 up.add_with(UP("4.109"), |p| {
                     // for mAyA, CAyA
                     if p.has(i, |t| t.has_text_in(&["mA", "Co"])) {
-                        p.add_tag(T::Stri);
+                        p.add_tag(PT::Stri);
                     }
                 });
             }
@@ -2682,7 +2688,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 // strI
                 // TODO: wi-lopa doesn't work here, so force-set the text.
                 up.add_with(UP("4.165"), set_text("st"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             }
         }
         U::tran => {
@@ -2955,7 +2961,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             if dhatu.has_u("janI~\\") {
                 // jawA
                 up.add_with(UP("5.30"), set_antya(""));
-                up.p.add_tag(T::Stri)
+                up.p.add_tag(PT::Stri)
             }
         }
         U::an => {
@@ -3067,7 +3073,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             if dhatu.has_text("jan") {
                 // jaNGA
                 up.add_with(UP("5.31"), set_text("jaNGa"));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             } else if dhatu.has_text("han") {
                 // jaGana
                 up.optional_add_with(UP("5.32"), set_text("jaGan"));
@@ -3076,7 +3082,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_text("kzam") {
                 // kzmA
                 up.add_with(UP("5.65"), set_upadha(""));
-                up.p.add_tag(T::Stri);
+                up.p.add_tag(PT::Stri);
             }
         }
         U::qri if dhatu.has_u("tF") => {

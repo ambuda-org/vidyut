@@ -1,5 +1,5 @@
 use crate::core::errors::*;
-use crate::core::{Config, Prakriya, RuleChoice};
+use crate::core::{Config, Decision, Prakriya, RuleChoice};
 
 /// Explores all optional derivations for some input.
 ///
@@ -99,9 +99,9 @@ impl PrakriyaStack {
 
             // Swap the last choice.
             let i = path.len() - 1;
-            path[i] = match path[i] {
-                RuleChoice::Accept(code) => RuleChoice::Decline(code),
-                RuleChoice::Decline(code) => RuleChoice::Accept(code),
+            path[i].decision = match path[i].decision {
+                Decision::Accept => Decision::Decline,
+                Decision::Decline => Decision::Accept,
             };
 
             self.paths.push(path);

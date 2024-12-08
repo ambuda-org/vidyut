@@ -5,7 +5,7 @@ use crate::args::Taddhita as D;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
 use crate::args::{Gana, Sanadi, Unadi, Upasarga};
-use crate::core::char_view::IndexPrakriya;
+use crate::core::char_view::{CharIndex, IndexPrakriya};
 use crate::core::iterators::xy_rule;
 use crate::core::operators as op;
 use crate::core::Prakriya;
@@ -209,34 +209,33 @@ fn try_visarjaniyasya(p: &mut Prakriya) -> Option<()> {
 #[derive(Debug)]
 struct ShaPrakriya<'a> {
     p: &'a mut Prakriya,
-    i_term: usize,
-    i_char: usize,
+    index: CharIndex,
     done: bool,
 }
 
 impl<'a> ShaPrakriya<'a> {
-    fn new(p: &'a mut Prakriya, i_char: usize) -> Self {
-        let i_term = p.find_for_char_at(i_char).expect("ok");
+    fn new(p: &'a mut Prakriya, i_term: usize, i_char: usize) -> Self {
         Self {
             p,
-            i_term,
-            i_char,
+            index: CharIndex { i_term, i_char },
             done: false,
         }
     }
 
     fn prev(&self) -> Option<&Term> {
-        let i_prev = self.p.find_prev_where(self.i_term, |t| !t.is_empty())?;
+        let i_prev = self
+            .p
+            .find_prev_where(self.index.i_term, |t| !t.is_empty())?;
         self.p.get(i_prev)
     }
 
     /// Returns a reference to the current term.
     fn term(&self) -> &Term {
-        self.p.get(self.i_term).expect("ok")
+        self.p.get(self.index.i_term).expect("ok")
     }
 
     fn i_prev(&self) -> Option<usize> {
-        self.p.find_prev_where(self.i_term, |t| !t.is_empty())
+        self.p.find_prev_where(self.index.i_term, |t| !t.is_empty())
     }
 
     fn has_upasarga_in(&self, values: &[Upasarga]) -> bool {
@@ -256,7 +255,9 @@ impl<'a> ShaPrakriya<'a> {
 
     fn try_shatva(&mut self, rule: impl Into<Rule>) {
         if !self.done {
-            self.p.run(rule, |p| p.set_char_at(self.i_char, "z"));
+            self.p.run_at(rule, self.index.i_term, |t| {
+                t.set_at(self.index.i_char, "z")
+            });
         }
         self.done = true;
     }
@@ -270,9 +271,9 @@ impl<'a> ShaPrakriya<'a> {
 
     fn optional_try_shatva(&mut self, rule: impl Into<Rule>) -> bool {
         if !self.done {
-            let done = self
-                .p
-                .optional_run(rule, |p| p.set_char_at(self.i_char, "z"));
+            let done = self.p.optional_run_at(rule, self.index.i_term, |t| {
+                t.set_at(self.index.i_char, "z")
+            });
             self.done = done;
             done
         } else {
@@ -281,10 +282,11 @@ impl<'a> ShaPrakriya<'a> {
     }
 }
 
-fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()> {
+fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya) -> Option<()> {
     use Gana::*;
 
-    let i = sp.i_term;
+    let i_term = sp.index.i_term;
+    let i_char = sp.index.i_char;
     let t = sp.term();
 
     // Skip abhyasas since we handle these as part of the dhatu rules.
@@ -300,7 +302,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
 
     // Various niyamas on shatva
     // -------------------------
-    let maybe_i_upasarga = sp.p.find_prev_where(sp.i_term, |t| t.is_upasarga());
+    let maybe_i_upasarga = sp.p.find_prev_where(i_term, |t| t.is_upasarga());
     let inku = if let Some(i) = maybe_i_upasarga {
         let upasarga = sp.p.get(i).expect("ok");
         upasarga.has_antya(IN_KU)
@@ -312,10 +314,10 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         // visfpa
         // TODO: savanAdi
         sp.try_block("8.3.110");
-    } else if (t.is(D::sAti) && t.is_pratyaya()) || sp.i_char == 0 {
+    } else if (t.is(D::sAti) && t.is_pratyaya()) || sp.p.prev_char_index(&sp.index).is_none() {
         // daDisAt, daDi siYcati
         sp.try_block("8.3.111");
-    } else if t.has_u("zi\\ca~^") && sp.p.has(i + 1, |t| t.is_yan()) {
+    } else if t.has_u("zi\\ca~^") && sp.p.has(i_term + 1, |t| t.is_yan()) {
         // aBisesicyate
         sp.try_block("8.3.112");
     } else if t.has_u_in(&["ziDa~"]) && sp.has_upasarga_in(&[U::pari, U::aBi, U::vi]) {
@@ -330,17 +332,17 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         sp.try_block("8.3.115");
     } else if inku
         && t.has_u_in(&["stanBu~", "zivu~", "zaha~\\"])
-        && sp.p.has(i + 1, |t| t.is(V::caN))
+        && sp.p.has(i_term + 1, |t| t.is(V::caN))
     {
         // paryatasTabat, paryazIsivat, ...
         //
         // Per varttika, this is specifically for the abhyasa, not the dhatu.
         sp.try_block("8.3.116");
-    } else if t.has_u("zu\\Y") && sp.p.has(i + 1, |t| t.is(V::sya) || t.is_san()) {
+    } else if t.has_u("zu\\Y") && sp.p.has(i_term + 1, |t| t.is(V::sya) || t.is_san()) {
         // aBisozyati, ...
         sp.try_block("8.3.117");
-    } else if inku && sp.p.terms().last()?.has_lakara(Lit) && sp.i_term > 0 {
-        let i_abhyasa = sp.i_term - 1;
+    } else if inku && sp.p.terms().last()?.has_lakara(Lit) && i_term > 0 {
+        let i_abhyasa = i_term - 1;
         let has_abhyasa = sp.p.has(i_abhyasa, |t| t.is_abhyasa() && !t.is_empty());
         if t.has_u("za\\dx~") && has_abhyasa {
             // nizasAda, ...
@@ -368,16 +370,16 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
     // c. stha to sita -- abhyAsa-vyavAya and aw-vyavAya OK
 
     let term = sp.term();
-    let maybe_i_upasarga = sp.p.find_prev_where(sp.i_term, |t| t.is_upasarga());
+    let maybe_i_upasarga = sp.p.find_prev_where(i_term, |t| t.is_upasarga());
     if maybe_i_upasarga.is_some() {
         let i_upasarga = maybe_i_upasarga?;
 
         // No gap between upasarga and dhatu.
-        let no_vyavaya = i_upasarga + 2 == sp.i_term;
+        let no_vyavaya = i_upasarga + 2 == i_term;
         // Gap between upasarga and dhatu is aw-Agama.
-        let at_vyavaya = i_upasarga + 3 == sp.i_term && sp.p.has(i_upasarga + 2, |t| t.is(A::aw));
+        let at_vyavaya = i_upasarga + 3 == i_term && sp.p.has(i_upasarga + 2, |t| t.is(A::aw));
         // Gap between upasarga and dhatu is just an abhyasa.
-        let abhyasa_vyavaya = i_upasarga + 3 == sp.i_term
+        let abhyasa_vyavaya = i_upasarga + 3 == i_term
             && sp.p.has(i_upasarga + 2, |t| t.is_abhyasa())
             && !sp.p.has(i_upasarga, |t| t.has_tag(T::FlagAntyaAcSandhi));
 
@@ -477,7 +479,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
 
             let dhatu = sp.term();
             if sp.done && dhatu.has_adi('z') {
-                let i_abhyasa = sp.i_term - 1;
+                let i_abhyasa = i_term - 1;
                 let is_stha_adi = !has_dhatu_in(dhatu, SU_TO_STUBH);
                 if sp.p.has(i_abhyasa, |t| t.is_abhyasa() && t.has_adi('s')) && is_stha_adi {
                     sp.p.run_at("8.3.64", i_abhyasa, |t| t.set_adi("z"));
@@ -494,8 +496,8 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
                 sp.optional_try_shatva("8.3.72");
                 sp.done = true;
             } else if upasarga.is_any_upasarga(&[U::vi, U::pari]) && dhatu.has_u("ska\\ndi~r") {
-                if upasarga.has_u("vi") {
-                    if !sp.p.has(sp.i_term + 1, |t| t.is_nistha()) {
+                if upasarga.is(U::vi) {
+                    if !sp.p.has(i_term + 1, |t| t.is_nistha()) {
                         sp.optional_try_shatva("8.3.73");
                     }
                 } else {
@@ -516,9 +518,9 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
     }
 
     let term = sp.term();
-    if sp.i_term > 0 && term.is_samasa() {
+    if i_term > 0 && term.is_samasa() {
         // TODO: these rules assume one term per pratipadika.
-        let i_purva = sp.p.find_prev_where(sp.i_term, |t| !t.is_empty())?;
+        let i_purva = sp.p.find_prev_where(i_term, |t| !t.is_empty())?;
         let purva = sp.p.get(i_purva)?;
         let uttara = term;
 
@@ -547,9 +549,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         }
     } else if term.has_upadha(IK)
         && term.has_antya('s')
-        && sp
-            .p
-            .has(sp.i_term + 1, |t| t.is_taddhita() && t.has_adi('t'))
+        && sp.p.has(i_term + 1, |t| t.is_taddhita() && t.has_adi('t'))
     {
         // sarpizwama, ...
         sp.try_shatva("8.3.101");
@@ -558,13 +558,13 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
     // General rules
     // -------------
 
-    let term_view = sp.p.pratyaya(sp.i_term);
+    let term_view = sp.p.pratyaya(i_term);
     let is_apadanta = match &term_view {
         Some(v) => !v.is_empty(),
         None => false,
     };
     let adesha_pratyaya = match &term_view {
-        Some(v) => v.has_tag_in(&[T::Pratyaya, T::FlagSaAdeshadi]),
+        Some(v) => v.last().has_tag_in(&[T::Pratyaya, T::FlagSaAdeshadi]),
         None => false,
     };
     let in_koh = match sp.prev() {
@@ -585,11 +585,11 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         // Use `find_next_where` to find `san` because position of `san` is uncertain due to iw-Agama
         // and ni-pratyaya. `z` is part of the rule.
         let shan =
-            sp.p.find_next_where(sp.i_term, |t| t.is(Sanadi::san) && t.has_adi('z'));
+            sp.p.find_next_where(i_term, |t| t.is(Sanadi::san) && t.has_adi('z'));
 
-        let prev_is_abhyasa = sp.i_term > 0 && sp.p.has(sp.i_term - 1, |t| t.is_abhyasa());
+        let prev_is_abhyasa = i_term > 0 && sp.p.has(i_term - 1, |t| t.is_abhyasa());
         if shan.is_some() && prev_is_abhyasa {
-            let nau = sp.p.has(sp.i_term + 1, |t| t.is_ni_pratyaya());
+            let nau = sp.p.has(i_term + 1, |t| t.is_ni_pratyaya());
 
             // Prefer `has_u_in` over `has_text_in` because `has_u_in` is more reliable and doesn't
             // include sound changes.
@@ -610,38 +610,40 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
         }
     }
 
-    let mut prev_chars = text[..sp.i_char].chars().rev();
-    let inku = if let Some(y) = prev_chars.next() {
-        if IN_KU.contains(y) {
-            true
-        } else {
-            let i_term = sp.p.find_for_char_at(sp.i_char - 1).expect("ok");
-            let is_num = y == 'M' && sp.p.has(i_term, |t| t.has_tag(T::FlagNum));
-            let is_num_visarjaniya_shar = is_num || y == 'H' || SHAR.contains(y);
-
-            if is_num_visarjaniya_shar {
-                // Per commentaries, allow at most one num-visarjaniya-shar sound in-between.
-                prev_chars.next().map_or(false, |c| IN_KU.contains(c))
+    let inku = match sp.p.prev_char_index(&sp.index) {
+        Some(i_y) => {
+            let y = sp.p.char_at_index(&i_y)?;
+            if IN_KU.contains(y) {
+                true
             } else {
-                false
+                let is_num = y == 'M' && sp.p.has(i_y.i_term, |t| t.has_tag(T::FlagNum));
+                let is_num_visarjaniya_shar = is_num || y == 'H' || SHAR.contains(y);
+
+                if is_num_visarjaniya_shar {
+                    // Per commentaries, allow at most one num-visarjaniya-shar sound in-between.
+                    match sp.p.prev_char_index(&i_y) {
+                        Some(i_x) => {
+                            let x = sp.p.char_at_index(&i_x)?;
+                            IN_KU.contains(x)
+                        }
+                        None => false,
+                    }
+                } else {
+                    false
+                }
             }
         }
-    } else {
-        false
+        None => false,
     };
 
-    let is_antya = sp.i_char + 1 == text.len();
+    let is_antya = sp.p.next_char_index(&sp.index).is_none();
 
-    let term = sp.p.pratyaya(sp.i_term)?;
-    if inku && term.has_tag_in(&[T::Pratyaya, T::FlagSaAdeshadi]) && !is_antya {
+    let term = sp.p.pratyaya(i_term)?;
+    if inku && term.last().has_tag_in(&[T::Pratyaya, T::FlagSaAdeshadi]) && !is_antya {
         // For zRus, etc. -- we want to change the first s here, not the second.
-        let is_first_s_of_term = if sp.i_term == 0 {
-            sp.i_char == 0
-        } else {
-            let num_chars_before: usize = sp.p.terms()[..sp.i_term].iter().map(|t| t.len()).sum();
-            num_chars_before == sp.i_char
-        };
-        let t = sp.p.get(sp.i_term)?;
+        let is_first_s_of_term = i_char == 0;
+
+        let t = sp.p.get(i_term)?;
         if t.is_dhatu() && !is_first_s_of_term {
             return None;
         }
@@ -650,9 +652,9 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya, text: &str) -> Option<()
             // agnisAt ...
             sp.try_block("8.3.111");
         } else if term.last().is_unadi()
-            && (term.last().has_u("sara")
-                && sp.i_term > 0
-                && sp.p.has(sp.i_term - 1, |t| t.has_text_in(&["kf", "DU"])))
+            && (term.last().is(Unadi::sara)
+                && i_term > 0
+                && sp.p.has(i_term - 1, |t| t.has_text_in(&["kf", "DU"])))
         {
             // Do nothing.
         } else {
@@ -670,11 +672,16 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
     // 8.3.61.
     //
     // Use a `bytes()` iterator because `chars()` doesn't support `.enumerate().rev()`
-    let text = p.compact_text();
-    for (i, c) in text.bytes().enumerate().rev() {
-        if (c as char) == 's' {
-            let mut sp = ShaPrakriya::new(p, i);
-            run_shatva_rules_at_char_index(&mut sp, &text);
+    let n = p.terms().len();
+    for i_term in (0..n).rev() {
+        let t = &p.terms()[i_term];
+        let len_t = t.len();
+        for i_char in (0..len_t).rev() {
+            let c = p.terms()[i_term].text.as_bytes()[i_char] as char;
+            if c == 's' {
+                let mut sp = ShaPrakriya::new(p, i_term, i_char);
+                run_shatva_rules_at_char_index(&mut sp);
+            }
         }
     }
 
@@ -689,13 +696,7 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
                 || x.has_text("s"))
         },
         |p, i, _| {
-            let x = p.get(i).expect("present");
-            let code = "8.3.60";
-            if x.has_text("s") {
-                p.run_at(code, i, op::text("z"));
-            } else {
-                p.run_at(code, i, op::antya("z"));
-            }
+            p.run_at("8.3.60", i, op::antya("z"));
         },
     );
 

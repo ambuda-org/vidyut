@@ -10,6 +10,7 @@ pub mod errors;
 pub mod iterators;
 pub mod operators;
 pub mod prakriya_stack;
+pub mod sanskrit_string;
 
 pub(crate) mod prakriya;
 pub(crate) mod tag;

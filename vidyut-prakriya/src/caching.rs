@@ -45,7 +45,7 @@ impl<K: Eq, V> Cache<K, V> {
             self.next_stamp = 0;
         }
 
-        if !(self.items.len() < self.max_capacity) {
+        if self.items.len() >= self.max_capacity {
             // Eviction of oldest member.
             if let Some(i_oldest) = self
                 .items

@@ -162,6 +162,10 @@ impl Sanadi {
         use Sanadi::*;
         matches!(self, kAmyac | kyaN | kyac)
     }
+
+    pub(crate) fn aupadeshika(&self) -> &'static str {
+        self.as_str()
+    }
 }
 
 enum_boilerplate!(Sanadi, {

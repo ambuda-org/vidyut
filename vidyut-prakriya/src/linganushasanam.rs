@@ -4,8 +4,8 @@ Implements rules from the pāṇiṇīyaliṅgānuśāśanam, which assigns ling
 
 use crate::args::BaseKrt as K;
 use crate::args::Taddhita as D;
-use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
+use crate::core::{PrakriyaTag as PT, Tag as T};
 
 const DVARA_ADI: &[&str] = &[
     "dvAra",
@@ -84,7 +84,7 @@ impl<'a> LingaPrakriya<'a> {
     }
     fn mark_pum(&mut self, rule: Rule) {
         if !self.done {
-            self.p.add_tag(T::Pum);
+            self.p.add_tag(PT::Pum);
             self.p.step(rule);
         }
         self.done = true;
@@ -92,7 +92,7 @@ impl<'a> LingaPrakriya<'a> {
 
     fn mark_stri(&mut self, rule: Rule) {
         if !self.done {
-            self.p.add_tag(T::Stri);
+            self.p.add_tag(PT::Stri);
             self.p.step(rule);
         }
         self.done = true;
@@ -100,7 +100,7 @@ impl<'a> LingaPrakriya<'a> {
 
     fn mark_napumsaka(&mut self, rule: Rule) {
         if !self.done {
-            self.p.add_tag(T::Napumsaka);
+            self.p.add_tag(PT::Napumsaka);
             self.p.step(rule);
         }
         self.done = true;
@@ -117,7 +117,7 @@ impl<'a> LingaPrakriya<'a> {
 pub fn run(p: &mut Prakriya) -> Option<()> {
     use Rule::Linganushasana as L;
 
-    if p.has_tag(T::Stri) {
+    if p.has_tag(PT::Stri) {
         return None;
     }
 
@@ -179,12 +179,11 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         if last.has_text_in(&["Baya", "liNga", "Baga", "pada"]) {
             // Bayam, ...
             lp.mark_napumsaka(L("38"));
-        } else if last.has_u_in(&["GaY", "ap"]) {
-        } else if last.is(K::GaY) || last.is(K::ap) {
+        } else if last.is_any_krt(&[K::GaY, K::ap]) {
             lp.mark_pum(L("36"));
         } else if last.is(K::Ga) || last.is(K::ac) {
             lp.mark_pum(L("37"));
-        } else if last.has_u("naN") {
+        } else if last.is(K::naN) {
             if dhatu.has_text("yAc") {
                 lp.mark_stri(L("40"));
             } else {
