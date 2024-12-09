@@ -1,15 +1,16 @@
+use core::fmt::Debug;
 use core::hash::{Hash, Hasher};
 use rustc_hash::FxHasher;
 
 /// A simple LRU hash.
-pub(crate) struct Cache<K: Eq, V> {
+pub(crate) struct Cache<K: Eq + Debug, V: Debug> {
     items: Vec<(i32, K, V)>,
     max_capacity: usize,
     /// Used to timestamp items in the cache.
     next_stamp: i32,
 }
 
-impl<K: Eq, V> Cache<K, V> {
+impl<K: Eq + Debug, V: Debug> Cache<K, V> {
     /// Creates a new cache with at most `max_capacity` items.
     pub fn new(max_capacity: usize) -> Self {
         Self {
@@ -21,6 +22,16 @@ impl<K: Eq, V> Cache<K, V> {
 
     /// Reads from the cache.
     pub fn read(&mut self, key: &K) -> Option<&V> {
+        /*
+        #[cfg(debug_assertions)]
+        {
+            println!("\nCache read:");
+            for (hash, key, value) in &self.items {
+                println!("- {hash:?} {key:?} {value:?}");
+            }
+        }
+        */
+
         for i in 0..self.items.len() {
             let item = &self.items[i];
             if &item.1 == key {

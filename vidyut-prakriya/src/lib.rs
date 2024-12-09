@@ -2,7 +2,7 @@
 #![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
 
-pub use crate::core::{Error, Prakriya, Rule, RuleChoice, Step};
+pub use crate::core::{Decision, Error, Prakriya, Rule, RuleChoice, Step};
 pub use crate::dhatupatha::Dhatupatha;
 pub use crate::vyakarana::{Vyakarana, VyakaranaBuilder};
 

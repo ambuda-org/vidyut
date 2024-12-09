@@ -166,6 +166,13 @@ impl Config {
     }
 }
 
+#[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub(crate) enum Stage {
+    #[default]
+    Pada,
+    Vakya,
+}
+
 /// Models a Paninian derivation.
 ///
 /// A derivation has two main parts: a *state* that describes what terms are present in the
@@ -198,6 +205,7 @@ impl Config {
 #[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Prakriya {
     terms: Vec<Term>,
+    pub(crate) stage: Stage,
     tags: EnumSet<PrakriyaTag>,
     history: Vec<Step>,
     artha: Option<Artha>,
@@ -278,6 +286,7 @@ impl Prakriya {
     pub(crate) fn new() -> Self {
         Prakriya {
             terms: Vec::new(),
+            stage: Stage::Pada,
             tags: EnumSet::new(),
             history: Vec::new(),
             artha: None,

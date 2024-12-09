@@ -777,9 +777,10 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool) -> Option<()> {
 
         // Check explicitly that ni-pratyaya is the *last* term so that we don't try applying these
         // rules again after adding a tin/krt pratyaya.
-        let ni = p.terms().last()?;
+        let is_ni = p.has(i + 1, |t| t.is_ni_pratyaya());
+        let is_dhatu = p.terms().last().map_or(false, |t| t.is_dhatu());
 
-        if !ni.is_ni_pratyaya() {
+        if !is_ni || !is_dhatu {
             return None;
         }
 

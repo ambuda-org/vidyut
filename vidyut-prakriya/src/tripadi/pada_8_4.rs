@@ -464,7 +464,14 @@ fn try_to_savarna(ip: &mut IndexPrakriya) {
                 'p' | 'P' | 'b' | 'B' | 'm' => "m",
                 _ => "M",
             };
-            ip.run_for_char("8.4.58", i_x, sub);
+            let blocked = if ip.is_term_end(i_x) && ip.p.is_pada(i_x.i_term) {
+                ip.p.optional_run("8.4.59", |_| {})
+            } else {
+                false
+            };
+            if !blocked {
+                ip.run_for_char("8.4.58", i_x, sub);
+            }
         } else if TU.contains(x) && y == 'l' {
             if x == 'n' {
                 ip.set_char_at(i_x, "~l")

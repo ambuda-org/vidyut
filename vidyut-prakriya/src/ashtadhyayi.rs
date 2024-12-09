@@ -35,7 +35,7 @@ use crate::atmanepada;
 use crate::caching::{calculate_hash, Cache};
 use crate::core::errors::*;
 use crate::core::prakriya_stack::PrakriyaStack;
-use crate::core::{Prakriya, PrakriyaTag as PT, Tag, Term};
+use crate::core::{Prakriya, PrakriyaTag as PT, Stage, Tag, Term};
 use crate::dhatu_karya;
 use crate::dvitva;
 use crate::it_agama;
@@ -56,7 +56,6 @@ use crate::tin_pratyaya;
 use crate::tripadi;
 use crate::uttarapade;
 use crate::vikarana;
-use crate::RuleChoice;
 use core::cell::RefCell;
 
 /// Enough to hold a term changed by up to 4 optional rules (2^4 = 16), plus an extra 2x seems to
@@ -100,9 +99,10 @@ impl MainArgs {
     }
 }
 
+#[derive(Debug)]
 enum CachedPrakriya {
     Good(Prakriya),
-    Fail(Vec<RuleChoice>),
+    Fail(Prakriya),
 }
 
 // Returns whether this prakriya and its args trigger the `saMscaNoH` condition, which affects
@@ -149,7 +149,10 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> 
         if let Some(val) = cache.read(&cache_key) {
             match val {
                 CP::Good(val) => *p = val.clone(),
-                CP::Fail(choices) => cache_ret = Err(Error::Abort(choices.clone())),
+                CP::Fail(val) => {
+                    *p = val.clone();
+                    cache_ret = Err(Error::Abort(p.rule_choices().to_vec()));
+                }
             }
             cache_hit = true;
         }
@@ -161,7 +164,7 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> 
         let ret = prepare_dhatu_inner(p, dhatu, args);
         let payload = match ret {
             Ok(()) => CP::Good(p.clone()),
-            Err(_) => CP::Fail(p.rule_choices().to_vec()),
+            Err(_) => CP::Fail(p.clone()),
         };
         CACHE.with_borrow_mut(|cache| cache.write(cache_key, payload));
         ret
@@ -282,7 +285,10 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
         if let Some(payload) = cache.read(&cache_key) {
             match payload {
                 CP::Good(val) => *p = val.clone(),
-                CP::Fail(choices) => cache_ret = Err(Error::Abort(choices.clone())),
+                CP::Fail(val) => {
+                    *p = val.clone();
+                    cache_ret = Err(Error::Abort(p.rule_choices().to_vec()));
+                }
             }
             cache_hit = true;
         }
@@ -294,7 +300,7 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
         let ret = prepare_pratipadika_inner(p, pratipadika);
         let payload = match ret {
             Ok(()) => CP::Good(p.clone()),
-            Err(_) => CP::Fail(p.rule_choices().to_vec()),
+            Err(_) => CP::Fail(p.clone()),
         };
         CACHE.with_borrow_mut(|cache| cache.write(cache_key, payload));
         ret
@@ -528,6 +534,17 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
     samasa::try_sup_luk(p);
     misc::run_pad_adi(p);
 
+    if p.stage != Stage::Vakya {
+        // Add strI-pratyayas. This should be done after adding the sup-pratyaya so that we satisfy the
+        // following constraints:
+        //
+        // - su~ must be added before sup-luk (7.1.23)
+        // - sup-luk must be checked before changing adas to ada (7.2.102)
+        // - ada must be in place before running stritva (4.1.4)
+        angasya::run_before_stritva(p);
+        stritva::run(p);
+    }
+
     angasya::maybe_do_jha_adesha(p);
 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
@@ -627,15 +644,6 @@ pub fn derive_subanta(mut prakriya: Prakriya, args: &Subanta) -> Result<Prakriya
     samjna::run(p);
 
     samasa::run_rules_for_avyayibhava(p);
-
-    // Add strI-pratyayas. This should be done after adding the sup-pratyaya so that we satisfy the
-    // following constraints:
-    //
-    // - su~ must be added before sup-luk (7.1.23)
-    // - sup-luk must be checked before changing adas to ada (7.2.102)
-    // - ada must be in place before running stritva (4.1.4)
-    angasya::run_before_stritva(p);
-    stritva::run(p);
 
     run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
@@ -766,6 +774,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
     }
 
     let p = &mut prakriya;
+    p.stage = Stage::Vakya;
     samjna::try_pragrhya_rules(p);
     run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);

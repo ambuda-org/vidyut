@@ -184,3 +184,32 @@ fn adhyapidhvam() {
         ],
     );
 }
+
+#[test]
+fn bhavakanam() {
+    let krt = Krdanta::builder()
+        .dhatu(nic(&d("BU", Bhvadi)))
+        .krt(Krt::Rvul)
+        .build()
+        .unwrap();
+    assert_has_sup_6p(&krt, Pum, &["BAvakAnAm"]);
+}
+
+// Cache-dependent test.
+#[test]
+fn pampanyamanan() {
+    let krt = Krdanta::builder()
+        .dhatu(yan(&d("paRa~\\", Bhvadi)))
+        .krt(Krt::Satf)
+        .build()
+        .unwrap();
+    assert_has_sup_1s(&krt, Pum, &[]);
+
+    let krt = Krdanta::builder()
+        .dhatu(yan(&d("paRa~\\", Bhvadi)))
+        .krt(Krt::SAnac)
+        .build()
+        .unwrap();
+    assert_has_sup_1s(&krt, Pum, &["pampaRyamAnaH"]);
+    assert_has_sup_1d(&krt, Pum, &["pampaRyamAnO"]);
+}

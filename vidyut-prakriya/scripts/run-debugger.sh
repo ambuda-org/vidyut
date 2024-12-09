@@ -11,7 +11,7 @@ fi
 # build by default instead. Creating this release build is slow, but the debug
 # build seems to have issues with enum parsing. So, stick with the release
 # build.
-wasm-pack build --target web --release
+wasm-pack build --target web --release -- --features serde
 mkdir -p www/static/wasm && cp pkg/* www/static/wasm
 mkdir -p www/static/data && cp data/* www/static/data
 cd www && python3 -m http.server

@@ -32,7 +32,7 @@ fn derive_dhatus_for_mula_dhatus_and_upasargas() {
     assert_derive_dhatu(pranici, &["praRici"]);
 
     let sanskr = Dhatu::mula("qukf\\Y", Tanadi).with_prefixes(&["sam"]);
-    assert_derive_dhatu(sanskr, &["saNkf", "saMskf"]);
+    assert_derive_dhatu(sanskr, &["saNkf", "saMskf", "saMkf"]);
 }
 
 #[test]

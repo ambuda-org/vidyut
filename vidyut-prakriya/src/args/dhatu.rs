@@ -163,6 +163,7 @@ impl Sanadi {
         matches!(self, kAmyac | kyaN | kyac)
     }
 
+    /// Returns the *aupadeśika* form of this *pratyaya*.
     pub(crate) fn aupadeshika(&self) -> &'static str {
         self.as_str()
     }

@@ -6,50 +6,93 @@ use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
-use vidyut_prakriya::args::{BaseKrt, Krdanta};
+use vidyut_prakriya::args::{BaseKrt, Gana, Krdanta, Linga, Sanadi, Subanta, Vacana, Vibhakti};
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Args {
-    #[arg(long)]
-    krt: BaseKrt,
+    #[arg(long, value_delimiter = ',')]
+    sanadi: Vec<Sanadi>,
 }
 
 #[derive(Debug, Serialize)]
 struct Row<'a> {
-    pratipadikas: String,
+    padas: String,
     dhatu: &'a str,
-    gana: &'static str,
+    gana: Gana,
     number: u16,
-    krt: &'static str,
+    sanadi: &'a str,
+    krt: BaseKrt,
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
 }
 
-fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
+const KRDANTAS: &[BaseKrt] = &[
+    BaseKrt::kta,
+    BaseKrt::ktavatu,
+    BaseKrt::Satf,
+    BaseKrt::SAnac,
+    BaseKrt::tavya,
+    BaseKrt::anIyar,
+    BaseKrt::yat,
+];
+
+/// Creates a collection of (linga, vibhakti, vacana) combinations.
+fn linga_vibhakti_vacana_options() -> Vec<(Linga, Vibhakti, Vacana)> {
+    let mut ret = Vec::new();
+    for linga in Linga::iter() {
+        for vibhakti in Vibhakti::iter() {
+            for vacana in Vacana::iter() {
+                ret.push((*linga, *vibhakti, *vacana))
+            }
+        }
+    }
+    ret
+}
+
+fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_writer(io::stdout());
     let v = Vyakarana::builder().log_steps(false).build();
+    let lvv = linga_vibhakti_vacana_options();
 
-    for entry in d {
-        let dhatu = entry.dhatu();
-        let krt = args.krt;
-        let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
+    for entry in dhatupatha {
+        let dhatu = entry.dhatu().clone().with_sanadi(&args.sanadi);
+        let dhatu_text = &dhatu.upadesha().expect("mula");
+        let sanadi_str = args
+            .sanadi
+            .iter()
+            .map(|x| x.as_str())
+            .fold(String::new(), |b, x| b + x + "+");
+        let sanadi_str = sanadi_str.trim_end_matches('+');
 
-        let prakriyas = v.derive_krdantas(&krdanta);
+        for krt in KRDANTAS.iter().copied() {
+            let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
 
-        let dhatu_text = &dhatu.upadesha().expect("ok");
-        let mut pratipadikas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
-        pratipadikas.sort();
-        pratipadikas.dedup();
-        let pratipadikas = pratipadikas.join("|");
+            for (linga, vibhakti, vacana) in lvv.iter().copied() {
+                let args = Subanta::new(krdanta.clone(), linga, vibhakti, vacana);
+                let prakriyas = v.derive_subantas(&args);
 
-        let row = Row {
-            pratipadikas,
-            dhatu: dhatu_text,
-            gana: dhatu.gana().expect("ok").as_str(),
-            number: entry.number(),
-            krt: krt.as_str(),
-        };
-        wtr.serialize(row)?;
+                let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
+                padas.sort();
+                padas.dedup();
+                let padas = padas.join("|");
+
+                let row = Row {
+                    padas,
+                    dhatu: dhatu_text,
+                    gana: dhatu.gana().expect("ok"),
+                    number: entry.number(),
+                    sanadi: &sanadi_str,
+                    krt,
+                    linga,
+                    vibhakti,
+                    vacana,
+                };
+                wtr.serialize(row)?;
+            }
+        }
     }
 
     wtr.flush()?;

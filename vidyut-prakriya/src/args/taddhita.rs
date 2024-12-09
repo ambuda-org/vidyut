@@ -544,7 +544,8 @@ enum_boilerplate!(Taddhita, {
 });
 
 impl Taddhita {
-    pub(crate) fn aupadeshika(&self) -> &'static str {
+    /// Returns the *aupadeśika* form of this *pratyaya*.
+    pub fn aupadeshika(&self) -> &'static str {
         self.as_str()
     }
 }

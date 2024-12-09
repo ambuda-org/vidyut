@@ -141,7 +141,8 @@ enum_boilerplate!(Lakara, {
 });
 
 impl Lakara {
-    pub(crate) fn aupadeshika(&self) -> &'static str {
+    /// Returns the *aupadeśika* form of this *pratyaya*.
+    pub fn aupadeshika(&self) -> &'static str {
         use Lakara::*;
         match self {
             Lat => "la~w",

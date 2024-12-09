@@ -6,6 +6,7 @@ use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
+use vidyut_prakriya::Vyakarana;
 
 #[test]
 fn sutra_8_4_1() {
@@ -462,22 +463,55 @@ fn sutra_8_4_58() {
     assert_has_krdanta(&[], &sank, Krt::tfc, &["SaNkitf"]);
     assert_has_krdanta(&[], &sank, Krt::tumun, &["SaNkitum"]);
     assert_has_krdanta(&[], &sank, Krt::tavya, &["SaNkitavya"]);
+
     let unch = d("uCi~", Bhvadi);
     assert_has_krdanta(&[], &unch, Krt::tfc, &["uYCitf"]);
     assert_has_krdanta(&[], &unch, Krt::tumun, &["uYCitum"]);
     assert_has_krdanta(&[], &unch, Krt::tavya, &["uYCitavya"]);
+
     let kund = d("kuqi~\\", Bhvadi);
     assert_has_krdanta(&[], &kund, Krt::tfc, &["kuRqitf"]);
     assert_has_krdanta(&[], &kund, Krt::tumun, &["kuRqitum"]);
     assert_has_krdanta(&[], &kund, Krt::tavya, &["kuRqitavya"]);
+
     let nand = d("wunadi~", Bhvadi);
     assert_has_krdanta(&[], &nand, Krt::tfc, &["nanditf"]);
     assert_has_krdanta(&[], &nand, Krt::tumun, &["nanditum"]);
     assert_has_krdanta(&[], &nand, Krt::tavya, &["nanditavya"]);
+
     let kamp = d("kapi~\\", Bhvadi);
     assert_has_krdanta(&[], &kamp, Krt::tfc, &["kampitf"]);
     assert_has_krdanta(&[], &kamp, Krt::tumun, &["kampitum"]);
     assert_has_krdanta(&[], &kamp, Krt::tavya, &["kampitavya"]);
+}
+
+#[test]
+fn sutra_8_4_59() {
+    let v = Vyakarana::new();
+    let tam = Pada::from_text("tam");
+    let katham = Pada::from_text("kaTam");
+    let citrapakzam = Pada::from_text("citrapakzam");
+    let dayamanam = Pada::from_text("qayamAnam");
+    let nabhastham = Pada::from_text("naBaHsTam");
+    let purusha = Pada::from_text("puruzas");
+    let avadhit = Pada::from_text("avaDIt");
+    let mut prakriyas = v.derive_vakyas(&[
+        tam,
+        katham,
+        citrapakzam,
+        dayamanam,
+        nabhastham,
+        purusha,
+        avadhit,
+    ]);
+    prakriyas.retain(|p| !has_bad_final(p));
+    assert_has_results(
+        prakriyas,
+        &[
+            "taM kaTaM citrapakzaM qayamAnaM naBaHsTaM puruzo vaDIt",
+            "taN kaTaY citrapakzaR qayamAnan naBaHsTam puruzo vaDIt",
+        ],
+    );
 }
 
 #[test]
