@@ -146,6 +146,8 @@ struct KrdantaArgs {
     krt: BaseKrt,
     sanadi: Vec<Sanadi>,
     upasarga: Vec<String>,
+    lakara: Option<Lakara>,
+    prayoga: Option<Prayoga>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -175,11 +177,15 @@ impl TinantaArgs {
 impl KrdantaArgs {
     fn into_rust(self, raw_dhatu: &Dhatu) -> Krdanta {
         let dhatu = try_expand_dhatu(raw_dhatu, &self.sanadi, &self.upasarga);
-        Krdanta::builder()
-            .dhatu(dhatu)
-            .krt(self.krt)
-            .build()
-            .expect("should be well-formed")
+        let mut builder = Krdanta::builder().dhatu(dhatu).krt(self.krt);
+        if let Some(la) = self.lakara {
+            builder = builder.lakara(la);
+        }
+        if let Some(prayoga) = self.prayoga {
+            builder = builder.prayoga(prayoga);
+        }
+
+        builder.build().expect("should be well-formed")
     }
 }
 

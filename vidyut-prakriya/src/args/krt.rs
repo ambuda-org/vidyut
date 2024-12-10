@@ -1,6 +1,7 @@
 use crate::args::dhatu::Dhatu;
 use crate::args::unadi::Unadi;
 use crate::args::Lakara;
+use crate::args::Prayoga;
 use crate::args::Subanta;
 use crate::core::errors::*;
 use crate::enum_boilerplate;
@@ -100,7 +101,7 @@ pub enum BaseKrt {
     /// -ru (BIru)
     kru,
     /// -ruka (BIruka)
-    kruka,
+    krukan,
     /// -luka (BIluka)
     klukan,
     /// -van
@@ -269,7 +270,7 @@ enum_boilerplate!(BaseKrt, {
     kmarac => "kmarac",
     kyap => "kyap",
     kru => "kru",
-    kruka => "kruka",
+    krukan => "krukan",
     klukan => "klukan",
     kvanip => "kvani~p",
     kvarap => "kvarap",
@@ -419,9 +420,14 @@ pub struct Krdanta {
     krt: Krt,
     /// Whether this krdanta must follow a specific `KrtArtha` condition.
     artha: Option<KrtArtha>,
-    /// Whether this krdanta must replace a specific `Lakara`. If unset, default to `Lat` if
-    /// necessary.
+    /// Whether this krdanta must replace a specific lakara. If unset, default to `Lat`.
+    ///
+    /// (`Satf` and `SAnac` only. This field is ignored for all other values.)
     lakara: Option<Lakara>,
+    /// Whether this krdanta must use a specific prayoga. If unset, default to `Kartari`.
+    ///
+    /// (`Satf` and `SAnac` only. This field is ignored for all other values.)
+    prayoga: Option<Prayoga>,
     /// Whether this krdanta is allowed only with a specific *upapada*.
     upapada: Option<Subanta>,
     /// Whether the derived krdanta must have exactly the specified value.
@@ -438,6 +444,7 @@ impl Krdanta {
             krt: krt.into(),
             artha: None,
             lakara: None,
+            prayoga: None,
             upapada: None,
             require: None,
         }
@@ -477,6 +484,11 @@ impl Krdanta {
         }
     }
 
+    /// The prayoga that this krt-pratyaya should use.
+    pub fn prayoga(&self) -> Option<Prayoga> {
+        self.prayoga
+    }
+
     /// The upapada that conditions the krt pratyaya.
     pub fn upapada(&self) -> &Option<Subanta> {
         &self.upapada
@@ -507,45 +519,55 @@ pub struct KrdantaBuilder {
     upapada: Option<Subanta>,
     artha: Option<KrtArtha>,
     lakara: Option<Lakara>,
+    prayoga: Option<Prayoga>,
     require: Option<String>,
 }
 
 impl KrdantaBuilder {
     /// Sets the krt-pratyaya to use in the derivation.
-    pub fn dhatu(&mut self, dhatu: Dhatu) -> &mut Self {
+    pub fn dhatu(mut self, dhatu: Dhatu) -> Self {
         self.dhatu = Some(dhatu);
         self
     }
 
     /// Sets the krt-pratyaya to use in the derivation.
-    pub fn krt(&mut self, val: impl Into<Krt>) -> &mut Self {
+    pub fn krt(mut self, val: impl Into<Krt>) -> Self {
         self.krt = Some(val.into());
         self
     }
 
     /// Sets the upapada to use in the derivation.
-    pub fn upapada(&mut self, upapada: Subanta) -> &mut Self {
+    pub fn upapada(mut self, upapada: Subanta) -> Self {
         self.upapada = Some(upapada);
         self
     }
 
     /// Sets the upapada to use in the derivation.
-    pub fn artha(&mut self, artha: KrtArtha) -> &mut Self {
+    pub fn artha(mut self, artha: KrtArtha) -> Self {
         self.artha = Some(artha);
         self
     }
 
     /// Sets the lakara to use in the derivation.
     ///
-    /// This field is necessary for pratyayas like Satf and SAnac, which replace a specific lakara.
-    /// If `lakara` is not specified, prakriyas will default to lat-lakara.
-    pub fn lakara(&mut self, lakara: Lakara) -> &mut Self {
+    /// This field is used only for the pratyayas Satf and SAnac, which replace a specific lakara.
+    /// If `lakara` is left unspecified, the program defaults to `Lakara::Lat`.
+    pub fn lakara(mut self, lakara: Lakara) -> Self {
         self.lakara = Some(lakara);
         self
     }
 
+    /// Sets the prayoga to use in the derivation.
+    ///
+    /// This field is used only for the pratyayas Satf and SAnac, which require a specific prayoga.
+    /// If `prayoga` is left unspecified, the program defaults to `Prayoga::Kartari`.
+    pub fn prayoga(mut self, prayoga: Prayoga) -> Self {
+        self.prayoga = Some(prayoga);
+        self
+    }
+
     /// Sets the value that the krdanta must have.
-    pub fn require(&mut self, text: impl AsRef<str>) -> &mut Self {
+    pub fn require(mut self, text: impl AsRef<str>) -> Self {
         self.require = Some(text.as_ref().to_string());
         self
     }
@@ -565,6 +587,7 @@ impl KrdantaBuilder {
             },
             upapada: self.upapada.as_ref().cloned(),
             lakara: self.lakara,
+            prayoga: self.prayoga,
             artha: self.artha,
             require: self.require.clone(),
         })

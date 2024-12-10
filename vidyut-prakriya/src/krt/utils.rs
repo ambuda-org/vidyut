@@ -33,6 +33,7 @@ impl Krt {
 /// - remembers which `krt` pratyaya the caller wishes to add, which simplifies the calling API.
 /// - records whether a `krt` pratyaya has been added or not, which simplifies the control flow for
 ///   optional rules.
+#[derive(Debug)]
 pub(crate) struct KrtPrakriya<'a> {
     /// The underlying prakriya.
     pub p: &'a mut Prakriya,
@@ -60,7 +61,7 @@ impl<'a> KrtPrakriya<'a> {
     }
 
     /// Returns a reference to the underlying dhatu for this prakriya.
-    pub fn dhatu(&self) -> &Term {
+    pub fn dhatu_start(&self) -> &Term {
         self.p.get(self.i_dhatu).expect("present")
     }
 

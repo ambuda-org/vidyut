@@ -249,7 +249,8 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
     }
 
     if let Some(la) = args.lakara() {
-        p.add_tag(PT::Kartari);
+        let prayoga = args.prayoga().unwrap_or(Prayoga::Kartari);
+        p.add_tag(prayoga.as_tag());
         add_lakara_and_decide_pada(p, la);
     }
 

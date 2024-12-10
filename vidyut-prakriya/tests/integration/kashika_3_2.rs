@@ -1282,7 +1282,7 @@ fn sutra_3_2_174() {
 #[test]
 fn sutra_3_2_174_v1() {
     let bhi = d("YiBI\\", Juhotyadi);
-    assert_has_krdanta(&[], &bhi, Krt::kruka, &["BIruka"]);
+    assert_has_krdanta(&[], &bhi, Krt::krukan, &["BIruka"]);
 }
 
 #[ignore]

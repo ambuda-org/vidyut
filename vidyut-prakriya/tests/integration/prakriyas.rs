@@ -3,6 +3,7 @@
 //! TODO: add tests from the पाणिनीयव्याकरणोदाहरणकोषः
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as K;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::*;
@@ -15,6 +16,21 @@ fn tip_args(dhatu: Dhatu, la: Lakara) -> Tinanta {
         .purusha(Purusha::Prathama)
         .vacana(Vacana::Eka)
         .lakara(la)
+        .build()
+        .unwrap()
+}
+
+fn subanta(
+    pratipadika: impl Into<Pratipadika>,
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
+) -> Subanta {
+    Subanta::builder()
+        .pratipadika(pratipadika.into())
+        .linga(linga)
+        .vibhakti(vibhakti)
+        .vacana(vacana)
         .build()
         .unwrap()
 }
@@ -200,4 +216,22 @@ fn nlp_mode() {
     let t = Tester::with_nlp_mode();
     t.assert_has_tas(&[], &d("BU", Bhvadi), Lat, &["Bavatas"]);
     t.assert_has_sup_1s("dvAr", Linga::Pum, &["dvAr"]);
+}
+
+// Fixes a bug reported by Neelesh B.
+#[test]
+fn edha() {
+    use Rule::Ashtadhyayi as A;
+
+    let args = subanta(
+        krdanta(&[], &d("eDa~\\", Tanadi), K::GaY),
+        Linga::Stri,
+        Vibhakti::Prathama,
+        Vacana::Eka,
+    );
+    let t = Tester::default();
+    let ps = t.derive_subantas(&args);
+
+    let p = ps.iter().find(|p| p.text() == "eDA").unwrap();
+    assert_matches_prakriya(p, &[(A("6.1.101"), vec!["eD", "A", "", ""])]);
 }

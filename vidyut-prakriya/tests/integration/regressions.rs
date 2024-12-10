@@ -4,11 +4,12 @@
 //! has been fixed and help ensure that the bug does not reappear.
 extern crate test_utils;
 use test_utils::*;
-use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga};
+use vidyut_prakriya::Vyakarana;
 
 #[test]
 fn ambibat() {
@@ -212,4 +213,45 @@ fn pampanyamanan() {
         .unwrap();
     assert_has_sup_1s(&krt, Pum, &["pampaRyamAnaH"]);
     assert_has_sup_1d(&krt, Pum, &["pampaRyamAnO"]);
+}
+
+#[test]
+fn kr_sat() {
+    use Prayoga::*;
+
+    fn assert_has_sat(
+        dhatu: &Dhatu,
+        krt: Krt,
+        lakara: Lakara,
+        prayoga: Prayoga,
+        expected: &[&str],
+    ) {
+        let v = Vyakarana::new();
+        let args = Krdanta::builder()
+            .lakara(Lrt)
+            .dhatu(dhatu.clone())
+            .lakara(lakara)
+            .prayoga(prayoga)
+            .krt(krt)
+            .build()
+            .unwrap();
+        let prakriyas = v.derive_krdantas(&args);
+        assert_has_results(prakriyas, expected)
+    }
+
+    let kr = d("qukf\\Y", Tanadi);
+    assert_has_sat(&kr, Krt::Satf, Lat, Kartari, &["kurvat"]);
+    assert_has_sat(&kr, Krt::SAnac, Lat, Kartari, &["kurvARa"]);
+    assert_has_sat(&kr, Krt::Satf, Lat, Karmani, &[]);
+    assert_has_sat(&kr, Krt::SAnac, Lat, Karmani, &["kriyamARa"]);
+    assert_has_sat(&kr, Krt::Satf, Lrt, Kartari, &["karizyat"]);
+    assert_has_sat(&kr, Krt::SAnac, Lrt, Kartari, &["karizyamARa"]);
+    assert_has_sat(&kr, Krt::Satf, Lrt, Karmani, &[]);
+    assert_has_sat(
+        &kr,
+        Krt::SAnac,
+        Lrt,
+        Karmani,
+        &["karizyamARa", "kArizyamARa"],
+    );
 }

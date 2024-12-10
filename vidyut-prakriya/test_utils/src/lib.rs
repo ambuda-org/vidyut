@@ -70,17 +70,17 @@ impl Tester {
     }
 
     /// Derives subantas from the given conditions.
-    fn derive_subantas(&self, args: &Subanta) -> Vec<Prakriya> {
+    pub fn derive_subantas(&self, args: &Subanta) -> Vec<Prakriya> {
         self.vyakarana.derive_subantas(args)
     }
 
     /// Derives krdantas from the given conditions.
-    fn derive_krdantas(&self, args: &Krdanta) -> Vec<Prakriya> {
+    pub fn derive_krdantas(&self, args: &Krdanta) -> Vec<Prakriya> {
         self.vyakarana.derive_krdantas(args)
     }
 
     /// Derives taddhitantas from the given conditions.
-    fn derive_taddhitantas(&self, args: &Taddhitanta) -> Vec<Prakriya> {
+    pub fn derive_taddhitantas(&self, args: &Taddhitanta) -> Vec<Prakriya> {
         self.vyakarana.derive_taddhitantas(args)
     }
 

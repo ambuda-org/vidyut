@@ -233,6 +233,7 @@ internal_term!(Aupadeshika, {
     kfvi => "kfvi~",
     ovijI_u => "o~vijI~",
     ovijI_a => "o~vijI~\\",
+    qudAY => "qudA\\Y",
     quDAY => "quDA\\Y",
     qukfY => "qukf\\Y",
     vyaca => "vyaca~",

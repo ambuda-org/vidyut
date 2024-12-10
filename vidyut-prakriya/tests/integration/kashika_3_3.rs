@@ -426,7 +426,7 @@ fn sutra_3_3_59() {
 fn sutra_3_3_60() {
     let ad = d("a\\da~", Adadi);
     assert_has_bhave_krdanta(&["ni"], &ad, Krt::ap, &["niGasa"]);
-    assert_has_bhave_krdanta(&["ni"], &ad, Krt::aR, &["nyAda"]);
+    assert_has_bhave_krdanta(&["ni"], &ad, Krt::Ra, &["nyAda"]);
 }
 
 #[test]
@@ -617,6 +617,20 @@ fn sutra_3_3_94() {
     assert_has_krdanta(&[], &d("ci\\Y", Svadi), Krt::ktin, &["citi"]);
     assert_has_krdanta(&[], &d("ma\\na~\\", Divadi), Krt::ktin, &["mati"]);
     // TODO: others
+}
+
+#[ignore]
+#[test]
+fn sutra_3_3_100() {
+    let kr = d("qukf\\Y", Tanadi);
+    assert_has_krdanta(&[], &kr, Krt::Sa, &["kriyA"]);
+    assert_has_krdanta(&[], &kr, Krt::kyap, &["kftyA"]);
+    assert_has_krdanta(&[], &kr, Krt::ktin, &["kfti"]);
+}
+
+#[test]
+fn sutra_3_3_101() {
+    assert_has_krdanta(&[], &d("izu~", Tudadi), Krt::Sa, &["icCA"]);
 }
 
 #[test]

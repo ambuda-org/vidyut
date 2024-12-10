@@ -117,14 +117,19 @@ class Vidyut {
      * krt: a `Krt`
      * sanadi: a list of strings. Valid values are "san", "Ric", "yaN", and "yaNluk".
      * upasargas: a list of strings. For the upasarga "A", pass "AN".
+     *
+     * lakara: (for Satf and SAnac only) the lakAra to use.
+     * prayoga: (for Satf and SAnac only) the prayoga to use.
      */
-    deriveKrdantas({ dhatu, krt, sanadi = [], upasarga = [] }) {
+    deriveKrdantas({ dhatu, krt, sanadi = [], upasarga = [], lakara = null, prayoga = null }) {
         // For argument order, see wasm.rs.
         return this.wasm.deriveKrdantas({
             code: dhatu.code,
             krt: BaseKrt[krt],
             sanadi,
             upasarga,
+            lakara: lakara ? Lakara[lakara] : null,
+            prayoga: prayoga ? Prayoga[prayoga] : null,
         })
     }
 }
@@ -763,6 +768,25 @@ const App = () => ({
                     args
                 });
             });
+
+            // Expansion for Satf/SAnac.
+            if (krt == BaseKrt.Satf || krt == BaseKrt.SAnac) {
+                let allArgs = [
+                    { ...args, prayoga: Prayoga.Karmani, lakara: Lakara.Lat },
+                    { ...args, prayoga: Prayoga.Kartari, lakara: Lakara.Lrt },
+                    { ...args, prayoga: Prayoga.Karmani, lakara: Lakara.Lrt },
+                ];
+                allArgs.forEach((args) => {
+                    const prakriyas = this.vidyut.deriveKrdantas(args)
+                    prakriyas.forEach((p) => {
+                        padas.push({
+                            text: p.text,
+                            type: "krdanta",
+                            args
+                        });
+                    });
+                });
+            }
 
             if (padas.length !== 0) {
                 ret.push({
