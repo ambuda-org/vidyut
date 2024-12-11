@@ -38,30 +38,22 @@ pub struct Tester {
 
 impl Tester {
     /// Creates a tester with our default settings.
-    pub fn new(ashtadhyayi: Vyakarana) -> Self {
-        Self {
-            vyakarana: ashtadhyayi,
-        }
+    pub fn new(vyakarana: Vyakarana) -> Self {
+        Self { vyakarana }
     }
 
     /// Creates a tester that enables chAndasa rules.
     pub fn with_chaandasa() -> Self {
-        Self {
-            vyakarana: Vyakarana::builder().is_chandasi(true).build(),
-        }
+        Self::new(Vyakarana::builder().is_chandasi(true).build())
     }
 
     /// Creates a tester that enables svara rules.
     pub fn with_svara_rules() -> Self {
-        Self {
-            vyakarana: Vyakarana::builder().use_svaras(true).build(),
-        }
+        Self::new(Vyakarana::builder().use_svaras(true).build())
     }
 
     pub fn with_nlp_mode() -> Self {
-        Self {
-            vyakarana: Vyakarana::builder().nlp_mode(true).build(),
-        }
+        Self::new(Vyakarana::builder().nlp_mode(true).build())
     }
 
     /// Derives tinantas from the given conditions.
@@ -153,6 +145,20 @@ impl Tester {
         let mut actual = self.derive_krdantas(&spec);
         actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
         sort_and_dedup(&mut actual);
+        assert_has_results(actual, expected);
+    }
+
+    pub fn assert_has_upapada_krdanta(
+        &self,
+        upapada: impl Into<Pratipadika>,
+        prefixes: &[&str],
+        dhatu: &Dhatu,
+        krt: impl Into<Krt>,
+        expected: &[&str],
+    ) {
+        let args = upapada_krdanta(upapada, prefixes, dhatu, krt);
+        let mut actual = self.derive_krdantas(&args);
+        actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
         assert_has_results(actual, expected);
     }
 
@@ -624,10 +630,7 @@ pub fn assert_has_upapada_krdanta(
     expected: &[&str],
 ) {
     let t = Tester::default();
-    let args = upapada_krdanta(upapada, prefixes, dhatu, krt);
-    let mut actual = t.derive_krdantas(&args);
-    actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
-    assert_has_results(actual, expected);
+    t.assert_has_upapada_krdanta(upapada, prefixes, dhatu, krt, expected);
 }
 
 /// Creates a krdanta as a pratipadika.

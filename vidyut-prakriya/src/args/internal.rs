@@ -98,6 +98,7 @@ internal_term!(Vikarana, {
     Syan => "Syan",
     sic => "si~c",
     sya => "sya",
+    sip => "si~p",
 });
 
 internal_term!(Agama, {

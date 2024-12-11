@@ -33,9 +33,9 @@ use crate::args::Agama as A;
 use crate::args::Aupadeshika as Au;
 use crate::args::Gana::*;
 use crate::args::Sanadi as S;
+use crate::args::Unadi;
 use crate::args::Upasarga as Up;
 use crate::args::{Agama, Upasarga};
-use crate::args::{Krt, Unadi};
 use crate::core::operators as op;
 use crate::core::Term;
 use crate::core::{Decision, Prakriya, Rule};
@@ -3108,10 +3108,6 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
     Some(up.added)
 }
 
-pub fn run(p: &mut Prakriya, krt: Krt) -> bool {
-    if let Krt::Unadi(unadi) = krt {
-        add_unadi(p, unadi).unwrap_or(false)
-    } else {
-        false
-    }
+pub fn run(p: &mut Prakriya, unadi: Unadi) -> bool {
+    add_unadi(p, unadi).unwrap_or(false)
 }

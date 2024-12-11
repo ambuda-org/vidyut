@@ -194,7 +194,8 @@ fn try_dirgha_for_it_agama(p: &mut Prakriya, i_it: usize) -> Option<()> {
     let n = p.pratyaya(i_it)?;
 
     let last = p.terms().last()?;
-    if last.has_lakara(Lit) {
+    if last.has_lakara_in(&[Lit, Let]) {
+        // Also exclude Let, since these are rare forms.
         return None;
     }
 

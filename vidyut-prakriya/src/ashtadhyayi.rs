@@ -27,8 +27,8 @@ use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
-    Artha, Dhatu, Krdanta, Lakara, Pada, Pratipadika, Prayoga, Samasa, Subanta, Sup, Taddhitanta,
-    Tinanta, Upasarga,
+    Artha, Dhatu, Krdanta, Krt, Lakara, Pada, Pratipadika, Prayoga, Samasa, Subanta, Sup,
+    Taddhitanta, Tinanta, Upasarga,
 };
 use crate::atidesha;
 use crate::atmanepada;
@@ -254,7 +254,11 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
         add_lakara_and_decide_pada(p, la);
     }
 
-    let added = krt::run(p, args);
+    let added = match args.krt() {
+        Krt::Unadi(unadi) => krt::unadipatha::run(p, unadi),
+        Krt::Base(base) => krt::basic::run(p, base),
+    };
+
     if !added {
         return Err(Error::Abort(p.rule_choices().to_vec()));
     }

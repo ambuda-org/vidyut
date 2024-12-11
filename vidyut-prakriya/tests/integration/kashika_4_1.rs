@@ -22,6 +22,9 @@ fn assert_blocked(text: &str, artha: TaddhitaArtha, t: T) {
 }
 
 #[test]
+fn skip_sutra_4_1_1() {}
+
+#[test]
 fn sutra_4_1_2() {
     // NIp
     let kumari = nyap("kumArI");

@@ -33,3 +33,8 @@ pub fn run_pad_adi(p: &mut Prakriya) -> Option<()> {
 
     Some(())
 }
+
+// Returns whether this dhatu uses sip-vikarana in leT-lakAra.
+pub fn uses_sip_vikarana(p: &mut Prakriya, i: usize) -> bool {
+    p.has(i, |t| t.has_text_in(&["juz", "mand"]) || t.has_u("tF"))
+}

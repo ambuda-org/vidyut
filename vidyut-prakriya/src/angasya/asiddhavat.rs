@@ -862,14 +862,15 @@ pub fn run_for_ni_at_index(p: &mut Prakriya, i_ni: usize) -> Option<()> {
 }
 
 fn try_kr_rule(p: &mut Prakriya, i: usize) -> Option<()> {
-    let i_n = p.next_not_empty(i)?;
+    let i_u = i + 1;
+    let i_sarva = p.find_next_where(i_u, |t| t.is_pratyaya() && !t.is_lupta())?;
 
     let anga = p.get(i)?;
-    let n = p.pratyaya(i_n)?;
-    let last = p.terms().last()?;
+    let u = p.get(i_u)?;
+    let sarva = p.get(i_sarva)?;
 
-    let sarva_kniti = last.is_sarvadhatuka() && last.is_knit();
-    if anga.is_u(Au::qukfY) && anga.has_text("kar") && n.has_adi('u') && sarva_kniti {
+    let sarva_kniti = sarva.is_sarvadhatuka() && sarva.is_knit();
+    if anga.is_u(Au::qukfY) && anga.has_text("kar") && u.is(V::u) && sarva_kniti {
         p.run_at("6.4.110", i, op::text("kur"));
     }
 

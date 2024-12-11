@@ -239,7 +239,12 @@ fn kr_sat() {
         assert_has_results(prakriyas, expected)
     }
 
-    let kr = d("qukf\\Y", Tanadi);
+    let kr = &d("qukf\\Y", Tanadi);
+
+    // Check the subanta form since 6.4.100 was previously buggy.
+    let kurvat = krdanta(&[], &kr, Krt::Satf);
+    assert_has_sup_1s(kurvat, Pum, &["kurvan"]);
+
     assert_has_sat(&kr, Krt::Satf, Lat, Kartari, &["kurvat"]);
     assert_has_sat(&kr, Krt::SAnac, Lat, Kartari, &["kurvARa"]);
     assert_has_sat(&kr, Krt::Satf, Lat, Karmani, &[]);

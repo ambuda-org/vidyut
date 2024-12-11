@@ -386,6 +386,24 @@ fn sutra_3_1_33() {
 }
 
 #[test]
+fn sutra_3_1_34() {
+    // No `\\` to force parasmaipada
+    // -ti forms are not attested but optional by 3.4.97.
+    assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat", "jozizati"]);
+    assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat", "tArizati"]);
+    assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat", "mandizati"]);
+
+    // -t forms are not attested but optional by 3.4.97.
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti", "patAt"]);
+    assert_has_tip(
+        &[],
+        &nic(&d("cyu\\N", Bhvadi)),
+        Let,
+        &["cyAvayAti", "cyAvayAt"],
+    );
+}
+
+#[test]
 fn sutra_3_1_35() {
     assert_has_lit(
         &[],
@@ -1022,6 +1040,27 @@ fn sutra_3_1_100_v1() {
 }
 
 #[test]
+fn sutra_3_1_102() {
+    let vah = d("va\\ha~^", Bhvadi);
+    assert_has_krdanta(&[], &vah, Krt::yat, &["vahya"]);
+    assert_has_krdanta(&[], &vah, Krt::Ryat, &["vAhya"]);
+}
+
+#[test]
+fn sutra_3_1_103() {
+    let f = d("f\\", Bhvadi);
+    assert_has_krdanta(&[], &f, Krt::yat, &["arya"]);
+    assert_has_krdanta(&[], &f, Krt::Ryat, &["Arya"]);
+}
+
+#[test]
+fn sutra_3_1_104() {
+    let sf = d("sf\\", Bhvadi);
+    assert_has_krdanta(&["upa"], &sf, Krt::yat, &["upasaryA"]);
+    assert_has_krdanta(&["upa"], &sf, Krt::Ryat, &["upasArya"]);
+}
+
+#[test]
 fn sutra_3_1_106() {
     let vad = d("vada~", Bhvadi);
     assert_has_upapada_krdanta("brahma", &[], &vad, Krt::yat, &["brahmavadya"]);
@@ -1039,15 +1078,20 @@ fn sutra_3_1_107() {
     assert_has_krdanta(&["pra"], &bhu, Krt::yat, &["praBavya"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_1_108() {
     let han = d("ha\\na~", Adadi);
     assert_has_upapada_krdanta("brahma", &[], &han, Krt::kyap, &["brahmahatya"]);
     assert_has_upapada_krdanta("aSva", &[], &han, Krt::kyap, &["aSvahatya"]);
+
+    // anupasargAt?
+    assert_has_krdanta(&["pra"], &han, Krt::kyap, &[]);
+    assert_has_krdanta(&["pra"], &han, Krt::GaY, &["praGAta"]);
+
     // supi?
     assert_has_krdanta(&[], &han, Krt::GaY, &["GAta"]);
-    assert_has_krdanta(&[], &han, Krt::Ryat, &[]);
+    // TODO: block GAtya
+    // assert_has_krdanta(&[], &han, Krt::Ryat, &[]);
 }
 
 #[test]
@@ -1099,7 +1143,8 @@ fn sutra_3_1_113() {
 #[test]
 fn sutra_3_1_120() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_krdanta(&[], &kf, Krt::kyap, &["kftya"]);
+    // kftyA (strI) by 3.3.100.
+    assert_has_krdanta(&[], &kf, Krt::kyap, &["kftya", "kftyA"]);
     assert_has_krdanta(&[], &kf, Krt::Ryat, &["kArya"]);
     let vfz = d("vfzu~", Bhvadi);
     assert_has_krdanta(&[], &vfz, Krt::kyap, &["vfzya"]);

@@ -252,7 +252,13 @@ fn sutra_3_4_93() {
     assert_has_mahin(&[], &kf, Lot, &["karavAmahE"]);
 }
 
-// 3.4.94 - 3.4.98 are for lew.
+#[ignore]
+#[test]
+fn sutra_3_4_98() {
+    let kf = d("qukf\\Y", Tanadi);
+    assert_has_vas(&[], &kf, Let, &["karavAva", "karavAvaH"]);
+    assert_has_mas(&[], &kf, Let, &["karavAma", "karavAmaH"]);
+}
 
 #[test]
 fn sutra_3_4_99() {

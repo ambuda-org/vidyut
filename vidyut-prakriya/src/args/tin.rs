@@ -148,7 +148,7 @@ impl Lakara {
             Lat => "la~w",
             Lit => "li~w",
             Lut => "lu~w",
-            Lrt => "lr~w",
+            Lrt => "lf~w",
             Let => "le~w",
             Lot => "lo~w",
             Lan => "laN",

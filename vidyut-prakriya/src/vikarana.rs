@@ -26,6 +26,7 @@ use crate::core::operators as op;
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Rule::Varttika, Tag as T, Term};
 use crate::dhatu_gana::{DYUT_ADI, PUSH_ADI};
 use crate::it_samjna;
+use crate::misc::uses_sip_vikarana;
 use crate::sounds::{s, Set, IK};
 
 const SHAL: Set = s(&["Sal"]);
@@ -604,6 +605,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
 
     let i_tin = p.find_last_where(|t| t.is_sarvadhatuka())?;
     let tin = p.get(i_tin)?;
+    let i_dhatu = p.find_prev_where(i_tin, |t| t.is_dhatu())?;
 
     if tin.lakara.map_or(false, |la| matches!(la, Lrt | Lrn | Lut)) {
         if tin.has_lakara(Lut) {
@@ -612,6 +614,18 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         } else {
             // Bavizyati
             p.run("3.1.33", add_vikarana(sya));
+        }
+    } else if tin.has_lakara(Let) {
+        if uses_sip_vikarana(p, i_dhatu) {
+            // jozizat, mandizat, tArizat
+            p.run("3.1.34", add_vikarana(sip));
+
+            let dhatu = p.get(i_dhatu)?;
+            if dhatu.has_u("tF") {
+                // sib bahulaM RidvaktavyaH
+                // tArizat
+                p.run_at(Varttika("3.1.34.1"), i_dhatu + 1, |t| t.add_tag(T::Rit));
+            }
         }
     } else if tin.has_lakara(Lun) {
         add_lun_vikarana(p);

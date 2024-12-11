@@ -19,6 +19,7 @@ use crate::args::{
 use crate::core::operators as op;
 use crate::core::{Code, Morph, Prakriya, PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
+use crate::misc::uses_sip_vikarana;
 
 const TIN_PARA: &[&str] = &["tip", "tas", "Ji", "sip", "Tas", "Ta", "mip", "vas", "mas"];
 const NAL_PARA: &[&str] = &["Ral", "atus", "us", "Tal", "aTus", "a", "Ral", "va", "ma"];
@@ -90,7 +91,6 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         return None;
     }
 
-    let dhatu = p.get(i_dhatu)?;
     let tin = p.get(i)?;
     let la = tin.lakara?;
 
@@ -104,7 +104,11 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         } else {
             p.run_at("3.4.79", i, op::ti("e"));
         }
-    } else if tin.has_lakara(Lit) && tin.is_parasmaipada() {
+    }
+
+    let dhatu = p.get(i_dhatu)?;
+    let tin = p.get(i)?;
+    if tin.has_lakara(Lit) && tin.is_parasmaipada() {
         yatha("3.4.82", p, i, TIN_PARA, NAL_PARA);
     } else if tin.has_lakara(Lat) && tin.is_parasmaipada() {
         if dhatu.is_u(Au::vida_2) && tin.has_u_in(TIN_PARA) {
@@ -116,24 +120,33 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
                 it_samjna::run(p, i).ok();
             });
         }
-    }
+    } else if tin.has_lakara(Let) {
+        let agama = if uses_sip_vikarana(p, i_dhatu) {
+            A::aw
+        } else {
+            A::Aw
+        };
+        p.run("3.4.94", |p| {
+            // Add pit to the pratyaya, not the Agama.
+            p.set(i, |t| t.add_tag(T::pit));
+            p.insert_before(i, agama);
+        });
+        it_samjna::run(p, i).ok()?;
 
-    // leT-only rules.
-    // TODO: 3.4.94 - 3.4.98
-    let tin = p.get(i)?;
-    if tin.has_lakara(Let) {
+        let i = i + 1;
+        let tin = p.get(i)?;
         if tin.has_adi('A') {
             // mantrayEte, mantrayETe ,...
             p.run_at("3.4.95", i, op::adi("E"));
         } else if tin.is_parasmaipada() && tin.has_antya('i') {
             // jozizat, patAti, ...
-            p.optional_run_at("3.4.97", i, op::lopa);
+            p.optional_run_at("3.4.97", i, op::antya_lopa);
+        } else if p.has_tag(PT::Uttama) && tin.has_antya('s') {
+            // karavAva, karavAma; karavAvaH, karavAmaH
+            p.optional_run_at("3.4.98", i, op::antya_lopa);
         }
-    }
-
-    // Applies tin-siddhi rules that apply to just loT.
-    let tin = p.get(i)?;
-    if tin.has_lakara(Lot) {
+    } else if tin.has_lakara(Lot) {
+        // Applies tin-siddhi rules that apply to just loT.
         if tin.is(Tin::sip) {
             p.run_at("3.4.87", i, |t| {
                 t.set_u("hi");

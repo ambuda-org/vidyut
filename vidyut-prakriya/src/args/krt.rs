@@ -140,6 +140,8 @@ pub enum BaseKrt {
     Nvanip,
     /// -Ana
     cAnaS,
+    /// -ana
+    Yyuw,
     /// -a
     wa,
     /// -a
@@ -186,6 +188,8 @@ pub enum BaseKrt {
     najiN,
     /// -na (svapna)
     nan,
+    /// -ni,
+    ni,
     /// -man
     manin,
     /// -a
@@ -289,6 +293,7 @@ enum_boilerplate!(BaseKrt, {
     GinuR => "Ginu~R",
     Gurac => "Gurac",
     Nvanip => "Nvani~p",
+    Yyuw => "Yyu~w",
     wa => "wa",
     wak => "wak",
     qa => "qa",
@@ -312,6 +317,7 @@ enum_boilerplate!(BaseKrt, {
     naN => "naN",
     najiN => "naji~N",
     nan => "nan",
+    ni => "ni",
     manin => "mani~n",
     Sa => "Sa",
     Satf => "Satf~",

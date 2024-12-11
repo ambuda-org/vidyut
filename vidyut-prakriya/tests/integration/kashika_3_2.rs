@@ -357,7 +357,20 @@ fn sutra_3_2_26() {
     assert_has_upapada_krdanta("Atman", &[], &bhf, Krt::in_, &["AtmamBari"]);
 }
 
-// 3.2.27 is chAndasa.
+#[test]
+fn sutra_3_2_27() {
+    let t = Tester::with_chaandasa();
+    t.assert_has_upapada_krdanta(
+        "brahman",
+        &[],
+        &d("vanu~\\", Tanadi),
+        Krt::in_,
+        &["brahmavani"],
+    );
+    t.assert_has_upapada_krdanta("go", &[], &d("zaRa~", Bhvadi), Krt::in_, &["gozaRi"]);
+    t.assert_has_upapada_krdanta("paTin", &[], &d("rakza~", Bhvadi), Krt::in_, &["paTirakzi"]);
+    t.assert_has_upapada_krdanta("havis", &[], &d("maTe~", Bhvadi), Krt::in_, &["havirmaTi"]);
+}
 
 #[ignore]
 #[test]
@@ -512,7 +525,11 @@ fn sutra_3_2_45() {
     assert_has_upapada_krdanta("ASita", &[], &bhu, Krt::Kac, &["ASitamBava"]);
 }
 
-// 3.2.46 - 3.2.47 are for samjnas.
+#[test]
+fn sutra_3_2_47() {
+    let gam = d("ga\\mx~", Bhvadi);
+    assert_has_upapada_krdanta("suta", &[], &gam, Krt::Kac, &["sutaNgama"]);
+}
 
 #[test]
 fn sutra_3_2_48() {
@@ -728,7 +745,23 @@ fn sutra_3_2_64() {
     assert_has_upapada_krdanta("ditya", &[], &vah, Krt::Rvi, &["dityavAh"]);
 }
 
-// 3.2.65 - 3.2.67 are chAndasa.
+#[ignore]
+#[test]
+fn sutra_3_2_65() {
+    let t = Tester::with_chaandasa();
+    let vah = d("va\\ha~^", Bhvadi);
+    t.assert_has_upapada_krdanta("kavya", &[], &vah, Krt::Yyuw, &["kavyavAhana"]);
+    t.assert_has_upapada_krdanta("purIza", &[], &vah, Krt::Yyuw, &["purIzavAhaRa"]);
+    t.assert_has_upapada_krdanta("purIzya", &[], &vah, Krt::Yyuw, &["purIzyavAhana"]);
+}
+
+#[test]
+fn sutra_3_2_66() {
+    let t = Tester::with_chaandasa();
+    let vah = d("va\\ha~^", Bhvadi);
+    t.assert_has_upapada_krdanta("havya", &[], &vah, Krt::Yyuw, &["havyavAhana"]);
+    t.assert_has_upapada_krdanta("havya", &[], &vah, Krt::Rvi, &["havyavAh"]);
+}
 
 #[test]
 fn sutra_3_2_68() {
