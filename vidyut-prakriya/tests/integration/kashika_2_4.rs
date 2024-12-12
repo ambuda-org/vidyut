@@ -383,5 +383,5 @@ fn sutra_2_4_85() {
 
     // praTamasya
     assert_has_sip(&[], &kf, Lut, &["kartAsi"]);
-    assert_has_tinantas(&["aDi"], &i, Lut, Madhyama, Eka, &["aDyetAse"]);
+    assert_has_thaas(&["aDi"], &i, Lut, &["aDyetAse"]);
 }

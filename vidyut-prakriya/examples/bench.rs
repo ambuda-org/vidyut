@@ -70,7 +70,7 @@ fn run(dhatupatha: Dhatupatha) -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        println!("{:?}", dhatu.upadesha());
+        println!("{:?}", dhatu.aupadeshika());
     }
 
     println!("Generated {} forms.", total);

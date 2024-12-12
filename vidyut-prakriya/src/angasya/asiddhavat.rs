@@ -970,8 +970,14 @@ pub fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
         }
     } else if bha.has_text("pAd") {
         p.run_at("6.4.130", i, op::text("pad"));
-    } else if bha.has_u("kvasu~") {
-        p.run_at("6.4.131", i, op::text("us"));
+    } else if bha.is(K::kvasu) || bha.has_u("vasu~") {
+        p.run("6.4.131", |p| {
+            p.set(i, op::text("us"));
+            // valAdi is lost, so iw-Agama is also lost.
+            if i > 0 && p.has(i - 1, |t| t.is(A::iw)) {
+                p.terms_mut().remove(i - 1);
+            }
+        });
     } else if i > 0 && p.has(i - 1, |t| t.has_text("vAh")) {
         p.run_at("6.4.132", i - 1, |t| {
             t.set_text("Uh");
@@ -1176,7 +1182,7 @@ pub fn run_after_guna(p: &mut Prakriya, i: usize) -> Option<()> {
                     // pradAya
                     p.step("6.4.69");
                 }
-            } else {
+            } else if !dhatu.has_tag(T::Complete) {
                 // deya
                 p.run_at("6.4.66", i, op::antya("I"));
             }

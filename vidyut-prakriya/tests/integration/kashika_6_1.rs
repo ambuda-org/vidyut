@@ -5,10 +5,8 @@ use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Purusha::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
-use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::*;
 
 lazy_static! {
@@ -388,13 +386,13 @@ fn sutra_6_1_28() {
 #[test]
 fn sutra_6_1_29() {
     let pyay = d("o~pyAyI~\\", Bhvadi);
-    assert_has_tinantas(&["AN"], &pyay, Lit, Prathama, Eka, &["Apipye"]);
-    assert_has_tinantas(&["AN"], &pyay, Lit, Prathama, Dvi, &["ApipyAte"]);
-    assert_has_tinantas(&["AN"], &pyay, Lit, Prathama, Bahu, &["Apipyire"]);
+    assert_has_ta(&["AN"], &pyay, Lit, &["Apipye"]);
+    assert_has_aataam(&["AN"], &pyay, Lit, &["ApipyAte"]);
+    assert_has_jha(&["AN"], &pyay, Lit, &["Apipyire"]);
     // yaNi
-    assert_has_tinantas(&["AN"], &yan(&pyay), Lat, Prathama, Eka, &["ApepIyate"]);
-    assert_has_tinantas(&["AN"], &yan(&pyay), Lat, Prathama, Dvi, &["ApepIyete"]);
-    assert_has_tinantas(&["AN"], &yan(&pyay), Lat, Prathama, Bahu, &["ApepIyante"]);
+    assert_has_ta(&["AN"], &yan(&pyay), Lat, &["ApepIyate"]);
+    assert_has_aataam(&["AN"], &yan(&pyay), Lat, &["ApepIyete"]);
+    assert_has_jha(&["AN"], &yan(&pyay), Lat, &["ApepIyante"]);
 }
 
 #[test]

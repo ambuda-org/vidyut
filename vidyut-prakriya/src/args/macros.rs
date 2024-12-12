@@ -14,14 +14,14 @@ macro_rules! enum_boilerplate {
 
             /// Iterates over all values of this enum in order.
             #[allow(dead_code)]
-            pub fn iter() -> impl Iterator<Item = &'static $Enum> {
-                /// In Rust, `const` items are created at compile time.
+            pub fn iter() -> impl Iterator<Item = $Enum> {
+                // In Rust, `const` items are created at compile time.
                 const ITEMS: &[$Enum] = &[
                     $(
                         $Enum::$variant,
                     )*
                 ];
-                ITEMS.iter()
+                ITEMS.iter().copied()
             }
         }
 
@@ -32,7 +32,7 @@ macro_rules! enum_boilerplate {
                     $(
                         $str => $Enum::$variant,
                     )*
-                    _ => return Err(Error::enum_parse_error(value))
+                    _ => return Err($crate::core::errors::Error::enum_parse_error(value))
                 };
                 Ok(ret)
             }

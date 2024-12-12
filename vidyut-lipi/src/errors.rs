@@ -12,6 +12,8 @@ pub enum LipiError {
     ParseError,
 }
 
+impl std::error::Error for LipiError {}
+
 impl fmt::Display for LipiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use LipiError::*;

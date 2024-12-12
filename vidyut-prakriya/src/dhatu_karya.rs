@@ -26,7 +26,7 @@ use crate::samjna;
 /// Adds the *mūla-dhātu* to the prakriya.
 fn add_mula_dhatu(p: &mut Prakriya, dhatu: &Muladhatu) {
     p.run("1.3.1", |p| {
-        let mut dhatu = Term::make_dhatu(dhatu.upadesha(), dhatu.gana(), dhatu.antargana());
+        let mut dhatu = Term::make_dhatu(dhatu.aupadeshika(), dhatu.gana(), dhatu.antargana());
         dhatu.add_tags(&[T::Dhatu, T::MulaDhatu]);
         p.push(dhatu);
     });
@@ -303,7 +303,7 @@ pub fn run(p: &mut Prakriya, dhatu: &Muladhatu) -> Result<()> {
         add_samjnas(p, i_dhatu);
 
         if p.has(i_dhatu, |t| t.is_empty()) {
-            return Err(Error::invalid_upadesha(dhatu.upadesha()));
+            return Err(Error::invalid_upadesha(dhatu.aupadeshika()));
         }
     }
 

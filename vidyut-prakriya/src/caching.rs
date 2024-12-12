@@ -79,3 +79,40 @@ pub(crate) fn calculate_hash<T: Hash>(t: &T) -> u64 {
     t.hash(&mut s);
     s.finish()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic_caching() {
+        let mut c: Cache<u64, u64> = Cache::new(3);
+
+        // Empty cache
+        assert_eq!(c.read(&1), None);
+
+        // Fill up cache
+        c.write(1, 10);
+        assert_eq!(c.read(&1), Some(&10));
+        c.write(2, 20);
+        assert_eq!(c.read(&2), Some(&20));
+        c.write(3, 30);
+        assert_eq!(c.read(&3), Some(&30));
+
+        // Cache eviction of 1.
+        c.write(4, 40);
+        assert_eq!(c.read(&1), None);
+
+        // Cache eviction of 3, since 2 is recently read.
+        assert_eq!(c.read(&2), Some(&20));
+        c.write(5, 50);
+        assert_eq!(c.read(&2), Some(&20));
+
+        // Final state.
+        assert_eq!(c.read(&1), None);
+        assert_eq!(c.read(&2), Some(&20));
+        assert_eq!(c.read(&3), None);
+        assert_eq!(c.read(&4), Some(&40));
+        assert_eq!(c.read(&5), Some(&50));
+    }
+}

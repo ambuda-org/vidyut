@@ -4,7 +4,7 @@ use vidyut_prakriya::Vyakarana;
 fn derive(upadesha: &str, gana: &str, prayoga: Prayoga) -> Vec<String> {
     let v = Vyakarana::new();
     let dhatu = Dhatu::builder()
-        .upadesha(upadesha)
+        .aupadeshika(upadesha)
         .gana(gana.parse().expect("ok"))
         .build()
         .unwrap();

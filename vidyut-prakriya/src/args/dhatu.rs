@@ -183,7 +183,7 @@ enum_boilerplate!(Sanadi, {
 #[derive(Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Muladhatu {
-    upadesha: String,
+    aupadeshika: String,
     gana: Gana,
     antargana: Option<Antargana>,
     sanadi: Vec<Sanadi>,
@@ -194,7 +194,7 @@ impl Muladhatu {
     /// Creates a new *mūla-dhātu*.
     pub fn new(upadesha: &str, gana: Gana) -> Self {
         Self {
-            upadesha: String::from(upadesha),
+            aupadeshika: String::from(upadesha),
             gana,
             antargana: None,
             sanadi: Vec::new(),
@@ -204,8 +204,8 @@ impl Muladhatu {
     /// The dhatu as stated in its *aupadeśika* form. `upadesha` should be an SLP1 string that
     /// includes any necessary svaras. For examples, see the `dhatu` column in the
     /// `data/dhatupatha.tsv` file included in this crate.
-    pub fn upadesha(&self) -> &String {
-        &self.upadesha
+    pub fn aupadeshika(&self) -> &String {
+        &self.aupadeshika
     }
 
     /// The dhatu's *gaṇa*.
@@ -480,10 +480,10 @@ impl Dhatu {
         }
     }
 
-    /// The upadesha to use with this dhatu, if defined.
-    pub fn upadesha(&self) -> Option<&String> {
+    /// The aupadeshika text for this dhatu, if defined.
+    pub fn aupadeshika(&self) -> Option<&String> {
         match self {
-            Self::Mula(m) => Some(m.upadesha()),
+            Self::Mula(m) => Some(m.aupadeshika()),
             _ => None,
         }
     }
@@ -541,7 +541,7 @@ impl Dhatu {
 #[derive(Clone, Default, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct DhatuBuilder {
-    upadesha: Option<String>,
+    aupadeshika: Option<String>,
     gana: Option<Gana>,
     antargana: Option<Antargana>,
     sanadi: Vec<Sanadi>,
@@ -553,8 +553,8 @@ impl DhatuBuilder {
     ///
     /// - For mula dhatus, this should be the dhatu as listed in the Dhatupatha, including svaras.
     /// - For namadhatus, this should be the text of the pratipadika.
-    pub fn upadesha(mut self, text: &str) -> Self {
-        self.upadesha = Some(String::from(text));
+    pub fn aupadeshika(mut self, text: &str) -> Self {
+        self.aupadeshika = Some(String::from(text));
         self
     }
 
@@ -588,9 +588,9 @@ impl DhatuBuilder {
     /// Converts the arguments in this builder into a `Dhatu` struct.
     pub fn build(self) -> Result<Dhatu, Error> {
         Ok(Dhatu::Mula(Muladhatu {
-            upadesha: match self.upadesha {
+            aupadeshika: match self.aupadeshika {
                 Some(x) => x,
-                _ => return Err(Error::missing_required_field("upadesha")),
+                _ => return Err(Error::missing_required_field("aupadeshika")),
             },
             gana: match self.gana {
                 Some(x) => x,

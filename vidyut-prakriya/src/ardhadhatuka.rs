@@ -371,9 +371,14 @@ pub fn run_before_vikarana(
         // anudAtta to prevent iT
         op::adesha("2.4.53", p, i, "va\\ci~");
     } else if dhatu.has_u("aja~") && !n.last().is_any_krt(&[K::GaY, K::ap]) {
-        let mut run = true;
-        if n.last().is(K::lyuw) {
-            run = !p.optional_run("2.4.57", |_| {});
+        let mut blocked = false;
+
+        if n.last().is(K::kyap) {
+            // samajyA
+            p.step(Varttika("2.4.56.1"));
+            blocked = true;
+        } else if n.last().is(K::lyuw) {
+            blocked = p.optional_run("2.4.57", |_| {});
         }
 
         // vArttika: valAdAvArdhadhAtuke veSyate
@@ -398,9 +403,9 @@ pub fn run_before_vikarana(
         // HACK: ignore Rvul, since it will be replaced with -aka.
         // HACK: ignore unadi, since here it seems mandatory.
         if n.has_adi(VAL) && will_have_valadi && !n.is_unadi() && !n.has_text("vu~") {
-            run = !p.optionally(Varttika("2.4.56.2"), |rule, p| p.step(rule));
+            blocked = p.optionally(Varttika("2.4.56.2"), |rule, p| p.step(rule));
         }
-        if run {
+        if !blocked {
             // aniT-tva comes from anudAtta in upadesha.
             op::adesha("2.4.56", p, i, "vI\\");
         }

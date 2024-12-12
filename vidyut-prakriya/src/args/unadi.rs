@@ -957,3 +957,10 @@ enum_boilerplate!(Unadi, {
     sya => "sya",
     syan => "syan",
 });
+
+impl Unadi {
+    /// Returns the *aupadesika* form of this pratyaya.
+    pub fn aupadeshika(&self) -> &'static str {
+        self.as_str()
+    }
+}

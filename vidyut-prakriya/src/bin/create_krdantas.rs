@@ -45,7 +45,7 @@ fn linga_vibhakti_vacana_options() -> Vec<(Linga, Vibhakti, Vacana)> {
     for linga in Linga::iter() {
         for vibhakti in Vibhakti::iter() {
             for vacana in Vacana::iter() {
-                ret.push((*linga, *vibhakti, *vacana))
+                ret.push((linga, vibhakti, vacana))
             }
         }
     }
@@ -59,7 +59,7 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
 
     for entry in dhatupatha {
         let dhatu = entry.dhatu().clone().with_sanadi(&args.sanadi);
-        let dhatu_text = &dhatu.upadesha().expect("mula");
+        let dhatu_text = &dhatu.aupadeshika().expect("mula");
         let sanadi_str = args
             .sanadi
             .iter()

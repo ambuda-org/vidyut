@@ -5,8 +5,12 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Pada;
+use vidyut_prakriya::args::Pratipadika;
+use vidyut_prakriya::args::Subanta;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha;
+use vidyut_prakriya::args::Vacana;
+use vidyut_prakriya::args::Vibhakti;
 
 #[test]
 fn sutra_8_2_7() {
@@ -742,6 +746,58 @@ fn sutra_8_2_59() {
 #[test]
 fn sutra_8_2_60() {
     assert_has_krdanta(&[], &d("f\\", Juhotyadi), Krt::kta, &["fta", "fRa"]);
+}
+
+#[test]
+fn sutra_8_2_62() {
+    let ghrtasprk = upapada_krdanta("Gfta", &[], &d("spf\\Sa~", Tudadi), Krt::kvin);
+    assert_has_sup_1s(&ghrtasprk, Pum, &["Gftaspfk"]);
+
+    let halasprk = upapada_krdanta("hala", &[], &d("spf\\Sa~", Tudadi), Krt::kvin);
+    assert_has_sup_1s(&halasprk, Pum, &["halaspfk"]);
+
+    let mantrasprk = upapada_krdanta("mantra", &[], &d("spf\\Sa~", Tudadi), Krt::kvin);
+    assert_has_sup_1s(&mantrasprk, Pum, &["mantraspfk"]);
+
+    // TODO: asrAk, etc.
+}
+
+#[test]
+fn sutra_8_2_64() {
+    use Krt::kvip;
+    let k = krdanta;
+    assert_has_sup_1s(k(&["pra"], &d("Samu~", Tudadi), kvip), Pum, &["praSAn"]);
+    assert_has_sup_1s(k(&["pra"], &d("tamu~", Tudadi), kvip), Pum, &["pratAn"]);
+    assert_has_sup_1s(k(&["pra"], &d("damu~", Tudadi), kvip), Pum, &["pradAn"]);
+
+    // ma?
+    assert_has_sup_1s(k(&[], &d("Bi\\di~^r", Rudhadi), kvip), Pum, &["Bit"]);
+    assert_has_sup_1s(k(&[], &d("Ci\\di~^r", Rudhadi), kvip), Pum, &["Cit"]);
+
+    // dhAtoH?
+    assert_has_sup_1s("idam", Napumsaka, &["idam"]);
+    assert_has_sup_1s("kim", Napumsaka, &["kim"]);
+
+    // padasya?
+    let pratam = k(&["pra"], &d("tamu~", Tudadi), kvip);
+    assert_has_sup_1d(&pratam, Pum, &["pratAmO"]);
+    assert_has_sup_1p(&pratam, Pum, &["pratAmaH"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_8_2_66() {
+    let pada = Pada::from_text;
+    assert_has_vakya(&pada("agnis"), &pada("atra"), &["agnir atra"]);
+    assert_has_vakya(&pada("vAyus"), &pada("atra"), &["vAyur atra"]);
+
+    // TODO: sandhi applied at pada before moving to vakya, which prevents match.
+    let jush = krdanta(&[], &d("juzI~\\", Tudadi), Krt::kvip);
+    // HACK: technically "saha", but use "sa" for convenience.
+    let sajush = bahuvrihi(Pratipadika::basic("sa"), jush);
+    let sajuh = Subanta::new(&sajush, Stri, Vibhakti::Prathama, Vacana::Eka).into();
+    assert_has_vakya(&sajuh, &pada("ftuBis"), &["sajUr ftuBiH"]);
+    assert_has_vakya(&sajuh, &pada("deveBiH"), &["sajUr deeBiH"]);
 }
 
 #[test]

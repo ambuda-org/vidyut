@@ -1,10 +1,29 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
+use vidyut_prakriya::args::Dhatu;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Pratipadika;
+use vidyut_prakriya::args::Sanadi;
 use vidyut_prakriya::args::Taddhita as T;
+
+fn p(text: &str) -> Pratipadika {
+    Pratipadika::basic(text.to_string())
+}
+
+#[test]
+fn sutra_1_4_2() {
+    assert_has_sup_3d("vfkza", Pum, &["vfkzAByAm"]);
+    assert_has_sup_3d("plakza", Pum, &["plakzAByAm"]);
+
+    assert_has_sup_7p("vfkza", Pum, &["vfkzezu"]);
+    assert_has_sup_7p("plakza", Pum, &["plakzezu"]);
+
+    assert_has_sup_5p("vfkza", Pum, &["vfkzeByaH"]);
+    assert_has_sup_5p("plakza", Pum, &["plakzeByaH"]);
+}
 
 #[test]
 fn sutra_1_4_3() {
@@ -99,6 +118,20 @@ fn sutra_1_4_11() {
 }
 
 #[test]
+fn sutra_1_4_12() {
+    assert_has_lit(
+        &[],
+        &d("Iha~\\", Bhvadi),
+        &["IhAYcakre", "IhAmbaBUva", "IhAmAsa"],
+    );
+    assert_has_lit(
+        &[],
+        &d("Ikza~\\", Bhvadi),
+        &["IkzAYcakre", "IkzAmbaBUva", "IkzAmAsa"],
+    );
+}
+
+#[test]
 fn sutra_1_4_13() {
     let kf = d("qukf\\Y", Tanadi);
     let hf = d("hf\\Y", Bhvadi);
@@ -123,6 +156,27 @@ fn sutra_1_4_13() {
 #[test]
 fn sutra_1_4_14() {
     assert_has_sup_1p("brAhmaRa", Pum, &["brAhmaRAH"]);
+}
+
+#[ignore]
+#[test]
+fn sutra_1_4_15() {
+    // TODO: 8.2.2 to make na-lopa siddha
+    let rajiya = Dhatu::nama(p("rAjan"), Some(Sanadi::kyac));
+    assert_has_tip(&[], &rajiya, Lat, &["rAjIyati"]);
+
+    let rajaya = Dhatu::nama(p("rAjan"), Some(Sanadi::kyaN));
+    assert_has_tip(&[], &rajaya, Lat, &["rAjAyate"]);
+
+    let varmaya = Dhatu::nama(p("carman"), None);
+    assert_has_tip(&[], &varmaya, Lat, &["carmAyati"]);
+    assert_has_ta(&[], &varmaya, Lat, &["carmAyate"]);
+
+    let vacya = Dhatu::nama(p("vAc"), Some(Sanadi::kyac));
+    assert_has_tip(&[], &vacya, Lat, &["vAcyati"]);
+
+    let sucya = Dhatu::nama(p("sruc"), Some(Sanadi::kyac));
+    assert_has_tip(&[], &sucya, Lat, &["srucyati"]);
 }
 
 #[test]

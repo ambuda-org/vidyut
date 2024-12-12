@@ -346,6 +346,8 @@ pub const BHRSHA_ADI: &[&str] = &[
 /// 3.1.13 lohitAdi-qAj-ByaH kyaz (33)
 pub const LOHITA_ADI: &[&str] = &[
     "lohita", "carita", "nIla", "Pena", "madra", "hari", "dAsa", "man",
+    // This is an Akrti-gana, so other terms are included here too.
+    "carman",
 ];
 
 /// 3.1.17 suKAdiByaH kartf-vedanAyAm (34)

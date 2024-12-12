@@ -100,7 +100,7 @@ fn derive_tinantas_with_invalid_dhatu() {
     let v = Vyakarana::new();
 
     let empty_dhatu = Dhatu::builder()
-        .upadesha("")
+        .aupadeshika("")
         .gana(Gana::Tanadi)
         .build()
         .unwrap();
@@ -119,7 +119,7 @@ fn derive_tinantas_with_invalid_dhatu() {
     assert_has_results(prakriyas, &[]);
 
     let invalid_dhatu = Dhatu::builder()
-        .upadesha("k")
+        .aupadeshika("k")
         .gana(Gana::Tanadi)
         .build()
         .unwrap();
@@ -134,7 +134,7 @@ fn derive_krdantas() {
     let v = Vyakarana::new();
 
     let kr = Dhatu::builder()
-        .upadesha("qukf\\Y")
+        .aupadeshika("qukf\\Y")
         .gana(Gana::Tanadi)
         .build()
         .unwrap();
@@ -144,7 +144,7 @@ fn derive_krdantas() {
     assert_has_results(prakriyas, &["kftvA"]);
 
     let kr_san = Dhatu::builder()
-        .upadesha("qukf\\Y")
+        .aupadeshika("qukf\\Y")
         .gana(Gana::Tanadi)
         .sanadi(&[Sanadi::Ric])
         .build()

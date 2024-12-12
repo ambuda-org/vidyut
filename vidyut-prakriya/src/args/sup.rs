@@ -98,6 +98,18 @@ impl Vibhakti {
 }
 
 /// The information required to derive a *subanta*.
+///
+/// A *subanta* is any word that ends with one of the twenty-one suffixes in the *sup* list:
+///
+/// | Singular  | Dual      | Plural    |
+/// |-----------|-----------|-----------|
+/// | su        । au        । jas       |
+/// | am        । auṭ       । śas       |
+/// | ṭā        । bhyām     । bhis      |
+/// | ṅe        । bhyām     । bhyas     |
+/// | ṅasi      । bhyām     । bhyas     |
+/// | ṅas       । os        । ām        |
+/// | ṅi        । os        । sup       |
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Subanta {

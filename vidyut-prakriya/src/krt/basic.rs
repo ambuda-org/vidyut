@@ -102,12 +102,14 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
     // Therefore, the pratyayas in this section are blocking: for a given dhatu, exactly one of these
     // pratyayas can be used.
     //
-    // That said, there are some minor exceptions here and there where multiple pratyayas can apply.
+    // However, there are some minor exceptions where multiple pratyayas can apply for the given
+    // dhatu.
     kp.with_context(TacchilaTaddharmaTatsadhukara, |kp| {
         let dhatu = kp.dhatu_start();
         let i_dhatu = kp.i_dhatu;
 
         let has_prefix_and_text = |x, y| kp.has_upapada(x) && dhatu.has_text(y);
+        let has_upasarga_and_u = |x, y| kp.has_upasarga(x) && dhatu.has_u(y);
         let has_upasarga_and_text = |x, y| kp.has_upasarga(x) && dhatu.has_text(y);
         let last = kp.p.terms().last().expect("present");
         let has_nic = last.is(S::Ric);
@@ -157,41 +159,71 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
         } else if kp.has_upasarga(U::vi) && dhatu.has_text_in(&["kaz", "las", "katT", "sranB"]) {
             kp.try_add("3.2.143", GinuR);
         } else if kp.has_upasarga_in(&[U::vi, U::apa]) && dhatu.has_text("laz") {
+            // vilAzin, apalAzin
             kp.try_add("3.2.144", GinuR);
         } else if kp.has_upasarga(U::pra)
             && dhatu.has_u_in(&["lapa~", "sf\\", "dru\\", "maTe~", "vada~", "va\\sa~"])
         {
             kp.try_add("3.2.145", GinuR);
+        } else if dhatu.has_text_in(&["sf", "Gas", "ad"]) {
+            // sfmara, Gasmara, admara
+            // (placed here because 'sf' matches elsewhere.)
+            kp.try_add("3.2.160", kmarac);
+        } else if dhatu.has_u("ga\\mx~") {
+            // gatvara
+            // ('gam' matches elsewhere.)
+            kp.try_add_with("3.2.164", kvarap, |p| p.set(i_dhatu, |t| t.set_antya("t")));
+        } else if has_san || has_upasarga_and_u(U::AN, "Sasi~\\") || dhatu.has_u("Bikza~\\") {
+            // cikIrzu, jihIrzu, ...
+            // ('Bikz' matches elsewhere.)
+            kp.try_add("3.2.168", u);
         }
 
         // Break the `if` chain so that pari-kzip and pari-raw can match again here.
         let dhatu = kp.dhatu_start();
-        let has_prefix_and_text = |x, y| kp.has_upapada(x) && dhatu.has_text(y);
-        let has_upasarga_and_text = |x, y| kp.has_upasarga(x) && dhatu.has_text(y);
+        let has_upasarga_and_u = |x, y| kp.has_upasarga(x) && dhatu.has_u(y);
         if dhatu.has_text_in(&["nind", "hins", "kliS", "KAd"])
-        || (has_upasarga_and_text(U::vi, "naS") && has_nic)
-        || has_upasarga_and_text(U::pari, "kzip")
-        || has_upasarga_and_text(U::pari, "raw")
-        || (has_upasarga_and_text(U::pari, "vad") && has_nic)
-        || (kp.has_both_upasargas(U::vi, U::AN) && dhatu.has_text("BAz"))
-        // TODO: not in dhatupatha -- how does the prakriya start?
-        || dhatu.has_text("asUy")
+            || (has_upasarga_and_u(U::vi, "Ra\\Sa~") && has_nic)
+            || has_upasarga_and_u(U::pari, "kzi\\pa~")
+            || has_upasarga_and_u(U::pari, "rawa~")
+            || (has_upasarga_and_u(U::pari, "vada~") && has_nic)
+            || (kp.has_both_upasargas(U::vi, U::AN) && dhatu.has_u("BAza~\\"))
+            || dhatu.has_text("asU")
         {
+            // nindaka, hiMsaka
             kp.try_add("3.2.146", vuY);
-        } else if upasarge && dhatu.has_text_in(&["div", "kruS"]) {
+        } else if upasarge
+            && ((dhatu.has_u("divu~") && dhatu.has_gana(Gana::Curadi)) || dhatu.has_u("kru\\Sa~"))
+        {
+            // Adevaka, parikraSoka
             kp.try_add("3.2.147", vuY);
-        } else if dhatu.has_text_in(&[
-            "laz", "pat", "pad", "sTA", "BU", "vfz", "han", "kam", "gam", "SF",
+        } else if dhatu.has_u_in(&["cala~", "cupa~", "Sabda~", "ru"]) {
+            // calana, copana, ...
+            kp.try_add("3.2.148", yuc);
+        } else if dhatu.has_u_in(&[
+            "laza~^",
+            "patx~",
+            "pa\\da~\\",
+            "zWA\\",
+            "BU",
+            "vfzu~",
+            "ha\\na~",
+            "kamu~\\",
+            "ga\\mx~",
+            "SF",
         ]) {
+            // apalAzuka, prapAtuka, ...
             kp.try_add("3.2.154", ukaY);
-        } else if dhatu.has_text_in(&["jalp", "Bikz", "kuww", "lunw", "vf"]) {
+        } else if dhatu.has_u_in(&["jalpa~", "Bikza~\\", "kuwwa~", "lunwa~", "vfN"]) {
+            // jalpAka, ...
             kp.try_add("3.2.154", zAkan);
+        } else if kp.has_upasarga(U::pra) && dhatu.has_u("ju") {
+            // prajavin
+            kp.try_add("3.2.155", ini);
         } else if dhatu.has_u_in(&["spfha", "gfha", "pata", "daya~\\"]) {
             // Per kashika, first 3 are curAdi.
             kp.try_add("3.2.158", Aluc);
             // TODO: others
-        } else if dhatu.has_text_in(&["sf", "Gas", "ad"]) {
-            kp.try_add("3.2.160", kmarac);
         } else if dhatu.has_text_in(&["Banj", "BAs", "mid"]) {
             kp.try_add("3.2.161", Gurac);
         } else if (dhatu.is_u(Au::vida_2) && dhatu.has_gana(Gana::Adadi))
@@ -199,19 +231,17 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
         {
             // Per commentaries, allow only this specific `vid`.
             kp.try_add("3.2.162", kurac);
-        } else if dhatu.has_u("i\\R") || dhatu.has_text_in(&["naS", "ji", "sf"]) {
+        } else if dhatu.has_u_in(&["i\\R", "Ra\\Sa~", "ji\\", "sf\\"]) {
             // naSvara, ...
             kp.try_add("3.2.163", kvarap);
         } else if dhatu.has_text("jAgf") {
             // jAgarUka
             kp.try_add("3.2.165", Uka);
-        } else if dhatu.has_text_in(&["yaj", "jap", "daS"]) && has_yan {
+        } else if dhatu.has_u_in(&["ya\\ja~", "japa~", "da\\nSa~"]) && has_yan {
             // yAyajUka, ...
             kp.try_add("3.2.166", Uka);
         } else if dhatu.has_text_in(&["nam", "kanp", "smi", "jas", "kam", "hins", "dIp"]) {
             kp.try_add("3.2.167", ra);
-        } else if has_san || has_prefix_and_text("A", "Sans") || dhatu.has_text("Bikz") {
-            kp.try_add("3.2.168", u);
         } else if dhatu.has_text_in(&["svap", "tfz"]) {
             kp.try_add("3.2.172", najiN);
         } else if dhatu.has_text_in(&["SF", "vand"]) {
@@ -659,7 +689,6 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             }
         }
         KaS if upapade => {
-            println!("{:?}", dhatu);
             let nasika = upapada.has_text("nAsikA");
             let stana = upapada.has_text("stana");
             let dhma = dhatu.has_u("DmA\\");
@@ -919,6 +948,11 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
 /// For details, see: <https://ashtadhyayi.com/sutraani/3/1/94>
 fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
     use BaseKrt as K;
+
+    if kp.krt == K::ki && kp.has_upapada("antar") {
+        let i_upapada = kp.i_upapada()?;
+        kp.p.run_at(Varttika("1.4.65"), i_upapada, op::add_tag(T::Upasarga));
+    }
 
     let i_start = kp.p.find_first_with_tag(T::Dhatu)?;
     let i_end = kp.p.find_last_with_tag(T::Dhatu)?;
@@ -1423,6 +1457,12 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             }
         }
 
+        K::ki => {
+            if upasarge && dhatu.has_tag(T::Ghu) {
+                kp.try_add("3.3.92", krt);
+            }
+        }
+
         K::Rvuc => {}
 
         K::ani => {}
@@ -1484,6 +1524,13 @@ fn try_add_strilinga_pratyayas(kp: &mut KrtPrakriya) -> Option<bool> {
         // vrajyA, ijyA
         // BAve
         kp.optional_try_add_with("3.3.98", kyap, |p| p.add_tag(PT::Stri));
+    } else if kp.has_upa_u(U::sam, "aja~")
+        || kp.has_upa_u(U::ni, "za\\dx~")
+        || kp.has_upa_u(U::ni, "patx~")
+        || dhatu.has_u_in(&["ma\\na~\\", "vida~", "zu\\Y", "SIN", "Bf\\Y", "i\\R"])
+    {
+        // samajyA, nizadyA, ...
+        kp.try_add_with("3.3.99", kyap, |p| p.add_tag(PT::Stri));
     } else if dhatu.has_u("qukf\\Y") {
         // kfti
         kp.optional_try_add_with("3.3.100:1", ktin, |p| {
@@ -1502,13 +1549,73 @@ fn try_add_strilinga_pratyayas(kp: &mut KrtPrakriya) -> Option<bool> {
         });
     }
 
-    let dhatu = kp.dhatu_start();
-    if dhatu.has_u_in(&["glE\\", "mlE\\", "jyA\\", "o~hA\\k"]) {
+    fn map_uti_yuti(t: &Term) -> Option<&'static str> {
+        let ret = match t.u.as_ref()?.as_str() {
+            "ava~" => "U",
+            "yu" => "yU",
+            "ju" => "jU",
+            "zo\\" => "sA",
+            "zaRa~" => "sA",
+            "ha\\na~" => "he",
+            "hi\\" => "he",
+            "kFta~" => "kIr",
+            _ => return None,
+        };
+        Some(ret)
+    }
+
+    let dhatu = kp.dhatu_end();
+    let i_dhatu_end = kp.i_dhatu_end;
+    if dhatu.has_u_in(&[
+        "A\\px~",
+        "rA\\Da~",
+        "dIpI~\\",
+        "sransu~\\",
+        "Dvansu~\\",
+        "qula\\Ba~\\z",
+    ]) {
+        // Apti, ...
+        kp.try_add_with(Varttika("3.3.94.1"), ktin, |p| p.add_tag(PT::Stri));
+    } else if dhatu.has_u_in(&["Sru\\", "ya\\ja~^", "zwu\\Y"]) {
+        // Sruti, izwi, stuti
+        kp.try_add_with(Varttika("3.3.94.2"), ktin, |p| p.add_tag(PT::Stri));
+    } else if dhatu.has_u_in(&["glE\\", "mlE\\", "jyA\\", "o~hA\\k"]) {
         // glAni, ...
         kp.try_add_with(Varttika("3.3.94.3"), ni, |p| p.add_tag(PT::Stri));
+    } else if dhatu.has_antya('F') || dhatu.has_u_in(gana::LU_ADI) {
+        // kIrRi, gIrRi, ...
+        kp.try_add_with(Varttika("3.3.94.4"), ktin, |p| {
+            p.add_tag(PT::Stri);
+            p.terms_mut().last_mut().expect("ok").add_tag(T::Nistha);
+        });
+    } else if kp.has_upasarga(U::sam) && dhatu.has_u("pa\\da~\\") {
+        // sampat, sampatti, vipat, vipatti
+        kp.try_add_with(Varttika("3.3.94.5"), kvip, |p| p.add_tag(PT::Stri));
+    } else if dhatu.has_u_in(&["zWA\\", "gE\\", "pA\\", "qupa\\ca~^z"]) {
+        // prasTiti, ...
+        kp.try_add_with(Varttika("3.3.96"), ktin, |p| p.add_tag(PT::Stri));
+    } else if let Some(sub) = map_uti_yuti(kp.dhatu_start()) {
+        let i_dhatu_start = kp.i_dhatu;
+        let matches = (i_dhatu_start == i_dhatu_end)
+            || (i_dhatu_start + 1 == i_dhatu_end && kp.dhatu_start().has_u("kFta~"));
+
+        if matches {
+            // Uti, yUti, ...
+            kp.try_add_with(Varttika("3.3.97"), ktin, |p| {
+                p.set(i_dhatu_start, |t| {
+                    t.set_text(sub);
+                    t.add_tag(T::Complete)
+                });
+                p.add_tag(PT::Stri)
+            });
+        }
     } else if dhatu.has_u("izu~") {
         // icCA
         kp.do_nipatana("3.3.101", "icCA");
+    } else if dhatu.is(S::Ric) || dhatu.has_u_in(&["Asa~\\", "SranTa~"]) {
+        // kAraRA, hAraRA, ...
+        // (blocks 3.3.102)
+        kp.try_add_with("3.3.107", yuc, |p| p.add_tag(PT::Stri));
     } else if kp.p.has(i_end, |t| t.is_pratyaya()) {
         // cikIrzA, jihIrzA, ...
         kp.try_add_with("3.3.102", a, |p| p.add_tag(PT::Stri));
@@ -1518,12 +1625,18 @@ fn try_add_strilinga_pratyayas(kp: &mut KrtPrakriya) -> Option<bool> {
     } else if dhatu.has_tag(T::zit) {
         // TODO: bhid-Adi
         kp.try_add_with("3.3.104", aN, |p| p.add_tag(PT::Stri));
-    } else if dhatu.has_antya('A') && upasarge {
-        // pradA, upadA, ...
-        kp.try_add_with("3.3.106", aN, |p| p.add_tag(PT::Stri));
-    } else if dhatu.is(S::Ric) || dhatu.has_u_in(&["Asa~\\", "SranTa~"]) {
-        // kAraRA, hAraRA, ...
-        kp.try_add_with("3.3.107", yuc, |p| p.add_tag(PT::Stri));
+    } else if dhatu.has_antya('A') {
+        let ok = if kp.has_upapada_in(&["Srad", "antar"]) {
+            // SradDA, antarDA
+            kp.p.run_at(Varttika("3.3.106.1"), kp.i_upapada()?, |_| {});
+            true
+        } else {
+            false
+        };
+        if upasarge || ok {
+            // pradA, upadA, ...
+            kp.try_add_with("3.3.106", aN, |p| p.add_tag(PT::Stri));
+        }
     }
 
     // kfti, citi, mati, ...

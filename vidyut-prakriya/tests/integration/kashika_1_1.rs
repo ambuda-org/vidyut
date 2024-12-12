@@ -6,11 +6,9 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Pada;
-use vidyut_prakriya::args::Purusha as P;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
 use vidyut_prakriya::args::Unadi;
-use vidyut_prakriya::args::Vacana::*;
 
 lazy_static! {
     static ref S: Tester = Tester::with_svara_rules();
@@ -111,9 +109,9 @@ fn sutra_1_1_5() {
     // Niti
     assert_has_tas(&[], &ci, Lat, &["cinutaH"]);
     assert_has_jhi(&[], &ci, Lat, &["cinvanti"]);
-    assert_has_tinantas(&[], &mfj, Lat, P::Prathama, Dvi, &["mfzwaH"]);
+    assert_has_tas(&[], &mfj, Lat, &["mfzwaH"]);
     // mArjanti per SK.
-    assert_has_tinantas(&[], &mfj, Lat, P::Prathama, Bahu, &["mfjanti", "mArjanti"]);
+    assert_has_jhi(&[], &mfj, Lat, &["mfjanti", "mArjanti"]);
 
     // git
     assert_has_krdanta(&[], &d("ji\\", Bhvadi), Krt::ksnu, &["jizRu"]);
@@ -399,6 +397,31 @@ fn sutra_1_1_34() {
     assert_has_sup_1p("uttara", Pum, &["uttare", "uttarAH"]);
     assert_has_sup_1p("apara", Pum, &["apare", "aparAH"]);
     assert_has_sup_1p("aDara", Pum, &["aDare", "aDarAH"]);
+}
+
+#[test]
+fn skip_sutra_1_1_37() {}
+
+#[test]
+fn sutra_1_1_38() {
+    assert_has_taddhita("tad", T::tasil, &["tatas"]);
+    assert_has_taddhita("yad", T::tasil, &["yatas"]);
+    assert_has_taddhita("tad", T::tral, &["tatra"]);
+    assert_has_taddhita("yad", T::tral, &["yatra"]);
+    assert_has_taddhita("tad", T::dA, &["tadA"]);
+    assert_has_taddhita("yad", T::dA, &["yadA"]);
+    assert_has_taddhita("sarva", T::dA, &["sarvadA", "sadA"]);
+
+    // taddhite?
+    assert_has_sup_1s("eka", Pum, &["ekaH"]);
+    assert_has_sup_1d("dvi", Pum, &["dvO"]);
+    assert_has_sup_1p("bahu", Pum, &["bahavaH"]);
+
+    // asarvavibhakti?
+    let aupagava = taddhitanta("upagu", T::aR);
+    assert_has_sup_1s(&aupagava, Pum, &["OpagavaH"]);
+    assert_has_sup_1d(&aupagava, Pum, &["OpagavO"]);
+    assert_has_sup_1p(&aupagava, Pum, &["OpagavAH"]);
 }
 
 #[test]

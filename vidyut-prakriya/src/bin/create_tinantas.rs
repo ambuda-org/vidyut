@@ -60,7 +60,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
 
         // Add sanadi to the dhatu.
         let mut builder = Dhatu::builder()
-            .upadesha(dhatu.upadesha())
+            .aupadeshika(dhatu.aupadeshika())
             .prefixes(dhatu.prefixes())
             .gana(dhatu.gana())
             .sanadi(&sanadi);
@@ -73,21 +73,21 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
         for prayoga in Prayoga::iter() {
             // Filter prayoga based on args
             if let Some(p) = args.prayoga {
-                if *prayoga != p {
+                if prayoga != p {
                     continue;
                 }
             }
             for lakara in Lakara::iter() {
-                if *lakara == Lakara::Let {
+                if lakara == Lakara::Let {
                     continue;
                 }
-                for (purusha, vacana) in TIN_SEMANTICS {
+                for (purusha, vacana) in TIN_SEMANTICS.iter().copied() {
                     let tinanta = Tinanta::builder()
                         .dhatu(dhatu.clone())
-                        .prayoga(*prayoga)
-                        .purusha(*purusha)
-                        .vacana(*vacana)
-                        .lakara(*lakara)
+                        .prayoga(prayoga)
+                        .purusha(purusha)
+                        .vacana(vacana)
+                        .lakara(lakara)
                         .build()?;
 
                     let prakriyas = v.derive_tinantas(&tinanta);
@@ -106,7 +106,7 @@ fn run(d: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
                         .fold(String::new(), |b, x| b + x + "+");
                     let sanadi_str = sanadi_str.trim_end_matches('+');
 
-                    let dhatu_text = mula.upadesha();
+                    let dhatu_text = mula.aupadeshika();
                     let row = Row {
                         padas,
                         dhatu: dhatu_text,

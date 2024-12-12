@@ -36,7 +36,7 @@ fn run(dhatupatha: Dhatupatha) -> Result<(), Box<dyn Error>> {
             let dhatu = entry.dhatu().clone().with_sanadi(&s);
 
             let prakriyas = v.derive_dhatus(&dhatu);
-            let dhatu_text = &dhatu.upadesha().expect("ok");
+            let dhatu_text = &dhatu.aupadeshika().expect("ok");
             let mut results: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
             results.sort();
             results.dedup();

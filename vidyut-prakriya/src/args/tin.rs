@@ -208,11 +208,26 @@ impl DhatuPada {
 
 /// The information required to derive a *tiṅanta*.
 ///
+/// A *tiṅanta* (verb) is any word that ends with one of the eighteen suffixes in the *tiṅ* list:
+///
+/// | Singular    | Dual        | Plural      |
+/// |-------------|-------------|-------------|
+/// | *tip*       | *tas*       | *jhi (nti)* |
+/// | *sip*       | *tas*       | *tha*       |
+/// | *mip*       | *vas*       | *mas*       |
+///
+/// | Singular    | Dual        | Plural      |
+/// |-------------|-------------|-------------|
+/// | *ta*        | *ātām*      | *jha (nta)* |
+/// | *thās*      | *āthām*     | *dhvam*     |
+/// | *iṭ*        | *vahi*      | *mahiṅ*     |
+///
 /// If a *tiṅanta* were just a matter of prayoga/purusha/lakara/vacana, a struct like this would
 /// not be necessary. However, a *tiṅanta*'s derivation can have many other constraints, including:
 ///
 /// - specific *upasarga*s or other prefixes
 /// - specific *sanādi pratyaya*s
+/// - whether or not we should skip adding the *aṭ*/*āṭ* *āgama* for certain past forms.
 /// - other constraints on the overall derivation
 ///
 /// Since we want to keep these args manageable and don't want to repeatedly break our main API, we
@@ -226,6 +241,7 @@ pub struct Tinanta {
     purusha: Purusha,
     vacana: Vacana,
     pada: Option<DhatuPada>,
+    skip_at_agama: bool,
 }
 
 impl Tinanta {
@@ -246,6 +262,7 @@ impl Tinanta {
             purusha,
             vacana,
             pada: None,
+            skip_at_agama: false,
         }
     }
 
@@ -272,6 +289,11 @@ impl Tinanta {
     /// The *vacana* to use in the derivation.
     pub fn vacana(&self) -> Vacana {
         self.vacana
+    }
+
+    /// Whether or not the *aṭ* and *āṭ* *āgama*s should be skipped in the derivation.
+    pub fn skip_at_agama(&self) -> bool {
+        self.skip_at_agama
     }
 
     /// (optional) The pada to use in the derivation.
@@ -323,6 +345,7 @@ pub struct TinantaArgsBuilder {
     lakara: Option<Lakara>,
     vacana: Option<Vacana>,
     pada: Option<DhatuPada>,
+    skip_at_agama: bool,
 }
 
 impl TinantaArgsBuilder {
@@ -353,6 +376,12 @@ impl TinantaArgsBuilder {
     /// Sets the vacana to use in the derivation.
     pub fn vacana(mut self, val: Vacana) -> Self {
         self.vacana = Some(val);
+        self
+    }
+
+    /// Sets whether or not to skip the `a` Agama in the derivation.
+    pub fn skip_at_agama(mut self, val: bool) -> Self {
+        self.skip_at_agama = val;
         self
     }
 
@@ -391,6 +420,7 @@ impl TinantaArgsBuilder {
                 _ => return Err(Error::missing_required_field("vacana")),
             },
             pada: self.pada,
+            skip_at_agama: self.skip_at_agama,
         })
     }
 }

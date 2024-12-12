@@ -46,12 +46,12 @@ fn run(d: Dhatupatha) -> Result<(), Box<dyn Error>> {
                     .prayoga(prayoga)
                     .purusha(*purusha)
                     .vacana(*vacana)
-                    .lakara(*lakara)
+                    .lakara(lakara)
                     .build()?;
 
                 let prakriyas = v.derive_tinantas(&tinanta);
 
-                let dhatu_text = &dhatu.upadesha().expect("ok");
+                let dhatu_text = &dhatu.aupadeshika().expect("ok");
                 let mut padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
                 padas.sort();
                 let padas = padas.join("|");

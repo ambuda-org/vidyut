@@ -10,7 +10,7 @@ fn create_sanadyanta(upadesha: &str, gana: &str, sanadi: Sanadi) -> Vec<String> 
     let v = Vyakarana::new();
     let gana = gana.parse().expect("ok");
     let dhatu = Dhatu::builder()
-        .upadesha(upadesha)
+        .aupadeshika(upadesha)
         .gana(gana)
         .sanadi(&[sanadi])
         .build()

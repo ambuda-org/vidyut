@@ -766,6 +766,7 @@ impl Term {
 
     /// Returns whether the term has the `Upasarga` samjna.
     pub fn is_upasarga(&self) -> bool {
+        // Must check tag due to extensions like "antar".
         self.has_tag(Tag::Upasarga)
     }
 

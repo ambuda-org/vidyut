@@ -42,15 +42,20 @@ for path in glob.glob("**/*.rs", root_dir=tests, recursive=True):
             for match in re.findall(r"(\d+_\d+_\d+)", line):
                 tested_rules.add(match.replace('_', '.'))
 
+had_ok = False
 for rule in all_rules:
-    status = None
     if rule in tested_rules:
-        status = RULE_OK
+        if had_ok:
+            continue
+        print(f"{RULE_OK}\t\t[...]")
+        had_ok = True
     elif rule in implemented_rules:
-        status = RULE_UNTESTED
+        print(f"{RULE_UNTESTED}\t\t{rule}")
+        had_ok = False
     else:
         status = RULE_MISSING
-    print(f"{status}\t\t{rule}")
+        print(f"{RULE_MISSING}\t\t{rule}")
+        had_ok = False
 
 print_legend()
 

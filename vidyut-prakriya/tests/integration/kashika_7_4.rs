@@ -415,24 +415,28 @@ fn sutra_7_4_33() {
     assert_has_tip(&[], &kyac(p("mAlA")), Lat, &["mAlIyati"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_7_4_40() {
     let do_ = d("do\\", Divadi);
     assert_has_krdanta(&["nis"], &do_, Krt::kta, &["nirdita"]);
-    assert_has_krdanta(&["nis"], &do_, Krt::ktavatu, &["nirdita"]);
+    assert_has_krdanta(&["nis"], &do_, Krt::ktavatu, &["nirditavat"]);
+
     let so = d("zo\\", Divadi);
     assert_has_krdanta(&["ava"], &so, Krt::kta, &["avasita"]);
     assert_has_krdanta(&["ava"], &so, Krt::ktavatu, &["avasitavat"]);
+
     let maa = d("mA\\", Adadi);
     assert_has_krdanta(&[], &maa, Krt::kta, &["mita"]);
     assert_has_krdanta(&[], &maa, Krt::ktavatu, &["mitavat"]);
+
     let stha = d("zWA\\", Bhvadi);
     assert_has_krdanta(&[], &stha, Krt::kta, &["sTita"]);
     assert_has_krdanta(&[], &stha, Krt::ktavatu, &["sTitavat"]);
-    // ti
-    assert_has_krdanta(&["ava"], &do_, Krt::kta, &["avadAya"]);
-    // kiti
+
+    // ti?
+    assert_has_krdanta(&["ava"], &do_, Krt::ktvA, &["avadAya"]);
+
+    // kiti?
     assert_has_krdanta(&["ava"], &do_, Krt::tfc, &["avadAtf"]);
 }
 
@@ -524,7 +528,7 @@ fn sutra_7_4_49() {
 fn sutra_7_4_50() {
     let kf = d("qukf\\Y", Tanadi);
     assert_has_tinantas(&[], &kf, Lut, Madhyama, Eka, &["kartAsi", "kartAse"]);
-    assert_has_tinantas(&[], &d("asa~", Adadi), Lat, Madhyama, Eka, &["asi"]);
+    assert_has_sip(&[], &d("asa~", Adadi), Lat, &["asi"]);
     // TODO: vyatise
 }
 
@@ -533,6 +537,7 @@ fn sutra_7_4_51() {
     let kf = d("qukf\\Y", Tanadi);
     assert_has_tinantas(&[], &kf, Lut, Prathama, Dvi, &["kartArO"]);
     assert_has_tinantas(&[], &kf, Lut, Prathama, Bahu, &["kartAraH"]);
+
     let i = d("i\\N", Adadi);
     assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Dvi, &["aDyetArO"]);
     assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Bahu, &["aDyetAraH"]);

@@ -79,7 +79,7 @@ pub struct Dhatupatha(Vec<Entry>);
 pub fn create_dhatu(upadesha: impl AsRef<str>, gana: Gana, number: u16) -> Result<Dhatu> {
     let upadesha = upadesha.as_ref();
 
-    let mut builder = Dhatu::builder().upadesha(upadesha).gana(gana);
+    let mut builder = Dhatu::builder().aupadeshika(upadesha).gana(gana);
     if let Some(x) = maybe_find_antargana(gana, number) {
         builder = builder.antargana(x);
     }
@@ -231,7 +231,7 @@ mod tests {
     #[test]
     fn create_dhatu_basic() {
         let dhatu = create_dhatu("BU", Gana::Bhvadi, 1).unwrap();
-        assert_eq!(dhatu.upadesha().unwrap(), "BU");
+        assert_eq!(dhatu.aupadeshika().unwrap(), "BU");
         assert_eq!(dhatu.gana().expect("ok"), Gana::Bhvadi);
         assert!(dhatu.prefixes().is_empty());
         assert!(dhatu.sanadi().is_empty());
@@ -240,7 +240,7 @@ mod tests {
     #[test]
     fn create_dhatu_with_ashas() {
         let dhatu = create_dhatu("SAsu~\\", Gana::Adadi, 23).unwrap();
-        assert_eq!(dhatu.upadesha().unwrap(), "SAsu~\\");
+        assert_eq!(dhatu.aupadeshika().unwrap(), "SAsu~\\");
         assert_eq!(dhatu.gana().expect("ok"), Gana::Adadi);
         assert_eq!(dhatu.prefixes(), &vec!["AN"]);
         assert!(dhatu.sanadi().is_empty());

@@ -175,7 +175,8 @@ fn try_pratyaya_adesha_at_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 }
 
 /// Runs rules that change one or more letters in the anga to a 't'.
-fn try_anga_changes_to_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+fn try_anga_changes_before_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
+    p.debug("anga before t");
     let anga = p.get(i_anga)?;
 
     if anga.is_dhatu() {
@@ -187,13 +188,12 @@ fn try_anga_changes_to_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
         let anga = p.get(i_anga)?;
         let next = p.get_if(i_anga + 1, |t| t.has_adi('t') && t.has_tag(T::kit))?;
-        if anga.has_text_in(&["dyut", "mA", "sA", "sTA"]) {
-            let code = "7.4.40";
-            if anga.has_text("dyut") {
-                p.run_at(code, i_anga, op::upadha("i"));
-            } else {
-                p.run_at(code, i_anga, op::antya("i"));
-            }
+        if anga.has_u_in(&["do\\", "zo\\", "mA\\", "zWA\\"])
+            && anga.has_antya('A')
+            && !anga.has_tag(T::Complete)
+        {
+            // nirdita, avasita, ...
+            p.run_at("7.4.40", i_anga, op::antya("i"));
         } else if anga.has_u_in(&["So\\", "Co\\"]) {
             p.optional_run_at("7.4.41", i_anga, op::antya("i"));
         } else if anga.is_u(Au::quDAY) {
@@ -540,7 +540,7 @@ pub fn run_before_stritva(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool) -> Option<()> {
+pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) -> Option<()> {
     // Mark relevant terms as `anga`.
     let mut added = false;
     for t in p.terms_mut() {
@@ -956,7 +956,10 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool) -> Option<()> {
             return None;
         }
 
-        if p.has(i_start, |t| t.has_adi(AC)) {
+        if skip_at_agama {
+            // kArzIt, hArzIt, karot, harat, ...
+            p.step("6.4.74");
+        } else if p.has(i_start, |t| t.has_adi(AC)) {
             op::insert_before("6.4.72", p, i_start, A::Aw);
         } else {
             op::insert_before("6.4.71", p, i_start, A::aw);
@@ -1386,6 +1389,8 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool) -> Option<()> {
     option_block_iter(p, try_dhatu_rt_adesha);
 
     for i in 0..p.len() {
+        // Must run before asiddhavat for sTA + kta -> sTita
+        try_anga_changes_before_t(p, i);
         asiddhavat::run_after_guna(p, i);
     }
 
@@ -1503,7 +1508,6 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
         try_tas_asti_lopa(p, i);
 
         try_didhi_vevi_lopa(p, i);
-        try_anga_changes_to_t(p, i);
     }
 
     for i in 0..p.terms().len() {

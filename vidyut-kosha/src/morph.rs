@@ -372,7 +372,7 @@ impl From<vp::Dhatu> for Dhatu {
         Dhatu {
             prefixes: vp.prefixes().to_vec(),
             sanadi: vp.sanadi().to_vec(),
-            text: match vp.upadesha() {
+            text: match vp.aupadeshika() {
                 Some(s) => s.to_string(),
                 None => String::new(),
             },

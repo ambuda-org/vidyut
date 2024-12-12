@@ -28,6 +28,10 @@ pub enum BaseKrt {
     ac,
     /// -a
     aR,
+    /// -aDyE
+    aDyE,
+    /// -aDyE
+    aDyEn,
     /// -at (jarat)
     atfn,
     /// -aTu (vepaTu). Allowed only for dhatus that are `qvit`.
@@ -38,6 +42,10 @@ pub enum BaseKrt {
     anIyar,
     /// -a
     ap,
+    /// -ase
+    ase,
+    /// -ase
+    asen,
     /// -Alu
     Aluc,
     /// -Aru
@@ -64,12 +72,20 @@ pub enum BaseKrt {
     ka,
     /// -a
     kaY,
+    /// -aDyE
+    kaDyE,
+    /// -aDyE
+    kaDyEn,
     /// -am
     kamul,
     /// -as (visfpaH, ...)
     kasun,
     /// -a
     kap,
+    /// -ase
+    kase,
+    /// -ase
+    kasen,
     /// -Ana (cakrARa, ...)
     kAnac,
     /// -i (udaDi, ...)
@@ -168,6 +184,12 @@ pub enum BaseKrt {
     Rvuc,
     /// -aka
     Rvul,
+    /// -tave
+    taveN,
+    /// -tave
+    taven,
+    /// -tavE
+    tavE,
     /// -tavya (gantavya, bhavitavya, ...)
     tavya,
     /// -tavya
@@ -178,7 +200,7 @@ pub enum BaseKrt {
     tfc,
     /// -tf
     tfn,
-    /// -os
+    /// -tos (udetoH)
     tosun,
     /// -Taka (gATaka)
     Takan,
@@ -192,14 +214,6 @@ pub enum BaseKrt {
     ni,
     /// -man
     manin,
-    /// -a
-    Sa,
-    /// -at (gacCat, Bavat, ...)
-    Satf,
-    /// -Ana (laBamAna, sevamAna, ...)
-    SAnac,
-    /// -Ana
-    SAnan,
     /// -ya
     yat,
     /// -ana
@@ -230,6 +244,22 @@ pub enum BaseKrt {
     zwran,
     /// -aka
     zvun,
+    /// -a
+    Sa,
+    /// -at (gacCat, Bavat, ...)
+    Satf,
+    /// -aDyE
+    SaDyE,
+    /// -aDyE
+    SaDyEn,
+    /// -Ana (laBamAna, sevamAna, ...)
+    SAnac,
+    /// -Ana
+    SAnan,
+    /// -se
+    se,
+    /// -se
+    sen,
 }
 
 enum_boilerplate!(BaseKrt, {
@@ -239,9 +269,13 @@ enum_boilerplate!(BaseKrt, {
     aR => "aR",
     atfn => "atf~n",
     aTuc => "aTuc",
+    aDyE => "aDyE",
+    aDyEn => "aDyEn",
     ani => "ani",
     anIyar => "anIyar",
     ap => "ap",
+    ase => "ase",
+    asen => "asen",
     Aluc => "Aluc",
     Aru => "Aru",
     ika => "ika",
@@ -256,9 +290,13 @@ enum_boilerplate!(BaseKrt, {
     cAnaS => "cAnaS",
     ka => "ka",
     kaY => "kaY",
+    kaDyE => "kaDyE",
+    kaDyEn => "kaDyEn",
     kamul => "kamu~l",
     kasun => "kasu~n",
     kap => "kap",
+    kase => "kase",
+    kasen => "kasen",
     kAnac => "kAnac",
     ki => "ki",
     kin => "kin",
@@ -307,6 +345,9 @@ enum_boilerplate!(BaseKrt, {
     Rvi => "Rvi~",
     Rvuc => "Rvu~c",
     Rvul => "Rvu~l",
+    taveN => "taveN",
+    taven => "taven",
+    tavE => "tavE",
     tavya => "tavya",
     tavyat => "tavyat",
     tumun => "tumu~n",
@@ -319,10 +360,6 @@ enum_boilerplate!(BaseKrt, {
     nan => "nan",
     ni => "ni",
     manin => "mani~n",
-    Sa => "Sa",
-    Satf => "Satf~",
-    SAnac => "SAnac",
-    SAnan => "SAnan",
     yat => "yat",
     yuc => "yu~c",
     ra => "ra",
@@ -335,10 +372,25 @@ enum_boilerplate!(BaseKrt, {
     viw => "vi~w",
     vuY => "vu~Y",
     vun => "vu~n",
+    Sa => "Sa",
+    Satf => "Satf~",
+    SaDyE => "SaDyE",
+    SaDyEn => "SaDyEn",
+    SAnac => "SAnac",
+    SAnan => "SAnan",
     zAkan => "zAkan",
     zwran => "zwran",
     zvun => "zvu~n",
+    se => "se",
+    sen => "sen",
 });
+
+impl BaseKrt {
+    /// Returns the *aupadeśika* form of this *pratyaya*.
+    pub fn aupadeshika(&self) -> &'static str {
+        self.as_str()
+    }
+}
 
 /// Models a *kṛt pratyaya*.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
@@ -376,22 +428,55 @@ impl Krt {
         }
     }
 
+    /// Returns whether this krt pratyaya creates an *avyaya*.
+    ///
+    /// This is a convenience function for programs that generate Sanskrit words. If a *krt
+    /// pratyaya* creates *avyaya*s, then we don't need to try creating subantas for various
+    /// combinations of vibhakti and vacana.
+    pub fn is_avyaya(&self) -> bool {
+        use BaseKrt::*;
+        match self {
+            Krt::Base(k) => !matches!(
+                k,
+                tumun
+                    | Ramul
+                    | se
+                    | sen
+                    | ase
+                    | asen
+                    | kase
+                    | kasen
+                    | aDyE
+                    | aDyEn
+                    | kaDyE
+                    | kaDyEn
+                    | SaDyE
+                    | SaDyEn
+                    | tavE
+                    | taveN
+                    | taven
+                    | ktvA
+                    | tosun
+                    | kasun
+            ),
+            Krt::Unadi(_) => true,
+        }
+    }
+
     /// Returns a simple human-readable string that represents this enum's value.
     ///
     /// This mapping is not reversible. This is because some pratyayas are in both `Base` and
     /// `Unadi`.
     pub fn as_str(&self) -> &'static str {
-        match self {
-            Krt::Base(b) => b.as_str(),
-            Krt::Unadi(u) => u.as_str(),
-        }
+        self.aupadeshika()
     }
-}
 
-impl BaseKrt {
-    /// Returns the *aupadeśika* form of this *pratyaya*.
+    /// Returns the *aupadesika* form of this pratyaya.
     pub fn aupadeshika(&self) -> &'static str {
-        self.as_str()
+        match self {
+            Krt::Base(b) => b.aupadeshika(),
+            Krt::Unadi(u) => u.aupadeshika(),
+        }
     }
 }
 

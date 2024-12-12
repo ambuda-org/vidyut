@@ -109,7 +109,7 @@ fn create_entry(
 
     // Dhatupatha sutra
     html_row += "(";
-    html_row += &replace_svaras(&mula.upadesha());
+    html_row += &replace_svaras(&mula.aupadeshika());
     html_row += " ";
     html_row += dhatu_entry.artha();
     html_row += " ";

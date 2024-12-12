@@ -40,7 +40,7 @@ pub enum Taddhita {
     asic,
     /// -astAt
     astAti,
-    /// -Akin,
+    /// -Akin
     Akinic,
     /// -Ara
     Arak,
@@ -60,9 +60,9 @@ pub enum Taddhita {
     ilac,
     /// -izWa
     izWan,
-    /// -Ika,
+    /// -Ika
     Ikak,
-    /// -Ika,
+    /// -Ika
     Ikan,
     /// -Iyas
     Iyasun,
@@ -86,7 +86,7 @@ pub enum Taddhita {
     kftvasuc,
     /// -kuwAra
     kuwArac,
-    /// -kura,
+    /// -kura
     kuRap,
     /// -Ina
     Ka,
@@ -112,21 +112,21 @@ pub enum Taddhita {
     cvi,
     /// -Iya
     Ca,
-    /// -Iya,
+    /// -Iya
     CaR,
-    /// -Iya,
+    /// -Iya
     Cas,
     /// -jAtIya
     jAtIyar,
     /// -jAha
     jAhac,
-    /// -a,
+    /// -a
     Ya,
     /// -ika
     YiW,
     /// -ya
     Yya,
-    /// -ya,
+    /// -ya
     YyaN,
     /// -ya
     Yyaw,
@@ -338,7 +338,7 @@ pub enum Taddhita {
     za,
     /// -ka
     zkan,
-    /// -tra
+    /// -tara
     zwarac,
     /// -ika
     zWac,

@@ -86,7 +86,7 @@ fn linga_vibhakti_vacana_options() -> Vec<(vp::Linga, vp::Vibhakti, vp::Vacana)>
     for linga in vp::Linga::iter() {
         for vibhakti in vp::Vibhakti::iter() {
             for vacana in vp::Vacana::iter() {
-                ret.push((*linga, *vibhakti, *vacana))
+                ret.push((linga, vibhakti, vacana))
             }
         }
     }
@@ -117,18 +117,18 @@ fn tinanta_options() -> Vec<(
     let mut ret = Vec::new();
     for prayoga in vp::Prayoga::iter() {
         for pada in vp::DhatuPada::iter() {
-            if *prayoga == vp::Prayoga::Bhave {
+            if prayoga == vp::Prayoga::Bhave {
                 // Duplicates karmani -- skip
                 continue;
             }
             for lakara in vp::Lakara::iter() {
-                if *lakara == vp::Lakara::Let {
+                if lakara == vp::Lakara::Let {
                     // Experimental -- skip
                     continue;
                 }
                 for purusha in vp::Purusha::iter() {
                     for vacana in vp::Vacana::iter() {
-                        ret.push((*prayoga, *pada, *lakara, *purusha, *vacana));
+                        ret.push((prayoga, pada, lakara, purusha, vacana));
                     }
                 }
             }
@@ -478,8 +478,8 @@ fn create_sarvanamas(padas: &mut PadaVec) {
         let prati = vp::Pratipadika::basic(stem);
         let lingas = vec![Linga::Pum, Linga::Stri, Linga::Napumsaka];
 
-        for (linga, vibhakti, vacana) in &linga_vibhakti_vacana {
-            let args = vp::Subanta::new(prati.clone(), *linga, *vibhakti, *vacana);
+        for (linga, vibhakti, vacana) in linga_vibhakti_vacana.iter().copied() {
+            let args = vp::Subanta::new(prati.clone(), linga, vibhakti, vacana);
             let prakriyas = v.derive_subantas(&args);
             for p in prakriyas {
                 let morph = Pada::Subanta(Subanta {
@@ -487,9 +487,9 @@ fn create_sarvanamas(padas: &mut PadaVec) {
                         text: stem.to_string(),
                         lingas: lingas.clone(),
                     },
-                    linga: Some(Linga::from(*linga)),
-                    vibhakti: Some(Vibhakti::from(*vibhakti)),
-                    vacana: Some(Vacana::from(*vacana)),
+                    linga: Some(Linga::from(linga)),
+                    vibhakti: Some(Vibhakti::from(vibhakti)),
+                    vacana: Some(Vacana::from(vacana)),
                     is_purvapada: false,
                 });
                 let text = p.text();

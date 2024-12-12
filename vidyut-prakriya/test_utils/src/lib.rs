@@ -102,7 +102,7 @@ impl Tester {
     }
 
     /// Asserts that the given input conditions produce the tinantas `expected`.
-    fn assert_has_tinantas(&self, args: &Tinanta, expected: &[&str]) {
+    pub fn assert_has_tinantas(&self, args: &Tinanta, expected: &[&str]) {
         let mut actual = self.derive_tinantas(args);
         actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p) && !has_bad_final(p));
         sort_and_dedup(&mut actual);

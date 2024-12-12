@@ -39,6 +39,8 @@ pub(crate) struct KrtPrakriya<'a> {
     pub p: &'a mut Prakriya,
     /// The first index of the dhatu.
     pub i_dhatu: usize,
+    /// The last index of the dhatu.
+    pub i_dhatu_end: usize,
     /// The krt-pratyaya that the caller wishes to add.
     pub krt: BaseKrt,
     pub rule_artha: Option<KrtArtha>,
@@ -50,9 +52,11 @@ impl<'a> KrtPrakriya<'a> {
     /// Creates a new `KrtPrakriya` struct.
     pub fn new(p: &'a mut Prakriya, krt: BaseKrt) -> Self {
         let i_dhatu = p.find_first_where(|t| t.is_dhatu()).unwrap_or(0);
+        let i_dhatu_end = p.find_last_where(|t| t.is_dhatu()).unwrap_or(0);
         KrtPrakriya {
             p,
             i_dhatu,
+            i_dhatu_end,
             krt,
             rule_artha: None,
             had_match: false,
@@ -65,13 +69,19 @@ impl<'a> KrtPrakriya<'a> {
         self.p.get(self.i_dhatu).expect("present")
     }
 
+    pub fn has_upa_u(&self, upasarga: Upasarga, dhatu: &str) -> bool {
+        self.has_upasarga(upasarga)
+            && self.p.has(self.i_dhatu, |t| t.has_u(dhatu))
+            && self.i_dhatu == self.i_dhatu_end
+    }
+
     /// Returns a reference to the last dhatu term for this prakriya.
     pub fn dhatu_end(&self) -> &Term {
         let i = self.p.find_last_where(|t| t.is_dhatu()).expect("present");
         self.p.get(i).expect("present")
     }
 
-    fn i_upapada(&self) -> Option<usize> {
+    pub fn i_upapada(&self) -> Option<usize> {
         self.p.find_prev_where(self.i_dhatu, |t| !t.is_empty())
     }
 

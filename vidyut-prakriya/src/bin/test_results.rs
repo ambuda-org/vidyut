@@ -69,7 +69,7 @@ fn test_tinanta(line: &str) -> Result<(), Box<dyn Error>> {
 
     // TODO: this is very clumsy!
     let mut builder = Dhatu::builder()
-        .upadesha(dhatu.upadesha().expect("ok"))
+        .aupadeshika(dhatu.aupadeshika().expect("ok"))
         .gana(dhatu.gana().expect("ok"))
         .prefixes(dhatu.prefixes())
         .sanadi(&sanadi);
@@ -99,7 +99,7 @@ fn test_tinanta(line: &str) -> Result<(), Box<dyn Error>> {
         let purusha = &r[6];
         let vacana = &r[7];
         let code = format!("{:0>2}.{:0>4}", gana, number);
-        let upadesha = dhatu.upadesha().expect("ok");
+        let upadesha = dhatu.aupadeshika().expect("ok");
 
         let mut out = std::io::stdout().lock();
         writeln!(
@@ -137,7 +137,7 @@ fn test_krdanta(r: Result<KrdantaRow, csv::Error>) -> Result<(), Box<dyn Error>>
 
     if expected != actual {
         let code = format!("{:0>2}.{:0>4}", gana, number);
-        let upadesha = dhatu.upadesha().expect("ok");
+        let upadesha = dhatu.aupadeshika().expect("ok");
 
         let mut out = std::io::stdout().lock();
         writeln!(out, "[ FAIL ]  {code:<10} {upadesha:<10} {krt:<10}")?;
@@ -171,7 +171,7 @@ fn test_dhatu(line: &str) -> Result<(), Box<dyn Error>> {
 
     if expected != actual {
         let code = format!("{gana:0>2}.{number:0>4}");
-        let upadesha = dhatu.upadesha().expect("ok");
+        let upadesha = dhatu.aupadeshika().expect("ok");
 
         let mut out = std::io::stdout().lock();
         writeln!(out, "[ FAIL ]  {code:<10} {upadesha:<10} {sanadi:?}")?;

@@ -67,6 +67,7 @@ struct MainArgs {
     lakara: Option<Lakara>,
     is_ardhadhatuka: bool,
     needs_dhatu_pada: bool,
+    skip_at_agama: bool,
 }
 
 impl Default for MainArgs {
@@ -75,6 +76,7 @@ impl Default for MainArgs {
             lakara: None,
             is_ardhadhatuka: false,
             needs_dhatu_pada: true,
+            skip_at_agama: false,
         }
     }
 }
@@ -82,7 +84,7 @@ impl Default for MainArgs {
 impl MainArgs {
     fn dhatu_args(dhatu: &Dhatu, is_ardhadhatuka: bool, future_lakara: Option<Lakara>) -> Self {
         MainArgs {
-            lakara: match dhatu.upadesha() {
+            lakara: match dhatu.aupadeshika() {
                 // Zero out the lakara for most dhatus to increase the cache hit rate.
                 Some(s) => {
                     if s == "aja~" || matches!(future_lakara, Some(Lakara::Lun)) {
@@ -95,6 +97,7 @@ impl MainArgs {
             },
             is_ardhadhatuka,
             needs_dhatu_pada: true,
+            skip_at_agama: false,
         }
     }
 }
@@ -451,6 +454,7 @@ fn add_lakara_and_decide_pada(p: &mut Prakriya, lakara: Lakara) {
 fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) {
     let lakara = args.lakara;
     let is_ardhadhatuka = args.is_ardhadhatuka;
+    let skip_at_agama = args.skip_at_agama;
 
     let is_tinanta = p.terms().last().map_or(false, |t| t.is_tin());
     let is_lit_or_ashirlin = matches!(lakara, Some(Lakara::Lit) | Some(Lakara::AshirLin));
@@ -553,7 +557,7 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
     angasya::maybe_do_jha_adesha(p);
 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
-    angasya::run_before_dvitva(p, is_lun);
+    angasya::run_before_dvitva(p, is_lun, skip_at_agama);
 
     // After guna
     ardhadhatuka::try_aa_adesha_for_sedhayati(p);
@@ -590,6 +594,7 @@ pub fn derive_dhatu(mut prakriya: Prakriya, dhatu: &Dhatu) -> Result<Prakriya> {
             lakara: None,
             is_ardhadhatuka: false,
             needs_dhatu_pada: true,
+            skip_at_agama: false,
         },
     );
     tripadi::run(p);
@@ -630,6 +635,7 @@ pub fn derive_tinanta(mut prakriya: Prakriya, args: &Tinanta) -> Result<Prakriya
             lakara: Some(lakara),
             is_ardhadhatuka,
             needs_dhatu_pada: true,
+            skip_at_agama: args.skip_at_agama(),
         },
     );
     tripadi::run(p);
@@ -669,6 +675,7 @@ pub fn derive_krdanta(mut prakriya: Prakriya, args: &Krdanta) -> Result<Prakriya
             lakara: None,
             is_ardhadhatuka,
             needs_dhatu_pada: true,
+            skip_at_agama: false,
         },
     );
     tripadi::run(p);
