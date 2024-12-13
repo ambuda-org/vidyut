@@ -44,7 +44,7 @@ struct Row<'a> {
     lakara: Lakara,
     pada: DhatuPada,
     purusha: Purusha,
-    vacana: Vacana,    
+    vacana: Vacana,
 }
 
 fn create_output_string(
