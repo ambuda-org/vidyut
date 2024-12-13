@@ -16,7 +16,7 @@ use serde::Serialize;
 use std::error::Error;
 use std::io;
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_prakriya::args::{Lakara, Prayoga, Purusha, Sanadi, Tinanta, Vacana};
+use vidyut_prakriya::args::{Lakara, Prayoga, DhatuPada, Purusha, Sanadi, Tinanta, Vacana};
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
 /// Command line arguments.
@@ -42,8 +42,9 @@ struct Row<'a> {
     sanadi: String,
     prayoga: Prayoga,
     lakara: Lakara,
+    pada: DhatuPada,
     purusha: Purusha,
-    vacana: Vacana,
+    vacana: Vacana,    
 }
 
 fn create_output_string(
@@ -85,39 +86,43 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
             let sanadi_text = sanadi_text.join("-");
 
             for prayoga in [Prayoga::Kartari, Prayoga::Karmani] {
-                for lakara in Lakara::iter() {
-                    for purusha in Purusha::iter() {
-                        for vacana in Vacana::iter() {
-                            let tinanta = Tinanta::builder()
-                                .dhatu(dhatu.clone())
-                                .prayoga(prayoga)
-                                .purusha(purusha)
-                                .vacana(vacana)
-                                .lakara(lakara)
-                                .build()?;
+                for pada in [DhatuPada::Parasmai, DhatuPada::Atmane] {
+                    for lakara in Lakara::iter() {
+                        for purusha in Purusha::iter() {
+                            for vacana in Vacana::iter() {
+                                let tinanta = Tinanta::builder()
+                                    .dhatu(dhatu.clone())
+                                    .prayoga(prayoga)
+                                    .purusha(purusha)
+                                    .vacana(vacana)
+                                    .pada(pada)
+                                    .lakara(lakara)
+                                    .build()?;
 
-                            let prakriyas = v.derive_tinantas(&tinanta);
-                            if prakriyas.is_empty() {
-                                continue;
+                                let prakriyas = v.derive_tinantas(&tinanta);
+                                if prakriyas.is_empty() {
+                                    continue;
+                                }
+
+                                let dhatu_text = &dhatu.aupadeshika().expect("ok");
+                                let padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
+                                let padas = create_output_string(&mut lipika, padas, output_scheme);
+
+                                let row = Row {
+                                    padas,
+                                    dhatu: dhatu_text,
+                                    gana: dhatu.gana().expect("ok").as_str(),
+                                    number: entry.number(),
+                                    sanadi: sanadi_text.clone(),
+                                    lakara,
+                                    pada,
+                                    purusha,
+                                    vacana,
+                                    prayoga,
+                                };
+
+                                wtr.serialize(row)?;
                             }
-
-                            let dhatu_text = &dhatu.aupadeshika().expect("ok");
-                            let padas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
-                            let padas = create_output_string(&mut lipika, padas, output_scheme);
-
-                            let row = Row {
-                                padas,
-                                dhatu: dhatu_text,
-                                gana: dhatu.gana().expect("ok").as_str(),
-                                number: entry.number(),
-                                sanadi: sanadi_text.clone(),
-                                lakara,
-                                purusha,
-                                vacana,
-                                prayoga,
-                            };
-
-                            wtr.serialize(row)?;
                         }
                     }
                 }
