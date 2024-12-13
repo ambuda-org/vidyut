@@ -666,7 +666,7 @@ fn sk_2573() {
     let karta = d("karta", Curadi);
     assert_has_tip(&[], &karta, Lat, &["kartayati", "kartati"]);
 
-    let pati = Dhatu::nama("pawu".into(), Some(Sanadi::Ric));
+    let pati = Dhatu::nama(phit("pawu"), Some(Sanadi::Ric));
     assert_has_tip(&[], &pati, Lat, &["pawayati"]);
     // TODO: apIpawat, apapawat, ...
 }

@@ -748,7 +748,7 @@ fn sutra_1_3_89_v1() {
 
 #[test]
 fn sutra_1_3_90() {
-    let kyas = |prati| Dhatu::nama(Pratipadika::basic(prati), None);
+    let kyas = |prati| Dhatu::nama(phit(prati), None);
     assert_has_lat(&[], &kyas("lohita"), &["lohitAyati", "lohitAyate"]);
 }
 

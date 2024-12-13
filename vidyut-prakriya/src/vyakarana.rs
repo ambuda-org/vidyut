@@ -31,7 +31,11 @@ use crate::core::PrakriyaTag as PT;
 /// ```no_run
 /// use vidyut_prakriya::Vyakarana;
 ///
-/// let v = Vyakarana::builder().log_steps(false).is_chandasi(true).use_svaras(true).build();
+/// let v = Vyakarana::builder()
+///     .log_steps(false)
+///     .is_chandasi(true)
+///     .use_svaras(true)
+///     .build();
 /// ```
 #[derive(Debug, Default)]
 pub struct Vyakarana {
@@ -81,33 +85,36 @@ impl Vyakarana {
     /// A *mūla-dhātu* from the Dhatupatha:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let vand = Dhatu::mula("vadi~\\", Gana::Bhvadi);
+    /// let vand = Dhatu::mula(Slp1String::from("vadi~\\")?, Gana::Bhvadi);
     /// let prakriyas = v.derive_dhatus(&vand);
     /// assert_eq!(prakriyas[0].text(), "vand");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *mūla-dhātu* with one or more *upasarga*s:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let gam = Dhatu::mula("ga\\mx~", Gana::Bhvadi);
+    /// let gam = Dhatu::mula(Slp1String::from("ga\\mx~")?, Gana::Bhvadi);
     /// let upasangam = gam.with_prefixes(&["upa", "sam"]);
     /// let prakriyas = v.derive_dhatus(&upasangam);
-    /// assert_eq!(prakriyas[0].text(), "upasaNgam");
+    /// assert_eq!(prakriyas[0].text(), "upasaMgam");
+    /// assert_eq!(prakriyas[1].text(), "upasaNgam");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *mūla-dhātu* with one or more *sanādi pratyaya*s:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let vand = Dhatu::mula("vadi~\\", Gana::Bhvadi);
+    /// let vand = Dhatu::mula(Slp1String::from("vadi~\\")?, Gana::Bhvadi);
     ///
     /// let vivandisha = vand.clone().with_sanadi(&[Sanadi::san]);
     /// let prakriyas = v.derive_dhatus(&vivandisha);
@@ -128,31 +135,34 @@ impl Vyakarana {
     /// let vivandishi = vand.clone().with_sanadi(&[Sanadi::san, Sanadi::Ric]);
     /// let prakriyas = v.derive_dhatus(&vivandishi);
     /// assert_eq!(prakriyas[0].text(), "vivandizi");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *nāma-dhātu* with an optional *sanādi pratyaya*:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let putra = Pratipadika::basic("putra");
+    /// let putra = Pratipadika::basic(Slp1String::from("putra")?);
     /// let putriya = Dhatu::nama(putra, Some(Sanadi::kyac));
     /// let prakriyas = v.derive_dhatus(&putriya);
     /// assert_eq!(prakriyas[0].text(), "putrIya");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *nāma-dhātu* with a mandatory *sanādi pratyaya* from some other sutra:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let lohita = Pratipadika::basic("lohita");
+    /// let lohita = Pratipadika::basic(Slp1String::from("lohita")?);
     /// let lohitaya = Dhatu::nama(lohita, None);
     /// let prakriyas = v.derive_dhatus(&lohitaya);
     /// // From sutra 3.1.13.
     /// assert_eq!(prakriyas[0].text(), "lohitAya");
+    /// # Ok::<(), Error>(())
     /// ````
     pub fn derive_dhatus(&self, args: &Dhatu) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
@@ -174,7 +184,7 @@ impl Vyakarana {
     ///
     /// let v = Vyakarana::new();
     ///
-    /// let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+    /// let bhu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi);
     /// let args = Tinanta::builder()
     ///     .dhatu(bhu)
     ///     .lakara(Lakara::Lat)
@@ -185,15 +195,16 @@ impl Vyakarana {
     ///     .unwrap();
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "Bavati");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *tiṅanta* with one or more *upasarga*s:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
-    /// let abhibhu = Dhatu::mula("BU", Gana::Bhvadi).with_prefixes(&["aBi"]);
+    /// let abhibhu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi).with_prefixes(&["aBi"]);
     /// let args = Tinanta::builder()
     ///     .dhatu(abhibhu)
     ///     .lakara(Lakara::Lat)
@@ -204,15 +215,16 @@ impl Vyakarana {
     ///     .unwrap();
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "aBiBavati");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *tiṅanta* whose *dhātu* has one or more *sanādi-pratyaya*s:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
-    /// let bobhuya = Dhatu::mula("BU", Gana::Bhvadi).with_sanadi(&[Sanadi::yaN]);
+    /// let bobhuya = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi).with_sanadi(&[Sanadi::yaN]);
     /// let args = Tinanta::builder()
     ///     .dhatu(bobhuya)
     ///     .lakara(Lakara::Lat)
@@ -223,16 +235,17 @@ impl Vyakarana {
     ///     .unwrap();
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "boBUyate");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *tiṅanta* that must use *ātmanepada*. If the *dhātu* cannot support the requested *pada*,
     /// this method returns no results:
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
-    /// let kr = Dhatu::mula("qukf\\Y", Gana::Tanadi);
+    /// let kr = Dhatu::mula(Slp1String::from("qukf\\Y")?, Gana::Tanadi);
     /// let args = Tinanta::builder()
     ///     .dhatu(kr)
     ///     .lakara(Lakara::Lat)
@@ -244,16 +257,16 @@ impl Vyakarana {
     ///     .unwrap();
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "kurute");
+    /// # Ok::<(), Error>(())
     /// ```
     ///
     /// A *tiṅanta* with one or more *upasarga*s:
     ///
     /// ```
-    /// # use vidyut_prakriya::Error;
-    /// # use vidyut_prakriya::Vyakarana;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
-    /// let abhibhu = Dhatu::mula("BU", Gana::Bhvadi).with_prefixes(&["aBi"]);
+    /// let abhibhu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi).with_prefixes(&["aBi"]);
     /// let args = Tinanta::builder()
     ///     .dhatu(abhibhu)
     ///     .lakara(Lakara::Lat)
@@ -272,7 +285,7 @@ impl Vyakarana {
     /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
-    /// let bobhuya = Dhatu::mula("BU", Gana::Bhvadi).with_sanadi(&[Sanadi::yaN]);
+    /// let bobhuya = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi).with_sanadi(&[Sanadi::yaN]);
     /// let args = Tinanta::builder()
     ///     .dhatu(bobhuya)
     ///     .lakara(Lakara::Lat)
@@ -292,7 +305,7 @@ impl Vyakarana {
     /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// # let v = Vyakarana::new();
-    /// let kr = Dhatu::mula("qukf\\Y", Gana::Tanadi);
+    /// let kr = Dhatu::mula(Slp1String::from("qukf\\Y")?, Gana::Tanadi);
     /// let args = Tinanta::builder()
     ///     .dhatu(kr)
     ///     .lakara(Lakara::Lat)
@@ -339,7 +352,7 @@ impl Vyakarana {
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     /// let args = Subanta::builder()
-    ///     .pratipadika(Pratipadika::basic("nara"))
+    ///     .pratipadika(Pratipadika::basic(Slp1String::from("nara")?))
     ///     .linga(Linga::Pum)
     ///     .vibhakti(Vibhakti::Trtiya)
     ///     .vacana(Vacana::Eka)
@@ -365,7 +378,7 @@ impl Vyakarana {
     /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
+    /// let dhatu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi);
     /// let args = Krdanta::new(dhatu, BaseKrt::ktvA);
     /// let prakriyas = v.derive_krdantas(&args);
     /// assert_eq!(prakriyas[0].text(), "BUtvA");
@@ -378,7 +391,7 @@ impl Vyakarana {
     /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let dhatu = Dhatu::mula("dF", Gana::Kryadi);
+    /// let dhatu = Dhatu::mula(Slp1String::from("dF")?, Gana::Kryadi);
     /// let args = Krdanta::new(dhatu, Unadi::YuR);
     /// let prakriyas = v.derive_krdantas(&args);
     /// assert_eq!(prakriyas[0].text(), "dAru");
@@ -401,7 +414,7 @@ impl Vyakarana {
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     /// let args = Taddhitanta::builder()
-    ///     .pratipadika(Pratipadika::basic("nara"))
+    ///     .pratipadika(Pratipadika::basic(Slp1String::from("nara")?))
     ///     .taddhita(Taddhita::matup)
     ///     .build()?;
     /// let prakriyas = v.derive_taddhitantas(&args);
@@ -421,12 +434,12 @@ impl Vyakarana {
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
-    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
-    /// let pratipadika = Pratipadika::basic("nara");
+    /// let pratipadika = Pratipadika::basic(Slp1String::from("nara")?);
     /// let prakriyas = v.derive_stryantas(&pratipadika);
+    /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_stryantas(&self, pratipadika: &Pratipadika) -> Vec<Prakriya> {
         let mut stack = self.create_prakriya_stack();
@@ -444,8 +457,8 @@ impl Vyakarana {
     /// # use vidyut_prakriya::args::*;
     /// let v = Vyakarana::new();
     ///
-    /// let rajan = Pratipadika::basic("rAjan");
-    /// let purusha = Pratipadika::basic("puruza");
+    /// let rajan = Pratipadika::basic(Slp1String::from("rAjan")?);
+    /// let purusha = Pratipadika::basic(Slp1String::from("puruza")?);
     /// let args = Samasa::builder()
     ///     .padas(vec![
     ///         Subanta::new(rajan, Linga::Pum, Vibhakti::Sasthi, Vacana::Eka),
@@ -472,8 +485,7 @@ impl Vyakarana {
     /// ### Example
     ///
     /// ```
-    /// # use vidyut_prakriya::Vyakarana;
-    /// # use vidyut_prakriya::Error;
+    /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
     ///
     /// let v = Vyakarana::new();

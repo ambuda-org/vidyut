@@ -299,7 +299,7 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
             dhatu.set_text("BU");
             dhatu.add_tag(T::Dhatu);
             dhatu.maybe_save_sthanivat();
-            p.insert_before(i_tin, dhatu);
+            p.insert(i_tin, dhatu);
 
             if !p.is_bhave_or_karmani() {
                 if p.has_tag(PT::Atmanepada) {
@@ -317,7 +317,7 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
             dhatu.set_text("as");
             dhatu.add_tag(T::Dhatu);
             dhatu.maybe_save_sthanivat();
-            p.insert_before(i_tin, dhatu);
+            p.insert(i_tin, dhatu);
 
             if !p.is_bhave_or_karmani() {
                 if p.has_tag(PT::Atmanepada) {
@@ -335,7 +335,7 @@ fn add_kr_bhu_or_as_after_am_pratyaya(p: &mut Prakriya) {
             dhatu.set_text("kf");
             dhatu.add_tag(T::Dhatu);
             dhatu.maybe_save_sthanivat();
-            p.insert_before(i_tin, dhatu);
+            p.insert(i_tin, dhatu);
         });
     }
 }
@@ -420,7 +420,7 @@ fn maybe_add_am_pratyaya_for_lot(p: &mut Prakriya) {
             kf.add_tag(T::Dhatu);
 
             let i_tin = p.terms().len() - 1;
-            p.insert_before(i_tin, kf);
+            p.insert(i_tin, kf);
             p.step("3.1.40")
         }
     }
@@ -603,19 +603,22 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         return None;
     }
 
-    let i_tin = p.find_last_where(|t| t.is_sarvadhatuka())?;
-    let tin = p.get(i_tin)?;
-    let i_dhatu = p.find_prev_where(i_tin, |t| t.is_dhatu())?;
+    let i_last = p.find_last_where(|t| t.is_tin() || t.is_sarvadhatuka())?;
+    let last = p.get(i_last)?;
+    let i_dhatu = p.find_prev_where(i_last, |t| t.is_dhatu())?;
 
-    if tin.lakara.map_or(false, |la| matches!(la, Lrt | Lrn | Lut)) {
-        if tin.has_lakara(Lut) {
+    if last.has_lakara(Lit) {
+        // See `try_add_am_pratyaya_for_lit`.
+    } else if last.has_lakara_in(&[Lrt, Lrn, Lut]) {
+        let code = "3.1.33";
+        if last.has_lakara(Lut) {
             // BavitA
-            p.run("3.1.33", add_vikarana(tAsi));
+            p.run(code, add_vikarana(tAsi));
         } else {
             // Bavizyati
-            p.run("3.1.33", add_vikarana(sya));
+            p.run(code, add_vikarana(sya));
         }
-    } else if tin.has_lakara(Let) {
+    } else if last.has_lakara(Let) {
         if uses_sip_vikarana(p, i_dhatu) {
             // jozizat, mandizat, tArizat
             p.run("3.1.34", add_vikarana(sip));
@@ -627,15 +630,16 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
                 p.run_at(Varttika("3.1.34.1"), i_dhatu + 1, |t| t.add_tag(T::Rit));
             }
         }
-    } else if tin.has_lakara(Lun) {
+    } else if last.has_lakara(Lot) {
+        // Just for vidāṅkurvantu, etc.
+        maybe_add_am_pratyaya_for_lot(p);
+    } else if last.has_lakara(Lun) {
         add_lun_vikarana(p);
-    } else if tin.has_lakara(Lit) {
-        // See `try_add_am_pratyaya_for_lit`.
-    } else if tin.has_tag(T::Sarvadhatuka) {
-        if tin.has_lakara(Lot) {
-            // Just for vidāṅkurvantu, etc.
-            maybe_add_am_pratyaya_for_lot(p);
-        }
+    }
+
+    let i_last = p.find_last_where(|t| t.is_tin() || t.is_sarvadhatuka())?;
+    let last = p.get(i_last)?;
+    if !last.has_lakara_in(&[Lit, Lut, Lrt, Lrn, Lun, AshirLin]) {
         add_sarvadhatuka_vikarana(p);
     }
 

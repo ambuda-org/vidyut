@@ -5,10 +5,15 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Pratipadika;
+use vidyut_prakriya::args::Slp1String;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::Unadi;
 use vidyut_prakriya::args::Vibhakti;
 use vidyut_prakriya::args::{Dhatu, Sanadi};
+
+fn phit(s: &str) -> Pratipadika {
+    Pratipadika::basic(Slp1String::from(s).expect("ok"))
+}
 
 #[test]
 fn skip_sk_178_to_sk_186() {}
@@ -118,7 +123,7 @@ fn sk_212() {
     assert_has_sup_6s("rAma", Pum, &["rAmasya"]);
 
     let pis = create_krdanta("pis", &[], &d("pisf~", Bhvadi), Krt::kvip);
-    let supis = bahuvrihi(Pratipadika::basic("su"), pis);
+    let supis = bahuvrihi("su", pis);
     assert_has_sup_1s(&supis, Pum, &["supIH"]);
     assert_has_sup_1d(&supis, Pum, &["supisO"]);
     assert_has_sup_1p(&supis, Pum, &["supisaH"]);
@@ -499,7 +504,7 @@ fn skip_sk_271() {}
 #[ignore]
 #[test]
 fn sk_273() {
-    let sakhiy = Dhatu::nama("saKi".into(), Some(Sanadi::kyac));
+    let sakhiy = Dhatu::nama(phit("saKi"), Some(Sanadi::kyac));
     let sakhi = krdanta(&[], &sakhiy, Krt::kvip);
     assert_has_sup_1s(&sakhi, Pum, &["saKA"]);
     assert_has_sup_1d(&sakhi, Pum, &["saKAyO"]);

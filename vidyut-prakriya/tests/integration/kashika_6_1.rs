@@ -1067,7 +1067,6 @@ fn sutra_6_1_125() {
     // TODO: pluta and others
 }
 
-#[ignore]
 #[test]
 fn sutra_6_1_135() {
     let kf = d("qukf\\Y", Tanadi);
@@ -1135,7 +1134,7 @@ fn sutra_6_1_141() {
 
 #[test]
 fn sutra_6_1_159() {
-    S.assert_has_krt(&[], &d("kf\\za~", Bhvadi), Krt::GaY, &["karza/"]);
+    S.assert_has_krdanta(&[], &d("kf\\za~", Bhvadi), Krt::GaY, &["karza/"]);
 }
 
 #[ignore]
@@ -1150,9 +1149,9 @@ fn sutra_6_1_162() {
 
 #[test]
 fn sutra_6_1_163() {
-    S.assert_has_krt(&[], &d("Ba\\njo~", Rudhadi), Krt::Gurac, &["BaNgura/"]);
-    S.assert_has_krt(&[], &d("BAsf~\\", Bhvadi), Krt::Gurac, &["BAsura/"]);
-    S.assert_has_krt(&[], &d("YimidA~", Divadi), Krt::Gurac, &["medura/"]);
+    S.assert_has_krdanta(&[], &d("Ba\\njo~", Rudhadi), Krt::Gurac, &["BaNgura/"]);
+    S.assert_has_krdanta(&[], &d("BAsf~\\", Bhvadi), Krt::Gurac, &["BAsura/"]);
+    S.assert_has_krdanta(&[], &d("YimidA~", Divadi), Krt::Gurac, &["medura/"]);
     // TODO: others
 }
 
@@ -1228,10 +1227,10 @@ fn sutra_6_1_183() {
 fn sutra_6_1_185() {
     let kr = d("qukf\\Y", Tanadi);
     let hr = d("hf\\Y", Bhvadi);
-    S.assert_has_krt(&[], &san(&kr), Krt::yat, &["cikIrzya^"]);
-    S.assert_has_krt(&[], &san(&hr), Krt::yat, &["jihIrzya^"]);
-    S.assert_has_krt(&[], &kr, Krt::Ryat, &["kArya^"]);
-    S.assert_has_krt(&[], &hr, Krt::Ryat, &["hArya^"]);
+    S.assert_has_krdanta(&[], &san(&kr), Krt::yat, &["cikIrzya^"]);
+    S.assert_has_krdanta(&[], &san(&hr), Krt::yat, &["jihIrzya^"]);
+    S.assert_has_krdanta(&[], &kr, Krt::Ryat, &["kArya^"]);
+    S.assert_has_krdanta(&[], &hr, Krt::Ryat, &["hArya^"]);
 }
 
 #[test]
@@ -1245,8 +1244,8 @@ fn sutra_6_1_191() {
 fn sutra_6_1_193() {
     let kr = d("qukf\\Y", Tanadi);
     let hr = d("hf\\Y", Bhvadi);
-    S.assert_has_krt(&[], &san(&kr), Krt::Rvul, &["cikI/rzaka"]);
-    S.assert_has_krt(&[], &san(&hr), Krt::Rvul, &["jihI/rzaka"]);
+    S.assert_has_krdanta(&[], &san(&kr), Krt::Rvul, &["cikI/rzaka"]);
+    S.assert_has_krdanta(&[], &san(&hr), Krt::Rvul, &["jihI/rzaka"]);
 
     S.assert_has_taddhita("BOriki", T::viDal, &["BOriki/viDa"]);
     S.assert_has_taddhita("BOliki", T::viDal, &["BOliki/viDa"]);
@@ -1287,8 +1286,8 @@ fn sutra_6_1_212() {
 fn sutra_6_1_217() {
     let kr = d("qukf\\Y", Tanadi);
     let hr = d("hf\\Y", Bhvadi);
-    S.assert_has_krt(&[], &kr, Krt::anIyar, &["karaRI/ya"]);
-    S.assert_has_krt(&[], &hr, Krt::anIyar, &["haraRI/ya"]);
+    S.assert_has_krdanta(&[], &kr, Krt::anIyar, &["karaRI/ya"]);
+    S.assert_has_krdanta(&[], &hr, Krt::anIyar, &["haraRI/ya"]);
 
     S.assert_has_taddhita("pawu", T::jAtIyar, &["pawujAtI/ya"]);
     S.assert_has_taddhita("mfdu", T::jAtIyar, &["mfdujAtI/ya"]);

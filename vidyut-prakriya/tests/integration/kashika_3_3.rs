@@ -711,7 +711,8 @@ fn sutra_3_3_99() {
     assert_has_krdanta(&[], &d("SIN", Adadi), K::kyap, &["SayyA"]);
     // Bftya is from 3.1.112.
     assert_has_krdanta(&[], &d("Bf\\Y", Bhvadi), K::kyap, &["Bftya", "BftyA"]);
-    assert_has_krdanta(&[], &d("i\\R", Adadi), K::kyap, &["ityA"]);
+    // itya is from 3.1.109.
+    assert_has_krdanta(&[], &d("i\\R", Adadi), K::kyap, &["itya", "ityA"]);
 }
 
 #[test]

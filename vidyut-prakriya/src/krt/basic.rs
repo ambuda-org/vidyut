@@ -127,7 +127,17 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
             || dhatu.has_text_in(&["vft", "vfD", "sah", "car"])
         {
             kp.try_add("3.2.136", izRuc);
+        } else if kp.dhatu_end().is_nic() && kp.p.is_chandasi() {
+            // DArayizRu, pArayizRu, ...
+            kp.try_add("3.2.137", izRuc);
+        } else if dhatu.has_u_in(&["BU", "BrAjf~\\"]) && kp.p.is_chandasi() {
+            if !dhatu.has_u("BU") {
+                kp.p.step(Rule::Kashika("3.2.138"));
+            }
+            // BavizRu
+            kp.try_add("3.2.138", izRuc);
         } else if dhatu.has_text_in(&["glE", "ji", "sTA", "BU"]) {
+            // glAsnu, jizRu, sTAsnu, BUzRu
             kp.try_add("3.2.139", ksnu);
         } else if dhatu.has_text_in(&["tras", "gfD", "Dfz", "kzip"]) {
             kp.try_add("3.2.140", knu);
@@ -1047,8 +1057,14 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                     p.set(i_dhatu, |t| t.set_antya("t"));
                 });
             } else if dhatu.has_u_in(&["i\\R", "zwu\\Y", "SAsu~", "vfY", "df", "juzI~\\"]) {
-                kp.try_add("3.1.109", K::kyap);
-                avashyaka_blocked = true;
+                if dhatu.has_u("i\\R") {
+                    // Optional so we can apply 3.3.99 later.
+                    let ok = kp.optional_try_add("3.1.109", K::kyap);
+                    avashyaka_blocked = ok;
+                } else {
+                    kp.try_add("3.1.109", K::kyap);
+                    avashyaka_blocked = true;
+                }
             } else if dhatu.has_upadha('f') && !dhatu.has_text_in(&["kfp", "cft"]) && !skip_3_1_110
             {
                 kp.try_add("3.1.110", K::kyap);

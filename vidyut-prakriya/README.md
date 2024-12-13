@@ -90,7 +90,7 @@ use vidyut_prakriya::args::*;
 
 let v = Vyakarana::new();
 
-let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
+let dhatu = Dhatu::mula(Slp1String::from("BU").expect("ok"), Gana::Bhvadi);
 let args = Tinanta::builder()
     .dhatu(dhatu)
     .lakara(Lakara::Lat)

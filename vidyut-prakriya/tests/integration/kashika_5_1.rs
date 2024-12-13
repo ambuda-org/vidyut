@@ -52,11 +52,12 @@ fn sutra_5_1_4() {
 #[ignore]
 #[test]
 fn sutra_5_1_5() {
+    let havis = krdanta(&[], &d("hu\\", Juhotyadi), Unadi::isi);
     assert_has_artha_taddhita("vatsa", TasmaiHitam, T::Ca, &["vatsIya"]);
     assert_has_artha_taddhita("avatsa", TasmaiHitam, T::Ca, &["avatsIya"]);
     assert_has_artha_taddhita("pawu", TasmaiHitam, T::yat, &["pawavya"]);
     assert_has_artha_taddhita("go", TasmaiHitam, T::yat, &["gavya"]);
-    assert_has_artha_taddhita("havis", TasmaiHitam, T::yat, &["havizya"]);
+    assert_has_artha_taddhita(&havis, TasmaiHitam, T::yat, &["havizya"]);
     assert_has_artha_taddhita("apUpa", TasmaiHitam, T::yat, &["apUpya"]);
     assert_has_artha_taddhita("apUpa", TasmaiHitam, T::Ca, &["apUpIya"]);
 }

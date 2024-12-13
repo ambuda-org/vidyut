@@ -22,7 +22,7 @@ fn unadi_1_1() {
 #[test]
 fn unadi_1_2() {
     let t = Tester::with_chaandasa();
-    t.assert_has_krt(&[], &d("i\\R", Adadi), uR, &["Ayu"]);
+    t.assert_has_krdanta(&[], &d("i\\R", Adadi), uR, &["Ayu"]);
 }
 
 #[test]

@@ -8,6 +8,8 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         let prati = tp.prati();
         if prati.has_text_in(gana::PRTHU_ADI) {
             tp.try_add("5.1.122", imanic);
+        } else if prati.has_text_in(&["mitrayu"]) {
+            tp.try_add("5.1.134", vuY);
         }
 
         let code = "5.1.119";

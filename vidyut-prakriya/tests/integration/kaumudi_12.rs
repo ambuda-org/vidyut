@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Pratipadika;
 
 #[test]
 fn sk_440() {
@@ -120,7 +119,7 @@ fn sk_442() {
 
     let jush = create_krdanta("juz", &[], &d("juzI~\\", Tudadi), Krt::kvip);
     // HACK: technically "saha", but use "sa" for convenience.
-    let sajush = bahuvrihi(Pratipadika::basic("sa"), jush);
+    let sajush = bahuvrihi("sa", jush);
     assert_has_sup_1s(&sajush, Stri, &["sajUH"]);
     assert_has_sup_1d(&sajush, Stri, &["sajuzO"]);
     assert_has_sup_1p(&sajush, Stri, &["sajuzaH"]);

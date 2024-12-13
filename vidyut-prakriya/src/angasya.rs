@@ -90,7 +90,7 @@ pub fn maybe_do_jha_adesha(p: &mut Prakriya) -> Option<()> {
 
     let base = p.get(i_base)?;
     if base.is_dhatu() && p.has(i, |t| t.is_atmanepada()) {
-        let add_rut = |p: &mut Prakriya| p.insert_before(i, A::ruw);
+        let add_rut = |p: &mut Prakriya| p.insert(i, A::ruw);
         if base.is_u(Au::SIN) {
             // Serate
             p.run("7.1.6", add_rut);
@@ -176,7 +176,6 @@ fn try_pratyaya_adesha_at_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
 /// Runs rules that change one or more letters in the anga to a 't'.
 fn try_anga_changes_before_t(p: &mut Prakriya, i_anga: usize) -> Option<()> {
-    p.debug("anga before t");
     let anga = p.get(i_anga)?;
 
     if anga.is_dhatu() {
@@ -1240,6 +1239,9 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
 
         Some(())
     });
+
+    // Must run before guna for saYcaskaratuH, etc.
+    ac_sandhi::try_sut_kat_purva(p);
 
     p.debug("==== Guna-vrddhi ====");
     guna_vrddhi::run(p);

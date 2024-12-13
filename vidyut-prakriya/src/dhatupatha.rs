@@ -33,7 +33,7 @@ impl Entry {
     }
 
     /// The numeric code for this entry.
-    pub fn code(&self) -> &String {
+    pub fn code(&self) -> &str {
         &self.code
     }
 
@@ -43,7 +43,7 @@ impl Entry {
     }
 
     /// The meaning of this dhatu as provided in the Dhatupatha.
-    pub fn artha(&self) -> &String {
+    pub fn artha(&self) -> &str {
         &self.artha
     }
 

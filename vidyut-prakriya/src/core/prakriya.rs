@@ -626,7 +626,7 @@ impl Prakriya {
         }
     }
 
-    pub(crate) fn insert_before(&mut self, i: usize, t: impl Into<Term>) {
+    pub(crate) fn insert(&mut self, i: usize, t: impl Into<Term>) {
         self.terms.insert(i, t.into());
     }
 

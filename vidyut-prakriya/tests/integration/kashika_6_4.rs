@@ -675,7 +675,6 @@ fn sutra_6_4_49() {
     assert_has_krdanta(&[], &yan(&d("pUY", Kryadi)), Krt::tfc, &["popUyitf"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_4_51() {
     assert_has_tip(&[], &nic(&d("takza~", Bhvadi)), Lun, &["atatakzat"]);
@@ -712,7 +711,6 @@ fn sutra_6_4_52() {
     assert_has_krdanta(&[], &d("lakza~", Curadi), Krt::kta, &["lakzita"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_4_55() {
     let kf_nic = nic(&d("qukf\\Y", Tanadi));
@@ -733,6 +731,7 @@ fn sutra_6_4_55() {
     );
     let spfha = &d("spfha", Curadi);
     let gfha = &d("gfha", Curadi);
+
     // anta
     assert_has_krdanta(&[], &nic(&d("gaqi~", Bhvadi)), Unadi::Jac, &["gaRqayanta"]);
     assert_has_krdanta(
@@ -741,16 +740,22 @@ fn sutra_6_4_55() {
         Unadi::Jac,
         &["maRqayanta"],
     );
+
     // Alu
     assert_has_krdanta(&[], &spfha, Krt::Aluc, &["spfhayAlu"]);
     assert_has_krdanta(&[], &gfha, Krt::Aluc, &["gfhayAlu"]);
+
     // Ayya
     assert_has_krdanta(&[], &spfha, Unadi::Ayya, &["spfhayAyya"]);
     assert_has_krdanta(&[], &gfha, Unadi::Ayya, &["gfhayAyya"]);
+
     // itnu
     assert_has_krdanta(&[], &d("stana", Curadi), Unadi::itnuc, &["stanayitnu"]);
-    assert_has_krdanta(&[], &nic(&d("puza~", Kryadi)), Krt::izRuc, &["pozayizRu"]);
-    assert_has_krdanta(&[], &d("pAra", Curadi), Krt::izRuc, &["pArayizRu"]);
+
+    // izRu
+    let t = Tester::with_chaandasa();
+    t.assert_has_krdanta(&[], &nic(&d("puza~", Kryadi)), Krt::izRuc, &["pozayizRu"]);
+    t.assert_has_krdanta(&[], &d("pAra", Curadi), Krt::izRuc, &["pArayizRu"]);
 }
 
 #[test]

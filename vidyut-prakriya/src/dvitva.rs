@@ -152,8 +152,8 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
             // Case 1b1: abhyasa within dhatu ([und] i sa --> un di [d] i sa)
             let i_dhatu_old = i_dhatu;
             let before_abhyasa = Term::make_text(&p_text[..start]);
-            p.insert_before(i_dhatu, before_abhyasa);
-            p.insert_before(i_dhatu + 1, abhyasa);
+            p.insert(i_dhatu, before_abhyasa);
+            p.insert(i_dhatu + 1, abhyasa);
             p.set(i_dhatu + 2, |t| t.set_text(&p_text[start..dhatu_len]));
 
             let i_abhyasa = i_dhatu_old + 1;
@@ -190,10 +190,16 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
         if dhatu.starts_with("tC") {
             abhyasa.set_adi("");
         }
-        p.insert_before(i_dhatu, abhyasa);
+
+        // Insert abhyasa before suw-Agama, if present.
+        let i_abhyasa = if i_dhatu > 0 && p.has(i_dhatu - 1, |t| t.is(A::suw)) {
+            i_dhatu - 1
+        } else {
+            i_dhatu
+        };
+        p.insert(i_abhyasa, abhyasa);
         p.step(rule);
 
-        let i_abhyasa = i_dhatu;
         let i_dhatu = i_dhatu + 1;
         p.add_tag_at("6.1.4", i_abhyasa, T::Abhyasa);
 

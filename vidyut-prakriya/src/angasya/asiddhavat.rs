@@ -146,7 +146,7 @@ pub fn try_cinvat_for_bhave_and_karmani_prayoga(p: &mut Prakriya) -> Option<()> 
                 t.add_tag(T::Rit);
                 t.add_tag(T::Cinvat);
             });
-            p.insert_before(i_n, A::iw);
+            p.insert(i_n, A::iw);
         });
         if ran {
             it_samjna::run(p, i_n).ok();
@@ -836,9 +836,11 @@ pub fn run_for_ni_at_index(p: &mut Prakriya, i_ni: usize) -> Option<()> {
 
     if n.last().is_ardhadhatuka() {
         let dhatu = p.get(i_dhatu)?;
+        let next = n.first();
 
-        if n.first()
-            .has_text_in(&["Am", "anta", "Alu", "Ayya", "itnu", "iznu"])
+        if next.has_text_in(&["Am"])
+            || next.is_any_krt(&[K::Aluc, K::izRuc])
+            || next.is_any_unadi(&[U::Jac, U::Ayya, U::itnuc, U::izRuc])
         {
             // corayAm, spfhayAlu, etc.
             p.run_at("6.4.55", i_ni, op::antya("ay"));

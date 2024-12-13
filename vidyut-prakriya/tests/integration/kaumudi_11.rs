@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Pratipadika;
 use vidyut_prakriya::args::{BaseKrt as Krt, Gana};
 
 #[test]
@@ -323,7 +322,7 @@ fn sk_377() {
 #[test]
 fn sk_378() {
     let yuj = create_krdanta("yuj", &[], &d("yu\\ji~^r", Rudhadi), Krt::kvin);
-    let suyuj = bahuvrihi(Pratipadika::basic("su"), yuj);
+    let suyuj = bahuvrihi("su", yuj);
     assert_has_sup_1s(&suyuj, Pum, &["suyuk"]);
     assert_has_sup_1d(&suyuj, Pum, &["suyujO"]);
     assert_has_sup_1p(&suyuj, Pum, &["suyujaH"]);
@@ -538,7 +537,7 @@ fn sk_434() {
     assert_has_sup_1p(&goraksh, Pum, &["gorakzaH"]);
 
     let pis = create_krdanta("pis", &[], &d("pisf~", Bhvadi), Krt::kvip);
-    let supis = bahuvrihi(Pratipadika::basic("su"), pis);
+    let supis = bahuvrihi("su", pis);
     assert_has_sup_1s(&supis, Pum, &["supIH"]);
     assert_has_sup_1d(&supis, Pum, &["supisO"]);
     assert_has_sup_1p(&supis, Pum, &["supisaH"]);

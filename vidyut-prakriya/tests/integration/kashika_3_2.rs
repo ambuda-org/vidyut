@@ -274,7 +274,7 @@ fn sutra_3_2_21() {
     assert_has_upapada_krdanta("viBA", &[], &kf, wa, &["viBAkara"]);
     assert_has_upapada_krdanta("niSA", &[], &kf, wa, &["niSAkara"]);
     assert_has_upapada_krdanta("praBA", &[], &kf, wa, &["praBAkara"]);
-    assert_has_upapada_krdanta(Pratipadika::basic("BAs"), &[], &kf, wa, &["BAskara"]);
+    assert_has_upapada_krdanta(phit("BAs"), &[], &kf, wa, &["BAskara"]);
     assert_has_upapada_krdanta("kAra", &[], &kf, wa, &["kArakara"]);
     assert_has_upapada_krdanta("anta", &[], &kf, wa, &["antakara"]);
     assert_has_upapada_krdanta("ananta", &[], &kf, wa, &["anantakara"]);

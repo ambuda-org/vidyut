@@ -5,7 +5,6 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Pada;
-use vidyut_prakriya::args::Pratipadika;
 use vidyut_prakriya::args::Subanta;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha;
@@ -794,7 +793,7 @@ fn sutra_8_2_66() {
     // TODO: sandhi applied at pada before moving to vakya, which prevents match.
     let jush = krdanta(&[], &d("juzI~\\", Tudadi), Krt::kvip);
     // HACK: technically "saha", but use "sa" for convenience.
-    let sajush = bahuvrihi(Pratipadika::basic("sa"), jush);
+    let sajush = bahuvrihi("sa", jush);
     let sajuh = Subanta::new(&sajush, Stri, Vibhakti::Prathama, Vacana::Eka).into();
     assert_has_vakya(&sajuh, &pada("ftuBis"), &["sajUr ftuBiH"]);
     assert_has_vakya(&sajuh, &pada("deveBiH"), &["sajUr deeBiH"]);

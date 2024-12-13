@@ -409,6 +409,12 @@ fn try_run_for_dhatu_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
             p.add_tag_at("3.4.115", i, T::Ardhadhatuka);
         } else if pratyaya.has_lakara(AshirLin) {
             p.add_tag_at("3.4.116", i, T::Ardhadhatuka);
+        } else if pratyaya.has_lakara(Let) {
+            let i_dhatu = p.find_last_where(|t| t.is_dhatu())?;
+            let dhatu = p.get(i_dhatu)?;
+            if dhatu.has_u("qukf\\Y") {
+                p.add_tag_at("3.4.117", i, T::Sarvadhatuka);
+            }
         } else if pratyaya.has_tag_in(&[T::Tin, T::Sit]) {
             if !pratyaya.is_sarvadhatuka() {
                 p.add_tag_at("3.4.113", i, T::Sarvadhatuka);

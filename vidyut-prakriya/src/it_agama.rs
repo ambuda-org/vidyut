@@ -130,7 +130,7 @@ impl<'a> ItPrakriya<'a> {
     /// Inserts it-Agama and prevents further rules.
     fn try_add_with(&mut self, rule: impl Into<Rule>, func: impl Fn(&mut Prakriya)) {
         if !self.done {
-            self.p.insert_before(self.i_next, A::iw);
+            self.p.insert(self.i_next, A::iw);
             func(self.p);
             self.p.step(rule);
 
@@ -628,9 +628,9 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
         // - possible aprkta --> It agama in the rule below.
         let is_pit = n.has_tag(T::pit) && !n.has_tag(T::Nit);
         if n.has_adi(HAL) && n.has_tag(T::Sarvadhatuka) && is_pit && is_aprkta {
-            let use_at = ip.p.optional_run("7.3.99", |p| p.insert_before(i_n, A::aw));
+            let use_at = ip.p.optional_run("7.3.99", |p| p.insert(i_n, A::aw));
             if !use_at {
-                ip.p.run("7.3.98", |p| p.insert_before(i_n, A::Iw));
+                ip.p.run("7.3.98", |p| p.insert(i_n, A::Iw));
             }
             it_samjna::run(ip.p, i_n).ok()?;
         } else {

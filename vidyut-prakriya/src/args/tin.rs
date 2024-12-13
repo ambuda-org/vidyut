@@ -324,10 +324,10 @@ impl Tinanta {
 /// ### Example
 ///
 /// ````
-/// # use vidyut_prakriya::args::*;
-/// # use vidyut_prakriya::Error;
+/// # use vidyut_prakriya::*;
+/// use vidyut_prakriya::args::*;
 ///
-/// let dhatu = Dhatu::mula("BU", Gana::Bhvadi);
+/// let dhatu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi);
 /// let args = Tinanta::builder()
 ///     .dhatu(dhatu)
 ///     .lakara(Lakara::Lat)

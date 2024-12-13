@@ -1,4 +1,5 @@
-use crate::args::{Krdanta, Samasa, Taddhitanta};
+use crate::args::{Krdanta, Samasa, Slp1String, Taddhitanta};
+use crate::core::errors::{Error, Result};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BasicPratipadika {
-    pub(crate) text: String,
+    pub(crate) text: Slp1String,
     pub(crate) is_avyaya: bool,
     pub(crate) is_nyap: bool,
 }
@@ -15,7 +16,7 @@ pub struct BasicPratipadika {
 impl BasicPratipadika {
     /// Returns the text that constitutes this pratipadika.
     pub fn text(&self) -> &str {
-        &self.text
+        &self.text.0
     }
 }
 
@@ -43,9 +44,9 @@ pub enum Pratipadika {
 
 impl Pratipadika {
     /// (unstable) A simple constructor for `Pratipadika::Basic`.
-    pub fn basic(text: impl AsRef<str>) -> Self {
+    pub fn basic(text: Slp1String) -> Self {
         Self::Basic(BasicPratipadika {
-            text: text.as_ref().to_string(),
+            text,
             is_nyap: false,
             is_avyaya: false,
         })
@@ -53,9 +54,9 @@ impl Pratipadika {
 
     /// (unstable) A simple constructor for `Pratipadika::Basic` that marks the pratipadika as an
     /// avyaya.
-    pub fn avyaya(text: impl AsRef<str>) -> Self {
+    pub fn avyaya(text: Slp1String) -> Self {
         Self::Basic(BasicPratipadika {
-            text: text.as_ref().to_string(),
+            text,
             is_nyap: false,
             is_avyaya: true,
         })
@@ -63,18 +64,19 @@ impl Pratipadika {
 
     /// (unstable) A simple constructor for `Pratipadika::Basic` that indicates that the
     /// pratipadika already ends in a nyAp-pratyaya.
-    pub fn nyap(text: impl AsRef<str>) -> Self {
+    pub fn nyap(text: Slp1String) -> Self {
         Self::Basic(BasicPratipadika {
-            text: text.as_ref().to_string(),
+            text,
             is_nyap: true,
             is_avyaya: false,
         })
     }
 }
 
-impl From<&str> for Pratipadika {
-    fn from(s: &str) -> Self {
-        Self::basic(s)
+impl TryFrom<&str> for Pratipadika {
+    type Error = Error;
+    fn try_from(s: &str) -> Result<Self> {
+        Ok(Self::basic(Slp1String::from(s)?))
     }
 }
 

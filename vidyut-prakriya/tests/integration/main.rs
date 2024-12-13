@@ -1,9 +1,6 @@
 mod api;
-mod basic_krdantas;
-mod basic_tinantas;
 mod prakriyas;
 mod regressions;
-mod sanadi_tinantas;
 
 mod kashika_1_1;
 mod kashika_1_2;

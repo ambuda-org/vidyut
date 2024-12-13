@@ -271,7 +271,7 @@ fn sutra_1_1_20() {
 
 #[test]
 fn sutra_1_1_21() {
-    S.assert_has_krt(&[], &d("qukf\\Y", Tanadi), Krt::tavya, &["karta/vya"]);
+    S.assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::tavya, &["karta/vya"]);
     S.assert_has_taddhita("upagu", T::aR, &["Opagava/"]);
     assert_has_sup_3d("vfkza", Pum, &["vfkzAByAm"]);
 }

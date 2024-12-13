@@ -412,7 +412,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
     }
 
     let optional_add_agama = |rule, p: &mut Prakriya, i_dhatu, agama: Agama| -> bool {
-        let added = p.optional_run(rule, |p| p.insert_before(i_dhatu, agama));
+        let added = p.optional_run(rule, |p| p.insert(i_dhatu, agama));
         if added {
             it_samjna::run(p, i_dhatu).ok();
         }
@@ -420,7 +420,7 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
     };
 
     let add_agama = |rule, p: &mut Prakriya, i_dhatu, agama| -> bool {
-        p.run(rule, |p| p.insert_before(i_dhatu, agama));
+        p.run(rule, |p| p.insert(i_dhatu, agama));
         it_samjna::run(p, i_dhatu).ok();
         true
     };

@@ -156,12 +156,15 @@ fn try_taddhita_vrddhi(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()
         return None;
     };
 
+    if anga.is_any_phit(&["kekaya", "mitrayu", "pralaya"]) {
+        p.run_at("7.3.2", i_anga, |t| t.find_and_replace_text("y", "iy"));
+    }
+
+    let anga = p.get(i_anga)?;
     if anga.is_any_phit(&["devikA", "SiMSapA", "dityavAh", "dIrGasatra", "Sreyas"]) {
         // dAvikA, ...
         let adi_ac = anga.text.find(al::is_ac)?;
         p.run_at("7.3.1", i_anga, |t| t.set_at(adi_ac, "A"));
-    } else if anga.is_any_phit(&["kekaya", "mitrayu", "pralaya"]) {
-        p.run_at("7.3.2", i_anga, |t| t.find_and_replace_text("y", "iy"));
     } else if anga.starts_with("vy") {
         // HACK: should properly be only with vi-upasarga.
         // TODO: also apply for sv-, .etc.
@@ -446,7 +449,8 @@ fn try_r_guna_before_lit(p: &mut Prakriya, i: usize) -> Option<()> {
     };
 
     let anga = p.get(i)?;
-    if anga.has_antya('f') && anga.is_samyogadi() {
+    let is_skr = || anga.has_u("qukf\\Y") && i > 0 && p.has(i - 1, |t| t.is(A::suw));
+    if anga.has_antya('f') && (anga.is_samyogadi() || is_skr()) {
         p.run_at("7.4.10", i, do_ar_guna);
     } else if anga.has_antya('F') || (anga.has_u_in(&["fCa~", "f\\"]) && anga.has_adi('f')) {
         if anga.has_u("fCa~") {

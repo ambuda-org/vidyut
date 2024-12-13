@@ -144,7 +144,7 @@ fn try_add_dhut_agama(p: &mut Prakriya) -> Option<()> {
         let y = p.get(j)?;
         if p.is_pada(i) && x.has_antya('q') && y.has_adi('s') {
             p.optionally("8.3.29", |rule, p| {
-                p.insert_before(j, A::Duw);
+                p.insert(j, A::Duw);
                 p.step(rule);
                 it_samjna::run(p, j).ok();
             });

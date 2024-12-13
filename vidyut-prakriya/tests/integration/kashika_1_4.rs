@@ -10,7 +10,7 @@ use vidyut_prakriya::args::Sanadi;
 use vidyut_prakriya::args::Taddhita as T;
 
 fn p(text: &str) -> Pratipadika {
-    Pratipadika::basic(text.to_string())
+    phit(text)
 }
 
 #[test]

@@ -40,10 +40,10 @@ struct Row<'a> {
     gana: &'static str,
     number: u16,
     sanadi: String,
-    prayoga: &'static str,
-    lakara: &'static str,
-    purusha: &'static str,
-    vacana: &'static str,
+    prayoga: Prayoga,
+    lakara: Lakara,
+    purusha: Purusha,
+    vacana: Vacana,
 }
 
 fn create_output_string(
@@ -111,10 +111,10 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
                                 gana: dhatu.gana().expect("ok").as_str(),
                                 number: entry.number(),
                                 sanadi: sanadi_text.clone(),
-                                lakara: lakara.as_str(),
-                                purusha: purusha.as_str(),
-                                vacana: vacana.as_str(),
-                                prayoga: prayoga.as_str(),
+                                lakara,
+                                purusha,
+                                vacana,
+                                prayoga,
                             };
 
                             wtr.serialize(row)?;

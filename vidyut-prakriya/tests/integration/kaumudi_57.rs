@@ -4,7 +4,7 @@ use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::{Dhatu, Pratipadika, Sanadi};
 
 fn p(text: &str) -> Pratipadika {
-    Pratipadika::basic(text.to_string())
+    phit(text)
 }
 
 fn kyac(pratipadika: Pratipadika) -> Dhatu {

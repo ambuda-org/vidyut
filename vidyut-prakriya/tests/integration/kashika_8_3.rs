@@ -11,6 +11,13 @@ use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
 use vidyut_prakriya::args::Unadi;
 
+fn kamyac(prati: &str) -> Dhatu {
+    Dhatu::nama(
+        Pratipadika::basic(prati.try_into().expect("ok")),
+        Some(Sanadi::kAmyac),
+    )
+}
+
 #[test]
 fn sutra_8_3_13() {
     assert_has_krdanta(&[], &d("li\\ha~^", Adadi), Krt::kta, &["lIQa"]);
@@ -173,7 +180,6 @@ fn sutra_8_3_38() {
     assert_has_taddhita("payas", T::ka, &["payaska"]);
     assert_has_taddhita("yaSas", T::ka, &["yaSaska"]);
 
-    let kamyac = |prati| Dhatu::nama(Pratipadika::basic(prati), Some(Sanadi::kAmyac));
     assert_has_tip(&[], &kamyac("payas"), Lat, &["payaskAmyati"]);
     assert_has_tip(&[], &kamyac("yaSas"), Lat, &["yaSaskAmyati"]);
 
@@ -189,7 +195,6 @@ fn sutra_8_3_39() {
     assert_has_taddhita("sarpis", T::ka, &["sarpizka"]);
     assert_has_taddhita("yajus", T::ka, &["yajuzka"]);
 
-    let kamyac = |prati| Dhatu::nama(Pratipadika::basic(prati), Some(Sanadi::kAmyac));
     assert_has_tip(&[], &kamyac("sarpis"), Lat, &["sarpizkAmyati"]);
     assert_has_tip(&[], &kamyac("yajus"), Lat, &["yajuzkAmyati"]);
 

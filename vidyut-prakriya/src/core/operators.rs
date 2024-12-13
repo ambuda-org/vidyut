@@ -119,7 +119,7 @@ pub fn text(sub: &'static str) -> impl Fn(&mut Term) {
 
 /// Inserts `agama` at index `i` of the prakriya then runs the it-samjna-prakarana.
 pub fn insert_before(rule: impl Into<Rule>, p: &mut Prakriya, index: usize, agama: Agama) {
-    p.insert_before(index, agama);
+    p.insert(index, agama);
     p.step(rule.into());
     it_samjna::run(p, index).expect("ok");
 }

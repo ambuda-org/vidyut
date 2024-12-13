@@ -14,7 +14,7 @@ use serde::Serialize;
 use std::error::Error;
 use std::io;
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_prakriya::args::{BaseKrt, Krdanta, Sanadi};
+use vidyut_prakriya::args::{BaseKrt, Krdanta, Lakara, Prayoga, Sanadi};
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
 /// Command line arguments.
@@ -38,7 +38,9 @@ struct Row<'a> {
     gana: &'static str,
     number: u16,
     sanadi: String,
-    krt: &'static str,
+    prayoga: Option<Prayoga>,
+    lakara: Option<Lakara>,
+    krt: BaseKrt,
 }
 
 fn create_output_string(
@@ -73,33 +75,53 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
         None => Scheme::Slp1,
     };
 
+    let sat_prayoga_lakara = &[
+        (Some(Prayoga::Kartari), Some(Lakara::Lat)),
+        (Some(Prayoga::Kartari), Some(Lakara::Lrt)),
+        (Some(Prayoga::Karmani), Some(Lakara::Lat)),
+        (Some(Prayoga::Karmani), Some(Lakara::Lrt)),
+    ];
+
     for sanadis in &sanadi_choices {
         for entry in &dhatupatha {
             let dhatu = entry.dhatu().clone().with_sanadi(&sanadis);
             for krt in BaseKrt::iter() {
-                let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
-
-                let prakriyas = v.derive_krdantas(&krdanta);
-                if prakriyas.is_empty() {
-                    continue;
-                }
-
-                let dhatu_text = &dhatu.aupadeshika().expect("ok");
-                let krdantas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
-                let krdantas = create_output_string(&mut lipika, krdantas, output_scheme);
-                let sanadi_text: Vec<_> = sanadis.iter().map(|x| x.as_str()).collect();
-                let sanadi_text = sanadi_text.join("-");
-
-                let row = Row {
-                    krdantas,
-                    dhatu: dhatu_text,
-                    gana: dhatu.gana().expect("ok").as_str(),
-                    number: entry.number(),
-                    sanadi: sanadi_text,
-                    krt: krt.as_str(),
+                let prayoga_lakara: &[(Option<Prayoga>, Option<Lakara>)] = match krt {
+                    BaseKrt::Satf | BaseKrt::SAnac => sat_prayoga_lakara,
+                    _ => &[(None, None)],
                 };
 
-                wtr.serialize(row)?;
+                for (prayoga, lakara) in prayoga_lakara.iter().copied() {
+                    let mut builder = Krdanta::builder().dhatu(dhatu.clone()).krt(krt);
+                    if let (Some(prayoga), Some(lakara)) = (prayoga, lakara) {
+                        builder = builder.prayoga(prayoga).lakara(lakara);
+                    }
+                    let krdanta = builder.build()?;
+
+                    let prakriyas = v.derive_krdantas(&krdanta);
+                    if prakriyas.is_empty() {
+                        continue;
+                    }
+
+                    let dhatu_text = &dhatu.aupadeshika().expect("ok");
+                    let krdantas: Vec<_> = prakriyas.iter().map(|p| p.text()).collect();
+                    let krdantas = create_output_string(&mut lipika, krdantas, output_scheme);
+                    let sanadi_text: Vec<_> = sanadis.iter().map(|x| x.as_str()).collect();
+                    let sanadi_text = sanadi_text.join("-");
+
+                    let row = Row {
+                        krdantas,
+                        dhatu: dhatu_text,
+                        gana: dhatu.gana().expect("ok").as_str(),
+                        number: entry.number(),
+                        sanadi: sanadi_text,
+                        prayoga,
+                        lakara,
+                        krt,
+                    };
+
+                    wtr.serialize(row)?;
+                }
             }
         }
     }

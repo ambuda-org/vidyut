@@ -265,13 +265,13 @@ pub fn try_add_prefixes(p: &mut Prakriya, prefixes: &[String]) -> Option<()> {
             Ok(u) => u.into(),
             _ => Term::make_upadesha(prefix),
         };
-        p.insert_before(i_offset, t);
+        p.insert(i_offset, t);
         samjna::try_nipata_rules(p, i_offset);
 
         let mut su = Term::from(Sup::su);
         su.add_tags(&[T::Pada, T::V1, T::Ekavacana, T::Luk]);
         su.set_text("");
-        p.insert_before(i_offset + 1, su);
+        p.insert(i_offset + 1, su);
 
         // Don't run it-samjna-prakarana for other upasargas (e.g. sam, ud)
         // TODO: why run only for AN?
@@ -329,11 +329,15 @@ pub fn run(p: &mut Prakriya, dhatu: &Muladhatu) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::args::Slp1String;
 
     fn check(text: &str, code: &str) -> Term {
         let (gana, _number) = code.split_once('.').expect("valid");
         let gana: u8 = gana.parse().expect("ok");
-        let dhatu = Muladhatu::new(text, gana.to_string().parse().unwrap());
+        let dhatu = Muladhatu::new(
+            Slp1String::try_from(text).expect("ok"),
+            gana.to_string().parse().unwrap(),
+        );
         let mut p = Prakriya::new();
         run(&mut p, &dhatu).expect("ok");
         p.get(0).expect("ok").clone()

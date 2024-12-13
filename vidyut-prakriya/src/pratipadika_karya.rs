@@ -6,9 +6,9 @@ use crate::sounds as al;
 
 /// FOO
 pub fn add_basic(p: &mut Prakriya, basic: &BasicPratipadika) {
-    let mut base = match basic.text.parse::<Upasarga>() {
+    let mut base = match basic.text.0.parse::<Upasarga>() {
         Ok(u) => u.into(),
-        _ => Term::make_pratipadika(&basic.text),
+        _ => Term::make_pratipadika(&basic.text.0),
     };
 
     // HACK: old implemenation of `Pratipadika` has these tags, so keep them here for consistency

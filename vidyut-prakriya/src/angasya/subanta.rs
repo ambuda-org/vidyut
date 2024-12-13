@@ -659,7 +659,7 @@ fn try_add_nit_agamas(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             // tasyE
             p.run("7.3.114", |p| {
                 p.set(i_anga, op::antya("a"));
-                p.insert_before(i_sup, A::syAw)
+                p.insert(i_sup, A::syAw)
             });
             it_samjna::run(p, i_sup).ok()?;
         } else {

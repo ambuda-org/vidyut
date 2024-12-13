@@ -3,7 +3,6 @@ use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::Pratipadika;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
 use vidyut_prakriya::args::Unadi;
@@ -13,8 +12,8 @@ fn assert_has_pum(prati: &str, expected: &[&str]) {
     assert_has_sup_1s(prati, Pum, expected);
 }
 
-fn assert_has_stri(prati: impl Into<Pratipadika>, expected: &[&str]) {
-    assert_has_sup_1s(prati.into(), Stri, expected);
+fn assert_has_stri(prati: impl Into<SafePratipadika>, expected: &[&str]) {
+    assert_has_sup_1s(prati.into().0, Stri, expected);
 }
 
 fn assert_blocked(text: &str, artha: TaddhitaArtha, t: T) {
@@ -170,7 +169,7 @@ fn sutra_4_1_2() {
     assert_has_sup_7d(&karishagandhya, Stri, &["kArIzaganDyayoH"]);
     assert_has_sup_7p(&karishagandhya, Stri, &["kArIzaganDyAsu"]);
 
-    let drshad = Pratipadika::basic("dfzad");
+    let drshad = phit("dfzad");
     assert_has_sup_1s(&drshad, Pum, &["dfzat"]);
     assert_has_sup_1d(&drshad, Pum, &["dfzadO"]);
     assert_has_sup_1p(&drshad, Pum, &["dfzadaH"]);

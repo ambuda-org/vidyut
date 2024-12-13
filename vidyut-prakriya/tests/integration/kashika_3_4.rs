@@ -7,6 +7,10 @@ use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
 
+fn avyaya(text: &str) -> Pratipadika {
+    Pratipadika::avyaya(Slp1String::try_from(text).expect("ok"))
+}
+
 #[test]
 fn sutra_3_4_12() {
     assert_has_krdanta(&["vi"], &d("Ba\\ja~^", Tudadi), Krt::Ramul, &["viBAjam"]);
@@ -60,7 +64,6 @@ fn sutra_3_4_69() {
 
 #[test]
 fn sutra_3_4_70() {
-    let avyaya = |text| Pratipadika::avyaya(text);
     let kf = &d("qukf\\Y", Tanadi);
     let bhuj = &d("Bu\\ja~", Rudhadi);
     let aas = &d("Asa~\\", Tanadi);
@@ -252,7 +255,37 @@ fn sutra_3_4_93() {
     assert_has_mahin(&[], &kf, Lot, &["karavAmahE"]);
 }
 
-#[ignore]
+#[test]
+fn sutra_3_4_94() {
+    // No `\\` to force parasmaipada
+    // -ti forms are not attested but optional by 3.4.97.
+    assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat"]);
+    assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat"]);
+    assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat"]);
+
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti"]);
+    assert_has_tip(&[], &nic(&d("cyu\\N", Bhvadi)), Let, &["cyAvayAti"]);
+}
+
+#[test]
+fn sutra_3_4_95() {
+    assert_has_aataam(&[], &d("matri~", Curadi), Let, &["mantrayEte"]);
+    assert_has_aathaam(&[], &d("matri~", Curadi), Let, &["mantrayETe"]);
+    assert_has_aataam(&[], &d("qukf\\Y", Tanadi), Let, &["karavEte"]);
+    assert_has_aathaam(&[], &d("qukf\\Y", Tanadi), Let, &["karavETe"]);
+}
+
+#[test]
+fn sutra_3_4_97() {
+    // No `\\` to force parasmaipada
+    assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat"]);
+    assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat"]);
+    assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat"]);
+
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti"]);
+    assert_has_tip(&[], &nic(&d("cyu\\N", Bhvadi)), Let, &["cyAvayAti"]);
+}
+
 #[test]
 fn sutra_3_4_98() {
     let kf = d("qukf\\Y", Tanadi);

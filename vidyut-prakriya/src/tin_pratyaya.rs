@@ -129,7 +129,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         p.run("3.4.94", |p| {
             // Add pit to the pratyaya, not the Agama.
             p.set(i, |t| t.add_tag(T::pit));
-            p.insert_before(i, agama);
+            p.insert(i, agama);
         });
         it_samjna::run(p, i).ok()?;
 
@@ -138,9 +138,12 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         if tin.has_adi('A') {
             // mantrayEte, mantrayETe ,...
             p.run_at("3.4.95", i, op::adi("E"));
-        } else if tin.is_parasmaipada() && tin.has_antya('i') {
-            // jozizat, patAti, ...
-            p.optional_run_at("3.4.97", i, op::antya_lopa);
+        } else if p.has(i_dhatu, |t| t.has_u_in(&["juzI~", "tF", "madi~"]))
+            && tin.is_parasmaipada()
+            && tin.has_antya('i')
+        {
+            // jozizat, tArizat; patAti, ...
+            p.run_at("3.4.97", i, op::antya_lopa);
         } else if p.has_tag(PT::Uttama) && tin.has_antya('s') {
             // karavAva, karavAma; karavAvaH, karavAmaH
             p.optional_run_at("3.4.98", i, op::antya_lopa);
@@ -189,7 +192,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
             p.run("3.4.92", |p| {
                 // Add pit to the pratyaya, not the Agama.
                 p.set(i, |t| t.add_tag(T::pit));
-                p.insert_before(i, A::Aw);
+                p.insert(i, A::Aw);
             });
             it_samjna::run(p, i).ok()?;
         }
@@ -249,7 +252,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
     // liN-only siddhi
     if p.has(i, |t| t.is_lin_lakara()) {
         if p.has(i, |t| t.is_parasmaipada()) {
-            p.insert_before(i, A::yAsuw);
+            p.insert(i, A::yAsuw);
             if la == Lakara::AshirLin {
                 // ucyAt
                 // Add kit to the pratyaya, not the Agama.
@@ -262,7 +265,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
             it_samjna::run(p, i).expect("agama");
         } else {
             // paceta; pakzIzwa
-            p.insert_before(i, A::sIyuw);
+            p.insert(i, A::sIyuw);
             p.step("3.4.102");
             it_samjna::run(p, i).expect("agama");
 

@@ -321,7 +321,7 @@ fn apply_ac_sandhi_at_term_boundary(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
+pub fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     let i_dhatu = p.find_first_with_tag(T::Dhatu)?;
     let dhatu = p.get(i_dhatu)?;
 
@@ -333,7 +333,7 @@ fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     let prev = p.get(i_prev)?;
 
     let optional_add_sut_agama = |rule, p: &mut Prakriya, i_dhatu: usize| {
-        if p.optional_run(rule, |p| p.insert_before(i_dhatu, A::suw)) {
+        if p.optional_run(rule, |p| p.insert(i_dhatu, A::suw)) {
             it_samjna::run(p, i_dhatu).expect("ok");
         }
     };
@@ -415,8 +415,6 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
 
     apply_general_ac_sandhi(p, 0, p.len() - 1);
     hacky_apply_ni_asiddhavat_rules(p);
-
-    try_sut_kat_purva(p);
 
     Some(())
 }

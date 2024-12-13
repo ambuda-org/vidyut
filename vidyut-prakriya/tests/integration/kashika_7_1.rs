@@ -7,6 +7,10 @@ use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
 
+fn avyaya(text: &str) -> Pratipadika {
+    Pratipadika::avyaya(Slp1String::try_from(text).expect("ok"))
+}
+
 #[test]
 fn sutra_7_1_1() {
     let nand = d("wunadi~", Bhvadi);
@@ -372,13 +376,7 @@ fn sutra_7_1_37() {
     let hf = d("hf\\Y", Bhvadi);
     assert_has_krdanta(&["pra"], &kf, ktvA, &["prakftya"]);
     assert_has_krdanta(&["pra"], &hf, ktvA, &["prahftya"]);
-    assert_has_upapada_krdanta(
-        Pratipadika::avyaya("pArSvataH"),
-        &[],
-        &kf,
-        ktvA,
-        &["pArSvataHkftya"],
-    );
+    assert_has_upapada_krdanta(avyaya("pArSvataH"), &[], &kf, ktvA, &["pArSvataHkftya"]);
     assert_has_krdanta(&["nAnA"], &kf, ktvA, &["nAnAkftya"]);
     assert_has_krdanta(&["dviDA"], &kf, ktvA, &["dviDAkftya"]);
 
@@ -596,14 +594,16 @@ fn sutra_7_1_66() {
 
 #[test]
 fn sutra_7_1_67() {
-    let avyaya = Pratipadika::avyaya;
     let labh = d("qula\\Ba~\\z", Bhvadi);
+
     // Kal
     assert_has_upapada_krdanta(avyaya("Izat"), &["pra"], &labh, Krt::Kal, &["IzatpralamBa"]);
     assert_has_upapada_krdanta(avyaya("su"), &["pra"], &labh, Krt::Kal, &["supralamBa"]);
+
     // GaY
     assert_has_krdanta(&["pra"], &labh, Krt::GaY, &["pralamBa"]);
     assert_has_krdanta(&["vi", "pra"], &labh, Krt::GaY, &["vipralamBa"]);
+
     // otherwise, ...
     assert_has_upapada_krdanta(avyaya("Izat"), &[], &labh, Krt::Kal, &["IzallaBa"]);
     assert_has_krdanta(&[], &labh, Krt::GaY, &["lABa"]);

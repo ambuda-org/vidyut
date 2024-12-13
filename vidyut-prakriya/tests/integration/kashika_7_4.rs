@@ -150,19 +150,23 @@ fn sutra_7_4_10() {
     let kzi = d("kzi\\", Tudadi);
     assert_has_tas(&[], &kzi, Lit, &["cikziyatuH"]);
     assert_has_jhi(&[], &kzi, Lit, &["cikziyuH"]);
+
     // saMyogAdeH
     let kf = d("qukf\\Y", Tanadi);
     assert_has_tas(&[], &kf, Lit, &["cakratuH"]);
     assert_has_jhi(&[], &kf, Lit, &["cakruH"]);
+
     // vrddhi otherwise
     assert_has_tip(&[], &svf, Lit, &["sasvAra"]);
     assert_has_tip(&[], &smf, Lit, &["sasmAra"]);
+
     // liwi
     assert_has_krdanta(&[], &smf, Krt::kta, &["smfta"]);
     assert_has_krdanta(&[], &smf, Krt::ktavatu, &["smftavat"]);
+
     // saMskf
-    assert_has_tas(&["sam"], &kf, Lit, &["saYcaskratuH", "saYcakratuH"]);
-    assert_has_jhi(&["sam"], &kf, Lit, &["saYcaskruH", "saYcakruH"]);
+    assert_has_tas(&["sam"], &kf, Lit, &["saYcaskaratuH", "saYcakratuH"]);
+    assert_has_jhi(&["sam"], &kf, Lit, &["saYcaskaruH", "saYcakruH"]);
 }
 
 #[test]
@@ -407,12 +411,11 @@ fn sutra_7_4_31() {
 
 #[test]
 fn sutra_7_4_33() {
-    let kyac = |prati| sanadi(prati, Sanadi::kyac);
-    let p = |text: &str| Pratipadika::basic(text.to_string());
-    assert_has_tip(&[], &kyac(p("putra")), Lat, &["putrIyati"]);
-    assert_has_tip(&[], &kyac(p("Gawa")), Lat, &["GawIyati"]);
-    assert_has_tip(&[], &kyac(p("KawvA")), Lat, &["KawvIyati"]);
-    assert_has_tip(&[], &kyac(p("mAlA")), Lat, &["mAlIyati"]);
+    let kyac = |prati| sanadi(phit(prati), Sanadi::kyac);
+    assert_has_tip(&[], &kyac("putra"), Lat, &["putrIyati"]);
+    assert_has_tip(&[], &kyac("Gawa"), Lat, &["GawIyati"]);
+    assert_has_tip(&[], &kyac("KawvA"), Lat, &["KawvIyati"]);
+    assert_has_tip(&[], &kyac("mAlA"), Lat, &["mAlIyati"]);
 }
 
 #[test]

@@ -18,7 +18,7 @@ fn sanadi(p: Pratipadika, s: Sanadi) -> Dhatu {
 }
 
 fn p(text: &str) -> Pratipadika {
-    Pratipadika::basic(text.to_string())
+    phit(text)
 }
 
 #[test]
@@ -38,7 +38,7 @@ fn sutra_3_1_2() {
 #[test]
 fn sutra_3_1_3() {
     let kf = d("qukf\\Y", Tanadi);
-    S.assert_has_krt(&[], &kf, Krt::tavyat, &["kartavya^"]);
+    S.assert_has_krdanta(&[], &kf, Krt::tavyat, &["kartavya^"]);
     S.assert_has_artha_taddhita("tittiri", TA::TenaProktam, T::CaR, &["tEttirI/ya"]);
 }
 
@@ -389,18 +389,13 @@ fn sutra_3_1_33() {
 fn sutra_3_1_34() {
     // No `\\` to force parasmaipada
     // -ti forms are not attested but optional by 3.4.97.
-    assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat", "jozizati"]);
-    assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat", "tArizati"]);
-    assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat", "mandizati"]);
+    assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat"]);
+    assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat"]);
+    assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat"]);
 
     // -t forms are not attested but optional by 3.4.97.
-    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti", "patAt"]);
-    assert_has_tip(
-        &[],
-        &nic(&d("cyu\\N", Bhvadi)),
-        Let,
-        &["cyAvayAti", "cyAvayAt"],
-    );
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti"]);
+    assert_has_tip(&[], &nic(&d("cyu\\N", Bhvadi)), Let, &["cyAvayAti"]);
 }
 
 #[test]
@@ -1096,7 +1091,8 @@ fn sutra_3_1_108() {
 
 #[test]
 fn sutra_3_1_109() {
-    assert_has_krdanta(&[], &d("i\\R", Adadi), Krt::kyap, &["itya"]);
+    // ityA is from 3.3.99.
+    assert_has_krdanta(&[], &d("i\\R", Adadi), Krt::kyap, &["itya", "ityA"]);
     assert_has_krdanta(&[], &d("zwu\\Y", Adadi), Krt::kyap, &["stutya"]);
     assert_has_krdanta(&[], &d("SAsu~", Adadi), Krt::kyap, &["Sizya"]);
     assert_has_krdanta(&[], &d("vfY", Svadi), Krt::kyap, &["vftya"]);
@@ -1129,7 +1125,8 @@ fn sutra_3_1_111() {
 #[test]
 fn sutra_3_1_112() {
     let bhf = d("Bf\\Y", Bhvadi);
-    assert_has_krdanta(&[], &bhf, Krt::kyap, &["Bftya"]);
+    // BftyA is from 3.3.99.
+    assert_has_krdanta(&[], &bhf, Krt::kyap, &["Bftya", "BftyA"]);
     assert_has_krdanta(&[], &bhf, Krt::Ryat, &["BArya"]);
 }
 

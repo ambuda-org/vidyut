@@ -192,7 +192,9 @@ impl KrdantaArgs {
 impl SubantaArgs {
     fn into_rust(self) -> Subanta {
         Subanta::builder()
-            .pratipadika(Pratipadika::basic(self.pratipadika))
+            .pratipadika(Pratipadika::basic(
+                Slp1String::from(self.pratipadika).expect("ok"),
+            ))
             .linga(self.linga)
             .vacana(self.vacana)
             .vibhakti(self.vibhakti)
