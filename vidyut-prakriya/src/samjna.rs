@@ -85,22 +85,25 @@ pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
         p.add_tag_at("1.1.37", i, T::Avyaya);
     } else if t.is_taddhita()
         // TODO: others. Is there a full list?
-        && t.has_u_in(&[
-            "tasi~",
-            "vati~",
-            "naY",
-            "tasi~l",
-            "Am",
-            "kftvasu~c",
-            "su~c",
-            "DA",
-            "Sas",
+        && t.is_any_taddhita(&[
+            D::tasi,     // tataH
+            D::tral,     // tatra
+            D::dA,       // tadA
+            D::vati,     // tAvat
+            D::tasil,    // aBitaH
+            D::kftvasuc, // saptakftvaH
+            D::suc,      // dviH, triH
+            D::DA,       // ekaDA
+            D::Sas,      // ekaSaH
         ])
     {
+        // tataH, yataH; tatra, yatra; ...
         p.add_tag_at("1.1.38", i, T::Avyaya);
     } else if t.is_krt() && t.has_antya(M_EC) {
+        // svAduMkAram, ...
         p.add_tag_at("1.1.39", i, T::Avyaya);
     } else if t.is_krt() && t.is_any_krt(&[K::ktvA, K::tosun, K::kasun]) {
+        // kftvA, hftvA; ...
         p.add_tag_at("1.1.40", i, T::Avyaya);
     } else if p.is_avyayibhava() {
         p.add_tag_at("1.1.41", i, T::Avyaya);

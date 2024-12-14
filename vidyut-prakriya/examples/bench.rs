@@ -9,7 +9,7 @@ fn linga_vibhakti_vacana_options() -> Vec<(Linga, Vibhakti, Vacana)> {
     for linga in Linga::iter() {
         for vibhakti in Vibhakti::iter() {
             for vacana in Vacana::iter() {
-                ret.push((*linga, *vibhakti, *vacana))
+                ret.push((linga, vibhakti, vacana))
             }
         }
     }
@@ -41,16 +41,16 @@ fn run(dhatupatha: Dhatupatha) -> Result<(), Box<dyn Error>> {
         for sanadis in &sanadi_choices {
             let full_dhatu = dhatu.clone().with_sanadi(&sanadis);
 
-            for prayoga in &[Prayoga::Kartari, Prayoga::Karmani] {
+            for prayoga in [Prayoga::Kartari, Prayoga::Karmani] {
                 for lakara in Lakara::iter() {
                     for purusha in Purusha::iter() {
                         for vacana in Vacana::iter() {
                             let tinanta = Tinanta::builder()
                                 .dhatu(full_dhatu.clone())
-                                .prayoga(*prayoga)
-                                .purusha(*purusha)
-                                .vacana(*vacana)
-                                .lakara(*lakara)
+                                .prayoga(prayoga)
+                                .purusha(purusha)
+                                .vacana(vacana)
+                                .lakara(lakara)
                                 .build()?;
 
                             let prakriyas = v.derive_tinantas(&tinanta);

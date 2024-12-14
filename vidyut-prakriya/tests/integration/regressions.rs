@@ -260,3 +260,16 @@ fn kr_sat() {
         &["karizyamARa", "kArizyamARa"],
     );
 }
+
+#[test]
+fn ay_kvip() {
+    let u = krdanta(&[], &d("aya~", Bhvadi), Krt::kvip);
+    assert_has_sup_1s(&u, Pum, &[]);
+}
+
+// Tests that nipatana of izu + Sa is not overgenerating.
+#[test]
+fn iccha_nipatana() {
+    assert_has_krdanta(&[], &d("izu~", Tudadi), Krt::Sa, &["icCA"]);
+    assert_has_krdanta(&[], &d("izu~", Tudadi), Krt::vuY, &[]);
+}

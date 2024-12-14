@@ -29,16 +29,6 @@ struct Row<'a> {
     vacana: Vacana,
 }
 
-const KRDANTAS: &[BaseKrt] = &[
-    BaseKrt::kta,
-    BaseKrt::ktavatu,
-    BaseKrt::Satf,
-    BaseKrt::SAnac,
-    BaseKrt::tavya,
-    BaseKrt::anIyar,
-    BaseKrt::yat,
-];
-
 /// Creates a collection of (linga, vibhakti, vacana) combinations.
 fn linga_vibhakti_vacana_options() -> Vec<(Linga, Vibhakti, Vacana)> {
     let mut ret = Vec::new();
@@ -67,7 +57,7 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
             .fold(String::new(), |b, x| b + x + "+");
         let sanadi_str = sanadi_str.trim_end_matches('+');
 
-        for krt in KRDANTAS.iter().copied() {
+        for krt in BaseKrt::iter() {
             let krdanta = Krdanta::builder().dhatu(dhatu.clone()).krt(krt).build()?;
 
             for (linga, vibhakti, vacana) in lvv.iter().copied() {

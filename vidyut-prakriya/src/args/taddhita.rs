@@ -307,6 +307,8 @@ pub enum Taddhita {
     /// -la
     lac,
     /// -vat
+    vati,
+    /// -vat
     vatup,
     /// -vaya
     vaya,
@@ -512,6 +514,7 @@ enum_boilerplate!(Taddhita, {
     rUpya => "rUpya",
     lac => "lac",
     rUpap => "rUpap",
+    vati => "vati~",
     vatup => "vatu~p",
     vaya => "vaya",
     valac => "valac",

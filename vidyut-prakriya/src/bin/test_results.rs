@@ -185,10 +185,8 @@ fn test_dhatu(line: &str) -> Result<(), Box<dyn Error>> {
 fn run(args: Args) -> Result<(), Box<dyn Error>> {
     check_file_hash(&args.test_cases, &args.hash);
 
-    let file = std::fs::read_to_string(&args.test_cases)?;
-
     if args.data_type == "krdanta" {
-        let mut r = csv::Reader::from_reader(file.as_bytes());
+        let mut r = csv::Reader::from_path(&args.test_cases)?;
         r.deserialize().par_bridge().for_each(|row| {
             match test_krdanta(row) {
                 Ok(()) => (),
@@ -196,6 +194,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
             };
         });
     } else if args.data_type == "tinanta" {
+        let file = std::fs::read_to_string(&args.test_cases)?;
         file.lines()
             .skip(1)
             .par_bridge()
@@ -204,6 +203,7 @@ fn run(args: Args) -> Result<(), Box<dyn Error>> {
                 Err(_) => println!("ERROR: Row is malformed: {line}"),
             });
     } else if args.data_type == "dhatu" {
+        let file = std::fs::read_to_string(&args.test_cases)?;
         file.lines()
             .skip(1)
             .par_bridge()

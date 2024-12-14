@@ -500,7 +500,7 @@ fn sutra_3_3_65() {
 #[test]
 fn sutra_3_3_66() {
     let pan = d("paRa~\\", Bhvadi);
-    assert_has_bhave_krdanta(&[], &pan, K::ap, &["paRa", "paRAya"]);
+    assert_has_bhave_krdanta(&[], &pan, K::ap, &["paRa"]);
     // parimARe?
     assert_has_bhave_krdanta(&[], &pan, K::GaY, &["pARa", "paRAya"]);
 }

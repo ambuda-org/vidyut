@@ -1,4 +1,4 @@
-use crate::args::{Artha, BaseKrt, Krt, KrtArtha, Upasarga};
+use crate::args::{Artha, BaseKrt, Krt, KrtArtha, Sanadi, Upasarga};
 use crate::core::operators as op;
 use crate::core::{Decision, Prakriya, Rule};
 use crate::core::{Morph, Tag as T, Term};
@@ -73,6 +73,18 @@ impl<'a> KrtPrakriya<'a> {
         self.has_upasarga(upasarga)
             && self.p.has(self.i_dhatu, |t| t.has_u(dhatu))
             && self.i_dhatu == self.i_dhatu_end
+    }
+
+    pub fn has_sanadi(&self, dhatu: &str, sanadi: Sanadi) -> bool {
+        self.i_dhatu + 1 == self.i_dhatu_end
+            && self.p.has(self.i_dhatu, |t| t.has_u(dhatu))
+            && self.p.has(self.i_dhatu_end, |t| t.is(sanadi))
+    }
+
+    pub fn has_sanadi_in(&self, dhatus: &[&str], sanadi: Sanadi) -> bool {
+        self.i_dhatu + 1 == self.i_dhatu_end
+            && self.p.has(self.i_dhatu, |t| t.has_u_in(dhatus))
+            && self.p.has(self.i_dhatu_end, |t| t.is(sanadi))
     }
 
     /// Returns a reference to the last dhatu term for this prakriya.
