@@ -44,7 +44,7 @@ fn main() {
     // Create a basic dhatu with `Dhatu::mula`
     //
     // For supported dhatus, see `dhatupatha.tsv`.
-    let bhu = Dhatu::mula("BU", Gana::Bhvadi);
+    let bhu = Dhatu::mula(Slp1String::from("BU").expect("ok"), Gana::Bhvadi);
 
     let args = Tinanta::builder()
         .dhatu(bhu)
@@ -58,7 +58,8 @@ fn main() {
     print_prakriyas(&prakriyas);
 
     // Create a sannanta dhatu with `with_sanadi`.
-    let jijnasa = Dhatu::mula("jYA\\", Gana::Kryadi).with_sanadi(&[Sanadi::san]);
+    let jijnasa = Dhatu::mula(Slp1String::from("jYA\\").expect("ok"), Gana::Kryadi)
+        .with_sanadi(&[Sanadi::san]);
 
     let args = Tinanta::builder()
         .dhatu(jijnasa)

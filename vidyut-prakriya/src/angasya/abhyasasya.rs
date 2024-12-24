@@ -312,13 +312,14 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let abhyasa = p.get(i)?;
     let dhatu = p.get(i_dhatu)?;
-    let last = p.terms().last()?;
+    let i_n = p.find_next_where(i_dhatu, |t| t.is_pratyaya())?;
+    let next = p.get(i_n)?;
 
     fn add_nut_agama(rule: impl Into<Rule>, p: &mut Prakriya, i: usize) {
         op::insert_before(rule.into(), p, i, A::nuw);
     }
 
-    if !last.has_lakara(Lit) {
+    if !next.has_lakara(Lit) {
         return None;
     }
 

@@ -268,7 +268,6 @@ fn sutra_6_4_21() {
     assert_has_krdanta(&[], &dhurv, Krt::ktin, &["DUrti"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_4_22() {
     assert_has_sip(&[], &d("asa~", Adadi), Lot, &["eDi", "stAt"]);
@@ -1934,7 +1933,6 @@ fn sutra_6_4_130() {
     assert_has_taddhita(&vyaghrapad, T::yak, &["vEyAGrapadya"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_4_131() {
     let vidvas = krdanta(&[], &d("vida~", Adadi), Krt::Satf);

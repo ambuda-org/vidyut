@@ -1044,7 +1044,6 @@ fn sutra_3_2_107() {
     assert_has_krdanta(&[], &d("pA\\", Bhvadi), Krt::kvasu, &["papivas"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_2_108() {
     let sad = d("za\\dx~", Bhvadi);

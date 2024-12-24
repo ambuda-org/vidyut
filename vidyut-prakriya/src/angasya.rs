@@ -34,6 +34,7 @@ use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Rule::Varttika, Tag as T, Term};
 use crate::dhatu_gana as gana;
+use crate::it_agama;
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set};
@@ -408,6 +409,7 @@ fn try_change_cu_to_ku(p: &mut Prakriya, i: usize) -> Option<()> {
         if anga.is_abhyasta() {
             p.run_at("7.3.55", i, op::adi("G"));
         } else if n.last().has_tag_in(&[T::Yit, T::Rit]) || anga.has_text("hn") {
+            // GAtaka, Gnanti, ...
             p.run_at("7.3.54", i, op::adi("G"));
         }
     } else if anga.is_u(Au::hi) && anga.is_abhyasta() && !n.last().is(V::caN) {
@@ -1393,7 +1395,12 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
     for i in 0..p.len() {
         // Must run before asiddhavat for sTA + kta -> sTita
         try_anga_changes_before_t(p, i);
-        asiddhavat::run_after_guna(p, i);
+    }
+
+    if !p.terms().iter().any(|t| t.has_u("kvasu~")) {
+        for i in 0..p.len() {
+            run_after_it_agama_karya(p, i);
+        }
     }
 
     // Tries adding tuk-Agama for krt-pratyayas that are pit.
@@ -1492,15 +1499,46 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
     Some(())
 }
 
+/// Runs rules that should apply only after we have resolved it-Agama.
+///
+/// Examples:
+/// - Rules that condition on the first sound of a pratyaya.
+/// - Rules that condition specifically on iw-Agama.
+pub fn run_after_it_agama_karya(p: &mut Prakriya, i: usize) -> Option<()> {
+    asiddhavat::run_after_guna(p, i);
+
+    Some(())
+}
+
+/// Runs rules that should apply only after we have resolved both iw-Agama and dvitva.
+///
+/// Examples:
+/// - Rules that delete 'A' of dhatu if iw-Agama follows. (Should be done after dvitva.)
+pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> Option<()> {
+    asiddhavat::run_after_it_agama_karya_and_dvitva_karya(p, i);
+    try_change_cu_to_ku(p, i);
+    asiddhavat::run_for_kniti_ardhadhatuke_after_dvitva(p, i);
+    Some(())
+}
+
 pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
-    subanta::run(p);
+    if !p.terms().iter().any(|t| t.has_u("kvasu~")) {
+        for i in 0..p.len() {
+            run_after_it_agama_karya_and_dvitva_karya(p, i);
+        }
+    }
 
     for i in 0..p.len() {
-        asiddhavat::run_after_dvitva(p, i);
+        asiddhavat::run_for_kniti_ardhadhatuke_after_dvitva(p, i);
+        asiddhavat::try_run_kniti_for_dhatu(p, i);
     }
 
     // Must come before asiddhavat rule 6.4.78 (e.g. "iyarti", ekahalmadhya)
     abhyasasya::run(p);
+
+    for i in 0..p.len() {
+        asiddhavat::try_et_adesha_and_abhyasa_lopa_for_lit(p, i);
+    }
 
     // ADDED for ciccheda, etc.
     try_add_tuk_agama(p);
@@ -1508,15 +1546,20 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.len() {
         unknown(p, i);
         try_tas_asti_lopa(p, i);
-
         try_didhi_vevi_lopa(p, i);
     }
 
-    for i in 0..p.terms().len() {
-        try_change_cu_to_ku(p, i);
+    abhyasasya::run_for_sani_or_cani(p);
+
+    for i in 0..p.len() {
+        let finished = it_agama::run_for_kvasu_pratyaya(p, i);
+        if finished.unwrap_or(false) {
+            run_after_it_agama_karya(p, i);
+            run_after_it_agama_karya_and_dvitva_karya(p, i);
+        }
     }
 
-    abhyasasya::run_for_sani_or_cani(p);
+    subanta::run(p);
 
     for index in 0..p.len() {
         try_ato_dirgha(p, index);

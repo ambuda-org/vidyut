@@ -15,7 +15,7 @@ pub struct Entry {
 }
 
 impl Entry {
-    fn parse(code: &str, upadesha: &str, artha: &str) -> Result<Self> {
+    fn parse(code: &str, aupadeshika: &str, artha: &str) -> Result<Self> {
         let (gana, number) = code.split_once('.').ok_or(Error::InvalidFile)?;
         let gana = if let Some(stripped) = gana.strip_prefix('0') {
             stripped.parse()?
@@ -23,7 +23,7 @@ impl Entry {
             gana.parse()?
         };
         let number = number.parse()?;
-        let dhatu = create_dhatu(upadesha, gana, number)?;
+        let dhatu = create_dhatu(aupadeshika, gana, number)?;
 
         Ok(Self {
             code: code.to_string(),
@@ -76,14 +76,14 @@ pub struct Dhatupatha(Vec<Entry>);
 ///
 /// This function uses the `number` parameter to determine the dhatu's antargana. If you wish to
 /// specify the antargana explicitly, please construct `Dhatu` directly with [`Dhatu::builder`].
-pub fn create_dhatu(upadesha: impl AsRef<str>, gana: Gana, number: u16) -> Result<Dhatu> {
-    let upadesha = upadesha.as_ref();
+pub fn create_dhatu(aupadeshika: impl AsRef<str>, gana: Gana, number: u16) -> Result<Dhatu> {
+    let aupadeshika = aupadeshika.as_ref();
 
-    let mut builder = Dhatu::builder().aupadeshika(upadesha).gana(gana);
+    let mut builder = Dhatu::builder().aupadeshika(aupadeshika).gana(gana);
     if let Some(x) = maybe_find_antargana(gana, number) {
         builder = builder.antargana(x);
     }
-    match upadesha {
+    match aupadeshika {
         "i\\N" | "i\\k" => {
             builder = builder.prefixes(&["aDi"]);
         }
@@ -144,7 +144,7 @@ impl Dhatupatha {
                 Some(x) => x,
                 None => return Err(Error::InvalidFile),
             };
-            let upadesha = match fields.next() {
+            let aupadeshika = match fields.next() {
                 Some(x) => x,
                 None => return Err(Error::InvalidFile),
             };
@@ -154,11 +154,11 @@ impl Dhatupatha {
             };
 
             // If the upadesha is missing, this is a ganasutra -- skip.
-            if upadesha == "-" {
+            if aupadeshika == "-" {
                 continue;
             }
 
-            let entry = Entry::parse(code, upadesha, artha)?;
+            let entry = Entry::parse(code, aupadeshika, artha)?;
             dhatus.push(entry);
         }
 

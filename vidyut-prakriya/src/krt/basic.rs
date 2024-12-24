@@ -1113,7 +1113,7 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
         }
 
         K::lyu | K::Rini => {
-            if is_nandi_grahi_pacadi(&kp) {
+            if is_nandi_grahi_pacadi(kp) {
                 kp.try_add("3.1.134", krt);
             } else if krt == K::Rini {
                 // TODO: supi

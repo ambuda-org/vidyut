@@ -35,12 +35,12 @@ impl<'a> SanadiPrakriya<'a> {
         p: &mut Prakriya,
         i_base: usize,
         rule: impl Into<Rule>,
-        upadesha: &str,
+        aupadeshika: &str,
         func: impl Fn(&mut Prakriya),
     ) {
         p.run(rule, |p| {
             // TODO: do others. (Refactoring.) These are the most important.
-            let sanadi = match upadesha {
+            let sanadi = match aupadeshika {
                 "san" => Term::from(Sanadi::san),
                 "yaN" => Term::from(Sanadi::yaN),
                 "Ric" => Term::from(Sanadi::Ric),
@@ -48,7 +48,7 @@ impl<'a> SanadiPrakriya<'a> {
                 "kyac" => Term::from(Sanadi::kyac),
                 "kAmyac" => Term::from(Sanadi::kAmyac),
                 _ => {
-                    let mut t = Term::make_upadesha(upadesha);
+                    let mut t = Term::make_upadesha(aupadeshika);
                     t.add_tags(&[T::Pratyaya]);
                     t
                 }

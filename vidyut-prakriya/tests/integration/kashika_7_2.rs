@@ -17,6 +17,11 @@ fn assert_has_san_ta(prefixes: &[&str], dhatu: &Dhatu, expected: &[&str]) {
     assert_has_ta(prefixes, &san(&dhatu), Lat, expected);
 }
 
+fn assert_has_kvasu_su(dhatu: &Dhatu, expected: &[&str]) {
+    let vas = krdanta(&[], dhatu, Krt::kvasu);
+    assert_has_sup_1s(&vas, Pum, expected);
+}
+
 #[test]
 fn sutra_7_2_1() {
     assert_has_tip(&[], &d("ci\\Y", Svadi), Lun, &["acEzIt"]);
@@ -1150,25 +1155,58 @@ fn sutra_7_2_66() {
 }
 
 #[test]
-fn sutra_7_2_68() {
-    let assert_has_kvasu = |d, exp| {
-        assert_has_krdanta(&[], &d, Krt::kvasu, exp);
-    };
+fn sutra_7_2_67() {
+    // ekAc
+    assert_has_kvasu_su(&d("a\\da~", Adadi), &["AdivAn", "jakzivAn"]);
+    assert_has_kvasu_su(&d("aSa~", Kryadi), &["ASivAn"]);
+    assert_has_kvasu_su(&d("qupa\\ca~^z", Bhvadi), &["pecivAn"]);
+    assert_has_kvasu_su(&d("Sa\\kx~", Svadi), &["SekivAn"]);
 
-    assert_has_kvasu(d("ga\\mx~", Bhvadi), &["jagmivas", "jaganvas"]);
-    assert_has_kvasu(d("ha\\na~", Adadi), &["jaGnivas", "jaGanvas"]);
-    assert_has_kvasu(
-        d("vida~", Adadi),
+    // At
+    assert_has_kvasu_su(&d("yA\\", Adadi), &["yayivAn"]);
+    assert_has_kvasu_su(&d("zWA\\", Bhvadi), &["tasTivAn"]);
+
+    // Gas
+    assert_has_kvasu_su(&d("Gasx~", Bhvadi), &["jakzivAn"]);
+
+    // ekAc?
+    assert_has_kvasu_su(&d("Bi\\di~^r", Rudhadi), &["biBidvAn"]);
+    assert_has_kvasu_su(&d("Ci\\di~^r", Rudhadi), &["cicCidvAn"]);
+    assert_has_kvasu_su(&d("BU", Bhvadi), &["baBUvAn"]);
+    assert_has_kvasu_su(&d("SriY", Bhvadi), &["SiSrivAn"]);
+
+    // TODO: double check these.
+    assert_has_kvasu_su(
+        &d("daridrA", Adadi),
         &[
-            "vividivas",
-            "vividvas",
-            "vidAmAsivas",
-            "vidAmbaBUvas",
-            "vidAYcakfvas",
+            "dadaridrvAn",
+            "daridrAYcakfvAn",
+            "daridrAmbaBUvAn",
+            "daridrAmAsivAn",
         ],
     );
-    assert_has_kvasu(d("vi\\Sa~", Tudadi), &["viviSivas", "viviSvas"]);
-    assert_has_kvasu(d("df\\Si~r", Bhvadi), &["dadfSivas", "dadfSvas"]);
+}
+
+#[test]
+fn sutra_7_2_68() {
+    assert_has_kvasu_su(&d("ga\\mx~", Bhvadi), &["jagmivAn", "jaganvAn"]);
+    assert_has_kvasu_su(&d("ha\\na~", Adadi), &["jaGnivAn", "jaGanvAn"]);
+    assert_has_kvasu_su(
+        &d("vida~", Adadi),
+        &[
+            "vividivAn",
+            "vividvAn",
+            "vidAmAsivAn",
+            "vidAmbaBUvAn",
+            "vidAYcakfvAn",
+        ],
+    );
+    assert_has_kvasu_su(&d("vi\\Sa~", Tudadi), &["viviSivAn", "viviSvAn"]);
+}
+
+#[test]
+fn sutra_7_2_68_v1() {
+    assert_has_kvasu_su(&d("df\\Si~r", Bhvadi), &["dadfSivAn", "dadfSvAn"]);
 }
 
 #[test]

@@ -149,8 +149,8 @@ fn create_entry(
             let tinanta = Tinanta::builder()
                 .dhatu(dhatu)
                 .prayoga(prayoga)
-                .purusha(*purusha)
-                .vacana(*vacana)
+                .purusha(purusha)
+                .vacana(vacana)
                 .pada(pada)
                 .lakara(lakara)
                 .build()
@@ -184,7 +184,7 @@ fn create_entry(
         }
 
         // Don't print for last purusha.
-        if *purusha != Purusha::Uttama {
+        if purusha != Purusha::Uttama {
             html_row += "<br>---"
         }
     }
@@ -227,7 +227,7 @@ fn run(dp: Dhatupatha, args: Args) {
     for dhatu_entry in dp {
         for lakara in Lakara::iter() {
             for pada in &[DhatuPada::Parasmai, DhatuPada::Atmane] {
-                let entry = create_entry(&v, &dhatu_entry, args.sanadi, prayoga, *pada, *lakara);
+                let entry = create_entry(&v, &dhatu_entry, args.sanadi, prayoga, *pada, lakara);
                 if let Some(e) = entry {
                     print!("{}\n{}\n\n", e.search_row, e.html_row);
                 }

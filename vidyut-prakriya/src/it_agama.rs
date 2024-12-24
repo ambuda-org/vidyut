@@ -27,6 +27,7 @@ Order of operations:
 */
 
 use crate::args::Agama as A;
+use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::Gana::*;
 use crate::args::Lakara::*;
@@ -216,6 +217,38 @@ fn try_dirgha_for_it_agama(p: &mut Prakriya, i_it: usize) -> Option<()> {
     Some(())
 }
 
+pub fn run_for_kvasu_pratyaya(p: &mut Prakriya, i: usize) -> Option<bool> {
+    let _d = p.get_if(i, |t| t.is_dhatu())?;
+    let _i_n = p.get_if(i + 1, |t| t.has_u("kvasu~"))?;
+    let mut ip = ItPrakriya::new(p, i, i + 1);
+
+    let dhatu = ip.anga();
+    if dhatu.has_u_in(&["ga\\mx~", "ha\\na~", "vida~", "vi\\Sa~"]) {
+        // jagmivAn, jagamvAn; ...
+        ip.optional_try_add("7.2.68");
+    } else if dhatu.is_u(Au::dfSir) {
+        // dadfSivAn; dadfSvAn
+        ip.optional_try_add(Varttika("7.2.68.1"));
+    }
+
+    let dhatu = ip.anga();
+
+    // Dhatus that start with vowels (Adivas, ASivas, ...)
+    let is_ac_adi = dhatu.has_adi(AC);
+    let is_eka_ac =
+        dhatu.num_vowels() == 1 && (i > 0 && ip.p.has(i - 1, |t| t.is_abhyasa() && t.is_empty()));
+
+    let code = "7.2.67";
+    if is_ac_adi || is_eka_ac || dhatu.has_antya('A') || dhatu.has_u("Gasx~") {
+        // AdivAn, yayivAn, jakzivAn, ...
+        ip.try_add(code);
+        // baBUvAn, ...
+        ip.try_block(code);
+    }
+
+    Some(true)
+}
+
 fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option<()> {
     let anga = ip.anga();
     let n = ip.next();
@@ -230,42 +263,9 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     let ktvi = n.last().is(K::ktvA);
 
     if n.has_u("kvasu~") {
-        // kvasu~ rules should take priority over `li~w` below.
-        let anga = ip.anga();
-        if anga.has_text_in(&["gam", "han", "vid", "viS"]) {
-            ip.optional_try_add("7.2.68");
-        } else if anga.has_text("dfS") {
-            ip.optional_try_add(Varttika("7.2.68.1"));
-        }
-
-        let anga = ip.anga();
-
-        // Per the kashikavrtti, the condition is "kṛtadvirvacanānāṃ dhātūnām ekācām" -- if the dhatu
-        // *would have* one vowel after dvirvacana and all of the usual procedures there.
-
-        // Dhatus that start with vowels (Adivas, ASivas, ...)
-        let is_ac_adi = anga.has_adi(AC);
-        // Dhatus that will start with vowels due to kit-samprasarana (Ucivas, Ijivas, ...).
-        // NOTE: keep this in sync with the `samprasarana` module.
-        let will_be_ac_adi = anga.has_u_in(&[
-            "va\\ca~",
-            "ya\\ja~^",
-            "quva\\pa~^",
-            "va\\ha~^",
-            "va\\sa~",
-            "ve\\Y",
-            "vye\\Y",
-            "vada~",
-        ]);
-        // Dhatus that undergo ettva-abhyAsalopa (pecivas, Sekivas, ...)
-        let will_be_eka_ac = is_ac_adi || will_be_ac_adi;
-
-        let code = "7.2.67";
-        if will_be_eka_ac || anga.has_antya('A') || anga.has_text("Gas") {
-            ip.try_add(code);
-        } else {
-            ip.try_block(code);
-        }
+        // kvasu~ rules take priority over `li~w` below.
+        // But, defer it-Agama here until we have completed dvitva.
+        return None;
     } else if n.has_lakara(Lit) {
         if anga.has_text("vf") && n.has_u("Tal") {
             // Exception to krAdi-niyama.
@@ -652,7 +652,7 @@ fn run_sarvadhatuke_for_term(ip: &mut ItPrakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_before_attva(p: &mut Prakriya) -> Option<()> {
+pub fn run_general_rules(p: &mut Prakriya) -> Option<()> {
     // The abhyasa might come second, so match on it specifically.
     let n = p.terms().len();
     debug_assert!(n > 0);

@@ -497,7 +497,7 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         // Must run before it_agama rules since it affects how those rules are applied.
         atidesha::run_before_it_agama(p);
         // Depends on jha_adesha since it conditions on the first sound.
-        it_agama::run_before_attva(p);
+        it_agama::run_general_rules(p);
         // Should come before atidesha rules for ju[hve --> hU]zati (san is kit).
         samprasarana::run_for_dhatu_before_atidesha(p);
         // Depends on it_agama for certain rules.

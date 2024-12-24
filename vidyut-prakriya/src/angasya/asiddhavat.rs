@@ -159,7 +159,7 @@ pub fn try_cinvat_for_bhave_and_karmani_prayoga(p: &mut Prakriya) -> Option<()> 
 /// Runs rules conditioned on a following knit ArdhadhAtuka suffix.
 ///
 /// Constraints: must run after dvitva.
-fn run_for_kniti_ardhadhatuke_after_dvitva(p: &mut Prakriya, i: usize) -> Option<()> {
+pub fn run_for_kniti_ardhadhatuke_after_dvitva(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
     let i_n = p.find_next_where(i, |t| !t.is_lupta())?;
     let n = p.pratyaya(i_n)?;
@@ -177,10 +177,35 @@ fn run_for_kniti_ardhadhatuke_after_dvitva(p: &mut Prakriya, i: usize) -> Option
     Some(())
 }
 
+/// Runs rules that should be applied only after it-Agama has been decided.
+pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> Option<()> {
+    let anga = p.get(i)?;
+    let j = p.next_not_empty(i)?;
+    let n = p.pratyaya(j)?;
+
+    if !n.is_knit() {
+        return None;
+    }
+
+    if anga.has_text_in(&["gam", "han", "Gan", "jan", "Kan", "Gas"])
+        && n.has_adi(AC)
+        && !p.has(i + 1, |t| t.is(S::Ric))
+        && !n.last().is(V::aN)
+    {
+        // jagmatuH, jaGnatuH, jajJe, ...
+        p.run_at("6.4.98", i, op::upadha_lopa);
+    } else if anga.has_u("Basa~") {
+        // TODO: rule is chAndasa, but SK applies it generally?
+        p.run_at("6.4.100", i, op::upadha_lopa);
+    }
+
+    Some(())
+}
+
 /// Runs rules conditioned on a following `kit` or `Nit` suffix.
 ///
 /// (6.4.98 - 6.4.126)
-fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
+pub fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
     let anga = p.get(i)?;
     let j = p.next_not_empty(i)?;
     let n = p.pratyaya(j)?;
@@ -190,19 +215,12 @@ fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let next_is_hi = n.first().has_text("hi");
-    if anga.has_text_in(&["gam", "han", "jan", "Kan", "Gas"])
-        && n.has_adi(AC)
-        && !p.has(i + 1, |t| t.is(S::Ric))
-        && !n.last().is(V::aN)
-    {
-        p.run_at("6.4.98", i, op::upadha_lopa);
-    } else if anga.has_u("Basa~") {
-        // TODO: rule is chAndasa, but SK applies it generally?
-        p.run_at("6.4.100", i, op::upadha_lopa);
-    } else if (anga.has_text("hu") || anga.has_antya(JHAL) || anga.has_u("SAsu~")) && next_is_hi {
+    if (anga.has_text("hu") || anga.has_antya(JHAL) || anga.has_u("SAsu~")) && next_is_hi {
+        // juhuDi, BindDi, SADi, ...
         // HACK to allow SAsu~ so that we can derive SADi.
         p.run_at("6.4.101", n.start(), op::text("Di"));
     } else if anga.is(V::ciR) {
+        // akAri, ahAri, ...
         p.run_at("6.4.104", n.start(), op::luk);
     }
 
@@ -330,12 +348,15 @@ fn try_run_kniti_sarvadhatuke(p: &mut Prakriya, i: usize) -> Option<()> {
 
 /// Run rules that replace the dhatu's vowel with e and apply abhyasa-lopa.
 /// Example: `la + laB + e` -> `leBe`
-fn try_et_adesha_and_abhyasa_lopa_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
-    // Applies only for liw.
-    if !p.terms().last()?.has_lakara(Lit) {
+pub fn try_et_adesha_and_abhyasa_lopa_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
+    if i == 0 {
         return None;
     }
-    if i == 0 {
+
+    let n = p.pratyaya(i + 1)?;
+
+    // Applies only for Lit.
+    if !n.last().has_lakara(Lit) {
         return None;
     }
 
@@ -883,7 +904,7 @@ fn try_kr_rule(p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// A prakriya could have multiple "bha" terms if, for example, we have a pratipadika followed by a
 /// taddhita-pratyaya followed by a strI-pratyaya.
-pub fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
+fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
     const PRIYA_ADI: &[&str] = &[
         "priya",
         "sTira",
@@ -972,7 +993,7 @@ pub fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
         }
     } else if bha.has_text("pAd") {
         p.run_at("6.4.130", i, op::text("pad"));
-    } else if bha.is(K::kvasu) || bha.has_u("vasu~") {
+    } else if bha.is(K::kvasu) || bha.has_u_in(&["kvasu~", "vasu~"]) {
         p.run("6.4.131", |p| {
             p.set(i, op::text("us"));
             // valAdi is lost, so iw-Agama is also lost.
@@ -1210,12 +1231,6 @@ pub fn run_after_guna(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-pub fn run_after_dvitva(p: &mut Prakriya, i: usize) -> Option<()> {
-    run_for_kniti_ardhadhatuke_after_dvitva(p, i);
-    try_run_kniti_for_dhatu(p, i);
-    Some(())
-}
-
 pub fn run_final(p: &mut Prakriya, i: usize) -> Option<()> {
     run_for_final_i_or_u(p, i);
     try_run_kniti(p, i);
@@ -1224,8 +1239,6 @@ pub fn run_final(p: &mut Prakriya, i: usize) -> Option<()> {
     // term view includes only "u" here. So the rule is awkwardly placed
     // here.
     try_kr_rule(p, i);
-
-    try_et_adesha_and_abhyasa_lopa_for_lit(p, i);
 
     let n = p.pratyaya(i + 1)?;
     if n.has_tag(T::qit) {

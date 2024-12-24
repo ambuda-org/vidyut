@@ -273,3 +273,9 @@ fn iccha_nipatana() {
     assert_has_krdanta(&[], &d("izu~", Tudadi), Krt::Sa, &["icCA"]);
     assert_has_krdanta(&[], &d("izu~", Tudadi), Krt::vuY, &[]);
 }
+
+// Tests (Bas -> Bs) + (hi -> Di) for asiddhavat rules.
+#[test]
+fn babdhi() {
+    assert_has_sip(&[], &d("Basa~", Juhotyadi), Lot, &["babDi", "babDAt"]);
+}
