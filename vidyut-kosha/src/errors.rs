@@ -1,3 +1,4 @@
+use serde_json::Error as JsonError;
 use std::fmt;
 use std::io;
 use std::num;
@@ -10,6 +11,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// An IO error.
     Io(io::Error),
+    /// A JSON-related IO error.
+    Json(JsonError),
     /// An FST error.
     Fst(fst::raw::Error),
     /// An integer couldn't be parsed.
@@ -50,6 +53,13 @@ impl From<num::TryFromIntError> for Error {
     }
 }
 
+impl From<JsonError> for Error {
+    #[inline]
+    fn from(err: JsonError) -> Error {
+        Error::Json(err)
+    }
+}
+
 impl std::error::Error for Error {}
 
 impl fmt::Display for Error {
@@ -58,6 +68,7 @@ impl fmt::Display for Error {
 
         match self {
             Io(e) => e.fmt(f),
+            Json(e) => e.fmt(f),
             Fst(e) => e.fmt(f),
             TooManyDuplicates(s) => write!(f, "Key `{}` has been inserted too many times.", s),
             UnknownDhatuId(id) => write!(f, "Unknown dhatu ID {}", id),

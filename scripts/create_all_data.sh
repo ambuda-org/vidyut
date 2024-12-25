@@ -43,7 +43,7 @@ echo "========================="
 echo "vidyut-chandas"
 echo "========================="
 mkdir -p "${OUTPUT_DIR}/chandas"
-cp -r vidyut-chandas/data "${OUTPUT_DIR}/chandas"
+cp -r vidyut-chandas/data/* "${OUTPUT_DIR}/chandas"
 echo "Copied files to output dir."
 echo
 echo "========================="

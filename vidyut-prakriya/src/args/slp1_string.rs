@@ -158,6 +158,13 @@ impl Slp1String {
     }
 }
 
+impl std::ops::Deref for Slp1String {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl TryFrom<String> for Slp1String {
     type Error = Error;
     fn try_from(val: String) -> Result<Slp1String> {

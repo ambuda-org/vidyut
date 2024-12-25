@@ -261,10 +261,13 @@ pub fn try_add_prefixes(p: &mut Prakriya, prefixes: &[String]) -> Option<()> {
 
     // TODO: prefixes that aren't upasargas?
     for prefix in prefixes {
-        let t: Term = match prefix.parse::<Upasarga>() {
+        let mut t: Term = match prefix.parse::<Upasarga>() {
             Ok(u) => u.into(),
             _ => Term::make_upadesha(prefix),
         };
+        // For now, assume all dhatu prefixes are gati.
+        t.add_tag(T::Gati);
+
         p.insert(i_offset, t);
         samjna::try_nipata_rules(p, i_offset);
 

@@ -132,6 +132,7 @@ fn sk_446() {
     assert_has_sup_1p(&caksus, Napumsaka, &["cakzUMzi"]);
     assert_has_sup_3s(&caksus, Napumsaka, &["cakzuzA"]);
     assert_has_sup_3d(&caksus, Napumsaka, &["cakzurByAm"]);
+
     let havis = create_krdanta("havis", &[], &d("hu\\", Juhotyadi), Unadi::isi);
     assert_has_sup_1s(&havis, Napumsaka, &["haviH"]);
     assert_has_sup_1d(&havis, Napumsaka, &["havizI"]);

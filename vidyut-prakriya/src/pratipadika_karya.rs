@@ -46,7 +46,7 @@ pub fn add_basic(p: &mut Prakriya, basic: &BasicPratipadika) {
 pub fn run_napumsaka_rules(p: &mut Prakriya) -> Option<()> {
     if p.has_tag(PT::Napumsaka) {
         let i_last_not_empty = p.find_last_where(|t| !t.is_empty() && !t.is_sup())?;
-        let t = p.get(i_last_not_empty)?;
+        let t = p.get_if(i_last_not_empty, |t| !t.is_avyaya())?;
         let sub = al::to_hrasva(t.antya()?)?;
         if !t.has_antya(sub) {
             p.run_at("1.2.47", i_last_not_empty, op::antya_char(&sub));

@@ -2,9 +2,9 @@
 #![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
 
+pub use crate::chedaka::{Chedaka, Token};
 pub use crate::config::Config;
 pub use crate::errors::{Error, Result};
-pub use crate::segmenting::{Chedaka, Token};
 
 mod errors;
 mod scoring;
@@ -23,7 +23,7 @@ pub mod sounds;
 pub mod conllu;
 pub mod dcs;
 
+mod chedaka;
 mod config;
 mod normalize_text;
-mod segmenting;
 mod strict_mode;

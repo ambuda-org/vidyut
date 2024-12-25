@@ -13,7 +13,7 @@ use vidyut_kosha::packing::*;
 use vidyut_kosha::Kosha;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
-type NaiveKosha = MultiMap<String, PackedPada>;
+type NaiveKosha = MultiMap<String, PackedEntry>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -31,7 +31,7 @@ fn create_naive_kosha(fst_lex: &Kosha) -> Result<NaiveKosha> {
     let mut stream = fst_lex.stream();
     while let Some((key, value)) = stream.next() {
         let key = std::str::from_utf8(key)?;
-        let value = PackedPada::from_u32(value as u32);
+        let value = PackedEntry::from_u32(value as u32);
         ret.insert(key.to_string(), value);
     }
     Ok(ret)

@@ -648,13 +648,18 @@ pub fn derive_subanta(mut prakriya: Prakriya, args: &Subanta) -> Result<Prakriya
     let p = &mut prakriya;
     prepare_pratipadika(p, args.pratipadika())?;
 
+    if args.is_avyaya() && p.len() > 0 {
+        let i_last = p.len() - 1;
+        p.set(i_last, |t| t.add_tag(Tag::Avyaya));
+    }
+
     p.add_tag(args.linga().as_tag().into());
     pratipadika_karya::run_napumsaka_rules(p);
 
     sup_karya::run(p, args.linga(), args.vibhakti(), args.vacana());
     samjna::run(p);
 
-    samasa::run_rules_for_avyayibhava(p);
+    samasa::run_avyaya_sup_lopa(p);
 
     run_main_rules(p, None, MainArgs::default());
     tripadi::run(p);
@@ -736,7 +741,7 @@ pub fn derive_samasa(mut prakriya: Prakriya, args: &Samasa) -> Result<Prakriya> 
 
     if args.samasa_type() == SamasaType::Avyayibhava {
         samjna::run(p);
-        samasa::run_rules_for_avyayibhava(p);
+        samasa::run_avyaya_sup_lopa(p);
     }
 
     samjna::try_decide_pratipadika(p);
@@ -766,7 +771,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
                     prakriya.extend(p.terms());
                 }
             }
-            Pada::Dummy(s) => {
+            Pada::Unknown(s) => {
                 let mut pada = Term::make_upadesha(s);
                 pada.add_tags(&[Tag::Pada]);
                 prakriya.push(pada);

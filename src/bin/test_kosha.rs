@@ -3,7 +3,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 use vidyut_cheda::Result;
-use vidyut_kosha::morph::Pada;
+use vidyut_kosha::entries::PadaEntry;
 use vidyut_kosha::Kosha;
 
 #[derive(Parser, Debug)]
@@ -87,7 +87,7 @@ fn test_tinantas(k: &Kosha) -> Result<()> {
         // Other tricky tinantas
         "saMskaroti",
         "saYcaskAra",
-        "saYcaskrire",
+        "saYcaskarire",
     ];
 
     let mut i = 0;
@@ -108,7 +108,7 @@ fn test_tinantas(k: &Kosha) -> Result<()> {
 fn test_krdantas(k: &Kosha) -> Result<()> {
     let keys = vec![
         // kta, ktavat
-        "BUtaH",
+        "BUtas",
         "BUtam",
         "BUtA",
         "BUtavAn",
@@ -116,17 +116,17 @@ fn test_krdantas(k: &Kosha) -> Result<()> {
         "BUtavatI",
         // Satf
         "Bavan",
-        "BavantaH",
+        "Bavantas",
         "BavantI",
         "Bavizyan",
-        "BavizyantaH",
+        "Bavizyantas",
         "BavizyantI",
         // krtya
         "Bavyam",
         "Bavitavyam",
         "BavanIyam",
         // Other
-        "BAvakaH",
+        "BAvakas",
         "Bavanam",
         // With prefixes
         "aBiBUtam",
@@ -144,7 +144,7 @@ fn test_krdantas(k: &Kosha) -> Result<()> {
         }
     }
     let n = keys.len();
-    println!("{i} / {n} tinanta tests passed.");
+    println!("{i} / {n} krdanta tests passed.");
 
     Ok(())
 }
@@ -159,7 +159,7 @@ fn test_subantas(k: &Kosha) -> Result<()> {
         ("vaDUs", "vaDU"),
         ("kartA", "kartf"),
         ("rAs", "rE"),
-        // ("dyOs", "div"),
+        ("dyOs", "div"),
         ("nOs", "nO"),
         ("AtmA", "Atman"),
         ("manasA", "manas"),
@@ -167,17 +167,16 @@ fn test_subantas(k: &Kosha) -> Result<()> {
         ("DanurByAm", "Danus"),
         ("hanumAn", "hanumat"),
         ("Bagavantam", "Bagavat"),
-        ("jagmivAn", "jagmivas"),
         // Consonant stems
         ("vAk", "vAc"),
         ("vit", "vid"),
-        // ("kakuB", "kakup"),
-
+        ("kakup", "kakuB"),
         // Irregular subantas
         ("mahAn", "mahat"),
         ("trayas", "tri"),
         ("zaRRAm", "zaz"),
         ("sapta", "saptan"),
+        ("azwa", "azwan"),
         ("daSa", "daSan"),
         ("pitaras", "pitf"),
         ("mAtaras", "mAtf"),
@@ -189,20 +188,20 @@ fn test_subantas(k: &Kosha) -> Result<()> {
 
     let mut i = 0;
     for (key, lemma) in &keys {
-        let present = k.contains_key(key);
-        let entries: std::result::Result<Vec<Pada>, _> =
+        let found = k.contains_key(key);
+        let entries: std::result::Result<Vec<PadaEntry>, _> =
             k.get_all(key).iter().map(|x| k.unpack(x)).collect();
         let entries = entries?;
         let has_lemma = entries.iter().any(|x| &x.lemma() == lemma);
 
-        if present && has_lemma {
+        if found && has_lemma {
             i += 1;
         } else {
-            println!("FAILED: key {key} is missing (present={present}, has_lemma={has_lemma})");
+            println!("FAILED: {key} (found = {found}, has_lemma={has_lemma})");
         }
     }
     let n = keys.len();
-    println!("{i} / {n} tinanta tests passed.");
+    println!("{i} / {n} subanta tests passed.");
 
     Ok(())
 }

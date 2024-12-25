@@ -24,7 +24,7 @@ use std::collections::hash_map::Keys;
 use std::path::Path;
 
 /// Describes the type of sandhi split that occurred.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Kind {
     /// A split created by slicing the input string, with no sandhi rules applied. That is,
     /// `split.first` is a *prefix* of the original string.
@@ -34,7 +34,7 @@ pub enum Kind {
 }
 
 /// Describes the type of sandhi split that occurred.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Location {
     /// Indicates that the split occurs within a chunk.
     WithinChunk,
@@ -43,7 +43,7 @@ pub enum Location {
 }
 
 /// Models a sandhi split.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Split {
     first: CompactString,
     second: String,
@@ -99,7 +99,7 @@ impl Split {
 }
 
 /// Maps a combination to the two strings (first, second) that created it.
-#[derive(Default, Debug)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct SplitsMap(FxHashMap<String, Vec<(String, String)>>);
 
 impl SplitsMap {
@@ -128,6 +128,7 @@ impl SplitsMap {
 }
 
 /// Splits Sanskrit words and expressions according to the specified rules.
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct Splitter {
     map: SplitsMap,
     len_longest_key: usize,

@@ -71,6 +71,15 @@ impl Pratipadika {
             is_avyaya: false,
         })
     }
+
+    /// Returns whether the pratipadika describes an avyaya.
+    pub fn is_avyaya(&self) -> bool {
+        match self {
+            Self::Basic(b) => b.is_avyaya,
+            Self::Krdanta(k) => k.krt().is_avyaya(),
+            _ => false,
+        }
+    }
 }
 
 impl TryFrom<&str> for Pratipadika {

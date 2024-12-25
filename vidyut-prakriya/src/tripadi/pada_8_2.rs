@@ -750,7 +750,7 @@ fn try_change_final_s_and_others(p: &mut Prakriya) -> Option<()> {
             {
                 // vidvadByAm, uKAsradByAm, ...
                 p.run_at("8.2.72", i, |t| t.set_antya("d"));
-            } else if is_sa_sajush && !p.nlp_mode() {
+            } else if is_sa_sajush && !(p.nlp_mode() && p.next_not_empty(i).is_none()) {
                 // agnir atra, sajUr ftuBiH, ...
                 do_ru_adesha("8.2.66", p, i);
             }

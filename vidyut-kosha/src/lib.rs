@@ -5,7 +5,7 @@
 pub use errors::Error;
 pub use kosha::{Builder, Kosha};
 
-pub mod morph;
+pub mod entries;
 pub mod packing;
 
 mod errors;

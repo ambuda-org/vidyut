@@ -147,6 +147,11 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     let i_prati = sp.i_prati;
     let last = sp.last();
 
+    // Not sure how to handle avyayas, but all of these seem out of scope.
+    if last.is_avyaya() {
+        return None;
+    }
+
     // HACK: block uzRihA for now.
     if last.has_text("uzRih") {
         return None;

@@ -5,6 +5,7 @@
 mod akshara;
 mod chandas;
 mod error;
+mod macros;
 mod padya;
 mod sounds;
 
@@ -12,4 +13,4 @@ mod wasm;
 
 pub use akshara::{Akshara, Weight};
 pub use chandas::{Chandas, Match, Matches};
-pub use padya::{Jati, MatchType, Pada, PatternWeight, Vrtta};
+pub use padya::{Jati, MatchType, Vrtta, VrttaPada, VrttaWeight};

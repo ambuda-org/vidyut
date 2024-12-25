@@ -111,11 +111,13 @@ fn sutra_6_4_10() {
     assert_has_sup_1p(&shreyas, Napumsaka, &["SreyAMsi"]);
     assert_has_sup_1p("payas", Napumsaka, &["payAMsi"]);
     assert_has_sup_1p("yaSas", Napumsaka, &["yaSAMsi"]);
+
     // mahat
     let mahat = create_krdanta("mahat", &[], &d("maha~", Bhvadi), Unadi::ati);
     assert_has_sup_1s(&mahat, Pum, &["mahAn"]);
     assert_has_sup_1d(&mahat, Pum, &["mahAntO"]);
     assert_has_sup_1p(&mahat, Pum, &["mahAntaH"]);
+
     // asambudDo
     assert_has_sup_ss(&shreyas, Pum, &["Sreyan"]);
     assert_has_sup_ss(&mahat, Pum, &["mahan"]);

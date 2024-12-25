@@ -9,37 +9,51 @@ use vidyut_cheda::{Chedaka, Config, Result};
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Args {
-    text: String,
+    #[arg(long, default_value = "")]
+    word: String,
+    #[arg(long, default_value = "")]
+    phrase: String,
     #[arg(long)]
     data_dir: PathBuf,
 }
 
-/*
-fn parse_text(text: &str, segmenter: &Segmenter) {
-    info!("Beginning parse: \"{}\"", text);
-    let padas = segmenter.segment(text);
-    if padas.is_empty() {
-        println!("No solutions found for \"{}\".", text);
-    } else {
-        for (i, pada) in padas.iter().enumerate() {
-            println!(
-                "[{}] {} : {}, {:?}",
-                i,
-                pada.text,
-                pada.lemma(),
-                pada.semantics
-            );
+trait Debugger {
+    fn debug_word(&self, text: &str) -> Result<()>;
+    fn debug_phrase(&self, text: &str) -> Result<()>;
+}
+
+impl Debugger for Chedaka {
+    /// Prints all interpretations of a word.
+    fn debug_word(&self, text: &str) -> Result<()> {
+        let lex = self.kosha();
+        println!("word={text}:");
+        for packed_pada in lex.get_all(text) {
+            let pada = lex.unpack(&packed_pada)?;
+            println!("- `{}`, {:?}", pada.lemma(), pada);
         }
+        Ok(())
+    }
+
+    /// Prints all interpretations of a phrase.
+    fn debug_phrase(&self, text: &str) -> Result<()> {
+        let ret = self.run(text)?;
+        println!("phrase={text}:");
+        println!("{ret:?}");
+        Ok(())
     }
 }
-*/
 
-fn debug_word(text: &str, segmenter: &Chedaka) -> Result<()> {
-    let lex = segmenter.kosha();
-    println!("{text}:");
-    for packed_pada in lex.get_all(text) {
-        let pada = lex.unpack(&packed_pada)?;
-        println!("- `{}`, {:?}", pada.lemma(), pada);
+fn run(args: Args) -> Result<()> {
+    info!("Loading raw data from disk.");
+    let config = Config::new(&args.data_dir);
+    let c = Chedaka::new(config).unwrap();
+
+    if !args.word.is_empty() {
+        c.debug_word(&args.word)?;
+    }
+
+    if !args.phrase.is_empty() {
+        c.debug_phrase(&args.phrase)?;
     }
 
     Ok(())
@@ -47,22 +61,9 @@ fn debug_word(text: &str, segmenter: &Chedaka) -> Result<()> {
 
 fn main() {
     env_logger::init();
-
     let args = Args::parse();
 
-    info!("Loading raw data from disk.");
-    let config = Config::new(&args.data_dir);
-    let segmenter = Chedaka::new(config);
-
-    let segmenter = match segmenter {
-        Ok(data) => data,
-        Err(err) => {
-            println!("{}", err);
-            process::exit(1);
-        }
-    };
-
-    match debug_word(&args.text, &segmenter) {
+    match run(args) {
         Ok(()) => (),
         Err(err) => {
             println!("{}", err);

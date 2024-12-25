@@ -4,17 +4,15 @@ Code for packing and unpacking Sanskrit morphological data.
 **Packing* is the process of converting some data into a dense integer representation. The reverse
 process is accordingly called *unpacking*,
 
-Packed data is useful for two reasons. First, packed data takes up less space in memory with little
-or no performance penalty. Second, our finite-state transducer can store values only if they are
-integers. In other words, packing is a necessary precondition to storing data in an FST.
+Packed data is useful for two reasons;
+
+1. Packed data takes up less space in memory with little or no performance penalty.
+2. Our finite-state transducer can store values only if they are integers. In other words, packing
+   is a necessary precondition to storing data in an FST.
 
 The downside of packed data is that it cannot easily store string data. To work around this
 problem, we can use a lookup table that maps integer indices to string values. But lookup tables
 are much more cumbersome than simple structs.
-
-Therefore, we recommend using packed data only when the following conditions obtain:
--
-
 
 Approach
 ========
@@ -64,117 +62,56 @@ we need to convert between representations.
 TODO: investigate different packing orders to see if we can reduce the size of the FST.
 */
 
+use crate::entries::*;
 use crate::errors::*;
-use crate::morph::*;
 use modular_bitfield::prelude::*;
 use rustc_hash::FxHashMap;
+use vidyut_prakriya::args::{
+    Dhatu, Lakara, Linga, Pratipadika, Prayoga, Purusha, Subanta, Tinanta, Vacana, Vibhakti,
+};
 
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
-/// Defines boilerplate methods for packing and unpacking enums.
-///
-/// Requirements: `$Packed` and `$Raw` should be ordinary C-style enums. `$Packed` must have the
-/// same exact values as `$Raw` plus an extra `None` value.
-macro_rules! boilerplate {
-    ($Packed:ident, $Raw:ident, [$( $variant:ident ),*]) => {
-        impl From<Option<$Raw>> for $Packed {
-            fn from(val: Option<$Raw>) -> $Packed {
-                match val {
-                    $(
-                        Some($Raw::$variant) => Self::$variant,
-                    )*
-                    None => Self::None,
-                }
-            }
+macro_rules! packed_enum {
+    ($Packed:ident, $Raw:ident, [$( $variant:ident ),*], $num_bits:literal ) => {
+        #[doc = concat!("A space-efficient version of ", stringify!($Raw))]
+        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
+        #[bits = $num_bits]
+        pub enum $Packed {
+            $(
+                #[doc = concat!("A packed version of ", stringify!($Raw), "::", stringify!($variant), ".")]
+                $variant,
+            )*
         }
 
         impl $Packed {
-            /// Unpack this data into its corresponding Raw value.
-            fn unpack(&self) -> Option<$Raw> {
+            #[doc = concat!("Converts from ", stringify!($Raw), " to ", stringify!($Packed), ".")]
+            pub fn pack(value: $Raw) -> $Packed {
+                match value {
+                    $(
+                        $Raw::$variant => $Packed::$variant,
+                    )*
+                }
+            }
+
+            #[doc = concat!("Converts from ", stringify!($Packed), " to ", stringify!($Raw), ".")]
+            pub fn unpack(&self) -> $Raw {
                 match self {
                     $(
-                        $Packed::$variant => Some($Raw::$variant),
+                        $Packed::$variant => $Raw::$variant,
                     )*
-                    Self::None => None,
                 }
             }
         }
-    }
-}
 
-/// A lookup table for `Dhatu`s.
-#[derive(Default, Debug)]
-pub struct DhatuTable(Vec<Dhatu>);
-
-impl DhatuTable {
-    /// Returns the dhatu at the given index.
-    pub fn get(&self, index: usize) -> Option<&Dhatu> {
-        self.0.get(index)
-    }
-
-    /// Reads this table from disk.
-    pub fn read(path: &Path) -> Result<Self> {
-        let f = File::open(path)?;
-        let reader = BufReader::new(f);
-
-        let mut ret = Vec::new();
-        for line in reader.lines() {
-            match line?.parse() {
-                Ok(s) => ret.push(s),
-                _ => {}
+        impl From<$Raw> for $Packed {
+            fn from(val: $Raw) -> $Packed {
+                $Packed::pack(val)
             }
         }
-        Ok(Self(ret))
-    }
-
-    /// Writes this table to disk.
-    pub fn write(&self, path: &Path) -> Result<()> {
-        let data: String = self
-            .0
-            .iter()
-            .map(|d| d.as_str())
-            .fold(String::new(), |x, y| x + &y + "\n");
-        std::fs::write(path, data)?;
-
-        Ok(())
-    }
-}
-
-/// A lookup table for `Pratipadika` data.
-#[derive(Debug, Default)]
-pub struct PratipadikaTable(Vec<Pratipadika>);
-
-impl PratipadikaTable {
-    /// Returns the pratipadika at the given index.
-    pub fn get(&self, index: usize) -> Option<&Pratipadika> {
-        self.0.get(index)
-    }
-
-    /// Reads this table from disk.
-    pub fn read(path: &Path) -> Result<Self> {
-        let f = File::open(path)?;
-        let reader = BufReader::new(f);
-
-        let mut ret = Vec::new();
-        for line in reader.lines() {
-            ret.push(line?.to_string().parse()?);
-        }
-        Ok(Self(ret))
-    }
-
-    /// Writes this table to disk.
-    pub fn write(&self, out: &Path) -> Result<()> {
-        let data: String = self
-            .0
-            .iter()
-            .map(Pratipadika::as_str)
-            .fold(String::new(), |x, y| x + &y + "\n");
-
-        std::fs::write(out, data)?;
-        Ok(())
-    }
+    };
 }
 
 /// Models the part of speech for the given `Pada`. The value of `PartOfSpeech` controls how we
@@ -182,7 +119,7 @@ impl PratipadikaTable {
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
 #[bits = 2]
 enum PartOfSpeech {
-    None,
+    Unknown,
     Subanta,
     Tinanta,
     Avyaya,
@@ -190,84 +127,39 @@ enum PartOfSpeech {
 
 /// Semantics for an unknown term.
 #[bitfield(bits = 30)]
-pub struct PackedNone {
+pub struct PackedUnknown {
     #[skip]
     unused: B30,
 }
 
-impl PackedNone {
+impl PackedUnknown {
     #[allow(unused)]
     fn pack() -> Self {
         Self::new()
     }
 
     #[allow(unused)]
-    fn unpack(&self) -> Pada {
-        Pada::Unknown
+    fn unpack(&self) -> PadaEntry {
+        PadaEntry::Unknown
     }
 }
 
-/// A space-efficient version of `Linga`.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
-#[bits = 2]
-pub enum PackedLinga {
-    /// Unknown or missing `Linga`.
-    None,
-    /// The masculine gender.
-    Pum,
-    /// The feminine gender.
-    Stri,
-    /// The neuter gender.
-    Napumsaka,
-}
-
-boilerplate!(PackedLinga, Linga, [Pum, Stri, Napumsaka]);
-
-/// A space-efficient version of `Vacana`.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
-#[bits = 2]
-pub enum PackedVacana {
-    /// Unknown or missing vacana.
-    None,
-    /// The singular.
-    Eka,
-    /// The dual.
-    Dvi,
-    /// The plural.
-    Bahu,
-}
-
-boilerplate!(PackedVacana, Vacana, [Eka, Dvi, Bahu]);
-
-/// A space-efficient version of `Vibhakti`.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
-#[bits = 4]
-pub enum PackedVibhakti {
-    /// Unknown or missing vibhakti.
-    None,
-    /// The first *vibhakti* (nominative case).
-    Prathama,
-    /// The second *vibhakti* (accusative case).
-    Dvitiya,
-    /// The third *vibhakti* (instrumental case).
-    Trtiya,
-    /// The fourth *vibhakti* (dative case).
-    Caturthi,
-    /// The fifth *vibhakti* (ablative case).
-    Panchami,
-    /// The sixth *vibhakti* (genitive case).
-    Sasthi,
-    /// The seventh *vibhakti* (locative case).
-    Saptami,
-    /// The first *vibhakti* in the condition of *sambodhana* (vocative case).
-    Sambodhana,
-}
-
-boilerplate!(
+packed_enum!(PackedPrayoga, Prayoga, [Kartari, Karmani, Bhave], 2);
+packed_enum!(PackedLinga, Linga, [Pum, Stri, Napumsaka], 2);
+packed_enum!(PackedVacana, Vacana, [Eka, Dvi, Bahu], 2);
+packed_enum!(
     PackedVibhakti,
     Vibhakti,
-    [Prathama, Dvitiya, Trtiya, Caturthi, Panchami, Sasthi, Saptami, Sambodhana]
+    [Prathama, Dvitiya, Trtiya, Caturthi, Panchami, Sasthi, Saptami, Sambodhana],
+    4
 );
+packed_enum!(
+    PackedLakara,
+    Lakara,
+    [Lat, Lit, Lut, Lrt, Let, Lot, Lan, VidhiLin, AshirLin, Lun, Lrn],
+    4
+);
+packed_enum!(PackedPurusha, Purusha, [Prathama, Madhyama, Uttama], 2);
 
 /// Semantics for a *subanta*.
 #[bitfield(bits = 30)]
@@ -275,31 +167,33 @@ pub struct PackedSubanta {
     linga: PackedLinga,
     vacana: PackedVacana,
     vibhakti: PackedVibhakti,
-    is_purvapada: bool,
+    is_avyaya: bool,
     pratipadika_id: B21,
 }
 
 impl PackedSubanta {
-    fn pack(s: &Subanta, pratipadika_id: usize) -> Result<Self> {
+    fn pack(s: &SubantaEntry, pratipadika_id: usize) -> Result<Self> {
+        let s = s.subanta();
         Ok(Self::new()
             .with_pratipadika_id(pratipadika_id.try_into()?)
-            .with_linga(s.linga.into())
-            .with_vacana(s.vacana.into())
-            .with_vibhakti(s.vibhakti.into())
-            .with_is_purvapada(s.is_purvapada))
+            .with_linga(s.linga().into())
+            .with_vacana(s.vacana().into())
+            .with_vibhakti(s.vibhakti().into())
+            .with_is_avyaya(s.is_avyaya()))
     }
 
-    fn unpack(&self, pratipadikas: &PratipadikaTable) -> Result<Pada> {
-        let val = Pada::Subanta(Subanta {
-            pratipadika: pratipadikas
-                .get(self.pratipadika_id() as usize)
-                .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?
-                .clone(),
-            linga: self.linga().unpack(),
-            vacana: self.vacana().unpack(),
-            vibhakti: self.vibhakti().unpack(),
-            is_purvapada: self.is_purvapada(),
-        });
+    fn unpack(&self, pratipadikas: &[PratipadikaEntry]) -> Result<PadaEntry> {
+        let p_entry = pratipadikas
+            .get(self.pratipadika_id() as usize)
+            .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?;
+        let subanta = Subanta::builder()
+            .pratipadika(p_entry.pratipadika().clone())
+            .linga(self.linga().unpack())
+            .vacana(self.vacana().unpack())
+            .vibhakti(self.vibhakti().unpack())
+            .build()
+            .expect("has required fields");
+        let val = PadaEntry::Subanta(SubantaEntry::new(subanta, p_entry.clone()));
         Ok(val)
     }
 }
@@ -307,10 +201,10 @@ impl PackedSubanta {
 /// Semantics for a *tinanta*.
 #[bitfield(bits = 30)]
 pub struct PackedTinanta {
-    lakara: Lakara,
-    purusha: Purusha,
-    vacana: Vacana,
-    pada: PadaPrayoga,
+    lakara: PackedLakara,
+    purusha: PackedPurusha,
+    vacana: PackedVacana,
+    prayoga: PackedPrayoga,
     dhatu_id: B20,
 }
 
@@ -318,23 +212,28 @@ impl PackedTinanta {
     fn pack(t: &Tinanta, dhatu_id: usize) -> Result<Self> {
         Ok(Self::new()
             .with_dhatu_id(dhatu_id.try_into()?)
-            .with_lakara(t.lakara)
-            .with_purusha(t.purusha)
-            .with_vacana(t.vacana)
-            .with_pada(t.pada))
+            .with_lakara(t.lakara().into())
+            .with_purusha(t.purusha().into())
+            .with_vacana(t.vacana().into())
+            .with_prayoga(t.prayoga().into()))
     }
 
-    fn unpack(&self, dhatus: &DhatuTable) -> Result<Pada> {
-        let val = Pada::Tinanta(Tinanta {
-            dhatu: dhatus
-                .get(self.dhatu_id() as usize)
-                .ok_or_else(|| Error::UnknownDhatuId(self.dhatu_id()))?
-                .clone(),
-            purusha: self.purusha(),
-            lakara: self.lakara(),
-            vacana: self.vacana(),
-            pada: self.pada(),
-        });
+    fn unpack(&self, dhatus: &[DhatuEntry]) -> Result<PadaEntry> {
+        let dhatu = dhatus
+            .get(self.dhatu_id() as usize)
+            .ok_or_else(|| Error::UnknownDhatuId(self.dhatu_id()))?
+            .dhatu()
+            .clone();
+        let val = PadaEntry::Tinanta(
+            Tinanta::builder()
+                .dhatu(dhatu)
+                .purusha(self.purusha().unpack())
+                .lakara(self.lakara().unpack())
+                .vacana(self.vacana().unpack())
+                .prayoga(self.prayoga().unpack())
+                .build()
+                .expect("has required fields"),
+        );
         Ok(val)
     }
 }
@@ -346,24 +245,26 @@ pub struct PackedAvyaya {
 }
 
 impl PackedAvyaya {
-    fn pack(_a: &Avyaya, pratipadika_id: usize) -> Result<Self> {
+    fn pack(pratipadika_id: usize) -> Result<Self> {
         Ok(Self::new().with_pratipadika_id(pratipadika_id.try_into()?))
     }
 
-    fn unpack(&self, pratipadikas: &PratipadikaTable) -> Result<Pada> {
-        let val = Pada::Avyaya(Avyaya {
-            pratipadika: pratipadikas
-                .get(self.pratipadika_id() as usize)
-                .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?
-                .clone(),
-        });
+    fn unpack(&self, pratipadikas: &[PratipadikaEntry]) -> Result<PadaEntry> {
+        let p_entry = pratipadikas
+            .get(self.pratipadika_id() as usize)
+            .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?;
+
+        let pratipadika = p_entry.pratipadika().clone();
+        let subanta = Subanta::avyaya(pratipadika);
+        let val = PadaEntry::Avyaya(SubantaEntry::new(subanta, p_entry.clone()));
         Ok(val)
     }
 }
 
 /// Semantics for a *pada*.
 #[bitfield]
-pub struct PackedPada {
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PackedEntry {
     /// The part of speech for these semantics. We use this value to decide how to interpret the
     /// `payload` field.
     pos: PartOfSpeech,
@@ -372,7 +273,7 @@ pub struct PackedPada {
     payload: B30,
 }
 
-impl PackedPada {
+impl PackedEntry {
     /// Unsafely interprets this packed pada as an avyaya.
     pub fn unwrap_as_avyaya(&self) -> PackedAvyaya {
         PackedAvyaya::from_bytes(self.payload().to_le_bytes())
@@ -388,7 +289,7 @@ impl PackedPada {
         PackedTinanta::from_bytes(self.payload().to_le_bytes())
     }
 
-    /// Unwraps the bitfield as an ordinary integer.
+    /// Unwraps the bitfield as an ordinary `u32.
     pub fn to_u32(self) -> u32 {
         u32::from_le_bytes(self.into_bytes())
     }
@@ -399,143 +300,151 @@ impl PackedPada {
     }
 }
 
-/// Packs a `Pada` enum into a u32 code.
+/// Packs and unpacks linguistic data.
 #[derive(Clone, Default)]
 pub struct Packer {
-    /// Maps a pratipadika to its numeric ID.
-    stem_mapper: FxHashMap<Pratipadika, usize>,
-    /// Maps a dhatu to its numeric ID.
-    dhatu_mapper: FxHashMap<Dhatu, usize>,
+    dhatus: Vec<DhatuEntry>,
+    pratipadikas: Vec<PratipadikaEntry>,
+    pratipadika_to_index: FxHashMap<Pratipadika, usize>,
+    dhatu_to_index: FxHashMap<Dhatu, usize>,
 }
 
 impl Packer {
-    /// Creates a new packer with no data.
+    /// Creates a new packer.
     pub fn new() -> Self {
-        Packer {
-            stem_mapper: FxHashMap::default(),
-            dhatu_mapper: FxHashMap::default(),
+        Self::default()
+    }
+
+    /// Loads a packer from disk.
+    pub fn read(dhatu_path: impl AsRef<Path>, pratipadika_path: impl AsRef<Path>) -> Result<Self> {
+        Self::read_inner(dhatu_path.as_ref(), pratipadika_path.as_ref())
+    }
+
+    fn read_inner(dhatu_path: &Path, pratipadika_path: &Path) -> Result<Self> {
+        let file = File::open(dhatu_path)?;
+        let reader = BufReader::new(file);
+        let dhatus: Vec<DhatuEntry> = serde_json::from_reader(reader)?;
+
+        let file = File::open(pratipadika_path)?;
+        let reader = BufReader::new(file);
+        let pratipadikas: Vec<PratipadikaEntry> = serde_json::from_reader(reader)?;
+
+        let pratipadika_to_index: FxHashMap<_, _> = pratipadikas
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (x.pratipadika().clone(), i))
+            .collect();
+        let dhatu_to_index: FxHashMap<_, _> = dhatus
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (x.dhatu().clone(), i))
+            .collect();
+
+        Ok(Self {
+            dhatus,
+            pratipadikas,
+            pratipadika_to_index,
+            dhatu_to_index,
+        })
+    }
+
+    /// Writes daat in the registry to disk.
+    pub fn write(
+        &self,
+        dhatu_path: impl AsRef<Path>,
+        pratipadika_path: impl AsRef<Path>,
+    ) -> Result<()> {
+        self.write_inner(dhatu_path.as_ref(), pratipadika_path.as_ref())
+    }
+
+    fn write_inner(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<()> {
+        let file = File::create(dhatu_path)?;
+        let writer = BufWriter::new(file);
+        serde_json::to_writer(writer, &self.dhatus)?;
+
+        let file = File::create(pratipadika_path)?;
+        let writer = BufWriter::new(file);
+        serde_json::to_writer(writer, &self.pratipadikas)?;
+
+        Ok(())
+    }
+
+    /// Registers the given dhatus on the packer. Duplicate dhatus are ignored.
+    pub fn register_dhatus(&mut self, entries: &[DhatuEntry]) {
+        let n = self.dhatus.len();
+        for e in entries {
+            if !self.dhatu_to_index.contains_key(&e.dhatu()) {
+                self.dhatus.push(e.clone());
+            }
+        }
+
+        for (i, d) in self.dhatus[n..].iter().enumerate() {
+            self.dhatu_to_index.insert(d.dhatu().clone(), n + i);
         }
     }
 
-    /// Creates a mapping from integers to dhatus.
-    ///
-    /// Here, our integers are just the values 0, 1, ..., *n*. So to create a mapping from integers
-    /// to dhatus, we can return a simple vector. Then the dhatu at index i implicitly defines a
-    /// mpping from i to that dhatu.
-    pub fn create_dhatu_table(&self) -> DhatuTable {
-        let mut unsorted = self.dhatu_mapper.iter().collect::<Vec<_>>();
-        unsorted.sort_by_key(|x| x.1);
-        DhatuTable(
-            unsorted
-                .into_iter()
-                .map(|(dhatu, _)| dhatu.clone())
-                .collect::<Vec<_>>(),
-        )
-    }
+    /// Registers the given pratipadikas on the packer. Duplicate pratipadikas are ignored.
+    pub fn register_pratipadikas(&mut self, entries: &[PratipadikaEntry]) {
+        let n = self.pratipadikas.len();
+        for e in entries {
+            if !self.pratipadika_to_index.contains_key(&e.pratipadika()) {
+                self.pratipadikas.push(e.clone());
+            }
+        }
 
-    /// Creates a mapping from integers to pratipadikas.
-    ///
-    /// The construction here is similar to what do we do in `create_dhatu_table`.
-    pub fn create_stem_table(&self) -> PratipadikaTable {
-        let mut unsorted = self.stem_mapper.iter().collect::<Vec<_>>();
-        unsorted.sort_by_key(|x| x.1);
-        PratipadikaTable(
-            unsorted
-                .into_iter()
-                .map(|(stem, _)| stem.clone())
-                .collect::<Vec<_>>(),
-        )
+        for (i, p) in self.pratipadikas[n..].iter().enumerate() {
+            self.pratipadika_to_index
+                .insert(p.pratipadika().clone(), n + i);
+        }
     }
 
     /// Packs the given semantics into an integer value.
-    pub fn pack(&mut self, semantics: &Pada) -> Result<PackedPada> {
+    pub fn pack(&self, pada: &PadaEntry) -> Result<PackedEntry> {
         let to_u32 = u32::from_le_bytes;
 
-        let val = match semantics {
-            Pada::Subanta(s) => {
-                let stem_index = self.stem_index_for(&s.pratipadika);
-                let payload = PackedSubanta::pack(s, stem_index)?.into_bytes();
-                PackedPada::new()
-                    .with_pos(PartOfSpeech::Subanta)
-                    .with_payload(to_u32(payload))
+        let val = match pada {
+            PadaEntry::Avyaya(a) => {
+                match self.pratipadika_to_index.get(a.subanta().pratipadika()) {
+                    Some(i) => {
+                        let payload = PackedAvyaya::pack(*i)?.into_bytes();
+                        PackedEntry::new()
+                            .with_pos(PartOfSpeech::Avyaya)
+                            .with_payload(to_u32(payload))
+                    }
+                    None => return Err(Error::Generic("Pratipadika not in index.".to_string())),
+                }
             }
-            Pada::Tinanta(t) => {
-                let dhatu_index = self.dhatu_index_for(&t.dhatu);
-                let payload = PackedTinanta::pack(t, dhatu_index)?.into_bytes();
-                PackedPada::new()
-                    .with_pos(PartOfSpeech::Tinanta)
-                    .with_payload(to_u32(payload))
-            }
-            Pada::Avyaya(a) => {
-                let stem_index = self.stem_index_for(&a.pratipadika);
-                let payload = PackedAvyaya::pack(a, stem_index)?.into_bytes();
-                PackedPada::new()
-                    .with_pos(PartOfSpeech::Avyaya)
-                    .with_payload(to_u32(payload))
-            }
-            Pada::Unknown => PackedPada::new().with_pos(PartOfSpeech::None),
+            PadaEntry::Subanta(s) => match self.pratipadika_to_index.get(s.subanta().pratipadika())
+            {
+                Some(i) => {
+                    let payload = PackedSubanta::pack(s, *i)?.into_bytes();
+                    PackedEntry::new()
+                        .with_pos(PartOfSpeech::Subanta)
+                        .with_payload(to_u32(payload))
+                }
+                None => return Err(Error::Generic("Pratipadika not in index.".to_string())),
+            },
+            PadaEntry::Tinanta(t) => match self.dhatu_to_index.get(t.dhatu()) {
+                Some(i) => {
+                    let payload = PackedTinanta::pack(t, *i)?.into_bytes();
+                    PackedEntry::new()
+                        .with_pos(PartOfSpeech::Tinanta)
+                        .with_payload(to_u32(payload))
+                }
+                None => return Err(Error::Generic("Dhatu not in index.".to_string())),
+            },
+            PadaEntry::Unknown => PackedEntry::new().with_pos(PartOfSpeech::Unknown),
         };
         Ok(val)
     }
 
-    fn stem_index_for(&mut self, p: &Pratipadika) -> usize {
-        if let Some(i) = self.stem_mapper.get(p) {
-            *i
-        } else {
-            let n = self.stem_mapper.len();
-            self.stem_mapper.insert(p.clone(), n);
-            n
-        }
-    }
-
-    fn dhatu_index_for(&mut self, d: &Dhatu) -> usize {
-        if let Some(i) = self.dhatu_mapper.get(d) {
-            *i
-        } else {
-            let n = self.dhatu_mapper.len();
-            self.dhatu_mapper.insert(d.clone(), n);
-            n
-        }
-    }
-}
-
-/// Unpacks a u32 code into a `Pada` enum.
-pub struct Unpacker {
-    pratipadikas: PratipadikaTable,
-    dhatus: DhatuTable,
-}
-
-impl Unpacker {
-    /// Creates an unpacker from the given packer.
-    pub fn from_packer(p: &Packer) -> Self {
-        Unpacker {
-            pratipadikas: p.create_stem_table(),
-            dhatus: p.create_dhatu_table(),
-        }
-    }
-
-    /// Creates an unpacker from the given data.
-    pub fn from_data(pratipadikas: PratipadikaTable, dhatus: DhatuTable) -> Self {
-        Unpacker {
-            pratipadikas,
-            dhatus,
-        }
-    }
-
-    /// Writes this unpacker's data files to disk.
-    pub fn write(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<()> {
-        self.dhatus.write(dhatu_path)?;
-        self.pratipadikas.write(pratipadika_path)?;
-        Ok(())
-    }
-
     /// Unpacks the given packed pada.
-    pub fn unpack(&self, pada: &PackedPada) -> Result<Pada> {
+    pub fn unpack(&self, pada: &PackedEntry) -> Result<PadaEntry> {
         match pada.pos() {
             PartOfSpeech::Avyaya => pada.unwrap_as_avyaya().unpack(&self.pratipadikas),
             PartOfSpeech::Subanta => pada.unwrap_as_subanta().unpack(&self.pratipadikas),
             PartOfSpeech::Tinanta => pada.unwrap_as_tinanta().unpack(&self.dhatus),
-            PartOfSpeech::None => Ok(Pada::Unknown),
+            PartOfSpeech::Unknown => Ok(PadaEntry::Unknown),
         }
     }
 }
@@ -543,91 +452,95 @@ impl Unpacker {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use vidyut_prakriya::args as vp;
     type TestResult = Result<()>;
+
+    fn safe(s: &str) -> vp::Slp1String {
+        vp::Slp1String::from(s).expect("static")
+    }
+
+    fn entry(p: Pratipadika) -> PratipadikaEntry {
+        PratipadikaEntry::new(p, vec![])
+    }
 
     #[test]
     fn test_subanta_packing() -> TestResult {
-        let devasya = Pada::Subanta(Subanta {
-            pratipadika: Pratipadika::Basic {
-                text: "deva".to_owned(),
-                lingas: vec![Linga::Pum],
-            },
-            linga: Some(Linga::Pum),
-            vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::Sasthi),
-            is_purvapada: false,
-        });
-        let narasya = Pada::Subanta(Subanta {
-            pratipadika: Pratipadika::Basic {
-                text: "nara".to_owned(),
-                lingas: vec![Linga::Pum],
-            },
-            linga: Some(Linga::Pum),
-            vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::Sasthi),
-            is_purvapada: false,
-        });
+        let deva = Pratipadika::basic(safe("deva"));
+        let nara = Pratipadika::basic(safe("nara"));
+        let devasya = PadaEntry::Subanta(
+            Subanta::new(deva.clone(), Linga::Pum, Vibhakti::Sasthi, Vacana::Eka).into(),
+        );
+        let narasya = PadaEntry::Subanta(
+            Subanta::new(nara.clone(), Linga::Pum, Vibhakti::Sasthi, Vacana::Eka).into(),
+        );
 
         let mut packer = Packer::new();
+        packer.register_pratipadikas(&[entry(deva), entry(nara)]);
+
         let devasya_code = packer.pack(&devasya)?;
         let narasya_code = packer.pack(&narasya)?;
-
-        let unpacker = Unpacker::from_packer(&packer);
-        assert_eq!(unpacker.unpack(&narasya_code)?, narasya);
-        assert_eq!(unpacker.unpack(&devasya_code)?, devasya);
+        assert_eq!(packer.unpack(&narasya_code)?, narasya);
+        assert_eq!(packer.unpack(&devasya_code)?, devasya);
         Ok(())
     }
 
     #[test]
     fn test_tinanta_packing() -> TestResult {
-        let gacchati = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu::mula("gam".to_string()),
-            purusha: Purusha::Prathama,
-            vacana: Vacana::Eka,
-            lakara: Lakara::Lat,
-            pada: PadaPrayoga::Parasmaipada,
-        });
+        let gacchati = PadaEntry::Tinanta(
+            Tinanta::builder()
+                .dhatu(Dhatu::mula(safe("ga\\mx~"), vp::Gana::Bhvadi))
+                .purusha(Purusha::Prathama)
+                .vacana(Vacana::Eka)
+                .lakara(Lakara::Lat)
+                .prayoga(Prayoga::Kartari)
+                .build()
+                .unwrap(),
+        );
 
-        let carati = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu::mula("car".to_string()),
-            purusha: Purusha::Prathama,
-            vacana: Vacana::Eka,
-            lakara: Lakara::Lat,
-            pada: PadaPrayoga::Parasmaipada,
-        });
+        let carati = PadaEntry::Tinanta(
+            Tinanta::builder()
+                .dhatu(Dhatu::mula(safe("cara~"), vp::Gana::Bhvadi))
+                .purusha(Purusha::Prathama)
+                .vacana(Vacana::Eka)
+                .lakara(Lakara::Lat)
+                .prayoga(Prayoga::Kartari)
+                .build()
+                .unwrap(),
+        );
 
         let mut packer = Packer::new();
+        packer.register_dhatus(&[
+            DhatuEntry::new(
+                Dhatu::mula(safe("ga\\mx~"), vp::Gana::Bhvadi),
+                "gam".to_string(),
+            ),
+            DhatuEntry::new(
+                Dhatu::mula(safe("cara~"), vp::Gana::Bhvadi),
+                "car".to_string(),
+            ),
+        ]);
         let gacchati_code = packer.pack(&gacchati)?;
         let carati_code = packer.pack(&carati)?;
 
-        let unpacker = Unpacker::from_packer(&packer);
-        assert_eq!(unpacker.unpack(&carati_code)?, carati);
-        assert_eq!(unpacker.unpack(&gacchati_code)?, gacchati);
+        assert_eq!(packer.unpack(&carati_code)?, carati);
+        assert_eq!(packer.unpack(&gacchati_code)?, gacchati);
         Ok(())
     }
 
     #[test]
     fn test_avyaya_packing() -> TestResult {
-        let iti = Pada::Avyaya(Avyaya {
-            pratipadika: Pratipadika::Basic {
-                text: "iti".to_owned(),
-                lingas: vec![],
-            },
-        });
-        let ca = Pada::Avyaya(Avyaya {
-            pratipadika: Pratipadika::Basic {
-                text: "ca".to_owned(),
-                lingas: vec![],
-            },
-        });
+        let iti_stem = Pratipadika::basic(safe("iti"));
+        let ca_stem = Pratipadika::basic(safe("ca"));
+        let iti = PadaEntry::Avyaya(Subanta::avyaya(iti_stem.clone()).into());
+        let ca = PadaEntry::Avyaya(Subanta::avyaya(ca_stem.clone()).into());
 
         let mut packer = Packer::new();
+        packer.register_pratipadikas(&[entry(iti_stem), entry(ca_stem)]);
         let iti_code = packer.pack(&iti)?;
         let ca_code = packer.pack(&ca)?;
 
-        let unpacker = Unpacker::from_packer(&packer);
-        assert_eq!(unpacker.unpack(&ca_code)?, ca);
-        assert_eq!(unpacker.unpack(&iti_code)?, iti);
+        assert_eq!(packer.unpack(&ca_code)?, ca);
+        assert_eq!(packer.unpack(&iti_code)?, iti);
         Ok(())
     }
 }

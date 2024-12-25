@@ -1,9 +1,10 @@
 use crate::akshara::{Akshara, Weight};
-use crate::error::{ChandasError, Result};
+use crate::enum_boilerplate;
+use crate::error::{Error, Result};
 
 /// Models the weights that a vrtta can accept.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum PatternWeight {
+pub enum VrttaWeight {
     /// A heavy syllable.
     G,
     /// A light syllable.
@@ -11,6 +12,12 @@ pub enum PatternWeight {
     /// Any syllable.
     Any,
 }
+
+enum_boilerplate!(VrttaWeight, {
+    G => "G",
+    L => "L",
+    Any => ".",
+});
 
 /// Describes how a vrtta matches some input.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -24,6 +31,13 @@ pub enum MatchType {
     /// Completely matches the input.
     Full,
 }
+
+enum_boilerplate!(MatchType, {
+    None => "None",
+    Prefix => "Prefix",
+    Pada => "Pada",
+    Full => "Full",
+});
 
 /// A traditional shorthand for vrtta weights.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -49,6 +63,19 @@ pub enum Gana {
     /// *ga* (G)
     Ga,
 }
+
+enum_boilerplate!(Gana, {
+    Ya => "Ya",
+    Ma => "Ma",
+    Ta => "Ta",
+    Ra => "Ra",
+    Ja => "Ja",
+    Bha => "Bha",
+    Na => "Na",
+    Sa => "Sa",
+    La => "La",
+    Ga => "Ga",
+});
 
 impl Gana {
     /// Returns the weights associated with each gana.
@@ -78,18 +105,18 @@ impl Gana {
 /// A *pāda* defines a specific pattern of light and heavy syllables and
 /// might also define one or more *yati*s (caesuras).
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Pada {
-    weights: Vec<PatternWeight>,
+pub struct VrttaPada {
+    weights: Vec<VrttaWeight>,
     yati: Vec<usize>,
 }
 
-impl Pada {
-    fn new(weights: Vec<PatternWeight>, yati: Vec<usize>) -> Self {
-        Pada { weights, yati }
+impl VrttaPada {
+    fn new(weights: Vec<VrttaWeight>, yati: Vec<usize>) -> Self {
+        VrttaPada { weights, yati }
     }
 
     /// Returns the weights that this pada uses.
-    pub fn weights(&self) -> &[PatternWeight] {
+    pub fn weights(&self) -> &[VrttaWeight] {
         &self.weights
     }
 
@@ -101,7 +128,7 @@ impl Pada {
     /// Returns the ganas that define this pada.
     pub fn ganas(&self) -> Vec<Gana> {
         use Gana::*;
-        use PatternWeight::*;
+        use VrttaWeight::*;
 
         let mut ganas = Vec::new();
         for chunk in self.weights.chunks(3) {
@@ -132,12 +159,12 @@ impl Pada {
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Vrtta {
     name: String,
-    padas: Vec<Pada>,
+    padas: Vec<VrttaPada>,
 }
 
 impl Vrtta {
     /// Creates a new `Vrtta` with the given name and weight pattern.
-    pub fn new(name: impl AsRef<str>, padas: Vec<Pada>) -> Self {
+    pub fn new(name: impl AsRef<str>, padas: Vec<VrttaPada>) -> Self {
         Self {
             name: name.as_ref().to_string(),
             padas,
@@ -152,12 +179,12 @@ impl Vrtta {
     }
 
     /// Returns the padas that constitute this vrtta.
-    pub fn padas(&self) -> &[Pada] {
+    pub fn padas(&self) -> &[VrttaPada] {
         &self.padas
     }
 
     pub(crate) fn try_match(&self, aksharas: &[Vec<Akshara>]) -> MatchType {
-        use PatternWeight::*;
+        use VrttaWeight::*;
 
         for row in aksharas {
             let mut s = Vec::new();
@@ -182,7 +209,7 @@ impl Vrtta {
             *last = Any;
         }
 
-        let pattern_flat: Vec<PatternWeight> = full.iter().flat_map(|x| x.to_owned()).collect();
+        let pattern_flat: Vec<VrttaWeight> = full.iter().flat_map(|x| x.to_owned()).collect();
         let aksharas_flat: Vec<&Akshara> = aksharas.iter().flatten().collect();
 
         let contains_aksharas = if pattern_flat.len() >= aksharas_flat.len() {
@@ -219,16 +246,16 @@ impl Vrtta {
     }
 }
 
-impl TryFrom<&str> for Pada {
-    type Error = ChandasError;
+impl TryFrom<&str> for VrttaPada {
+    type Error = Error;
 
     fn try_from(text: &str) -> Result<Self> {
-        let weights: Vec<PatternWeight> = text
+        let weights: Vec<VrttaWeight> = text
             .chars()
             .filter_map(|c| match c {
-                '.' => Some(PatternWeight::Any),
-                'L' => Some(PatternWeight::L),
-                'G' => Some(PatternWeight::G),
+                '.' => Some(VrttaWeight::Any),
+                'L' => Some(VrttaWeight::L),
+                'G' => Some(VrttaWeight::G),
                 _ => None,
             })
             .collect();
@@ -237,23 +264,22 @@ impl TryFrom<&str> for Pada {
             .enumerate()
             .map(|(i, (offset, _))| offset - i)
             .collect();
-        Ok(Pada::new(weights, yati))
+        Ok(VrttaPada::new(weights, yati))
     }
 }
 
 impl TryFrom<&str> for Vrtta {
-    type Error = ChandasError;
+    type Error = Error;
 
     fn try_from(text: &str) -> Result<Self> {
         let fields: Vec<_> = text.split('\t').collect();
-        debug_assert_eq!(fields.len(), 3);
-
-        let name = fields[0];
-        let _ = fields[1];
-        let pattern_str = fields[2];
-        let padas: Result<Vec<Pada>> = pattern_str.split('/').map(|x| x.try_into()).collect();
-        let padas = padas?;
-        Ok(Vrtta::new(name, padas))
+        if let &[name, _kind, pattern] = &fields[..] {
+            let padas: Result<Vec<VrttaPada>> = pattern.split('/').map(|x| x.try_into()).collect();
+            let padas = padas?;
+            Ok(Vrtta::new(name, padas))
+        } else {
+            Err(Error::ParseError)
+        }
     }
 }
 

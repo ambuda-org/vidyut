@@ -68,7 +68,6 @@ pub fn try_pragrhya_rules(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-#[allow(unused)]
 pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let t = p.get(i)?;
 
@@ -77,7 +76,9 @@ pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
             // svarAdi contains more than 150 items, so short-circuit the check however we can.
             false
         } else {
-            t.has_text_in(gana::SVAR_ADI)
+            // HACK to allow this rule to apply only if explicitly an avyaya, otherwise we can't
+            // add sup to BUyas used as a nominal (BUyAMsi).
+            t.has_tag(T::Avyaya) && t.has_text_in(gana::SVAR_ADI)
         }
     };
 
@@ -193,10 +194,10 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         if i_u && !decided && !(prati.has_text("saKi") && !prati.is_samasa()) {
             if prati.has_text("pati") {
                 if prati.is_samasa() {
-                    p.add_tag_at("1.4.8", i_sup - 1, T::Ghi);
+                    p.add_tag_at("1.4.8", i, T::Ghi);
                 }
             } else {
-                p.add_tag_at("1.4.7", i_sup - 1, T::Ghi);
+                p.add_tag_at("1.4.7", i, T::Ghi);
             }
         } else if ii_uu && !decided {
             if iyan_uvan_astri {
@@ -478,4 +479,7 @@ pub fn run(p: &mut Prakriya) {
     try_run_for_pratipadika(p);
     try_run_for_sup(p);
     try_run_for_taddhita(p);
+    for i in 0..p.len() {
+        try_avyaya_rules(p, i);
+    }
 }

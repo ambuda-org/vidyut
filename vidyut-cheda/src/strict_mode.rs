@@ -1,8 +1,9 @@
 //! Heuristics for validating segmented candidates.
 
-use crate::segmenting::{Phrase, TokenPool};
+use crate::chedaka::{Phrase, TokenPool};
 use crate::sounds;
-use vidyut_kosha::morph::*;
+use vidyut_kosha::entries::*;
+use vidyut_prakriya::args::Subanta;
 /// Simple hand-coded rules to avoid overgenerating.
 use vidyut_sandhi::Split;
 
@@ -11,28 +12,34 @@ pub(crate) fn is_valid_word(
     cur: &Phrase,
     pool: &TokenPool,
     split: &Split,
-    semantics: &Pada,
+    semantics: &PadaEntry,
 ) -> bool {
-    if let Pada::Subanta(s) = &semantics {
+    /*
+    if let Entry::Subanta(s) = &semantics {
         if_purvapada_then_not_chunk_end(split, s)
-            && if_ac_pada_then_not_hal(split, s.is_purvapada)
+            && if_ac_pada_then_not_hal(split, s.is_purvapada())
             && if_not_in_compound_then_linga_match(cur, pool, s)
-    } else if let Pada::Tinanta(_) = &semantics {
+    } else if let Entry::Tinanta(_) = &semantics {
         if_ac_pada_then_not_hal(split, false)
     } else {
         true
         // TODO: extend if_ac_pada... to verbs
     }
+    */
+    true
 }
 
 /// Avoid compounds with whitespace.
 /// (`Darmakzetre` vs. `Darma kzetre`)
 fn if_purvapada_then_not_chunk_end(split: &Split, s: &Subanta) -> bool {
-    if s.is_purvapada {
+    /*
+    if s.is_purvapada() {
         !split.is_end_of_chunk()
     } else {
         true
     }
+    */
+    true
 }
 
 // Require that vowel-final words are not immediately followed by consonants.
@@ -51,10 +58,12 @@ fn if_ac_pada_then_not_hal(split: &Split, is_purvapada: bool) -> bool {
 // Require that subantas use the endings that match their declared linga.
 // Exception: words in a compound, since these might be bahuvrihi compounds.
 fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Subanta) -> bool {
+    true
+    /*
     let in_compound = match cur.tokens.last() {
         Some(i) => match pool.get(*i) {
             Some(t) => match &t.info {
-                Pada::Subanta(s) => s.is_purvapada,
+                Pada::Subanta(s) => s.is_purvapada(),
                 _ => false,
             },
             None => false,
@@ -65,12 +74,13 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Suban
     if in_compound {
         true
     } else {
-        match (&s.linga, &s.pratipadika) {
-            (Some(x), Pratipadika::Basic { text: _, lingas }) => lingas.contains(x),
+        match (&s.linga(), &s.pratipadika()) {
+            (Some(x), Pratipadika::basic(text)) => lingas.contains(x),
             // Otherwise, any linga is allowed.
             _ => true,
         }
     }
+    */
 }
 
 #[cfg(test)]
@@ -89,11 +99,8 @@ mod tests {
             Location::EndOfChunk,
             Kind::Prefix,
         );
-        let info = Pada::Avyaya(Avyaya {
-            pratipadika: Pratipadika::Basic {
-                text: "grAma".to_string(),
-                lingas: Vec::new(),
-            },
+        let info = PadaEntry::Avyaya(Avyaya {
+            pratipadika: Pratipadika::basic("grAma"),
         });
 
         let mut token_pool = TokenPool::new();
@@ -113,7 +120,7 @@ mod tests {
             Location::WithinChunk,
             Kind::Prefix,
         );
-        let info = Pada::Subanta(Subanta {
+        let info = PadaEntry::Subanta(Subanta {
             pratipadika: Pratipadika::Basic {
                 text: "grAma".to_string(),
                 lingas: vec![Linga::Pum],

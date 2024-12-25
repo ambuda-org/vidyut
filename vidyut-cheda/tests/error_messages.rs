@@ -4,7 +4,7 @@ use std::io::BufWriter;
 use std::io::Write;
 use tempfile::tempdir;
 use vidyut_cheda::{Chedaka, Config, Error};
-use vidyut_kosha::morph::Pada;
+use vidyut_kosha::entries::PadaEntry;
 use vidyut_kosha::Builder;
 
 #[test]
@@ -30,8 +30,8 @@ fn create_ok() -> Result<(), Box<dyn std::error::Error>> {
     let path = dir.path().join("kosha");
 
     let mut b = Builder::new(path)?;
-    b.insert("arjunas", &Pada::Unknown)?;
-    b.insert("gacCati", &Pada::Unknown)?;
+    b.insert("arjunas", &PadaEntry::Unknown)?;
+    b.insert("gacCati", &PadaEntry::Unknown)?;
     b.finish()?;
 
     let sandhi = dir.path().join("sandhi.csv");

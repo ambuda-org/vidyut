@@ -8,7 +8,7 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga};
+use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga, Taddhita};
 use vidyut_prakriya::Vyakarana;
 
 #[test]
@@ -278,4 +278,25 @@ fn iccha_nipatana() {
 #[test]
 fn babdhi() {
     assert_has_sip(&[], &d("Basa~", Juhotyadi), Lot, &["babDi", "babDAt"]);
+}
+
+// Tests that sup-luk occurs after avyayas, regardless of which sup we try adding.
+#[test]
+fn gantum_sup() {
+    let gantum = krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::tumun);
+    assert_has_sup_1s(&gantum, Pum, &["gantum"]);
+    assert_has_sup_1d(&gantum, Pum, &["gantum"]);
+    assert_has_sup_1p(&gantum, Pum, &["gantum"]);
+    assert_has_sup_1s(&gantum, Stri, &["gantum"]);
+
+    let gatva = krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::ktvA);
+    assert_has_sup_1s(&gatva, Pum, &["gatvA"]);
+    assert_has_sup_4s(&gatva, Napumsaka, &["gatvA"]);
+}
+
+// Simultaneous derivation of taddhita + sup
+#[test]
+fn hanumataa() {
+    let hanumat = taddhitanta("hanu", Taddhita::matup);
+    assert_has_sup_3s(&hanumat, Pum, &["hanumatA"]);
 }

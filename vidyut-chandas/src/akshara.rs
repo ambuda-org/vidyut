@@ -1,3 +1,4 @@
+use crate::enum_boilerplate;
 use crate::sounds;
 
 /// The weight of an akshara.
@@ -8,6 +9,11 @@ pub enum Weight {
     /// A *laghu* or light syllable.
     L,
 }
+
+enum_boilerplate!(Weight, {
+    G => "G",
+    L => "L",
+});
 
 /// A Sanskrit syllable.
 ///

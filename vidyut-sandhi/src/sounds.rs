@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 ///
 /// This implementation is copied directly from `vidyut_prakriya::sounds`. For details, see the
 /// comments there.
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Set([u8; 256]);
 
 impl Set {

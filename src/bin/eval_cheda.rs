@@ -9,9 +9,10 @@ use vidyut_cheda::conllu::Reader;
 use vidyut_cheda::dcs;
 use vidyut_cheda::Result;
 use vidyut_cheda::{Chedaka, Config, Token};
-use vidyut_kosha::morph::*;
+use vidyut_kosha::entries::*;
 use vidyut_lipi::{transliterate, Mapping, Scheme};
 use vidyut_prakriya::args as vp;
+use vidyut_prakriya::args::Pratipadika;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -71,26 +72,24 @@ fn to_slp1(text: &str) -> String {
 /// Vidyut semantics and DCS semantics into a coarser space.
 fn as_code(w: &Token) -> String {
     match &w.info {
-        Pada::Subanta(s) => {
-            format!(
-                "n-{}-{}-{}",
-                s.linga.map_or("", |x| x.as_str()),
-                s.vibhakti.map_or("", |x| x.as_str()),
-                s.vacana.map_or("", |x| x.as_str())
-            )
+        PadaEntry::Subanta(s) => {
+            let s = s.subanta();
+            format!("n-{}-{}-{}", s.linga(), s.vibhakti(), s.vacana(),)
         }
-        Pada::Tinanta(s) => {
-            format!("v-{}-{}", s.purusha.as_str(), s.vacana.as_str())
+        PadaEntry::Tinanta(s) => {
+            format!("v-{}-{}", s.purusha().as_str(), s.vacana().as_str())
         }
-        Pada::Unknown => "_".to_string(),
-        Pada::Avyaya(a) => {
-            let val = match &a.pratipadika {
-                Pratipadika::Basic { .. } => "i",
-                Pratipadika::Krdanta { krt, .. } => match krt.value() {
+        PadaEntry::Unknown => "_".to_string(),
+        PadaEntry::Avyaya(a) => {
+            let a = a.subanta();
+            let val = match &a.pratipadika() {
+                Pratipadika::Basic(_) => "i",
+                Pratipadika::Krdanta(k) => match k.krt() {
                     vp::Krt::Base(vp::BaseKrt::ktvA) => "ktva",
                     vp::Krt::Base(vp::BaseKrt::tumun) => "tumun",
                     _ => "_",
                 },
+                _ => "i",
             };
             val.to_string()
         }

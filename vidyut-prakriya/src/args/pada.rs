@@ -13,7 +13,7 @@ pub enum Pada {
     Tinanta(Tinanta),
     /// A "chunk of text" without any specific morphology. This is a temporary variant that we hope
     /// to clean up later.
-    Dummy(String),
+    Unknown(String),
     /// A dummy variant that we hope to clean up later.
     Nipata(String),
 }
@@ -21,7 +21,7 @@ pub enum Pada {
 impl Pada {
     /// Creates a dummy pada from the given text.
     pub fn from_text(text: impl AsRef<str>) -> Self {
-        Self::Dummy(text.as_ref().to_string())
+        Self::Unknown(text.as_ref().to_string())
     }
 
     /// Creates a dummy pada from the given text.

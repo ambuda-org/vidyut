@@ -19,7 +19,7 @@ const HAL: &str = "kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzsh";
 /// - the first part is `a`
 /// - the second part is `i`
 /// - the result is `e`.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Rule {
     first: String,
     second: String,
@@ -28,15 +28,15 @@ pub struct Rule {
 
 impl Rule {
     /// Returns the first part of the rule.
-    pub fn first(&self) -> &String {
+    pub fn first(&self) -> &str {
         &self.first
     }
     /// Returns the second part of the rule.
-    pub fn second(&self) -> &String {
+    pub fn second(&self) -> &str {
         &self.second
     }
     /// Returns the result of the rule.
-    pub fn result(&self) -> &String {
+    pub fn result(&self) -> &str {
         &self.result
     }
 }

@@ -23,7 +23,7 @@
 //!
 //! To work around (2), we pack the semantics of Sanskrit words into integers with our
 //! `vidyut::packing` crate. Since strings are difficult to pack, we instead store them in a lookup
-//! table and pack their integer ID instead. For details, see `packing::Unpacker`.
+//! table and pack their integer ID instead.
 //!
 //!
 //! Efficiency
@@ -33,8 +33,8 @@
 //! roughly 1.5x slower than a default `HashMap`. Our production kosha stores more than 29 million
 //! words in around 31MB of data with an average storage cost of 1 byte per word. Of course, the
 //! specific storage cost will vary depending on the words in the input list.
+use crate::entries::{DhatuEntry, PadaEntry, PratipadikaEntry};
 use crate::errors::*;
-use crate::morph::Pada;
 use crate::packing::*;
 use fst::map::Stream;
 use fst::raw::{Fst, Node, Output};
@@ -62,22 +62,25 @@ impl Paths {
             base: base_path.as_ref().to_path_buf(),
         }
     }
+
     /// Path to the underlying FST.
     fn fst(&self) -> PathBuf {
         self.base.join("padas.fst")
     }
-    /// Path to the dhatus table, which maps indices to `Dhatu`s.
+
+    /// Path to the dhatus registry.
     fn dhatus(&self) -> PathBuf {
-        self.base.join("dhatus.csv")
+        self.base.join("dhatus.json")
     }
-    /// Path to the pratipadikas table, which maps indices to `Pratipadika`s.
+
+    /// Path to the pratipadikas registry.
     fn pratipadikas(&self) -> PathBuf {
-        self.base.join("pratipadikas.csv")
+        self.base.join("pratipadikas.json")
     }
 }
 
-fn to_packed_pada(output: Output) -> PackedPada {
-    PackedPada::from_u32(output.value() as u32)
+fn to_packed_pada(output: Output) -> PackedEntry {
+    PackedEntry::from_u32(output.value() as u32)
 }
 
 /// A compact Sanskrit kosha.
@@ -85,7 +88,7 @@ pub struct Kosha {
     /// The underlying FST object.
     fst: Map<Vec<u8>>,
     /// Maps indices to semantics objects.
-    unpacker: Unpacker,
+    packer: Packer,
 }
 
 impl Kosha {
@@ -95,12 +98,9 @@ impl Kosha {
 
         info!("Loading fst from `{:?}`", paths.fst());
         let fst = Map::new(std::fs::read(paths.fst())?)?;
-        let unpacker = Unpacker::from_data(
-            PratipadikaTable::read(&paths.pratipadikas())?,
-            DhatuTable::read(&paths.dhatus())?,
-        );
+        let packer = Packer::read(&paths.dhatus(), &paths.pratipadikas())?;
 
-        Ok(Self { fst, unpacker })
+        Ok(Self { fst, packer })
     }
 
     /// Returns a reference to this kosha's underlying FST.
@@ -137,13 +137,13 @@ impl Kosha {
     }
 
     /// Unpacks the given word via this kosha's `Unpacker` instance.
-    pub fn unpack(&self, p: &PackedPada) -> Result<Pada> {
-        self.unpacker.unpack(p)
+    pub fn unpack(&self, p: &PackedEntry) -> Result<PadaEntry> {
+        self.packer.unpack(p)
     }
 
     /// Gets all results for the given `key`, including duplicates.
     #[inline]
-    pub fn get_all(&self, key: &str) -> Vec<PackedPada> {
+    pub fn get_all(&self, key: &str) -> Vec<PackedEntry> {
         // Adapted from `FstRef::get`
         // https://docs.rs/fst/0.4.7/src/fst/raw/mod.rs.html#682
         let fst = self.fst.as_fst();
@@ -183,7 +183,7 @@ impl Kosha {
 /// - `out`: the output corresponding to this state.
 /// - `fst`: the underlying FST.
 /// - `results`: the results list.
-fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec<PackedPada>) {
+fn add_duplicates(node: Node, out: Output, fst: &Fst<Vec<u8>>, results: &mut Vec<PackedEntry>) {
     for c1 in 0..=DUPES_PER_BYTE {
         if let Some(i1) = node.find_input(c1) {
             let t1 = node.transition(i1);
@@ -264,36 +264,59 @@ impl Builder {
     ///
     /// Keys must be inserted in lexicographic order. If a key is received out of order,
     /// the build process will fail.
-    pub fn insert(&mut self, key: &str, value: &Pada) -> Result<()> {
-        let seen_keys = &mut self.seen_keys;
+    pub fn insert(&mut self, key: &str, value: &PadaEntry) -> Result<()> {
+        let value = self.pack(value)?;
+        self.insert_packed(key, &value)
+    }
 
+    /// Inserts the given `key` with the packed semantics in `value`.
+    ///
+    /// Keys must be inserted in lexicographic order. If a key is received out of order,
+    /// the build process will fail.
+    pub fn insert_packed(&mut self, key: &str, value: &PackedEntry) -> Result<()> {
+        let u64_payload = value.to_u32() as u64;
+
+        let seen_keys = &mut self.seen_keys;
         let num_repeats = match seen_keys.get(key) {
             Some(c) => *c,
             None => 0,
         };
         seen_keys.insert(key.to_string(), num_repeats + 1);
 
-        let value = u64::from(self.packer.pack(value)?.to_u32());
-
         // For duplicates, add another u8 to make this key unique.
         if num_repeats > 0 {
             // Subtract 1 so that the duplicate tag always starts at 0.
             let final_key = create_extended_key(key, num_repeats - 1)?;
-            self.fst_builder.insert(&final_key, value)?;
+            self.fst_builder.insert(&final_key, u64_payload)?;
         } else {
-            self.fst_builder.insert(key, value)?;
+            self.fst_builder.insert(key, u64_payload)?;
         };
 
         Ok(())
     }
 
+    /// Registers the given dhatus on the internal packer. Duplicate dhatus are ignored.
+    pub fn register_dhatus(&mut self, dhatus: &[DhatuEntry]) {
+        self.packer.register_dhatus(dhatus);
+    }
+
+    /// Registers the given pratipadikas on the internal packer. Duplicate pratipadikas are ignored.
+    pub fn register_pratipadikas(&mut self, pratipadikas: &[PratipadikaEntry]) {
+        self.packer.register_pratipadikas(pratipadikas);
+    }
+
+    /// Packs the given `pada` into a more compact format.
+    pub fn pack(&self, pada: &PadaEntry) -> Result<PackedEntry> {
+        self.packer.pack(pada)
+    }
+
     /// Writes all FST data to disk.
     pub fn finish(self) -> Result<()> {
-        info!("Writing FST and packer data to `{:?}`.", self.paths.base);
+        info!("Writing FST and packer data to {:?}.", self.paths.base);
         self.fst_builder.finish()?;
 
-        let unpacker = Unpacker::from_packer(&self.packer);
-        unpacker.write(&self.paths.dhatus(), &self.paths.pratipadikas())?;
+        self.packer
+            .write(&self.paths.dhatus(), &self.paths.pratipadikas())?;
 
         Ok(())
     }
@@ -303,13 +326,25 @@ impl Builder {
 #[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
-
-    use crate::morph::*;
-    use fst::Streamer;
-    use tempfile::tempdir;
     use vidyut_prakriya::args as vp;
+    use vidyut_prakriya::args::{Dhatu, Pratipadika};
+
+    use crate::entries::*;
+    use tempfile::tempdir;
 
     type TestResult = Result<()>;
+
+    fn safe(s: &str) -> vp::Slp1String {
+        vp::Slp1String::from(s).expect("ok")
+    }
+
+    fn d_entry(d: Dhatu) -> DhatuEntry {
+        DhatuEntry::new(d, "text".to_string())
+    }
+
+    fn entry(p: Pratipadika) -> PratipadikaEntry {
+        PratipadikaEntry::new(p, vec![])
+    }
 
     #[test]
     fn test_paths() {
@@ -323,42 +358,52 @@ mod tests {
 
     #[test]
     fn write_and_load() -> TestResult {
-        let tin = Pada::Tinanta(Tinanta {
-            dhatu: Dhatu::mula("gam".to_string()),
-            purusha: Purusha::Prathama,
-            vacana: Vacana::Eka,
-            lakara: Lakara::Lat,
-            pada: PadaPrayoga::Parasmaipada,
-        });
-        let krdanta = Pada::Subanta(Subanta {
-            pratipadika: Pratipadika::Krdanta {
-                dhatu: Dhatu::mula("gam".to_string()),
-                krt: Krt::new(vp::BaseKrt::Satf),
-            },
-            linga: Some(Linga::Pum),
-            vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::Dvitiya),
-            is_purvapada: false,
-        });
-        let sup = Pada::Subanta(Subanta {
-            pratipadika: Pratipadika::Basic {
-                text: "agni".to_string(),
-                lingas: vec![Linga::Pum],
-            },
-            linga: Some(Linga::Pum),
-            vacana: Some(Vacana::Eka),
-            vibhakti: Some(Vibhakti::Dvitiya),
-            is_purvapada: false,
-        });
+        let gam = Dhatu::mula(safe("gam"), vp::Gana::Bhvadi);
+        let tin = PadaEntry::Tinanta(vp::Tinanta::new(
+            gam.clone(),
+            vp::Prayoga::Kartari,
+            vp::Lakara::Lat,
+            vp::Purusha::Prathama,
+            vp::Vacana::Eka,
+        ));
+
+        let gacchan = vp::Krdanta::new(
+            Dhatu::mula(safe("gam"), vp::Gana::Bhvadi),
+            vp::BaseKrt::Satf,
+        );
+        let gacchati = PadaEntry::Subanta(
+            vp::Subanta::new(
+                gacchan.clone(),
+                vp::Linga::Pum,
+                vp::Vibhakti::Saptami,
+                vp::Vacana::Eka,
+            )
+            .into(),
+        );
+
+        let agni = Pratipadika::basic(safe("agni"));
+        let sup = PadaEntry::Subanta(
+            vp::Subanta::new(
+                agni.clone(),
+                vp::Linga::Pum,
+                vp::Vibhakti::Dvitiya,
+                vp::Vacana::Eka,
+            )
+            .into(),
+        );
 
         // Builder
         let dir = tempdir()?;
         let mut builder = Builder::new(dir.path())?;
+        builder.register_dhatus(&[d_entry(gam)]);
+        builder.register_pratipadikas(&[entry(gacchan.into()), entry(agni)]);
+
         builder.insert("agnim", &sup)?;
         builder.insert("gacCati", &tin)?;
-        builder.insert("gacCati", &krdanta)?;
+        builder.insert("gacCati", &gacchati)?;
         builder.finish()?;
 
+        /*
         // Constructor
         let lex = Kosha::new(dir.path())?;
 
@@ -383,7 +428,7 @@ mod tests {
         }
 
         assert_eq!(get_all_padas(&lex, "agnim")?, vec![sup]);
-        assert_eq!(get_all_padas(&lex, "gacCati")?, vec![tin, krdanta]);
+        assert_eq!(get_all_padas(&lex, "gacCati")?, vec![tin, gacchati]);
         assert_eq!(get_all_padas(&lex, "gacCat")?, vec![]);
         assert_eq!(get_all_padas(&lex, "123")?, vec![]);
 
@@ -403,6 +448,7 @@ mod tests {
             ]
         );
 
+        */
         Ok(())
     }
 

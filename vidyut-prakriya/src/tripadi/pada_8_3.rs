@@ -174,7 +174,7 @@ fn try_visarjaniyasya(p: &mut Prakriya) -> Option<()> {
         } else if y.has_at(1, SHAR) {
             p.run_at("8.3.35", i_x, |_| {});
         } else if y.has_adi(KU_PU) {
-            if x.has_text_in(&["namas", "puras"]) && x.is_gati() {
+            if x.has_u_in(&["namas", "puras"]) && x.is_gati() {
                 p.run_at("8.3.40", i_x, |t| t.set_antya("s"));
             } else if is_it_ut_upadha(x) && !x.is_pratyaya() {
                 p.run_at("8.3.41", i_x, |t| t.set_antya("z"));

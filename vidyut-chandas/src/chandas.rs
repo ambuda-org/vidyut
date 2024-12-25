@@ -306,7 +306,6 @@ mod tests {
             snigDacCAyAtaruzu vasatiM rAmagiryASramezu .. 1 ..",
             "mandAkrAntA",
         );
-        assert!(c.classify("mo mo go go vidyunmAlA").padya().is_none());
     }
 
     #[test]

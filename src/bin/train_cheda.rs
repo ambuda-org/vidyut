@@ -9,7 +9,7 @@ use vidyut_cheda::dcs;
 use vidyut_cheda::model::State;
 use vidyut_cheda::Result;
 use vidyut_cheda::{Config, Token};
-use vidyut_kosha::morph::*;
+use vidyut_kosha::entries::*;
 use vidyut_lipi::{transliterate, Mapping, Scheme};
 
 #[derive(Parser, Debug)]
@@ -86,7 +86,7 @@ fn process_sentence(tokens: &[Token], s: &mut Statistics) {
             .or_insert(0);
         *c += 1;
 
-        let tag = token.info.part_of_speech_tag();
+        let tag = token.info.pos_tag();
         let c = s.lemma_counts.entry((lemma.to_string(), tag)).or_insert(0);
         *c += 1;
 

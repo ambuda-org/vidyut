@@ -11,7 +11,7 @@ use crate::sounds;
 use crate::strict_mode;
 use crate::Error;
 use compact_str::CompactString;
-use vidyut_kosha::morph::Pada;
+use vidyut_kosha::entries::PadaEntry;
 use vidyut_kosha::Kosha;
 use vidyut_sandhi::{Split, Splitter};
 
@@ -21,7 +21,7 @@ pub struct Token {
     /// The underlying text of the given word.
     pub text: CompactString,
     /// The data associated with this word.
-    pub info: Pada,
+    pub info: PadaEntry,
 }
 
 impl Token {
@@ -31,7 +31,7 @@ impl Token {
     }
 
     /// The information we have about this word.
-    pub fn info(&self) -> &Pada {
+    pub fn info(&self) -> &PadaEntry {
         &self.info
     }
 
@@ -66,7 +66,7 @@ impl TokenPool {
 }
 
 /// Represents an in-progress segment of a phrase.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Phrase {
     /// The words that we've recognized so far.
     pub tokens: Vec<usize>,
@@ -137,10 +137,10 @@ fn analyze_pada(
     text: &str,
     split: &Split,
     chedaka: &Chedaka,
-    cache: &mut HashMap<String, Vec<Pada>>,
+    cache: &mut HashMap<String, Vec<PadaEntry>>,
 ) -> Result<()> {
     if !cache.contains_key(text) {
-        let res: std::result::Result<Vec<Pada>, _> = chedaka
+        let res: std::result::Result<Vec<PadaEntry>, _> = chedaka
             .kosha
             .get_all(text)
             .iter()
@@ -150,7 +150,7 @@ fn analyze_pada(
 
         // Add the option to skip an entire chunk. (For typos, junk, etc.)
         if split.is_end_of_chunk() || text.starts_with(|c| !sounds::is_sanskrit(c)) {
-            res.push(Pada::Unknown);
+            res.push(PadaEntry::Unknown);
         }
 
         cache.insert(text.to_string(), res);
@@ -158,12 +158,13 @@ fn analyze_pada(
     Ok(())
 }
 
+// Needs to be refactored.
 /*
 #[allow(dead_code)]
 fn debug_print_phrase(p: &Phrase) {
     if log_enabled!(Level::Debug) {
-        for word in &p.tokens {
-            debug!("- {} {:?}", word.text, word.info);
+        for token in &p.tokens {
+            debug!("- {} {:?}", token.text, token.info);
         }
         debug!("score={}", p.score);
     }
@@ -211,7 +212,7 @@ fn debug_print_viterbi(v: &HashMap<String, HashMap<String, Phrase>>) {
 fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
     let text = normalize(raw_text);
     let mut pq = PriorityQueue::new();
-    let mut word_cache: HashMap<String, Vec<Pada>> = HashMap::new();
+    let mut word_cache: HashMap<String, Vec<PadaEntry>> = HashMap::new();
 
     let mut token_pool = TokenPool::new();
 
@@ -224,9 +225,6 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
     pq.push(initial_state, score);
 
     while !pq.is_empty() {
-        // debug_print_stack(&pq);
-        // debug_print_viterbi(&viterbi_cache);
-
         // Pop the best solution remaining.
         let (cur, cur_score) = pq.pop().expect("always defined");
 
@@ -264,7 +262,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                     };
                     let i = token_pool.insert(Token {
                         text: CompactString::from(first),
-                        info: Pada::Unknown,
+                        info: PadaEntry::Unknown,
                     });
                     new.tokens.push(i);
                     new
@@ -278,7 +276,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                     };
                     let i = token_pool.insert(Token {
                         text: CompactString::from(cur.remaining),
-                        info: Pada::Unknown,
+                        info: PadaEntry::Unknown,
                     });
                     new.tokens.push(i);
                     new
@@ -308,8 +306,8 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
             let second = split.second();
             analyze_pada(first, &split, ctx, &mut word_cache)?;
 
-            for semantics in word_cache.get(first).unwrap_or(&no_results) {
-                if !strict_mode::is_valid_word(&cur, &token_pool, &split, semantics) {
+            for artha in word_cache.get(first).unwrap_or(&no_results) {
+                if !strict_mode::is_valid_word(&cur, &token_pool, &split, artha) {
                     continue;
                 }
 
@@ -321,7 +319,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                 };
                 let i = token_pool.insert(Token {
                     text: CompactString::from(first),
-                    info: semantics.clone(),
+                    info: artha.clone(),
                 });
                 new.tokens.push(i);
                 new.score = ctx.model.score(&new, &token_pool);
@@ -341,6 +339,7 @@ fn segment(raw_text: &str, ctx: &Chedaka) -> Result<Vec<Token>> {
                     .entry(new.remaining.clone())
                     .or_default()
                     .insert("STATE".to_string(), new.clone());
+                println!("Pushing: {new:?} {new_score}");
                 pq.push(new, new_score);
             }
         }

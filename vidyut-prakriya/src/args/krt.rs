@@ -581,8 +581,8 @@ impl Krdanta {
     }
 
     /// The upapada that conditions the krt pratyaya.
-    pub fn upapada(&self) -> &Option<Subanta> {
-        &self.upapada
+    pub fn upapada(&self) -> Option<&Subanta> {
+        self.upapada.as_ref()
     }
 
     /// The artha condition to use in the derivation. If not set, any artha is allowed.
@@ -591,8 +591,8 @@ impl Krdanta {
     }
 
     /// The value that the krdanta must match, if defined.
-    pub fn require(&self) -> &Option<String> {
-        &self.require
+    pub fn require(&self) -> Option<&String> {
+        self.require.as_ref()
     }
 
     /// Sets the required value for this krdanta.

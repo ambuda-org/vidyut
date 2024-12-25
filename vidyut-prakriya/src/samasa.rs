@@ -1,6 +1,7 @@
 use crate::args::BaseKrt as K;
 use crate::args::Samasa;
 use crate::args::SamasaType;
+use crate::args::Stri;
 use crate::args::Sup;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
@@ -392,21 +393,32 @@ pub fn try_sup_luk(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-pub fn run_rules_for_avyayibhava(p: &mut Prakriya) {
-    p.debug("run_rules_for_avyayibhava");
-    if p.has_tag(PT::Avyayibhava) {
+pub fn run_avyaya_sup_lopa(p: &mut Prakriya) -> Option<()> {
+    p.debug("run_avyaya_sup_lopa");
+
+    let i_avyaya = p.find_last_where(|t| t.is_avyaya())?;
+    let i_n = i_avyaya + 1;
+
+    if p.is_avyayibhava() {
         p.run("2.4.17", |p| p.add_tag(PT::Napumsaka));
 
-        let i_last = p.terms().len() - 1;
-        if p.has(i_last, |t| !t.is_sup()) {
+        if !p.has(i_n, |t| t.is_sup()) {
             p.run("4.1.2", |p| p.push(make_su_pratyaya()));
-            if p.has(i_last, |t| t.has_antya('a')) {
-                p.run_at("2.4.83", i_last + 1, |t| t.set_text("am"));
-            } else {
-                p.run_at("2.4.82", i_last + 1, op::luk);
-            }
         }
     }
+
+    if p.has(i_n, |t| {
+        t.is(Stri::cAp) || t.is(Stri::qAp) || t.is(Stri::wAp) || t.is_sup()
+    }) {
+        if p.is_avyayibhava() && p.has(i_avyaya, |t| t.has_antya('a')) {
+            p.run_at("2.4.83", i_n, |t| t.set_text("am"));
+        } else {
+            // kftvA, hftvA
+            p.run_at("2.4.82", i_avyaya + 1, op::luk);
+        }
+    }
+
+    Some(())
 }
 
 pub fn run(p: &mut Prakriya, args: &Samasa) -> bool {

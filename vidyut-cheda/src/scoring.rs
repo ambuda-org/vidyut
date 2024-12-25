@@ -5,14 +5,14 @@
 // allowed. So instead, just allow dead code in this module.
 #![allow(dead_code)]
 
+use crate::chedaka::{Phrase, TokenPool};
 use crate::errors::{Error, Result};
-use crate::segmenting::{Phrase, TokenPool};
 use core::str::FromStr;
 use modular_bitfield::prelude::*;
 use rustc_hash::FxHashMap;
 use std::path::Path;
-use vidyut_kosha::morph::*;
-use vidyut_kosha::packing::{PackedLinga, PackedVacana, PackedVibhakti};
+use vidyut_kosha::entries::*;
+use vidyut_kosha::packing::{PackedLinga, PackedPurusha, PackedVacana, PackedVibhakti};
 
 /// Models a Markov transition state.
 #[derive(Copy, Clone, Default, Eq, PartialEq, Hash)]
@@ -25,7 +25,7 @@ impl State {
     }
 
     /// Initializes a transition state from the given pada.
-    pub fn from_pada(s: &Pada) -> Self {
+    pub fn from_pada(s: &PadaEntry) -> Self {
         PadaState::from_pada(s).into_state()
     }
 }
@@ -68,9 +68,9 @@ pub struct TinantaState {
     #[skip(getters)]
     unused: B10,
     #[skip(getters)]
-    purusha: Purusha,
+    purusha: PackedPurusha,
     #[skip(getters)]
-    vacana: Vacana,
+    vacana: PackedVacana,
 }
 
 /// Models the transition state for some *pada*.
@@ -89,27 +89,28 @@ impl PadaState {
     }
 
     /// Creates a state label for the given pada.
-    pub fn from_pada(p: &Pada) -> Self {
+    pub fn from_pada(p: &PadaEntry) -> Self {
         let zero = [0_u8; 2];
         let (pos_tag, payload) = match p {
-            Pada::Unknown => (POSTag::Unknown, zero),
-            Pada::Subanta(s) => {
+            PadaEntry::Unknown => (POSTag::Unknown, zero),
+            PadaEntry::Subanta(s) => {
+                let s = s.subanta();
                 let bytes = SubantaState::new()
-                    .with_linga(s.linga.into())
-                    .with_vacana(s.vacana.into())
-                    .with_vibhakti(s.vibhakti.into())
-                    .with_is_purvapada(s.is_purvapada)
+                    .with_linga(s.linga().into())
+                    .with_vacana(s.vacana().into())
+                    .with_vibhakti(s.vibhakti().into())
+                    .with_is_purvapada(false)
                     .into_bytes();
                 (POSTag::Subanta, bytes)
             }
-            Pada::Tinanta(s) => {
+            PadaEntry::Tinanta(s) => {
                 let bytes = TinantaState::new()
-                    .with_purusha(s.purusha)
-                    .with_vacana(s.vacana)
+                    .with_purusha(PackedPurusha::pack(s.purusha()))
+                    .with_vacana(PackedVacana::pack(s.vacana()))
                     .into_bytes();
                 (POSTag::Tinanta, bytes)
             }
-            Pada::Avyaya(_) => (POSTag::Avyaya, zero),
+            PadaEntry::Avyaya(_) => (POSTag::Avyaya, zero),
         };
         PadaState::new()
             .with_pos(pos_tag)
@@ -275,9 +276,7 @@ impl Model {
             let cur_state = State::from_pada(&last.info);
 
             let pada = &last.info;
-            let lemma_log_prob = self
-                .lemmas
-                .log_prob(pada.lemma(), pada.part_of_speech_tag());
+            let lemma_log_prob = self.lemmas.log_prob(pada.lemma(), pada.pos_tag());
             let transition_log_prob = self.transitions.log_prob(&prev_state, &cur_state);
             lemma_log_prob + transition_log_prob
         } else {

@@ -275,7 +275,7 @@ fn try_sup_adesha(p: &mut Prakriya, i_anga: usize, i_sup: usize) -> Option<()> {
 
 fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     let anga = p.get(i_anga)?;
-    let sup = p.get(i_anga + 1)?;
+    let sup = p.get_if(i_anga + 1, |t| !t.is_lupta())?;
     let napum = p.has_tag(PT::Napumsaka);
 
     let is_ugit = anga.has_tag_in(&[T::udit, T::fdit]);
