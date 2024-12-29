@@ -508,6 +508,17 @@ fn sutra_7_2_16() {
 }
 
 #[test]
+fn sutra_7_2_23() {
+    assert_has_krdanta(&[], &d("Guzi~r", Bhvadi), Krt::kta, &["Guzwa", "Guzita"]);
+    assert_has_krdanta(
+        &[],
+        &d("Guzi~r", Curadi),
+        Krt::kta,
+        &["Gozita", "Guzwa", "Guzita"],
+    );
+}
+
+#[test]
 fn sutra_7_2_24() {
     let ard = d("arda~", Bhvadi);
     assert_has_krdanta(&["sam"], &ard, Krt::kta, &["samarRa", "samarRRa"]);

@@ -22,9 +22,10 @@ An online demo is available [here][demo].
 
 - [Overview](#overview)
 - [Usage](#usage)
-- [Contributing](#contributing)
 - [Data](#data)
 - [Design](#design)
+- [Reporting errors](#reporting-errors)
+- [Contributing](#contributing)
 
 [crate]: https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html
 [ambuda]: https://ambuda.org
@@ -163,22 +164,50 @@ Our test suite also contains numerous examples of invoking various parts of
 directory.
 
 
-Contributing
-------------
+Data
+----
 
-`vidyut-prakriya` is an ambitious project, and your contributions can help it
-grow.
+This crate includes a *Dhātupāṭha* sourced from [ashtadhyayi.com][a-com],
+and the author of [ashtadhyayi.com][a-com] has graciously agreed to share this
+file with us under an MIT license.
 
-### Reporting errors
+For details on the lineage of this *Dhātupāṭha*, see our separate [data
+README][data-readme].
 
-The easiest way to help is to [file a GitHub issue][gh-issue] if you notice an
-error. Please let us know what form you expected to see. We would also greatly
-appreciate relevant citations from the grammatical literature so that we can
-better understand and resolve the issue.
+[a-com]: https://ashtadhyayi.com
+[data-readme]: data/README.md
 
+
+Design
+------
+
+See `ARCHITECTURE.md` for details.
+
+
+Reporting errors
+----------------
+
+Reporting errors is one of the most valuable ways to improve `vidyut-prakriya`!
+
+1. First, check that the error is present in recent builds of vidyut-prakriya.
+   This repo contains our most recent code, but the builds on [ashtadhyayi.com][a-com]
+   or our own [Vidyullekha][vidyullekha] are more convenient to use and are also
+   reasonably up to date.
+
+2. If the error is still present, please [file a GitHub issue][gh-issue] and let
+   us know what you expected to see.
+
+3. If possible, please include citations from the grammatical literature so that we
+   can better understand and resolve the issue. The more citations you provide, the
+   faster we can fix the issue.
+
+[a-com]: https://ashtadhyayi.com
+[vidyullekha]: https://ambuda-org.github.io/vidyullekha/
 [gh-issue]: https://github.com/ambuda-org/vidyut-pada-snapshot/issues
 
-### Modifying the code
+
+Contributing
+------------
 
 First, see if you can run our existing code on your machine. We suggest
 that you start by running our integration tests:
@@ -219,23 +248,3 @@ $ make test_all
 `make test_all` should fail on a hash comparison error. Copy the new hash code,
 replace the existing hash code in the `test_all` in our `Makefile` with that
 copied value. Then, run `make test_all` again and confirm that all tests pass.
-
-
-Data
-----
-
-This crate includes a *Dhātupāṭha* sourced from [ashtadhyayi.com][a-com],
-and the author of [ashtadhyayi.com][a-com] has graciously agreed to share this
-file with us under an MIT license.
-
-For details on the lineage of this *Dhātupāṭha*, see our separate [data
-README][data-readme].
-
-[a-com]: https://ashtadhyayi.com
-[data-readme]: data/README.md
-
-
-Design
-------
-
-See `ARCHITECTURE.md` for details.

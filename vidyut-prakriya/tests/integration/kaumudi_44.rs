@@ -587,6 +587,7 @@ fn sk_2459() {
 #[test]
 fn skip_sk_2460_to_sk_2461() {}
 
+// TODO: avyan
 #[ignore]
 #[test]
 fn sk_2462() {
@@ -595,7 +596,7 @@ fn sk_2462() {
     assert_has_ta(&["aDi"], &in_, Lrn, &["aDyagIzyata", "aDyEzyata"]);
 
     let ik = d("i\\k", Adadi);
-    assert_has_jhi(&["aDi"], &ik, Lat, &["aDiyanti"]);
+    assert_has_jhi(&["aDi"], &ik, Lat, &["aDiyanti", "aDIyanti"]);
     assert_has_tip(&["aDi"], &ik, Lun, &["aDyagAt"]);
 
     let vi = d("vI\\", Adadi);
@@ -604,15 +605,17 @@ fn sk_2462() {
     assert_has_jhi(&[], &vi, Lat, &["viyanti"]);
     assert_has_sip(&[], &vi, Lat, &["vezi"]);
     assert_has_mip(&[], &vi, Lat, &["vemi"]);
-    assert_has_sip(&[], &vi, Lot, &["vIhi"]);
+    assert_has_sip(&[], &vi, Lot, &["vIhi", "vItAt"]);
     assert_has_tip(&[], &vi, Lan, &["avet"]);
     assert_has_tas(&[], &vi, Lan, &["avItAm"]);
     assert_has_jhi(&[], &vi, Lan, &["aviyan", "avyan"]);
-    assert_has_tip(&[], &vi, Lat, &["eti"]);
-    assert_has_tas(&[], &vi, Lat, &["ItaH"]);
-    assert_has_jhi(&[], &vi, Lat, &["iyanti"]);
-    assert_has_tip(&[], &vi, AshirLin, &["IyAt"]);
-    assert_has_tip(&[], &vi, Lun, &["EzIt"]);
+
+    let ii = d("I\\", Adadi);
+    assert_has_tip(&[], &ii, Lat, &["eti"]);
+    assert_has_tas(&[], &ii, Lat, &["ItaH"]);
+    assert_has_jhi(&[], &ii, Lat, &["iyanti"]);
+    assert_has_tip(&[], &ii, AshirLin, &["IyAt"]);
+    assert_has_tip(&[], &ii, Lun, &["EzIt"]);
 
     let yaa = d("yA\\", Adadi);
     assert_has_tip(&["pra", "ni"], &yaa, Lat, &["praRiyAti"]);

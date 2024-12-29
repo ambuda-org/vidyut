@@ -93,12 +93,16 @@ impl From<Taddhitanta> for SafePratipadika {
 #[derive(Debug)]
 pub struct Tester {
     vyakarana: Vyakarana,
+    ignore_va_padantasya: bool,
 }
 
 impl Tester {
     /// Creates a tester with our default settings.
     pub fn new(vyakarana: Vyakarana) -> Self {
-        Self { vyakarana }
+        Self {
+            vyakarana,
+            ignore_va_padantasya: true,
+        }
     }
 
     /// Creates a tester that enables chAndasa rules.
@@ -113,6 +117,11 @@ impl Tester {
 
     pub fn with_nlp_mode() -> Self {
         Self::new(Vyakarana::builder().nlp_mode(true).build())
+    }
+
+    pub fn with_ignore_va_padantasya(mut self: Self, val: bool) -> Self {
+        self.ignore_va_padantasya = val;
+        self
     }
 
     /// Derives tinantas from the given conditions.
@@ -163,7 +172,9 @@ impl Tester {
     /// Asserts that the given input conditions produce the tinantas `expected`.
     pub fn assert_has_tinantas(&self, args: &Tinanta, expected: &[&str]) {
         let mut actual = self.derive_tinantas(args);
-        actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p) && !has_bad_final(p));
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p) && !has_bad_final(p));
+        }
         sort_and_dedup(&mut actual);
         assert_has_results(actual, expected);
     }
@@ -184,7 +195,9 @@ impl Tester {
             .build()
             .unwrap();
         let mut actual = self.derive_subantas(&args);
-        actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p) && !has_bad_final(p));
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p) && !has_bad_final(p));
+        }
         sort_and_dedup(&mut actual);
         assert_has_results(actual, expected);
     }
@@ -202,7 +215,9 @@ impl Tester {
             .build()
             .unwrap();
         let mut actual = self.derive_krdantas(&spec);
-        actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
+        }
         sort_and_dedup(&mut actual);
         assert_has_results(actual, expected);
     }
@@ -217,7 +232,9 @@ impl Tester {
     ) {
         let args = upapada_krdanta(upapada, prefixes, dhatu, krt);
         let mut actual = self.derive_krdantas(&args);
-        actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
+        }
         assert_has_results(actual, expected);
     }
 
@@ -229,7 +246,9 @@ impl Tester {
     ) {
         let pratipadika = prati.into();
         let mut actual = self.derive_artha_taddhitantas(pratipadika.clone(), t, None);
-        actual.retain(|p| !uses_va_padantasya(p));
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p));
+        }
         assert_has_results(actual, expected);
     }
 
@@ -248,7 +267,10 @@ impl Tester {
                 false
             }
         });
-        actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
+
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
+        }
         sort_and_dedup(&mut actual);
         assert_has_results(actual, expected);
     }
@@ -700,6 +722,7 @@ pub fn assert_has_artha_krdanta(
             false
         }
     });
+
     actual.retain(|p| !uses_va_padantasya(p) && !is_noisy_pada(p));
     assert_has_results(actual, expected);
 }
@@ -798,7 +821,9 @@ pub fn assert_has_artha_taddhita(
 impl Tester {
     pub fn assert_has_samasas(&self, args: &Samasa, expected: &[&str]) {
         let mut actual = self.vyakarana.derive_samasas(&args);
-        actual.retain(|p| !uses_va_padantasya(p));
+        if self.ignore_va_padantasya {
+            actual.retain(|p| !uses_va_padantasya(p));
+        }
         actual.sort_by_key(|p| p.text());
         actual.dedup_by_key(|p| p.text());
         assert_has_results(actual, expected);
@@ -1059,11 +1084,11 @@ pub fn has_bad_final(p: &Prakriya) -> bool {
     ['d', 'q', 'g', 'b'].iter().any(|c| text.ends_with(*c))
 }
 
-pub fn is_noisy_pada(p: &Prakriya) -> bool {
+fn is_noisy_pada(p: &Prakriya) -> bool {
     p.text().contains("cS")
 }
 
-pub fn uses_va_padantasya(p: &Prakriya) -> bool {
+fn uses_va_padantasya(p: &Prakriya) -> bool {
     p.rule_choices()
         .iter()
         .any(|r| r.rule() == Rule::Ashtadhyayi("8.4.59") && r.decision() == Decision::Accept)

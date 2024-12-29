@@ -189,6 +189,8 @@ fn sutra_7_3_39() {
         Lat,
         &["vilInayati", "vilAyayati", "vilAlayati", "vilApayati"],
     );
+
+    // snehavipAtane?
     assert_has_tip(
         &["vi"],
         &nic_d("lA\\", Adadi),

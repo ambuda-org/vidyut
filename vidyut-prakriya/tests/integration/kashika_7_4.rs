@@ -990,18 +990,21 @@ fn sutra_7_4_85() {
     assert_has_lat(&[], &yan(&ram), &["raMramyate"]);
     assert_has_lat(&[], &yan_luk(&ram), &["raMramIti", "raMranti"]);
 
-    // ataH
+    // ataH?
     let tim = d("tima~", Bhvadi);
     assert_has_lat(&[], &yan(&tim), &["tetimyate"]);
 
-    // TODO: taparakaraNa
-    // let bham = d("BAma", Curadi);
-    // assert_has_lat(&[], &yan(&bham), &["bABamyate"]);
+    // taparakaraNam?
+    let bham = d("BAma~\\", Bhvadi);
+    assert_has_lat(&[], &yan(&bham), &["bABAmyate"]);
 
-    // anunAsikAntasya
+    // anunAsikAntasya?
     let pac = d("qupa\\ca~^z", Bhvadi);
     assert_has_lat(&[], &yan(&pac), &["pApacyate"]);
 }
+
+#[test]
+fn skip_sutra_7_4_85_v1() {}
 
 #[test]
 fn sutra_7_4_86() {

@@ -178,7 +178,7 @@ fn maybe_replace_cli_with_an(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get(i)?;
     let tin = p.get(i + 2)?;
     let to_an = replace_with(i + 1, aN);
-    if dhatu.has_u("asu~") || dhatu.has_text_in(&["vac", "KyA"]) {
+    if dhatu.has_u("asu~") || (dhatu.has_text_in(&["vac", "KyA"]) && dhatu.has_gana(Adadi)) {
         p.run("3.1.52", to_an);
     } else if dhatu.has_text_in(&["lip", "sic", "hve"]) {
         let mut skip = false;

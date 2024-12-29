@@ -460,7 +460,6 @@ fn sk_2515() {
     assert_has_vas(&[], &radh, Lit, &["raranDiva", "reDva"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2516() {
     let radh = d("ra\\Da~", Divadi);

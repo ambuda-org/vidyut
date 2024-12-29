@@ -61,3 +61,5 @@ mod kaumudi_60;
 mod kaumudi_62;
 mod kaumudi_65;
 mod kaumudi_67;
+
+mod dhaturatnakara;

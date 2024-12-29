@@ -17,7 +17,7 @@
 //! ```
 
 use clap::Parser;
-use vidyut_lipi::{transliterate, Mapping, Scheme};
+use vidyut_lipi::{Lipika, Scheme};
 use vidyut_prakriya::args::*;
 use vidyut_prakriya::dhatupatha::Entry as DhatuEntry;
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
@@ -44,9 +44,8 @@ struct BabylonEntry {
     html_row: String,
 }
 
-fn to_devanagari(text: &str) -> String {
-    let mapping = Mapping::new(Scheme::Slp1, Scheme::Devanagari);
-    transliterate(&text, &mapping)
+fn to_devanagari(lipika: &mut Lipika, text: &str) -> String {
+    lipika.transliterate(&text, Scheme::Slp1, Scheme::Devanagari)
 }
 
 /// Removes svarita and anudAtta from the dhatu (for easier searching)
@@ -58,6 +57,7 @@ fn replace_svaras(text: &str) -> String {
 /// not be created.
 fn create_entry(
     v: &Vyakarana,
+    lipika: &mut Lipika,
     dhatu_entry: &DhatuEntry,
     sanadi: Option<Sanadi>,
     prayoga: Prayoga,
@@ -80,7 +80,7 @@ fn create_entry(
     for p in prakriyas {
         let human_dhatu = p.text();
         if !search_row.is_empty() {
-            search_row += "|";
+            search_row += "_";
         }
         search_row += &human_dhatu;
 
@@ -99,7 +99,7 @@ fn create_entry(
     for p in prakriyas {
         let human_dhatu = p.text();
         if !search_row.is_empty() {
-            search_row += "|";
+            search_row += "_";
         }
         search_row += &human_dhatu;
 
@@ -134,8 +134,8 @@ fn create_entry(
         _ => return None,
     };
     html_row += ")";
-    search_row = to_devanagari(&search_row);
-    html_row = to_devanagari(&html_row);
+    search_row = to_devanagari(lipika, &search_row).replace("_", "|");
+    html_row = to_devanagari(lipika, &html_row);
 
     html_row += "<br>";
 
@@ -167,7 +167,7 @@ fn create_entry(
 
             for pada in &padas {
                 search_row += "|";
-                search_row += &to_devanagari(&pada);
+                search_row += &to_devanagari(lipika, &pada);
             }
 
             html_row += "<br>";
@@ -175,9 +175,9 @@ fn create_entry(
             for pada in &padas {
                 if added_one {
                     html_row += " / ";
-                    html_row += &to_devanagari(&pada);
+                    html_row += &to_devanagari(lipika, &pada);
                 } else {
-                    html_row += &to_devanagari(&pada);
+                    html_row += &to_devanagari(lipika, &pada);
                     added_one = true;
                 }
             }
@@ -201,6 +201,7 @@ fn create_entry(
 fn run(dp: Dhatupatha, args: Args) {
     // Disable `log_steps` so that we can generate words more quickly.
     let v = Vyakarana::builder().log_steps(false).build();
+    let mut lipika = Lipika::new();
 
     let prayoga = match args.prayoga {
         Some(p) => p,
@@ -219,7 +220,7 @@ fn run(dp: Dhatupatha, args: Args) {
     }
 
     let mut description = String::new();
-    description += &to_devanagari(&args.desc);
+    description += &to_devanagari(&mut lipika, &args.desc);
     description += " (https://ambuda-org.github.io/vidyullekha/)";
     println!("#description={description}\n");
 
@@ -227,7 +228,15 @@ fn run(dp: Dhatupatha, args: Args) {
     for dhatu_entry in dp {
         for lakara in Lakara::iter() {
             for pada in &[DhatuPada::Parasmai, DhatuPada::Atmane] {
-                let entry = create_entry(&v, &dhatu_entry, args.sanadi, prayoga, *pada, lakara);
+                let entry = create_entry(
+                    &v,
+                    &mut lipika,
+                    &dhatu_entry,
+                    args.sanadi,
+                    prayoga,
+                    *pada,
+                    lakara,
+                );
                 if let Some(e) = entry {
                     print!("{}\n{}\n\n", e.search_row, e.html_row);
                 }

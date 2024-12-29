@@ -2,6 +2,7 @@ extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
+use vidyut_prakriya::Vyakarana;
 
 #[test]
 fn skip_sk_2629() {}
@@ -95,12 +96,13 @@ fn skip_sk_2636() {}
 
 #[test]
 fn sk_2637() {
-    // TODO: sk also has caMcUryate, paMPUlyate -- why?
+    let t = Tester::new(Vyakarana::new()).with_ignore_va_padantasya(false);
+
     let car = d("cara~", Bhvadi);
-    assert_has_ta(&[], &yan(&car), Lat, &["caYcUryate"]);
+    t.assert_has_ta(&[], &yan(&car), Lat, &["caYcUryate", "caMcUryate"]);
 
     let phal = d("YiPalA~", Bhvadi);
-    assert_has_ta(&[], &yan(&phal), Lat, &["pamPulyate"]);
+    t.assert_has_ta(&[], &yan(&phal), Lat, &["pamPulyate", "paMPulyate"]);
 }
 
 #[test]

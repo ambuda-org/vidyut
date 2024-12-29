@@ -459,6 +459,7 @@ fn sk_2571() {
     assert_has_tip(&[], &ghant, Lat, &["GaRwayati", "GaRwati"]);
 }
 
+// TODO: this test needs more work, but it covers enough important cases that it's not disabled.
 #[test]
 fn sk_2572() {
     let lok = d("lokf~", Curadi);
@@ -483,9 +484,195 @@ fn sk_2572() {
     assert_has_tip(&[], &svaad, Lun, &["asisvadat"]);
 
     // start of ADfzIya
+
     let yuj = d_adhrshiya("yu\\ja~", Curadi);
     assert_has_tip(&[], &yuj, Lat, &["yojayati", "yojati"]);
     assert_has_tip(&[], &yuj, Lun, &["ayUyujat", "ayOkzIt"]);
+
+    let prc = d_adhrshiya("pfca~", Curadi);
+    assert_has_tip(&[], &prc, Lat, &["parcayati", "parcati"]);
+    assert_has_tip(&[], &prc, Lut, &["parcayitA", "parcitA"]);
+    // first two are not in SK.
+    assert_has_tip(&[], &prc, Lun, &["apIpfcat", "apaparcat", "aparcIt"]);
+
+    let sah = d_adhrshiya("zaha~", Curadi);
+    assert_has_tip(&[], &sah, Lat, &["sAhayati", "sahati"]);
+
+    let li = d_adhrshiya("lI\\", Curadi);
+    // lAyayati and lAtA are allowed per Neelesh ji.
+    assert_has_tip(&[], &li, Lat, &["lAyayati", "lApayati", "layati"]);
+    assert_has_tip(&[], &li, Lut, &["lAyayitA", "lAtA", "lApayitA", "letA"]);
+
+    let varj = d_adhrshiya("vfjI~", Curadi);
+    assert_has_tip(&[], &varj, Lat, &["varjayati", "varjati"]);
+
+    let vr = d_adhrshiya("vfY", Curadi);
+    assert_has_tip(&[], &vr, Lat, &["vArayati", "varati"]);
+    assert_has_ta(&[], &vr, Lat, &["vArayate", "varate"]);
+    assert_has_tip(&[], &vr, Lut, &["vArayitA", "varitA", "varItA"]);
+
+    let jr = d_adhrshiya("jF", Curadi);
+    assert_has_tip(&[], &jr, Lat, &["jArayati", "jarati"]);
+    assert_has_tip(&[], &jr, Lut, &["jArayitA", "jaritA", "jarItA"]);
+
+    let jri = d_adhrshiya("jri\\", Curadi);
+    assert_has_tip(&[], &jri, Lat, &["jrAyayati", "jrayati"]);
+    assert_has_tip(&[], &jri, Lut, &["jrAyayitA", "jretA"]);
+
+    let ric = d_adhrshiya("ri\\ca~", Curadi);
+    assert_has_tip(&[], &ric, Lat, &["recayati", "recati"]);
+    assert_has_tip(&[], &ric, Lut, &["recayitA", "rektA"]);
+
+    let shish = d_adhrshiya("Si\\za~", Curadi);
+    assert_has_tip(&[], &shish, Lat, &["Sezayati", "Sezati"]);
+    assert_has_tip(&[], &shish, Lut, &["SezayitA", "SezwA"]);
+    assert_has_tip(&[], &shish, Lun, &["aSISizat", "aSikzat"]);
+
+    let tap = d_adhrshiya("ta\\pa~", Curadi);
+    assert_has_tip(&[], &tap, Lat, &["tApayati", "tapati"]);
+    assert_has_tip(&[], &tap, Lut, &["tApayitA", "taptA"]);
+
+    let trp = d_adhrshiya("tfpa~", Curadi);
+    assert_has_tip(&[], &trp, Lat, &["tarpayati", "tarpati"]);
+    assert_has_tip(&[], &trp, Lut, &["tarpayitA", "tarpitA"]);
+
+    let chrd = d_adhrshiya("CfdI~", Curadi);
+    assert_has_tip(&[], &chrd, Lat, &["Cardayati", "Cardati"]);
+    assert_has_tip(&[], &chrd, Lut, &["CardayitA", "CarditA"]);
+    assert_has_tip(&[], &chrd, Lrt, &["Cardayizyati", "Cardizyati"]);
+
+    let carp = d_adhrshiya("cfpa~", Curadi);
+    assert_has_tip(&[], &carp, Lat, &["carpayati", "carpati"]);
+
+    let charp = d_adhrshiya("Cfpa~", Curadi);
+    assert_has_tip(&[], &charp, Lat, &["Carpayati", "Carpati"]);
+
+    let drbh = d_adhrshiya("dfBI~", Curadi);
+    assert_has_tip(&[], &drbh, Lat, &["darBayati", "darBati"]);
+    assert_has_tip(&[], &drbh, Lut, &["darBayitA", "darBitA"]);
+
+    let mi = d_adhrshiya("mI\\", Curadi);
+    assert_has_tip(&[], &mi, Lat, &["mAyayati", "mayati"]);
+    assert_has_tip(&[], &mi, Lut, &["mAyayitA", "metA"]);
+
+    let granth = d_adhrshiya("granTa~", Curadi);
+    assert_has_tip(&[], &granth, Lat, &["granTayati", "granTati"]);
+
+    let ard = d_adhrshiya("arda~^", Curadi);
+    assert_has_tip(&[], &ard, Lat, &["ardayati", "ardati"]);
+    assert_has_ta(&[], &ard, Lat, &["ardayate", "ardate"]);
+
+    let hins = d_adhrshiya("hisi~", Curadi);
+    assert_has_tip(&[], &hins, Lat, &["hiMsayati", "hiMsati"]);
+    // TODO: comment on Snam ?
+
+    let x = d_adhrshiya("za\\da~", Curadi);
+    assert_has_tip(&["AN"], &x, Lat, &["AsAdayati", "AsIdati"]);
+    assert_has_tip(&["AN"], &x, Lut, &["AsAdayitA", "AsattA"]);
+    assert_has_tip(&["AN"], &x, Lun, &["AsIsadat", "AsAtsIt"]);
+
+    let shund = d_adhrshiya("SunDa~", Curadi);
+    assert_has_tip(&[], &shund, Lut, &["SunDayitA", "SunDitA"]);
+    assert_has_tip(&[], &shund, Lun, &["aSuSunDat", "aSunDIt"]);
+    assert_has_tas(&[], &shund, Lun, &["aSuSunDatAm", "aSunDizwAm"]);
+
+    let jush = d_adhrshiya("juza~", Curadi);
+    assert_has_tip(&[], &jush, Lat, &["jozayati", "jozati"]);
+
+    let dhu = d_adhrshiya("DUY", Curadi);
+    assert_has_tip(&[], &dhu, Lat, &["DAvayati", "DUnayati", "Davati"]);
+    assert_has_ta(&[], &dhu, Lat, &["DAvayate", "DUnayate", "Davate"]);
+
+    let pri = d_adhrshiya("prIY", Curadi);
+    assert_has_tip(&[], &pri, Lat, &["prIRayati", "prAyayati", "prayati"]);
+    assert_has_ta(&[], &pri, Lat, &["prIRayate", "prAyayate", "prayate"]);
+
+    let aap = d_adhrshiya("A\\px~", Curadi);
+    assert_has_tip(&[], &aap, Lat, &["Apayati", "Apati"]);
+    assert_has_tip(&[], &aap, Lun, &["Apipat", "Apat"]);
+    assert_has_tip(&[], &aap, Lut, &["ApayitA", "AptA"]);
+
+    let aap = d_adhrshiya("A\\px~^", Curadi);
+    assert_has_ta(&[], &aap, Lat, &["Apayate", "Apate"]);
+
+    let tan = d_adhrshiya("tanu~", Curadi);
+    assert_has_tip(&[], &tan, Lat, &["tAnayati", "tanati"]);
+    assert_has_tip(&["vi"], &tan, Lat, &["vitAnayati", "vitanati"]);
+
+    let can = d_adhrshiya("cana~", Curadi);
+    assert_has_tip(&[], &can, Lat, &["cAnayati", "canati"]);
+
+    let vad = d_adhrshiya("vada~^", Curadi);
+    assert_has_tip(&[], &vad, Lat, &["vAdayati", "vadati"]);
+    assert_has_ta(&[], &vad, Lat, &["vAdayate", "vadate"]);
+    assert_has_tas(
+        &[],
+        &vad,
+        Lit,
+        &[
+            "vAdayAYcakratuH",
+            "vAdayAmAsatuH",
+            "vAdayAmbaBUvatuH",
+            "vavadatuH",
+        ],
+    );
+    assert_has_sip(
+        &[],
+        &vad,
+        Lit,
+        &[
+            "vAdayAYcakarTa",
+            "vAdayAmAsiTa",
+            "vAdayAmbaBUviTa",
+            "vavadiTa",
+        ],
+    );
+    assert_has_iw(
+        &[],
+        &vad,
+        Lit,
+        &["vAdayAYcakre", "vAdayAmAsa", "vAdayAmbaBUva", "vavade"],
+    );
+    assert_has_tip(&[], &vad, AshirLin, &["vadyAt", "vAdyAt"]);
+
+    let vac = d_adhrshiya("va\\ca~", Curadi);
+    assert_has_tip(&[], &vac, Lat, &["vAcayati", "vacati"]);
+    assert_has_tip(&[], &vac, Lut, &["vAcayitA", "vaktA"]);
+    assert_has_tip(&[], &vac, Lun, &["avIvacat", "avAkzIt"]);
+
+    let man = d_adhrshiya("mAna~", Curadi);
+    assert_has_tip(&[], &man, Lat, &["mAnayati", "mAnati"]);
+    assert_has_tip(&[], &man, Lut, &["mAnayitA", "mAnitA"]);
+
+    // End of AkusmIya
+
+    // TODO: encode atmanepada here.
+    // let bhu = d_adhrshiya("BU", Curadi);
+    // assert_has_ta(&[], &bhu, Lat, &["BAvayate", "Bavate"]);
+    // assert_has_tip(&[], &bhu, Lat, &["BAvayati", "Bavati"]);
+
+    let mrj = d_adhrshiya("mfjU~", Curadi);
+    assert_has_tip(&[], &mrj, Lat, &["mArjayati", "mArjati"]);
+    assert_has_tip(&[], &mrj, Lut, &["mArjayitA", "mArjitA", "mArzwA"]);
+
+    let mrsh = d_adhrshiya("mfza~^", Curadi);
+    assert_has_tip(&[], &mrsh, Lat, &["marzayati", "marzati"]);
+    assert_has_ta(&[], &mrsh, Lat, &["marzayate", "marzate"]);
+
+    let dhrsh = d_adhrshiya("Dfza~", Curadi);
+    assert_has_tip(&[], &dhrsh, Lat, &["Darzayati", "Darzati"]);
+
+    // End of ADfzIya
+
+    let katha = d("kaTa", Curadi);
+    assert_has_tip(&[], &katha, Lat, &["kaTayati"]);
+    assert_has_tip(&[], &katha, Lun, &["acakaTat"]);
+
+    let vara = d("vara", Curadi);
+    assert_has_tip(&[], &vara, Lat, &["varayati"]);
+
+    let gana = d("gaRa", Curadi);
+    assert_has_tip(&[], &gana, Lat, &["gaRayati"]);
 }
 
 #[test]

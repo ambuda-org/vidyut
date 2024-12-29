@@ -90,6 +90,9 @@ pub fn create_dhatu(aupadeshika: impl AsRef<str>, gana: Gana, number: u16) -> Re
         "SAsu~\\" => {
             builder = builder.prefixes(&["AN"]);
         }
+        "za\\da~" if gana == Gana::Curadi => {
+            builder = builder.prefixes(&["AN"]);
+        }
         _ => (),
     }
 
@@ -253,5 +256,14 @@ mod tests {
 
         let i_k = create_dhatu("i\\k", Gana::Adadi, 42).unwrap();
         assert_eq!(i_k.prefixes(), &vec!["aDi"]);
+    }
+
+    #[test]
+    fn create_dhatu_with_asad() {
+        let dhatu = create_dhatu("za\\da~", Gana::Curadi, 1).unwrap();
+        assert_eq!(dhatu.aupadeshika().unwrap(), "za\\da~");
+        assert_eq!(dhatu.gana().expect("ok"), Gana::Curadi);
+        assert_eq!(dhatu.prefixes(), &vec!["AN"]);
+        assert!(dhatu.sanadi().is_empty());
     }
 }

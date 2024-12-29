@@ -464,6 +464,12 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         // jiGfkzati, juGukzati, lulUzati, ...
         ip.try_block("7.2.12");
     } else if n.is_nistha() {
+        if anga.has_u("Guzi~r") {
+            // By default, set. So, 7.2.23 allows anit optionally.
+            ip.optional_try_block("7.2.23");
+        }
+
+        let anga = ip.anga();
         if anga.has_text("Svi") || anga.has_tag(T::Idit) {
             ip.try_block("7.2.14");
         } else if is_ever_vet(anga) {
@@ -498,7 +504,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                 ip.optional_try_block("7.2.25");
             }
         }
-        // skipped: 7.2.18 - 23.
+        // skipped: 7.2.18 - 22.
     }
 
     let anga = ip.anga();

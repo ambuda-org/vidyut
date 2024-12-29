@@ -540,11 +540,13 @@ fn sutra_7_1_62() {
     assert_has_krdanta(&[], &radh, Krt::tavya, &["raDitavya", "radDavya"]);
     assert_has_krdanta(&[], &radh, Krt::lyuw, &["ranDana"]);
     assert_has_krdanta(&[], &radh, Krt::Rvul, &["ranDaka"]);
+
     // reDva, reDma by 7.2.45.
     assert_has_vas(&[], &radh, Lit, &["raranDiva", "reDva"]);
     assert_has_mas(&[], &radh, Lit, &["raranDima", "reDma"]);
 
     // TODO: redhivas (we get *redhvas instead)
+    assert_has_krdanta(&[], &radh, Krt::kvasu, &["reDivas"]);
 }
 
 #[test]

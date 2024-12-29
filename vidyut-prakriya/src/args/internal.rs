@@ -246,6 +246,7 @@ internal_term!(Aupadeshika, {
     pA => "pA\\",
     sf => "sf\\",
     zWA => "zWA\\",
+    zada => "za\\da~",
     zadx => "za\\dx~",
     hveY => "hve\\Y",
     quvapa => "quva\\pa~^",

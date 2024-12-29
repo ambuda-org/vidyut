@@ -2919,7 +2919,6 @@ fn sk_2341() {
     let ras = d("rasa~", Bhvadi);
     assert_has_tip(&[], &ras, Lit, &["rarAsa"]);
 
-    // TODO: why anit?
     let ghas = d("Ga\\sx~", Bhvadi);
     assert_has_tip(&[], &ghas, Lat, &["Gasati"]);
     assert_has_tip(&[], &ghas, Lut, &["GastA"]);

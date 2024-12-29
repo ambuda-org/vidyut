@@ -478,6 +478,27 @@ impl Prakriya {
         None
     }
 
+    /// Finds the index of the pratyaya that follows the anga at the given `index`.
+    pub(crate) fn find_next_anga_pratyaya(&self, index: usize) -> Option<TermView> {
+        for i in (index + 1)..self.terms.len() {
+            let t = &self.terms[i];
+            if t.is_pratyaya() {
+                if !t.is_lupta() {
+                    let i_start = if self.has(i - 1, |t| t.is_agama() && t.has_tag(Tag::wit)) {
+                        i - 1
+                    } else {
+                        i
+                    };
+
+                    return TermView::new(self.terms(), i_start, i);
+                }
+            } else if !t.is_agama() {
+                break;
+            }
+        }
+        None
+    }
+
     pub(crate) fn prev_not_empty(&self, index: usize) -> Option<usize> {
         self.find_prev_where(index, |t| !t.is_empty())
     }

@@ -459,9 +459,9 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
             // TODO: not sure where to put this.
             p.set(i_dhatu, |t| t.set_text("daS"));
         }
-        op::insert_before("7.4.86", p, i_dhatu, A::nuk);
+        op::insert_before("7.4.86", p, i_dhatu, A::Muk);
     } else if dhatu.has_u_in(&["cara~", "Pala~", "YiPalA~"]) {
-        op::insert_before("7.4.87", p, i_dhatu, A::nuk);
+        op::insert_before("7.4.87", p, i_dhatu, A::Muk);
 
         // Use `i_dhatu + 1` because 7.4.87 above shifted the index.
         let i_dhatu = i_dhatu + 1;
@@ -501,6 +501,10 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
         }
     } else if abhyasa.has_antya('a') {
         p.run_at("7.4.83", i_abhyasa, op::antya("A"));
+    }
+
+    if p.has(i_abhyasa + 1, |t| t.is(A::Muk)) {
+        p.run_at(Varttika("7.4.85.1"), i_abhyasa + 1, |t| t.add_tag(T::Pada));
     }
 
     Some(())
