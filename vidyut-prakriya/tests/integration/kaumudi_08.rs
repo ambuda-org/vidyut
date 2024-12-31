@@ -495,11 +495,32 @@ fn sk_270() {
     assert_has_sup_1s("atilakzmI", Pum, &["atilakzmIH"]);
 
     let kumari = nyap("kumArI");
+    let kumariya = Dhatu::nama(kumari, Some(Sanadi::kyac));
+    let kumari = krdanta(&[], &kumariya, Krt::kvip);
     assert_has_sup_1s(&kumari, Pum, &["kumArI"]);
 }
 
 #[test]
 fn skip_sk_271() {}
+
+#[ignore]
+#[test]
+fn sk_272() {
+    let kumari = nyap("kumArI");
+    let kumariya = Dhatu::nama(kumari, Some(Sanadi::kyac));
+    let kumari = krdanta(&[], &kumariya, Krt::kvip);
+
+    assert_has_sup_1d(&kumari, Pum, &["kumAryO"]);
+    assert_has_sup_1p(&kumari, Pum, &["kumAryaH"]);
+    assert_has_sup_ss(&kumari, Pum, &["kumAri"]);
+    assert_has_sup_2s(&kumari, Pum, &["kumAryam"]);
+    assert_has_sup_2p(&kumari, Pum, &["kumAryaH"]);
+    assert_has_sup_4s(&kumari, Pum, &["kumAryE"]);
+    assert_has_sup_5s(&kumari, Pum, &["kumAryAH"]);
+    assert_has_sup_6s(&kumari, Pum, &["kumAryAH"]);
+    assert_has_sup_6p(&kumari, Pum, &["kumArIRAm"]);
+    assert_has_sup_7s(&kumari, Pum, &["kumAryAm"]);
+}
 
 #[ignore]
 #[test]

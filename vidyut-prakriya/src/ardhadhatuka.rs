@@ -181,7 +181,11 @@ fn try_aa_adesha(p: &mut Prakriya) -> Option<()> {
         && will_cause_guna(&n)
     {
         p.run_at("6.1.50", i, op::antya("A"));
-    } else if dhatu.has_text("lI") && ashiti_lyapi && will_cause_guna(&n) {
+    } else if dhatu.has_text("lI")
+        && ashiti_lyapi
+        && will_cause_guna(&n)
+        && !dhatu.has_gana(Gana::Curadi)
+    {
         // Accept both lI and lIN:
         // līyateriti yakā nirdeśo na tu śyanā. līlīṅorātvaṃ vā syādejviṣaye
         // lyapi ca. (SK)

@@ -134,7 +134,7 @@ fn try_abhyasa_lopa_and_dhatu_change_before_san(p: &mut Prakriya) -> Option<()> 
 /// `i` is the index of an abhyasa.
 fn run_for_sani_or_cani_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     const SMR_DR: &[Aupadeshika] = &[
-        Au::smf_u,
+        Au::smf,
         Au::dF,
         Au::YitvarA,
         Au::praTa_u,

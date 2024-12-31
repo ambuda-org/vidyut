@@ -68,6 +68,12 @@ fn sk_2659() {
 }
 
 #[test]
+fn sk_2660() {
+    let samidhya = &kyac(p("samiD"));
+    assert_has_tip(&[], &samidhya, Lut, &["samiDitA", "samiDyitA"]);
+}
+
+#[test]
 fn sk_2663() {
     assert_has_tip(&[], &kamyac(p("putra")), Lat, &["putrakAmyati"]);
     assert_has_tip(&[], &kamyac(p("yaSas")), Lat, &["yaSaskAmyati"]);
@@ -82,6 +88,22 @@ fn sk_2664() {
     assert_has_tip(&[], &kyac(p("vizRu")), Lat, &["vizRUyati"]);
     assert_has_tip(&[], &kyac(p("prAsAda")), Lat, &["prAsAdIyati"]);
     assert_has_tip(&[], &kyac(p("kuwI")), Lat, &["kuwIyati"]);
+}
+
+#[ignore]
+#[test]
+fn sk_2665() {
+    assert_has_ta(&[], &kyan(p("kfzRa")), Lat, &["kfzRAyate"]);
+    assert_has_ta(&[], &kyan(p("ojas")), Lat, &["ojAyate"]);
+    assert_has_ta(&[], &kyan(p("apsaras")), Lat, &["apsarAyate"]);
+    assert_has_ta(&[], &kyan(p("yaSas")), Lat, &["yaSAyate", "yaSasyate"]);
+    assert_has_ta(&[], &kyan(p("vidvas")), Lat, &["vidvAyate", "vidvasyate"]);
+    assert_has_ta(&[], &kyan(p("tvad")), Lat, &["tvadyate"]);
+    assert_has_ta(&[], &kyan(p("mad")), Lat, &["madyate"]);
+    assert_has_ta(&[], &kyan(p("yuzmad")), Lat, &["yuzmadyate"]);
+    assert_has_ta(&[], &kyan(p("asmad")), Lat, &["asmadyate"]);
+
+    // TODO: many, many more
 }
 
 #[test]
@@ -105,4 +127,30 @@ fn sk_2672() {
     assert_has_ta(&[], &nama(p("bAzpa")), Lat, &["bAzpAyate"]);
     assert_has_ta(&[], &nama(p("uzma")), Lat, &["uzmAyate"]);
     assert_has_ta(&[], &nama(p("Pena")), Lat, &["PenAyate"]);
+}
+
+#[test]
+fn sk_2673() {
+    assert_has_ta(&[], &nama(p("Sabda")), Lat, &["SabdAyate"]);
+    assert_has_ta(&[], &nama(p("sudina")), Lat, &["sudinAyate"]);
+}
+
+#[test]
+fn skip_sk_2674() {}
+
+#[test]
+fn sk_2675() {
+    assert_has_tip(&[], &nama(p("namas")), Lat, &["namasyati"]);
+    assert_has_tip(&[], &nama(p("varivas")), Lat, &["varivasyati"]);
+    assert_has_ta(&[], &nama(p("citra")), Lat, &["citrIyate"]);
+}
+
+#[test]
+fn sk_2676() {
+    let nama = |prati| Dhatu::nama(p(prati), None);
+    assert_has_ta(&["ud"], &nama("pucCa"), Lat, &["utpucCayate"]);
+    assert_has_ta(&["vi"], &nama("pucCa"), Lat, &["vipucCayate"]);
+    assert_has_ta(&["pari"], &nama("pucCa"), Lat, &["paripucCayate"]);
+    assert_has_ta(&["sam"], &nama("BARqa"), Lat, &["samBARqayate"]);
+    assert_has_ta(&["sam"], &nama("cIvara"), Lat, &["saYcIvarayate"]);
 }

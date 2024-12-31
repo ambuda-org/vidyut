@@ -227,12 +227,9 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
         if !HAL.contains(y) {
             // `x` and `y` are consonants, and if `x` is not eligible, neither is `y`.
             // So, try `z` instead.
-            return Some(i_y);
+            return ip.next(&i_y);
         }
 
-        // Check that this is the start of a samyoga as opposed to a portion of a larger
-        // samyoga. This check is necessary to prevent `saMstti -> santti`.
-        //
         // > "'skoḥ' iti salopo'tra na bhavati, bahūnāṃ samavāye dvayossaṃyogasaṃjñābhāvāt"
         // > iti ātreyamaitreyau."
         // -- Madhaviya-dhatuvrtti [1].
@@ -243,15 +240,25 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
         // > numi 'skoḥ saṃyogādyoḥ' iti salopaḥ.
         // -- Madhaviya-dhatuvrtti [2].
         //
-        // So as a quick hack, w should be (empty OR a vowel) AND not "samst".
-        //
         // [1]: https://archive.org/details/237131938MadhaviyaDhatuVrtti/page/n434/mode/1up
-        // }
+        //
         // [2]: as above, but `n540` instead of `n434` in the URL.
         let is_first_hal = match ip.prev(i_x) {
             Some(i_w) => {
                 let w = ip.char_at(&i_w);
-                (AC.contains(w) || w == 'n') && !ip.term_at(i_x).has_text("sanst")
+                let is_first = AC.contains(w);
+                let masj_exception = w == 'n';
+                if ip.term_at(i_x).has_text("sanst") {
+                    if i_w.i_term == i_x.i_term && w == 'n' {
+                        // Optionally allowed per some commentators.
+                        !ip.p
+                            .optional_run_at(Rule::Kaumudi("2488"), i_x.i_term, |_| {})
+                    } else {
+                        is_first
+                    }
+                } else {
+                    is_first || masj_exception
+                }
             }
             None => true,
         };

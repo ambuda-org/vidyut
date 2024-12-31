@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::BaseKrt as K;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 
@@ -97,7 +98,10 @@ fn sk_2549() {
 }
 
 #[test]
-fn sk_2550() {
+fn skip_sk_2550() {}
+
+#[test]
+fn sk_2551() {
     let kf = &d("qukf\\Y", Tanadi);
     assert_has_tip(&["sam"], kf, Lat, &["saMskaroti", "saNkaroti"]);
     assert_has_jhi(&["sam"], kf, Lat, &["saMskurvanti", "saNkurvanti"]);
@@ -108,4 +112,22 @@ fn sk_2550() {
         Lun,
         &["paryazkArzIt", "paryaskArzIt", "paryakArzIt"],
     );
+}
+
+#[test]
+fn sk_2552() {
+    let kf = &d("qukf\\Y", Tanadi);
+    assert_has_krdanta(&["upa"], kf, K::kta, &["upakfta", "upaskfta"]);
+}
+
+#[test]
+fn sk_2553() {
+    let kf = &d("qukf\\Y", Tanadi);
+    assert_has_tip(&["sam"], kf, Lit, &["saYcaskAra", "saYcakAra"]);
+    assert_has_tas(&["sam"], kf, Lit, &["saYcaskaratuH", "saYcakratuH"]);
+    assert_has_sip(&["sam"], kf, Lit, &["saYcaskariTa", "saYcakarTa"]);
+    assert_has_vas(&["sam"], kf, Lit, &["saYcaskariva", "saYcakfva"]);
+    assert_has_ta(&["sam"], kf, AshirLin, &["saMskfzIzwa", "saNkfzIzwa"]);
+    assert_has_ta(&["sam"], kf, Lun, &["samaskfta", "samakfta"]);
+    assert_has_aataam(&["sam"], kf, Lun, &["samaskfzAtAm", "samakfzAtAm"]);
 }

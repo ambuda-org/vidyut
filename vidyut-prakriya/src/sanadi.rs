@@ -221,7 +221,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
     {
         // muRqayati, ...
         sp.add_with("3.1.21", Ric.as_str(), |p| {
-            p.set(i_base + 1, |t| {
+            p.set(i_base, |t| {
                 if t.has_text_in(&["hali", "kali"]) {
                     t.set_antya("a");
                 }

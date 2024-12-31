@@ -1260,7 +1260,7 @@ fn sutra_7_4_94() {
 
 #[test]
 fn sutra_7_4_95() {
-    assert_has_tip(&[], &nic(&d("smf", Bhvadi)), Lun, &["asasmarat"]);
+    assert_has_tip(&[], &nic(&d("smf\\", Bhvadi)), Lun, &["asasmarat"]);
     assert_has_tip(&[], &nic(&d("dF", Bhvadi)), Lun, &["adadarat"]);
     assert_has_tip(&[], &nic(&d("YitvarA~\\", Bhvadi)), Lun, &["atatvarat"]);
     assert_has_tip(&[], &d("praTa~", Curadi), Lun, &["apapraTat"]);

@@ -14,13 +14,6 @@ pub use crate::vyakarana::{Vyakarana, VyakaranaBuilder};
 pub mod args;
 pub mod dhatupatha;
 
-mod binary_only;
-#[doc(hidden)]
-pub mod private {
-    // Common code for our binaries. Don't use or depend on this!
-    pub use crate::binary_only::*;
-}
-
 // Data structures and utilities
 mod caching;
 mod core;

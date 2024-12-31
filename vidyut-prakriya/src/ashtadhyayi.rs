@@ -494,6 +494,10 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         // Must run before it-Agama.
         angasya::try_cinvat_for_bhave_and_karmani_prayoga(p);
 
+        // Must run before guna for saYcaskaratuH, etc.
+        // Must also run before it-agama since it changes it behavior.
+        ac_sandhi::try_sut_kat_purva(p);
+
         // Must run before it_agama rules since it affects how those rules are applied.
         atidesha::run_before_it_agama(p);
         // Depends on jha_adesha since it conditions on the first sound.

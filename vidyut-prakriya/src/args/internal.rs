@@ -271,7 +271,7 @@ internal_term!(Aupadeshika, {
     dF => "dF",
     mrada => "mrada~\\",
     praTa_u => "praTa~",
-    smf_u => "smf",
+    smf => "smf\\",
     spaSa_u => "spaSa~",
     spaSa_s => "spaSa~^",
     stFY => "stFY",

@@ -629,9 +629,14 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
 
         if anga.has_text("Brasj") {
             p.optional_run_at("6.4.47", i, op::text("Barj"));
-        } else if anga.ends_with("ya") && is_halah(p, i) && !anga.is(S::kyac) {
-            // TODO: why block kyac? SK mentions the "sannipAta-pariBAzA" in 2658
-            p.run_at("6.4.49", i, |t| t.set_adi(""));
+        } else if anga.ends_with("ya") && is_halah(p, i) {
+            if anga.is_any_sanadi(&[S::kyac, S::kyaN]) || anga.has_u("kyaz") {
+                // samiDyitA, samiDitA; ...
+                p.optional_run_at("6.4.50", i, |t| t.set_adi(""));
+            } else {
+                // beBiditA, ...
+                p.run_at("6.4.49", i, |t| t.set_adi(""));
+            }
         }
 
         let anga = p.get(i)?;

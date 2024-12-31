@@ -275,6 +275,22 @@ fn sutra_3_4_95() {
     assert_has_aathaam(&[], &d("qukf\\Y", Tanadi), Let, &["karavETe"]);
 }
 
+#[ignore]
+#[test]
+fn sutra_3_4_96() {
+    assert_has_aataam(&[], &d("", Curadi), Let, &["SAsE"]);
+    assert_has_aataam(&[], &d("", Curadi), Let, &["ISE"]);
+    assert_has_aataam_k(&[], &d("", Curadi), Let, &["gfhyAntE"]);
+    assert_has_aataam_k(&[], &d("", Curadi), Let, &["ucyAntE"]);
+
+    // na
+    assert_has_aataam_k(&[], &d("", Curadi), Let, &["daDase"]);
+
+    // anyatra?
+    assert_has_aataam(&[], &d("matri~", Curadi), Let, &["mantrayEte"]);
+    assert_has_aathaam(&[], &d("matri~", Curadi), Let, &["mantrayETe"]);
+}
+
 #[test]
 fn sutra_3_4_97() {
     // No `\\` to force parasmaipada

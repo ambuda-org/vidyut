@@ -499,9 +499,8 @@ fn sk_2572() {
     assert_has_tip(&[], &sah, Lat, &["sAhayati", "sahati"]);
 
     let li = d_adhrshiya("lI\\", Curadi);
-    // lAyayati and lAtA are allowed per Neelesh ji.
-    assert_has_tip(&[], &li, Lat, &["lAyayati", "lApayati", "layati"]);
-    assert_has_tip(&[], &li, Lut, &["lAyayitA", "lAtA", "lApayitA", "letA"]);
+    assert_has_tip(&[], &li, Lat, &["lAyayati", "layati"]);
+    assert_has_tip(&[], &li, Lut, &["lAyayitA", "letA"]);
 
     let varj = d_adhrshiya("vfjI~", Curadi);
     assert_has_tip(&[], &varj, Lat, &["varjayati", "varjati"]);
@@ -569,7 +568,7 @@ fn sk_2572() {
     let x = d_adhrshiya("za\\da~", Curadi);
     assert_has_tip(&["AN"], &x, Lat, &["AsAdayati", "AsIdati"]);
     assert_has_tip(&["AN"], &x, Lut, &["AsAdayitA", "AsattA"]);
-    assert_has_tip(&["AN"], &x, Lun, &["AsIsadat", "AsAtsIt"]);
+    assert_has_tip(&["AN"], &x, Lun, &["AsIzadat", "AsAtsIt"]);
 
     let shund = d_adhrshiya("SunDa~", Curadi);
     assert_has_tip(&[], &shund, Lut, &["SunDayitA", "SunDitA"]);

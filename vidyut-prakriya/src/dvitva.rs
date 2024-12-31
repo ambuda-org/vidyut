@@ -11,7 +11,6 @@ use crate::core::Rule::{Kashika, Varttika};
 use crate::core::Tag as T;
 use crate::core::Term;
 use crate::core::{Code, Prakriya};
-use crate::sounds as al;
 use crate::sounds::{Set, AC, HAL, YAN};
 
 const NDR: Set = Set::from("ndr");
@@ -181,10 +180,15 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
                 p.set(i_dhatu, |t| t.add_tag(T::Dvitva));
             });
         }
-    } else if dhatu.is_ekac() || al::is_hal(dhatu.adi()?) {
+    } else if dhatu.is_ekac() || HAL.contains(dhatu.adi()?) {
         // Case 2: halAdi dhatu
         let mut abhyasa = Term::make_abhyasa("");
         abhyasa.set_text(dhatu.sthanivat());
+
+        // For now, hard-code an exception for sPAr so we can derive *apusPurat*.
+        if abhyasa.has_text("sPAr") && rule == "6.1.11" {
+            abhyasa.set_text("sPur");
+        }
 
         // See comment elsewhere in this module on 6.1.73 and removal of tuk-Agama.
         if dhatu.starts_with("tC") {

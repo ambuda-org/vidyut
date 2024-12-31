@@ -261,6 +261,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
     }
 
     let ktvi = n.last().is(K::ktvA);
+    let has_sut_agama = ip.i_anga > 0 && ip.p.has(ip.i_anga - 1, |t| t.is(A::suw));
 
     if n.has_u("kvasu~") {
         // kvasu~ rules take priority over `li~w` below.
@@ -270,9 +271,18 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
         if anga.has_text("vf") && n.has_u("Tal") {
             // Exception to krAdi-niyama.
             ip.try_add("7.2.64");
-        } else if anga.has_text_in(&["kf", "sf", "Bf", "vf", "stu", "dru", "sru", "Sru"]) {
+        } else if anga.has_text_in(&["kf", "sf", "Bf", "vf", "stu", "dru", "sru", "Sru"])
+            && !has_sut_agama
+        {
             ip.try_block("7.2.13");
         } else {
+            if anga.has_text("kf") && has_sut_agama {
+                // saYcaskariva, ...
+                ip.p.step(Varttika("7.2.13.1"));
+            }
+            let anga = ip.anga();
+            let n = ip.next();
+
             // Normally, these options allow seT. Here, they allow aniT due to krAdi-niyama.
             let shryukah_kiti = anga.has_antya(UK) && n.last().has_tag(T::kit);
             if is_svarati_suti(anga) && !shryukah_kiti {
@@ -283,9 +293,13 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                 ip.optional_try_block("7.2.57");
             }
 
+            ip.p.debug("anga thal");
             let anga = ip.anga();
             let n = ip.next();
-            if n.has_u("Tal") && !ip.done {
+            // "ṛto bhāradvājasya ityetadapyasuṭkasyaiveṣyate"
+            //
+            // -- KV on 7.2.13
+            if n.has_u("Tal") && !ip.done && !has_sut_agama {
                 // Rule 7.2.61 ("acas tAsvat ...") conditions on whether tAs would receive it-Agama.
                 // Estimate this by reproducing other it rules.
                 let rule_7_2_10 = anga.has_tag(T::Anudatta) && is_hacky_eka_ac(ip.p, ip.i_anga);
@@ -305,7 +319,9 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                         // The last root is "vyeY" per siddhAntakaumudI.
                         if anga.has_u_in(&["a\\da~", "f\\", "vye\\Y"]) {
                             ip.try_add("7.2.66");
-                        } else if !anga.has_antya('f') {
+                        } else if anga.has_antya('f') {
+                            ip.try_block(code);
+                        } else {
                             // 7.2.63 Rto bhAradvAjasya
                             // In Bharadvaja's opinion, rule 7.2.61 applies only for final R. So for all
                             // other roots, this condition is optional:
@@ -320,8 +336,6 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                                     ip.p.log_declined(code);
                                 }
                             }
-                        } else {
-                            ip.try_block(code);
                         }
                     }
                 } else if anga.has_text_in(&["sfj", "dfS"]) {

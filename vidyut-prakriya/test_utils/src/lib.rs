@@ -339,6 +339,14 @@ pub fn yan_nic(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::yaN, Sanadi::Ric])
 }
 
+pub fn kyac(pratipadika: Pratipadika) -> Dhatu {
+    Dhatu::nama(pratipadika, Some(Sanadi::kyac))
+}
+
+pub fn kyan(pratipadika: Pratipadika) -> Dhatu {
+    Dhatu::nama(pratipadika, Some(Sanadi::kyaN))
+}
+
 /// Marks a dhatu as taking yaN-pratyaya with luk.
 pub fn yan_luk(dhatu: &Dhatu) -> Dhatu {
     dhatu.clone().with_sanadi(&[Sanadi::yaNluk])

@@ -108,21 +108,18 @@ fn sutra_3_1_9() {
 
 #[test]
 fn sutra_3_1_10() {
-    let kyac = |prati| sanadi(prati, Sanadi::kyac);
     assert_has_tip(&[], &kyac(p("putra")), Lat, &["putrIyati"]);
     assert_has_tip(&[], &kyac(p("prAvAra")), Lat, &["prAvArIyati"]);
 }
 
 #[test]
 fn sutra_3_1_10_v1() {
-    let kyac = |prati| sanadi(prati, Sanadi::kyac);
     assert_has_tip(&[], &kyac(p("prAsAda")), Lat, &["prAsAdIyati"]);
     assert_has_tip(&[], &kyac(p("paryaNka")), Lat, &["paryaNkIyati"]);
 }
 
 #[test]
 fn sutra_3_1_11() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("Syena")), Lat, &["SyenAyate"]);
     assert_has_ta(&[], &kyan(p("puzkara")), Lat, &["puzkarAyate"]);
     assert_has_ta(&[], &kyan(p("ojas")), Lat, &["ojAyate"]);
@@ -135,7 +132,6 @@ fn sutra_3_1_11() {
 
 #[test]
 fn sutra_3_1_12() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("BfSa")), Lat, &["BfSAyate"]);
     assert_has_ta(&[], &kyan(p("SIGra")), Lat, &["SIGrAyate"]);
 }
@@ -148,13 +144,11 @@ fn sutra_3_1_13() {
 
 #[test]
 fn sutra_3_1_14() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("kazwa")), Lat, &["kazwAyate"]);
 }
 
 #[test]
 fn sutra_3_1_14_v1() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("satra")), Lat, &["satrAyate"]);
     assert_has_ta(&[], &kyan(p("kazwa")), Lat, &["kazwAyate"]);
     assert_has_ta(&[], &kyan(p("kakza")), Lat, &["kakzAyate"]);
@@ -171,20 +165,17 @@ fn sutra_3_1_15() {
 
 #[test]
 fn sutra_3_1_16() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("bAzpa")), Lat, &["bAzpAyate"]);
     assert_has_ta(&[], &kyan(p("uzma")), Lat, &["uzmAyate"]);
 }
 
 #[test]
 fn sutra_3_1_16_v1() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("Pena")), Lat, &["PenAyate"]);
 }
 
 #[test]
 fn sutra_3_1_17() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("Sabda")), Lat, &["SabdAyate"]);
     assert_has_ta(&[], &kyan(p("vEra")), Lat, &["vErAyate"]);
     assert_has_ta(&[], &kyan(p("kalaha")), Lat, &["kalahAyate"]);
@@ -195,7 +186,6 @@ fn sutra_3_1_17() {
 
 #[test]
 fn sutra_3_1_17_v1() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("sudina")), Lat, &["sudinAyate"]);
     assert_has_ta(&[], &kyan(p("durdina")), Lat, &["durdinAyate"]);
     assert_has_ta(&[], &kyan(p("nIhAra")), Lat, &["nIhArAyate"]);
@@ -203,7 +193,6 @@ fn sutra_3_1_17_v1() {
 
 #[test]
 fn sutra_3_1_17_v2() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("awA")), Lat, &["awAyate"]);
     assert_has_ta(&[], &kyan(p("awwA")), Lat, &["awwAyate"]);
     assert_has_ta(&[], &kyan(p("SIkA")), Lat, &["SIkAyate"]);
@@ -216,7 +205,6 @@ fn sutra_3_1_17_v2() {
 
 #[test]
 fn sutra_3_1_18() {
-    let kyan = |prati| sanadi(prati, Sanadi::kyaN);
     assert_has_ta(&[], &kyan(p("suKa")), Lat, &["suKAyate"]);
     assert_has_ta(&[], &kyan(p("duHKa")), Lat, &["duHKAyate"]);
 }

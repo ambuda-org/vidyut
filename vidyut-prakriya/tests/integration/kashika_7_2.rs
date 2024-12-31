@@ -453,6 +453,14 @@ fn sutra_7_2_13() {
 }
 
 #[test]
+fn sutra_7_2_13_v1() {
+    let kf = &d("qukf\\Y", Tanadi);
+    assert_has_vas(&["sam"], kf, Lit, &["saYcaskariva", "saYcakfva"]);
+    assert_has_mas(&["sam"], kf, Lit, &["saYcaskarima", "saYcakfma"]);
+    assert_has_sip(&["sam"], kf, Lit, &["saYcaskariTa", "saYcakarTa"]);
+}
+
+#[test]
 fn sutra_7_2_14() {
     let shvi = d("wuo~Svi", Bhvadi);
     assert_has_krdanta(&[], &shvi, Krt::kta, &["SUna"]);

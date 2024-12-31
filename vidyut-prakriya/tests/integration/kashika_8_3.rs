@@ -809,7 +809,6 @@ fn sutra_8_3_115() {
     assert_has_lat(&["pari"], &sah, &["parizahate"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_8_3_116() {
     let stanbh = nic(&d("stanBu~", Kryadi));

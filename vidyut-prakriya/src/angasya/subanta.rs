@@ -541,7 +541,9 @@ fn try_anga_adesha_after_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
 
     let anga = p.get(i)?;
     let sup = p.pratyaya(i_sup)?;
-    if !sup.has_tag(T::Sup) {
+
+    // Check `lupta` so we can derive asmadyate, yuzmadyate, etc.
+    if !sup.last().has_tag(T::Sup) || sup.last().is_lupta() {
         return None;
     }
 

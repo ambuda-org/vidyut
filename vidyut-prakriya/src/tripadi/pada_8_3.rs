@@ -337,7 +337,7 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya) -> Option<()> {
         // paryatasTabat, paryazIsivat, ...
         //
         // Per varttika, this is specifically for the abhyasa, not the dhatu.
-        sp.try_block("8.3.116");
+        // sp.try_block("8.3.116");
     } else if t.has_u("zu\\Y") && sp.p.has(i_term + 1, |t| t.is(V::sya) || t.is_san()) {
         // aBisozyati, ...
         sp.try_block("8.3.117");
@@ -512,8 +512,12 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya) -> Option<()> {
             }
         }
         let term = sp.term();
-        if term.has_tag(T::FlagSaAdeshadi) && !abhyasa_vyavaya && !term.is_abhyasa() {
+        let is_pada_adi = sp.index.i_char == 0
+            && sp.index.i_term > 0
+            && sp.p.has(sp.index.i_term - 1, |t| t.is_pada());
+        if term.is_dhatu() && term.has_tag(T::FlagSaAdeshadi) && is_pada_adi {
             sp.try_block("8.3.111");
+            sp.p.debug(format!("{:?}", sp.index));
         }
     }
 

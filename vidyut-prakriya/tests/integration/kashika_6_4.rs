@@ -677,6 +677,15 @@ fn sutra_6_4_49() {
 }
 
 #[test]
+fn sutra_6_4_50() {
+    let samidhya = &kyac(phit("samiD"));
+    assert_has_tip(&[], &samidhya, Lut, &["samiDitA", "samiDyitA"]);
+
+    let drshadya = &kyan(phit("dfzad"));
+    assert_has_ta(&[], &drshadya, Lut, &["dfzadyitA", "dfzaditA"]);
+}
+
+#[test]
 fn sutra_6_4_51() {
     assert_has_tip(&[], &nic(&d("takza~", Bhvadi)), Lun, &["atatakzat"]);
     assert_has_tip(&[], &nic(&d("rakza~", Bhvadi)), Lun, &["ararakzat"]);
