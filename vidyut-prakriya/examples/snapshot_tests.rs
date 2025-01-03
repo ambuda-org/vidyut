@@ -54,6 +54,10 @@ struct PrintArgs {
     /// Path to a test file.
     #[arg(long)]
     test_file: PathBuf,
+
+    /// The aupadeshika to filter on.
+    #[arg(long)]
+    aupadeshika: Option<String>,
 }
 
 /// Validate the latest build against snapshots on disk.
@@ -449,18 +453,33 @@ fn print_snapshots(args: PrintArgs) -> Result<(), Box<dyn Error>> {
         "krdantas" => {
             let cases: Vec<KrdantaResults> = read_and_decompress(&args.test_file)?;
             for c in cases {
+                if let Some(aupadeshika) = &args.aupadeshika {
+                    if c.krdanta.dhatu().aupadeshika().expect("present") != aupadeshika {
+                        continue;
+                    }
+                }
                 println!("{c:#?}");
             }
         }
         "tinantas" => {
             let cases: Vec<TinantaResults> = read_and_decompress(&args.test_file)?;
             for c in cases {
+                if let Some(aupadeshika) = &args.aupadeshika {
+                    if c.dhatu.aupadeshika().expect("present") != aupadeshika {
+                        continue;
+                    }
+                }
                 println!("{c:#?}");
             }
         }
         "dhatus" => {
             let cases: Vec<DhatuResults> = read_and_decompress(&args.test_file)?;
             for c in cases {
+                if let Some(aupadeshika) = &args.aupadeshika {
+                    if c.dhatu.aupadeshika().expect("present") != aupadeshika {
+                        continue;
+                    }
+                }
                 println!("{c:#?}");
             }
         }

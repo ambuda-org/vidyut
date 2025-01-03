@@ -27,8 +27,8 @@ use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
-    Artha, Dhatu, Krdanta, Krt, Lakara, Pada, Pratipadika, Prayoga, Samasa, Subanta, Sup,
-    Taddhitanta, Tinanta, Upasarga,
+    Artha, BasicPratipadika, Dhatu, Krdanta, Krt, Lakara, Pada, Pratipadika, Prayoga, Samasa,
+    Subanta, Sup, Taddhitanta, Tinanta, Upasarga,
 };
 use crate::atidesha;
 use crate::atmanepada;
@@ -318,7 +318,7 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
 fn prepare_pratipadika_inner(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()> {
     match pratipadika {
         Pratipadika::Krdanta(k) if k.require().is_some() => {
-            let mut stack = PrakriyaStack::new(false, false, false, false);
+            let mut stack = PrakriyaStack::new(false, false, false, false, vec![]);
             stack.find_all(|p| derive_krdanta(p, k));
 
             let mut added = false;
@@ -336,7 +336,7 @@ fn prepare_pratipadika_inner(p: &mut Prakriya, pratipadika: &Pratipadika) -> Res
             }
         }
         Pratipadika::Taddhitanta(t) if t.require().is_some() => {
-            let mut stack = PrakriyaStack::new(false, false, false, false);
+            let mut stack = PrakriyaStack::new(false, false, false, false, vec![]);
             stack.find_all(|p| derive_taddhitanta(p, t));
 
             let mut added = false;
@@ -671,6 +671,17 @@ pub fn derive_subanta(mut prakriya: Prakriya, args: &Subanta) -> Result<Prakriya
     Ok(prakriya)
 }
 
+/// Derives a basic pratipadika from the given conditions.
+pub fn derive_basic_pratipadika(
+    mut prakriya: Prakriya,
+    args: &BasicPratipadika,
+) -> Result<Prakriya> {
+    let p = &mut prakriya;
+    prepare_pratipadika(p, &args.into())?;
+    tripadi::run(p);
+    Ok(prakriya)
+}
+
 /// Derives a single krdanta from the given conditions.
 pub fn derive_krdanta(mut prakriya: Prakriya, args: &Krdanta) -> Result<Prakriya> {
     let p = &mut prakriya;
@@ -760,7 +771,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
     for pada in padas {
         match pada {
             Pada::Subanta(s) => {
-                let mut stack = PrakriyaStack::new(false, false, false, false);
+                let mut stack = PrakriyaStack::new(false, false, false, false, vec![]);
                 stack.find_all(|p| derive_subanta(p, s));
 
                 if let Some(p) = stack.prakriyas().first() {
@@ -768,7 +779,7 @@ pub fn derive_vakya(mut prakriya: Prakriya, padas: &[Pada]) -> Result<Prakriya> 
                 }
             }
             Pada::Tinanta(t) => {
-                let mut stack = PrakriyaStack::new(false, false, false, false);
+                let mut stack = PrakriyaStack::new(false, false, false, false, vec![]);
                 stack.find_all(|p| derive_tinanta(p, t));
 
                 if let Some(p) = stack.prakriyas().first() {

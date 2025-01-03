@@ -1006,7 +1006,7 @@ fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
                 p.terms_mut().remove(i - 1);
             }
         });
-    } else if i > 0 && p.has(i - 1, |t| t.has_text("vAh")) {
+    } else if i > 0 && p.has(i - 1, |t| t.has_text("vAh")) && p.has(i, |t| t.is(K::Rvi)) {
         p.run_at("6.4.132", i - 1, |t| {
             t.set_text("Uh");
             t.add_tag(T::FlagUth);

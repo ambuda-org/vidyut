@@ -14,6 +14,7 @@ The downside of packed data is that it cannot easily store string data. To work 
 problem, we can use a lookup table that maps integer indices to string values. But lookup tables
 are much more cumbersome than simple structs.
 
+
 Approach
 ========
 
@@ -62,235 +63,231 @@ we need to convert between representations.
 TODO: investigate different packing orders to see if we can reduce the size of the FST.
 */
 
-use crate::entries::*;
-use crate::errors::*;
+use crate::entries::{
+    DhatuEntry, KrdantaEntry, PadaEntry, PratipadikaEntry, SubantaEntry, TinantaEntry,
+};
+use crate::errors::{Error, Result};
 use modular_bitfield::prelude::*;
 use rustc_hash::FxHashMap;
 use vidyut_prakriya::args::{
-    Dhatu, Lakara, Linga, Pratipadika, Prayoga, Purusha, Subanta, Tinanta, Vacana, Vibhakti,
+    BaseKrt, BasicPratipadika, Dhatu, Krt, Lakara, Linga, Prayoga, Purusha, Vacana, Vibhakti,
 };
 
+use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
+use std::io::{BufReader, BufWriter, Write};
 use std::path::Path;
 
-macro_rules! packed_enum {
-    ($Packed:ident, $Raw:ident, [$( $variant:ident ),*], $num_bits:literal ) => {
-        #[doc = concat!("A space-efficient version of ", stringify!($Raw))]
-        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
-        #[bits = $num_bits]
-        pub enum $Packed {
-            $(
-                #[doc = concat!("A packed version of ", stringify!($Raw), "::", stringify!($variant), ".")]
-                $variant,
-            )*
-        }
-
-        impl $Packed {
-            #[doc = concat!("Converts from ", stringify!($Raw), " to ", stringify!($Packed), ".")]
-            pub fn pack(value: $Raw) -> $Packed {
-                match value {
-                    $(
-                        $Raw::$variant => $Packed::$variant,
-                    )*
-                }
-            }
-
-            #[doc = concat!("Converts from ", stringify!($Packed), " to ", stringify!($Raw), ".")]
-            pub fn unpack(&self) -> $Raw {
-                match self {
-                    $(
-                        $Packed::$variant => $Raw::$variant,
-                    )*
-                }
-            }
-        }
-
-        impl From<$Raw> for $Packed {
-            fn from(val: $Raw) -> $Packed {
-                $Packed::pack(val)
-            }
-        }
-    };
-}
+/// An ID for interned linguistic data.
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub(crate) struct Id(pub usize);
 
 /// Models the part of speech for the given `Pada`. The value of `PartOfSpeech` controls how we
 /// interpret the rest of the packed data.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, BitfieldSpecifier)]
 #[bits = 2]
-enum PartOfSpeech {
-    Unknown,
+pub enum PartOfSpeech {
+    /// A
     Subanta,
+    /// A
+    SubantaPrefix,
+    /// A
     Tinanta,
+    /// A
     Avyaya,
 }
 
-/// Semantics for an unknown term.
-#[bitfield(bits = 30)]
-pub struct PackedUnknown {
-    #[skip]
-    unused: B30,
+/// A subanta suffix as part of some paradigm.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct SubantaSuffix {
+    text: String,
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
 }
 
-impl PackedUnknown {
-    #[allow(unused)]
-    fn pack() -> Self {
-        Self::new()
-    }
+/// A sup paradigm.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct SubantaParadigm {
+    endings: Vec<SubantaSuffix>,
+}
 
-    #[allow(unused)]
-    fn unpack(&self) -> PadaEntry {
-        PadaEntry::Unknown
+impl SubantaSuffix {
+    fn new(text: String, linga: Linga, vibhakti: Vibhakti, vacana: Vacana) -> Self {
+        Self {
+            text,
+            linga,
+            vibhakti,
+            vacana,
+        }
     }
 }
 
-packed_enum!(PackedPrayoga, Prayoga, [Kartari, Karmani, Bhave], 2);
-packed_enum!(PackedLinga, Linga, [Pum, Stri, Napumsaka], 2);
-packed_enum!(PackedVacana, Vacana, [Eka, Dvi, Bahu], 2);
-packed_enum!(
-    PackedVibhakti,
-    Vibhakti,
-    [Prathama, Dvitiya, Trtiya, Caturthi, Panchami, Sasthi, Saptami, Sambodhana],
-    4
-);
-packed_enum!(
-    PackedLakara,
-    Lakara,
-    [Lat, Lit, Lut, Lrt, Let, Lot, Lan, VidhiLin, AshirLin, Lun, Lrn],
-    4
-);
-packed_enum!(PackedPurusha, Purusha, [Prathama, Madhyama, Uttama], 2);
+impl SubantaParadigm {
+    fn from_padas(padas: &[(String, Linga, Vibhakti, Vacana)]) -> Self {
+        assert!(!padas.is_empty());
 
-/// Semantics for a *subanta*.
+        let mut common_prefix = String::from(&padas[0].0);
+        for pada in &padas[1..] {
+            for ((i, x), y) in common_prefix.char_indices().zip(pada.0.chars()) {
+                if x != y {
+                    common_prefix.truncate(i);
+                    break;
+                }
+            }
+        }
+
+        let offset = common_prefix.len();
+        let endings: Vec<_> = padas
+            .iter()
+            .map(|p| {
+                let ending = String::from(&p.0[offset..]);
+                SubantaSuffix::new(ending, p.1, p.2, p.3)
+            })
+            .collect();
+
+        assert!(endings.len() == padas.len());
+        Self { endings }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct DhatuMeta {
+    clean_text: String,
+}
+
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct PratipadikaMeta {
+    lingas: Vec<Linga>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct Sup {
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
+}
+
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct Tin {
+    prayoga: Prayoga,
+    lakara: Lakara,
+    purusha: Purusha,
+    vacana: Vacana,
+}
+
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+struct RichKrt {
+    krt: Krt,
+    prayoga: Option<Prayoga>,
+    lakara: Option<Lakara>,
+}
+
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub(crate) enum SmallPratipadika {
+    Basic(BasicPratipadika),
+    Krdanta(SmallKrdanta),
+}
+
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub(crate) struct SmallKrdanta {
+    dhatu_id: Id,
+    krt_id: Id,
+}
+
+/// A prefix to some paradigm of sup endings.
 #[bitfield(bits = 30)]
-pub struct PackedSubanta {
-    linga: PackedLinga,
-    vacana: PackedVacana,
-    vibhakti: PackedVibhakti,
-    is_avyaya: bool,
+#[derive(Debug)]
+pub struct PackedSubantaPrefix {
+    #[allow(unused)]
     pratipadika_id: B21,
-}
-
-impl PackedSubanta {
-    fn pack(s: &SubantaEntry, pratipadika_id: usize) -> Result<Self> {
-        let s = s.subanta();
-        Ok(Self::new()
-            .with_pratipadika_id(pratipadika_id.try_into()?)
-            .with_linga(s.linga().into())
-            .with_vacana(s.vacana().into())
-            .with_vibhakti(s.vibhakti().into())
-            .with_is_avyaya(s.is_avyaya()))
-    }
-
-    fn unpack(&self, pratipadikas: &[PratipadikaEntry]) -> Result<PadaEntry> {
-        let p_entry = pratipadikas
-            .get(self.pratipadika_id() as usize)
-            .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?;
-        let subanta = Subanta::builder()
-            .pratipadika(p_entry.pratipadika().clone())
-            .linga(self.linga().unpack())
-            .vacana(self.vacana().unpack())
-            .vibhakti(self.vibhakti().unpack())
-            .build()
-            .expect("has required fields");
-        let val = PadaEntry::Subanta(SubantaEntry::new(subanta, p_entry.clone()));
-        Ok(val)
-    }
-}
-
-/// Semantics for a *tinanta*.
-#[bitfield(bits = 30)]
-pub struct PackedTinanta {
-    lakara: PackedLakara,
-    purusha: PackedPurusha,
-    vacana: PackedVacana,
-    prayoga: PackedPrayoga,
-    dhatu_id: B20,
-}
-
-impl PackedTinanta {
-    fn pack(t: &Tinanta, dhatu_id: usize) -> Result<Self> {
-        Ok(Self::new()
-            .with_dhatu_id(dhatu_id.try_into()?)
-            .with_lakara(t.lakara().into())
-            .with_purusha(t.purusha().into())
-            .with_vacana(t.vacana().into())
-            .with_prayoga(t.prayoga().into()))
-    }
-
-    fn unpack(&self, dhatus: &[DhatuEntry]) -> Result<PadaEntry> {
-        let dhatu = dhatus
-            .get(self.dhatu_id() as usize)
-            .ok_or_else(|| Error::UnknownDhatuId(self.dhatu_id()))?
-            .dhatu()
-            .clone();
-        let val = PadaEntry::Tinanta(
-            Tinanta::builder()
-                .dhatu(dhatu)
-                .purusha(self.purusha().unpack())
-                .lakara(self.lakara().unpack())
-                .vacana(self.vacana().unpack())
-                .prayoga(self.prayoga().unpack())
-                .build()
-                .expect("has required fields"),
-        );
-        Ok(val)
-    }
+    paradigm_id: B9,
 }
 
 /// Semantics for an *avyaya*.
 #[bitfield(bits = 30)]
-pub struct PackedAvyaya {
-    pratipadika_id: B30,
+struct PackedSubanta {
+    sup_id: B7,
+    pratipadika_id: B23,
 }
 
-impl PackedAvyaya {
-    fn pack(pratipadika_id: usize) -> Result<Self> {
-        Ok(Self::new().with_pratipadika_id(pratipadika_id.try_into()?))
-    }
+/// Semantics for a *tinanta*.
+#[bitfield(bits = 30)]
+struct PackedTinanta {
+    tin_id: B8,
+    dhatu_id: B22,
+}
 
-    fn unpack(&self, pratipadikas: &[PratipadikaEntry]) -> Result<PadaEntry> {
-        let p_entry = pratipadikas
-            .get(self.pratipadika_id() as usize)
-            .ok_or_else(|| Error::UnknownPratipadikaId(self.pratipadika_id()))?;
-
-        let pratipadika = p_entry.pratipadika().clone();
-        let subanta = Subanta::avyaya(pratipadika);
-        let val = PadaEntry::Avyaya(SubantaEntry::new(subanta, p_entry.clone()));
-        Ok(val)
-    }
+/// Semantics for an *avyaya*.
+#[bitfield(bits = 30)]
+struct PackedAvyaya {
+    pratipadika_id: B30,
 }
 
 /// Semantics for a *pada*.
 #[bitfield]
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PackedEntry {
     /// The part of speech for these semantics. We use this value to decide how to interpret the
     /// `payload` field.
-    pos: PartOfSpeech,
+    pub pos: PartOfSpeech,
     /// The core data for this semantics type. We interpret `paylaad` differently based on the
     /// value of `pos`.
-    payload: B30,
+    pub(crate) payload: B30,
+}
+
+/// Semantics for an unknown term.
+#[bitfield(bits = 30)]
+#[allow(dead_code)]
+struct PackedUnknown {
+    #[skip]
+    unused: B30,
+}
+
+impl Sup {
+    fn new(linga: Linga, vibhakti: Vibhakti, vacana: Vacana) -> Self {
+        Self {
+            linga,
+            vibhakti,
+            vacana,
+        }
+    }
+}
+
+impl Tin {
+    fn new(prayoga: Prayoga, lakara: Lakara, purusha: Purusha, vacana: Vacana) -> Self {
+        Self {
+            prayoga,
+            lakara,
+            purusha,
+            vacana,
+        }
+    }
 }
 
 impl PackedEntry {
     /// Unsafely interprets this packed pada as an avyaya.
-    pub fn unwrap_as_avyaya(&self) -> PackedAvyaya {
+    fn as_packed_avyaya(self) -> PackedAvyaya {
         PackedAvyaya::from_bytes(self.payload().to_le_bytes())
     }
 
     /// Unsafely interprets this packed pada as a subanta.
-    pub fn unwrap_as_subanta(&self) -> PackedSubanta {
+    pub fn as_packed_subanta_prefix(self) -> PackedSubantaPrefix {
+        PackedSubantaPrefix::from_bytes(self.payload().to_le_bytes())
+    }
+
+    /// Unsafely interprets this packed pada as a tinanta.
+    fn as_packed_subanta(self) -> PackedSubanta {
         PackedSubanta::from_bytes(self.payload().to_le_bytes())
     }
 
     /// Unsafely interprets this packed pada as a tinanta.
-    pub fn unwrap_as_tinanta(&self) -> PackedTinanta {
+    fn as_packed_tinanta(self) -> PackedTinanta {
         PackedTinanta::from_bytes(self.payload().to_le_bytes())
     }
 
-    /// Unwraps the bitfield as an ordinary `u32.
-    pub fn to_u32(self) -> u32 {
+    /// Unwraps the bitfield as an ordinary `u32`.
+    pub(crate) fn to_u32(self) -> u32 {
         u32::from_le_bytes(self.into_bytes())
     }
 
@@ -300,151 +297,523 @@ impl PackedEntry {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+struct Registry {
+    dhatus: Vec<Dhatu>,
+    dhatu_meta: Vec<DhatuMeta>,
+    pratipadikas: Vec<SmallPratipadika>,
+    pratipadika_meta: FxHashMap<Id, PratipadikaMeta>,
+    paradigms: Vec<SubantaParadigm>,
+}
+
 /// Packs and unpacks linguistic data.
 #[derive(Clone, Default)]
-pub struct Packer {
-    dhatus: Vec<DhatuEntry>,
-    pratipadikas: Vec<PratipadikaEntry>,
-    pratipadika_to_index: FxHashMap<Pratipadika, usize>,
-    dhatu_to_index: FxHashMap<Dhatu, usize>,
+pub(crate) struct Packer {
+    sups: Vec<Sup>,
+    sup_to_index: FxHashMap<Sup, Id>,
+
+    tins: Vec<Tin>,
+    tin_to_index: FxHashMap<Tin, Id>,
+
+    krts: Vec<RichKrt>,
+    krt_to_index: FxHashMap<RichKrt, Id>,
+
+    pub(crate) dhatus: Vec<Dhatu>,
+    dhatu_to_index: FxHashMap<Dhatu, Id>,
+
+    pub(crate) pratipadikas: Vec<SmallPratipadika>,
+    pratipadika_to_index: FxHashMap<SmallPratipadika, Id>,
+
+    paradigms: Vec<SubantaParadigm>,
+    paradigm_to_index: FxHashMap<SubantaParadigm, Id>,
+
+    dhatu_meta: Vec<DhatuMeta>,
+    pratipadika_meta: FxHashMap<Id, PratipadikaMeta>,
 }
 
 impl Packer {
     /// Creates a new packer.
-    pub fn new() -> Self {
-        Self::default()
+    pub(crate) fn new() -> Self {
+        let mut ret = Self::default();
+
+        for linga in Linga::iter() {
+            for vibhakti in Vibhakti::iter() {
+                for vacana in Vacana::iter() {
+                    let sup = Sup::new(linga, vibhakti, vacana);
+                    let id = Id(ret.sups.len());
+                    ret.sups.push(sup);
+                    ret.sup_to_index.insert(sup, id);
+                }
+            }
+        }
+        assert!(ret.sups.len() < 1 << 7);
+
+        for prayoga in Prayoga::iter() {
+            if prayoga == Prayoga::Bhave {
+                // Skip -- same as Karmani.
+                continue;
+            }
+            for lakara in Lakara::iter() {
+                for purusha in Purusha::iter() {
+                    for vacana in Vacana::iter() {
+                        let tin = Tin::new(prayoga, lakara, purusha, vacana);
+                        let id = Id(ret.tins.len());
+                        ret.tins.push(tin);
+                        ret.tin_to_index.insert(tin, id);
+                    }
+                }
+            }
+        }
+        assert!(ret.tins.len() < 1 << 8);
+
+        for k in BaseKrt::iter() {
+            use BaseKrt as K;
+            let prayoga_lakara: &[(Option<Prayoga>, Option<Lakara>)] = match k {
+                K::Satf => &[
+                    (Some(Prayoga::Kartari), Some(Lakara::Lat)),
+                    (Some(Prayoga::Kartari), Some(Lakara::Lrt)),
+                ],
+                K::SAnac => &[
+                    (Some(Prayoga::Kartari), Some(Lakara::Lat)),
+                    (Some(Prayoga::Kartari), Some(Lakara::Lrt)),
+                    (Some(Prayoga::Karmani), Some(Lakara::Lat)),
+                    (Some(Prayoga::Karmani), Some(Lakara::Lrt)),
+                ],
+                K::kvasu | K::kAnac => &[(None, Some(Lakara::Lit))],
+                _ => &[(None, None)],
+            };
+
+            for (prayoga, lakara) in prayoga_lakara.iter().copied() {
+                let krt = RichKrt {
+                    krt: k.into(),
+                    prayoga,
+                    lakara,
+                };
+                let id = Id(ret.krts.len());
+                ret.krts.push(krt);
+                ret.krt_to_index.insert(krt, id);
+            }
+        }
+        assert!(ret.tins.len() < 1 << 8);
+
+        ret
     }
 
     /// Loads a packer from disk.
-    pub fn read(dhatu_path: impl AsRef<Path>, pratipadika_path: impl AsRef<Path>) -> Result<Self> {
-        Self::read_inner(dhatu_path.as_ref(), pratipadika_path.as_ref())
-    }
+    pub(crate) fn read(registry_path: &Path) -> Result<Self> {
+        let mut ret = Self::new();
 
-    fn read_inner(dhatu_path: &Path, pratipadika_path: &Path) -> Result<Self> {
-        let file = File::open(dhatu_path)?;
+        let file = File::open(registry_path)?;
         let reader = BufReader::new(file);
-        let dhatus: Vec<DhatuEntry> = serde_json::from_reader(reader)?;
+        let registry: Registry = rmp_serde::from_read(reader)?;
 
-        let file = File::open(pratipadika_path)?;
-        let reader = BufReader::new(file);
-        let pratipadikas: Vec<PratipadikaEntry> = serde_json::from_reader(reader)?;
-
-        let pratipadika_to_index: FxHashMap<_, _> = pratipadikas
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (x.pratipadika().clone(), i))
-            .collect();
-        let dhatu_to_index: FxHashMap<_, _> = dhatus
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (x.dhatu().clone(), i))
-            .collect();
-
-        Ok(Self {
+        let Registry {
             dhatus,
             pratipadikas,
-            pratipadika_to_index,
-            dhatu_to_index,
-        })
+            paradigms,
+            dhatu_meta,
+            pratipadika_meta,
+        } = registry;
+
+        ret.dhatus = dhatus;
+        ret.pratipadikas = pratipadikas;
+        ret.paradigms = paradigms;
+        ret.dhatu_meta = dhatu_meta;
+        ret.pratipadika_meta = pratipadika_meta;
+
+        ret.dhatu_to_index = ret
+            .dhatus
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (x.clone(), Id(i)))
+            .collect();
+
+        ret.pratipadika_to_index = ret
+            .pratipadikas
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (x.clone(), Id(i)))
+            .collect();
+
+        ret.paradigm_to_index = ret
+            .paradigms
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (x.clone(), Id(i)))
+            .collect();
+
+        Ok(ret)
     }
 
-    /// Writes daat in the registry to disk.
-    pub fn write(
-        &self,
-        dhatu_path: impl AsRef<Path>,
-        pratipadika_path: impl AsRef<Path>,
-    ) -> Result<()> {
-        self.write_inner(dhatu_path.as_ref(), pratipadika_path.as_ref())
-    }
+    /// Writes the registry to disk.
+    pub fn write(&self, registry_path: &Path) -> Result<()> {
+        let registry = Registry {
+            dhatus: self.dhatus.clone(),
+            pratipadikas: self.pratipadikas.clone(),
+            paradigms: self.paradigms.clone(),
 
-    fn write_inner(&self, dhatu_path: &Path, pratipadika_path: &Path) -> Result<()> {
-        let file = File::create(dhatu_path)?;
-        let writer = BufWriter::new(file);
-        serde_json::to_writer(writer, &self.dhatus)?;
+            dhatu_meta: self.dhatu_meta.clone(),
+            pratipadika_meta: self.pratipadika_meta.clone(),
+        };
 
-        let file = File::create(pratipadika_path)?;
-        let writer = BufWriter::new(file);
-        serde_json::to_writer(writer, &self.pratipadikas)?;
+        let out = rmp_serde::to_vec(&registry)?;
+        let file = File::create(registry_path)?;
+        let mut writer = BufWriter::new(file);
+        writer.write_all(&out)?;
 
         Ok(())
     }
 
-    /// Registers the given dhatus on the packer. Duplicate dhatus are ignored.
-    pub fn register_dhatus(&mut self, entries: &[DhatuEntry]) {
-        let n = self.dhatus.len();
-        for e in entries {
-            if !self.dhatu_to_index.contains_key(&e.dhatu()) {
-                self.dhatus.push(e.clone());
-            }
-        }
-
-        for (i, d) in self.dhatus[n..].iter().enumerate() {
-            self.dhatu_to_index.insert(d.dhatu().clone(), n + i);
+    pub(crate) fn contains_subanta_suffix(
+        &self,
+        prefix: &PackedSubantaPrefix,
+        suffix: &str,
+    ) -> bool {
+        // TODO: slow, just getting it working first.
+        if let Some(paradigm) = self.paradigms.get(prefix.paradigm_id() as usize) {
+            paradigm.endings.iter().any(|e| e.text == suffix)
+        } else {
+            false
         }
     }
 
-    /// Registers the given pratipadikas on the packer. Duplicate pratipadikas are ignored.
-    pub fn register_pratipadikas(&mut self, entries: &[PratipadikaEntry]) {
-        let n = self.pratipadikas.len();
-        for e in entries {
-            if !self.pratipadika_to_index.contains_key(&e.pratipadika()) {
-                self.pratipadikas.push(e.clone());
+    pub(crate) fn get_all_from_subanta_paradigm<'a>(
+        &'a self,
+        ret: &mut Vec<PadaEntry<'a>>,
+        entry: &PackedSubantaPrefix,
+        suffix: &str,
+    ) {
+        // TODO: slow, just getting it working first.
+        let paradigm = &self.paradigms[entry.paradigm_id() as usize];
+        let phit = self
+            .unpack_pratipadika(Id(entry.pratipadika_id() as usize))
+            .expect("ok");
+
+        // println!("\nChecking paradigm with suffix: {suffix}");
+        // println!(" - pratipadika: {:?}", phit);
+        // let entries: Vec<_> = paradigm.endings.iter().map(|x| &x.text).collect();
+        // println!(" - paradigm: {:?}", entries);
+
+        for ending in &paradigm.endings {
+            if ending.text == suffix {
+                ret.push(PadaEntry::Subanta(SubantaEntry::new(
+                    // Stack-allocated, clones are cheap.
+                    phit.clone(),
+                    ending.linga,
+                    ending.vibhakti,
+                    ending.vacana,
+                )));
             }
         }
+    }
 
-        for (i, p) in self.pratipadikas[n..].iter().enumerate() {
-            self.pratipadika_to_index
-                .insert(p.pratipadika().clone(), n + i);
+    /// Registers the given dhatu and returns its interned ID.
+    pub(crate) fn register_dhatu(&mut self, dhatu: &Dhatu) -> Id {
+        if let Some(i) = self.dhatu_to_index.get(dhatu) {
+            *i
+        } else {
+            let id = Id(self.dhatus.len());
+            self.dhatus.push(dhatu.clone());
+            self.dhatu_meta.push(DhatuMeta::default());
+            self.dhatu_to_index.insert(dhatu.clone(), id);
+            id
+        }
+    }
+
+    /// Adds metadata about `dhatu` to the registry.
+    pub fn add_dhatu_meta(&mut self, dhatu: &Dhatu, clean_text: String) {
+        if let Some(i) = self.dhatu_to_index.get(dhatu) {
+            self.dhatu_meta[i.0].clean_text = clean_text;
+        }
+    }
+
+    /// Registers the and pratipadika and returns its interned ID.
+    pub(crate) fn register_pratipadika(&mut self, pratipadika: &PratipadikaEntry) -> Id {
+        use PratipadikaEntry as PE;
+
+        let packed = match pratipadika {
+            PE::Basic(b) => SmallPratipadika::Basic(b.pratipadika().clone()),
+            PE::Krdanta(k) => {
+                let dhatu_id = self.register_dhatu(k.dhatu());
+                let krt_id = self.pack_krt(k).expect("present");
+                SmallPratipadika::Krdanta(SmallKrdanta { dhatu_id, krt_id })
+            }
+        };
+
+        if let Some(i) = self.pratipadika_to_index.get(&packed) {
+            *i
+        } else {
+            let id = Id(self.pratipadikas.len());
+            self.pratipadikas.push(packed.clone());
+            self.pratipadika_to_index.insert(packed.clone(), id);
+            id
+        }
+    }
+
+    /// Adds metadata about `dhatu` to the registry.
+    pub(crate) fn add_pratipadika_meta(
+        &mut self,
+        pratipadika: &PratipadikaEntry,
+        lingas: Vec<Linga>,
+    ) {
+        if let Some(packed) = self.pack_pratipadika(pratipadika) {
+            if let Some(i) = self.pratipadika_to_index.get(&packed) {
+                self.pratipadika_meta.insert(*i, PratipadikaMeta { lingas });
+            }
+        }
+    }
+
+    /// Registers the given paradigm of subantas and returns the `SubantaPrefix` that wraps them.
+    pub(crate) fn register_subanta_paradigm(
+        &mut self,
+        pratipadika: &PratipadikaEntry,
+        padas: &[(String, Linga, Vibhakti, Vacana)],
+    ) -> Result<(String, PackedEntry)> {
+        let paradigm = SubantaParadigm::from_padas(padas);
+
+        let key = {
+            let prefix = padas[0]
+                .0
+                .strip_suffix(&paradigm.endings[0].text)
+                .expect("aligned");
+            String::from(prefix)
+        };
+
+        let pratipadika_id = self.register_pratipadika(pratipadika);
+        let paradigm_id = match self.paradigm_to_index.get(&paradigm) {
+            Some(id) => *id,
+            None => {
+                let id = Id(self.paradigms.len());
+                self.paradigms.push(paradigm.clone());
+                self.paradigm_to_index.insert(paradigm, id);
+                id
+            }
+        };
+
+        let value = {
+            let prefix = PackedSubantaPrefix::new()
+                .with_pratipadika_id(pratipadika_id.0.try_into()?)
+                .with_paradigm_id(paradigm_id.0.try_into()?);
+
+            PackedEntry::new()
+                .with_pos(PartOfSpeech::SubantaPrefix)
+                .with_payload(u32::from_le_bytes(prefix.into_bytes()))
+        };
+
+        Ok((key, value))
+    }
+
+    fn pack_dhatu(&self, dhatu: &Dhatu) -> Option<Id> {
+        self.dhatu_to_index.get(dhatu).copied()
+    }
+
+    fn pack_pratipadika(&self, pratipadika: &PratipadikaEntry) -> Option<SmallPratipadika> {
+        use PratipadikaEntry as PE;
+
+        match pratipadika {
+            PE::Basic(b) => Some(SmallPratipadika::Basic(b.pratipadika().clone())),
+            PE::Krdanta(k) => {
+                let dhatu_id = self.pack_dhatu(k.dhatu())?;
+                let krt_id = self.pack_krt(k).expect("present");
+                Some(SmallPratipadika::Krdanta(SmallKrdanta { dhatu_id, krt_id }))
+            }
+        }
+    }
+
+    fn pack_krt(&self, krdanta: &KrdantaEntry) -> Option<Id> {
+        assert!(!self.krt_to_index.is_empty());
+        let krt = RichKrt {
+            krt: krdanta.krt(),
+            prayoga: krdanta.prayoga(),
+            lakara: krdanta.lakara(),
+        };
+        self.krt_to_index.get(&krt).copied()
+    }
+
+    fn pack_avyaya(&self, s: &SubantaEntry) -> Result<PackedAvyaya> {
+        let packed_pratipadika = match self.pack_pratipadika(s.pratipadika_entry()) {
+            Some(p) => p,
+            None => return Err(Error::Generic("Pratipadika not in registry.".to_string())),
+        };
+
+        match self.pratipadika_to_index.get(&packed_pratipadika) {
+            Some(pratipadika_id) => {
+                let ret = PackedAvyaya::new().with_pratipadika_id(pratipadika_id.0.try_into()?);
+                Ok(ret)
+            }
+            None => Err(Error::Generic("Pratipadika not in registry.".to_string())),
+        }
+    }
+
+    fn pack_subanta(&self, s: &SubantaEntry) -> Result<PackedSubanta> {
+        let packed_pratipadika = match self.pack_pratipadika(s.pratipadika_entry()) {
+            Some(p) => p,
+            None => return Err(Error::Generic("Pratipadika not in registry.".to_string())),
+        };
+        match self.pratipadika_to_index.get(&packed_pratipadika) {
+            Some(pratipadika_id) => {
+                let sup_id = self.sup_to_index[&Sup::new(s.linga(), s.vibhakti(), s.vacana())];
+                let ret = {
+                    PackedSubanta::new()
+                        .with_pratipadika_id(pratipadika_id.0.try_into()?)
+                        .with_sup_id(sup_id.0 as u8)
+                };
+                Ok(ret)
+            }
+            None => Err(Error::Generic("Pratipadika not in registry.".to_string())),
+        }
+    }
+
+    fn pack_tinanta(&self, t: &TinantaEntry) -> Result<PackedTinanta> {
+        match self.pack_dhatu(t.dhatu()) {
+            Some(dhatu_id) => {
+                let tin_id =
+                    self.tin_to_index[&Tin::new(t.prayoga(), t.lakara(), t.purusha(), t.vacana())];
+                let ret = PackedTinanta::new()
+                    .with_dhatu_id(dhatu_id.0.try_into()?)
+                    .with_tin_id(tin_id.0 as u8);
+                Ok(ret)
+            }
+            None => Err(Error::Generic("Dhatu not in registry.".to_string())),
         }
     }
 
     /// Packs the given semantics into an integer value.
-    pub fn pack(&self, pada: &PadaEntry) -> Result<PackedEntry> {
-        let to_u32 = u32::from_le_bytes;
-
-        let val = match pada {
+    pub(crate) fn pack(&self, pada: &PadaEntry) -> Result<PackedEntry> {
+        let ret = match pada {
             PadaEntry::Avyaya(a) => {
-                match self.pratipadika_to_index.get(a.subanta().pratipadika()) {
-                    Some(i) => {
-                        let payload = PackedAvyaya::pack(*i)?.into_bytes();
-                        PackedEntry::new()
-                            .with_pos(PartOfSpeech::Avyaya)
-                            .with_payload(to_u32(payload))
-                    }
-                    None => return Err(Error::Generic("Pratipadika not in index.".to_string())),
-                }
+                let payload = self.pack_avyaya(a)?;
+                PackedEntry::new()
+                    .with_pos(PartOfSpeech::Avyaya)
+                    .with_payload(u32::from_le_bytes(payload.into_bytes()))
             }
-            PadaEntry::Subanta(s) => match self.pratipadika_to_index.get(s.subanta().pratipadika())
-            {
-                Some(i) => {
-                    let payload = PackedSubanta::pack(s, *i)?.into_bytes();
-                    PackedEntry::new()
-                        .with_pos(PartOfSpeech::Subanta)
-                        .with_payload(to_u32(payload))
-                }
-                None => return Err(Error::Generic("Pratipadika not in index.".to_string())),
-            },
-            PadaEntry::Tinanta(t) => match self.dhatu_to_index.get(t.dhatu()) {
-                Some(i) => {
-                    let payload = PackedTinanta::pack(t, *i)?.into_bytes();
-                    PackedEntry::new()
-                        .with_pos(PartOfSpeech::Tinanta)
-                        .with_payload(to_u32(payload))
-                }
-                None => return Err(Error::Generic("Dhatu not in index.".to_string())),
-            },
-            PadaEntry::Unknown => PackedEntry::new().with_pos(PartOfSpeech::Unknown),
+            PadaEntry::Tinanta(t) => {
+                let payload = self.pack_tinanta(t)?;
+                PackedEntry::new()
+                    .with_pos(PartOfSpeech::Tinanta)
+                    .with_payload(u32::from_le_bytes(payload.into_bytes()))
+            }
+            PadaEntry::Subanta(s) => {
+                let payload = self.pack_subanta(s)?;
+                PackedEntry::new()
+                    .with_pos(PartOfSpeech::Subanta)
+                    .with_payload(u32::from_le_bytes(payload.into_bytes()))
+            }
+            PadaEntry::Unknown => {
+                let payload = PackedUnknown::new();
+                PackedEntry::new()
+                    .with_pos(PartOfSpeech::Tinanta)
+                    .with_payload(u32::from_le_bytes(payload.into_bytes()))
+            }
         };
-        Ok(val)
+
+        Ok(ret)
+    }
+
+    fn unpack_sup(&self, id: usize) -> Result<&Sup> {
+        match self.sups.get(id) {
+            Some(s) => Ok(s),
+            None => Err(Error::Generic("Tin ID not in registry.".to_string())),
+        }
+    }
+
+    fn unpack_tin(&self, id: usize) -> Result<&Tin> {
+        match self.tins.get(id) {
+            Some(t) => Ok(t),
+            None => Err(Error::Generic("Tin ID not in registry.".to_string())),
+        }
+    }
+
+    fn unpack_krt(&self, id: Id) -> Result<&RichKrt> {
+        match self.krts.get(id.0) {
+            Some(k) => Ok(k),
+            None => Err(Error::Generic("Tin ID not in registry.".to_string())),
+        }
+    }
+
+    pub(crate) fn unpack_dhatu(&self, id: Id) -> Result<DhatuEntry> {
+        match (self.dhatus.get(id.0), self.dhatu_meta.get(id.0)) {
+            (Some(d), Some(m)) => {
+                let entry = DhatuEntry::new(d, &m.clean_text);
+                Ok(entry)
+            }
+            _ => Err(Error::Generic("Dhatu ID not in registry.".to_string())),
+        }
+    }
+
+    pub(crate) fn unpack_pratipadika(&self, id: Id) -> Result<PratipadikaEntry> {
+        match self.pratipadikas.get(id.0) {
+            Some(p) => match p {
+                SmallPratipadika::Basic(b) => {
+                    let lingas = match self.pratipadika_meta.get(&id) {
+                        Some(m) => m.lingas.as_slice(),
+                        None => &[],
+                    };
+
+                    Ok(PratipadikaEntry::basic(b, lingas))
+                }
+                SmallPratipadika::Krdanta(k) => {
+                    let dhatu_entry = self.unpack_dhatu(k.dhatu_id)?;
+                    let krt = self.unpack_krt(k.krt_id)?;
+                    Ok(PratipadikaEntry::Krdanta(KrdantaEntry::new(
+                        dhatu_entry,
+                        krt.krt,
+                        krt.prayoga,
+                        krt.lakara,
+                    )))
+                }
+            },
+            None => Err(Error::Generic(
+                "Pratipadika ID not in registry.".to_string(),
+            )),
+        }
+    }
+
+    fn unpack_subanta(&self, packed: PackedSubanta) -> Result<SubantaEntry> {
+        let pratipadika = self.unpack_pratipadika(Id(packed.pratipadika_id() as usize))?;
+        let sup = self.unpack_sup(packed.sup_id() as usize)?;
+        Ok(SubantaEntry::new(
+            pratipadika,
+            sup.linga,
+            sup.vibhakti,
+            sup.vacana,
+        ))
+    }
+
+    fn unpack_tinanta(&self, packed: PackedTinanta) -> Result<TinantaEntry> {
+        let dhatu_entry = self.unpack_dhatu(Id(packed.dhatu_id() as usize))?;
+        let tin = self.unpack_tin(packed.tin_id() as usize)?;
+
+        Ok(TinantaEntry::new(
+            dhatu_entry,
+            tin.prayoga,
+            tin.lakara,
+            tin.purusha,
+            tin.vacana,
+        ))
+    }
+
+    fn unpack_avyaya(&self, packed: PackedAvyaya) -> Result<SubantaEntry> {
+        let pratipadika = self.unpack_pratipadika(Id(packed.pratipadika_id() as usize))?;
+        Ok(SubantaEntry::avyaya(pratipadika))
     }
 
     /// Unpacks the given packed pada.
     pub fn unpack(&self, pada: &PackedEntry) -> Result<PadaEntry> {
         match pada.pos() {
-            PartOfSpeech::Avyaya => pada.unwrap_as_avyaya().unpack(&self.pratipadikas),
-            PartOfSpeech::Subanta => pada.unwrap_as_subanta().unpack(&self.pratipadikas),
-            PartOfSpeech::Tinanta => pada.unwrap_as_tinanta().unpack(&self.dhatus),
-            PartOfSpeech::Unknown => Ok(PadaEntry::Unknown),
+            PartOfSpeech::Subanta => {
+                let subanta = self.unpack_subanta(pada.as_packed_subanta())?;
+                Ok(PadaEntry::Subanta(subanta))
+            }
+            PartOfSpeech::Tinanta => {
+                let tinanta = self.unpack_tinanta(pada.as_packed_tinanta())?;
+                Ok(PadaEntry::Tinanta(tinanta))
+            }
+            PartOfSpeech::Avyaya => {
+                let avyaya = self.unpack_avyaya(pada.as_packed_avyaya())?;
+                Ok(PadaEntry::Avyaya(avyaya))
+            }
+            _ => Ok(PadaEntry::Unknown),
         }
     }
 }
@@ -453,72 +822,61 @@ impl Packer {
 mod tests {
     use super::*;
     use vidyut_prakriya::args as vp;
+    use vidyut_prakriya::args::{Pratipadika, Subanta};
     type TestResult = Result<()>;
 
     fn safe(s: &str) -> vp::Slp1String {
         vp::Slp1String::from(s).expect("static")
     }
 
-    fn entry(p: Pratipadika) -> PratipadikaEntry {
-        PratipadikaEntry::new(p, vec![])
-    }
-
     #[test]
     fn test_subanta_packing() -> TestResult {
         let deva = Pratipadika::basic(safe("deva"));
         let nara = Pratipadika::basic(safe("nara"));
-        let devasya = PadaEntry::Subanta(
-            Subanta::new(deva.clone(), Linga::Pum, Vibhakti::Sasthi, Vacana::Eka).into(),
-        );
-        let narasya = PadaEntry::Subanta(
-            Subanta::new(nara.clone(), Linga::Pum, Vibhakti::Sasthi, Vacana::Eka).into(),
-        );
+        let devasya = Subanta::new(deva.clone(), Linga::Pum, Vibhakti::Sasthi, Vacana::Eka);
+        let narasya = Subanta::new(nara.clone(), Linga::Pum, Vibhakti::Sasthi, Vacana::Eka);
+        let devasya_entry: SubantaEntry = (&devasya).try_into().expect("ok");
+        let narasya_entry: SubantaEntry = (&narasya).try_into().expect("ok");
 
         let mut packer = Packer::new();
-        packer.register_pratipadikas(&[entry(deva), entry(nara)]);
+        packer.register_pratipadika(devasya_entry.pratipadika_entry());
+        packer.register_pratipadika(narasya_entry.pratipadika_entry());
 
-        let devasya_code = packer.pack(&devasya)?;
-        let narasya_code = packer.pack(&narasya)?;
-        assert_eq!(packer.unpack(&narasya_code)?, narasya);
-        assert_eq!(packer.unpack(&devasya_code)?, devasya);
+        let devasya_entry: PadaEntry = devasya_entry.into();
+        let narasya_entry: PadaEntry = narasya_entry.into();
+        let devasya_code = packer.pack(&devasya_entry)?;
+        let narasya_code = packer.pack(&narasya_entry)?;
+        assert_eq!(packer.unpack(&narasya_code)?, narasya_entry);
+        assert_eq!(packer.unpack(&devasya_code)?, devasya_entry);
         Ok(())
     }
 
     #[test]
     fn test_tinanta_packing() -> TestResult {
-        let gacchati = PadaEntry::Tinanta(
-            Tinanta::builder()
-                .dhatu(Dhatu::mula(safe("ga\\mx~"), vp::Gana::Bhvadi))
-                .purusha(Purusha::Prathama)
-                .vacana(Vacana::Eka)
-                .lakara(Lakara::Lat)
-                .prayoga(Prayoga::Kartari)
-                .build()
-                .unwrap(),
-        );
+        let gam = Dhatu::mula(safe("ga\\mx~"), vp::Gana::Bhvadi);
+        let gacchati = PadaEntry::Tinanta(TinantaEntry::new(
+            DhatuEntry::new(&gam, "gam"),
+            Prayoga::Kartari,
+            Lakara::Lat,
+            Purusha::Prathama,
+            Vacana::Eka,
+        ));
 
-        let carati = PadaEntry::Tinanta(
-            Tinanta::builder()
-                .dhatu(Dhatu::mula(safe("cara~"), vp::Gana::Bhvadi))
-                .purusha(Purusha::Prathama)
-                .vacana(Vacana::Eka)
-                .lakara(Lakara::Lat)
-                .prayoga(Prayoga::Kartari)
-                .build()
-                .unwrap(),
-        );
+        let car = Dhatu::mula(safe("cara~"), vp::Gana::Bhvadi);
+        let carati = PadaEntry::Tinanta(TinantaEntry::new(
+            DhatuEntry::new(&car, "car"),
+            Prayoga::Kartari,
+            Lakara::Lat,
+            Purusha::Prathama,
+            Vacana::Eka,
+        ));
 
         let mut packer = Packer::new();
-        packer.register_dhatus(&[
-            DhatuEntry::new(
-                Dhatu::mula(safe("ga\\mx~"), vp::Gana::Bhvadi),
-                "gam".to_string(),
-            ),
-            DhatuEntry::new(
-                Dhatu::mula(safe("cara~"), vp::Gana::Bhvadi),
-                "car".to_string(),
-            ),
-        ]);
+        packer.register_dhatu(&gam);
+        packer.add_dhatu_meta(&gam, "gam".to_string());
+        packer.register_dhatu(&car);
+        packer.add_dhatu_meta(&car, "car".to_string());
+
         let gacchati_code = packer.pack(&gacchati)?;
         let carati_code = packer.pack(&carati)?;
 
@@ -531,11 +889,16 @@ mod tests {
     fn test_avyaya_packing() -> TestResult {
         let iti_stem = Pratipadika::basic(safe("iti"));
         let ca_stem = Pratipadika::basic(safe("ca"));
-        let iti = PadaEntry::Avyaya(Subanta::avyaya(iti_stem.clone()).into());
-        let ca = PadaEntry::Avyaya(Subanta::avyaya(ca_stem.clone()).into());
 
         let mut packer = Packer::new();
-        packer.register_pratipadikas(&[entry(iti_stem), entry(ca_stem)]);
+        let iti_entry = (&iti_stem).try_into().expect("ok");
+        let ca_entry = (&ca_stem).try_into().expect("ok");
+        packer.register_pratipadika(&iti_entry);
+        packer.register_pratipadika(&ca_entry);
+
+        let iti = PadaEntry::Avyaya(SubantaEntry::avyaya(iti_entry));
+        let ca = PadaEntry::Avyaya(SubantaEntry::avyaya(ca_entry));
+
         let iti_code = packer.pack(&iti)?;
         let ca_code = packer.pack(&ca)?;
 

@@ -1,4 +1,6 @@
-/// Train a model by collecting features from our dataset.
+//! Train a model by collecting features from our dataset.
+
+/*
 use clap::Parser;
 use glob::glob;
 use std::collections::{HashMap, HashSet};
@@ -198,3 +200,6 @@ fn main() {
         std::process::exit(1);
     }
 }
+*/
+
+fn main() {}

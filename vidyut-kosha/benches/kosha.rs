@@ -3,7 +3,7 @@ use bencher::black_box;
 use clap::Parser;
 use fst::Streamer;
 use log::info;
-use multimap::MultiMap;
+use rustc_hash::FxHashMap;
 use std::error::Error;
 use std::path::PathBuf;
 use std::process;
@@ -13,7 +13,7 @@ use vidyut_kosha::packing::*;
 use vidyut_kosha::Kosha;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
-type NaiveKosha = MultiMap<String, PackedEntry>;
+type NaiveKosha = FxHashMap<String, Vec<PackedEntry>>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -27,12 +27,13 @@ struct Args {
 }
 
 fn create_naive_kosha(fst_lex: &Kosha) -> Result<NaiveKosha> {
-    let mut ret = MultiMap::new();
+    let mut ret = FxHashMap::default();
     let mut stream = fst_lex.stream();
     while let Some((key, value)) = stream.next() {
         let key = std::str::from_utf8(key)?;
         let value = PackedEntry::from_u32(value as u32);
-        ret.insert(key.to_string(), value);
+        let v = ret.entry(key.to_string()).or_insert(Vec::new());
+        v.push(value);
     }
     Ok(ret)
 }
@@ -68,7 +69,7 @@ fn bench_fst_kosha_sample_1p(lex: &Kosha, words: &[String]) {
 
 fn bench_naive_kosha_sample_1p(lex: &NaiveKosha, words: &[String]) {
     for w in words {
-        if let Some(vec) = lex.get_vec(w) {
+        if let Some(vec) = lex.get(w) {
             for _pada in vec {
                 // println!("{w}: {:?}", lex.unpack(&pada));
             }

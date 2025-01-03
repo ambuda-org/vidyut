@@ -29,35 +29,35 @@ pub enum Decision {
 pub enum Rule {
     /// A sutra from the Ashtadhyayi.
     ///
-    /// Format: "<adhyaya>.<pada>.<sutra>"
+    /// Format: `<adhyaya>.<pada>.<sutra>`
     Ashtadhyayi(&'static str),
     /// A varttika on the Ashtadhyayi.
     ///
-    /// Format: "<adhyaya>.<pada>.<sutra>.<varttika>"
+    /// Format: `<adhyaya>.<pada>.<sutra>.<varttika>`
     Varttika(&'static str),
     /// A sutra from the Dhatupatha.
     ///
-    /// Format: "<gana>.<sutra>"
+    /// Format: `<gana>.<sutra>`
     Dhatupatha(&'static str),
     /// A sutra from the Unadipatha.
     ///
-    /// Format: "<gana>.<sutra>"
+    /// Format: `<gana>.<sutra>`
     Unadipatha(&'static str),
     /// A sutra from the Paniniya-Linganushasanam.
     ///
-    /// Format: "<sutra>"
+    /// Format: `<sutra>`
     Linganushasana(&'static str),
     /// A sutra from the Phit Sutras.
     ///
-    /// Format: "<gana>.<sutra>"
+    /// Format: `<gana>.<sutra>`
     Phit(&'static str),
     /// A comment in the Kashika-vrtti on a specific sutra.
     ///
-    /// Format: "<adhyaya>.<pada>.<sutra>"
+    /// Format: `<adhyaya>.<pada>.<sutra>`
     Kashika(&'static str),
     /// A quotation from the Vaiyakarana-siddhanta-kaumudi.
     ///
-    /// Format: "<sutra>"
+    /// Format: `<sutra>`
     Kaumudi(&'static str),
 }
 
@@ -209,7 +209,7 @@ pub struct Prakriya {
     tags: EnumSet<PrakriyaTag>,
     history: Vec<Step>,
     artha: Option<Artha>,
-    config: Config,
+    pub(crate) config: Config,
     pub(crate) rule_choices: Vec<RuleChoice>,
 }
 

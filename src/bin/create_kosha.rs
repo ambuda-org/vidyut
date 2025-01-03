@@ -2,10 +2,10 @@
 use clap::Parser;
 use log::info;
 use rayon::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process;
-use vidyut_kosha::entries::{DhatuEntry, PadaEntry, PratipadikaEntry, SubantaEntry};
+use vidyut_kosha::entries::{PadaEntry, SubantaEntry};
 use vidyut_kosha::packing::PackedEntry;
 use vidyut_kosha::Builder;
 use vidyut_prakriya::args::*;
@@ -13,8 +13,9 @@ use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 type UpasargaDhatuMap = HashMap<String, Vec<Vec<String>>>;
-type Pratipadikas = Vec<(String, PratipadikaEntry)>;
-type Padas = Vec<(String, PackedEntry)>;
+type Pratipadikas = Vec<(String, Pratipadika)>;
+type Entries = Vec<(String, PackedEntry)>;
+type SmallSubanta = (String, Linga, Vibhakti, Vacana);
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -30,9 +31,17 @@ struct Args {
     /// Path to the Vidyut output directory.
     #[arg(long)]
     output_dir: PathBuf,
+
+    /// (testing) the number of dhatus to use when building the kosha. If unset, use all possible
+    /// dhatus.
+    #[arg(long)]
+    num_dhatus: Option<usize>,
+
+    #[arg(long, value_delimiter = ',')]
+    filters: Vec<String>,
 }
 
-/// Defines all of the input data paths we need to construct the FST.
+/// Defines all of the input data paths we need to construct the kosha.
 pub struct DataPaths {
     pub avyayas: PathBuf,
     pub pratipadikas: PathBuf,
@@ -51,6 +60,16 @@ impl DataPaths {
     }
 }
 
+/// Creates a preconfigured Vyakarana instance.
+fn create_vyakarana() -> Vyakarana {
+    Vyakarana::builder()
+        .log_steps(false)
+        .nlp_mode(true)
+        .is_chandasi(true)
+        .build()
+}
+
+/// Returns all combinations of (linga, vibhakti, vacana)
 fn sup_options() -> Vec<(Linga, Vibhakti, Vacana)> {
     let mut ret = Vec::new();
     for linga in Linga::iter() {
@@ -63,6 +82,7 @@ fn sup_options() -> Vec<(Linga, Vibhakti, Vacana)> {
     ret
 }
 
+/// Returns all combinations of (prayoga, lakara, purusha, vacana)
 fn tin_options() -> Vec<(Prayoga, Lakara, Purusha, Vacana)> {
     let mut ret = Vec::new();
     for prayoga in Prayoga::iter() {
@@ -85,6 +105,9 @@ fn tin_options() -> Vec<(Prayoga, Lakara, Purusha, Vacana)> {
     ret
 }
 
+/// Creates subanta endings for tricky pratipadikas.
+///
+/// TODO: improve the rest of the code so that we can delete this function.
 fn create_subanta_endings() -> HashMap<String, Vec<(String, Linga, Vibhakti, Vacana)>> {
     let mut ret = HashMap::new();
 
@@ -130,20 +153,12 @@ fn create_subanta_endings() -> HashMap<String, Vec<(String, Linga, Vibhakti, Vac
     ret
 }
 
-/// Creates a preconfigured Vyakarana instance.
-fn create_vyakarana() -> Vyakarana {
-    Vyakarana::builder()
-        .log_steps(false)
-        .nlp_mode(true)
-        .is_chandasi(true)
-        .build()
-}
-
 /// Creates all standard combinations of (upasarga x dhatu x sanadi)
 fn create_all_dhatus(
+    builder: &mut Builder,
     dhatupatha_path: &Path,
     upasarga_dhatu_path: &Path,
-) -> Result<Vec<DhatuEntry>> {
+) -> Result<Vec<Dhatu>> {
     let sanadis = {
         use Sanadi::*;
         vec![
@@ -190,14 +205,68 @@ fn create_all_dhatus(
                     .with_prefixes(prefixes);
                 let prakriyas = v.derive_dhatus(&dhatu);
                 if let Some(p) = prakriyas.iter().next() {
+                    builder.register_dhatu(&dhatu);
+                    builder.add_dhatu_meta(&dhatu, p.text());
+
                     // Add valid dhatus only.
-                    ret.push(DhatuEntry::new(dhatu, p.text()));
+                    ret.push(dhatu);
                 }
             }
         }
     }
 
     Ok(ret)
+}
+
+fn create_bare_krdantas(all_dhatus: &[Dhatu]) -> Vec<Krdanta> {
+    use BaseKrt as K;
+
+    let all_krts: Vec<BaseKrt> = K::iter()
+        .filter(|k| !k.is_duplicate() && !k.is_avyaya())
+        .collect();
+
+    let v = create_vyakarana();
+
+    let all_krdantas: Vec<_> = all_dhatus
+        .par_chunks(1 + all_dhatus.len() / 100)
+        .flat_map(|chunk| {
+            let mut ret = Vec::new();
+            for dhatu in chunk {
+                for krt in all_krts.iter().copied() {
+                    let prayoga_lakara: &[(Option<Prayoga>, Option<Lakara>)] = match krt {
+                        K::Satf => &[
+                            (Some(Prayoga::Kartari), Some(Lakara::Lat)),
+                            (Some(Prayoga::Kartari), Some(Lakara::Lrt)),
+                        ],
+                        K::SAnac => &[
+                            (Some(Prayoga::Kartari), Some(Lakara::Lat)),
+                            (Some(Prayoga::Kartari), Some(Lakara::Lrt)),
+                            (Some(Prayoga::Karmani), Some(Lakara::Lat)),
+                            (Some(Prayoga::Karmani), Some(Lakara::Lrt)),
+                        ],
+                        _ => &[(None, None)],
+                    };
+
+                    for (prayoga, lakara) in prayoga_lakara.iter().copied() {
+                        let mut builder = Krdanta::builder().dhatu(dhatu.clone()).krt(krt);
+                        if let (Some(prayoga), Some(lakara)) = (prayoga, lakara) {
+                            builder = builder.prayoga(prayoga).lakara(lakara);
+                        }
+                        let krdanta = builder.build().expect("ok");
+
+                        // Only add valid krdantas, to avoid clogging the registry.
+                        let prakriyas = v.derive_krdantas(&krdanta);
+                        if !prakriyas.is_empty() {
+                            ret.push(krdanta)
+                        }
+                    }
+                }
+            }
+
+            ret.into_par_iter()
+        })
+        .collect();
+    all_krdantas
 }
 
 /// Creates all tinantas.
@@ -210,26 +279,26 @@ fn create_all_dhatus(
 /// - `dhatu` comes from the Dhatupatha on ashtadhyayi.com
 ///
 /// TODO: gati, cvi
-fn create_all_tinantas(builder: &Builder, all_dhatus: &[DhatuEntry]) -> Padas {
+fn create_all_tinantas(builder: &Builder, all_dhatus: &[Dhatu]) -> Entries {
     let plpv = tin_options();
     let v = create_vyakarana();
 
     all_dhatus
-        .par_chunks(all_dhatus.len() / 100)
+        .par_chunks(1 + all_dhatus.len() / 100)
         .flat_map(|chunk| {
             let mut ret = Vec::new();
 
-            for entry in chunk {
-                let dhatu = entry.dhatu().clone();
+            for dhatu in chunk {
+                let dhatu = dhatu.clone();
                 for (prayoga, lakara, purusha, vacana) in plpv.iter().copied() {
                     let args = Tinanta::new(dhatu.clone(), prayoga, lakara, purusha, vacana);
 
                     let prakriyas = v.derive_tinantas(&args);
                     for prakriya in prakriyas {
                         let text = prakriya.text();
-                        let semantics = PadaEntry::Tinanta(args.clone());
-                        let packed_semantics = builder.pack(&semantics).expect("ok");
-                        ret.push((text, packed_semantics))
+                        let entry = PadaEntry::Tinanta((&args).into());
+                        let packed_entry = builder.pack(&entry).expect("ok");
+                        ret.push((text, packed_entry))
                     }
                 }
             }
@@ -249,134 +318,91 @@ fn create_all_tinantas(builder: &Builder, all_dhatus: &[DhatuEntry]) -> Padas {
 /// - `dhatu` comes from the Dhatupatha on ashtadhyayi.com
 ///
 /// TODO: gati, cvi
-fn create_inflected_krt_subantas(builder: &mut Builder, all_dhatus: &[DhatuEntry]) -> Padas {
-    use BaseKrt as K;
-    const ALL_KRTS: &[K] = &[
-        // Lit
-        K::kvasu,
-        K::kAnac,
-        // nistha
-        K::kta,
-        K::ktavatu,
-        // Lat
-        K::Satf,
-        K::SAnac,
-        // krtya
-        K::yat,
-        K::Ryat,
-        K::kyap,
-        K::tavya,
-        K::anIyar,
-        // Common
-        K::Rvul,
-        K::lyuw,
-        K::tfc,
-        // TODO: add all of the others, including unadis.
-    ];
-
+fn create_inflected_krt_subantas(builder: &mut Builder, all_krdantas: &[Krdanta]) -> Entries {
     let v = create_vyakarana();
-    let mut all_krdantas: Vec<PratipadikaEntry> = Vec::new();
-    {
-        for entry in all_dhatus {
-            let dhatu = entry.dhatu();
-            for krt in ALL_KRTS.iter().copied() {
-                let prayoga_lakara: &[(Option<Prayoga>, Option<Lakara>)] = match krt {
-                    K::Satf | K::SAnac => &[
-                        (Some(Prayoga::Kartari), Some(Lakara::Lat)),
-                        (Some(Prayoga::Kartari), Some(Lakara::Lrt)),
-                        (Some(Prayoga::Karmani), Some(Lakara::Lat)),
-                        (Some(Prayoga::Karmani), Some(Lakara::Lrt)),
-                    ],
-                    _ => &[(None, None)],
-                };
-
-                for (prayoga, lakara) in prayoga_lakara.iter().copied() {
-                    let mut builder = Krdanta::builder().dhatu(dhatu.clone()).krt(krt);
-                    if let (Some(prayoga), Some(lakara)) = (prayoga, lakara) {
-                        builder = builder.prayoga(prayoga).lakara(lakara);
-                    }
-                    let krdanta = builder.build().expect("ok");
-
-                    // Keep only krdantas that are morphologically valid to avoid filling
-                    // `register_pratipadikas` with junk.
-                    let prakriyas = v.derive_krdantas(&krdanta);
-                    if !prakriyas.is_empty() {
-                        all_krdantas.push(PratipadikaEntry::new(krdanta.into(), vec![]));
-                    }
-                }
-            }
-        }
-        builder.register_pratipadikas(&all_krdantas);
-    }
-    info!("- Created {} krdanta pratipadikas.", all_krdantas.len());
-
     let lvv = sup_options();
-    all_krdantas
-        .par_chunks(all_krdantas.len() / 100)
+    let paradigms: Vec<(Krdanta, Vec<SmallSubanta>)> = all_krdantas
+        .par_chunks(1 + all_krdantas.len() / 100)
         .flat_map(|chunk| {
             let mut ret = Vec::new();
 
-            for entry in chunk {
-                let krdanta = entry.pratipadika();
-                for (linga, vibhakti, vacana) in lvv.iter().copied() {
-                    let args = Subanta::new(krdanta.clone(), linga, vibhakti, vacana);
+            for krdanta in chunk {
+                for variant in v.derive_krdantas(&krdanta) {
+                    // Restrict all padas to use the same rule choices as this pratipadika variant.
+                    // This properly groups padas by their common prefix and lets us generate a
+                    // useful paradigm.
+                    let v_variant = create_vyakarana()
+                        .into_builder()
+                        .rule_choices(variant.rule_choices().to_vec())
+                        .build();
 
-                    let prakriyas = v.derive_subantas(&args);
-                    for prakriya in &prakriyas {
-                        let text = prakriya.text();
+                    let mut padas = Vec::new();
+                    for (linga, vibhakti, vacana) in lvv.iter().copied() {
+                        let args = Subanta::new(krdanta.clone(), linga, vibhakti, vacana);
 
-                        let subanta = Subanta::new(krdanta.clone(), linga, vibhakti, vacana);
-                        let pada = PadaEntry::Subanta(subanta.into());
-                        let packed_semantics = builder.pack(&pada).expect("valid");
-                        ret.push((text, packed_semantics))
+                        let prakriyas = v_variant.derive_subantas(&args);
+                        for prakriya in &prakriyas {
+                            let text = prakriya.text();
+                            padas.push((text, linga, vibhakti, vacana));
+                        }
                     }
+                    ret.push((krdanta.clone(), padas));
                 }
             }
 
             ret.into_par_iter()
         })
-        .collect()
+        .collect();
+
+    let mut entries = Vec::new();
+    for (krdanta, padas) in paradigms {
+        let phit: Pratipadika = krdanta.into();
+        let phit_entry = (&phit).try_into().expect("ok");
+        builder.register_pratipadika(&phit_entry);
+
+        // Prefixed subantas.
+        let (key, value) = builder
+            .register_subanta_paradigm(&(&phit).try_into().expect("ok"), &padas)
+            .expect("ok");
+
+        entries.push((key, value));
+    }
+
+    entries
 }
 
-fn create_avyaya_krt_subantas(builder: &mut Builder, all_dhatus: &[DhatuEntry]) -> Padas {
+fn create_avyaya_krt_subantas(builder: &mut Builder, all_dhatus: &[Dhatu]) -> Entries {
     use BaseKrt as K;
     const AVYAYA_KRTS: &[K] = &[K::ktvA, K::tumun];
 
-    let mut all_krdantas: Vec<PratipadikaEntry> = Vec::new();
-    {
-        for entry in all_dhatus {
-            let dhatu = entry.dhatu();
-            for krt in AVYAYA_KRTS.iter().copied() {
-                let krdanta = Krdanta::new(dhatu.clone(), krt);
-                let entry = PratipadikaEntry::new(krdanta.into(), vec![]);
-                all_krdantas.push(entry);
-            }
+    let mut all_krdantas: Vec<Krdanta> = Vec::new();
+    for dhatu in all_dhatus {
+        for krt in AVYAYA_KRTS.iter().copied() {
+            let krdanta = Krdanta::new(dhatu.clone(), krt);
+            let phit: Pratipadika = krdanta.clone().into();
+            builder.register_pratipadika(&(&phit).try_into().expect("ok"));
+            all_krdantas.push(krdanta);
         }
-        builder.register_pratipadikas(&all_krdantas);
     }
     info!(
-        "- Created {} krdanta avyaya pratipadikas.",
+        "Created {} krdanta avyaya pratipadikas.",
         all_krdantas.len()
     );
 
     let v = create_vyakarana();
     all_krdantas
-        .par_chunks(all_krdantas.len() / 100)
+        .par_chunks(1 + all_krdantas.len() / 100)
         .flat_map(|chunk| {
             let mut ret = Vec::new();
 
-            for entry in chunk {
-                let krdanta = entry.pratipadika();
+            for krdanta in chunk {
                 let args = Subanta::avyaya(krdanta.clone());
 
                 let prakriyas = v.derive_subantas(&args);
                 for prakriya in &prakriyas {
                     let text = prakriya.text();
-                    let semantics = PadaEntry::Avyaya(SubantaEntry::new(
-                        Subanta::avyaya(krdanta.clone()),
-                        PratipadikaEntry::new(krdanta.clone(), vec![]),
-                    ));
-                    let packed_semantics = builder.pack(&semantics).expect("valid");
+                    let entry = PadaEntry::Avyaya((&args).try_into().expect("ok"));
+                    let packed_semantics = builder.pack(&entry).expect("valid");
                     ret.push((text, packed_semantics))
                 }
             }
@@ -386,7 +412,11 @@ fn create_avyaya_krt_subantas(builder: &mut Builder, all_dhatus: &[DhatuEntry]) 
         .collect()
 }
 
-fn read_basic_pratipadikas(builder: &mut Builder, path: &Path) -> Result<Pratipadikas> {
+fn read_basic_pratipadikas(
+    builder: &mut Builder,
+    all_dhatus: &[Dhatu],
+    path: &Path,
+) -> Result<Pratipadikas> {
     let mut ret = Pratipadikas::new();
 
     fn parse_stem_linga(code: &str) -> &[Linga] {
@@ -404,18 +434,37 @@ fn read_basic_pratipadikas(builder: &mut Builder, path: &Path) -> Result<Pratipa
         }
     }
 
+    // Skip krdantas that we're generating elsewhere.
+    let v = create_vyakarana();
+    let krdanta_phits: HashSet<_> = create_bare_krdantas(&all_dhatus)
+        .iter()
+        .flat_map(|k| v.derive_krdantas(&k))
+        .map(|p| p.text())
+        .collect();
+
+    let mut num_krdanta_collisions = 0;
     let mut rdr = csv::Reader::from_path(path)?;
     for maybe_row in rdr.records() {
         let r = maybe_row?;
+        let lingas = parse_stem_linga(&r[1]);
+
         // Weird '|' characters in input, all seem to be SLP1 `Q`.
         let stem = r[0].to_string().replace('|', "Q");
         // Skip `L` for now.
         if stem.contains('L') {
             continue;
         }
+        // Skip strange pratipadikas.
+        if stem.ends_with('M') {
+            continue;
+        }
+
+        if krdanta_phits.contains(&stem) && lingas.len() == 3 {
+            num_krdanta_collisions += 1;
+            continue;
+        }
 
         let stem = Slp1String::from(stem).expect("ok");
-        let lingas = parse_stem_linga(&r[1]);
         let pratipadika =
             if lingas == &[Linga::Stri] && (stem.ends_with('A') || stem.ends_with('I')) {
                 // senA, devI, ...
@@ -423,8 +472,12 @@ fn read_basic_pratipadikas(builder: &mut Builder, path: &Path) -> Result<Pratipa
             } else {
                 Pratipadika::basic(stem)
             };
-        let entry = PratipadikaEntry::new(pratipadika, lingas.to_vec());
-        ret.push((r[0].to_string(), entry));
+
+        let entry = (&pratipadika).try_into().expect("ok");
+        builder.register_pratipadika(&entry);
+        builder.add_pratipadika_meta(&entry, lingas.to_vec());
+
+        ret.push((r[0].to_string(), pratipadika));
     }
 
     let sankhyas = &[
@@ -443,32 +496,31 @@ fn read_basic_pratipadikas(builder: &mut Builder, path: &Path) -> Result<Pratipa
     ];
     for s in sankhyas {
         let safe = Slp1String::from(s).expect("ok");
-        let entry = PratipadikaEntry::new(Pratipadika::basic(safe), Vec::new());
-        ret.push((s.to_string(), entry));
+        let phit = Pratipadika::basic(safe);
+        let entry = (&phit).try_into().expect("ok");
+
+        builder.register_pratipadika(&entry);
+        ret.push((s.to_string(), phit));
     }
 
-    for (_, entry) in &ret {
-        builder.register_pratipadikas(&[entry.clone()]);
-    }
-
+    info!("- Skipped {num_krdanta_collisions} pratipadikas (likely krdantas).");
     Ok(ret)
 }
 
-fn create_basic_subantas(builder: &Builder, all_pratipadikas: &Pratipadikas) -> Padas {
+fn create_basic_subantas(builder: &mut Builder, all_pratipadikas: &Pratipadikas) -> Entries {
     let v = create_vyakarana();
     let lvv = sup_options();
 
     // For pratipadikas that are tedious to construct, e.g. havis, Danus, ...
     let ending_table = create_subanta_endings();
 
-    all_pratipadikas
-        .par_chunks(all_pratipadikas.len() / 100)
+    let paradigms: Vec<(Pratipadika, Vec<SmallSubanta>)> = all_pratipadikas
+        .par_chunks(1 + all_pratipadikas.len() / 100)
         .flat_map(|chunk| {
             let mut ret = Vec::new();
 
-            for (_, entry) in chunk {
-                let prati = entry.pratipadika();
-                let b = match prati {
+            for (_, phit) in chunk {
+                let b = match phit {
                     Pratipadika::Basic(b) => b,
                     _ => continue,
                 };
@@ -478,17 +530,14 @@ fn create_basic_subantas(builder: &Builder, all_pratipadikas: &Pratipadikas) -> 
                 for (ending_type, endings) in ending_table.iter() {
                     if b.text().ends_with(ending_type) {
                         let offset = b.text().len() - ending_type.len();
-                        // For tricky pratipadikas that aren't fully supported yet.
                         let prefix = &b.text()[..offset];
 
+                        let mut padas: Vec<SmallSubanta> = Vec::new();
                         for (ending, linga, vibhakti, vacana) in endings {
-                            let args = Subanta::new(prati.clone(), *linga, *vibhakti, *vacana);
-                            let entry = PadaEntry::Subanta(args.into());
-                            let packed_semantics = builder.pack(&entry).expect("valid");
-
-                            let key = prefix.to_string() + ending;
-                            ret.push((key, packed_semantics));
+                            let text = prefix.to_string() + ending;
+                            padas.push((text, *linga, *vibhakti, *vacana))
                         }
+                        ret.push((phit.clone(), padas));
                         used_shortcut = true;
                         break;
                     }
@@ -497,23 +546,53 @@ fn create_basic_subantas(builder: &Builder, all_pratipadikas: &Pratipadikas) -> 
                     continue;
                 }
 
-                // For all other pratipadikas. Ideally, this should be the branch we use for
-                // all subantas.
-                for (linga, vibhakti, vacana) in lvv.iter().copied() {
-                    let args = Subanta::new(prati.clone(), linga, vibhakti, vacana);
+                for variant in &v.derive_pratipadikas(phit) {
+                    // Restrict all padas to use the same rule choices as this pratipadika variant.
+                    // This properly groups padas by their common prefix and lets us generate a
+                    // useful paradigm.
+                    let v_variant = create_vyakarana()
+                        .into_builder()
+                        .rule_choices(variant.rule_choices().to_vec())
+                        .build();
 
-                    let prakriyas = v.derive_subantas(&args);
-                    for prakriya in &prakriyas {
-                        let text = prakriya.text();
-                        let entry = PadaEntry::Subanta(args.clone().into());
-                        let packed_semantics = builder.pack(&entry).expect("valid");
-                        ret.push((text, packed_semantics))
+                    // For all other pratipadikas. Ideally, this should be the branch we use for
+                    // all subantas.
+                    let mut padas: Vec<SmallSubanta> = Vec::new();
+                    for (linga, vibhakti, vacana) in lvv.iter().copied() {
+                        let args = Subanta::new(phit.clone(), linga, vibhakti, vacana);
+                        let prakriyas = v_variant.derive_subantas(&args);
+
+                        for prakriya in &prakriyas {
+                            let text = prakriya.text();
+                            padas.push((text, linga, vibhakti, vacana))
+                        }
                     }
+                    ret.push((phit.clone(), padas));
                 }
             }
             ret.into_par_iter()
         })
-        .collect()
+        .collect();
+
+    let mut entries = Vec::new();
+    for (phit, padas) in paradigms {
+        // Subantas only.
+        for pada in padas {
+            let entry = SubantaEntry::new((&phit).try_into().expect("ok"), pada.1, pada.2, pada.3);
+            let packed_entry = builder.pack(&entry.into()).expect("ok");
+            entries.push((pada.0, packed_entry));
+        }
+
+        /*
+        // Prefixed subantas.
+        let (key, value) = builder
+            .register_subanta_paradigm(&entry, &padas)
+            .expect("ok");
+        entries.push((key, value));
+        */
+    }
+
+    entries
 }
 
 fn read_basic_avyayas(builder: &mut Builder, path: &Path) -> Result<Pratipadikas> {
@@ -531,35 +610,33 @@ fn read_basic_avyayas(builder: &mut Builder, path: &Path) -> Result<Pratipadikas
 
         let stem = Slp1String::from(stem).expect("ok");
         let pratipadika = Pratipadika::basic(stem.clone());
-        let entry = PratipadikaEntry::new(pratipadika, vec![]);
-        ret.push((r[0].to_string(), entry));
+        ret.push((r[0].to_string(), pratipadika));
     }
 
     for (_, value) in &ret {
-        builder.register_pratipadikas(&[value.clone()]);
+        builder.register_pratipadika(&value.try_into().expect("ok"));
     }
 
     Ok(ret)
 }
 
 /// Adds avyayas scraped from the MW dictionary.
-fn create_avyayas(builder: &Builder, avyaya_pratipadikas: &Pratipadikas) -> Padas {
+fn create_avyayas(builder: &Builder, avyaya_pratipadikas: &Pratipadikas) -> Entries {
     let v = create_vyakarana();
     avyaya_pratipadikas
-        .par_chunks(avyaya_pratipadikas.len() / 100)
+        .par_chunks(1 + avyaya_pratipadikas.len() / 100)
         .flat_map(|chunk| {
             let mut ret = Vec::new();
 
-            for (_, entry) in chunk {
-                let prati = entry.pratipadika();
+            for (_, prati) in chunk {
                 let args = Subanta::new(prati.clone(), Linga::Pum, Vibhakti::Prathama, Vacana::Eka);
 
                 let prakriyas = v.derive_subantas(&args);
                 for prakriya in &prakriyas {
                     let text = prakriya.text();
-                    let entry = PadaEntry::Avyaya(args.clone().into());
-                    let packed_semantics = builder.pack(&entry).expect("valid");
-                    ret.push((text, packed_semantics))
+                    let entry = PadaEntry::Avyaya((&args).try_into().expect("ok"));
+                    let packed_entry = builder.pack(&entry).expect("ok");
+                    ret.push((text, packed_entry))
                 }
             }
             ret.into_par_iter()
@@ -591,11 +668,10 @@ fn read_gatis(builder: &mut Builder, path: &Path) -> Result<Pratipadikas> {
 
         let stem = Slp1String::from(stem).expect("ok");
         let pratipadika = Pratipadika::basic(stem.clone());
-        let entry = PratipadikaEntry::new(pratipadika, vec![]);
-        ret.push((r[0].to_string(), entry));
+        ret.push((r[0].to_string(), pratipadika));
     }
     for (_, value) in &ret {
-        builder.register_pratipadikas(&[value.clone()]);
+        builder.register_pratipadika(&value.try_into().expect("ok"));
     }
 
     Ok(ret)
@@ -604,56 +680,102 @@ fn read_gatis(builder: &mut Builder, path: &Path) -> Result<Pratipadikas> {
 fn run(args: Args) -> Result<()> {
     let paths = DataPaths::new(&args.input_dir);
 
-    info!("Generating words.");
-    let mut padas = Vec::new();
+    let filters = if args.filters.is_empty() {
+        vec![
+            "krdantas".to_string(),
+            "tinantas".to_string(),
+            "basic".to_string(),
+            "avyayas".to_string(),
+        ]
+    } else {
+        args.filters
+    };
+
+    let mut entries = Vec::new();
     let mut builder = Builder::new(&args.output_dir)?;
     {
-        let all_dhatus = create_all_dhatus(&args.dhatupatha, &paths.upasarga_dhatus)?;
-        builder.register_dhatus(&all_dhatus);
-        info!("- Created {} dhatus.", all_dhatus.len());
+        let mut all_dhatus =
+            create_all_dhatus(&mut builder, &args.dhatupatha, &paths.upasarga_dhatus)?;
+        if let Some(n) = args.num_dhatus {
+            all_dhatus.drain(n..);
+        }
+        for d in &all_dhatus {
+            builder.register_dhatu(&d);
+        }
 
-        let all_tinantas = create_all_tinantas(&builder, &all_dhatus);
-        info!("- Created {} tinantas.", all_tinantas.len());
-        padas.extend(all_tinantas);
+        info!("Setup");
+        info!("---------------------");
+        info!("Created {} dhatus.", all_dhatus.len());
 
-        let all_krt_subantas = create_inflected_krt_subantas(&mut builder, &all_dhatus);
-        info!(
-            "- Created {} inflected krdanta padas.",
-            all_krt_subantas.len()
-        );
-        padas.extend(all_krt_subantas);
+        let bare_krdantas = create_bare_krdantas(&all_dhatus);
+        info!("Created {} basic krdantas.", bare_krdantas.len());
 
-        let all_krt_avyayas = create_avyaya_krt_subantas(&mut builder, &all_dhatus);
-        info!("- Created {} avyaya krdanta padas.", all_krt_avyayas.len());
-        padas.extend(all_krt_avyayas);
+        if filters.iter().any(|x| x == "krdantas") {
+            info!("");
+            info!("Krdantas");
+            info!("---------------------");
+            let all_krt_subantas = create_inflected_krt_subantas(&mut builder, &bare_krdantas);
+            info!("Created {} krdantas + subantas.", all_krt_subantas.len());
+            entries.extend(all_krt_subantas);
 
-        let basic_pratipadikas = read_basic_pratipadikas(&mut builder, &paths.pratipadikas)?;
-        info!("- Loaded {} basic pratipadikas.", basic_pratipadikas.len());
+            let all_krt_avyayas = create_avyaya_krt_subantas(&mut builder, &all_dhatus);
+            info!("Created {} avyaya krdanta padas.", all_krt_avyayas.len());
+            entries.extend(all_krt_avyayas);
+        }
 
-        let basic_subantas = create_basic_subantas(&builder, &basic_pratipadikas);
-        info!("- Created {} basic subantas.", basic_subantas.len());
-        padas.extend(basic_subantas);
+        if filters.iter().any(|x| x == "tinantas") {
+            info!("");
+            info!("Tinantas");
+            info!("---------------------");
+            let all_tinantas = create_all_tinantas(&builder, &all_dhatus);
+            info!("Created {} tinantas.", all_tinantas.len());
+            entries.extend(all_tinantas);
+        }
 
-        let basic_avyayas = read_basic_avyayas(&mut builder, &paths.avyayas)?;
-        info!("- Loaded {} basic avyayas.", basic_avyayas.len());
-        let basic_avyayas = create_avyayas(&builder, &basic_avyayas);
-        info!("- Created {} basic avyayas.", basic_avyayas.len());
-        padas.extend(basic_avyayas);
+        if filters.iter().any(|x| x == "basic") {
+            info!("");
+            info!("Basic pratipadikas");
+            info!("---------------------");
+            let basic_pratipadikas =
+                read_basic_pratipadikas(&mut builder, &all_dhatus, &paths.pratipadikas)?;
+            info!("Loaded {} basic pratipadikas.", basic_pratipadikas.len());
 
-        let gati = read_gatis(&mut builder, &paths.gati)?;
-        info!("- Loaded {} gati prefixes.", gati.len());
-        let gati = create_avyayas(&builder, &gati);
-        info!("- Created {} gati prefixes.", gati.len());
-        padas.extend(gati);
+            let basic_subantas = create_basic_subantas(&mut builder, &basic_pratipadikas);
+            info!(
+                "Created {} basic pratipadikas + subantas.",
+                basic_subantas.len()
+            );
+            entries.extend(basic_subantas);
+        }
+
+        if filters.iter().any(|x| x == "avyayas") {
+            info!("");
+            info!("Avyayas");
+            info!("---------------------");
+            let basic_avyayas = read_basic_avyayas(&mut builder, &paths.avyayas)?;
+            info!("Loaded {} basic avyayas.", basic_avyayas.len());
+            let basic_avyayas = create_avyayas(&builder, &basic_avyayas);
+            info!("Created {} basic avyayas.", basic_avyayas.len());
+            entries.extend(basic_avyayas);
+
+            let gati = read_gatis(&mut builder, &paths.gati)?;
+            info!("Loaded {} gati prefixes.", gati.len());
+            let gati = create_avyayas(&builder, &gati);
+            info!("Created {} gati prefixes.", gati.len());
+            entries.extend(gati);
+        }
     }
 
+    info!("");
+    info!("Insertion");
+    info!("---------------------");
     info!("Sorting keys.");
-    padas.par_sort();
+    entries.par_sort();
 
     info!("Inserting entries.");
     let mut num_entries = 0;
-    for (key, packed_pada) in padas {
-        builder.insert_packed(&key, &packed_pada)?;
+    for (key, packed_entry) in entries {
+        builder.insert_packed(&key, &packed_entry)?;
         num_entries += 1;
     }
 

@@ -1,2 +1,0 @@
-- many kosha inputs are wrong (hanumantam, e.g.)
-- kosha output is very large, suspiciously so.

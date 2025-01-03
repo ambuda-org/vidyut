@@ -36,10 +36,10 @@ will have tens of millions of words at minimum. In practice, Sanskrit programs
 make various compromises on this word list so that performance doesn't suffer.
 
 One common compromise is to store irregular words as-is and store regular words
-just in their stem form. Then at query time, we guess at the query's underlying
-stem with the help of prefix and suffix tables that we curate manually.
+just in their stem form. At query time, we guess at the query's underlying stem
+with the help of prefix and suffix tables that we curate manually.
 
-This approach is workable, but has two main weaknesses:
+This approach is workable but has two main weaknesses:
 
 - *Speed.* To illustrate, the query `ubhe` could yield the candidates `ubha`,
   `ubhA`, `ubhi`, `ubh`, and `ubhe`, all of which we must check against the
@@ -51,7 +51,7 @@ This approach is workable, but has two main weaknesses:
   decision made by need, not by choice.
 
 `vidyut-kosha` avoids these weaknesses. It stores words exactly, which avoids
-overgeneration. And although single-key lookup is slightly slower, it avoids the
+overgeneration. And although single-key lookup is slightly slower, it softens the
 multiple lookup problem, which makes it faster for many applications.
 
 In exchange, we must pay the following price:
@@ -73,26 +73,6 @@ Detailed notes are coming soon. For now, try running the following command:
 
 ```shell
 $ make create_kosha
-```
-
-If you have a specific word list you want to use instead, you can use the
-builder API directly like so:
-
-```rust,no_run
-use vidyut_kosha::{Kosha, Builder};
-use vidyut_kosha::morph::*;
-
-let mut builder = Builder::new("output-dir").unwrap();
-builder.insert("Bavati", &Pada::Tinanta(Tinanta {
-    dhatu: Dhatu("BU".to_string()),
-    purusha: Purusha::Prathama,
-    vacana: Vacana::Eka,
-    lakara: Lakara::Lat,
-    pada: PadaPrayoga::Parasmaipada,
-}));
-builder.finish().unwrap();
-
-let kosha = Kosha::new("output-dir");
 ```
 
 

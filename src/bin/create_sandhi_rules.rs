@@ -1,4 +1,6 @@
 //! Generates most of the common sandhi rules that occur between two *pada*s.
+
+/*
 use clap::Parser;
 use std::path::{Path, PathBuf};
 use vidyut_cheda::Config;
@@ -33,3 +35,6 @@ fn main() {
         std::process::exit(1);
     }
 }
+*/
+
+fn main() {}

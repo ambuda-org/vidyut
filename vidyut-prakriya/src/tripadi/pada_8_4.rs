@@ -174,8 +174,13 @@ fn try_natva_for_span(
                 || (t.has_tag(T::Pada) && !t.is_pratipadika() && !t.is_nyap_pratyaya())
         });
         // Allow "carman -> carmaRA" but disallow "sruGna -> *sruGRa"
-        let is_exempt_pratipadika = ip.p.has(i_x, |t| t.starts_with("srOGn"));
-        if is_samana_pada && !is_exempt_pratipadika {
+        let is_within_basic_phit = ip.p.has(i_x, |t| {
+            i_x == i_y // within same term
+                && t.is_basic_pratipadika() // is basic pratipadika
+                && i_n.i_char + 1 < t.text.len() // n is within pratipadika and not final
+            || t.starts_with("srOGn") // special exception for srOGna from sruGna
+        });
+        if is_samana_pada && !is_within_basic_phit {
             // TODO: track loctaion of rzfF for better rule logging.
 
             if ip.next(i_rs) == Some(i_n.clone()) {

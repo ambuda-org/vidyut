@@ -300,3 +300,24 @@ fn hanumataa() {
     let hanumat = taddhitanta("hanu", Taddhita::matup);
     assert_has_sup_3s(&hanumat, Pum, &["hanumatA"]);
 }
+
+// Match againt vAh + Rvi, not general vAh.
+#[test]
+fn vahakena() {
+    let vahaka = krdanta(&[], &d("va\\ha~^", Bhvadi), Krt::Rvul);
+    assert_has_sup_3s(&vahaka, Pum, &["vAhakena"]);
+}
+
+// Fixes bug around nuw-Agama for anc.
+#[test]
+fn anancanas() {
+    // TODO: is AYcAnaH allowed too?
+    let anancana = krdanta(&[], &d("ancu~", Bhvadi), Krt::kAnac);
+    assert_has_sup_1s(&anancana, Pum, &["AnaYcAnaH", "AYcAnaH"]);
+}
+
+// Fixes bug around n --> R for basic pratipadikas.
+#[test]
+fn prabhinnavish() {
+    assert_has_sup_1p("praBinnaviz", Pum, &["praBinnavizaH"]);
+}

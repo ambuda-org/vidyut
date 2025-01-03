@@ -6,7 +6,10 @@
 # Currently, this command excludes our more expensive end-to-end tests, such as
 # the `make test_all` test suite in `vidyut-prakriya`.
 test:
-	cargo test --all
+	cargo nextest run --no-fail-fast --status-level=fail --workspace
+
+test_doc:
+	cargo test --all --doc
 
 # Creates a coverage report for all crates in the repo. Results will be opened
 # automatically in your default browser.
@@ -40,7 +43,6 @@ create_kosha:
 			 --input-dir data/raw/lex \
 			 --dhatupatha vidyut-prakriya/data/dhatupatha.tsv \
 			 --output-dir data/build/vidyut-latest/kosha
-
 
 # Trains a padaccheda model and saves important features to disk.
 # NOTE: when training, exclude the file paths used in `make eval`.

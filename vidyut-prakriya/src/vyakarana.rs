@@ -7,8 +7,8 @@
 use crate::args::{Dhatu, Krdanta, Pada, Pratipadika, Samasa, Subanta, Taddhitanta, Tinanta};
 use crate::ashtadhyayi;
 use crate::core::prakriya_stack::PrakriyaStack;
-use crate::core::Prakriya;
 use crate::core::PrakriyaTag as PT;
+use crate::core::{Prakriya, RuleChoice};
 
 /// An interface to the Ashtadhyayi and its related works.
 ///
@@ -53,6 +53,8 @@ pub struct Vyakarana {
     // If set, preserve the final `s` and `r` of a pada, since these are important to preserve for
     // certain NLP use cases.
     nlp_mode: bool,
+    // If set, the rule choices to use for all prakriyas.
+    rule_choices: Vec<RuleChoice>,
 }
 
 // TODO: better error handling.
@@ -64,6 +66,7 @@ impl Vyakarana {
             is_chandasi: false,
             use_svaras: false,
             nlp_mode: false,
+            rule_choices: Vec::new(),
         }
     }
 
@@ -71,6 +74,16 @@ impl Vyakarana {
     /// saves prakriya data.
     pub fn builder() -> VyakaranaBuilder {
         VyakaranaBuilder::new()
+    }
+
+    /// Converts this `Vyakarana` into a `VyakaranaBuilder`.
+    pub fn into_builder(self) -> VyakaranaBuilder {
+        VyakaranaBuilder::new()
+            .log_steps(self.log_steps)
+            .is_chandasi(self.is_chandasi)
+            .use_svaras(self.use_svaras)
+            .nlp_mode(self.nlp_mode)
+            .rule_choices(self.rule_choices)
     }
 
     /// Returns all possible dhatu prakriyas that can be derived with the given initial
@@ -427,6 +440,22 @@ impl Vyakarana {
         stack.prakriyas()
     }
 
+    /// TODO
+    pub fn derive_pratipadikas<'a>(&self, spec: impl Into<&'a Pratipadika>) -> Vec<Prakriya> {
+        self.derive_pratipadikas_inner(&spec.into())
+    }
+
+    fn derive_pratipadikas_inner(&self, spec: &Pratipadika) -> Vec<Prakriya> {
+        let mut stack = self.create_prakriya_stack();
+        stack.find_all(|p| match spec {
+            Pratipadika::Basic(b) => ashtadhyayi::derive_basic_pratipadika(p, b),
+            Pratipadika::Krdanta(k) => ashtadhyayi::derive_krdanta(p, k),
+            Pratipadika::Taddhitanta(t) => ashtadhyayi::derive_taddhitanta(p, t),
+            Pratipadika::Samasa(s) => ashtadhyayi::derive_samasa(p, s),
+        });
+        stack.prakriyas()
+    }
+
     /// (Experimental) Returns all possible stryanta prakriyas that can be derived with the given
     /// initial conditions.
     ///
@@ -503,6 +532,7 @@ impl Vyakarana {
             self.is_chandasi,
             self.use_svaras,
             self.nlp_mode,
+            self.rule_choices.clone(),
         )
     }
 }
@@ -561,6 +591,12 @@ impl VyakaranaBuilder {
     /// - If `false`, final `s` and `r` will change to the visarga.
     pub fn nlp_mode(mut self, value: bool) -> Self {
         self.vyakarana.nlp_mode = value;
+        self
+    }
+
+    /// *(default: empty vec)* Enforces specific rule decisions for optional rules in the prakriya.
+    pub fn rule_choices(mut self, values: Vec<RuleChoice>) -> Self {
+        self.vyakarana.rule_choices = values;
         self
     }
 

@@ -95,6 +95,18 @@ impl From<&Pratipadika> for Pratipadika {
     }
 }
 
+impl From<BasicPratipadika> for Pratipadika {
+    fn from(b: BasicPratipadika) -> Self {
+        Self::Basic(b)
+    }
+}
+
+impl From<&BasicPratipadika> for Pratipadika {
+    fn from(b: &BasicPratipadika) -> Self {
+        Self::Basic(b.clone())
+    }
+}
+
 impl From<Krdanta> for Pratipadika {
     fn from(k: Krdanta) -> Self {
         Self::Krdanta(Box::new(k))

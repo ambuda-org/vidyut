@@ -279,10 +279,9 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     let napum = p.has_tag(PT::Napumsaka);
 
     let is_ugit = anga.has_tag_in(&[T::udit, T::fdit]);
-    let is_ac = i_anga > 0 && p.has(i_anga - 1, |t| t.has_u("ancu~"));
-    let is_sarva = sup.is_sarvanamasthana();
+    let is_ac_dhatu = i_anga > 0 && p.has(i_anga - 1, |t| t.has_u("ancu~") && !t.has_text("anc"));
 
-    if (is_ugit && !anga.is_dhatu()) || is_ac {
+    if (is_ugit && !anga.is_dhatu()) || is_ac_dhatu {
         let shatr = anga.has_u("Satf~");
         // No `?` for i_prev here to avoid exiting early for e.g. "pums".
         let i_prev = p.find_prev_where(i_anga, |t| !t.is_empty());
@@ -304,7 +303,7 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
                     p.optional_run_at("7.1.80", i_anga, add_num);
                 }
             }
-        } else if is_sarva {
+        } else if sup.is_sarvanamasthana() {
             if shatr && p.has(i_prev?, |t| t.is_abhyasta()) {
                 if napum {
                     // dadati, dadanti, ...
@@ -314,7 +313,7 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
                     p.step("7.1.78");
                 }
             } else {
-                let i_non_empty = if is_ac { i_anga - 1 } else { i_anga };
+                let i_non_empty = if is_ac_dhatu { i_anga - 1 } else { i_anga };
                 p.run_at("7.1.70", i_non_empty, add_num);
             }
         }

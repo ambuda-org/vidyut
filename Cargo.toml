@@ -2,7 +2,7 @@
 
 members = [
     "vidyut-chandas",
-    "vidyut-cheda",
+    # "vidyut-cheda",
     "vidyut-kosha",
     "vidyut-lipi",
     "vidyut-prakriya",
@@ -23,7 +23,7 @@ edition = "2021"
 
 [dependencies]
 vidyut-chandas = { path = "./vidyut-chandas" }
-vidyut-cheda = { path = "./vidyut-cheda" }
+# vidyut-cheda = { path = "./vidyut-cheda" }
 vidyut-kosha = { path = "./vidyut-kosha" }
 vidyut-lipi = { path = "./vidyut-lipi" }
 vidyut-prakriya = { path = "./vidyut-prakriya" }

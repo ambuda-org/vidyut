@@ -96,8 +96,7 @@ fn read_missing_files() {
 fn read_invalid_fst_file() {
     let dir = tempdir().unwrap();
     File::create(dir.path().join("padas.fst")).unwrap();
-    File::create(dir.path().join("dhatus.csv")).unwrap();
-    File::create(dir.path().join("pratipadikas.csv")).unwrap();
+    File::create(dir.path().join("registry.msgpack")).unwrap();
 
     let k = Kosha::new(dir.path());
     assert_is_fst_error(k);

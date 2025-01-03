@@ -390,6 +390,56 @@ impl BaseKrt {
     pub fn aupadeshika(&self) -> &'static str {
         self.as_str()
     }
+
+    /// Returns whether this krt pratyaya creates an *avyaya*.
+    ///
+    /// This is a convenience function for programs that generate Sanskrit words. If a *krt
+    /// pratyaya* creates *avyaya*s, then we don't need to try creating subantas for various
+    /// combinations of vibhakti and vacana.
+    pub fn is_avyaya(&self) -> bool {
+        use BaseKrt::*;
+        matches!(
+            self,
+            tumun
+                | Ramul
+                | se
+                | sen
+                | ase
+                | asen
+                | kase
+                | kasen
+                | aDyE
+                | aDyEn
+                | kaDyE
+                | kaDyEn
+                | SaDyE
+                | SaDyEn
+                | tavE
+                | taveN
+                | taven
+                | ktvA
+                | tosun
+                | kasun
+        )
+    }
+
+    /// Returns whether this krt pratyaya is a near-duplicate of another.
+    ///
+    /// Specifically, two pratyayas are near duplicates if they always produce the same results,
+    /// with the exception af accent.
+    pub fn is_duplicate(&self) -> bool {
+        use BaseKrt::*;
+        matches!(
+            self,
+            tavyat       // tavya
+                | sen    // se
+                | asen   // ase
+                | kasen  // kase
+                | aDyEn  // aDyE
+                | kaDyEn // kaDyE
+                | SaDyEn // SaDyE
+        )
+    }
 }
 
 /// Models a *kṛt pratyaya*.
@@ -434,32 +484,9 @@ impl Krt {
     /// pratyaya* creates *avyaya*s, then we don't need to try creating subantas for various
     /// combinations of vibhakti and vacana.
     pub fn is_avyaya(&self) -> bool {
-        use BaseKrt::*;
         match self {
-            Krt::Base(k) => !matches!(
-                k,
-                tumun
-                    | Ramul
-                    | se
-                    | sen
-                    | ase
-                    | asen
-                    | kase
-                    | kasen
-                    | aDyE
-                    | aDyEn
-                    | kaDyE
-                    | kaDyEn
-                    | SaDyE
-                    | SaDyEn
-                    | tavE
-                    | taveN
-                    | taven
-                    | ktvA
-                    | tosun
-                    | kasun
-            ),
-            Krt::Unadi(_) => true,
+            Krt::Base(b) => b.is_avyaya(),
+            _ => false,
         }
     }
 

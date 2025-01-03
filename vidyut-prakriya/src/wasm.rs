@@ -11,9 +11,9 @@ Although these bindings are usable and reliable, we want to improve their ergono
 JavaScript callers can use them more idiomatically.
 
 Useful links:
-- Rust and WebAssembly book: https://rustwasm.github.io/docs/book/introduction.html
-- wasm-pack book: https://rustwasm.github.io/docs/wasm-pack/
-- wasm-bindgen book: https://rustwasm.github.io/wasm-bindgen/introduction.html
+- Rust and WebAssembly book: <https://rustwasm.github.io/docs/book/introduction.html>
+- wasm-pack book: <https://rustwasm.github.io/docs/wasm-pack/>
+- wasm-bindgen book: <https://rustwasm.github.io/wasm-bindgen/introduction.html>
 */
 use crate::args::*;
 use crate::core::Rule;

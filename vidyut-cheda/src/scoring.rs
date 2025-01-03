@@ -85,14 +85,14 @@ pub struct PadaState {
 impl PadaState {
     /// Creates the initial state.
     pub fn initial_state() -> Self {
-        PadaState::new().with_pos(POSTag::Unknown)
+        PadaState::new().with_pos(POSTag::SubantaPrefix)
     }
 
     /// Creates a state label for the given pada.
     pub fn from_pada(p: &PadaEntry) -> Self {
         let zero = [0_u8; 2];
         let (pos_tag, payload) = match p {
-            PadaEntry::Unknown => (POSTag::Unknown, zero),
+            PadaEntry::Unknown => (POSTag::SubantaPrefix, zero),
             PadaEntry::Subanta(s) => {
                 let s = s.subanta();
                 let bytes = SubantaState::new()
