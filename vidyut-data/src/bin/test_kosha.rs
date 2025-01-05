@@ -249,6 +249,7 @@ fn run_tests(args: Args) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
+    env_logger::init();
     let args = Args::parse();
 
     if let Err(e) = run_tests(args) {

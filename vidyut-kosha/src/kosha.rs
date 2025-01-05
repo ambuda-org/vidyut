@@ -94,6 +94,8 @@ impl Kosha {
 
         info!("Loading fst from `{:?}`", paths.fst());
         let fst = Map::new(std::fs::read(paths.fst())?)?;
+
+        info!("Loading registry from `{:?}`", paths.registry());
         let packer = Packer::read(&paths.registry())?;
 
         Ok(Self { fst, packer })
@@ -413,6 +415,16 @@ impl Kosha {
                 return;
             }
         }
+    }
+
+    /// Packs the given `PadaEntry` into a simple integer code.
+    pub fn pack(&self, value: &PadaEntry) -> Result<PackedEntry> {
+        self.packer.pack(value)
+    }
+
+    /// Unpacks the given `PackedEntry` into a full `PadaEntry`.
+    pub fn unpack(&self, value: PackedEntry) -> Result<PadaEntry> {
+        self.packer.unpack(&value)
     }
 }
 

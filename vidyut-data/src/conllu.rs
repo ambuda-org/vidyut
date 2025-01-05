@@ -2,29 +2,13 @@
 //!
 //! The `conllu` crate on Rust doesn't support multi-word tokens, which appear constantly in the
 //! DCS data. Therefore, we've rolled our own reader.
-use crate::errors::Result;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
+use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-/// Morphological features (gender, case, number, ...) for a specific token.
-#[derive(Debug)]
-pub struct TokenFeatures {
-    map: HashMap<String, String>,
-}
-
-impl TokenFeatures {
-    /// Returns a reference to the value corresponding to the key.
-    pub fn get(&self, key: &str) -> Option<&String> {
-        self.map.get(key)
-    }
-
-    /// Returns `true` if the map contains a value for the specified key.
-    pub fn contains_key(&self, key: &str) -> bool {
-        self.map.contains_key(key)
-    }
-}
+pub type TokenFeatures = FxHashMap<String, String>;
 
 /// A token, usually representing a Sanskrit `pada`.
 #[derive(Debug)]
@@ -54,7 +38,7 @@ pub struct Reader {
 
 impl Reader {
     /// Read a CoNLL-U document from the given path.
-    pub fn from_path(path: &Path) -> Result<Reader> {
+    pub fn from_path(path: &Path) -> Result<Reader, Box<dyn Error>> {
         let rdr = BufReader::new(File::open(path)?);
         Ok(Reader { rdr })
     }
@@ -76,7 +60,7 @@ fn as_field(s: Option<&str>) -> String {
 
 /// Create a feature map for the given token.
 fn as_features(s: Option<&str>) -> TokenFeatures {
-    let mut map = HashMap::new();
+    let mut map = FxHashMap::default();
     if let Some(s) = s {
         for item in s.split_terminator('|') {
             if let Some((k, v)) = item.split_once('=') {
@@ -84,7 +68,7 @@ fn as_features(s: Option<&str>) -> TokenFeatures {
             }
         }
     }
-    TokenFeatures { map }
+    map
 }
 
 /// Create a `Token` from the given line.

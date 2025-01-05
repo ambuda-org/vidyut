@@ -173,7 +173,7 @@ fn create_all_dhatus(
     };
 
     // Load mula dhatus and the upasarga combinations they support.
-    let dhatupatha = Dhatupatha::from_path(&dhatupatha_path)?;
+    let dhatupatha = Dhatupatha::from_path(dhatupatha_path)?;
     let mut upasarga_dhatus: UpasargaDhatuMap = HashMap::new();
     {
         let mut rdr = csv::Reader::from_path(upasarga_dhatu_path)?;
@@ -201,10 +201,10 @@ fn create_all_dhatus(
                 let dhatu = entry
                     .dhatu()
                     .clone()
-                    .with_sanadi(&sanadi)
+                    .with_sanadi(sanadi)
                     .with_prefixes(prefixes);
                 let prakriyas = v.derive_dhatus(&dhatu);
-                if let Some(p) = prakriyas.iter().next() {
+                if let Some(p) = prakriyas.first() {
                     builder.register_dhatu(&dhatu);
                     builder.add_dhatu_meta(&dhatu, p.text());
 
@@ -327,7 +327,7 @@ fn create_inflected_krt_subantas(builder: &mut Builder, all_krdantas: &[Krdanta]
             let mut ret = Vec::new();
 
             for krdanta in chunk {
-                for variant in v.derive_krdantas(&krdanta) {
+                for variant in v.derive_krdantas(krdanta) {
                     // Restrict all padas to use the same rule choices as this pratipadika variant.
                     // This properly groups padas by their common prefix and lets us generate a
                     // useful paradigm.
@@ -436,9 +436,9 @@ fn read_basic_pratipadikas(
 
     // Skip krdantas that we're generating elsewhere.
     let v = create_vyakarana();
-    let krdanta_phits: HashSet<_> = create_bare_krdantas(&all_dhatus)
+    let krdanta_phits: HashSet<_> = create_bare_krdantas(all_dhatus)
         .iter()
-        .flat_map(|k| v.derive_krdantas(&k))
+        .flat_map(|k| v.derive_krdantas(k))
         .map(|p| p.text())
         .collect();
 
@@ -700,7 +700,7 @@ fn run(args: Args) -> Result<()> {
             all_dhatus.drain(n..);
         }
         for d in &all_dhatus {
-            builder.register_dhatu(&d);
+            builder.register_dhatu(d);
         }
 
         info!("Setup");

@@ -1,19 +1,20 @@
 //! Evaluate our segmenter against some standard input data.
 
-/*
 use clap::Parser;
 use glob::glob;
+use std::error::Error;
 use std::ops::AddAssign;
 use std::path::{Path, PathBuf};
 
-use vidyut_cheda::conllu::Reader;
-use vidyut_cheda::dcs;
-use vidyut_cheda::Result;
-use vidyut_cheda::{Chedaka, Config, Token};
+use vidyut_cheda::{Chedaka, Token};
+use vidyut_data::conllu::Reader;
+use vidyut_data::dcs;
 use vidyut_kosha::entries::*;
 use vidyut_lipi::{transliterate, Mapping, Scheme};
 use vidyut_prakriya::args as vp;
-use vidyut_prakriya::args::Pratipadika;
+use vidyut_prakriya::args::Pada;
+
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -72,9 +73,8 @@ fn to_slp1(text: &str) -> String {
 /// information we have in our `Pada` enum. So, this code is a simple way to convert both
 /// Vidyut semantics and DCS semantics into a coarser space.
 fn as_code(w: &Token) -> String {
-    match &w.info {
+    match &w.data() {
         PadaEntry::Subanta(s) => {
-            let s = s.subanta();
             format!("n-{}-{}-{}", s.linga(), s.vibhakti(), s.vacana(),)
         }
         PadaEntry::Tinanta(s) => {
@@ -82,15 +82,13 @@ fn as_code(w: &Token) -> String {
         }
         PadaEntry::Unknown => "_".to_string(),
         PadaEntry::Avyaya(a) => {
-            let a = a.subanta();
-            let val = match &a.pratipadika() {
-                Pratipadika::Basic(_) => "i",
-                Pratipadika::Krdanta(k) => match k.krt() {
+            let val = match &a.pratipadika_entry() {
+                PratipadikaEntry::Basic(_) => "i",
+                PratipadikaEntry::Krdanta(k) => match k.krt() {
                     vp::Krt::Base(vp::BaseKrt::ktvA) => "ktva",
                     vp::Krt::Base(vp::BaseKrt::tumun) => "tumun",
                     _ => "_",
                 },
-                _ => "i",
             };
             val.to_string()
         }
@@ -147,17 +145,24 @@ fn eval_sentence(vidyut_parses: &[Token], dcs_parses: &[Token]) -> Stats {
 }
 
 /// Computes summary statistics for the given file.
-fn eval_input_path(path: &Path, segmenter: &Chedaka, show_semantics: &bool) -> Result<Stats> {
+fn eval_input_path(path: &Path, chedaka: &Chedaka, show_semantics: &bool) -> Result<Stats> {
     let reader = Reader::from_path(path)?;
     let mut stats = Stats::new();
 
     for sentence in reader {
         let slp1_text = to_slp1(&sentence.text);
-        let vidyut_parse = segmenter.run(&slp1_text)?;
+        let vidyut_parse = chedaka.segment(&slp1_text)?;
 
-        let dcs_parse: std::result::Result<Vec<Token>, _> =
-            sentence.tokens.iter().map(dcs::standardize).collect();
-        let dcs_parse = dcs_parse?;
+        let dcs_parsed: Vec<(String, Pada)> = sentence
+            .tokens
+            .iter()
+            .flat_map(|t| dcs::standardize(t).ok())
+            .collect();
+
+        let dcs_parse: Vec<_> = dcs_parsed
+            .iter()
+            .map(|(text, pada)| Token::new(&text, pada.try_into().expect("ok")))
+            .collect();
 
         let sentence_stats = eval_sentence(&vidyut_parse, &dcs_parse);
 
@@ -182,16 +187,12 @@ fn eval_input_path(path: &Path, segmenter: &Chedaka, show_semantics: &bool) -> R
 }
 
 /// Computes summary statistics for the given glob patterns.
-fn eval_patterns(
-    patterns: Vec<String>,
-    segmenter: &Chedaka,
-    show_semantics: &bool,
-) -> Result<Stats> {
+fn eval_patterns(patterns: Vec<String>, chedaka: &Chedaka, show_semantics: &bool) -> Result<Stats> {
     let mut stats = Stats::new();
     for pattern in patterns {
         let paths = glob(&pattern).expect("Glob pattern is invalid").flatten();
         for path in paths {
-            stats += eval_input_path(&path, segmenter, show_semantics)?;
+            stats += eval_input_path(&path, chedaka, show_semantics)?;
         }
     }
     Ok(stats)
@@ -199,9 +200,8 @@ fn eval_patterns(
 
 /// Runs an end-to-end evaluation over the given glob patterns.
 fn run_eval(args: Args) -> Result<()> {
-    let config = Config::new(&args.vidyut_dir);
-    let segmenter = Chedaka::new(config)?;
-    let stats = eval_patterns(args.paths, &segmenter, &args.show_semantics)?;
+    let chedaka = Chedaka::new(&args.vidyut_dir)?;
+    let stats = eval_patterns(args.paths, &chedaka, &args.show_semantics)?;
 
     let pct = |x, y| 100_f32 * (x as f32) / (y as f32);
     let lemma_pct = pct(stats.num_lemma_matches, stats.num_sentences);
@@ -241,6 +241,3 @@ fn main() {
         std::process::exit(1);
     }
 }
-*/
-
-fn main() {}

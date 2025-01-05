@@ -13,14 +13,14 @@ rust-version = "1.68"
 
 [dependencies]
 clap = { version = "4.0.12", features = ["derive"] }
-env_logger = "0.9.1"
-log = "0.4.17"
+env_logger = { workspace = true }
+log.workspace = true
 fst = "0.4.7"
 modular-bitfield = "0.11.2"
-rustc-hash = "1.1.0"
+rustc-hash = { workspace = true }
 serde = { version = "1.0.152", features = ["derive"] }
 vidyut-prakriya = { path = "../vidyut-prakriya", features = ["serde"] }
-rmp-serde = "1.3.0"
+rmp-serde = { workspace = true }
 
 [dev-dependencies]
 bencher = "0.1.5"

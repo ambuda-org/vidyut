@@ -68,7 +68,7 @@ impl fmt::Display for Error {
         use Error::*;
 
         match self {
-            Io(_) => write!(f, "I/O error"),
+            Io(_) => write!(f, "Cannot read input file."),
             InvalidFile => write!(f, "The input file is invalid."),
             ParseInt(_) => write!(f, "Parse int error"),
             UnknownIt(c) => write!(f, "`{c}` could not be parsed as an it-samjna."),
