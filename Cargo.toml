@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "bindings-python",
     "vidyut-chandas",
     "vidyut-cheda",
     "vidyut-data",

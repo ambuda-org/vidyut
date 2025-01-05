@@ -152,7 +152,7 @@ impl Chedaka {
     }
 
     /// Segments the input text into tokens.
-    pub fn segment<'a>(&'a self, input_text: &str) -> Result<Vec<Token<'a>>> {
+    pub fn run<'a>(&'a self, input_text: &str) -> Result<Vec<Token<'a>>> {
         let text = input_text.to_string();
         let mut pq = PriorityQueue::new();
         let mut word_cache: FxHashMap<String, Vec<PadaEntry<'a>>> = FxHashMap::default();

@@ -21,7 +21,7 @@ fn run(args: Args) -> Result<()> {
     info!("Loading chedaka.");
     let chedaka = Chedaka::new(&args.data_dir).unwrap();
 
-    let ret = chedaka.segment(&args.text);
+    let ret = chedaka.run(&args.text);
     println!("{:?}", ret);
 
     Ok(())

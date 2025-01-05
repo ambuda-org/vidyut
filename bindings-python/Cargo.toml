@@ -1,0 +1,23 @@
+[package]
+name = "vidyut-py"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+name = "vidyut"
+crate-type = ["cdylib"]
+
+[dependencies]
+vidyut-chandas = { path = "../vidyut-chandas" }
+vidyut-cheda = { path = "../vidyut-cheda" }
+vidyut-kosha = { path = "../vidyut-kosha" }
+vidyut-lipi = { path = "../vidyut-lipi" }
+vidyut-prakriya = { path = "../vidyut-prakriya" }
+vidyut-sandhi = { path = "../vidyut-sandhi" }
+
+[dependencies.pyo3]
+version = "0.23.3"
+features = ["extension-module", "abi3-py37"]
+
+[package.metadata.maturin]
+name = "vidyut"

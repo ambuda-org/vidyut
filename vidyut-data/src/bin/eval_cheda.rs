@@ -151,7 +151,7 @@ fn eval_input_path(path: &Path, chedaka: &Chedaka, show_semantics: &bool) -> Res
 
     for sentence in reader {
         let slp1_text = to_slp1(&sentence.text);
-        let vidyut_parse = chedaka.segment(&slp1_text)?;
+        let vidyut_parse = chedaka.run(&slp1_text)?;
 
         let dcs_parsed: Vec<(String, Pada)> = sentence
             .tokens

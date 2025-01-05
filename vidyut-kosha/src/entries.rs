@@ -113,6 +113,13 @@ impl<'a> From<DhatuEntry<'a>> for Dhatu {
 }
 
 impl<'a> BasicPratipadikaEntry<'a> {
+    /// Creates a new `BasicPratipadikaEntry`.
+    pub fn new(pratipadika: &'a BasicPratipadika, lingas: &'a [Linga]) -> Self {
+        Self {
+            pratipadika,
+            lingas,
+        }
+    }
     /// Returns the *prātipadika* that generates this entry.
     pub fn pratipadika(&self) -> &BasicPratipadika {
         self.pratipadika
@@ -140,6 +147,11 @@ impl<'a> KrdantaEntry<'a> {
             prayoga,
             lakara,
         }
+    }
+
+    /// The *dhātu* entry that corresponds to this *krdanta*'s dhātu.
+    pub fn dhatu_entry(&self) -> &DhatuEntry<'a> {
+        &self.dhatu_entry
     }
 
     /// The *dhātu* used by this krdanta.
@@ -339,6 +351,11 @@ impl<'a> TinantaEntry<'a> {
             purusha,
             vacana,
         }
+    }
+
+    /// The *dhātu* entry that corresponds to this *tiṅanta*'s dhātu.
+    pub fn dhatu_entry(&self) -> &DhatuEntry<'a> {
+        &self.dhatu_entry
     }
 
     /// The *dhātu* used by this *tiṅanta*.
