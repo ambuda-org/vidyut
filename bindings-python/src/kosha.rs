@@ -1,5 +1,5 @@
 use entries::{PyDhatuEntry, PyPadaEntry, PyPratipadikaEntry};
-use pyo3::exceptions::{PyOSError, PyValueError};
+use pyo3::exceptions::{PyKeyError, PyOSError, PyValueError};
 use pyo3::prelude::*;
 use std::path::PathBuf;
 use vidyut_kosha::entries::{
@@ -15,15 +15,20 @@ pub mod entries;
 #[pyclass(name = "Kosha")]
 pub struct PyKosha(Kosha);
 
+/// A Sanskrit morphological dictionary.
+///
+/// :class:`~vidyut.kosha.Kosha` aims to provide the same API as you would have if using a
+/// read-only ``dict[str, list[PadaEntry]]``. Currently, we support only a few such methods
+/// and plan to add more in future releases.
 #[pymethods]
 impl PyKosha {
     /// Load a `Kosha` instance from the given input path.
     #[new]
     fn new(path: PathBuf) -> PyResult<Self> {
-        match Kosha::new(path) {
-            Ok(k) => Ok(Self(k)),
+        match Kosha::new(path.clone()) {
+            Ok(kosha) => Ok(Self(kosha)),
             Err(_) => Err(PyOSError::new_err(
-                "Unknown error. Our best guess is that the input file is missing.",
+                "Unknown error. The input file might be missing.",
             )),
         }
     }
@@ -33,8 +38,22 @@ impl PyKosha {
         self.0.contains_key(&key)
     }
 
+    /// Return all entries with the given `key`, or raise `KeyError` if `key` is missing.
+    fn __getitem__(&self, key: String) -> PyResult<Vec<PyPadaEntry>> {
+        let ret = self.get(key.clone());
+        if ret.is_empty() {
+            Err(PyKeyError::new_err(key))
+        } else {
+            Ok(ret)
+        }
+    }
+
+    fn __repr__(&self) -> String {
+        String::from("Kosha()")
+    }
+
     /// Return all entries with the given `key`.
-    pub fn get_all(&self, key: String) -> Vec<PyPadaEntry> {
+    pub fn get(&self, key: String) -> Vec<PyPadaEntry> {
         let results = self.0.get_all(&key);
         results.iter().map(|p| p.into()).collect()
     }
@@ -48,6 +67,7 @@ pub struct PyBuilder {
     builder: Option<Builder>,
 }
 
+/// A quick store for Entry data.
 #[derive(Default)]
 struct SmallRegistry {
     lingas: Vec<Vec<vp::Linga>>,

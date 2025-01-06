@@ -28,8 +28,8 @@ All usage of `vidyut.prakriya` follows a basic flow:
 
 2. We pass various arguments to :class:`Vyakarana` to define our derivation.
 
-3. We receive a list of :class:`Prakriya` objects, which contains our final
-   results and the rules that produced them.
+3. We receive a list of :class:`Prakriya` objects. Each :class:`Prakriya`
+   contains a final result and the rules that produced it.
 
 To illustrate, let's derive the simple verb ``Bavati``:
 
@@ -39,6 +39,7 @@ To illustrate, let's derive the simple verb ``Bavati``:
         Vyakarana,
         Dhatu,
         Gana,
+        Pada,
         Prayoga,
         Purusha,
         Vacana,
@@ -48,15 +49,16 @@ To illustrate, let's derive the simple verb ``Bavati``:
     # 1. Create a new `Vyakarana` object.
     v = Vyakarana()
 
-    # 2. Pass arguments to define our derivation.
-    bhu = Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi)
-    prakriyas = v.derive_tinantas(
-        dhatu=bhu,
+    # 2. Define and run our derivation.
+    prakriyas = v.derive(Pada.Tinanta(
+        # `aupadeshika` should includes svaras as necessary. If you don't
+        # want to add this yourself, see "Working with data files" below.
+        dhatu=Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi),
         prayoga=Prayoga.Kartari,
         lakara=Lakara.Lat,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
-    )
+    ))
 
     # 3. Receive a list of prakriyas.
     for prakriya in prakriyas:
@@ -100,9 +102,11 @@ Basic methods
 
 .. py:currentmodule:: vidyut.prakriya.Vyakarana
 
-`vidyut.prakriya` currently exposes four basic methods.
+:meth:`Vyakarana.derive` is the main method for creating derivations. It accepts
+several kinds of input arguments and returns a list of :class:`~Prakriya` objects
+according to the the arguments provided.
 
-The first is :meth:`derive_tinantas`, which creates verbs:
+To derive tinantas, use :meth:`Pada.Tinanta`:
 
 .. testcode::
 
@@ -110,69 +114,62 @@ The first is :meth:`derive_tinantas`, which creates verbs:
 
     v = Vyakarana()
     bhu = Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi)
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=bhu,
         prayoga=Prayoga.Kartari,
         lakara=Lakara.Lat,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
-    )
+    ))
 
     assert len(prakriyas) == 1
     assert prakriyas[0].text == "Bavati"
 
-The second is :meth:`derive_subantas`, which creates nominals:
+To derive subantas, use :meth:`Pada.Subanta`:
 
 .. testcode::
 
-    from vidyut.prakriya import (
-        Pratipadika,
-        Linga,
-        Vibhakti,
-    )
-
     deva = Pratipadika.basic("deva")
-    prakriyas = v.derive_subantas(
+    prakriyas = v.derive(Pada.Subanta(
         pratipadika=deva,
         linga=Linga.Pum,
         vibhakti=Vibhakti.Prathama,
         vacana=Vacana.Eka,
-    )
+    ))
 
     assert len(prakriyas) == 1
     assert prakriyas[0].text == "devaH"
 
-The third is :meth:`derive_pratipadikas`, which combines various terms to
-create a pratipadika:
+To derive pratipadikas, use :class:`~Pratipadika`:
 
 .. testcode::
-
-    from vidyut.prakriya import *
 
     v = Vyakarana()
 
     # Krdanta
+    # NOTE: all values on `Krt` are written in SLP1. See the API docs for a
+    # full list of supported values.
     abhibhu = Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi).with_prefixes(["aBi"])
     abhibhavaka = Pratipadika.krdanta(abhibhu, Krt.Rvul)
-    prakriyas = v.derive_pratipadikas(abhibhavaka)
+    prakriyas = v.derive(abhibhavaka)
     assert prakriyas[0].text == "aBiBAvaka"
 
     # Taddhitanta
+    # NOTE: all values on `Taddhita` are written in SLP1. See the API docs for a
+    # full list of supported values.
     guru = Pratipadika.basic("guru")
     gaurava = Pratipadika.taddhitanta(guru, Taddhita.aR)
-    prakriyas = v.derive_pratipadikas(gaurava)
+    prakriyas = v.derive(gaurava)
     assert prakriyas[0].text == "gOrava"
 
-The fourth is :meth:`derive_dhatus`, which combines various terms to create a
-dhatu:
+To derive dhatus, use :class:`~Dhatu`:
 
 .. testcode::
 
-    from vidyut.prakriya import *
-
     v = Vyakarana()
+
     upa_r = Dhatu.mula(aupadeshika="f\\", gana=Gana.Bhvadi).with_prefixes(["upa"])
-    prakriyas = v.derive_dhatus(upa_r)
+    prakriyas = v.derive(upa_r)
 
     assert len(prakriyas) == 1
     assert prakriyas[0].text == "upAr"
@@ -209,17 +206,17 @@ Or one or more :class:`Sanadi` suffixes:
     # These can be combined with prefixes.
     abhibubhusha = bhu.with_prefixes(["aBi"]).with_sanadi([Sanadi.san])
 
-These dhatus can be passed to any function that expects a :class:`Dhatu`:
+These dhatus can be used to create more complex forms:
 
 .. testcode::
 
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=abhibubhusha,
         prayoga=Prayoga.Kartari,
         lakara=Lakara.Lat,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
-    )
+    ))
     assert prakriyas[0].text == 'aBibuBUzati'
 
 Likewise, we can declare that a :class:`Pratipadika` is a *krdanta*:
@@ -236,16 +233,16 @@ Or a *taddhitanta*:
     guru = Pratipadika.basic("guru")
     gaurava = Pratipadika.taddhitanta(guru, Taddhita.aR)
 
-These pratipadikas can be passed to any function that expects a :class:`Pratipadika`:
+These pratipadikas can likewise be used to create more complex forms:
 
 .. testcode::
 
-    prakriyas = v.derive_subantas(
+    prakriyas = v.derive(Pada.Subanta(
         pratipadika=bhavat,
         linga=Linga.Pum,
         vibhakti=Vibhakti.Prathama,
         vacana=Vacana.Dvi,
-    )
+    ))
     assert prakriyas[0].text == 'BavantO'
 
 
@@ -253,7 +250,7 @@ Working with data files
 -----------------------
 
 `vidyut.prakriya` is more interesting when used with the side data provided in
-Vidyut's standard data download. We expose this data through the :class:`Data`
+Vidyut's official data download. We expose this data through the :class:`Data`
 object, whose main methods are :meth:`~Data.load_dhatu_entries` and
 :meth:`~Data.load_sutras`.
 
@@ -267,13 +264,13 @@ with their meanings::
 
     v = Vyakarana(log_steps=False)
     for dhatu in dhatus:
-        prakriyas = v.derive_tinantas(
+        prakriyas = v.derive(Pada.Subanta(
             dhatu=dhatu,
             prayoga=Prayoga.Kartari,
             lakara=Lakara.Lat,
             purusha=Purusha.Prathama,
             vacana=Vacana.Eka,
-        )
+        ))
         for prakriya in prakriyas:
             print(prakriya.text)
 
@@ -301,7 +298,7 @@ The Dhatupatha we provide is essentially identical to the one used on `ashtadhya
     assert ashtadhyayi[0].text == "vfdDirAdEc"
 
 :meth:`~Data.load_sutras` includes data from the Ashtadhyayi, the Unadipatha,
-ganasutras from the Dhatupatha, various Varttikas, and other smaller sources.
+ganasutras from the Dhatupatha, various vārttikas, and other smaller sources.
 
 
 Recipes
@@ -324,13 +321,13 @@ Generate all tinantas for some dhatu and prayoga
     for lakara in Lakara.choices():
         for purusha in Purusha.choices():
             for vacana in Vacana.choices():
-                prakriyas = v.derive_tinantas(
+                prakriyas = v.derive(Pada.Tinanta(
                     dhatu=bhu,
                     prayoga=Prayoga.Kartari,
                     lakara=lakara,
                     purusha=purusha,
                     vacana=vacana,
-                )
+                ))
                 for p in prakriyas:
                     print(p.text)
 
@@ -356,13 +353,13 @@ Generate all tinantas for some prayoga
             for lakara in Lakara.choices():
                 for purusha in Purusha.choices():
                     for vacana in Vacana.choices():
-                        prakriyas = v.derive_tinantas(
+                        prakriyas = v.derive(Pada.Tinanta(
                             dhatu=dhatu,
                             prayoga=prayoga,
                             lakara=lakara,
                             purusha=purusha,
                             vacana=vacana,
-                        )
+                        ))
                         for p in prakriyas:
                             print(p.text)
 
@@ -379,12 +376,12 @@ Generate all subantas for some pratipadika
 
     for vibhakti in Vibhakti.choices():
         for vacana in Vacana.choices():
-            prakriyas = v.derive_subantas(
+            prakriyas = v.derive(Pada.Subanta(
                 pratipadika=nara,
                 linga=Linga.Pum,
                 vibhakti=vibhakti,
                 vacana=vacana,
-            )
+            ))
             for p in prakriyas:
                 print(vibhakti, vacana, p.text)
 
@@ -405,7 +402,7 @@ Generate all krdantas for some dhatu
 
     for krt in Krt.choices():
         anga = Pratipadika.krdanta(bhu, krt)
-        prakriyas = v.derive_pratipadikas(anga)
+        prakriyas = v.derive(anga)
         for p in prakriyas:
             print(krt, p.text)
         else:
@@ -429,7 +426,7 @@ Generate all taddhitantas for some pratipadika
 
     for taddhita in Taddhita.choices():
         anga = Pratipadika.taddhitanta(guru, taddhita)
-        prakriyas = v.derive_pratipadikas(anga)
+        prakriyas = v.derive(anga)
         for p in prakriyas:
             print(taddhita, p.text)
         else:
@@ -455,13 +452,13 @@ Find all rules used by a dhatu's tinantas
         for lakara in Lakara.choices():
             for purusha in Purusha.choices():
                 for vacana in Vacana.choices():
-                    prakriyas = v.derive_tinantas(
+                    prakriyas = v.derive(Pada.Tinanta(
                         dhatu=bhu,
                         prayoga=prayoga,
                         lakara=lakara,
                         purusha=purusha,
                         vacana=vacana,
-                    )
+                    ))
                     for p in prakriyas:
                         for step in p.history:
                             rules.add(step.code)

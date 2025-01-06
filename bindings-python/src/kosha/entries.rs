@@ -54,7 +54,7 @@ impl PyDhatuEntry {
     }
 
     /// Convert this entry to a `Dhatu`.
-    fn to_prakriya_args(&self) -> PyDhatu {
+    pub fn to_prakriya_args(&self) -> PyDhatu {
         self.dhatu.clone()
     }
 }
@@ -141,7 +141,7 @@ impl PyPratipadikaEntry {
     }
 
     /// Convert this entry to a `Pratipadika`.
-    fn to_prakriya_args(&self) -> PyPratipadika {
+    pub fn to_prakriya_args(&self) -> PyPratipadika {
         use PyPratipadikaEntry as PE;
         match self {
             PE::Basic { pratipadika, .. } => pratipadika.clone(),
@@ -326,7 +326,7 @@ impl PyPadaEntry {
     }
 
     /// Convert this entry to a `Pada`.
-    fn to_prakriya_args(&self) -> PyResult<PyPada> {
+    pub fn to_prakriya_args(&self) -> PyResult<PyPada> {
         PyPada::try_from(self)
     }
 }

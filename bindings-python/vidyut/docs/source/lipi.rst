@@ -42,6 +42,8 @@ If the input scheme is not known, you can use :func:`detect` to guess it:
     from vidyut.lipi import detect, transliterate, Scheme
 
     text = "tapaHsvAdhyAyanirataM tapasvI vAgvidAM varam"
+
+    # NOTE: `detect` returns `None` if no scheme could be found.
     source = detect(text)
     assert source == Scheme.HarvardKyoto
 

@@ -1,3 +1,4 @@
+import re
 import tempfile
 
 import pytest
@@ -67,6 +68,19 @@ def test_contains(kosha):
     assert "gacCati" in kosha
 
 
+def test_getitem(kosha):
+    assert kosha["gacCati"] is not None
+
+    with pytest.raises(KeyError):
+        x = kosha["missing"]
+
+
+def test_repr(kosha):
+    assert repr(kosha) == "Kosha()"
+
+
+
+
 @pytest.mark.skip("Not implemented yet")
 def test_contains_prefix(kosha):
     for prefix in ["", "g", "ga", "gac", "gacC", "gacCa", "gacCat", "gacCati"]:
@@ -75,7 +89,7 @@ def test_contains_prefix(kosha):
     assert not kosha.contains_prefix("gacCati2")
 
 
-def test_get_all(kosha):
+def test_get(kosha):
     gam_entry = DhatuEntry(dhatu=Dhatu.mula("ga\\mx", Gana.Bhvadi), clean_text="gam")
     gacchati_tin = PadaEntry.Tinanta(
         dhatu_entry=gam_entry,
@@ -92,10 +106,10 @@ def test_get_all(kosha):
         vacana=Vacana.Eka,
     )
 
-    assert len(kosha.get_all("Bavati")) == 0
-    assert len(kosha.get_all("gacCati")) == 2
+    assert len(kosha.get("Bavati")) == 0
+    assert len(kosha.get("gacCati")) == 2
 
-    [tin, sup] = kosha.get_all("gacCati")
+    [tin, sup] = kosha.get("gacCati")
     assert tin == gacchati_tin
     assert tin.lemma == "gam"
     assert tin.dhatu_entry == gam_entry

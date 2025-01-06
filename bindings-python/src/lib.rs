@@ -140,7 +140,7 @@ fn py_prakriya(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Data types
     m.add_class::<prakriya::PyData>()?;
-    m.add_class::<prakriya::PyEntry>()?;
+    m.add_class::<prakriya::PyDhatupathaEntry>()?;
     m.add_class::<prakriya::PySutra>()?;
     m.add_class::<prakriya::PySource>()?;
 

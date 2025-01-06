@@ -1,9 +1,10 @@
+use core::cell::RefCell;
 use pyo3::exceptions::PyNotImplementedError;
 use pyo3::prelude::*;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use vidyut_lipi as lipi;
-use vidyut_lipi::Scheme;
+use vidyut_lipi::{Lipika, Scheme};
 
 /// Generates the following boilerplate methods:
 /// - `__hash__`
@@ -88,19 +89,22 @@ macro_rules! py_enum {
                 }
             }
 
-            /// Converts the given scheme to its ISO 15924 four-letter code, if one exists.
+            /// The scheme's ISO 15924 four-letter code, if one exists.
+            #[getter]
             pub fn iso_15924_code(&self) -> String {
                 $Rust::from(*self).iso_15924_code().to_string()
             }
 
-            /// Converts the given scheme to its ISO 15924 numeric code, if one exists.
+            /// The scheme's ISO 15924 numeric code, if one exists.
+            #[getter]
             pub fn iso_15924_numeric_code(&self) -> u16 {
                 $Rust::from(*self).iso_15924_numeric_code()
             }
 
-            /// Converts the given scheme to its ICU code, if one exists.
+            /// The scheme's ICU code, if one exists.
             ///
             /// ICU codes are defined in conformance with the values in the ICU4X `Script` impl [here][1].
+            #[getter]
             pub fn icu_numeric_code(&self) -> u16 {
                 $Rust::from(*self).icu_numeric_code()
             }
@@ -469,7 +473,7 @@ py_enum!(
     ]
 );
 
-/// Detects the scheme used by the given text.
+/// Return the scheme used by `input_text`, or ``None`` if the scheme could not be decided.
 ///
 /// `detect` analyzes the input string by applying various heuristic tests. For non-ASCII scripts,
 /// `detect` checks whether characters are in a specific unicode range. For ASCII scripts, `detect`
@@ -486,14 +490,17 @@ py_enum!(
 /// these chunks individually. For greater accuracy, we recommend using a more sophisticated
 /// approach than this function provides.
 #[pyfunction]
-pub fn detect(input: &str) -> Option<PyScheme> {
-    lipi::detect(input).map(PyScheme::from)
+pub fn detect(input_text: &str) -> Option<PyScheme> {
+    lipi::detect(input_text).map(PyScheme::from)
 }
 
-/// Transliterates some text from an input scheme to an output scheme.
+/// Transliterates `input_text` from `source` to `dest`.
+///
+/// `source` and `dest` must be instances of :class:`~vidyut.lipi.Scheme`.
 #[pyfunction]
-pub fn transliterate(input: &str, source: PyScheme, dest: PyScheme) -> String {
-    // TODO: this doesn't cache. Add caching to avoid horrible performance.
-    let mut lipika = lipi::Lipika::new();
-    lipika.transliterate(input, source.into(), dest.into())
+pub fn transliterate(input_text: &str, source: PyScheme, dest: PyScheme) -> String {
+    thread_local! {
+        static LIPIKA: RefCell<Lipika> = RefCell::new(Lipika::new());
+    };
+    LIPIKA.with_borrow_mut(|lipika| lipika.transliterate(input_text, source.into(), dest.into()))
 }

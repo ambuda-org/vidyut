@@ -1,53 +1,9 @@
 from pathlib import Path
 from enum import Enum
 
-class PartOfSpeech(Enum):
-    Tinanta = None
-    Subanta = None
-    Avyaya = None
-
-class Purusha(Enum):
-    Prathama = None
-    Madhyama = None
-    Uttama = None
-
-class Vacana(Enum):
-    Eka = None
-    Dvi = None
-    Bahu = None
-
-class Lakara(Enum):
-    Lat = None
-    Lit = None
-    Lut = None
-    Lrt = None
-    Let = None
-    Lot = None
-    Lan = None
-    AshirLin = None
-    VidhiLin = None
-    Lun = None
-    Lrn = None
-
-class PadaPrayoga(Enum):
-    Parasmaipada = None
-    AtmanepadaKartari = None
-    AtmanepadaNotKartari = None
-
-class Linga(Enum):
-    Pum = None
-    Stri = None
-    Napumsaka = None
-
-class Vibhakti(Enum):
-    V1 = None
-    V2 = None
-    V3 = None
-    V4 = None
-    V5 = None
-    V6 = None
-    V7 = None
-    Sambodhana = None
+@dataclass
+class PadaEntry:
+    pass
 
 @dataclass
 class Dhatu:
@@ -110,5 +66,5 @@ class Kosha:
         pass
     def contains_prefix(self, key: str) -> bool:
         pass
-    def get_all(self, key: str) -> List[Pada]:
+    def get(self, key: str) -> List[PadaEntry]:
         pass

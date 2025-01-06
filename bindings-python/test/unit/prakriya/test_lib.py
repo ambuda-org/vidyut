@@ -8,6 +8,7 @@ from vidyut.prakriya import (
     Linga,
     Gana,
     Dhatu,
+    Pada,
     Pratipadika,
     Prayoga,
     Purusha,
@@ -25,6 +26,11 @@ v = Vyakarana()
 d = {e.code: e.dhatu for e in Data("test/data").load_dhatu_entries()}
 
 
+def test_vyakarana():
+    v = Vyakarana()
+    assert repr(v) == "Vyakarana()"
+
+
 def test_dhatupatha():
     bhu = d["01.0001"]
     assert bhu.aupadeshika == "BU"
@@ -35,13 +41,13 @@ def test_dhatupatha():
 
 def test_prakriya():
     dhatu = d["01.0001"]
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=dhatu,
         prayoga=Prayoga.Kartari,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lat,
-    )
+    ))
     assert len(prakriyas) == 1
     p = prakriyas[0]
     assert p.text == "Bavati"
@@ -83,13 +89,13 @@ def test_prakriya():
 )
 def test_derive_basic_kartari_tinantas(code, expected):
     dhatu = d[code]
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=dhatu,
         prayoga=Prayoga.Kartari,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lat,
-    )
+    ))
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
@@ -104,13 +110,13 @@ def test_derive_basic_kartari_tinantas(code, expected):
 )
 def test_derive_basic_karmani_tinantas(code, expected):
     dhatu = d[code]
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=dhatu,
         prayoga=Prayoga.Karmani,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lat,
-    )
+    ))
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
@@ -126,13 +132,13 @@ def test_derive_basic_karmani_tinantas(code, expected):
 def test_derive_sannanta_tinantas(code, expected):
     dhatu = d[code]
     dhatu_san = dhatu.with_sanadi([Sanadi.san])
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=dhatu_san,
         prayoga=Prayoga.Kartari,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lat,
-    )
+    ))
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
@@ -148,13 +154,13 @@ def test_derive_sannanta_tinantas(code, expected):
 def test_derive_nijanta_tinantas(code, expected):
     dhatu = d[code]
     dhatu_nic = dhatu.with_sanadi([Sanadi.Ric])
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=dhatu_nic,
         prayoga=Prayoga.Kartari,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lat,
-    )
+    ))
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
@@ -170,13 +176,13 @@ def test_derive_nijanta_tinantas(code, expected):
 def test_derive_yananta_tinantas(code, expected):
     dhatu = d[code]
     dhatu_yan = dhatu.with_sanadi([Sanadi.yaN])
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=dhatu_yan,
         prayoga=Prayoga.Kartari,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lat,
-    )
+    ))
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
@@ -184,24 +190,24 @@ def test_derive_yananta_tinantas(code, expected):
 
 def test_derive_tinantas_without_at_agama():
     bhu = Dhatu.mula("BU", Gana.Bhvadi)
-    prakriyas = v.derive_tinantas(
+    prakriyas = v.derive(Pada.Tinanta(
         dhatu=bhu,
         prayoga=Prayoga.Kartari,
         purusha=Purusha.Prathama,
         vacana=Vacana.Eka,
         lakara=Lakara.Lun,
         skip_at_agama=True,
-    )
+    ))
     assert prakriyas[0].text == "BUt"
 
 
 def test_derive_subantas():
-    prakriyas = v.derive_subantas(
+    prakriyas = v.derive(Pada.Subanta(
         pratipadika=Pratipadika.basic("deva"),
         linga=Linga.Pum,
         vibhakti=Vibhakti.Prathama,
         vacana=Vacana.Eka,
-    )
+    ))
     expected = {"devaH"}
     actual = {x.text for x in prakriyas}
     assert expected == actual
@@ -217,7 +223,7 @@ def test_derive_subantas():
 def test_derive_pratipadikas_with_krdanta(code, expected):
     dhatu = d[code]
     anga = Pratipadika.krdanta(dhatu, Krt.ktvA)
-    prakriyas = v.derive_pratipadikas(anga)
+    prakriyas = v.derive(anga)
 
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
@@ -227,13 +233,13 @@ def test_derive_pratipadikas_with_krdanta(code, expected):
 def test_derive_pratipadikas_with_taddhitanta():
     guru = Pratipadika.basic("guru")
     anga = Pratipadika.taddhitanta(guru, Taddhita.aR)
-    prakriyas = v.derive_pratipadikas(anga)
+    prakriyas = v.derive(anga)
     assert len(prakriyas) == 1
     assert prakriyas[0].text == "gOrava"
 
 
 def test_derive_dhatus():
     upa_r = Dhatu.mula(aupadeshika="f\\", gana=Gana.Bhvadi).with_prefixes(["upa"])
-    prakriyas = v.derive_dhatus(dhatu=upa_r)
+    prakriyas = v.derive(upa_r)
     assert len(prakriyas) == 1
     assert prakriyas[0].text == "upAr"

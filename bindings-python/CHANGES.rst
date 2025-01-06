@@ -7,7 +7,7 @@ releases. That is, versions 0.x.a and 0.x.b will be able to use the same data.
 0.3.0
 -----
 
-Released 2025-01-05.
+Released 2025-01-06.
 
 - Add `vidyut-chandas` and `vidyut.lipi`.
 - Add various improvements and API changes for `vidyut.prakriya`. For details,

@@ -1133,6 +1133,7 @@ impl From<Pratipadika> for PyPratipadika {
 /// A Sanskrit pada.
 ///
 /// Notes for `Pada.Tinanta`:
+///
 /// - If `skip_at_agama` is ``True`` and the `lakara` is `Lun`, `Lan`, or `Lrn`,
 ///   then the derivation will not add the *aṭ*/*āṭ* *āgama* to the verb. This
 ///   is to derive forms like *gamat*, *karot*, etc.

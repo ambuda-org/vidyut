@@ -27,7 +27,7 @@ the extensive examples elsewhere in the docs.
 ----------------
 
 .. automodule:: vidyut.chandas
-    :members: Chandas, MatchResult, Vrtta, VrttaPada, Jati, Akshara
+    :members: Chandas, Match, Vrtta, VrttaPada, Jati, Akshara
 
 
 `vidyut.kosha`
@@ -92,7 +92,7 @@ Disk types
 .. autoclass:: vidyut.prakriya.Data
    :members:
 
-.. autoclass:: vidyut.prakriya.Entry
+.. autoclass:: vidyut.prakriya.DhatupathaEntry
    :members:
    :undoc-members:
 
@@ -129,6 +129,9 @@ are written in the `SLP1`_ encoding scheme.
    :members:
    :undoc-members:
 .. autoclass:: vidyut.prakriya.Linga
+   :members:
+   :undoc-members:
+.. autoclass:: vidyut.prakriya.Pada
    :members:
    :undoc-members:
 .. autoclass:: vidyut.prakriya.Prayoga

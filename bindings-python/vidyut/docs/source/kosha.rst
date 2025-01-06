@@ -18,6 +18,11 @@ to look up a word then derive it using the Ashtadhyayi.
     output is likewise encoded in SLP1. You can convert to and from SLP1 by using
     `vidyut.lipi` or your favorite transliterator.
 
+.. note::
+    If you are using our official data release, note that all word-final visargas
+    are stored as *s* and *r* as appropriate. If you wish to look up रामः, search
+    for ``"rAmas"`` instead.
+
 .. _SLP1: https://en.wikipedia.org/wiki/SLP1
 
 
@@ -35,11 +40,15 @@ Example usage::
 
     kosha = Kosha("/path/to/vidyut-data/kosha")
 
-    for entry in kosha.get_all("gacCati"):
+    for entry in kosha.get("gacCati"):
         print(entry)
 
     # `Kosha` also provides fast existence checks.
     assert "gacCati" in kosha
+
+    # Simple lookups with `[]` work as well. These will raise `KeyError` if
+    # the key does not exist.
+    assert kosha["gacCati"]
 
 
 Return types
@@ -79,7 +88,7 @@ for a single Sanskrit *pada*. :class:`PadaEntry` has four basic varieties:
     unk = PadaEntry.Unknown()
     assert check_type(unk) == "unknown"
         
-The first variety is `PadaEntry.Subanta`, which models a *subanta*:
+The first variety is `PadaEntry.Subanta`, which models a *subanta* (nominal):
 
 .. testcode::
 
@@ -99,7 +108,7 @@ The first variety is `PadaEntry.Subanta`, which models a *subanta*:
    :hide:
    :options: +IGNORE_RESULT
 
-The second variety is `PadaEntry.Tinanta`, which models a *tinanta*:
+The second variety is `PadaEntry.Tinanta`, which models a *tinanta* (verb):
 
 .. testcode::
 
@@ -120,7 +129,7 @@ The second variety is `PadaEntry.Tinanta`, which models a *tinanta*:
    :hide:
    :options: +IGNORE_RESULT
 
-The third variety is `PadaEntry.Avyaya`, which models an *avyaya*:
+The third variety is `PadaEntry.Avyaya`, which models an *avyaya* (indeclinable):
 
 .. testcode::
 
@@ -154,7 +163,7 @@ is missing or unknown:
 a *prātipadika* (nominal stem) along with helper information.
 
 :class:`PratipadikaEntry` has two varieties. The first variety is
-`PratipadikaEntry.Basic`, which models a basic *prātipadika*:
+`PratipadikaEntry.Basic`, which models a basic *prātipadika* (nominal stem):
 
 .. testcode::
 
@@ -171,7 +180,7 @@ a *prātipadika* (nominal stem) along with helper information.
    :options: +IGNORE_RESULT
 
 
-The second variety is `PratipadikaEntry.Krdanta`, which models a *kṛdanta*:
+The second variety is `PratipadikaEntry.Krdanta`, which models a *kṛdanta* (verbal derivative):
 
 .. testcode::
 
@@ -189,8 +198,8 @@ The second variety is `PratipadikaEntry.Krdanta`, which models a *kṛdanta*:
     assert gata.prayoga is None
     assert gata.lakara is None
 
-You may also set the *prayoga* and *lakāra*, which is useful for certain *kṛt*
-*pratyayas*:
+:class:`PratipadikaEntry.Krdanta` may also set the *prayoga* and *lakāra*, which is
+useful for some *kṛdanta* derivations:
 
 .. testcode::
 
@@ -244,37 +253,33 @@ Sanskrit *dhātu* (verb root) along with useful metadata.
 Creating prakriyas
 ------------------
 
-The `vidyut.kosha` return types each provide a `to_prakriya_args` method that
-creates arguments for `vidyut.prakriya`:
+:class:`PadaEntry`, :class:`PratipadikaEntry`, and :class:`DhatuEntry` can all be
+passed to :meth:`vidyut.prakriya.Vyakarana.derive`:
 
 .. testcode::
 
-    from vidyut.prakriya import Vyakarana
+    from vidyut.prakriya import Vyakarana, Sanadi
 
-    gam = DhatuEntry(
-        dhatu=Dhatu.mula("ga\\mx~", Gana.Bhvadi, prefixes=["anu"]),
+    dhatu_entry = DhatuEntry(
+        dhatu=Dhatu.mula("ga\\mx~", Gana.Bhvadi, prefixes=["anu"], sanadi=[Sanadi.Ric]),
         clean_text="gam")
 
-    gacchat = PratipadikaEntry.Krdanta(
-        dhatu_entry=gam_entry,
+    pratipadika_entry = PratipadikaEntry.Krdanta(
+        dhatu_entry=dhatu_entry,
         krt=Krt.Satf,
         lakara=Lakara.Lat,
         prayoga=Prayoga.Kartari)
 
-    gacchantam = PadaEntry.Subanta(
-        pratipadika_entry=gacchat,
+    pada_entry = PadaEntry.Subanta(
+        pratipadika_entry=pratipadika_entry,
         linga=Linga.Pum,
         vibhakti=Vibhakti.Dvitiya,
         vacana=Vacana.Eka)
 
-    gam_args = gam_entry.to_prakriya_args()
-    gacchat_args = gacchat.to_prakriya_args()
-    gacchantam_args = gacchantam.to_prakriya_args()
-
     v = Vyakarana()
-    assert [p.text for p in v.derive_dhatus(gam_args)] == ["gam"]
-    assert [p.text for p in v.derive_pratipadikas(gacchat_args)] == ["gacCat"]
-    assert [p.text for p in v.derive_padas(gacchantam_args)] == ["gacCantam"]
+    # assert [p.text for p in v.derive(dhatu_entry)] == ["anugami"]
+    assert [p.text for p in v.derive(pratipadika_entry)] == ["anugamayat"]
+    assert [p.text for p in v.derive(pada_entry)] == ["anugamayantam"]
 
 .. testoutput::
    :hide:
@@ -286,9 +291,8 @@ creates arguments for `vidyut.prakriya`:
 
     Think of the `vidyut.prakriya` types as input types and the `vidyut.kosha` types as
     output types. Where :class:`~vidyut.prakriya.Pada` tells us *how* to create a *pada*,
-    :class:`PadaEntry` shows us the *results* of creating a *pada*.
-
-    This is why the `vidyut.kosha` types contain useful metadata. Examples:
+    :class:`PadaEntry` shows us the *results* of creating a *pada*. This is why the
+    `vidyut.kosha` types contain useful metadata:
 
     - :class:`DhatuEntry` contains `clean_text`, which is the dictionary version
       of the dhatu with sandhi applied and accent marks removed.

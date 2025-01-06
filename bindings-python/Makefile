@@ -48,7 +48,9 @@ lint-check:
 #
 # To view the docs, open `vidyut/docs/build/html/index.html`.
 docs: develop
-	cd vidyut/docs && uv run make html
+	# Sphinx caches old code, so clear these out first.
+	rm -R -f vidyut/docs/build/doctrees/
+	cd vidyut/docs && SPHINXOPTS="-a" uv run make html
 
 doctest:
 	# Run on release build to avoid debug printouts.

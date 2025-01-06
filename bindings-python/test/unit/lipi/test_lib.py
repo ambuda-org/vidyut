@@ -8,6 +8,21 @@ def test_scheme_can_be_stringified():
         assert Scheme.from_string(str(val)) == val
 
 
+def test_scheme_iso_15924_code():
+    for val in Scheme.choices():
+        _ = val.iso_15924_code
+
+
+def test_scheme_iso_15924_numeric_code():
+    for val in Scheme.choices():
+        _ = val.iso_15924_numeric_code
+
+
+def test_scheme_icu_numeric_code():
+    for val in Scheme.choices():
+        _ = val.icu_numeric_code
+
+
 def test_scheme_can_be_ordered():
     _ = sorted(Scheme.choices())
 

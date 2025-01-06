@@ -1,3 +1,4 @@
+use crate::kosha::entries::{PyDhatuEntry, PyPadaEntry, PyPratipadikaEntry};
 use crate::utils::py_only_enum;
 use pyo3::exceptions::{PyFileNotFoundError, PyValueError};
 use pyo3::prelude::*;
@@ -165,9 +166,9 @@ fn to_py_prakriyas(prakriyas: Vec<Prakriya>) -> Vec<PyPrakriya> {
 }
 
 /// An entry in the Dhatupatha.
-#[pyclass(name = "Entry", eq, ord)]
+#[pyclass(name = "DhatupathaEntry", eq, ord)]
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
-pub struct PyEntry {
+pub struct PyDhatupathaEntry {
     /// The numeric code associated with this dhatu.
     ///
     /// If you are using the linguistic data that comes with Vidyut, this code is consistent with
@@ -183,7 +184,7 @@ pub struct PyEntry {
 }
 
 #[pymethods]
-impl PyEntry {
+impl PyDhatupathaEntry {
     #[new]
     fn new(code: String, dhatu: PyDhatu, artha: String) -> Self {
         Self { code, dhatu, artha }
@@ -217,8 +218,9 @@ impl PyData {
     /// - `artha` is an arbitrary string.
     ///
     /// Exceptions:
-    /// - `FlieNotFoundError` if the file does not exist.
-    /// - `ValueError` if the function cannot parse the input file.
+    ///
+    /// - :exc:`FileNotFoundError` if the file does not exist.
+    /// - :exc:`ValueError` if the function cannot parse the input file.
     #[new]
     pub fn new(path: PathBuf) -> PyResult<Self> {
         if !path.exists() {
@@ -229,13 +231,13 @@ impl PyData {
     }
 
     /// Return all entries defined in the Dhatupatha.
-    pub fn load_dhatu_entries(&self) -> PyResult<Vec<PyEntry>> {
+    pub fn load_dhatu_entries(&self) -> PyResult<Vec<PyDhatupathaEntry>> {
         let path = self.0.join("dhatupatha.tsv");
         match Dhatupatha::from_path(&path) {
             Ok(dhatupatha) => {
                 let mut ret = Vec::new();
                 for entry in dhatupatha.iter() {
-                    ret.push(PyEntry {
+                    ret.push(PyDhatupathaEntry {
                         code: entry.code().to_string(),
                         dhatu: entry.dhatu().clone().into(),
                         artha: entry.artha().to_string(),
@@ -290,6 +292,16 @@ impl PyData {
     }
 }
 
+#[derive(FromPyObject)]
+pub enum Derivable {
+    Dhatu(PyDhatu),
+    Pratipadika(PyPratipadika),
+    Pada(PyPada),
+    DhatuEntry(PyDhatuEntry),
+    PratipadikaEntry(PyPratipadikaEntry),
+    PadaEntry(PyPadaEntry),
+}
+
 /// An interface to the rules of the Ashtadhyayi.
 ///
 /// Options:
@@ -305,33 +317,8 @@ impl PyData {
 #[derive(Default)]
 pub struct PyVyakarana(Vyakarana);
 
-#[pymethods]
 impl PyVyakarana {
-    /// Create an interface to the system.
-    ///
-    /// Options:
-    /// - `log_steps` (default: `True`) -- If set, log each step in the prakriya. Disable this if
-    ///     you want extra speed.
-    /// - `is_chandasi` (default: `False`) -- If set, use rules tagged with *chandasi*, *mantre*,
-    ///     etc.
-    /// - `use_svaras` (default: `False`) -- If set, use rules that add svaras to the output.
-    /// - `nlp_mode` (default: `False`) -- If set, preserve the final `s`/`r` of words. This
-    ///     behavior is useful for certain applications in natural language processing.
-    #[new]
-    #[pyo3(signature = (*, log_steps=true, is_chandasi=false, use_svaras=false, nlp_mode=false))]
-    pub fn new(log_steps: bool, is_chandasi: bool, use_svaras: bool, nlp_mode: bool) -> Self {
-        Self(
-            Vyakarana::builder()
-                .log_steps(log_steps)
-                .is_chandasi(is_chandasi)
-                .use_svaras(use_svaras)
-                .nlp_mode(nlp_mode)
-                .build(),
-        )
-    }
-
-    #[pyo3(signature = (dhatu))]
-    pub fn derive_dhatus(&self, dhatu: &PyDhatu) -> Vec<PyPrakriya> {
+    fn derive_dhatus(&self, dhatu: &PyDhatu) -> Vec<PyPrakriya> {
         let args = dhatu.as_ref();
         let results = self.0.derive_dhatus(args);
         to_py_prakriyas(results)
@@ -341,8 +328,7 @@ impl PyVyakarana {
     ///
     /// This function is meant mainly for krdantas and taddhitantas. If a pratipadika cannot be
     /// derived, the function returns an empty list.
-    #[pyo3(signature = (pratipadika))]
-    pub fn derive_pratipadikas(&self, pratipadika: &PyPratipadika) -> Vec<PyPrakriya> {
+    fn derive_pratipadikas(&self, pratipadika: &PyPratipadika) -> Vec<PyPrakriya> {
         let args = pratipadika.as_ref();
         match args {
             Pratipadika::Basic(_b) => {
@@ -361,8 +347,6 @@ impl PyVyakarana {
         }
     }
 
-    /// Convenience function for `derive_padas(Pada.Tinanta(...))`
-    #[pyo3(signature = (*, dhatu, prayoga, lakara, purusha, vacana, skip_at_agama=false))]
     pub fn derive_tinantas(
         &self,
         dhatu: PyDhatu,
@@ -383,8 +367,6 @@ impl PyVyakarana {
         self.derive_padas(args)
     }
 
-    /// Convenience function for `derive_padas(Pada.Subanta(...))`
-    #[pyo3(signature = (*, pratipadika, linga, vibhakti, vacana, is_avyaya = false))]
     pub fn derive_subantas(
         &self,
         pratipadika: PyPratipadika,
@@ -404,7 +386,7 @@ impl PyVyakarana {
     }
 
     /// Return all padas that can be derived from the given arguments.
-    pub fn derive_padas(&self, pada: PyPada) -> Vec<PyPrakriya> {
+    fn derive_padas(&self, pada: PyPada) -> Vec<PyPrakriya> {
         match pada {
             PyPada::Subanta {
                 pratipadika,
@@ -448,5 +430,72 @@ impl PyVyakarana {
                 to_py_prakriyas(results)
             }
         }
+    }
+}
+
+#[pymethods]
+impl PyVyakarana {
+    /// Create an interface to the system.
+    ///
+    /// Options:
+    /// - `log_steps` (default: `True`) -- If set, log each step in the prakriya. Disable this if
+    ///     you want extra speed.
+    /// - `is_chandasi` (default: `False`) -- If set, use rules tagged with *chandasi*, *mantre*,
+    ///     etc.
+    /// - `use_svaras` (default: `False`) -- If set, use rules that add svaras to the output.
+    /// - `nlp_mode` (default: `False`) -- If set, preserve the final `s`/`r` of words. This
+    ///     behavior is useful for certain applications in natural language processing.
+    #[new]
+    #[pyo3(signature = (*, log_steps=true, is_chandasi=false, use_svaras=false, nlp_mode=false))]
+    pub fn new(log_steps: bool, is_chandasi: bool, use_svaras: bool, nlp_mode: bool) -> Self {
+        Self(
+            Vyakarana::builder()
+                .log_steps(log_steps)
+                .is_chandasi(is_chandasi)
+                .use_svaras(use_svaras)
+                .nlp_mode(nlp_mode)
+                .build(),
+        )
+    }
+
+    fn __repr__(&self) -> String {
+        #[allow(unused)]
+        fn repr_py_bool(v: bool) -> &'static str {
+            if v {
+                "True"
+            } else {
+                "False"
+            }
+        }
+        format!("Vyakarana()")
+    }
+
+    /// Return all prakriyas that can be derived from the input arguments.
+    ///
+    /// `args` must be one of the following types:
+    ///
+    /// - :class:`~vidyut.prakriya.Dhatu`
+    /// - :class:`~vidyut.prakriya.Pratipadika`
+    /// - :class:`~vidyut.prakriya.Pada`
+    /// - :class:`~vidyut.kosha.DhatuEntry`
+    /// - :class:`~vidyut.kosha.PratipadikaEntry`
+    /// - :class:`~vidyut.kosha.PadaEntry`
+    ///
+    /// Exceptions:
+    ///
+    /// - :exc:`TypeError` if `args` is not one of the types above.
+    /// - :exc:`ValueError` if `args` is `PadaEntry.Unknown()`.
+    ///
+    /// Results are returned as a list of :class:`~vidyut.prakriya.Prakriya` objects.
+    pub fn derive(&self, args: Derivable) -> PyResult<Vec<PyPrakriya>> {
+        let ret = match args {
+            Derivable::Dhatu(d) => self.derive_dhatus(&d),
+            Derivable::Pratipadika(p) => self.derive_pratipadikas(&p),
+            Derivable::Pada(p) => self.derive_padas(p),
+            Derivable::DhatuEntry(d) => self.derive_dhatus(&d.to_prakriya_args()),
+            Derivable::PratipadikaEntry(p) => self.derive_pratipadikas(&p.to_prakriya_args()),
+            Derivable::PadaEntry(p) => self.derive_padas(p.to_prakriya_args()?),
+        };
+        Ok(ret)
     }
 }

@@ -26,8 +26,7 @@ def test_dhatu_entry():
     assert entry.dhatu.gana == Gana.Bhvadi
 
     v = Vyakarana()
-    args = entry.to_prakriya_args()
-    results = {p.text for p in v.derive_dhatus(args)}
+    results = {p.text for p in v.derive(entry)}
     assert results == {"gam"}
 
 
@@ -59,8 +58,7 @@ def test_pratipadika_entry__basic():
     assert rama_entry.lingas == [Linga.Pum]
 
     v = Vyakarana()
-    args = rama_entry.to_prakriya_args()
-    results = {p.text for p in v.derive_pratipadikas(args)}
+    results = {p.text for p in v.derive(rama_entry)}
     assert results == {"rAma"}
 
 
@@ -74,8 +72,7 @@ def test_pratipadika_entry__krdanta():
     assert gata.lakara == None
 
     v = Vyakarana()
-    args = gata.to_prakriya_args()
-    results = {p.text for p in v.derive_pratipadikas(args)}
+    results = {p.text for p in v.derive(gata)}
     assert results == {"gata"}
 
 
@@ -123,8 +120,7 @@ def test_pada_entry__subanta():
     assert pada.lemma == "rAma"
 
     v = Vyakarana()
-    args = pada.to_prakriya_args()
-    results = {p.text for p in v.derive_padas(args)}
+    results = {p.text for p in v.derive(pada)}
     assert results == {"rAmaH"}
 
 
@@ -146,8 +142,7 @@ def test_pada_entry__tinanta():
     assert pada.lemma == "gam"
 
     v = Vyakarana()
-    args = pada.to_prakriya_args()
-    results = {p.text for p in v.derive_padas(args)}
+    results = {p.text for p in v.derive(pada)}
     assert results == {"gacCati"}
 
 
@@ -160,8 +155,7 @@ def test_pada_entry__avyaya():
     assert pada.lemma == "ca"
 
     v = Vyakarana()
-    args = pada.to_prakriya_args()
-    results = {p.text for p in v.derive_padas(args)}
+    results = {p.text for p in v.derive(pada)}
     assert results == {"ca"}
 
 

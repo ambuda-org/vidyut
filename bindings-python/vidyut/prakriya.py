@@ -6,7 +6,7 @@ Vyakarana = __mod.Vyakarana
 
 # Data types
 Data = __mod.Data
-Entry = __mod.Entry
+DhatupathaEntry = __mod.DhatupathaEntry
 Sutra = __mod.Sutra
 Source = __mod.Source
 

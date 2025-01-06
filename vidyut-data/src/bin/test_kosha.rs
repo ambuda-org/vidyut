@@ -89,7 +89,7 @@ fn test_tinantas(kosha: &Kosha) {
                     let prakriyas = v.derive_tinantas(&args);
                     for prakriya in prakriyas {
                         let text = prakriya.text();
-                        let actuals = kosha.get_all(&text);
+                        let actuals = kosha.get(&text);
                         let found = actuals.iter().any(|entry| {
                             if let PadaEntry::Tinanta(t) = entry {
                                 Tinanta::from(t) == args
@@ -152,7 +152,7 @@ fn test_krdantas(kosha: &Kosha) {
                             continue;
                         }
 
-                        let actuals = kosha.get_all(&text);
+                        let actuals = kosha.get(&text);
 
                         let found = actuals.iter().any(|entry| {
                             if let PadaEntry::Subanta(s) = entry {
@@ -226,7 +226,7 @@ fn test_subantas(k: &Kosha) {
 
     let mut i = 0;
     for (key, lemma) in &keys {
-        let entries = k.get_all(key);
+        let entries = k.get(key);
         let found = !entries.is_empty();
         let has_lemma = entries.iter().any(|x| &x.lemma().unwrap() == lemma);
 
