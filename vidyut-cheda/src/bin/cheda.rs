@@ -21,8 +21,22 @@ fn run(args: Args) -> Result<()> {
     info!("Loading chedaka.");
     let chedaka = Chedaka::new(&args.data_dir).unwrap();
 
+    let kosha = chedaka.kosha();
+    for entry in kosha.get_all(&args.text) {
+        println!("kosha: {:#?}", entry);
+    }
+
+    /*
+    println!(
+        "log prob: {:?}",
+        chedaka
+            .model()
+            .lemma_log_probability(&args.text, POSTag::Avyaya)
+    );
+
     let ret = chedaka.run(&args.text);
-    println!("{:?}", ret);
+    println!("{:#?}", ret);
+    */
 
     Ok(())
 }

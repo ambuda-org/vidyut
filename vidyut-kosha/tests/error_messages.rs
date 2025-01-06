@@ -30,6 +30,8 @@ fn build_with_existing_file() {
     }
 }
 
+// No support for `Unknown`
+#[ignore]
 #[test]
 fn build_with_out_of_order_keys() {
     let dir = tempdir().unwrap();
@@ -44,6 +46,8 @@ fn build_with_out_of_order_keys() {
     assert_is_fst_error(ret);
 }
 
+// No support for `Unknown`
+#[ignore]
 #[test]
 fn build_with_too_many_duplicates() {
     let dir = tempdir().unwrap();

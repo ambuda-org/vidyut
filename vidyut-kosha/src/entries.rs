@@ -79,8 +79,8 @@ pub enum PadaEntry<'a> {
 impl<'a> DhatuEntry<'a> {
     /// Creates a new `DhatuEntry`.
     ///
-    /// `readable` should be the text obtained by calling `Vyakarana::derive_dhatus` on `dhatu`.
-    pub(crate) fn new(dhatu: &'a Dhatu, clean_text: &'a str) -> Self {
+    /// `clean_text` should be the text obtained by calling `Vyakarana::derive_dhatus` on `dhatu`.
+    pub fn new(dhatu: &'a Dhatu, clean_text: &'a str) -> Self {
         Self { dhatu, clean_text }
     }
 
@@ -253,7 +253,7 @@ impl<'a> TryFrom<&'a Pratipadika> for PratipadikaEntry<'a> {
                     KrdantaEntry::new(dhatu_entry, k.krt(), k.prayoga(), k.lakara());
                 Ok(PratipadikaEntry::Krdanta(krdanta_entry))
             }
-            _ => Err(Error::Generic("Unsupported pratipadika type".to_string())),
+            _ => Err(Error::UnsupportedType),
         }
     }
 }
@@ -287,6 +287,12 @@ impl<'a> SubantaEntry<'a> {
     /// The `PratipadikaEntry` that generates this `SubantaEntry`.
     pub fn pratipadika_entry(&self) -> &PratipadikaEntry {
         &self.pratipadika_entry
+    }
+
+    /// Returns whether this subanta must be the purvapada in a samasa.
+    pub fn is_purvapada(&self) -> bool {
+        // TODO: implement
+        false
     }
 
     /// The *liṅga* used by this *subanta*.
@@ -426,7 +432,7 @@ impl<'a> From<&'a vp::Tinanta> for TinantaEntry<'a> {
 }
 
 impl<'a> PadaEntry<'a> {
-    /// TODO
+    /// Returns the lemma associated with this `PadaEntry`.
     pub fn lemma(&self) -> Option<&str> {
         match self {
             PadaEntry::Unknown => None,
@@ -443,13 +449,17 @@ impl<'a> TryFrom<&'a Pada> for PadaEntry<'a> {
         match val {
             Pada::Subanta(s) => {
                 let entry: SubantaEntry = s.try_into()?;
-                Ok(entry.into())
+                if s.is_avyaya() {
+                    Ok(PadaEntry::Avyaya(entry))
+                } else {
+                    Ok(PadaEntry::Subanta(entry))
+                }
             }
             Pada::Tinanta(t) => {
                 let entry: TinantaEntry = t.into();
                 Ok(entry.into())
             }
-            _ => Err(Error::Generic("Unsupported pada type".to_string())),
+            _ => Err(Error::UnsupportedType),
         }
     }
 }
@@ -463,5 +473,99 @@ impl<'a> From<SubantaEntry<'a>> for PadaEntry<'a> {
 impl<'a> From<TinantaEntry<'a>> for PadaEntry<'a> {
     fn from(val: TinantaEntry<'a>) -> Self {
         PadaEntry::Tinanta(val)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vidyut_prakriya::args::*;
+
+    fn safe(s: &str) -> Slp1String {
+        Slp1String::from(s).expect("ok")
+    }
+
+    #[test]
+    fn pada_entry_tinanta() {
+        let gam = Dhatu::mula(safe("ga\\mx~"), Gana::Bhvadi);
+        let gam_entry = DhatuEntry::new(&gam, "gam");
+        let gacchati = PadaEntry::Tinanta(TinantaEntry::new(
+            gam_entry.clone(),
+            Prayoga::Kartari,
+            Lakara::Lat,
+            Purusha::Prathama,
+            Vacana::Eka,
+        ));
+        assert_eq!(gacchati.lemma(), Some("gam"));
+    }
+
+    #[test]
+    fn tinanta_entry_round_trip() {
+        let gam = Dhatu::mula(safe("ga\\mx~"), Gana::Bhvadi);
+        let expected = Tinanta::new(
+            gam,
+            Prayoga::Kartari,
+            Lakara::Lat,
+            Purusha::Prathama,
+            Vacana::Eka,
+        );
+        let entry: TinantaEntry = (&expected).into();
+        let actual: Tinanta = entry.into();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn pada_entry_basic_subanta() {
+        let rama = Pratipadika::basic(safe("rAma"));
+        let rama_entry: PratipadikaEntry = (&rama).try_into().expect("ok");
+        let ramah = PadaEntry::Subanta(SubantaEntry::new(
+            rama_entry,
+            Linga::Pum,
+            Vibhakti::Prathama,
+            Vacana::Eka,
+        ));
+        assert_eq!(ramah.lemma(), Some("rAma"));
+    }
+
+    #[test]
+    fn subanta_entry_round_trip() {
+        let rama = Pratipadika::basic(safe("rAma"));
+        let expected = Subanta::new(rama, Linga::Pum, Vibhakti::Prathama, Vacana::Eka);
+        let entry: SubantaEntry = (&expected).try_into().expect("ok");
+        let actual: Subanta = entry.into();
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn pada_entry_krdanta_subanta() {
+        let gam = Dhatu::mula(safe("ga\\mx~"), Gana::Bhvadi);
+        let gam_entry = DhatuEntry::new(&gam, "gam");
+        let gamaka = PratipadikaEntry::Krdanta(KrdantaEntry::new(
+            gam_entry,
+            BaseKrt::Rvul.into(),
+            None,
+            None,
+        ));
+        let gamakah = PadaEntry::Subanta(SubantaEntry::new(
+            gamaka,
+            Linga::Pum,
+            Vibhakti::Prathama,
+            Vacana::Eka,
+        ));
+        assert_eq!(gamakah.lemma(), Some("gam"));
+    }
+
+    #[test]
+    fn pada_entry_avyaya() {
+        let iti = Pratipadika::basic(safe("iti"));
+        let iti_entry: PratipadikaEntry = (&iti).try_into().expect("ok");
+        let iti_pada = PadaEntry::Avyaya(SubantaEntry::avyaya(iti_entry));
+        assert_eq!(iti_pada.lemma(), Some("iti"));
+    }
+
+    #[test]
+    fn pada_entry_unknown() {
+        let unk = PadaEntry::Unknown;
+        assert_eq!(unk.lemma(), None);
     }
 }

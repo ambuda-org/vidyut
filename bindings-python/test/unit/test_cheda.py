@@ -1,22 +1,22 @@
-# DEBUG
-"""
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from vidyut.cheda import Chedaka
+from vidyut.cheda import Chedaka, ModelBuilder
 
 
 from vidyut.kosha import (
     Builder,
-    Pada,
-    Pratipadika,
+    PratipadikaEntry,
+    PadaEntry,
 )
+
+from vidyut.prakriya import Pratipadika
 
 
 def create_kosha(output_dir):
-    ""Create a sample Kosha.""
+    """Create a sample Kosha."""
     words = [
         "arjunas",
         "gacCati",
@@ -26,8 +26,10 @@ def create_kosha(output_dir):
     for word in words:
         # For this test, we don't care about the semantics, so just use
         # "avyaya" for the semantics.
-        pada = Pada.make_avyaya(
-            pratipadika=Pratipadika(text=word),
+        pada = PadaEntry.Avyaya(
+            pratipadika_entry=PratipadikaEntry.Basic(
+                pratipadika=Pratipadika.basic(word), lingas=[]
+            ),
         )
         b.insert(word, pada)
     b.finish()
@@ -40,17 +42,9 @@ def create_sandhi_rules(output_path):
         f.write("as,g,o g\n")
 
 
-def create_model_files(model_dir):
-    model_dir.mkdir(parents=True)
-
-    with open(model_dir / "transitions.csv", "w") as f:
-        f.write("prev_state,cur_state,probability")
-
-    with open(model_dir / "emissions.csv", "w") as f:
-        f.write("state,token,probability")
-
-    with open(model_dir / "lemma-counts.csv", "w") as f:
-        f.write("lemma,tag,count")
+def create_model(model_dir):
+    b = ModelBuilder()
+    b.write_model(model_dir)
 
 
 @pytest.fixture(scope="module")
@@ -59,19 +53,22 @@ def chedaka() -> Chedaka:
         tempdir: Path = Path(tempdir)
         create_kosha(tempdir / "kosha")
         create_sandhi_rules(tempdir / "sandhi-rules.csv")
-        create_model_files(tempdir / "model")
+        create_model(tempdir)
 
         return Chedaka(tempdir)
 
 
 def test_init(chedaka):
+    # Initialized in `chedaka` fixture.
     assert True
 
 
 def test_init__directory_empty():
     with tempfile.TemporaryDirectory() as tempdir:
         tempdir: Path = Path(tempdir)
-    with pytest.raises(OSError):
+
+    # TODO: make more specific
+    with pytest.raises(Exception):
         return Chedaka(tempdir)
 
 
@@ -80,12 +77,13 @@ def test_init__kosha_invalid():
         tempdir: Path = Path(tempdir)
         create_kosha(tempdir / "kosha")
         create_sandhi_rules(tempdir / "sandhi-rules.csv")
-        create_model_files(tempdir / "model")
+        create_model(tempdir)
 
         with open(tempdir / "kosha" / "padas.fst", "w") as f:
             f.write("junk data")
 
-    with pytest.raises(OSError):
+    # TODO: make more specific
+    with pytest.raises(Exception):
         _c = Chedaka(tempdir)
 
 
@@ -103,10 +101,9 @@ def test_run__unknown_word(chedaka):
     assert len(tokens) == 1
     gacchati = tokens[0]
     assert gacchati.text == "gacCatf"
-    assert gacchati.info.pos is None
+    assert gacchati.data == PadaEntry.Unknown()
 
 
 def test_run__invalid_input(chedaka):
-    with pytest.raises(ValueError, match="ASCII") as _e:
+    with pytest.raises(ValueError, match="Ascii") as _e:
         _tokens = chedaka.run("गच्छति")
-"""

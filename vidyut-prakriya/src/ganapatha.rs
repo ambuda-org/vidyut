@@ -1,20 +1,28 @@
-/*!
-Implements rules from the Gaṇapāṭha.
+//! Implements rules from the *Gaṇapāṭha*.
+//!
+//! Most of these lists come directly from the Kashika Vrtti. If a list is unclear to us, we
+//! adjust it using data from <https://ashtadhyayi.com/ganapath>.
 
-Most of these lists come directly from the Kashika Vrtti. If a list is unclear to us, we adjust it
-using data from <https://ashtadhyayi.com/ganapath>.
-*/
+/// Models a *gaṇa-sūtra* from the *Gaṇapāṭha*
+pub struct Ganasutra(pub(crate) &'static [&'static str]);
+
+impl Ganasutra {
+    /// Returns all items in the *gaṇa*.
+    pub fn items(&self) -> &[&str] {
+        self.0
+    }
+}
 
 /// 1.1.27 sarvAdIni sarvanAmAni (1)
-pub const SARVA_ADI: &[&str] = &[
+pub const SARVA_ADI: Ganasutra = Ganasutra(&[
     "sarva", "viSva", "uBa", "uBaya", "qatara", "qatama", "anya", "anyatara", "itara", "tvat",
     "tva", "nema", "sama", "sima", "pUrva", "para", "avara", "dakziRa", "uttara", "apara", "aDara",
     "sva", "antara", "tyad", "tad", "yad", "etad", "idam", "adas", "eka", "dvi", "yuzmad", "asmad",
     "Bavatu~", "kim",
-];
+]);
 
 /// 1.1.38 svarAdi-nipAtam avyayam (2)
-pub const SVAR_ADI: &[&str] = &[
+pub const SVAR_ADI: Ganasutra = Ganasutra(&[
     "svar",
     "antar",
     "prAtar",
@@ -173,11 +181,11 @@ pub const SVAR_ADI: &[&str] = &[
     "Sudi",
     "vadi",
     "ityAdi",
-];
+]);
 
 /// 1.4.57 cAdayo sattve (3)
 /// TODO: no cet, na cet
-pub const CA_ADI: &[&str] = &[
+pub const CA_ADI: Ganasutra = Ganasutra(&[
     "ca", "vA", "ha", "aha", "eva", "evam", "nUnam", "SaSvat", "yugapat", "sUpat", "kUpat",
     "kuvit", "net", "cet", "caR", "kaccit", "yatra", "naha", "hanta", "mAkim", "nakim", "mAN",
     "naY", "yAvat", "tAvat", "tvA", "tvE", "dvE", "rE", "SrOzaw", "vOzaw", "svAhA", "vazaw",
@@ -190,16 +198,16 @@ pub const CA_ADI: &[&str] = &[
     "anu", "hAhO", "hEhA", "IhA", "Ahosvit", "Cambaw", "Kam", "dizwyA", "paSu", "vaw", "saha",
     "Anuzak", "aNga", "Paw", "tAjak", "aye", "are", "cawu", "bAw", "kum", "Kum", "Gum", "hum",
     "AIm", "SIm", "sIm", "vE",
-];
+]);
 
 /// 1.4.58 prAdayaH (4)
-pub const PRA_ADI: &[&str] = &[
+pub const PRA_ADI: Ganasutra = Ganasutra(&[
     "pra", "parA", "apa", "sam", "anu", "ava", "nis", "nir", "dus", "dur", "vi", "AN", "ni", "aDi",
     "api", "ati", "su", "ud", "aBi", "prati", "pari", "upa",
-];
+]);
 
 /// 1.4.61 UryAdi-cvi-qAcaS ca (5)
-pub const URI_ADI: &[&str] = &[
+pub const URI_ADI: Ganasutra = Ganasutra(&[
     "UrI",
     "urarI",
     "tanTI",
@@ -239,10 +247,10 @@ pub const URI_ADI: &[&str] = &[
     "prAdus",
     "Srat",
     "Avis",
-];
+]);
 
 /// 1.4.64 sAkzAt-praBftIni ca (6)
-pub const SAKSHAT_PRABHRTI: &[&str] = &[
+pub const SAKSHAT_PRABHRTI: Ganasutra = Ganasutra(&[
     "sAkzAt",
     "miTyA",
     "cintA",
@@ -270,16 +278,16 @@ pub const SAKSHAT_PRABHRTI: &[&str] = &[
     "prAdus",
     "namas",
     "Avis",
-];
+]);
 
 /// 2.1.40 saptamI SORqEH (8)
-pub const SHAUNDA_ADI: &[&str] = &[
+pub const SHAUNDA_ADI: Ganasutra = Ganasutra(&[
     "SORqa", "DUrta", "kitava", "vyAqa", "pravIRa", "saMvIta", "antar", "aDi", "pawu", "paRqita",
     "capala", "nipuRa",
-];
+]);
 
 /// 2.1.70 kumAraH SramaRAdiBiH ()
-pub const SHRAMANA_ADI: &[&str] = &[
+pub const SHRAMANA_ADI: Ganasutra = Ganasutra(&[
     "SramaRA",
     "pravrajitA",
     "kulawA",
@@ -295,10 +303,10 @@ pub const SHRAMANA_ADI: &[&str] = &[
     "kuSala",
     "capala",
     "nipuRA",
-];
+]);
 
 /// 2.2.9 yAjakAdiBiS ca ()
-pub const YAJAKA_ADI: &[&str] = &[
+pub const YAJAKA_ADI: Ganasutra = Ganasutra(&[
     "yAjaka",
     "pUjaka",
     "paricAraka",
@@ -312,10 +320,10 @@ pub const YAJAKA_ADI: &[&str] = &[
     "Batf",
     "raTagaRaka",
     "pattigaRaka",
-];
+]);
 
 /// 3.1.11 BrzAdiByo Buvyacver lopaSca halaH (32)
-pub const BHRSHA_ADI: &[&str] = &[
+pub const BHRSHA_ADI: Ganasutra = Ganasutra(&[
     "BfSa",
     "SIGra",
     "capala",
@@ -341,34 +349,34 @@ pub const BHRSHA_ADI: &[&str] = &[
     "ojas",
     "surajas",
     "arajas",
-];
+]);
 
 /// 3.1.13 lohitAdi-qAj-ByaH kyaz (33)
-pub const LOHITA_ADI: &[&str] = &[
+pub const LOHITA_ADI: Ganasutra = Ganasutra(&[
     "lohita", "carita", "nIla", "Pena", "madra", "hari", "dAsa", "man",
     // This is an Akrti-gana, so other terms are included here too.
     "carman",
-];
+]);
 
 /// 3.1.17 suKAdiByaH kartf-vedanAyAm (34)
-pub const SUKHA_ADI: &[&str] = &[
+pub const SUKHA_ADI: Ganasutra = Ganasutra(&[
     "suKa", "duHKa", "tfpta", "kfcCra", "asra", "Asra", "aloka", "pratIpa", "karuRa", "kfpaRa",
     "so",
-];
+]);
 
 /// 3.1.27 kaRqvAdiByo yak (35)
 #[allow(unused)]
-pub const KANDU_ADI: &[&str] = &[
+pub const KANDU_ADI: Ganasutra = Ganasutra(&[
     "kaRqUY", "mantu", "mantuY", "valgu", "asu~", "asU", "asUY", "lew", "low", "lelA", "iras",
     "iraj", "iraY", "uzas", "veda", "meDA", "kuzuBa", "magaDa", "tantas", "pampas", "suKa",
     "duHKa", "sapara", "arara", "BizajU", "BizRaj", "izuDa", "caraRa", "varaRa", "curaRa",
     "turaRa", "BuraRa", "gadgada", "elA", "kelA", "KelA", "ilA", "leKA", "leKa", "liwa", "lAwa",
     "hfRIN", "mahIN", "reKA", "dravas", "tiras", "agada", "uras", "taraRa", "payas", "samBUyas",
     "ambara", "saMvara",
-];
+]);
 
 /// 4.1.4 ajAdyataz wAp (54)
-pub const AJA_ADI: &[&str] = &[
+pub const AJA_ADI: Ganasutra = Ganasutra(&[
     // jAti
     "aja",
     "eqaka",
@@ -412,15 +420,15 @@ pub const AJA_ADI: &[&str] = &[
     "maDyama",
     // naY
     "amUla",
-];
+]);
 
 /// 4.1.10 na zaw-svasrAdiByaH (46)
-pub const SVASR_ADI: &[&str] = &[
+pub const SVASR_ADI: Ganasutra = Ganasutra(&[
     "svasf", "duhitf", "nanAndf", "yAtf", "mAtf", "tisf", "catasf",
-];
+]);
 
 /// 4.1.41 zid-gOrAdiByaS ca (48)
-pub const GAURA_ADI: &[&str] = &[
+pub const GAURA_ADI: Ganasutra = Ganasutra(&[
     "gOra",
     "matsya",
     "manuzya",
@@ -574,10 +582,10 @@ pub const GAURA_ADI: &[&str] = &[
     "krozwu",
     "mAtAmaha",
     "pitAmaha",
-];
+]);
 
 /// 4.1.45 bahvAdiByaS ca (49)
-pub const BAHU_ADI: &[&str] = &[
+pub const BAHU_ADI: Ganasutra = Ganasutra(&[
     "bahu",
     "padDati",
     "aNkati",
@@ -608,10 +616,10 @@ pub const BAHU_ADI: &[&str] = &[
     "udAra",
     "purARa",
     "ahan",
-];
+]);
 
 /// 4.1.84 aSvapatyAdiByaSca (53)
-pub const ASHVAPATI_ADI: &[&str] = &[
+pub const ASHVAPATI_ADI: Ganasutra = Ganasutra(&[
     "aSvapati",
     "Satapati",
     "Danapati",
@@ -625,10 +633,10 @@ pub const ASHVAPATI_ADI: &[&str] = &[
     "saBApati",
     "prARapati",
     "kzetrapati",
-];
+]);
 
 /// 4.1.86 utsAdiByo 'Y (54)
-pub const UTSA_ADI: &[&str] = &[
+pub const UTSA_ADI: Ganasutra = Ganasutra(&[
     "utsa",
     "udapAna",
     "vikara",
@@ -666,10 +674,10 @@ pub const UTSA_ADI: &[&str] = &[
     "kakuB",
     "suvarRa",
     "deva",
-];
+]);
 
 /// 4.1.96 bAhvAdiByazca (55)
-pub const BAAHU_ADI: &[&str] = &[
+pub const BAAHU_ADI: Ganasutra = Ganasutra(&[
     "bAhu",
     "upabAhu",
     "upavAku",
@@ -724,16 +732,16 @@ pub const BAAHU_ADI: &[&str] = &[
     "pradyumna",
     "rAma",
     "udaNku",
-];
+]);
 
 /// 4.1.98 gotre kuYjAdiByaS cPaY (56)
-pub const KUNJA_ADI: &[&str] = &[
+pub const KUNJA_ADI: Ganasutra = Ganasutra(&[
     "kuYja", "braDna", "SaNKa", "Basman", "gaRa", "loman", "SaWa", "SAka", "SAkawa", "SuRqA",
     "SuBa", "vipASa", "skanda", "stamBa",
-];
+]);
 
 /// 4.1.99 naqAdiByaH Pak (57)
-pub const NADA_ADI: &[&str] = &[
+pub const NADA_ADI: Ganasutra = Ganasutra(&[
     "naqa",
     "cara",
     "baka",
@@ -804,10 +812,10 @@ pub const NADA_ADI: &[&str] = &[
     "SoRa",
     "aloha",
     "daRqa",
-];
+]);
 
 /// For 4.1.104.
-pub const BIDA_ADI: &[&str] = &[
+pub const BIDA_ADI: Ganasutra = Ganasutra(&[
     "bida",
     "urva",
     "kaSyapa",
@@ -852,10 +860,10 @@ pub const BIDA_ADI: &[&str] = &[
     "duhitf",
     "nanAndf",
     "parastrI",
-];
+]);
 
 /// For 4.1.105.
-pub const GARGA_ADI: &[&str] = &[
+pub const GARGA_ADI: Ganasutra = Ganasutra(&[
     "garga",
     "vatsa",
     "vAjAse",
@@ -945,10 +953,10 @@ pub const GARGA_ADI: &[&str] = &[
     "suloBin",
     "ukatTa",
     "kuwIgu",
-];
+]);
 
 /// 4.1.110 aSvAdiByaH PaY (60)
-pub const ASHVA_ADI: &[&str] = &[
+pub const ASHVA_ADI: Ganasutra = Ganasutra(&[
     "aSva",
     "aSman",
     "SaNKa",
@@ -1018,10 +1026,10 @@ pub const ASHVA_ADI: &[&str] = &[
     "Siva",
     "Kadira",
     "BAradvAja",
-];
+]);
 
 /// 4.1.112 SivAdiByo 'R (61)
-pub const SHIVA_ADI: &[&str] = &[
+pub const SHIVA_ADI: Ganasutra = Ganasutra(&[
     "Siva",
     "prOzWa",
     "prOzWika",
@@ -1091,10 +1099,10 @@ pub const SHIVA_ADI: &[&str] = &[
     "ilA",
     "sapatnI",
     "dvyaca",
-];
+]);
 
 /// 4.1.146 revatyAdiByaz Wak (65)
-pub const REVATI_ADI: &[&str] = &[
+pub const REVATI_ADI: Ganasutra = Ganasutra(&[
     "revatI",
     "aSvapAlI",
     "maRipAlI",
@@ -1107,17 +1115,17 @@ pub const REVATI_ADI: &[&str] = &[
     "kukkUwAkza",
     "kakudAkza",
     "cAmaragrAha",
-];
+]);
 
 /// For 4.1.123.
-pub const SHUBHRA_ADI: &[&str] = &[
+pub const SHUBHRA_ADI: Ganasutra = Ganasutra(&[
     "SuBra",
     "vizwapura",
     // TODO: many others
-];
+]);
 
 /// For 4.1.126.
-pub const KALYANI_ADI: &[&str] = &[
+pub const KALYANI_ADI: Ganasutra = Ganasutra(&[
     "kalyARI",
     "suBagA",
     "durBagA",
@@ -1130,16 +1138,16 @@ pub const KALYANI_ADI: &[&str] = &[
     "kanizWA",
     "maDyamA",
     "parastrI",
-];
+]);
 
 /// For 4.2.38.
-pub const BHIKSHA_ADI: &[&str] = &[
+pub const BHIKSHA_ADI: Ganasutra = Ganasutra(&[
     "BikzA", "garBiRI", "kzetra", "karIza", "aNgAra", "carmin", "Darmin", "sahasra", "yuvati",
     "padAti", "padDati", "aTarvan", "dakziRA", "BUta",
-];
+]);
 
 /// For 4.2.45.
-pub const KHANDIKA_ADI: &[&str] = &[
+pub const KHANDIKA_ADI: Ganasutra = Ganasutra(&[
     "KaRqikA",
     "vaqavA",
     "kzudrakamAla",
@@ -1151,16 +1159,16 @@ pub const KHANDIKA_ADI: &[&str] = &[
     "ahan",
     "varatrA",
     "halabanDa",
-];
+]);
 
 /// 4.2.49 pASAdiByo yaH (74)
-pub const PASHA_ADI: &[&str] = &[
+pub const PASHA_ADI: Ganasutra = Ganasutra(&[
     "pASa", "tfRa", "DUma", "vAta", "aNgAra", "pota", "bAlaka", "piwaka", "piwAka", "Sakawa",
     "hala", "naqa", "vana",
-];
+]);
 
 /// 4.2.53 rAjyanAdiByo vuY (76)
-pub const RAJANYA_ADI: &[&str] = &[
+pub const RAJANYA_ADI: Ganasutra = Ganasutra(&[
     "rAjanya",
     "Anfta",
     "bABravya",
@@ -1184,10 +1192,10 @@ pub const RAJANYA_ADI: &[&str] = &[
     "saMpriya",
     "dakzi",
     "UrRanABa",
-];
+]);
 
 /// 4.2.54 BorikyAdyEzukAryAdiByo viDal-BaktalO (77)
-pub const BHAURIKI_ADI: &[&str] = &[
+pub const BHAURIKI_ADI: Ganasutra = Ganasutra(&[
     "BOriki",
     "vEpeya",
     "BOliki",
@@ -1199,10 +1207,10 @@ pub const BHAURIKI_ADI: &[&str] = &[
     "vAlikAjya",
     "sEkayata",
     "vEkayata",
-];
+]);
 
 /// 4.2.54 BorikyAdyEzukAryAdiByo viDal-BaktalO (78)
-pub const AISHUKARI_ADI: &[&str] = &[
+pub const AISHUKARI_ADI: Ganasutra = Ganasutra(&[
     "EzukAri",
     "sArasyAyana",
     "sArasAyana",
@@ -1234,13 +1242,13 @@ pub const AISHUKARI_ADI: &[&str] = &[
     "tuRqadeva",
     "viSvadeva",
     "sApiRqi",
-];
+]);
 
 /// 4.2.61 kramAdiByo vun (78)
-pub const KRAMA_ADI: &[&str] = &["krama", "pada", "SikzA", "mImAMsA", "sAman"];
+pub const KRAMA_ADI: Ganasutra = Ganasutra(&["krama", "pada", "SikzA", "mImAMsA", "sAman"]);
 
 /// For 4.2.75.
-pub const SANKALA_ADI: &[&str] = &[
+pub const SANKALA_ADI: Ganasutra = Ganasutra(&[
     "saNkala",
     "puzkala",
     "udvapa",
@@ -1277,10 +1285,10 @@ pub const SANKALA_ADI: &[&str] = &[
     "Balla",
     "mAla",
     "vft",
-];
+]);
 
 /// For 4.2.77.
-pub const SUVASTA_ADI: &[&str] = &[
+pub const SUVASTA_ADI: Ganasutra = Ganasutra(&[
     "suvAstu",
     "varRu",
     "BaRqu",
@@ -1297,10 +1305,10 @@ pub const SUVASTA_ADI: &[&str] = &[
     "gohra",
     "ahisakTa",
     "vft",
-];
+]);
 
 /// For 4.2.86.
-pub const MADHU_ADI: &[&str] = &[
+pub const MADHU_ADI: Ganasutra = Ganasutra(&[
     "maDu",
     "bisa",
     "sTARu",
@@ -1329,10 +1337,10 @@ pub const MADHU_ADI: &[&str] = &[
     "KaqA",
     "vewA",
     "maDvAdiH",
-];
+]);
 
 /// For 4.2.95.
-pub const KATRI_ADI: &[&str] = &[
+pub const KATRI_ADI: Ganasutra = Ganasutra(&[
     "katri",
     "umBi",
     "puzkara",
@@ -1349,10 +1357,10 @@ pub const KATRI_ADI: &[&str] = &[
     // kuqyA takes ya-lopa
     "kuqyA",
     "katryAdiH",
-];
+]);
 
 /// 4.2.97 nadyAdiByo Qak (106)
-pub const NADI_ADI: &[&str] = &[
+pub const NADI_ADI: Ganasutra = Ganasutra(&[
     "nadI",
     "mahI",
     "vArARasI",
@@ -1369,10 +1377,10 @@ pub const NADI_ADI: &[&str] = &[
     "dAlvA",
     "vAsenakI",
     "vaqavA",
-];
+]);
 
 /// 4.2.86 maDvAdiByaS ca (102)
-pub const KASHI_ADI: &[&str] = &[
+pub const KASHI_ADI: Ganasutra = Ganasutra(&[
     "kASi",
     "cedi",
     "bedi",
@@ -1403,10 +1411,10 @@ pub const KASHI_ADI: &[&str] = &[
     "ApatkAla",
     "UrDvakAla",
     "tatkAla",
-];
+]);
 
 /// 4.2.133 kacCAdiByaS ca (110)
-pub const KACCHA_ADI: &[&str] = &[
+pub const KACCHA_ADI: Ganasutra = Ganasutra(&[
     "kacCa",
     "sinDu",
     "varRu",
@@ -1424,10 +1432,10 @@ pub const KACCHA_ADI: &[&str] = &[
     "ajavAha",
     "vijApakaH",
     "kulUna",
-];
+]);
 
 /// 4.2.138 gahAdiByaS ca (111)
-pub const GAHA_ADI: &[&str] = &[
+pub const GAHA_ADI: Ganasutra = Ganasutra(&[
     "gaha",
     "antaHsTa",
     "sama",
@@ -1476,25 +1484,25 @@ pub const GAHA_ADI: &[&str] = &[
     "para",
     "deva",
     "veRukA",
-];
+]);
 
 /// For 4.3.16.
-pub const SANDHIVELA_ADI: &[&str] = &[];
+pub const SANDHIVELA_ADI: Ganasutra = Ganasutra(&[]);
 
 /// For 4.3.54.
-pub const DIG_ADI: &[&str] = &[
+pub const DIG_ADI: Ganasutra = Ganasutra(&[
     "diS", "varga", "pUga", "gaRa", "pakza", "DAyyA", "mitra", "meDA", "antara", "paTin", "rahas",
     "alIka", "uKA", "sAkzin", "Adi", "anta", "muKa", "jaGna", "meGa", "yUTa", "udaka", "nyAya",
     "vaMSa", "anuvaMSa", "viSa", "kAla", "ap", "AkASa", "digAdiH",
-];
+]);
 
 /// For 4.3.76.
-pub const SHUNDIKA_ADI: &[&str] = &[
+pub const SHUNDIKA_ADI: Ganasutra = Ganasutra(&[
     "SuRqika", "kfkaRa", "sTaRqila", "udapAna", "upala", "tIrTa", "BUmi", "tfRa", "parRa",
-];
+]);
 
 /// For 4.3.92.
-pub const SHANDIKA_ADI: &[&str] = &[
+pub const SHANDIKA_ADI: Ganasutra = Ganasutra(&[
     "SaRqika",
     "sarvasena",
     "sarvakeSa",
@@ -1503,16 +1511,16 @@ pub const SHANDIKA_ADI: &[&str] = &[
     "raka",
     "SaNKa",
     "boDa",
-];
+]);
 
 /// For 4.3.93.
-pub const SINDHU_ADI: &[&str] = &[
+pub const SINDHU_ADI: Ganasutra = Ganasutra(&[
     "sinDu", "varRu", "ganDAra", "maDumat", "kamboja", "kaSmIra", "sAlva", "kizkinDA", "gadikA",
     "urasa", "darat",
-];
+]);
 
 /// For 4.3.93.
-pub const TAKSHASHILA_ADI: &[&str] = &[
+pub const TAKSHASHILA_ADI: Ganasutra = Ganasutra(&[
     "takzaSilA",
     "vatsodDaraRa",
     "kOmedura",
@@ -1526,10 +1534,10 @@ pub const TAKSHASHILA_ADI: &[&str] = &[
     "karRakozWa",
     "barbara",
     "avasAna",
-];
+]);
 
 /// For 4.3.131.
-pub const RAIVATIKA_ADI: &[&str] = &[
+pub const RAIVATIKA_ADI: Ganasutra = Ganasutra(&[
     "rEvatika",
     "svApiSi",
     "kzEmavfdDi",
@@ -1537,15 +1545,15 @@ pub const RAIVATIKA_ADI: &[&str] = &[
     "Odameyi",
     "OdavAhi",
     "bEjavApi",
-];
+]);
 
 /// For 4.4.10.
-pub const PARPA_ADI: &[&str] = &[
+pub const PARPA_ADI: Ganasutra = Ganasutra(&[
     "parpa", "aSva", "aSvatTa", "raTa", "jAla", "nyAsa", "vyAla", "pAda", "paYca", "padika",
-];
+]);
 
 /// For 4.3.118.
-pub const KULALA_ADI: &[&str] = &[
+pub const KULALA_ADI: Ganasutra = Ganasutra(&[
     "kulAla",
     "varuqa",
     "caRqAla",
@@ -1564,15 +1572,15 @@ pub const KULALA_ADI: &[&str] = &[
     "brahman",
     "kumBakAra",
     "SvapAka",
-];
+]);
 
 /// For 4.3.164.
-pub const PLAKSHA_ADI: &[&str] = &[
+pub const PLAKSHA_ADI: Ganasutra = Ganasutra(&[
     "plakza", "nyagroDa", "aSvatTa", "iNgudI", "Sigru", "kakarnDu", "vuhatI",
-];
+]);
 
 /// For 4.4.12.
-pub const VETANA_ADI: &[&str] = &[
+pub const VETANA_ADI: Ganasutra = Ganasutra(&[
     "vetana",
     "vAha",
     "arDavAha",
@@ -1590,10 +1598,10 @@ pub const VETANA_ADI: &[&str] = &[
     "sraj",
     "pAda",
     "upasTAna",
-];
+]);
 
 /// For 4.4.19.
-pub const AKSHADYUTA_ADI: &[&str] = &[
+pub const AKSHADYUTA_ADI: Ganasutra = Ganasutra(&[
     "akzadyUta",
     "jAnuprahfta",
     "jaNGAprahfta",
@@ -1602,16 +1610,16 @@ pub const AKSHADYUTA_ADI: &[&str] = &[
     "gatAgata",
     "yAtopayAta",
     "anugata",
-];
+]);
 
 /// 4.4.62 CatrAdiByo RaH (142)
-pub const CHATRA_ADI: &[&str] = &[
+pub const CHATRA_ADI: Ganasutra = Ganasutra(&[
     "Catra", "buBukzA", "SikzA", "puroha", "sTA", "curA", "upasTAna", "fzi", "karman", "viSvaDA",
     "tapas", "satya", "anfta", "SibikA",
-];
+]);
 
 /// 4.4.98 pratijanAdiByaH KaY (143)
-pub const PRATIJANA_ADI: &[&str] = &[
+pub const PRATIJANA_ADI: Ganasutra = Ganasutra(&[
     "pratijana",
     "idaMyuga",
     "saMyuga",
@@ -1624,10 +1632,10 @@ pub const PRATIJANA_ADI: &[&str] = &[
     "viSvajana",
     "mahAjana",
     "paYcajana",
-];
+]);
 
 /// 4.4.102 kaTAdiByaz Wak (144)
-pub const KATHA_ADI: &[&str] = &[
+pub const KATHA_ADI: Ganasutra = Ganasutra(&[
     "kaTA",
     "vikaTA",
     "viSvakaTA",
@@ -1642,10 +1650,10 @@ pub const KATHA_ADI: &[&str] = &[
     "saMgfha",
     "guRagaRa",
     "Ayurveda",
-];
+]);
 
 /// 4.4.103 guqAdiByaz WaY (145)
-pub const GUDA_ADI: &[&str] = &[
+pub const GUDA_ADI: Ganasutra = Ganasutra(&[
     "guqa",
     "kulmAza",
     "saktu",
@@ -1660,17 +1668,17 @@ pub const GUDA_ADI: &[&str] = &[
     "pravAsa",
     "nivAsa",
     "upavAsa",
-];
+]);
 
 /// 5.1.2 u-gavAdiByo yat (146)
-pub const GAVADI: &[&str] = &[
+pub const GAVADI: Ganasutra = Ganasutra(&[
     "go", "havis", "akzara", "viza", "barhis", "azwakA", "svadA", "yuga", "meDA", "srac", "nABi",
     "naBa", "kUpa", "Kada", "dara", "asura", "aDvan", "aDvana", "kzara", "veda", "bIja", "dIsa",
     "dIpta",
-];
+]);
 
 /// 5.1.4 viBAzA havirapUpAdiByaH (147)
-pub const APUPA_ADI: &[&str] = &[
+pub const APUPA_ADI: Ganasutra = Ganasutra(&[
     "apUpa",
     "taRqula",
     "aByuza",
@@ -1694,13 +1702,14 @@ pub const APUPA_ADI: &[&str] = &[
     "dIpa",
     "aSva",
     "patra",
-];
+]);
 
 /// 5.1.20 asamAse nizkAdiByaH (148)
-pub const NISHKA_ADI: &[&str] = &["nizka", "paRa", "pAda", "mAza", "vAha", "droRa", "zazwi"];
+pub const NISHKA_ADI: Ganasutra =
+    Ganasutra(&["nizka", "paRa", "pAda", "mAza", "vAha", "droRa", "zazwi"]);
 
 /// 5.1.64 CedAdiByo nityam (151)
-pub const CHEDA_ADI: &[&str] = &[
+pub const CHEDA_ADI: Ganasutra = Ganasutra(&[
     "Ceda",
     "Beda",
     "droha",
@@ -1719,10 +1728,10 @@ pub const CHEDA_ADI: &[&str] = &[
     "vikarza",
     "virAga",
     "viraNga",
-];
+]);
 
 /// 5.1.66 daRqAdiByaH (152)
-pub const DANDA_ADI: &[&str] = &[
+pub const DANDA_ADI: Ganasutra = Ganasutra(&[
     "daRqa",
     "musala",
     "maDuparka",
@@ -1738,17 +1747,17 @@ pub const DANDA_ADI: &[&str] = &[
     "BAga",
     "iBa",
     "BaNga",
-];
+]);
 
 /// 5.1.122 pRTvAdiBya imanijvA (162)
-pub const PRTHU_ADI: &[&str] = &[
+pub const PRTHU_ADI: Ganasutra = Ganasutra(&[
     "pfTu", "mfdu", "mahat", "pawu", "tanu", "laGu", "bahu", "sADu", "veRu", "ASu", "bahula",
     "guru", "daRqa", "uru", "KaRqa", "caRqa", "bAla", "akiYcana", "hoqa", "pAka", "vatsa", "manda",
     "svAdu", "hrasva", "dIrGa", "priya", "vfza", "fju", "kzipra", "kzupra", "kzudra",
-];
+]);
 
 /// 5.2.36 tadasya saMjAtaM tArakAdiBya itac (172)
-pub const TARAKA_ADI: &[&str] = &[
+pub const TARAKA_ADI: Ganasutra = Ganasutra(&[
     "tArakA",
     "puzpa",
     "karRaka",
@@ -1838,10 +1847,10 @@ pub const TARAKA_ADI: &[&str] = &[
     "pratyaya",
     "dIkzA",
     "garja",
-];
+]);
 
 /// 5.2.61 vimuktAdiByo 'R (173)
-pub const VIMUKTA_ADI: &[&str] = &[
+pub const VIMUKTA_ADI: Ganasutra = Ganasutra(&[
     "vimukta",
     "devAsura",
     "rakzosura",
@@ -1868,10 +1877,10 @@ pub const VIMUKTA_ADI: &[&str] = &[
     "agnAvizRU",
     "urvaSI",
     "vftrahan",
-];
+]);
 
 /// 5.2.62 gozadAdiByo vun (174)
-pub const GOSHADA_ADI: &[&str] = &[
+pub const GOSHADA_ADI: Ganasutra = Ganasutra(&[
     "gozada",
     "gozad",
     "izetvA",
@@ -1889,10 +1898,10 @@ pub const GOSHADA_ADI: &[&str] = &[
     "pratUrta",
     "kfSAnu",
     "kfSAku",
-];
+]);
 
 /// 5.2.64 AkarzAdiByaH kan (175)
-pub const AKARSHA_ADI: &[&str] = &[
+pub const AKARSHA_ADI: Ganasutra = Ganasutra(&[
     "Akarza",
     "Akaza",
     "tsaru",
@@ -1912,44 +1921,44 @@ pub const AKARSHA_ADI: &[&str] = &[
     "hlAda",
     "gadgada",
     "Sakuni",
-];
+]);
 
 /// 5.2.95 rasAdiByaS ca (177)
-pub const RASA_ADI: &[&str] = &[
+pub const RASA_ADI: Ganasutra = Ganasutra(&[
     "rasa", "rUpa", "ganDa", "sparSa", "Sabda", "sneha", "guRAt", "ekAcaH",
-];
+]);
 
-// 5.2.97 siDmAdiByaS ca (178)
-pub const SIDHMA_ADI: &[&str] = &[
+/// 5.2.97 siDmAdiByaS ca (178)
+pub const SIDHMA_ADI: Ganasutra = Ganasutra(&[
     "siDma", "gaqu", "maRi", "nABi", "jIva", "nizpAva", "pAMsu", "saktu", "hanu", "mAMsa", "paraSu",
-];
+]);
 
-// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (179)
-pub const LOMA_ADI: &[&str] = &[
+/// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (179)
+pub const LOMA_ADI: Ganasutra = Ganasutra(&[
     "loman", "roman", "valgu", "baBrO", "hari", "kapi", "Suni", "taru",
-];
+]);
 
-// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (180)
-pub const PAMA_ADI: &[&str] = &[
+/// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (180)
+pub const PAMA_ADI: Ganasutra = Ganasutra(&[
     "pAman", "vAman", "heman", "Slezman", "kadru", "bali", "SrezWa", "palala", "sAman",
-];
+]);
 
-// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (181)
-pub const PICCHA_ADI: &[&str] = &[
+/// 5.2.100 lomAdi-pAmAdi-picCAdiByaH SanelacaH (181)
+pub const PICCHA_ADI: Ganasutra = Ganasutra(&[
     "picCa", "uras", "GruvakA", "kzuvakA", "varRa", "udaka", "paNka", "prajYA",
-];
+]);
 
 /// 5.2.117 tundAdiBya ilac ca (174)
-pub const TUNDA_ADI: &[&str] = &["tunda", "udara", "picaRqa", "yava", "vrIhi"];
+pub const TUNDA_ADI: Ganasutra = Ganasutra(&["tunda", "udara", "picaRqa", "yava", "vrIhi"]);
 
 /// 5.3.101 SAKAdiByo yat (191)
-pub const SHAKHA_ADI: &[&str] = &[
+pub const SHAKHA_ADI: Ganasutra = Ganasutra(&[
     "SAKA", "muKa", "jaGana", "SfNga", "meGa", "caraRa", "skanDa", "Siras", "uras", "agra",
     "Sarana",
-];
+]);
 
 /// 5.3.107 SarkarAdiByo 'R (192)
-pub const SHARKARA_ADI: &[&str] = &[
+pub const SHARKARA_ADI: Ganasutra = Ganasutra(&[
     "SarkarA",
     "kapAlikA",
     "pizwika",
@@ -1960,16 +1969,16 @@ pub const SHARKARA_ADI: &[&str] = &[
     "narAcI ",
     "nakulA",
     "sikatA",
-];
+]);
 
 /// 5.3.108 aNgulyAdiByaz Wak (193)
-pub const ANGULI_ADI: &[&str] = &[
+pub const ANGULI_ADI: Ganasutra = Ganasutra(&[
     "aNguli", "Baruja", "baBru", "valgu", "maRqara", "maRqala", "Sazkula", "kapi", "udaSvit",
     "goRI", "uras", "SiKara", "kuliSa",
-];
+]);
 
 /// 5.3.116 dAmanyAditrigartazazWAc CaH (194)
-pub const DAMANI_ADI: &[&str] = &[
+pub const DAMANI_ADI: Ganasutra = Ganasutra(&[
     "dAmanI",
     "Olapi",
     "AkidantI",
@@ -1981,10 +1990,10 @@ pub const DAMANI_ADI: &[&str] = &[
     "mOYjAyana",
     "ulaBa",
     "sAvitrIputra",
-];
+]);
 
 /// 5.3.117 parSvAdi-yODeyAdiByAmaRaYO (195)
-pub const PARSHU_ADI: &[&str] = &[
+pub const PARSHU_ADI: Ganasutra = Ganasutra(&[
     "parSu",
     "asura",
     "rakzas",
@@ -1999,16 +2008,16 @@ pub const PARSHU_ADI: &[&str] = &[
     "satvat",
     "vasu",
     "parSvAdiH",
-];
+]);
 
 /// 5.3.117 parSvAdi-yODeyAdiByAmaRaYO (196)
-pub const YAUDHEYA_ADI: &[&str] = &[
+pub const YAUDHEYA_ADI: Ganasutra = Ganasutra(&[
     "yODeya", "kOSeya", "krOSeya", "SOkreya", "SOBreya", "DArteya", "vArteya", "jAbAleya",
     "trigarta", "Barata", "uSInara",
-];
+]);
 
 /// 5.4.3 sTUlAdiByaH prakAravacane kan (197)
-pub const STHULA_ADI: &[&str] = &[
+pub const STHULA_ADI: Ganasutra = Ganasutra(&[
     "sTUla",
     "aRu",
     "mAza",
@@ -2029,23 +2038,23 @@ pub const STHULA_ADI: &[&str] = &[
     "kumAra",
     "SvaSura",
     "maRi",
-];
+]);
 
 /// 5.4.3 uraH-praBftiByaH kap
-pub const URAH_PRABHRTI: &[&str] = &[
+pub const URAH_PRABHRTI: Ganasutra = Ganasutra(&[
     "uras", "sarpis", "upAdah", "pums", "anaquh", "payas", "nO", "lakzmI", "daDi", "maDu", "SAlI",
     "SAli",
-];
+]);
 
 /// 5.4.29 yAvAviByaH kan (252)
 /// TODO: others
-pub const YAVA_ADI: &[&str] = &[
+pub const YAVA_ADI: Ganasutra = Ganasutra(&[
     "yAva", "maRi", "asTi", "caRqa", "pIta", "stamBa", "ftu", "paSu", "aRu", "putra", "snAta",
     "SUnya", "dAna", "tanu", "jYAta",
-];
+]);
 
 /// 5.4.34 vinayAdiByaz Wak (253)
-pub const VINAYA_ADI: &[&str] = &[
+pub const VINAYA_ADI: Ganasutra = Ganasutra(&[
     "vinaya",
     "samaya",
     "upAya",
@@ -2061,12 +2070,12 @@ pub const VINAYA_ADI: &[&str] = &[
     "samUha",
     "viSeza",
     "atyaya",
-];
+]);
 
 /// 6.1.203 vfzAdInAM ca (210)
 /// TODO: SamaraRa
-pub const VRSHA_ADI: &[&str] = &[
+pub const VRSHA_ADI: Ganasutra = Ganasutra(&[
     "vfza", "jana", "jvara", "graha", "haya", "maya", "gaya", "tAya", "taya", "caya", "ama",
     "veda", "sUda", "aMSa", "guhA", "mantra", "SAnti", "kAma", "yAma", "ArA", "DArA", "kArA",
     "vaha", "kalpa", "pAda",
-];
+]);

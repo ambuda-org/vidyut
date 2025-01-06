@@ -7,4 +7,4 @@ mod strict_mode;
 
 pub use crate::chedaka::{Chedaka, Token};
 pub use crate::errors::{Error, Result};
-pub use crate::scoring::{Model, ModelBuilder, State};
+pub use crate::scoring::{Model, ModelBuilder, POSTag, State};

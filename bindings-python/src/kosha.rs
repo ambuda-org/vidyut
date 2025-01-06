@@ -1,8 +1,13 @@
-use entries::PyPadaEntry;
-use pyo3::exceptions::PyOSError;
+use entries::{PyDhatuEntry, PyPadaEntry, PyPratipadikaEntry};
+use pyo3::exceptions::{PyOSError, PyValueError};
 use pyo3::prelude::*;
 use std::path::PathBuf;
+use vidyut_kosha::entries::{
+    BasicPratipadikaEntry, DhatuEntry, KrdantaEntry, PadaEntry, PratipadikaEntry, SubantaEntry,
+    TinantaEntry,
+};
 use vidyut_kosha::{Builder, Kosha};
+use vidyut_prakriya::args as vp;
 
 pub mod entries;
 
@@ -43,6 +48,85 @@ pub struct PyBuilder {
     builder: Option<Builder>,
 }
 
+#[derive(Default)]
+struct SmallRegistry {
+    lingas: Vec<Vec<vp::Linga>>,
+}
+
+impl SmallRegistry {
+    fn to_dhatu_entry<'a>(&self, entry: &'a PyDhatuEntry) -> DhatuEntry<'a> {
+        DhatuEntry::new(entry.dhatu.as_rust(), &entry.clean_text)
+    }
+
+    fn to_pratipadika_entry<'a>(
+        &'a mut self,
+        phit: &'a PyPratipadikaEntry,
+    ) -> PyResult<PratipadikaEntry<'a>> {
+        let ret = match phit {
+            PyPratipadikaEntry::Basic {
+                pratipadika,
+                lingas,
+            } => match pratipadika.as_ref() {
+                vp::Pratipadika::Basic(b) => {
+                    let lingas_rs: Vec<vp::Linga> = lingas.iter().map(|x| (*x).into()).collect();
+                    let i = self.lingas.len();
+                    self.lingas.push(lingas_rs);
+                    PratipadikaEntry::Basic(BasicPratipadikaEntry::new(b, &self.lingas[i]))
+                }
+                _ => return Err(PyValueError::new_err("Unsupported pratipadika type")),
+            },
+            PyPratipadikaEntry::Krdanta {
+                dhatu_entry,
+                krt,
+                prayoga,
+                lakara,
+            } => PratipadikaEntry::Krdanta(KrdantaEntry::new(
+                self.to_dhatu_entry(dhatu_entry),
+                vp::BaseKrt::from(*krt).into(),
+                prayoga.map(|x| x.into()),
+                lakara.map(|x| x.into()),
+            )),
+        };
+
+        Ok(ret)
+    }
+
+    fn to_pada_entry<'a>(&'a mut self, pada: &'a PyPadaEntry) -> PyResult<PadaEntry<'a>> {
+        let ret = match pada {
+            PyPadaEntry::Subanta {
+                pratipadika_entry,
+                linga,
+                vibhakti,
+                vacana,
+            } => PadaEntry::Subanta(SubantaEntry::new(
+                self.to_pratipadika_entry(pratipadika_entry)?,
+                (*linga).into(),
+                (*vibhakti).into(),
+                (*vacana).into(),
+            )),
+            PyPadaEntry::Tinanta {
+                dhatu_entry,
+                prayoga,
+                lakara,
+                purusha,
+                vacana,
+            } => PadaEntry::Tinanta(TinantaEntry::new(
+                self.to_dhatu_entry(dhatu_entry),
+                (*prayoga).into(),
+                (*lakara).into(),
+                (*purusha).into(),
+                (*vacana).into(),
+            )),
+            PyPadaEntry::Avyaya { pratipadika_entry } => PadaEntry::Avyaya(SubantaEntry::avyaya(
+                self.to_pratipadika_entry(pratipadika_entry)?,
+            )),
+            PyPadaEntry::Unknown() => PadaEntry::Unknown,
+        };
+
+        Ok(ret)
+    }
+}
+
 #[pymethods]
 impl PyBuilder {
     /// Create a new builder whose output will be written to `path`.
@@ -63,17 +147,19 @@ impl PyBuilder {
     /// Keys must be inserted in lexicographic order. If a key is received out of order,
     /// this method will raise an `OSError`.
     fn insert(&mut self, key: String, pada: PyPadaEntry) -> PyResult<()> {
-        // TODO: implement
-        /*
         match self.builder {
-            Some(ref mut b) => match b.insert(&key, &(&pada).into()) {
-                Ok(()) => Ok(()),
-                Err(_) => Err(PyOSError::new_err("Could not write key.")),
-            },
+            Some(ref mut b) => {
+                let mut r = SmallRegistry::default();
+                let entry: PadaEntry = r.to_pada_entry(&pada)?;
+
+                b.register_pada_entry(&entry);
+                match b.insert(&key, &entry) {
+                    Ok(()) => Ok(()),
+                    Err(e) => Err(PyValueError::new_err(format!("Could not write key. {e}"))),
+                }
+            }
             None => Err(PyOSError::new_err("Kosha has already been written.")),
         }
-        */
-        Ok(())
     }
 
     /// Complete the build process.

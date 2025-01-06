@@ -1,8 +1,8 @@
-use crate::utils::py_only_enum;
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
 
 use crate::prakriya::args::{
-    PyDhatu, PyKrt, PyLakara, PyLinga, PyPratipadika, PyPrayoga, PyPurusha, PyVacana, PyVibhakti,
+    PyDhatu, PyKrt, PyLakara, PyLinga, PyPada, PyPratipadika, PyPrayoga, PyPurusha, PyVacana,
+    PyVibhakti,
 };
 use vidyut_kosha::entries::*;
 use vidyut_prakriya::args as vp;
@@ -20,7 +20,7 @@ fn py_repr_string(text: &str) -> String {
 #[pyclass(name = "DhatuEntry", get_all, eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PyDhatuEntry {
-    dhatu: PyDhatu,
+    pub(crate) dhatu: PyDhatu,
 
     /// The human-readable text representation of this dhatu.
     ///
@@ -28,7 +28,7 @@ pub struct PyDhatuEntry {
     ///
     /// - `qukf\\Y` --> `kf`
     /// - `vidi~` --> `vind`
-    clean_text: String,
+    pub(crate) clean_text: String,
 }
 
 #[pymethods]
@@ -40,17 +40,22 @@ impl PyDhatuEntry {
         Self { dhatu, clean_text }
     }
 
-    #[getter]
-    fn dhatu(&self) -> PyDhatu {
-        self.dhatu.clone()
-    }
-
     fn __repr__(&self) -> String {
         format!(
             "DhatuEntry(dhatu={}, clean_text={})",
             self.dhatu.__repr__(),
             py_repr_string(&self.clean_text)
         )
+    }
+
+    #[getter]
+    fn dhatu(&self) -> PyDhatu {
+        self.dhatu.clone()
+    }
+
+    /// Convert this entry to a `Dhatu`.
+    fn to_prakriya_args(&self) -> PyDhatu {
+        self.dhatu.clone()
     }
 }
 
@@ -84,15 +89,6 @@ pub enum PyPratipadikaEntry {
 
 #[pymethods]
 impl PyPratipadikaEntry {
-    /// The lemma that corresponds to this *prātipadika*.
-    #[getter]
-    pub fn lemma(&self) -> String {
-        match &self {
-            Self::Basic { pratipadika, .. } => pratipadika.text.clone(),
-            Self::Krdanta { dhatu_entry, .. } => dhatu_entry.clean_text.clone(),
-        }
-    }
-
     pub fn __repr__(&self) -> String {
         match self {
             Self::Basic {
@@ -132,6 +128,31 @@ impl PyPratipadikaEntry {
             }
         }
     }
+
+    /// The lemma that corresponds to this *prātipadika*.
+    ///
+    /// The lemma is either a *dhātu* or a simple *prātipadika*.
+    #[getter]
+    pub fn lemma(&self) -> String {
+        match &self {
+            Self::Basic { pratipadika, .. } => pratipadika.text.clone(),
+            Self::Krdanta { dhatu_entry, .. } => dhatu_entry.clean_text.clone(),
+        }
+    }
+
+    /// Convert this entry to a `Pratipadika`.
+    fn to_prakriya_args(&self) -> PyPratipadika {
+        use PyPratipadikaEntry as PE;
+        match self {
+            PE::Basic { pratipadika, .. } => pratipadika.clone(),
+            PE::Krdanta {
+                dhatu_entry,
+                krt,
+                prayoga: _,
+                lakara: _,
+            } => PyPratipadika::krdanta(dhatu_entry.dhatu().clone(), krt.clone()),
+        }
+    }
 }
 
 impl<'a> From<&PratipadikaEntry<'a>> for PyPratipadikaEntry {
@@ -163,22 +184,59 @@ impl<'a> From<&PratipadikaEntry<'a>> for PyPratipadikaEntry {
 }
 
 /*
-impl<'a> From<&'a PyPratipadikaEntry> for PratipadikaEntry<'a> {
-    fn from(val: &PyPratipadikaEntry) -> PratipadikaEntry {
-        match val {
-            PyPratipadikaEntry::Basic {
-                pratipadika,
-                lingas,
-            } => PratipadikaEntry::Basic(BasicPratipadikaEntry::new(pratipadika.as_ref(), &[]),
-            PyPratipadikaEntry::Krdanta { dhatu_entry, krt, prayoga, lakara } => {
-
-            }
-        }
-    }
-}
 */
 
 /// An entry in the kosha.
+///
+/// A `PadaEntry` is a simple dataclass that has one of four types. These types are
+/// constructed by `Kosha` directly, but you can create them yourself if you so choose.
+///
+/// The `PadaEntry.Subanta` constructor creates a *subanta*::
+///
+///     from vidyut.kosha import PratipadikaEntry, PadaEntry
+///     from vidyut.prakriya import Pratipadika, Linga, Vibhakti, Vacana
+///
+///     rama = Pratipadika.basic("rAma")
+///     rama_entry = PratipadikaEntry.Basic(pratipadika=rama, lingas=[Linga.Pum])
+///     pada = PadaEntry.Subanta(
+///         pratipadika_entry=rama_entry,
+///         linga=Linga.Pum,
+///         vibhakti=Vibhakti.Prathama,
+///         vacana=Vacana.Eka)
+///
+///     assert pada.lemma == "rAma"
+///
+/// The `PadaEntry.Tinanta` constructor creates a *tinanta*::
+///
+///     from vidyut.kosha import DhatuEntry, PadaEntry
+///     from vidyut.prakriya import Dhatu, Prayoga, Lakara, Purusha, Vacana
+///
+///     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
+///     gam_entry = DhatuEntry(dhatu=gam, clean_text="gam")
+///     pada = PadaEntry.Tinanta(
+///         dhatu_entry=gam_entry,
+///         prayoga=Prayoga.Kartari,
+///         lakara=Lakara.Lat,
+///         purusha=Purusha.Prathama,
+///         vacana=Vacana.Eka)
+///
+///     assert pada.lemma == "gam"
+///
+/// The `PadaEntry.Avyaya` constructor creates an *avyaya*::
+///
+///     from vidyut.kosha import PratipadikaEntry, PadaEntry
+///     from vidyut.prakriya import Pratipadika
+///
+///     ca = Pratipadika.basic("ca")
+///     ca_entry = PratipadikaEntry.Basic(pratipadika=ca, lingas=[])
+///     pada = PadaEntry.Avyaya(pratipadika_entry=ca_entry)
+///
+///     assert pada.lemma == "ca"
+///
+/// The `PadaEntry.Unknown` constructor indicates that the semantics are unknown::
+///
+///     unk = PadaEntry.Unknown()
+///     assert unk.lemma is None
 #[pyclass(name = "PadaEntry", get_all, eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum PyPadaEntry {
@@ -209,6 +267,9 @@ pub enum PyPadaEntry {
 
 #[pymethods]
 impl PyPadaEntry {
+    /// The lemma used by this *pada*.
+    ///
+    /// The lemma is either aa *dhātu* or a simple *prātipadika*.
     #[getter]
     pub fn lemma(&self) -> Option<String> {
         match self {
@@ -263,6 +324,53 @@ impl PyPadaEntry {
             PyPadaEntry::Unknown() => String::from("PadaEntry.Unknown()"),
         }
     }
+
+    /// Convert this entry to a `Pada`.
+    fn to_prakriya_args(&self) -> PyResult<PyPada> {
+        PyPada::try_from(self)
+    }
+}
+
+impl TryFrom<&PyPadaEntry> for PyPada {
+    type Error = PyErr;
+
+    fn try_from(val: &PyPadaEntry) -> PyResult<PyPada> {
+        use PyPadaEntry as PE;
+        let ret = match val {
+            PE::Subanta {
+                pratipadika_entry,
+                linga,
+                vibhakti,
+                vacana,
+            } => PyPada::Subanta {
+                pratipadika: pratipadika_entry.to_prakriya_args(),
+                linga: *linga,
+                vibhakti: *vibhakti,
+                vacana: *vacana,
+                is_avyaya: false,
+            },
+            PE::Tinanta {
+                dhatu_entry,
+                prayoga,
+                lakara,
+                purusha,
+                vacana,
+            } => PyPada::Tinanta {
+                dhatu: dhatu_entry.to_prakriya_args(),
+                prayoga: *prayoga,
+                lakara: *lakara,
+                purusha: *purusha,
+                vacana: *vacana,
+                skip_at_agama: false,
+            },
+            PE::Avyaya { pratipadika_entry } => {
+                PyPada::make_avyaya(pratipadika_entry.to_prakriya_args())
+            }
+            _ => return Err(PyValueError::new_err("Unknown PadaEntry type")),
+        };
+
+        Ok(ret)
+    }
 }
 
 impl<'a> From<&PadaEntry<'a>> for PyPadaEntry {
@@ -288,40 +396,3 @@ impl<'a> From<&PadaEntry<'a>> for PyPadaEntry {
         }
     }
 }
-
-/*
-impl<'a> From<&'a PyPadaEntry> for PadaEntry<'a> {
-    fn from(val: &PyPadaEntry) -> PadaEntry {
-        match val {
-            PyPadaEntry::Subanta {
-                pratipadika_entry,
-                linga,
-                vibhakti,
-                vacana,
-            } => PadaEntry::Subanta(SubantaEntry::new(
-                pratipadika_entry.into(),
-                *linga.into(),
-                *vibhakti.into(),
-                *vacana.into(),
-            )),
-            PyPadaEntry::Tinanta {
-                dhatu_entry,
-                prayoga,
-                lakara,
-                purusha,
-                vacana,
-            } => PadaEntry::Tinanta(TinantaEntry::new(
-                *dhatu_entry.into(),
-                *prayoga.into(),
-                *lakara.into(),
-                *purusha.into(),
-                *vacana.into(),
-            )),
-            PyPadaEntry::Avyaya { pratipadika_entry } => {
-                PadaEntry::Avyaya(SubantaEntry::avyaya(pratipadika_entry.into()))
-            }
-            PyPadaEntry::Unknown() => PadaEntry::Unknown,
-        }
-    }
-}
-*/

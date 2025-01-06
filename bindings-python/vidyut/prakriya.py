@@ -18,6 +18,7 @@ Gana = __mod.Gana
 Krt = __mod.Krt
 Lakara = __mod.Lakara
 Linga = __mod.Linga
+Pada = __mod.Pada
 Prayoga = __mod.Prayoga
 Purusha = __mod.Purusha
 Sanadi = __mod.Sanadi

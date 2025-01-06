@@ -1,4 +1,5 @@
 use crate::errors::Result;
+use crate::normalize_text;
 use crate::scoring::{Model, POSTag};
 use crate::sounds;
 use crate::strict_mode;
@@ -143,7 +144,7 @@ impl Chedaka {
         })
     }
 
-    /// Returns a reference to this segmenter's underlying kosha.
+    /// Returns a reference to this chedaka's underlying kosha.
     ///
     /// We provide this method so that callers who want direct access to a kosha can reuse the
     /// instance here instead of creating a new one.
@@ -151,26 +152,32 @@ impl Chedaka {
         &self.kosha
     }
 
+    /// Returns a reference to this chedaka's underlying model.
+    pub fn model(&self) -> &Model {
+        &self.model
+    }
+
     /// Segments the input text into tokens.
     pub fn run<'a>(&'a self, input_text: &str) -> Result<Vec<Token<'a>>> {
-        let text = input_text.to_string();
+        if !input_text.is_ascii() {
+            return Err(crate::Error::NonAsciiText);
+        }
+
+        let normalized_text = normalize_text::normalize(input_text);
+        let initial_state = Phrase::new(normalized_text.to_string());
+
         let mut pq = PriorityQueue::new();
         let mut word_cache: FxHashMap<String, Vec<PadaEntry<'a>>> = FxHashMap::default();
-
         let mut token_pool: TokenPool<'a> = TokenPool::new();
 
         // viterbi_cache[remainder][state] = the best result that ends with $state and has $remainder
         // text remaining in the input.
         let mut viterbi_cache: FxHashMap<String, FxHashMap<String, Phrase>> = FxHashMap::default();
 
-        let initial_state = Phrase::new(text);
         let score = initial_state.score;
         pq.push(initial_state, score);
 
-        while !pq.is_empty() {
-            // Pop the best solution remaining.
-            let (cur, cur_score) = pq.pop().expect("always defined");
-
+        while let Some((cur, cur_score)) = pq.pop() {
             // The best solution remaining is complete, so we can stop here.
             //
             // Our current scoring model is a probabilistic model that adjusts the probability of a
@@ -295,8 +302,12 @@ impl Chedaka {
                     let token = token_pool.get(*i).expect("present").clone();
 
                     // Do this goofy round-trip to avoid lifetime complaints.
-                    let packed_data = self.kosha.pack(&token.data).expect("ok");
-                    let data = self.kosha.unpack(packed_data).expect("ok");
+                    let data = if token.data == PadaEntry::Unknown {
+                        PadaEntry::Unknown
+                    } else {
+                        let packed_data = self.kosha.pack(&token.data).expect("ok");
+                        self.kosha.unpack(packed_data).expect("ok")
+                    };
 
                     let token = Token {
                         text: token.text,

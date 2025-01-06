@@ -1,7 +1,7 @@
 use crate::args::Agama;
 use crate::args::Lakara;
 use crate::core::Tag;
-use crate::core::Term;
+use crate::core::{Strings, Term};
 use crate::sounds::Pattern;
 
 /// A view over multiple terms.
@@ -97,8 +97,8 @@ impl<'a> TermView<'a> {
     }
 
     /// Returns whether this view's text is equal to any of the strings in `items`.
-    pub fn has_text_in(&self, values: &[&str]) -> bool {
-        values.iter().any(|v| self.has_text(v))
+    pub fn has_text_in(&self, values: impl Strings) -> bool {
+        values.as_strings().iter().any(|v| self.has_text(v))
     }
 
     // Accessors

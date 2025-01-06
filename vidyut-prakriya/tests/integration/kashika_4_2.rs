@@ -418,6 +418,12 @@ fn sutra_4_2_99() {
     // TODO: stri
 }
 
+#[test]
+fn sutra_4_2_100() {
+    assert_has_taddhita("raNku", T::zPak, &["rANkavAyaRa"]);
+    assert_has_taddhita("raNku", T::aR, &["rANkava"]);
+}
+
 #[ignore]
 #[test]
 fn sutra_4_2_101() {

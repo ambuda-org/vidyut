@@ -24,13 +24,10 @@ can download here:
     $ wget https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
     $ unzip data-0.3.0.zip
 
-You can use this data like so:
+For details on how to use this data, see the [documentation][docs].
 
-    from vidyut.cheda import Chedaka
+[docs]: https://vidyut.readthedocs.io
 
-    c = Chedaka("data-0.3.0")
-    for token in c.run("tapaHsvADyAyaniratam"):
-        print(token)
 
 Links
 -----

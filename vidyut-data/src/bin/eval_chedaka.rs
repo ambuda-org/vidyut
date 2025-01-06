@@ -102,7 +102,7 @@ fn pretty_print(parse: &[Token], show_semantics: &bool) -> String {
     for w in parse {
         let code = as_code(w);
         if *show_semantics {
-            s += &format!("{} ({})", w.lemma(), code);
+            s += &format!("{}/{}_{}", w.text(), w.lemma(), code);
         } else {
             s += w.lemma();
         }

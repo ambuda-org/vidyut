@@ -257,6 +257,7 @@ impl PyData {
     /// Return all sutras used as rules.
     ///
     /// Sutras come from various sources, including:
+    ///
     /// - the gana-sutras in the Dhatupatha
     /// - the Ashtadhyayi
     /// - the Unadipatha
@@ -344,6 +345,10 @@ impl PyVyakarana {
     pub fn derive_pratipadikas(&self, pratipadika: &PyPratipadika) -> Vec<PyPrakriya> {
         let args = pratipadika.as_ref();
         match args {
+            Pratipadika::Basic(_b) => {
+                let results = self.0.derive_pratipadikas(args);
+                to_py_prakriyas(results)
+            }
             Pratipadika::Krdanta(k) => {
                 let results = self.0.derive_krdantas(k);
                 to_py_prakriyas(results)
@@ -356,51 +361,92 @@ impl PyVyakarana {
         }
     }
 
-    /// Return all tinantas that can be derived from the given arguments.
-    ///
-    /// If `skip_at_agama` is ``True`` and the `lakara` is `Lun`, `Lan`, or `Lrn`, then the
-    /// derivation will not add the *aṭ*/*āṭ* *āgama* to the verb. This is to derive forms like
-    /// *gamat*, *karot*, etc.
+    /// Convenience function for `derive_padas(Pada.Tinanta(...))`
     #[pyo3(signature = (*, dhatu, prayoga, lakara, purusha, vacana, skip_at_agama=false))]
     pub fn derive_tinantas(
         &self,
-        dhatu: &PyDhatu,
+        dhatu: PyDhatu,
         prayoga: PyPrayoga,
         lakara: PyLakara,
         purusha: PyPurusha,
         vacana: PyVacana,
         skip_at_agama: bool,
     ) -> Vec<PyPrakriya> {
-        let tin_args = Tinanta::builder()
-            .dhatu(dhatu.as_rust().clone())
-            .prayoga(prayoga.into())
-            .purusha(purusha.into())
-            .vacana(vacana.into())
-            .lakara(lakara.into())
-            .skip_at_agama(skip_at_agama)
-            .build()
-            .expect("should have all required fields");
-
-        let results = self.0.derive_tinantas(&tin_args);
-        to_py_prakriyas(results)
+        let args = PyPada::Tinanta {
+            dhatu,
+            prayoga,
+            lakara,
+            purusha,
+            vacana,
+            skip_at_agama,
+        };
+        self.derive_padas(args)
     }
 
-    /// Return all subantas that can be derived from the given arguments.
-    #[pyo3(signature = (*, pratipadika, linga, vibhakti, vacana))]
+    /// Convenience function for `derive_padas(Pada.Subanta(...))`
+    #[pyo3(signature = (*, pratipadika, linga, vibhakti, vacana, is_avyaya = false))]
     pub fn derive_subantas(
         &self,
-        pratipadika: &PyPratipadika,
+        pratipadika: PyPratipadika,
         linga: PyLinga,
         vibhakti: PyVibhakti,
         vacana: PyVacana,
+        is_avyaya: bool,
     ) -> Vec<PyPrakriya> {
-        let args = Subanta::new(
-            pratipadika.as_ref(),
-            linga.into(),
-            vibhakti.into(),
-            vacana.into(),
-        );
-        let results = self.0.derive_subantas(&args);
-        to_py_prakriyas(results)
+        let args = PyPada::Subanta {
+            pratipadika,
+            linga,
+            vibhakti,
+            vacana,
+            is_avyaya,
+        };
+        self.derive_padas(args)
+    }
+
+    /// Return all padas that can be derived from the given arguments.
+    pub fn derive_padas(&self, pada: PyPada) -> Vec<PyPrakriya> {
+        match pada {
+            PyPada::Subanta {
+                pratipadika,
+                linga,
+                vibhakti,
+                vacana,
+                is_avyaya,
+            } => {
+                let args = if is_avyaya {
+                    Subanta::avyaya(pratipadika.as_ref())
+                } else {
+                    Subanta::new(
+                        pratipadika.as_ref(),
+                        linga.into(),
+                        vibhakti.into(),
+                        vacana.into(),
+                    )
+                };
+                let results = self.0.derive_subantas(&args);
+                to_py_prakriyas(results)
+            }
+            PyPada::Tinanta {
+                dhatu,
+                prayoga,
+                lakara,
+                purusha,
+                vacana,
+                skip_at_agama,
+            } => {
+                let tin_args = Tinanta::builder()
+                    .dhatu(dhatu.as_rust().clone())
+                    .prayoga(prayoga.into())
+                    .purusha(purusha.into())
+                    .vacana(vacana.into())
+                    .lakara(lakara.into())
+                    .skip_at_agama(skip_at_agama)
+                    .build()
+                    .expect("should have all required fields");
+
+                let results = self.0.derive_tinantas(&tin_args);
+                to_py_prakriyas(results)
+            }
+        }
     }
 }

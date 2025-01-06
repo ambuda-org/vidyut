@@ -10,9 +10,10 @@ pub use crate::vyakarana::{Vyakarana, VyakaranaBuilder};
 // - `args` defines the API contract.
 // - `dhatupatha` defines convenience functions for reading our version of the Dhatupatha.
 //   These functions are used only in our binaries (in `src/bin`).
-// - `private` contains convenience functions for the code in `src/bin`.
+// - `ganapatha` defines various useful ganas.
 pub mod args;
 pub mod dhatupatha;
+pub mod ganapatha;
 
 // Data structures and utilities
 mod caching;
@@ -21,7 +22,6 @@ mod sounds;
 
 // Other texts.
 mod ashtadhyayi;
-mod ganapatha;
 mod linganushasanam;
 mod phit_sutraani;
 

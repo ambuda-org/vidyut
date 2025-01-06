@@ -4,7 +4,7 @@ from vidyut.vidyut import chandas as __mod
 
 Chandas = __mod.Chandas
 
-MatchResult = __mod.MatchResult
+Match = __mod.Match
 Akshara = __mod.Akshara
 
 Vrtta = __mod.Vrtta

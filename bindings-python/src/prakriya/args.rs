@@ -1044,7 +1044,7 @@ impl From<PyDhatu> for Dhatu {
 
 /// A nominal stem.
 #[pyclass(name = "Pratipadika", module = "prakriya", eq, ord)]
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PyPratipadika {
     pratipadika: Pratipadika,
     pub(crate) text: String,
@@ -1073,7 +1073,7 @@ impl PyPratipadika {
     pub fn basic(text: String) -> PyResult<Self> {
         let safe = match Slp1String::from(text.clone()) {
             Ok(s) => s,
-            Err(e) => {
+            Err(_) => {
                 return Err(PyValueError::new_err(format!(
                     "{text} must be an SLP1 string."
                 )))
@@ -1126,6 +1126,49 @@ impl From<Pratipadika> for PyPratipadika {
         PyPratipadika {
             pratipadika: val,
             text,
+        }
+    }
+}
+
+/// A Sanskrit pada.
+///
+/// Notes for `Pada.Tinanta`:
+/// - If `skip_at_agama` is ``True`` and the `lakara` is `Lun`, `Lan`, or `Lrn`,
+///   then the derivation will not add the *aṭ*/*āṭ* *āgama* to the verb. This
+///   is to derive forms like *gamat*, *karot*, etc.
+#[pyclass(name = "Pada", module = "prakriya", eq, ord)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum PyPada {
+    #[pyo3(constructor = (pratipadika, linga, vibhakti, vacana, *, is_avyaya = false))]
+    Subanta {
+        pratipadika: PyPratipadika,
+        linga: PyLinga,
+        vibhakti: PyVibhakti,
+        vacana: PyVacana,
+        is_avyaya: bool,
+    },
+
+    #[pyo3(constructor = (dhatu, prayoga, lakara, purusha, vacana, *, skip_at_agama = false))]
+    Tinanta {
+        dhatu: PyDhatu,
+        prayoga: PyPrayoga,
+        lakara: PyLakara,
+        purusha: PyPurusha,
+        vacana: PyVacana,
+        skip_at_agama: bool,
+    },
+}
+
+#[pymethods]
+impl PyPada {
+    #[staticmethod]
+    pub fn make_avyaya(pratipadika: PyPratipadika) -> Self {
+        Self::Subanta {
+            pratipadika: pratipadika.clone(),
+            linga: PyLinga::Pum,
+            vibhakti: PyVibhakti::Prathama,
+            vacana: PyVacana::Eka,
+            is_avyaya: true,
         }
     }
 }

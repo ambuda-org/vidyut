@@ -171,15 +171,15 @@ impl From<Jati> for PyJati {
 }
 
 /// Models a match against our database or meters.
-#[pyclass(name = "MatchResult", get_all, eq)]
+#[pyclass(name = "Match", get_all, eq)]
 #[derive(Clone, Eq, Hash, PartialEq)]
-pub struct PyMatchResult {
+pub struct PyMatch {
     pub padya: Option<String>,
     pub aksharas: Vec<Vec<PyAkshara>>,
 }
 
 #[pymethods]
-impl PyMatchResult {
+impl PyMatch {
     /// The name of the matching meter, if one could be found.
     #[getter]
     fn padya(&self) -> Option<String> {
@@ -236,7 +236,7 @@ impl PyChandas {
     /// Classify the input string against an internal list of meters.
     ///
     /// `text` should be an SLP1 string.
-    pub fn classify(&self, text: &str) -> PyResult<PyMatchResult> {
+    pub fn classify(&self, text: &str) -> PyResult<PyMatch> {
         let res = self.chandas.classify(text);
 
         let padya_name = res.padya().as_ref().map(|v| v.name().to_string());
@@ -245,7 +245,7 @@ impl PyChandas {
             let new_row: Vec<_> = row.iter().map(|a| a.clone().into()).collect();
             aksharas.push(new_row);
         }
-        Ok(PyMatchResult {
+        Ok(PyMatch {
             padya: padya_name,
             aksharas,
         })

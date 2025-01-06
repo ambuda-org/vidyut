@@ -1905,7 +1905,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "vidyut-py"
+name = "vidyut-python"
 version = "0.3.0"
 dependencies = [
  "pyo3",

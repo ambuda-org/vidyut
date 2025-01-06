@@ -12,21 +12,22 @@ use vidyut_prakriya::args::{Linga, Pada, Purusha, Vacana, Vibhakti};
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum POSTag {
-    /// TODO
+    /// A verb.
     Tinanta,
-    /// TODO
+    /// A nominal.
     Subanta,
-    /// TODO
+    /// An indeclinable.
     Avyaya,
-    /// TODO
+    /// Unknown.
     Unknown,
 }
 
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub(crate) struct StateCode(u8);
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum State {
+    #[default]
     Initial,
     Unknown,
     Avyaya,
@@ -36,7 +37,7 @@ pub enum State {
 
 impl State {
     pub fn new() -> Self {
-        Self::Initial
+        Self::default()
     }
 
     pub fn from_pada(artha: &Pada) -> Self {
@@ -145,6 +146,12 @@ impl Model {
         Ok(())
     }
 
+    pub fn lemma_log_probability(&self, text: &str, pos_tag: POSTag) -> Option<f32> {
+        let id = self.string_table.get(text)?;
+        let log_prob = self.lemma_log_probs.get(&(*id, pos_tag))?;
+        Some(*log_prob)
+    }
+
     /// Scores the given phrase by using lemma probabilities.
     ///
     /// We return our float score as an i32 because floats aren't hashed by default in Rust. To
@@ -155,23 +162,18 @@ impl Model {
             let n = phrase.tokens.len();
             let prev_state = if n >= 2 {
                 let i = phrase.tokens[n - 2];
-                self.to_state_code(&pool.get(i).expect("present").data())
+                self.to_state_code(pool.get(i).expect("present").data())
             } else {
                 StateCode(0)
             };
 
             let last = pool.get(*i_last).expect("present");
-            let cur_state = self.to_state_code(&last.data());
+            let cur_state = self.to_state_code(last.data());
 
             let maybe_lemma_log_prob = (|| {
                 let pada = last.data();
                 let state: State = pada.into();
-                let id = self.string_table.get(pada.lemma()?)?;
-                let pos = state.pos_tag();
-
-                let log_prob = self.lemma_log_probs.get(&(*id, pos))?;
-
-                Some(*log_prob)
+                self.lemma_log_probability(&pada.lemma()?, state.pos_tag())
             })();
 
             let lemma_log_prob = match maybe_lemma_log_prob {
@@ -254,10 +256,8 @@ impl ModelBuilder {
         }
     }
 
-    pub fn write_model(self, base_path: &Path) -> Result<()> {
-        assert!(!self.transitions.is_empty());
-        assert!(!self.emissions.is_empty());
-
+    /// Writes the model to disk.
+    pub fn write_model(&self, base_path: &Path) -> Result<()> {
         let mut m = Model::new();
 
         // Transitions
@@ -294,8 +294,8 @@ impl ModelBuilder {
             m.string_table = string_table;
 
             let mut lemma_counts_by_pos = FxHashMap::default();
-            for ((lemma, state), count) in self.emissions {
-                let id = m.string_table[&lemma];
+            for ((lemma, state), count) in &self.emissions {
+                let id = m.string_table[lemma];
                 let pos = state.pos_tag();
                 let key = (id, pos);
 
@@ -319,7 +319,7 @@ impl ModelBuilder {
         let model_path = Config::new(base_path).model_path();
         let model_dir = model_path.parent().unwrap();
 
-        std::fs::create_dir_all(&model_dir)?;
+        std::fs::create_dir_all(model_dir)?;
         m.write(&model_path)?;
 
         Ok(())

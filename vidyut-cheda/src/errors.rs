@@ -9,7 +9,7 @@ pub enum Error {
     EncodeError(rmp_serde::encode::Error),
     Sandhi(vidyut_sandhi::Error),
     Kosha(vidyut_kosha::Error),
-    Temp,
+    NonAsciiText,
 }
 
 impl std::error::Error for Error {}

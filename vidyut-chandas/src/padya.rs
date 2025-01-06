@@ -278,7 +278,7 @@ impl TryFrom<&str> for Vrtta {
             let padas = padas?;
             Ok(Vrtta::new(name, padas))
         } else {
-            Err(Error::ParseError)
+            Err(Error::VrttaParse)
         }
     }
 }

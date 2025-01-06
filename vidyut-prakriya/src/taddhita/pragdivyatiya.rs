@@ -899,6 +899,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_text_in(&["umA", "UrRA"]) {
             tp.optional_try_add("4.3.158", vuY);
         } else if prati.has_text("eRI") {
+            // EReya
             tp.optional_try_add("4.3.159", QaY);
         } else if prati.has_text_in(&["go", "payas"]) {
             tp.try_add("4.3.160", yat);

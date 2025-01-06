@@ -62,7 +62,6 @@ def test_init_fails_if_file_does_not_exist():
             _kosha = Kosha(tempdir)
 
 
-@pytest.mark.skip("Not implemented yet")
 def test_contains(kosha):
     assert "Bavati" not in kosha
     assert "gacCati" in kosha
@@ -76,7 +75,6 @@ def test_contains_prefix(kosha):
     assert not kosha.contains_prefix("gacCati2")
 
 
-@pytest.mark.skip("Not implemented yet")
 def test_get_all(kosha):
     gam_entry = DhatuEntry(dhatu=Dhatu.mula("ga\\mx", Gana.Bhvadi), clean_text="gam")
     gacchati_tin = PadaEntry.Tinanta(
@@ -99,4 +97,9 @@ def test_get_all(kosha):
 
     [tin, sup] = kosha.get_all("gacCati")
     assert tin == gacchati_tin
+    assert tin.lemma == "gam"
+    assert tin.dhatu_entry == gam_entry
+
     assert sup == gacchati_sup
+    assert tin.lemma == "gam"
+    assert tin.dhatu_entry == gam_entry

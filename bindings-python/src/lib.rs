@@ -80,7 +80,7 @@ fn py_chandas(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<chandas::PyAkshara>()?;
     m.add_class::<chandas::PyChandas>()?;
     m.add_class::<chandas::PyJati>()?;
-    m.add_class::<chandas::PyMatchResult>()?;
+    m.add_class::<chandas::PyMatch>()?;
     m.add_class::<chandas::PyVrtta>()?;
     m.add_class::<chandas::PyVrttaPada>()?;
     Ok(())
@@ -94,6 +94,8 @@ fn py_chandas(m: &Bound<'_, PyModule>) -> PyResult<()> {
 fn py_cheda(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<cheda::PyChedaka>()?;
     m.add_class::<cheda::PyToken>()?;
+    m.add_class::<cheda::PyModel>()?;
+    m.add_class::<cheda::PyModelBuilder>()?;
 
     Ok(())
 }
@@ -161,6 +163,7 @@ fn py_prakriya(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<prakriya::args::PyTaddhita>()?;
     m.add_class::<prakriya::args::PyVacana>()?;
     m.add_class::<prakriya::args::PyVibhakti>()?;
+    m.add_class::<prakriya::args::PyPada>()?;
 
     Ok(())
 }

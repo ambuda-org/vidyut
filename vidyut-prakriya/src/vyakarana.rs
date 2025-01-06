@@ -77,6 +77,13 @@ impl Vyakarana {
     }
 
     /// Converts this `Vyakarana` into a `VyakaranaBuilder`.
+    ///
+    /// ```
+    /// use vidyut_prakriya::Vyakarana;
+    ///
+    /// let v = Vyakarana::new();
+    /// let v_with_svaras = v.into_builder().use_svaras(true).build();
+    /// ```
     pub fn into_builder(self) -> VyakaranaBuilder {
         VyakaranaBuilder::new()
             .log_steps(self.log_steps)
@@ -440,7 +447,22 @@ impl Vyakarana {
         stack.prakriyas()
     }
 
-    /// TODO
+    /// Returns all pratipadikas that can be derived from the input conditions.
+    ///
+    /// This method is useful mainly for generating spelling variants of pratipadikas.
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// # use vidyut_prakriya::*;
+    /// # use vidyut_prakriya::args::*;
+    /// let v = Vyakarana::new();
+    /// let args = Pratipadika::basic(Slp1String::from("kArttikeya")?);
+    /// let prakriyas = v.derive_pratipadikas(&args);
+    /// assert_eq!(prakriyas[0].text(), "kArtikeya");
+    /// assert_eq!(prakriyas[1].text(), "kArttikeya");
+    /// # Ok::<(), Error>(())
+    /// ```
     pub fn derive_pratipadikas<'a>(&self, spec: impl Into<&'a Pratipadika>) -> Vec<Prakriya> {
         self.derive_pratipadikas_inner(&spec.into())
     }

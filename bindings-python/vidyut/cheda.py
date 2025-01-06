@@ -4,3 +4,5 @@ from vidyut.vidyut import cheda as __mod
 
 Chedaka = __mod.Chedaka
 Token = __mod.Token
+Model = __mod.Model
+ModelBuilder = __mod.ModelBuilder

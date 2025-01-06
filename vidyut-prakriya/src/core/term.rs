@@ -3,6 +3,7 @@ use crate::args::{
     Taddhita, Tin, Unadi, Upasarga, Vikarana,
 };
 use crate::core::Tag;
+use crate::ganapatha::Ganasutra;
 use crate::sounds;
 use crate::sounds::Pattern;
 use crate::sounds::AC;
@@ -427,11 +428,11 @@ impl Term {
         }
     }
 
-    pub fn is_any_phit(&self, items: &[&str]) -> bool {
+    pub(crate) fn is_any_phit(&self, items: impl Strings) -> bool {
         if matches!(self.morph, Morph::BasicPratipadika) {
             self.u
                 .as_ref()
-                .map_or(false, |u| items.contains(&u.as_str()))
+                .map_or(false, |u| items.as_strings().contains(&u.as_str()))
         } else {
             false
         }
@@ -491,8 +492,8 @@ impl Term {
     }
 
     /// Returns whether the term's text is equal to any of the strings in `items`.
-    pub fn has_text_in(&self, items: &[&str]) -> bool {
-        items.contains(&self.text.as_str())
+    pub(crate) fn has_text_in(&self, items: impl Strings) -> bool {
+        items.as_strings().contains(&self.text.as_str())
     }
 
     /// Returns whether the term's text starts with any of the given `prefixes`.
@@ -501,8 +502,8 @@ impl Term {
     }
 
     /// Returns whether the term's text ends with any of the given `suffixes`.
-    pub fn has_suffix_in(&self, suffixes: &[&str]) -> bool {
-        suffixes.iter().any(|t| self.text.ends_with(t))
+    pub(crate) fn has_suffix_in(&self, suffixes: impl Strings) -> bool {
+        suffixes.as_strings().iter().any(|t| self.text.ends_with(t))
     }
 
     /// Returns whether the term's text starts with the given `prefix`.
@@ -1102,6 +1103,28 @@ impl From<Upasarga> for Morph {
 impl From<Vikarana> for Morph {
     fn from(val: Vikarana) -> Self {
         Morph::Vikarana(val)
+    }
+}
+
+pub(crate) trait Strings {
+    fn as_strings(&self) -> &[&str];
+}
+
+impl Strings for Ganasutra {
+    fn as_strings(&self) -> &[&str] {
+        self.0
+    }
+}
+
+impl Strings for &[&str] {
+    fn as_strings(&self) -> &[&str] {
+        *self
+    }
+}
+
+impl<const N: usize> Strings for &[&str; N] {
+    fn as_strings(&self) -> &[&str] {
+        *self
     }
 }
 

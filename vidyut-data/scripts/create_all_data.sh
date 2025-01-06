@@ -43,7 +43,7 @@ echo "========================="
 echo "vidyut-chandas"
 echo "========================="
 mkdir -p "${OUTPUT_DIR}/chandas"
-cp -r vidyut-chandas/data/* "${OUTPUT_DIR}/chandas"
+cp -r ../vidyut-chandas/data/* "${OUTPUT_DIR}/chandas"
 echo "Copied files to output dir."
 echo
 echo "========================="
@@ -61,7 +61,7 @@ echo "========================="
 echo "vidyut-prakriya"
 echo "========================="
 mkdir -p "${OUTPUT_DIR}/prakriya"
-cp -r "vidyut-prakriya/data/" "${OUTPUT_DIR}/prakriya"
+cp -r "../vidyut-prakriya/data/" "${OUTPUT_DIR}/prakriya"
 echo "Copied files to output dir."
 echo
 echo "========================="
@@ -72,7 +72,7 @@ echo
 echo "========================="
 echo "vidyut-cheda"
 echo "========================="
-make train_cheda
-make eval_cheda
+make train_chedaka
+make eval_chedaka
 echo
 echo "Complete."

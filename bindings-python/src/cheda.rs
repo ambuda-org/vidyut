@@ -1,5 +1,5 @@
 //! Defines Python bindings for `vidyut_cheda`.
-use vidyut_cheda::{Chedaka, Error};
+use vidyut_cheda::{Chedaka, Error, Model, ModelBuilder};
 
 use crate::kosha::entries::PyPadaEntry;
 use pyo3::exceptions::{PyOSError, PyValueError};
@@ -12,14 +12,14 @@ pub struct PyToken {
     /// The token text.
     pub text: String,
     /// Other information associated with the token.
-    pub info: PyPadaEntry,
+    pub data: PyPadaEntry,
 }
 
 #[pymethods]
 impl PyToken {
     #[getter]
     fn lemma(&self) -> Option<String> {
-        self.info.lemma()
+        self.data.lemma()
     }
 
     fn __repr__(&self) -> String {
@@ -27,7 +27,7 @@ impl PyToken {
             "Token<(text=\'{}\', lemma='{}', info={})>",
             self.text,
             self.lemma().unwrap_or_default(),
-            self.info.__repr__()
+            self.data.__repr__()
         )
     }
 }
@@ -62,11 +62,33 @@ impl PyChedaka {
         for token in tokens {
             ret.push(PyToken {
                 text: token.text().to_string(),
-                info: token.data().into(),
+                data: token.data().into(),
             });
         }
 
         Ok(ret)
+    }
+}
+
+#[pyclass(name = "Model")]
+pub struct PyModel(Model);
+
+#[pyclass(name = "ModelBuilder")]
+pub struct PyModelBuilder(ModelBuilder);
+
+#[pymethods]
+impl PyModelBuilder {
+    #[new]
+    fn new() -> Self {
+        Self(ModelBuilder::new())
+    }
+
+    /// Writes the model to disk.
+    fn write_model(&self, base_path: PathBuf) -> PyResult<()> {
+        match self.0.write_model(&base_path) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(PyOSError::new_err("Could not write model.")),
+        }
     }
 }
 

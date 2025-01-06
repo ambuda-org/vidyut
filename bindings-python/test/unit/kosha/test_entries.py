@@ -1,5 +1,6 @@
 from vidyut.kosha import DhatuEntry, PratipadikaEntry, PadaEntry
 from vidyut.prakriya import (
+    Vyakarana,
     Dhatu,
     Gana,
     Pratipadika,
@@ -23,6 +24,11 @@ def test_dhatu_entry():
     # Nested attributes
     assert entry.dhatu.aupadeshika == "ga\\mx~"
     assert entry.dhatu.gana == Gana.Bhvadi
+
+    v = Vyakarana()
+    args = entry.to_prakriya_args()
+    results = {p.text for p in v.derive_dhatus(args)}
+    assert results == {"gam"}
 
 
 def test_dhatu_entry__dunders():
@@ -52,6 +58,11 @@ def test_pratipadika_entry__basic():
     assert rama_entry.pratipadika == rama
     assert rama_entry.lingas == [Linga.Pum]
 
+    v = Vyakarana()
+    args = rama_entry.to_prakriya_args()
+    results = {p.text for p in v.derive_pratipadikas(args)}
+    assert results == {"rAma"}
+
 
 def test_pratipadika_entry__krdanta():
     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
@@ -61,6 +72,11 @@ def test_pratipadika_entry__krdanta():
     assert gata.krt == Krt.kta
     assert gata.prayoga == None
     assert gata.lakara == None
+
+    v = Vyakarana()
+    args = gata.to_prakriya_args()
+    results = {p.text for p in v.derive_pratipadikas(args)}
+    assert results == {"gata"}
 
 
 def test_pratipadika_entry__dunders():
@@ -106,6 +122,11 @@ def test_pada_entry__subanta():
     assert pada.vacana == Vacana.Eka
     assert pada.lemma == "rAma"
 
+    v = Vyakarana()
+    args = pada.to_prakriya_args()
+    results = {p.text for p in v.derive_padas(args)}
+    assert results == {"rAmaH"}
+
 
 def test_pada_entry__tinanta():
     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
@@ -124,6 +145,11 @@ def test_pada_entry__tinanta():
     assert pada.vacana == Vacana.Eka
     assert pada.lemma == "gam"
 
+    v = Vyakarana()
+    args = pada.to_prakriya_args()
+    results = {p.text for p in v.derive_padas(args)}
+    assert results == {"gacCati"}
+
 
 def test_pada_entry__avyaya():
     ca = Pratipadika.basic("ca")
@@ -132,6 +158,11 @@ def test_pada_entry__avyaya():
 
     assert pada.pratipadika_entry == ca_entry
     assert pada.lemma == "ca"
+
+    v = Vyakarana()
+    args = pada.to_prakriya_args()
+    results = {p.text for p in v.derive_padas(args)}
+    assert results == {"ca"}
 
 
 def test_pada_entry__unknown():

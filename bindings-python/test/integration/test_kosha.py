@@ -1,8 +1,10 @@
 import os
+
 import pytest
 from pathlib import Path
 
-from vidyut.kosha import Kosha, PartOfSpeech, Purusha, Vacana, Lakara, Linga, Vibhakti
+from vidyut.kosha import Kosha, PadaEntry, DhatuEntry, PratipadikaEntry
+from vidyut.prakriya import Purusha, Vacana, Lakara, Linga, Vibhakti
 
 
 @pytest.fixture(scope="module")
@@ -15,7 +17,7 @@ def kosha() -> Kosha:
 
 def test_basic_tinanta(kosha):
     entries = kosha.get_all("Bavati")
-    entries = [e for e in entries if e.pos == PartOfSpeech.Tinanta]
+    entries = [e for e in entries if isinstance(e, PadaEntry.Tinanta)]
 
     bhavati = entries[0]
     assert bhavati.lemma == "BU"
@@ -24,16 +26,16 @@ def test_basic_tinanta(kosha):
     assert bhavati.lakara == Lakara.Lat
 
     assert repr(bhavati) == (
-        "Pada(pos=PartOfSpeech.Tinanta, dhatu=Dhatu(text='BU'), "
-        "purusha=Purusha.Prathama, vacana=Vacana.Eka, lakara=Lakara.Lat, "
-        "pada_prayoga=PadaPrayoga.Parasmaipada)"
+        "PadaEntry.Tinanta(dhatu_entry=DhatuEntry("
+        "dhatu=Dhatu(aupadeshika='BU', gana=Gana.Bhvadi), clean_text='BU'), "
+        "prayoga=Prayoga.Kartari, lakara=Lakara.Lat, purusha=Purusha.Prathama, vacana=Vacana.Eka)"
     )
 
 
 def test_basic_subanta(kosha):
     entries = kosha.get_all("devasya")
     entries = [
-        e for e in entries if e.pos == PartOfSpeech.Subanta and e.linga == Linga.Pum
+        e for e in entries if isinstance(e, PadaEntry.Subanta) and e.linga == Linga.Pum
     ]
 
     devasya = entries[0]
@@ -43,22 +45,22 @@ def test_basic_subanta(kosha):
     assert devasya.vacana == Vacana.Eka
 
     assert repr(devasya) == (
-        "Pada(pos=PartOfSpeech.Subanta, pratipadika=Pratipadika(text='deva'), "
-        "linga=Linga.Pum, vibhakti=Vibhakti.Sasthi, vacana=Vacana.Eka, "
-        "is_purvapada=False)"
+        "PadaEntry.Subanta(pratipadika_entry="
+        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='deva'), lingas=[Linga.Pum]), "
+        "linga=Linga.Pum, vibhakti=Vibhakti.Sasthi, vacana=Vacana.Eka)"
     )
 
 
 def test_basic_avyaya(kosha):
     entries = kosha.get_all("ca")
-    entries = [e for e in entries if e.pos == PartOfSpeech.Avyaya]
+    entries = [e for e in entries if isinstance(e, PadaEntry.Avyaya)]
 
     ca = entries[0]
     assert ca.lemma == "ca"
 
     assert repr(ca) == (
-        "Pada(pos=PartOfSpeech.Avyaya, pratipadika=Pratipadika(text='ca'), "
-        "is_purvapada=False)"
+        "PadaEntry.Avyaya(pratipadika_entry="
+        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='ca'), lingas=[Linga.Pum]))"
     )
 
 
@@ -101,8 +103,10 @@ def test_basic_avyaya(kosha):
     ],
 )
 def test_contains_tinanta(kosha, word):
+    if word.endswith("H"):
+        word = word[:-1] + 's'
     entries = kosha.get_all(word)
-    assert any(e.pos == PartOfSpeech.Tinanta for e in entries)
+    assert any(isinstance(e, PadaEntry.Tinanta) for e in entries)
 
 
 @pytest.mark.parametrize(
@@ -143,8 +147,10 @@ def test_contains_tinanta(kosha, word):
     ],
 )
 def test_contains_subanta(kosha, word):
+    if word.endswith("H"):
+        word = word[:-1] + 's'
     entries = kosha.get_all(word)
-    assert any(e.pos == PartOfSpeech.Subanta for e in entries)
+    assert any(isinstance(e, PadaEntry.Subanta) for e in entries)
 
 
 @pytest.mark.parametrize(
@@ -161,4 +167,4 @@ def test_contains_subanta(kosha, word):
 )
 def test_contains_avyaya(kosha, word):
     entries = kosha.get_all(word)
-    assert any(e.pos == PartOfSpeech.Avyaya for e in entries)
+    assert any(isinstance(e, PadaEntry.Avyaya) for e in entries)

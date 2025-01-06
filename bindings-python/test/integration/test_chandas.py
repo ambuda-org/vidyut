@@ -17,7 +17,7 @@ def chandas() -> Chandas:
 
 def test_vasantatilaka(chandas):
     result = chandas.classify("mAtaH samastajagatAM maDukEwaBAreH")
-    assert result.vrtta == "vasantatilakA"
+    assert result.padya == "vasantatilakA"
 
     assert len(result.aksharas) == 1
     row = result.aksharas[0]

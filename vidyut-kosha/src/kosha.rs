@@ -44,7 +44,7 @@ use rustc_hash::FxHashMap;
 use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
-use vidyut_prakriya::args::{Dhatu, Linga, Vacana, Vibhakti};
+use vidyut_prakriya::args::{Linga, Vacana, Vibhakti};
 
 // Use the range [0, 64] to avoid confusion with the ASCII range, which starts at 65 (01000001,
 // i.e. uppercase `A`).
@@ -284,7 +284,7 @@ impl Kosha {
         let mut out = Output::zero();
         for (i_b, b) in key.bytes().enumerate() {
             node = match node.find_input(b) {
-                None => break,
+                None => return ret,
                 Some(i) => {
                     let t = node.transition(i);
                     out = out.cat(t.out);
@@ -295,11 +295,9 @@ impl Kosha {
             // Possible subanta prefix -- check for all suffix matches.
             if node.is_final() {
                 let out_final = out.cat(node.final_output());
-                let prefix = &key[..=i_b];
-                if prefix == "BUt" {
-                    let suffix = &key[i_b + 1..];
-                    self.get_all_from_subanta_suffixes(&mut ret, suffix, node, out_final);
-                }
+                let suffix = &key[i_b + 1..];
+                self.get_all_from_subanta_suffixes(&mut ret, suffix, node, out_final)
+                    .ok();
             }
         }
 
@@ -323,13 +321,13 @@ impl Kosha {
         suffix: &str,
         node: Node,
         out_base: Output,
-    ) {
+    ) -> Result<()> {
         let entry_base = to_packed_entry(out_base);
 
         if entry_base.pos() == PartOfSpeech::SubantaPrefix {
             let entry_base = entry_base.as_packed_subanta_prefix();
             self.packer
-                .get_all_from_subanta_paradigm(ret, &entry_base, suffix);
+                .get_all_from_subanta_paradigm(ret, &entry_base, suffix)?;
         }
 
         let fst = self.fst.as_fst();
@@ -353,16 +351,18 @@ impl Kosha {
                         if entry.pos() == PartOfSpeech::SubantaPrefix {
                             let entry = entry.as_packed_subanta_prefix();
                             self.packer
-                                .get_all_from_subanta_paradigm(ret, &entry, suffix);
+                                .get_all_from_subanta_paradigm(ret, &entry, suffix)?;
                         }
                     } else {
-                        return;
+                        return Ok(());
                     }
                 }
             } else {
-                return;
+                return Ok(());
             }
         }
+
+        Ok(())
     }
 
     /// Iterates over all keys in the FST.
@@ -479,8 +479,11 @@ impl Builder {
 
     /// Inserts the given `key` with the given semantics in `value`.
     ///
-    /// Keys must be inserted in lexicographic order. If a key is received out of order,
-    /// the build process will fail.
+    /// Notes:
+    /// - Keys must be inserted in lexicographic order. If a key is received out of order,
+    ///   the build process will fail.
+    /// - All linguistic data on `value` must be registered beforehand. You can do this by calling
+    ///   `register_pada_entry`.
     pub fn insert(&mut self, key: &str, value: &PadaEntry) -> Result<()> {
         let value = self.pack(value)?;
         self.insert_packed(key, &value)
@@ -488,8 +491,11 @@ impl Builder {
 
     /// Inserts the given `key` with the packed semantics in `value`.
     ///
-    /// Keys must be inserted in lexicographic order. If a key is received out of order,
-    /// the build process will fail.
+    /// Notes:
+    /// - Keys must be inserted in lexicographic order. If a key is received out of order,
+    ///   the build process will fail.
+    /// - All linguistic data on `value` must be registered beforehand. You can do this by calling
+    ///   `register_pada_entry`.
     pub fn insert_packed(&mut self, key: &str, value: &PackedEntry) -> Result<()> {
         let u64_payload = u64::from(value.to_u32());
 
@@ -513,23 +519,23 @@ impl Builder {
     }
 
     /// Registers the given dhatus on the internal packer. Duplicates are ignored.
-    pub fn register_dhatu(&mut self, dhatu: &Dhatu) {
-        self.packer.register_dhatu(dhatu);
-    }
-
-    /// Registers the given dhatus on the internal packer. Duplicates are ignored.
-    pub fn add_dhatu_meta(&mut self, dhatu: &Dhatu, text: String) {
-        self.packer.add_dhatu_meta(dhatu, text);
+    pub fn register_dhatu_entry(&mut self, dhatu: &DhatuEntry) {
+        self.packer.register_dhatu_entry(dhatu);
     }
 
     /// Registers the given pratipadikas on the internal packer. Duplicates are ignored.
-    pub fn register_pratipadika(&mut self, pratipadika: &PratipadikaEntry) {
-        self.packer.register_pratipadika(pratipadika);
+    pub fn register_pratipadika_entry(&mut self, pratipadika: &PratipadikaEntry) {
+        self.packer.register_pratipadika_entry(pratipadika);
     }
 
-    /// Registers the given dhatus on the internal packer. Duplicates are ignored.
-    pub fn add_pratipadika_meta(&mut self, pratipadika: &PratipadikaEntry, lingas: Vec<Linga>) {
-        self.packer.add_pratipadika_meta(pratipadika, lingas);
+    /// Registers all linguistic data defined on `entry` on this kosha's internal registry.
+    pub fn register_pada_entry(&mut self, entry: &PadaEntry) {
+        match entry {
+            PadaEntry::Subanta(s) => self.register_pratipadika_entry(&s.pratipadika_entry()),
+            PadaEntry::Avyaya(a) => self.register_pratipadika_entry(&a.pratipadika_entry()),
+            PadaEntry::Tinanta(t) => self.register_dhatu_entry(&t.dhatu_entry()),
+            PadaEntry::Unknown => (),
+        }
     }
 
     /// Registers the given paradigm of subantas and returns the prefix they all share.
@@ -621,9 +627,11 @@ mod tests {
         // Builder
         let dir = tempdir()?;
         let mut builder = Builder::new(dir.path())?;
-        builder.register_dhatu(&gam.into());
-        builder.register_pratipadika(&(&gacchan).try_into().expect("ok"));
-        builder.register_pratipadika(&(&agni).try_into().expect("ok"));
+
+        let gam_entry = DhatuEntry::new(&gam, "gam");
+        builder.register_dhatu_entry(&gam_entry);
+        builder.register_pratipadika_entry(&(&gacchan).try_into().expect("ok"));
+        builder.register_pratipadika_entry(&(&agni).try_into().expect("ok"));
 
         builder.insert("agnim", &agni_2s_e.into())?;
         builder.insert("gacCati", &gacchati_e.into())?;

@@ -62,7 +62,7 @@ def test_unadipatha(all_sutras):
 
 def test_varttikas(all_sutras):
     sutras = [s for s in all_sutras if s.source == Source.Varttika]
-    assert len(sutras) == 94
+    assert len(sutras) == 101
     assert sutras[0] == Sutra(
         source=Source.Varttika,
         code="1.1.33.1",

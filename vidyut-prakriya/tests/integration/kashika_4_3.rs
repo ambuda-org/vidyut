@@ -514,6 +514,12 @@ fn sutra_4_3_158() {
 }
 
 #[test]
+fn sutra_4_3_159() {
+    assert_has_artha_taddhita("eRI", TasyaVikara, T::QaY, &["EReya"]);
+    assert_has_artha_taddhita("eRI", TasyaVikara, T::aY, &["ERa"]);
+}
+
+#[test]
 fn sutra_4_3_160() {
     assert_has_artha_taddhita("go", TasyaVikara, T::yat, &["gavya"]);
     assert_has_artha_taddhita("payas", TasyaVikara, T::yat, &["payasya"]);

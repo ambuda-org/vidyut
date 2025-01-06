@@ -11,7 +11,6 @@ use vidyut_cheda::ModelBuilder;
 use vidyut_cheda::State;
 use vidyut_data::conllu::Reader;
 use vidyut_data::dcs;
-use vidyut_lipi::{Lipika, Scheme};
 use vidyut_prakriya::args::Pada;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -34,14 +33,9 @@ struct Args {
     exclude: Vec<String>,
 }
 
-fn to_slp1(lipika: &mut Lipika, text: &str) -> String {
-    lipika.transliterate(text, Scheme::Iast, Scheme::Slp1)
-}
-
 fn process_file(path: &Path) -> Result<ModelBuilder> {
     println!("Processing: {:?}", path.display());
     let mut builder = ModelBuilder::new();
-    let mut lipika = Lipika::new();
 
     let reader = Reader::from_path(path)?;
     for sentence in reader {
@@ -52,8 +46,7 @@ fn process_file(path: &Path) -> Result<ModelBuilder> {
             .collect();
 
         let mut prev_state = State::new();
-        for (raw_lemma, artha) in tokens {
-            let slp_lemma = to_slp1(&mut lipika, &raw_lemma);
+        for (slp_lemma, artha) in tokens {
             let cur_state = State::from_pada(&artha);
 
             builder.count_transition(prev_state, cur_state);
