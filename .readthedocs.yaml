@@ -1,16 +1,18 @@
 version: 2
 
+python:
+  install:
+    - requirements: bindings-python/vidyut/docs/requirements.txt
+    - method: pip
+      path: ./bindings-python
+
 sphinx:
   builder: html
+  configuration: bindings-python/vidyut/docs/source/conf.py
 
 build:
   os: "ubuntu-20.04"
   tools:
     python: "3.9"
-    # Use 1.64 since it supports Rust edition 2021 and clap_derive 4.1.0
-    rust: "1.64"
-
-python:
-  install:
-    - method: pip
-      path: .
+    # Use a recent Rust to avoid weird build errors.
+    rust: "1.82"
