@@ -68,8 +68,8 @@ def test_pratipadika_entry__krdanta():
     gata = PratipadikaEntry.Krdanta(dhatu_entry=gam_entry, krt=Krt.kta)
     assert gata.dhatu_entry == gam_entry
     assert gata.krt == Krt.kta
-    assert gata.prayoga == None
-    assert gata.lakara == None
+    assert gata.prayoga is None
+    assert gata.lakara is None
 
     v = Vyakarana()
     results = {p.text for p in v.derive(gata)}
@@ -161,7 +161,7 @@ def test_pada_entry__avyaya():
 
 def test_pada_entry__unknown():
     unk = PadaEntry.Unknown()
-    assert unk.lemma == None
+    assert unk.lemma is None
 
 
 def test_pada_entry__dunders():

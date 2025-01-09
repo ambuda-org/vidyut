@@ -886,7 +886,7 @@ impl PyDhatu {
     ///
     /// `aupadeshika` should be an SLP1 string and include anudatta and svarita accents as
     /// necessary. For examples, see the dhatus in `dhatupatha.tsv`. (If you don't have this file,
-    /// see the `vidyut-py` documentation for information on where to find it.)
+    /// consult the rest of our documentation for information on where to find it.)
     #[staticmethod]
     #[pyo3(signature = (aupadeshika, gana, *, antargana=None, prefixes=None, sanadi=None))]
     pub fn mula(

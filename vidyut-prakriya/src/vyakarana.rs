@@ -464,7 +464,7 @@ impl Vyakarana {
     /// # Ok::<(), Error>(())
     /// ```
     pub fn derive_pratipadikas<'a>(&self, spec: impl Into<&'a Pratipadika>) -> Vec<Prakriya> {
-        self.derive_pratipadikas_inner(&spec.into())
+        self.derive_pratipadikas_inner(spec.into())
     }
 
     fn derive_pratipadikas_inner(&self, spec: &Pratipadika) -> Vec<Prakriya> {

@@ -44,10 +44,20 @@ def kosha():
         vacana=Vacana.Eka,
     )
 
+    ish_entry = DhatuEntry(dhatu=Dhatu.mula("izu~", Gana.Tudadi), clean_text="iz")
+    icchati = PadaEntry.Tinanta(
+        dhatu_entry=ish_entry,
+        prayoga=Prayoga.Kartari,
+        lakara=Lakara.Lat,
+        purusha=Purusha.Prathama,
+        vacana=Vacana.Eka,
+    )
+
     with tempfile.TemporaryDirectory() as tempdir:
         b = Builder(tempdir)
         b.insert("gacCati", gacchati_tin)
         b.insert("gacCati", gacchati_sup)
+        b.insert("icCati", icchati)
         b.finish()
 
         return Kosha(tempdir)
@@ -77,8 +87,6 @@ def test_getitem(kosha):
 
 def test_repr(kosha):
     assert repr(kosha) == "Kosha()"
-
-
 
 
 @pytest.mark.skip("Not implemented yet")
@@ -117,3 +125,22 @@ def test_get(kosha):
     assert sup == gacchati_sup
     assert tin.lemma == "gam"
     assert tin.dhatu_entry == gam_entry
+
+
+def test_dhatus(kosha):
+    gam_entry = DhatuEntry(dhatu=Dhatu.mula("ga\\mx", Gana.Bhvadi), clean_text="gam")
+    ish_entry = DhatuEntry(dhatu=Dhatu.mula("izu~", Gana.Tudadi), clean_text="iz")
+
+    items = [d for d in kosha.dhatus()]
+    assert len(items) == 2
+    assert items[0] == gam_entry
+    assert items[1] == ish_entry
+
+
+def test_pratipadikas(kosha):
+    gam_entry = DhatuEntry(dhatu=Dhatu.mula("ga\\mx", Gana.Bhvadi), clean_text="gam")
+    pratipadika_entry=PratipadikaEntry.Krdanta(dhatu_entry=gam_entry, krt=Krt.Satf)
+
+    items = [d for d in kosha.pratipadikas()]
+    assert len(items) == 1
+    assert items[0] == pratipadika_entry

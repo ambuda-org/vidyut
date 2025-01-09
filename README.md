@@ -2,36 +2,26 @@
 <h1>विद्युत्</h1>
 </div>
 
-Vidyut provides reliable infrastructure for Sanskrit software. Our main focus
-is on building libraries for natural language processing.
+Vidyut provides reliable infrastructure for Sanskrit software.
 
-Vidyut compiles to fast, safe, and memory-efficient native code, and it can be
-bound to other programming languages with minimal work. We commit to providing
-first-class support for Python bindings through [vidyut-py][vidyut-py], and we
-are eager to help you create bindings for your language of choice.
+Vidyut compiles to fast and efficient native code, and it can be bound to other
+programming languages with minimal work. We provide first-class support for
+Python and are eager to support other bindings as well.
 
-Vidyut is an ambitious and transformative project, and you can help us make it
-a success. If you simply want to join our community of Sanskrit enthusiasts,
-see the [Community](#community) section -- we are very friendly and welcome
-members of all backgrounds. For specific details on how you can contribute, see
-the [Contributing](#contributing) section instead.
+Vidyut is under active development as part of the [Ambuda][ambuda] project.
 
-Vidyut is under active development as part of the [Ambuda][ambuda] project and
-is published under the MIT license.
+License: MIT
 
 [![Build status](https://github.com/ambuda-org/vidyut/workflows/ci/badge.svg)](https://github.com/ambuda-org/vidyut/actions)
 
-
 [ambuda]: https://ambuda.org
-[vidyut-py]: https://github.com/ambuda-org/vidyut-py
-[discord]: https://discord.gg/7rGdTyWY7Z
-[issues]: https://github.com/ambuda-org/vidyut/issues
 
 
 Contents
 --------
 
 - [Installation](#installation)
+- [Building from source](#building-from-source)
 - [Components](#components)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -41,39 +31,96 @@ Contents
 Installation
 ------------
 
-*Vidyut is meant for programmers who are building Sanskrit software. If you are
-not comfortable writing software or using tools like a command line interface,
-we recommend that you [use the tools on Ambuda][ambuda-tools] instead.*
+Vidyut is implemented in [Rust][rust], which provides low-level control with
+high-level ergonomics. We also provide first-class support for Python bindings
+through the [vidyut][vidyut-py] Python package. This section describes how to
+use Vidyut either through Rust or through Python.
 
-[ambuda-tools]: https://ambuda.org/tools/dictionaries
+[pypi]: https://vidyut.readthedocs.io/en/latest/
+[rust]: https://www.rust-lang.org/
 
-We currently offer two ways to use Vidyut:
+### Through Rust
+
+First, install Rust on your computer by following the instructions [here][install-rust].
+
+[install-rust]: https://www.rust-lang.org/tools/install
+
+Once you've done so, create a new project with `cargo new` and install Vidyut's packages:
+
+```shell
+cargo add vidyut-prakriya
+cargo add vidyut-kosha
+cargo add vidyut-lipi
+# ... and so on
+```
+
+You can also install directly from this repository:
+
+```shell
+cargo add vidyut-prakriya --git https://github.com/ambuda-org/vidyut.git
+cargo add vidyut-kosha --git https://github.com/ambuda-org/vidyut.git
+cargo add vidyut-lipi --git https://github.com/ambuda-org/vidyut.git
+# ... and so on
+```
+
+We recommend using our pre-built linguistic data, which is available as a ZIP file
+[here][zip].
+
+[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
+
+For more information, see our [Rust documentation][docs-rs].
+
+[docs-rs]: https://docs.rs/releases/search?query=vidyut
 
 
 ### Through Python
 
-We provide first-class support for Python through the [vidyut][vidyut-pypi]
-Python package, which we define in the [vidyut-py][vidyut-py] repo. If you have
-Python installed on your machine, you can install Vidyut as follows.
+First, install Python on your computer. There are many ways to do so, but we
+recommend installing [uv][uv] then running `uv init my-project` to create a
+Python project.
+
+[uv]: https://docs.astral.sh/uv/getting-started/installation/
+
+Once your setup is ready, you can install the `vidyut` package:
 
 ```shell
+# With Pip
 $ pip install vidyut
+
+# With uv
+$ uv add vidyut
+````
+
+You can also install directly from this repository. Doing so compiles the repository
+from scratch and might take several minutes, so we strongly suggest using our latest
+[PyPI release][pypi] instead.
+
+```
+# The command is very slow, so pass `--verbose` to monitor its status.
+pip install -e "git+https://github.com/ambuda-org/vidyut.git#egg=vidyut&subdirectory=bindings-python" --verbose
 ```
 
-[vidyut-pypi]: https://pypi.org/project/vidyut/
+We recommend using our pre-built linguistic data, which is available as a ZIP file
+[here][zip].
+
+[pypi]: https://pypi.org/project/vidyut/
+[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
+
+For more information, see our [Python documentation][rtd].
+
+
+Building from source
+--------------------
+
+Building from source lets you work with Vidyut as a developer and contributor.
 
 
 ### Through Rust
 
-Vidyut is implemented in [Rust][rust], which provides low-level control with
-high-level ergonomics. You can install Rust on your computer by following
-the instructions [here][install-rust].
+(This setup requires `cargo`. Confirm that you have `cargo` installed by running
+`cargo --version`.)
 
-[rust]: https://www.rust-lang.org/
-[install-rust]: https://www.rust-lang.org/tools/install
-
-Once you've installed Rust, you can try cloning the Vidyut repo and running our
-tests:
+Once you download the repo, you can run `make test` to run unit tests.
 
 ```shell
 $ git clone https://github.com/ambuda-org/vidyut.git
@@ -84,18 +131,37 @@ $ make test
 Your first build will likely take a few minutes, but future builds will
 be much faster.
 
-Next, we recommend creating and collecting our rich linguistic data:
+We recommend using our pre-built linguistic data, which is available as a ZIP file
+[here][zip]. Or if you prefer, you can build this data for yourself:
+
+[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
 
 ```shell
+$ cd vidyut-data
 $ make create_all_data
 ```
 
-This command will take several minutes, but most users will not need to re-run
-this command after the first run completes.
+Output will be written to `data/build/vidyut-latest`.
 
-To learn how to navigate this repo, see the [Components](#components) section.
-For details on how to get involved, see the [Contributing](#contributing)
-section.
+NOTE: this command is resource-intensive and might stall on slower machines.
+
+
+### Through Python
+
+(This setup requires `uv`. Confirm that you have `uv` installed by running
+`uv --version`.)
+
+Once you download the repo, you can run `make test` in the `bindings-python`
+directory to run Python-specific unit tests:
+
+```shell
+$ git clone https://github.com/ambuda-org/vidyut.git
+$ cd vidyut/bindings-python
+$ make test
+```
+
+`make test` uses a development build, which compiles more quickly but has worse
+runtime performance. To create a release build instead, run `make release`.
 
 
 Components
@@ -184,49 +250,12 @@ open it in your default web browser.
 Contributing
 ------------
 
-Vidyut is an ambitious and tranformative project, and *you* can help us build
-it. Depending on your background and skills, there are different ways you can
-contribute.
+Thank you for considering a contribution to Vidyut! Vidyut is an ambitious
+and transformative project, and it can grow only with your help.
 
-First, we recommend [joining our community](#community) so that you can follow
-along with progress on Ambuda and Vidyut and participate in discussions around
-them.
+For all of the details, see our [CONTRIBUTING.md][contrib] file.
 
-If you use a tool that depends on Vidyut, please [file GitHub issues][issues]
-when you see errors or surprising behavior. Please also feel free to file
-issues for feature requests. We'll do our best to accommodate them.
-
-If you know Sanskrit, please give us detailed feedback on any mistakes you see
-and what you think the correction should be. This kind of work is especially
-valuable for `vidyut-prakriya`.
-
-If you can program, we encourage you to [learn some Rust][learn-rust] and get
-involved with Vidyut directly. We encourage you to **be bold** and make pull
-requests for work that you think will improve the project. Or if you would like
-some pointers on where to get started, you can explore the issues in our [issue
-tracker][issue-tracker]. All of our open work items are listed there, and we
-encourage you to create a PR for any open issue. Issues tagged with `sanskrit`
-require some basic familiarity with Sanskrit, and issues tagged with
-`vyakarana` require a much deeper level of Sanskrit grammatical knowledge.
-
-If you are familiar with machine learning as well, we are always eager for
-improvements to `vidyut-cheda`. Our current model use simple bigram statistics;
-there is plenty of room to improve!
-
-If you want to pursue an open-ended research project, here are the components
-we are most excited about:
-
-- dependency parsing and *anvaya* generation
-- search indexing that accounts for sandhi and Sanskrit's complex morphology.
-- support for Vedic Sanskrit
-- implementations of non-Paninian grammars
-
-And if there's something else you're excited about, please [let us know about
-it](#community) -- we'll probably be excited about it too!
-
-[learn-rust]: https://doc.rust-lang.org/book/
-[issue-tracker]: https://github.com/ambuda-org/vidyut/issues
-[aksharamukha]: https://github.com/virtualvinodh/aksharamukha
+[contrib]: https://github.com/ambuda-org/vidyut/blob/main/CONTRIBUTING.md
 
 
 Community
@@ -247,10 +276,13 @@ community.
 - You can also follow along with project announcements on
   [ambuda-announce][ambuda-announce].
 
+- More technical discussions will appear on our [issues][issues] page.
+
 [discord]: https://discord.gg/7rGdTyWY7Z
 [ambuda-discuss]: https://groups.google.com/g/ambuda-discuss
-[ambuda-announce]: https://groups.google.com/g/ambuda-announce 
 [sanskrit-programmers]: https://groups.google.com/g/sanskrit-programmers
+[ambuda-announce]: https://groups.google.com/g/ambuda-announce
+[issues]: https://github.com/ambuda-org/vidyut/issues
 
 <div align="center">
 <small>बलमिति विद्युति</small>

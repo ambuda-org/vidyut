@@ -168,7 +168,7 @@ impl std::ops::Deref for Slp1String {
 impl TryFrom<String> for Slp1String {
     type Error = Error;
     fn try_from(val: String) -> Result<Slp1String> {
-        Slp1String::from(&val)
+        Slp1String::from(val)
     }
 }
 

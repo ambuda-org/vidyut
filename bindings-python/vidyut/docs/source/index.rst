@@ -2,8 +2,9 @@ Vidyut
 ======
 
 `vidyut` defines Python bindings for `Vidyut`_, a high-performance Sanskrit
-toolkit. These bindings are under active development as part of the `Ambuda`_
-project.
+toolkit that provides reliable infrastructure for Sanskrit software.
+
+These bindings are under active development as part of the `Ambuda`_ project.
 
 
 .. _Vidyut: https://github.com/ambuda-org/vidyut
@@ -14,6 +15,7 @@ project.
    :caption: Contents:
 
    introduction
+   tutorial
    chandas
    cheda
    kosha

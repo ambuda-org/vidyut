@@ -618,7 +618,7 @@ impl Prakriya {
 
     /// Adds a tag to the prakriya.
     pub(crate) fn add_tag(&mut self, tag: PrakriyaTag) {
-        self.tags.insert(tag.into());
+        self.tags.insert(tag);
     }
 
     /// Returns whether the prakriya has the given artha.

@@ -1118,7 +1118,7 @@ impl Strings for Ganasutra {
 
 impl Strings for &[&str] {
     fn as_strings(&self) -> &[&str] {
-        *self
+        self
     }
 }
 

@@ -16,6 +16,39 @@ derived.
 .. _SLP1: https://en.wikipedia.org/wiki/SLP1
 
 
+Sanskrit grammatical terms
+--------------------------
+
+`vidyut.prakriya` closely follows the rules of the *Aṣṭādhyāyī*, the core text
+of the Sanskrit grammatical tradition. Here are the most important terms to
+know:
+
+.. csv-table:: Sanskrit terms with English equivalents
+    :header: "Sanskrit", "English"
+
+    *aupadeśika*, the "instructional" or technical form of some term
+    *antargaṇa*, verb subclass
+    *avyaya*, uninflected word
+    *upasarga*, verb prefix
+    *kṛt*, verb suffix
+    *gaṇa*, verb class
+    *taddhita*, nominal suffix
+    *tiṅanta*, verb
+    *dhātu*, verb root
+    *pada*, word
+    *puruṣa*, person
+    *prayoga*, voice
+    *prakriyā*, derivation (of a word)
+    *prātipadika*, nominal stem
+    *lakāra*, tense-mood
+    *liṅga*, gender
+    *vacana*, number
+    *vibhakti*, case
+    *sanādi*, derived root suffix
+    *samāsa*, compound
+    *subanta*, nominal
+
+
 Quickstart
 ----------
 

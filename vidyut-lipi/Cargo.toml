@@ -1,6 +1,6 @@
 [package]
 name = "vidyut-lipi"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Arun Prasad <ambuda.library@gmail.com>"]
 description = "A Sanskrit transliterator"
 homepage = "https://github.com/ambuda-org/vidyut"

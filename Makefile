@@ -1,16 +1,18 @@
 # The commands in this file apply generally for all crates in this repo. For
 # more specific commands, see the `Makefile`s contained within each crate.
 
+lint:
+	cargo fmt --all
+
 # Runs unit tests for all crates in the repository.
 #
 # This command excludes our more expensive end-to-end tests, such as the
-# `make test_all` test suite in `vidyut-prakriya`.
+# `make test_all` test suite in `vidyut-prakriya`. It also excludes tests
+# for `bindings-python`.
 test:
-	cargo nextest run --no-fail-fast --status-level=fail --workspace
-
-# Runs documentation tests for all crates in the repository.
-test_doc:
-	cargo test --all --doc
+	# TODO: don't run nextest at all if not defined.
+	cargo nextest run --no-fail-fast --status-level=fail --workspace || \
+	cargo test --all
 
 # Creates a coverage report for all crates in the repository. Results will be
 # opened automatically in your default browser.
@@ -24,3 +26,7 @@ coverage:
 # opened automatically in your default browser.
 docs:
 	cargo doc --all --no-deps --open --document-private-items
+
+# Runs documentation tests for all crates in the repository.
+test_doc:
+	cargo test --all --doc

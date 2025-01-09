@@ -1183,7 +1183,7 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             } else if (!upasarge && dhatu.has_u_in(&["li\\pa~^", "vi\\dx~^"]))
                 || (!upasarge
                     && kp.has_sanadi_in(&["Df\\Y", "pF", "vida~", "cita~", "zaha~\\"], S::Ric))
-                || (kp.has_upasarga(U::ud) && kp.has_sanadi(&"ejf~\\", S::Ric))
+                || (kp.has_upasarga(U::ud) && kp.has_sanadi("ejf~\\", S::Ric))
                 || (!upasarge && dhatu.has_u("sAti"))
             {
                 // limpa, vinda, DAraya, pAraya, vedaya, udejaya, cetaya, sAtaya, sAhaya

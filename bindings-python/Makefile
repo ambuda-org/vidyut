@@ -3,7 +3,7 @@ install:
 	uv sync
 	uv run make develop
 	uv run make test
-	@echo "vidyut-py built successfully."
+	@echo "vidyut-python built successfully."
 
 # Builds the package.
 #
@@ -52,7 +52,7 @@ docs: develop
 	rm -R -f vidyut/docs/build/doctrees/
 	cd vidyut/docs && SPHINXOPTS="-a" uv run make html
 
-doctest:
+test_docs:
 	# Run on release build to avoid debug printouts.
 	uv run maturin develop --release
 	cd vidyut/docs && uv run sphinx-build -b doctest source build/doctest

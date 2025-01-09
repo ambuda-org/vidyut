@@ -1851,7 +1851,7 @@ dependencies = [
 
 [[package]]
 name = "vidyut-kosha"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bencher",
  "clap",
@@ -1870,7 +1870,7 @@ dependencies = [
 
 [[package]]
 name = "vidyut-lipi"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "codes-iso-15924",
@@ -1883,7 +1883,7 @@ dependencies = [
 
 [[package]]
 name = "vidyut-prakriya"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "console_error_panic_hook",
