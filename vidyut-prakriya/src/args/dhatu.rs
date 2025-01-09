@@ -1,7 +1,7 @@
 use crate::args::Pratipadika;
 use crate::args::Slp1String;
 use crate::core::errors::{Error, Result};
-use crate::enum_boilerplate;
+use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -40,18 +40,18 @@ pub enum Gana {
     Kandvadi,
 }
 
-enum_boilerplate!(Gana, {
-    Bhvadi => "1",
-    Adadi => "2",
-    Juhotyadi => "3",
-    Divadi => "4",
-    Svadi => "5",
-    Tudadi => "6",
-    Rudhadi => "7",
-    Tanadi => "8",
-    Kryadi => "9",
-    Curadi => "10",
-    Kandvadi => "kandu",
+sanskrit_enum!(Gana, {
+    Bhvadi => "BvAdi",
+    Adadi => "adAdi",
+    Juhotyadi => "juhotyAdi",
+    Divadi => "divAdi",
+    Svadi => "svAdi",
+    Tudadi => "tudAdi",
+    Rudhadi => "ruDAdi",
+    Tanadi => "tanAdi",
+    Kryadi => "kryAdi",
+    Curadi => "curAdi",
+    Kandvadi => "kaRqvAdi",
 });
 
 /// Defines an *antargaṇa*.
@@ -93,7 +93,7 @@ pub enum Antargana {
     Akusmiya,
 }
 
-enum_boilerplate!(Antargana, {
+sanskrit_enum!(Antargana, {
     Ghatadi => "GawAdi",
     Kutadi => "kuwAdi",
     Akusmiya => "AkusmIya",
@@ -170,7 +170,7 @@ impl Sanadi {
     }
 }
 
-enum_boilerplate!(Sanadi, {
+sanskrit_enum!(Sanadi, {
     kAmyac => "kAmyac",
     kyaN => "kyaN",
     kyac => "kyac",

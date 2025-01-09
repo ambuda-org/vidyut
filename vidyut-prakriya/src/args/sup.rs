@@ -2,7 +2,7 @@ use crate::args::tin::Vacana;
 use crate::args::Pratipadika;
 use crate::core::errors::Error;
 use crate::core::Tag;
-use crate::enum_boilerplate;
+use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -21,10 +21,10 @@ pub enum Linga {
     Napumsaka,
 }
 
-enum_boilerplate!(Linga, {
-    Pum => "pum",
-    Stri => "stri",
-    Napumsaka => "napumsaka"
+sanskrit_enum!(Linga, {
+    Pum => "puM",
+    Stri => "strI",
+    Napumsaka => "napuMsaka"
 });
 
 impl Linga {
@@ -71,15 +71,15 @@ pub enum Vibhakti {
     Sambodhana,
 }
 
-enum_boilerplate!(Vibhakti, {
-    Prathama => "1",
-    Dvitiya => "2",
-    Trtiya => "3",
-    Caturthi => "4",
-    Panchami => "5",
-    Sasthi => "6",
-    Saptami => "7",
-    Sambodhana => "s",
+sanskrit_enum!(Vibhakti, {
+    Prathama => "praTamA",
+    Dvitiya => "dvitIyA",
+    Trtiya => "tftIyA",
+    Caturthi => "caturTI",
+    Panchami => "paYcamI",
+    Sasthi => "zazWI",
+    Saptami => "saptamI",
+    Sambodhana => "samboDanam",
 });
 
 impl Vibhakti {

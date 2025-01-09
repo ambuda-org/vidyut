@@ -139,7 +139,7 @@ def test_dhatus(kosha):
 
 def test_pratipadikas(kosha):
     gam_entry = DhatuEntry(dhatu=Dhatu.mula("ga\\mx", Gana.Bhvadi), clean_text="gam")
-    pratipadika_entry=PratipadikaEntry.Krdanta(dhatu_entry=gam_entry, krt=Krt.Satf)
+    pratipadika_entry = PratipadikaEntry.Krdanta(dhatu_entry=gam_entry, krt=Krt.Satf)
 
     items = [d for d in kosha.pratipadikas()]
     assert len(items) == 1

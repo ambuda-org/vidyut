@@ -334,13 +334,8 @@ mod tests {
     use super::*;
     use crate::args::Slp1String;
 
-    fn check(text: &str, code: &str) -> Term {
-        let (gana, _number) = code.split_once('.').expect("valid");
-        let gana: u8 = gana.parse().expect("ok");
-        let dhatu = Muladhatu::new(
-            Slp1String::try_from(text).expect("ok"),
-            gana.to_string().parse().unwrap(),
-        );
+    fn check(text: &str, gana: Gana) -> Term {
+        let dhatu = Muladhatu::new(Slp1String::try_from(text).expect("ok"), gana);
         let mut p = Prakriya::new();
         run(&mut p, &dhatu).expect("ok");
         p.get(0).expect("ok").clone()
@@ -348,50 +343,50 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        let t = check("ga\\mx~", "01.1137");
+        let t = check("ga\\mx~", Gana::Bhvadi);
         assert_eq!(t.text, "gam");
         assert!(t.is_dhatu());
     }
 
     #[test]
     fn test_ghu() {
-        let t = check("qudA\\Y", "03.0010");
+        let t = check("qudA\\Y", Gana::Juhotyadi);
         assert_eq!(t.text, "dA");
         assert!(t.has_all_tags(&[T::Dhatu, T::Ghu]));
     }
 
     #[test]
     fn test_satva() {
-        let t = check("zaha~\\", "01.0988");
+        let t = check("zaha~\\", Gana::Bhvadi);
         assert_eq!(t.text, "sah");
         assert!(t.has_all_tags(&[T::Dhatu, T::FlagSaAdeshadi]));
 
-        let t = check("zWA\\", "01.1077");
+        let t = check("zWA\\", Gana::Bhvadi);
         assert_eq!(t.text, "sTA");
         assert!(t.has_all_tags(&[T::Dhatu, T::FlagSaAdeshadi]));
     }
 
     #[test]
     fn test_satva_blocked() {
-        let t = check("zWivu~", "04.0004");
+        let t = check("zWivu~", Gana::Bhvadi);
         assert_eq!(t.text, "zWiv");
         assert!(!t.has_tag(T::FlagSaAdeshadi));
 
-        let t = check("zvazka~\\", "01.0105");
+        let t = check("zvazka~\\", Gana::Bhvadi);
         assert_eq!(t.text, "zvazk");
         assert!(!t.has_tag(T::FlagSaAdeshadi));
     }
 
     #[test]
     fn test_natva() {
-        let t = check("RI\\Y", "01.1049");
+        let t = check("RI\\Y", Gana::Bhvadi);
         assert_eq!(t.text, "nI");
         assert!(t.has_all_tags(&[T::Dhatu, T::FlagNaAdeshadi]));
     }
 
     #[test]
     fn test_num_agama() {
-        let t = check("vadi~\\", "01.0011");
+        let t = check("vadi~\\", Gana::Bhvadi);
         assert_eq!(t.text, "vand");
         assert!(t.is_dhatu());
     }

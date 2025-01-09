@@ -347,44 +347,6 @@ impl PyVyakarana {
         }
     }
 
-    pub fn derive_tinantas(
-        &self,
-        dhatu: PyDhatu,
-        prayoga: PyPrayoga,
-        lakara: PyLakara,
-        purusha: PyPurusha,
-        vacana: PyVacana,
-        skip_at_agama: bool,
-    ) -> Vec<PyPrakriya> {
-        let args = PyPada::Tinanta {
-            dhatu,
-            prayoga,
-            lakara,
-            purusha,
-            vacana,
-            skip_at_agama,
-        };
-        self.derive_padas(args)
-    }
-
-    pub fn derive_subantas(
-        &self,
-        pratipadika: PyPratipadika,
-        linga: PyLinga,
-        vibhakti: PyVibhakti,
-        vacana: PyVacana,
-        is_avyaya: bool,
-    ) -> Vec<PyPrakriya> {
-        let args = PyPada::Subanta {
-            pratipadika,
-            linga,
-            vibhakti,
-            vacana,
-            is_avyaya,
-        };
-        self.derive_padas(args)
-    }
-
     /// Return all padas that can be derived from the given arguments.
     fn derive_padas(&self, pada: PyPada) -> Vec<PyPrakriya> {
         match pada {

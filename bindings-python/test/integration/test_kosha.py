@@ -104,7 +104,7 @@ def test_basic_avyaya(kosha):
 )
 def test_contains_tinanta(kosha, word):
     if word.endswith("H"):
-        word = word[:-1] + 's'
+        word = word[:-1] + "s"
     entries = kosha.get(word)
     assert any(isinstance(e, PadaEntry.Tinanta) for e in entries)
 
@@ -148,7 +148,7 @@ def test_contains_tinanta(kosha, word):
 )
 def test_contains_subanta(kosha, word):
     if word.endswith("H"):
-        word = word[:-1] + 's'
+        word = word[:-1] + "s"
     entries = kosha.get(word)
     assert any(isinstance(e, PadaEntry.Subanta) for e in entries)
 

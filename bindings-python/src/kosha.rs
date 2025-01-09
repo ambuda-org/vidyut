@@ -57,6 +57,66 @@ impl PyKosha {
         let results = self.0.get_all(&key);
         results.iter().map(|p| p.into()).collect()
     }
+
+    /// Return an iterator over all dhatus in the kosha.
+    ///
+    /// This method is inefficient because it creates a copy of the kosha's internal
+    /// dhatu list. But since the dhatu list contains ~40,000 entries, this is not
+    /// very slow in practice.
+    fn dhatus(slf: PyRef<'_, Self>) -> PyResult<Py<DhatuEntryIter>> {
+        // Inefficient, but works for now.
+        let dhatus: Vec<PyDhatuEntry> = slf.0.dhatus().map(|x| (&x).into()).collect();
+        let iter = DhatuEntryIter {
+            inner: dhatus.into_iter(),
+        };
+        Py::new(slf.py(), iter)
+    }
+
+    /// Return an iterator over all pratipadikas in the kosha.
+    ///
+    /// This method is inefficient because it creates a copy of the kosha's internal
+    /// pratipadika list. The pratipadika list contains more than a million entries
+    /// in our official data release, so this method may be slow on some machines.
+    fn pratipadikas(slf: PyRef<'_, Self>) -> PyResult<Py<PratipadikaEntryIter>> {
+        // Inefficient, but works for now.
+        let dhatus: Vec<PyPratipadikaEntry> = slf.0.pratipadikas().map(|x| (&x).into()).collect();
+        let iter = PratipadikaEntryIter {
+            inner: dhatus.into_iter(),
+        };
+        Py::new(slf.py(), iter)
+    }
+}
+
+#[pyclass]
+struct DhatuEntryIter {
+    inner: std::vec::IntoIter<PyDhatuEntry>,
+}
+
+#[pymethods]
+impl DhatuEntryIter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyDhatuEntry> {
+        slf.inner.next()
+    }
+}
+
+#[pyclass]
+struct PratipadikaEntryIter {
+    inner: std::vec::IntoIter<PyPratipadikaEntry>,
+}
+
+#[pymethods]
+impl PratipadikaEntryIter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyPratipadikaEntry> {
+        slf.inner.next()
+    }
 }
 
 /// Builder for a `Kosha`.

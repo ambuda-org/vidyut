@@ -1,6 +1,6 @@
 use crate::args::Pratipadika;
 use crate::core::errors::*;
-use crate::enum_boilerplate;
+use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -368,7 +368,7 @@ pub enum Taddhita {
     ha,
 }
 
-enum_boilerplate!(Taddhita, {
+sanskrit_enum!(Taddhita, {
     a => "a",
     akac => "akac",
     ac => "ac",

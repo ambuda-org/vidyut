@@ -3,9 +3,14 @@ import pytest
 from vidyut.lipi import transliterate, detect, Scheme
 
 
-def test_scheme_can_be_stringified():
+def test_scheme_can_be_stringified_round_trip():
     for val in Scheme.choices():
         assert Scheme.from_string(str(val)) == val
+
+
+def test_scheme_from_string_fails_on_unknown():
+    with pytest.raises(ValueError):
+        Scheme.from_string("unknown value")
 
 
 def test_scheme_iso_15924_code():

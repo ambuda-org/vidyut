@@ -14,13 +14,30 @@ pub struct Entry {
     artha: String,
 }
 
+fn numeric_to_gana(s: &str) -> Result<Gana> {
+    let ret = match s {
+        "1" => Gana::Bhvadi,
+        "2" => Gana::Adadi,
+        "3" => Gana::Juhotyadi,
+        "4" => Gana::Divadi,
+        "5" => Gana::Svadi,
+        "6" => Gana::Tudadi,
+        "7" => Gana::Rudhadi,
+        "8" => Gana::Tanadi,
+        "9" => Gana::Kryadi,
+        "10" => Gana::Curadi,
+        _ => return Err(Error::ParseError(s.to_string())),
+    };
+    Ok(ret)
+}
+
 impl Entry {
     fn parse(code: &str, aupadeshika: &str, artha: &str) -> Result<Self> {
         let (gana, number) = code.split_once('.').ok_or(Error::InvalidFile)?;
         let gana = if let Some(stripped) = gana.strip_prefix('0') {
-            stripped.parse()?
+            numeric_to_gana(stripped)?
         } else {
-            gana.parse()?
+            numeric_to_gana(gana)?
         };
         let number = number.parse()?;
         let dhatu = create_dhatu(aupadeshika, gana, number)?;

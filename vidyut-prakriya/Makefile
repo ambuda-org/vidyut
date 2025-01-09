@@ -55,7 +55,7 @@ test_krdantas:
 	cargo run --release --example snapshot_tests validate \
 		--test-type krdantas \
 		-f test-files/krdantas-basic.msgpack \
-		-h "07aa1d71eef9f7c557de5ffa07dafcfe2b1836fc09779421794055bd4143af90" \
+		-h "250bf24835e185edfcf9e04cc34e6648f2ca9044a95f566577825460aa6472ca" \
 		-f test-files/krdantas-nic.msgpack \
 		-h "bdbadc06d3d94831c3eb1d8190286e289c10c3c55239b7c740bbea86e64a7062" \
 		-f test-files/krdantas-san.msgpack \

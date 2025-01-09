@@ -1,5 +1,5 @@
 use core::cell::RefCell;
-use pyo3::exceptions::PyNotImplementedError;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -15,7 +15,7 @@ use vidyut_lipi::{Lipika, Scheme};
 ///
 /// Requirements:
 /// - Enum must derive `Hash`
-macro_rules! py_enum {
+macro_rules! py_scheme_boilerplate {
     ($Py:ident, $Rust:ident, [$( $variant:ident ),*]) => {
         impl From<$Rust> for $Py {
             fn from(val: $Rust) -> Self {
@@ -85,7 +85,7 @@ macro_rules! py_enum {
                     $(
                         stringify!($variant) => Ok($Py::$variant),
                     )*
-                    _ => Err(PyNotImplementedError::new_err("Could not parse {val}")),
+                    _ => Err(PyValueError::new_err("Could not parse {val}")),
                 }
             }
 
@@ -416,7 +416,7 @@ pub enum PyScheme {
     Wx,
 }
 
-py_enum!(
+py_scheme_boilerplate!(
     PyScheme,
     Scheme,
     [

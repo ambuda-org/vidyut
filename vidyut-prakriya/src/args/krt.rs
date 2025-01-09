@@ -4,7 +4,7 @@ use crate::args::Lakara;
 use crate::args::Prayoga;
 use crate::args::Subanta;
 use crate::core::errors::*;
-use crate::enum_boilerplate;
+use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -262,7 +262,7 @@ pub enum BaseKrt {
     sen,
 }
 
-enum_boilerplate!(BaseKrt, {
+sanskrit_enum!(BaseKrt, {
     a => "a",
     aN => "aN",
     ac => "ac",

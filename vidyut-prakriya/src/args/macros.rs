@@ -1,9 +1,14 @@
-/// Implements various boilerplate for our enums.
+/// Implements various boilerplate for enums representing Sanskrit linguistic data.
 #[macro_export]
-macro_rules! enum_boilerplate {
+macro_rules! sanskrit_enum {
     ($Enum:ident, { $( $variant:ident => $str:literal ),* $(,)? }) => {
         impl $Enum {
-            /// Returns a simple human-readable string that represents this enum's value.
+            /// Returns a string label of this enum variant.
+            ///
+            /// The string representation makes the following guarantees:
+            ///
+            /// - The label is a valid Sanskrit string in SLP1 encoding.
+            /// - Each variant's string label is unique.
             pub fn as_str(&self) -> &'static str {
                 match self {
                     $(

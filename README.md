@@ -120,13 +120,16 @@ Building from source lets you work with Vidyut as a developer and contributor.
 (This setup requires `cargo`. Confirm that you have `cargo` installed by running
 `cargo --version`.)
 
-Once you download the repo, you can run `make test` to run unit tests.
+Once you download the repo, you can run `cargo test --all` to run unit tests.
 
 ```shell
 $ git clone https://github.com/ambuda-org/vidyut.git
 $ cd vidyut
-$ make test
+$ cargo test --all
 ```
+
+(If you [install `cargo-nextest`][nextest], you can also run `make test` for a
+nicer testing experience.)
 
 Your first build will likely take a few minutes, but future builds will
 be much faster.

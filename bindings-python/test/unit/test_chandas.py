@@ -1,8 +1,24 @@
 import tempfile
 from pathlib import Path
 
+import pytest
+
 from vidyut import chandas
 from vidyut.chandas import Chandas, Akshara, Vrtta, Jati, VrttaPada
+
+
+def test_akshara():
+    a = Akshara(text="ka", weight="G")
+    assert a.text == "ka"
+    assert a.weight == "G"
+    assert eval(repr(a)) == a
+
+
+def test_vrtta():
+    pada = VrttaPada.from_string("GGGG|LLLLLG|GLGGLGG")
+    v = Vrtta("mandAkrAntA", [pada])
+    assert v.name == "mandAkrAntA"
+    assert v.padas == [pada]
 
 
 def test_init():
@@ -46,6 +62,11 @@ def test_chandas__attrs():
         Jati("OpacCandasikam", [16, 18, 16, 18]),
         Jati("AryA", [12, 18, 12, 15]),
     ]
+
+
+def test_chandas_fails_with_invalid():
+    with pytest.raises(ValueError):
+        _ = Chandas.from_text("mandAkrAntA")
 
 
 def test_classify_vrtta():

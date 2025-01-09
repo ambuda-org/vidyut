@@ -1,5 +1,5 @@
 use crate::core::errors::*;
-use crate::enum_boilerplate;
+use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -643,7 +643,7 @@ pub enum Unadi {
     syan,
 }
 
-enum_boilerplate!(Unadi, {
+sanskrit_enum!(Unadi, {
     a => "a",
     aknuc => "aknuc",
     aNgac => "aNgac",

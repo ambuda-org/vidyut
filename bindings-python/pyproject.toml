@@ -23,6 +23,7 @@ dev = [
     "ruff>=0.7.2",
     "sphinx>=5.3.0",
     "sphinx-rtd-theme>=2.0.0",
+    "pytest-cov>=4.1.0",
 ]
 
 [tool.maturin]

@@ -56,7 +56,7 @@ macro_rules! py_enum {
             }
 
             fn __str__(&self) -> String {
-                self.name()
+                $Rust::from(*self).as_str().to_string()
             }
 
             /// The name used to define the `Enum` member.
@@ -83,15 +83,17 @@ macro_rules! py_enum {
 
             /// Create an enum value from the given string.
             ///
-            /// This is the inverse of `__str__`.
+            /// This is the inverse of `__str__`. Performance is currently linear
+            /// in the number of enum options.
             #[staticmethod]
             fn from_string(val: &str) -> PyResult<Self> {
-                match val {
-                    $(
-                        stringify!($variant) => Ok($Py::$variant),
-                    )*
-                    _ => Err(pyo3::exceptions::PyNotImplementedError::new_err(format!("Could not parse {val}"))),
+                // O(n), but this is a rare method not on a hot path, so it's fine for now.
+                for choice in Self::choices() {
+                    if val == choice.__str__() {
+                        return Ok(choice)
+                    }
                 }
+                Err(pyo3::exceptions::PyValueError::new_err(format!("Could not parse {val}")))
             }
         }
     }
@@ -148,7 +150,7 @@ macro_rules! py_only_enum {
                     $(
                         stringify!($variant) => Ok($Py::$variant),
                     )*
-                    _ => Err(pyo3::exceptions::PyNotImplementedError::new_err(format!("Could not parse {val}"))),
+                    _ => Err(pyo3::exceptions::PyValueError::new_err(format!("Could not parse {val}"))),
                 }
             }
         }

@@ -20,6 +20,13 @@ develop:
 test: develop
 	uv run pytest test/unit/
 
+# https://github.com/Michael-J-Ward/rust-python-coverage
+coverage:
+	cargo llvm-cov clean --workspace
+	maturin develop
+	uv run pytest --cov=vidyut --cov-report lcov:python-coverage.lcov
+	cargo llvm-cov report --html
+
 # NOTE: this command is very slow.
 create_data:
 	rm -rf vidyut-rust

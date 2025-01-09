@@ -8,6 +8,7 @@ from vidyut.prakriya import (
     Krt,
     Lakara,
     Linga,
+    Pada,
     Prayoga,
     Purusha,
     Sanadi,
@@ -67,17 +68,16 @@ def test_dhatu__mula_with_positional_args():
 
 
 def test_dhatu__mula_must_have_aupadeshika_and_gana():
-    try:
-        d = Dhatu.mula(aupadeshika="BU")
-        assert False, "Must have gana"
-    except TypeError:
-        pass
+    with pytest.raises(TypeError):
+        _ = Dhatu.mula(aupadeshika="BU")
 
-    try:
-        d = Dhatu.mula(gana=Gana.Bhvadi)
-        assert False, "Must have aupadeshika"
-    except TypeError:
-        pass
+    with pytest.raises(TypeError):
+        _ = Dhatu.mula(gana=Gana.Bhvadi)
+
+
+def test_dhatu__mula_must_have_slp1_aupadeshika():
+    with pytest.raises(ValueError):
+        _ = Dhatu.mula(aupadeshika="한글", gana=Gana.Bhvadi)
 
 
 def test_dhatu__nama():
@@ -91,18 +91,17 @@ def test_dhatu__nama():
 
 
 def test_dhatu__nama_must_have_pratipadika():
-    try:
-        d = Dhatu.nama(nama_sanadi=Sanadi.kAmyac)
-        assert False, "Must have pratipadika"
-    except TypeError:
-        pass
+    with pytest.raises(TypeError):
+        _ = Dhatu.nama(nama_sanadi=Sanadi.kAmyac)
 
 
 def test_dhatu__dunders():
     bhu = Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi)
     gam = Dhatu.mula(aupadeshika="ga\\mx~", gana=Gana.Bhvadi)
     kut = Dhatu.mula(aupadeshika="kuwa~", gana=Gana.Tudadi, antargana=Antargana.Kutadi)
-    abhibubhusha = bhu.with_prefixes(["aBi"]).with_sanadi([Sanadi.san])
+    abhisambibhavayisha = bhu.with_prefixes(["aBi", "sam"]).with_sanadi(
+        [Sanadi.Ric, Sanadi.san]
+    )
 
     # __eq__, __ne__
     bhu2 = Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi)
@@ -119,9 +118,10 @@ def test_dhatu__dunders():
         repr(kut)
         == "Dhatu(aupadeshika='kuwa~', gana=Gana.Tudadi, antargana=Antargana.Kutadi)"
     )
-    assert (
-        repr(abhibubhusha)
-        == "Dhatu(aupadeshika='BU', gana=Gana.Bhvadi, prefixes=['aBi'], sanadi=[Sanadi.san])"
+    assert repr(abhisambibhavayisha) == (
+        "Dhatu(aupadeshika='BU', gana=Gana.Bhvadi, "
+        "prefixes=['aBi', 'sam'], "
+        "sanadi=[Sanadi.Ric, Sanadi.san])"
     )
 
 
@@ -133,6 +133,11 @@ def test_pratipadika_new():
 def test_pratipadika_new__fails_if_no_args():
     with pytest.raises(TypeError):
         _p = Pratipadika()
+
+
+def test_pratipadika__must_have_slp1_aupadeshika():
+    with pytest.raises(ValueError):
+        _ = Pratipadika.basic("한글")
 
 
 def test_pratipadika__dunders():
@@ -152,14 +157,63 @@ def test_pratipadika__dunders():
     assert repr(deva) == "Pratipadika(text='deva')"
 
 
+def test_subanta():
+    rama = Pratipadika.basic("rAma")
+    s = Pada.Subanta(rama, Linga.Pum, Vibhakti.Prathama, Vacana.Eka)
+    assert s.pratipadika == rama
+    assert s.linga == Linga.Pum
+    assert s.vibhakti == Vibhakti.Prathama
+    assert s.vacana == Vacana.Eka
+
+
+def test_tinanta():
+    bhu = Dhatu.mula("BU", Gana.Bhvadi)
+    s = Pada.Tinanta(
+        bhu,
+        Prayoga.Kartari,
+        Lakara.Lat,
+        Purusha.Prathama,
+        Vacana.Eka,
+    )
+    assert s.dhatu == bhu
+    assert s.prayoga == Prayoga.Kartari
+    assert s.lakara == Lakara.Lat
+    assert s.purusha == Purusha.Prathama
+    assert s.vacana == Vacana.Eka
+
+
+def test_enums_use_slp1_for_str():
+    assert str(Gana.Bhvadi) == "BvAdi"
+    assert str(Antargana.Adhrshiya) == "ADfzIya"
+    assert str(Krt.kvasu) == "kvasu~"
+
+
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_can_be_stringified(enum):
+def test_enums_can_be_stringified_round_trip(enum):
     for val in enum.choices():
         assert enum.from_string(str(val)) == val
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_can_be_ordered(enum):
+def test_enums_raise_error_on_unknown_value(enum):
+    with pytest.raises(ValueError):
+        enum.from_string("unsupported value")
+
+
+@pytest.mark.parametrize("enum", ENUMS)
+def test_enum_dunders(enum):
+    # __bool__
+    for val in enum.choices():
+        assert val
+
+    # __eq__
+    for val in enum.choices():
+        assert val == val
+
+    # __hash__
+    _ = {val: "foo" for val in enum.choices()}
+
+    # __lt__, __gt__
     _ = sorted(enum.choices())
 
 
@@ -176,11 +230,6 @@ def test_enums_define_attr_name(enum):
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_repr(enum):
+def test_enums_repr_evals_to_variant(enum):
     for val in enum.choices():
         assert eval(repr(val)) == val
-
-
-@pytest.mark.parametrize("enum", ENUMS)
-def test_enums_hashable(enum):
-    _ = {val: "foo" for val in enum.choices()}

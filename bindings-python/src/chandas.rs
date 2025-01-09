@@ -4,6 +4,15 @@ use pyo3::prelude::*;
 use std::path::PathBuf;
 use vidyut_chandas::{Akshara, Chandas, Jati, Vrtta, VrttaPada, VrttaWeight};
 
+/// Renders a string Pythonically.
+fn py_repr_string(text: &str) -> String {
+    if text.contains('\'') {
+        format!("{:?}", text)
+    } else {
+        format!("'{}'", text)
+    }
+}
+
 /// A Sanskrit syllable.
 ///
 /// An akshara follows the following rules:
@@ -50,7 +59,11 @@ impl PyAkshara {
     }
 
     fn __repr__(&self) -> String {
-        format!("Akshara(text='{}', weight='{}')", self.text, self.weight)
+        format!(
+            "Akshara(text={}, weight={})",
+            py_repr_string(&self.text),
+            py_repr_string(&self.weight)
+        )
     }
 }
 
@@ -118,7 +131,13 @@ impl PyVrtta {
         format!("Vrtta(name=\'{}\', padas={:?})", self.name, self.padas)
     }
 
-    /// The padas thac constitute this vrtta.
+    /// The name of this vrtta.
+    #[getter]
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    /// The padas that constitute this vrtta.
     #[getter]
     pub fn padas(&self) -> Vec<PyVrttaPada> {
         self.padas.clone()
@@ -229,7 +248,7 @@ impl PyChandas {
     fn from_text(text: String) -> PyResult<Self> {
         match Chandas::from_text(text) {
             Ok(chandas) => Ok(PyChandas { chandas }),
-            Err(_) => Err(PyIOError::new_err("Could not parse text.")),
+            Err(_) => Err(PyValueError::new_err("Could not parse text.")),
         }
     }
 

@@ -3,4 +3,5 @@ env/
 *.so
 __pycache__
 data-*
-
+.coverage
+*.lcov

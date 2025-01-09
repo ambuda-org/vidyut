@@ -1,7 +1,7 @@
 use crate::args::dhatu::Dhatu;
 use crate::core::errors::Error;
 use crate::core::{PrakriyaTag, Tag};
-use crate::enum_boilerplate;
+use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -23,10 +23,10 @@ pub enum Prayoga {
     Bhave,
 }
 
-enum_boilerplate!(Prayoga, {
+sanskrit_enum!(Prayoga, {
     Kartari => "kartari",
-    Karmani => "karmani",
-    Bhave => "bhave",
+    Karmani => "karmaRi",
+    Bhave => "BAve",
 });
 
 impl Prayoga {
@@ -52,9 +52,9 @@ pub enum Purusha {
     Uttama,
 }
 
-enum_boilerplate!(Purusha, {
-    Prathama => "prathama",
-    Madhyama => "madhyama",
+sanskrit_enum!(Purusha, {
+    Prathama => "praTama",
+    Madhyama => "maDyama",
     Uttama => "uttama",
 });
 
@@ -81,7 +81,7 @@ pub enum Vacana {
     Bahu,
 }
 
-enum_boilerplate!(Vacana, {
+sanskrit_enum!(Vacana, {
     Eka => "eka",
     Dvi => "dvi",
     Bahu => "bahu",
@@ -126,18 +126,18 @@ pub enum Lakara {
     Lrn,
 }
 
-enum_boilerplate!(Lakara, {
-    Lat => "lat",
-    Lit => "lit",
-    Lut => "lut",
-    Lrt => "lrt",
-    Let => "let",
-    Lot => "lot",
-    Lan => "lan",
-    VidhiLin => "vidhi-lin",
-    AshirLin => "ashir-lin",
-    Lun => "lun",
-    Lrn => "lrn",
+sanskrit_enum!(Lakara, {
+    Lat => "la~w",
+    Lit => "li~w",
+    Lut => "lu~w",
+    Lrt => "lf~t",
+    Let => "le~w",
+    Lot => "lo~w",
+    Lan => "la~N",
+    VidhiLin => "viDili~N",
+    AshirLin => "ASIrli~N",
+    Lun => "lu~N",
+    Lrn => "lf~N",
 });
 
 impl Lakara {
@@ -192,9 +192,9 @@ pub enum DhatuPada {
     Atmane,
 }
 
-enum_boilerplate!(DhatuPada, {
-    Parasmai => "parasmai",
-    Atmane => "atmane",
+sanskrit_enum!(DhatuPada, {
+    Parasmai => "parasmE",
+    Atmane => "Atmane",
 });
 
 impl DhatuPada {

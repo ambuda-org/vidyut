@@ -11,8 +11,7 @@ lint:
 # for `bindings-python`.
 test:
 	# TODO: don't run nextest at all if not defined.
-	cargo nextest run --no-fail-fast --status-level=fail --workspace || \
-	cargo test --all
+	cargo nextest run --no-fail-fast --status-level=fail --workspace
 
 # Creates a coverage report for all crates in the repository. Results will be
 # opened automatically in your default browser.

@@ -223,6 +223,26 @@ fn create_tinanta_results(
     }
 }
 
+fn show_error_sample(
+    out: &mut std::io::StdoutLock<'_>,
+    expected: &[String],
+    actual: &[String],
+) -> Result<(), Box<dyn Error>> {
+    let mut num_shown = 0;
+    for (e, a) in expected.iter().zip(actual) {
+        if num_shown == 5 {
+            writeln!(out, "        ...")?;
+            break;
+        }
+        if e != a {
+            writeln!(out, "        Expected {:?}, Actual {:?}", e, a)?;
+            num_shown += 1;
+        }
+    }
+
+    Ok(())
+}
+
 fn create_tinantas_file(
     dhatupatha: &Dhatupatha,
     sanadi: &[Sanadi],
@@ -257,9 +277,7 @@ fn validate_tinantas(expected: &TinantaResults) -> Result<(), Box<dyn Error>> {
     if expected != &actual {
         let mut out = std::io::stdout().lock();
         writeln!(out, "[ FAIL ]  {:?}", expected.dhatu)?;
-        for (e, a) in expected.padas.iter().zip(actual.padas) {
-            writeln!(out, "        Expected {:?}, Actual {:?}", e, a)?;
-        }
+        show_error_sample(&mut out, &expected.padas, &actual.padas)?;
     }
 
     Ok(())
@@ -346,9 +364,7 @@ fn validate_krdantas(expected: &KrdantaResults) -> Result<(), Box<dyn Error>> {
     if expected != &actual {
         let mut out = std::io::stdout().lock();
         writeln!(out, "[ FAIL ]  {:?}", expected.krdanta)?;
-        for (e, a) in expected.padas.iter().zip(actual.padas) {
-            writeln!(out, "        Expected {:?}, Actual {:?}", e, a)?;
-        }
+        show_error_sample(&mut out, &expected.padas, &actual.padas)?;
     }
 
     Ok(())
