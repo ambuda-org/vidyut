@@ -1,5 +1,5 @@
 use crate::kosha::entries::{PyDhatuEntry, PyPadaEntry, PyPratipadikaEntry};
-use crate::utils::py_only_enum;
+use crate::macro_utils::py_only_enum;
 use pyo3::exceptions::{PyFileNotFoundError, PyValueError};
 use pyo3::prelude::*;
 use std::path::PathBuf;

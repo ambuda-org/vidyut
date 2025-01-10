@@ -4,7 +4,7 @@ Wrappers for vidyut-prakriya arguments.
 Pyo3 doesn't allow us to annotate existing enums, and using a wrapping struct has poor ergonomics
 for callers. So instead, redefine our enums of interest.
 */
-use crate::utils::py_enum;
+use crate::macro_utils::py_enum;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use vidyut_prakriya::args::{BaseKrt as Krt, *};

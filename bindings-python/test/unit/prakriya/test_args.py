@@ -189,15 +189,21 @@ def test_enums_use_slp1_for_str():
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_can_be_stringified_round_trip(enum):
+def test_enum_can_be_stringified_round_trip(enum):
     for val in enum.choices():
-        assert enum.from_string(str(val)) == val
+        assert enum(str(val)) == val
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_raise_error_on_unknown_value(enum):
+def test_enum_isinstance(enum):
+    for val in enum.choices():
+        assert isinstance(val, enum)
+
+
+@pytest.mark.parametrize("enum", ENUMS)
+def test_enum_raises_error_on_unknown_value(enum):
     with pytest.raises(ValueError):
-        enum.from_string("unsupported value")
+        enum("unsupported value")
 
 
 @pytest.mark.parametrize("enum", ENUMS)
@@ -208,7 +214,22 @@ def test_enum_dunders(enum):
 
     # __eq__
     for val in enum.choices():
+        assert val is val
         assert val == val
+        # "Comparisons against non-enumeration values will always compare not equal"
+        assert val != str(val)
+
+    # __format__
+    # TODO: not rendered correctly.
+    # for val in enum.choices():
+    #     _ = f"{val:>10}"
+
+    # __getitem__
+    # TODO: __getitem__ defined, but this still fails on "not subscriptable"
+    # for val in enum.choices():
+    #     assert enum[val.name] == val
+    # with pytest.raises(KeyError):
+    #     _ = enum["unknown enum value"]
 
     # __hash__
     _ = {val: "foo" for val in enum.choices()}
@@ -218,18 +239,32 @@ def test_enum_dunders(enum):
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_are_in_sorted_order(enum):
+def test_enum_variants_are_in_sorted_order(enum):
     assert enum.choices()
     assert sorted(enum.choices()) == enum.choices()
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_define_attr_name(enum):
+def test_enum_defines_attr_name(enum):
     for val in enum.choices():
         assert getattr(enum, val.name) == val
+        assert val.name == val._name_
 
 
 @pytest.mark.parametrize("enum", ENUMS)
-def test_enums_repr_evals_to_variant(enum):
+def test_enum_defines_attr_value_as_slp1_string(enum):
+    for val in enum.choices():
+        assert val.value == str(val)
+        assert val.value == val._value_
+
+
+@pytest.mark.parametrize("enum", ENUMS)
+def test_enum_attr_value_is_unique(enum):
+    values = {x.value for x in enum.choices()}
+    assert len(values) == len(enum.choices())
+
+
+@pytest.mark.parametrize("enum", ENUMS)
+def test_enum_repr_evals_to_variant(enum):
     for val in enum.choices():
         assert eval(repr(val)) == val

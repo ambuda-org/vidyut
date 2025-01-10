@@ -67,9 +67,9 @@ mod chandas;
 mod cheda;
 mod kosha;
 mod lipi;
+mod macro_utils;
 mod prakriya;
 mod sandhi;
-mod utils;
 
 /// Defines the `vidyut.chandas` native module.
 ///
