@@ -101,12 +101,12 @@ fn try_shaishika_rules(tp: &mut TaddhitaPrakriya, rule: &'static str) {
     } else if prati.has_text_in(gana::KASHI_ADI) {
         let code = "4.2.116";
         tp.try_add(code, WaY);
-        tp.try_add(code, YiW);
+        tp.try_add(code, YiWa);
     } else if prati.has_text_in(&["SAkala", "sOsukam", "mAnTava", "mAkala"]) {
         // TODO: not sure of the first list -- I just guessed.
         let code = "4.2.117";
         tp.try_add(code, WaY);
-        tp.try_add(code, YiW);
+        tp.try_add(code, YiWa);
     } else if prati.has_text_in(&["madra", "vfji"]) {
         tp.try_add("4.2.131", kan);
     } else if prati.has_upadha('k') {

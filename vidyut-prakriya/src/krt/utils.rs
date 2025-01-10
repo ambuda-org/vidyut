@@ -8,6 +8,10 @@ impl Krt {
     /// Converts this krt-pratyaya to an appropriate `Term`.
     pub fn to_term(self) -> Term {
         let mut krt = Term::make_text(self.as_str());
+        krt.morph = match self {
+            Krt::Base(b) => Morph::Krt(b),
+            Krt::Unadi(unadi) => Morph::Unadi(unadi),
+        };
         krt.add_tags(&[T::Pratyaya, T::Krt]);
 
         if let Krt::Base(b) = self {
@@ -228,7 +232,6 @@ impl<'a> KrtPrakriya<'a> {
             // For later rules, also push an empty version of the pratyaya.
             // (Example: 8.2.62 kvin-pratyayasya kuH)
             let mut t = Krt::Base(self.krt).to_term();
-            t.morph = Morph::Krt(self.krt);
             t.set_text("");
             p.push(t);
         });
@@ -268,7 +271,6 @@ impl<'a> KrtPrakriya<'a> {
             });
 
             let i_last = self.p.terms().len() - 1;
-            self.p.set(i_last, |x| x.morph = Morph::Krt(krt));
             it_samjna::run(self.p, i_last).expect("should never fail");
 
             // update bookkeeping.

@@ -27,7 +27,7 @@ pub enum Error {
     ParseError(String),
 
     /// A term has an empty upadesha.
-    InvalidUpadesha(String),
+    InvalidAupadeshika(String),
 
     /// The caller's arguments are incompatible with the prakriya, so we aborted early.
     Abort(Vec<RuleChoice>),
@@ -56,8 +56,8 @@ impl Error {
         Error::MissingRequiredField(field)
     }
 
-    pub(crate) fn invalid_upadesha(value: &str) -> Self {
-        Error::InvalidUpadesha(value.to_string())
+    pub(crate) fn invalid_aupadeshika(value: &str) -> Self {
+        Error::InvalidAupadeshika(value.to_string())
     }
 }
 
@@ -72,7 +72,9 @@ impl fmt::Display for Error {
             InvalidFile => write!(f, "The input file is invalid."),
             ParseInt(_) => write!(f, "Parse int error"),
             UnknownIt(c) => write!(f, "`{c}` could not be parsed as an it-samjna."),
-            InvalidUpadesha(s) => write!(f, "The term `{s}` unexpectedly has an empty upadesha."),
+            InvalidAupadeshika(s) => {
+                write!(f, "The term `{s}` unexpectedly has an empty upadesha.")
+            }
             MissingRequiredField(s) => write!(f, "Please define the `{s}` field."),
             ParseError(v) => write!(f, "Could not parse `{v}` into an enum value."),
             Abort(_) => write!(f, "The given arguments cannot produce a valid prakriya."),

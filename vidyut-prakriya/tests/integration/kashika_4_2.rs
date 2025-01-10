@@ -1,5 +1,6 @@
 extern crate test_utils;
 use test_utils::*;
+use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha;
 use vidyut_prakriya::args::TaddhitaArtha::*;
@@ -475,6 +476,24 @@ fn sutra_4_2_115() {
     assert_has_taddhita("Bavat", T::Wak, &["BAvatka"]);
     assert_has_taddhita("Bavat", T::Cas, &["BavadIya"]);
     assert_has_taddhita("Bavat", T::Ca, &[]);
+}
+
+#[test]
+fn sutra_4_2_116() {
+    // TODO: add artha
+    assert_has_sup_1s(&taddhitanta("kASi", T::WaY), Stri, &["kASikI"]);
+    assert_has_sup_1s(&taddhitanta("kASi", T::YiWa), Stri, &["kASikA"]);
+    assert_has_sup_1s(&taddhitanta("cedi", T::WaY), Stri, &["cEdikI"]);
+    assert_has_sup_1s(&taddhitanta("cedi", T::YiWa), Stri, &["cEdikA"]);
+
+    assert_has_sup_1s(&taddhitanta("devadatta", T::WaY), Pum, &["dEvadattikaH"]);
+
+    assert_has_sup_1s(&taddhitanta("ApatkAla", T::WaY), Stri, &["ApatkAlikI"]);
+    assert_has_sup_1s(&taddhitanta("ApatkAla", T::YiWa), Stri, &["ApatkAlikA"]);
+    assert_has_sup_1s(&taddhitanta("UrDvakAla", T::WaY), Stri, &["OrDvakAlikI"]);
+    assert_has_sup_1s(&taddhitanta("UrDvakAla", T::YiWa), Stri, &["OrDvakAlikA"]);
+    assert_has_sup_1s(&taddhitanta("tatkAla", T::WaY), Stri, &["tAtkAlikI"]);
+    assert_has_sup_1s(&taddhitanta("tatkAla", T::YiWa), Stri, &["tAtkAlikA"]);
 }
 
 #[test]

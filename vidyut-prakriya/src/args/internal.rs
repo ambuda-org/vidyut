@@ -19,6 +19,18 @@ macro_rules! internal_term {
                 self.aupadeshika()
             }
 
+            /// Iterates over all values of this enum in order.
+            #[allow(dead_code)]
+            pub fn iter() -> impl Iterator<Item = $Enum> {
+                // In Rust, `const` items are created at compile time.
+                const ITEMS: &[$Enum] = &[
+                    $(
+                        $Enum::$variant,
+                    )*
+                ];
+                ITEMS.iter().copied()
+            }
+
             pub fn aupadeshika(&self) -> &'static str {
                 match self {
                     $(
@@ -59,6 +71,18 @@ macro_rules! internal_term_non_unique {
         impl $Enum {
             pub fn as_str(&self) -> &'static str {
                 self.aupadeshika()
+            }
+
+            /// Iterates over all values of this enum in order.
+            #[allow(dead_code)]
+            pub fn iter() -> impl Iterator<Item = $Enum> {
+                // In Rust, `const` items are created at compile time.
+                const ITEMS: &[$Enum] = &[
+                    $(
+                        $Enum::$variant,
+                    )*
+                ];
+                ITEMS.iter().copied()
             }
 
             pub fn aupadeshika(&self) -> &'static str {

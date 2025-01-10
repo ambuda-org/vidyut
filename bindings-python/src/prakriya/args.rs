@@ -697,7 +697,7 @@ py_enum!(
         a, akac, ac, aWac, aR, aY, at, atasuc, anic, ap, asic, astAti, Akinic, Arak, iY, itac,
         inac, ini, imanic, ila, ilac, izWan, Ikak, Ikan, Iyasun, eRya, Erak, ka, kak, kawac, kan,
         kap, kalpap, kftvasuc, kuwArac, kuRap, Ka, KaY, Ga, Gac, Gan, Gas, caRap, caraw, cuYcup,
-        cPaY, cvi, Ca, CaR, Cas, jAtIyar, jAhac, Ya, YiW, Yya, YyaN, Yyaw, wac, waq, wiWan, wIwac,
+        cPaY, cvi, Ca, CaR, Cas, jAtIyar, jAhac, Ya, YiWa, Yya, YyaN, Yyaw, wac, waq, wiWan, wIwac,
         weRyaR, wyaR, wyu, wyul, wlaY, Wak, Wac, WaY, Wan, Wap, qaw, qati, qatarac, qatamac, qupac,
         qmatup, qyaR, qvalac, qvun, Qak, QakaY, Qa, QaY, Qinuk, Qrak, Ra, Rini, Rya, tamap, tayap,
         tarap, tal, tasi, tasil, ti, tikan, tIya, tyak, tyakan, tyap, tyu, tyul, tral, trA, tva,

@@ -306,7 +306,7 @@ pub fn run(p: &mut Prakriya, dhatu: &Muladhatu) -> Result<()> {
         add_samjnas(p, i_dhatu);
 
         if p.has(i_dhatu, |t| t.is_empty()) {
-            return Err(Error::invalid_upadesha(dhatu.aupadeshika()));
+            return Err(Error::invalid_aupadeshika(dhatu.aupadeshika()));
         }
     }
 

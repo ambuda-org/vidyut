@@ -82,7 +82,7 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
     }
 }
 
-fn get_upadesha(t: &Term) -> Result<&str> {
+fn get_aupadeshika(t: &Term) -> Result<&str> {
     match &t.u {
         Some(s) => Ok(s),
         None => {
@@ -99,7 +99,7 @@ fn get_upadesha(t: &Term) -> Result<&str> {
                     Morph::Unadi(val) => Ok(val.as_str()),
                     Morph::Upasarga(val) => Ok(val.aupadeshika()),
                     Morph::Vikarana(val) => Ok(val.aupadeshika()),
-                    _ => Err(Error::invalid_upadesha(&t.text)),
+                    _ => Err(Error::invalid_aupadeshika(&t.text)),
                 }
             }
         }
@@ -163,9 +163,9 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
         if !is_yu_vu {
             let mut should_mark_rule = false;
 
-            let upadesha = &get_upadesha(t)?[..i_end];
+            let upadesha = &get_aupadeshika(t)?[..i_end];
             for i in 0..upadesha.len() {
-                let upadesha = &get_upadesha(t)?[..i_end];
+                let upadesha = &get_aupadeshika(t)?[..i_end];
                 let bytes = upadesha.as_bytes();
                 let c = *bytes.get(i).expect("present") as char;
 
@@ -207,7 +207,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
     if let Some(t) = p.get(i_term) {
         let antya = match t.antya() {
             Some(x) => x,
-            None => return Err(Error::invalid_upadesha(&t.text)),
+            None => return Err(Error::invalid_aupadeshika(&t.text)),
         };
 
         if HAL.contains(antya) && !irit {
@@ -234,10 +234,10 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
     }
 
     if let Some(t) = p.get(i_term) {
-        let upadesha = get_upadesha(t)?;
-        let adi = match get_adi(upadesha) {
+        let aupadeshika = get_aupadeshika(t)?;
+        let adi = match get_adi(aupadeshika) {
             Some(x) => x,
-            None => return Err(Error::invalid_upadesha(upadesha)),
+            None => return Err(Error::invalid_aupadeshika(aupadeshika)),
         };
 
         if t.is_pratyaya() {
@@ -257,7 +257,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
         } else {
             // Apply 1.3.5 only for non-pratyayas. This way, we avoid including qu-pratyaya, etc.
             for (it, tag) in [("Yi", T::YIt), ("wu", T::wvit), ("qu", T::qvit)] {
-                if upadesha.strip_prefix(it).is_some() {
+                if aupadeshika.strip_prefix(it).is_some() {
                     p.add_tag_at("1.3.5", i_term, tag);
                     changed = true;
                     i_start += it.len();
@@ -303,12 +303,18 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::args::{Agama, BaseKrt, Krt, Sanadi, Stri, Sup, Taddhita, Vikarana};
     use crate::core::Term;
 
     fn check(t: Term) -> Term {
         let mut p = Prakriya::new();
         p.push(t);
-        run(&mut p, 0).expect("test");
+        match run(&mut p, 0) {
+            Ok(_) => (),
+            Err(e) => {
+                assert!(false, "{e:?}");
+            }
+        }
         p.get(0).expect("test").clone()
     }
 
@@ -382,6 +388,56 @@ mod tests {
             let t = check(start);
             assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags), "Missing one or more of `{tags:?}`");
+        }
+    }
+
+    #[test]
+    fn agamas() {
+        for agama in Agama::iter() {
+            check(agama.into());
+        }
+    }
+
+    #[test]
+    fn krt_pratyayas() {
+        for krt in BaseKrt::iter() {
+            let t = Krt::Base(krt).to_term();
+            check(t);
+        }
+    }
+
+    #[test]
+    fn taddhita_pratyayas() {
+        for taddhita in Taddhita::iter() {
+            check(taddhita.into());
+        }
+    }
+
+    #[test]
+    fn sanadi_pratyayas() {
+        for sanadi in Sanadi::iter() {
+            check(sanadi.into());
+        }
+    }
+
+    #[test]
+    fn sup_pratyayas() {
+        for s in Sup::iter() {
+            check(s.into());
+        }
+    }
+
+    #[test]
+    fn stri_pratyayas() {
+        for stri in Stri::iter() {
+            check(stri.into());
+        }
+    }
+
+    #[test]
+    fn vikarana_pratyayas() {
+        for vikarana in Vikarana::iter() {
+            check(vikarana.into());
         }
     }
 }

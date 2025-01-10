@@ -123,7 +123,7 @@ pub enum Taddhita {
     /// -a
     Ya,
     /// -ika
-    YiW,
+    YiWa,
     /// -ya
     Yya,
     /// -ya
@@ -422,7 +422,7 @@ sanskrit_enum!(Taddhita, {
     jAtIyar => "jAtIyar",
     jAhac => "jAhac",
     Ya => "Ya",
-    YiW => "YiW",
+    YiWa => "Yi~Wa",
     Yya => "Yya",
     YyaN => "YyaN",
     Yyaw => "Yyaw",
