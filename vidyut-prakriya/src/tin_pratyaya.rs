@@ -27,10 +27,10 @@ const NAL_PARA: &[&str] = &["Ral", "atus", "us", "Tal", "aTus", "a", "Ral", "va"
 /// Replaces the lakAra with a tiN-pratyaya.
 pub fn adesha(p: &mut Prakriya, purusha: Purusha, vacana: Vacana) {
     let pada = if p.has_tag(PT::Parasmaipada) {
-        DhatuPada::Parasmai
+        DhatuPada::Parasmaipada
     } else {
         assert!(p.has_tag(PT::Atmanepada));
-        DhatuPada::Atmane
+        DhatuPada::Atmanepada
     };
     let tin = Tin::from_args(pada, purusha, vacana);
 

@@ -361,6 +361,7 @@ impl TryFrom<&PyPadaEntry> for PyPada {
                 lakara: *lakara,
                 purusha: *purusha,
                 vacana: *vacana,
+                dhatu_pada: None,
                 skip_at_agama: false,
             },
             PE::Avyaya { pratipadika_entry } => {

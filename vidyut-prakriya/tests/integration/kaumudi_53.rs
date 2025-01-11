@@ -115,7 +115,7 @@ fn sk_2580() {
 
     // TODO: why prediDat?
     let edh = &nic(&d("eDa~\\", Bhvadi));
-    assert_has_no_agama(&["pra"], edh, DhatuPada::Parasmai, Lun, &["prediDat"]);
+    assert_has_no_agama(&["pra"], edh, DhatuPada::Parasmaipada, Lun, &["prediDat"]);
 
     let und = &nic(&d("undI~", Rudhadi));
     assert_has_tip(&[], und, Lun, &["Ondidat"]);

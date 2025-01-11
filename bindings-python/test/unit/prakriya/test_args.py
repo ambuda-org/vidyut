@@ -2,6 +2,7 @@ import pytest
 
 from vidyut.prakriya import (
     Dhatu,
+    DhatuPada,
     Pratipadika,
     Antargana,
     Gana,
@@ -21,6 +22,7 @@ from vidyut.prakriya import (
 
 ENUMS = [
     Antargana,
+    DhatuPada,
     Gana,
     Krt,
     Lakara,

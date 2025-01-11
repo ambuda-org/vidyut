@@ -116,8 +116,8 @@ fn create_entry(
 
     // Pada and lakara
     html_row += match pada {
-        DhatuPada::Parasmai => "parasmEpadi",
-        DhatuPada::Atmane => "Atmanepadi",
+        DhatuPada::Parasmaipada => "parasmEpadi",
+        DhatuPada::Atmanepada => "Atmanepadi",
     };
     html_row += "-";
     html_row += match lakara {
@@ -227,7 +227,7 @@ fn run(dp: Dhatupatha, args: Args) {
     // Entries
     for dhatu_entry in dp {
         for lakara in Lakara::iter() {
-            for pada in &[DhatuPada::Parasmai, DhatuPada::Atmane] {
+            for pada in &[DhatuPada::Parasmaipada, DhatuPada::Atmanepada] {
                 let entry = create_entry(
                     &v,
                     &mut lipika,

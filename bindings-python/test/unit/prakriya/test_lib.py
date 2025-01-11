@@ -8,6 +8,7 @@ from vidyut.prakriya import (
     Linga,
     Gana,
     Dhatu,
+    DhatuPada,
     Pada,
     Pratipadika,
     Prayoga,
@@ -120,6 +121,34 @@ def test_derive_basic_kartari_tinantas(code, expected):
     assert expected == actual
 
 
+def test_derive_tinanta_with_dhatu_pada():
+    dhatu = d["08.0010"]
+
+    prakriyas = v.derive(
+        Pada.Tinanta(
+            dhatu=dhatu,
+            prayoga=Prayoga.Kartari,
+            purusha=Purusha.Prathama,
+            vacana=Vacana.Eka,
+            lakara=Lakara.Lat,
+            dhatu_pada=DhatuPada.Parasmaipada
+        )
+    )
+    assert [x.text for x in prakriyas] == ["karoti"]
+
+    prakriyas = v.derive(
+        Pada.Tinanta(
+            dhatu=dhatu,
+            prayoga=Prayoga.Kartari,
+            purusha=Purusha.Prathama,
+            vacana=Vacana.Eka,
+            lakara=Lakara.Lat,
+            dhatu_pada=DhatuPada.Atmanepada
+        )
+    )
+    assert [x.text for x in prakriyas] == ["kurute"]
+
+
 @pytest.mark.parametrize(
     "code,expected",
     [
@@ -144,39 +173,19 @@ def test_derive_basic_karmani_tinantas(code, expected):
 
 
 @pytest.mark.parametrize(
-    "code,expected",
+    "code,sanadi,expected",
     [
-        ("01.0001", "buBUzati"),
-        # ("08.0010", "cikIrzati"),
+        ("01.0001", Sanadi.Ric, "BAvayati|BAvayate"),
+        ("08.0010", Sanadi.Ric, "kArayati|kArayate"),
+        ("01.0001", Sanadi.san, "buBUzati"),
+        ("08.0010", Sanadi.san, "cikIrzati|cikIrzate"),
+        ("01.0001", Sanadi.yaN, "boBUyate"),
+        ("08.0010", Sanadi.yaN, "cekrIyate"),
     ],
 )
-def test_derive_sannanta_tinantas(code, expected):
+def test_derive_sanadyanta_tinantas(code, sanadi, expected):
     dhatu = d[code]
-    dhatu_san = dhatu.with_sanadi([Sanadi.san])
-    prakriyas = v.derive(
-        Pada.Tinanta(
-            dhatu=dhatu_san,
-            prayoga=Prayoga.Kartari,
-            purusha=Purusha.Prathama,
-            vacana=Vacana.Eka,
-            lakara=Lakara.Lat,
-        )
-    )
-    expected = set(expected.split("|"))
-    actual = {x.text for x in prakriyas}
-    assert expected == actual
-
-
-@pytest.mark.parametrize(
-    "code,expected",
-    [
-        ("01.0001", "BAvayati|BAvayate"),
-        ("08.0010", "kArayati|kArayate"),
-    ],
-)
-def test_derive_nijanta_tinantas(code, expected):
-    dhatu = d[code]
-    dhatu_nic = dhatu.with_sanadi([Sanadi.Ric])
+    dhatu_nic = dhatu.with_sanadi([sanadi])
     prakriyas = v.derive(
         Pada.Tinanta(
             dhatu=dhatu_nic,
@@ -191,28 +200,6 @@ def test_derive_nijanta_tinantas(code, expected):
     assert expected == actual
 
 
-@pytest.mark.parametrize(
-    "code,expected",
-    [
-        ("01.0001", "boBUyate"),
-        # ("08.0010", "cekrIyate"),
-    ],
-)
-def test_derive_yananta_tinantas(code, expected):
-    dhatu = d[code]
-    dhatu_yan = dhatu.with_sanadi([Sanadi.yaN])
-    prakriyas = v.derive(
-        Pada.Tinanta(
-            dhatu=dhatu_yan,
-            prayoga=Prayoga.Kartari,
-            purusha=Purusha.Prathama,
-            vacana=Vacana.Eka,
-            lakara=Lakara.Lat,
-        )
-    )
-    expected = set(expected.split("|"))
-    actual = {x.text for x in prakriyas}
-    assert expected == actual
 
 
 def test_derive_tinantas_without_at_agama():

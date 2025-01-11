@@ -86,21 +86,23 @@ impl Lipika {
     ///
     /// This code assumes that a `Mapping` is a pure function of `from` and `to`.
     fn find_or_create_mapping(&mut self, from: Scheme, to: Scheme) -> &Mapping {
-        self.next_stamp += 1;
-        if self.next_stamp < 0 {
-            // Integer overflow. This is a very rare edge case that will appear only in very
-            // long-running processes.
-            //
-            // Since this case is rare, just reset the cache so that `next_stamp` is non-negative
-            // again.
-            self.cache.clear();
-            self.next_stamp = 0;
-        }
+        self.next_stamp = match self.next_stamp.checked_add(1) {
+            Some(i) => i,
+            None => {
+                // Integer overflow. This is a very rare edge case that will appear only in very
+                // long-running processes.
+                //
+                // Since this case is rare, just reset the cache so that `next_stamp` is non-negative
+                // again.
+                self.cache.clear();
+                0
+            }
+        };
 
         // Check the cache. For now, assume that a `Mapping` is a pure function of `from` and `to`.
         if let Some(i) = self.cache.iter().position(|x| x.from == from && x.to == to) {
             // Cache hit.
-            self.cache[i].stamp += self.next_stamp;
+            self.cache[i].stamp = self.next_stamp;
             &self.cache[i].mapping
         } else {
             // Cache miss.

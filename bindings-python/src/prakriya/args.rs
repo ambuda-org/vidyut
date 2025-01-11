@@ -445,7 +445,7 @@ pub enum PyTaddhita {
     /// -a
     Ya,
     /// -ika
-    YiW,
+    YiWa,
     /// -ya
     Yya,
     /// -ya
@@ -785,6 +785,18 @@ pub enum PyPurusha {
 }
 
 py_enum!(PyPurusha, Purusha, [Prathama, Madhyama, Uttama]);
+
+/// The pada of some *tiṅanta* or *kṛdanta*.
+#[pyclass(name = "DhatuPada", module = "prakriya", eq, eq_int, ord)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PyDhatuPada {
+    /// *Parasmaipada*.
+    Parasmaipada,
+    /// *Ātmanepada*.
+    Atmanepada,
+}
+
+py_enum!(PyDhatuPada, DhatuPada, [Parasmaipada, Atmanepada]);
 
 #[allow(non_camel_case_types)]
 #[pyclass(name = "Sanadi", module = "prakriya", eq, eq_int, ord)]
@@ -1149,13 +1161,14 @@ pub enum PyPada {
         is_avyaya: bool,
     },
 
-    #[pyo3(constructor = (dhatu, prayoga, lakara, purusha, vacana, *, skip_at_agama = false))]
+    #[pyo3(constructor = (dhatu, prayoga, lakara, purusha, vacana, *, dhatu_pada = None, skip_at_agama = false))]
     Tinanta {
         dhatu: PyDhatu,
         prayoga: PyPrayoga,
         lakara: PyLakara,
         purusha: PyPurusha,
         vacana: PyVacana,
+        dhatu_pada: Option<PyDhatuPada>,
         skip_at_agama: bool,
     },
 }

@@ -513,6 +513,12 @@ fn sutra_7_2_16() {
     let svid = d("YizvidA~", Bhvadi);
     assert_has_krdanta(&[], &svid, Krt::kta, &["svinna"]);
     assert_has_krdanta(&[], &svid, Krt::ktavatu, &["svinnavat"]);
+
+    let vam = d("wuvama~", Bhvadi);
+    assert_has_krdanta(&[], &vam, Krt::kta, &["vAnta"]);
+
+    let shvas = d("Svasa~", Adadi);
+    assert_has_krdanta(&["AN"], &shvas, Krt::kta, &["ASvasta"]);
 }
 
 #[test]

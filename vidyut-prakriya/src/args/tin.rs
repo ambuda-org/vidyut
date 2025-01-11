@@ -187,21 +187,21 @@ impl Lakara {
 #[wasm_bindgen]
 pub enum DhatuPada {
     /// *Parasmaipada*.
-    Parasmai,
+    Parasmaipada,
     /// *Ātmanepada*.
-    Atmane,
+    Atmanepada,
 }
 
 sanskrit_enum!(DhatuPada, {
-    Parasmai => "parasmE",
-    Atmane => "Atmane",
+    Parasmaipada => "parasmEpadam",
+    Atmanepada => "Atmanepadam",
 });
 
 impl DhatuPada {
     pub(crate) fn as_tag(&self) -> Tag {
         match self {
-            Self::Parasmai => Tag::Parasmaipada,
-            Self::Atmane => Tag::Atmanepada,
+            Self::Parasmaipada => Tag::Parasmaipada,
+            Self::Atmanepada => Tag::Atmanepada,
         }
     }
 }

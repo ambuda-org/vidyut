@@ -12,6 +12,7 @@ Source = __mod.Source
 
 # Input types
 Dhatu = __mod.Dhatu
+DhatuPada = __mod.DhatuPada
 Pratipadika = __mod.Pratipadika
 Antargana = __mod.Antargana
 Gana = __mod.Gana

@@ -132,7 +132,7 @@ fn derive_tinantas() {
         .purusha(Purusha::Prathama)
         .vacana(Vacana::Eka)
         .lakara(Lakara::Lat)
-        .pada(DhatuPada::Parasmai)
+        .pada(DhatuPada::Parasmaipada)
         .build()
         .unwrap();
     let prakriyas = v.derive_tinantas(&args_parasmai);
@@ -145,7 +145,7 @@ fn derive_tinantas() {
         .purusha(Purusha::Prathama)
         .vacana(Vacana::Eka)
         .lakara(Lakara::Lat)
-        .pada(DhatuPada::Atmane)
+        .pada(DhatuPada::Atmanepada)
         .build()
         .unwrap();
     let prakriyas = v.derive_tinantas(&args_atmane);

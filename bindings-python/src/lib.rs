@@ -154,6 +154,7 @@ fn py_prakriya(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<prakriya::args::PyPratipadika>()?;
     m.add_class::<prakriya::args::PyAntargana>()?;
     m.add_class::<prakriya::args::PyGana>()?;
+    m.add_class::<prakriya::args::PyDhatuPada>()?;
     m.add_class::<prakriya::args::PyKrt>()?;
     m.add_class::<prakriya::args::PyLakara>()?;
     m.add_class::<prakriya::args::PyLinga>()?;

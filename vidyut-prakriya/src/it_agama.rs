@@ -510,6 +510,9 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
             if can_run {
                 ip.try_block("7.2.16");
             }
+        } else if anga.has_u_in(&["wuvama~", "Svasa~"]) {
+            // vAnta, ASvasta (per KV)
+            ip.try_block(Rule::Kashika("7.2.16"));
         } else if anga.has_u("arda~") && anga.has_gana(Bhvadi) {
             // Per nyAsa on 7.2.24, this is for bhvAdi arda~ only.
             if ip.has_upasarga_in(&[U::sam, U::ni, U::vi]) {

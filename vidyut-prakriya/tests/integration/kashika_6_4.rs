@@ -1089,8 +1089,10 @@ fn sutra_6_4_74() {
         t.assert_has_tinantas(&args, expected);
     }
 
-    let assert_has_tip_no_agama = |a, b, c, d| assert_has_no_agama(a, b, DhatuPada::Parasmai, c, d);
-    let assert_has_ta_no_agama = |a, b, c, d| assert_has_no_agama(a, b, DhatuPada::Atmane, c, d);
+    let assert_has_tip_no_agama =
+        |a, b, c, d| assert_has_no_agama(a, b, DhatuPada::Parasmaipada, c, d);
+    let assert_has_ta_no_agama =
+        |a, b, c, d| assert_has_no_agama(a, b, DhatuPada::Atmanepada, c, d);
 
     let kf = d("qukf\\Y", Tanadi);
     let hf = d("hf\\Y", Bhvadi);

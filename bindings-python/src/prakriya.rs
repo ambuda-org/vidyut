@@ -376,17 +376,22 @@ impl PyVyakarana {
                 lakara,
                 purusha,
                 vacana,
+                dhatu_pada,
                 skip_at_agama,
             } => {
-                let tin_args = Tinanta::builder()
+                let mut tin_args = Tinanta::builder()
                     .dhatu(dhatu.as_rust().clone())
                     .prayoga(prayoga.into())
                     .purusha(purusha.into())
                     .vacana(vacana.into())
                     .lakara(lakara.into())
-                    .skip_at_agama(skip_at_agama)
-                    .build()
-                    .expect("should have all required fields");
+                    .skip_at_agama(skip_at_agama);
+
+                if let Some(pada) = dhatu_pada {
+                    tin_args = tin_args.pada(pada.into());
+                }
+
+                let tin_args = tin_args.build().expect("should have all required fields");
 
                 let results = self.0.derive_tinantas(&tin_args);
                 to_py_prakriyas(results)

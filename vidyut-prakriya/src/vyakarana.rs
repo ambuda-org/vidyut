@@ -351,10 +351,10 @@ impl Vyakarana {
         if let Some(pada) = args.pada() {
             use crate::args::DhatuPada;
             prakriyas.retain(|p| match pada {
-                DhatuPada::Parasmai => {
+                DhatuPada::Parasmaipada => {
                     p.has_tag(pada.as_tag().into()) && !p.has_tag(PT::AmAtmanepada)
                 }
-                DhatuPada::Atmane => p.has_tag_in(&[pada.as_tag().into(), PT::AmAtmanepada]),
+                DhatuPada::Atmanepada => p.has_tag_in(&[pada.as_tag().into(), PT::AmAtmanepada]),
             });
         }
 

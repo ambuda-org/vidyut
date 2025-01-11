@@ -10,8 +10,9 @@ lint:
 # `make test_all` test suite in `vidyut-prakriya`. It also excludes tests
 # for `bindings-python`.
 test:
-	# TODO: don't run nextest at all if not defined.
 	cargo nextest run --no-fail-fast --status-level=fail --workspace
+	# Also test bindings.
+	cd bindings-python && make test
 
 # Creates a coverage report for all crates in the repository. Results will be
 # opened automatically in your default browser.

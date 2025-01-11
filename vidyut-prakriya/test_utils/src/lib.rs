@@ -520,35 +520,35 @@ macro_rules! test_tin {
     };
 }
 
-test_tin!(assert_has_tip, Kartari, P::Prathama, Eka, Parasmai);
-test_tin!(assert_has_tas, Kartari, P::Prathama, Dvi, Parasmai);
-test_tin!(assert_has_jhi, Kartari, P::Prathama, Bahu, Parasmai);
-test_tin!(assert_has_sip, Kartari, P::Madhyama, Eka, Parasmai);
-test_tin!(assert_has_thas, Kartari, P::Madhyama, Dvi, Parasmai);
-test_tin!(assert_has_tha, Kartari, P::Madhyama, Bahu, Parasmai);
-test_tin!(assert_has_mip, Kartari, P::Uttama, Eka, Parasmai);
-test_tin!(assert_has_vas, Kartari, P::Uttama, Dvi, Parasmai);
-test_tin!(assert_has_mas, Kartari, P::Uttama, Bahu, Parasmai);
+test_tin!(assert_has_tip, Kartari, P::Prathama, Eka, Parasmaipada);
+test_tin!(assert_has_tas, Kartari, P::Prathama, Dvi, Parasmaipada);
+test_tin!(assert_has_jhi, Kartari, P::Prathama, Bahu, Parasmaipada);
+test_tin!(assert_has_sip, Kartari, P::Madhyama, Eka, Parasmaipada);
+test_tin!(assert_has_thas, Kartari, P::Madhyama, Dvi, Parasmaipada);
+test_tin!(assert_has_tha, Kartari, P::Madhyama, Bahu, Parasmaipada);
+test_tin!(assert_has_mip, Kartari, P::Uttama, Eka, Parasmaipada);
+test_tin!(assert_has_vas, Kartari, P::Uttama, Dvi, Parasmaipada);
+test_tin!(assert_has_mas, Kartari, P::Uttama, Bahu, Parasmaipada);
 
-test_tin!(assert_has_ta, Kartari, P::Prathama, Eka, Atmane);
-test_tin!(assert_has_aataam, Kartari, P::Prathama, Dvi, Atmane);
-test_tin!(assert_has_jha, Kartari, P::Prathama, Bahu, Atmane);
-test_tin!(assert_has_thaas, Kartari, P::Madhyama, Eka, Atmane);
-test_tin!(assert_has_aathaam, Kartari, P::Madhyama, Dvi, Atmane);
-test_tin!(assert_has_dhvam, Kartari, P::Madhyama, Bahu, Atmane);
-test_tin!(assert_has_iw, Kartari, P::Uttama, Eka, Atmane);
-test_tin!(assert_has_vahi, Kartari, P::Uttama, Dvi, Atmane);
-test_tin!(assert_has_mahin, Kartari, P::Uttama, Bahu, Atmane);
+test_tin!(assert_has_ta, Kartari, P::Prathama, Eka, Atmanepada);
+test_tin!(assert_has_aataam, Kartari, P::Prathama, Dvi, Atmanepada);
+test_tin!(assert_has_jha, Kartari, P::Prathama, Bahu, Atmanepada);
+test_tin!(assert_has_thaas, Kartari, P::Madhyama, Eka, Atmanepada);
+test_tin!(assert_has_aathaam, Kartari, P::Madhyama, Dvi, Atmanepada);
+test_tin!(assert_has_dhvam, Kartari, P::Madhyama, Bahu, Atmanepada);
+test_tin!(assert_has_iw, Kartari, P::Uttama, Eka, Atmanepada);
+test_tin!(assert_has_vahi, Kartari, P::Uttama, Dvi, Atmanepada);
+test_tin!(assert_has_mahin, Kartari, P::Uttama, Bahu, Atmanepada);
 
-test_tin!(assert_has_ta_k, Karmani, P::Prathama, Eka, Atmane);
-test_tin!(assert_has_aataam_k, Karmani, P::Prathama, Dvi, Atmane);
-test_tin!(assert_has_jha_k, Karmani, P::Prathama, Bahu, Atmane);
-test_tin!(assert_has_thaas_k, Karmani, P::Madhyama, Eka, Atmane);
-test_tin!(assert_has_aathaam_k, Karmani, P::Madhyama, Dvi, Atmane);
-test_tin!(assert_has_dhvam_k, Karmani, P::Madhyama, Bahu, Atmane);
-test_tin!(assert_has_iw_k, Karmani, P::Uttama, Eka, Atmane);
-test_tin!(assert_has_vahi_k, Karmani, P::Uttama, Dvi, Atmane);
-test_tin!(assert_has_mahin_k, Karmani, P::Uttama, Bahu, Atmane);
+test_tin!(assert_has_ta_k, Karmani, P::Prathama, Eka, Atmanepada);
+test_tin!(assert_has_aataam_k, Karmani, P::Prathama, Dvi, Atmanepada);
+test_tin!(assert_has_jha_k, Karmani, P::Prathama, Bahu, Atmanepada);
+test_tin!(assert_has_thaas_k, Karmani, P::Madhyama, Eka, Atmanepada);
+test_tin!(assert_has_aathaam_k, Karmani, P::Madhyama, Dvi, Atmanepada);
+test_tin!(assert_has_dhvam_k, Karmani, P::Madhyama, Bahu, Atmanepada);
+test_tin!(assert_has_iw_k, Karmani, P::Uttama, Eka, Atmanepada);
+test_tin!(assert_has_vahi_k, Karmani, P::Uttama, Dvi, Atmanepada);
+test_tin!(assert_has_mahin_k, Karmani, P::Uttama, Bahu, Atmanepada);
 
 macro_rules! test_la {
     ($fn_name:ident, $la:expr) => {
