@@ -4,6 +4,20 @@ releases. That is, versions 0.x.a and 0.x.b will be able to use the same data.
 .. _`Semantic Versioning`: https://semver.org/
 
 
+0.3.1
+-----
+
+Released 2025-01-12.
+
+- Fix a `PanicException` when making many call to `transliterate`.
+- Fix a `PanicException` when using the `YiWa` pratyaya.
+- Add `Kosha.dhatus` and `Kosha.pratipadikas`.
+- Update all `vidyut.prakriya` enums to use SLP1 strings for `as_str`.
+- Update Python enums to use SLP1 strings for `__str__`.
+- Add stronger compatibility with Python enums, including `__new__` and `value`.
+- Minor bug fixes to `vidyut.prakriya` (`vAnta`, etc.)
+
+
 0.3.0
 -----
 

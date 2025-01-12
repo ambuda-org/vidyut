@@ -10,6 +10,9 @@ DhatupathaEntry = __mod.DhatupathaEntry
 Sutra = __mod.Sutra
 Source = __mod.Source
 
+# Deprecated data type
+Entry = __mod.DhatupathaEntry
+
 # Input types
 Dhatu = __mod.Dhatu
 DhatuPada = __mod.DhatuPada

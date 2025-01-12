@@ -4,13 +4,13 @@ from pathlib import Path
 
 from vidyut.prakriya import (
     Data,
-    Entry,
+    DhatupathaEntry,
     Sutra,
     Dhatu,
     Gana,
     Source,
-    Dhatu,
     Vyakarana,
+    Pada,
     Prayoga,
     Purusha,
     Vacana,
@@ -31,7 +31,7 @@ def all_sutras(data):
 def test_dhatupatha(data):
     entries = data.load_dhatu_entries()
     assert len(entries) == 2229
-    assert entries[0] == Entry(
+    assert entries[0] == DhatupathaEntry(
         code="01.0001", dhatu=Dhatu.mula("BU", Gana.Bhvadi), artha="sattAyAm"
     )
 
@@ -79,12 +79,14 @@ def test_can_map_from_history_to_sutras(all_sutras):
     sutra_map = {(s.source, s.code): s for s in all_sutras}
 
     v = Vyakarana()
-    prakriyas = v.derive_tinantas(
-        dhatu=Dhatu.mula("BU", Gana.Bhvadi),
-        prayoga=Prayoga.Kartari,
-        purusha=Purusha.Prathama,
-        vacana=Vacana.Eka,
-        lakara=Lakara.Lat,
+    prakriyas = v.derive(
+        Pada.Tinanta(
+            dhatu=Dhatu.mula("BU", Gana.Bhvadi),
+            prayoga=Prayoga.Kartari,
+            purusha=Purusha.Prathama,
+            vacana=Vacana.Eka,
+            lakara=Lakara.Lat,
+        )
     )
     assert prakriyas
     for p in prakriyas:

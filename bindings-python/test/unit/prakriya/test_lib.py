@@ -131,7 +131,7 @@ def test_derive_tinanta_with_dhatu_pada():
             purusha=Purusha.Prathama,
             vacana=Vacana.Eka,
             lakara=Lakara.Lat,
-            dhatu_pada=DhatuPada.Parasmaipada
+            dhatu_pada=DhatuPada.Parasmaipada,
         )
     )
     assert [x.text for x in prakriyas] == ["karoti"]
@@ -143,7 +143,7 @@ def test_derive_tinanta_with_dhatu_pada():
             purusha=Purusha.Prathama,
             vacana=Vacana.Eka,
             lakara=Lakara.Lat,
-            dhatu_pada=DhatuPada.Atmanepada
+            dhatu_pada=DhatuPada.Atmanepada,
         )
     )
     assert [x.text for x in prakriyas] == ["kurute"]
@@ -198,8 +198,6 @@ def test_derive_sanadyanta_tinantas(code, sanadi, expected):
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
-
-
 
 
 def test_derive_tinantas_without_at_agama():

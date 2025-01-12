@@ -27,10 +27,10 @@ Quality:
 - `make integration_tests` passes
 - `make lint-check` passes
 - `make docs` passes
-- `make doctest` passes
+- `make test_docs` passes
 
 Finalize:
 
 - Update release date in CHANGES.rst
 - Tag commit with new VERSION.
-- Run `maturin publish`.
+- Check that GitHub CI succeeds with new version.
