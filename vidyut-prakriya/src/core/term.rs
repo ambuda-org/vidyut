@@ -829,15 +829,10 @@ impl Term {
         }
     }
 
-    pub fn set_adi_char(&mut self, c: char) {
-        debug_assert!((c as u8) as char == c);
-        if !self.text.is_empty() {
-            // SAFETY:
-            // - self.text is not empty.
-            // - self.text is an ASCII string.
-            // - `c` is an ASCII char.
-            unsafe { self.text.as_bytes_mut()[0] = c as u8 };
-        }
+    pub fn set_adi_char(&mut self, sub: char) {
+        let mut buf: [u8; 4] = [0; 4];
+        let sub_str: &str = sub.encode_utf8(&mut buf);
+        self.text.replace_range(0..1, sub_str);
     }
 
     pub fn set_antya_char(&mut self, c: char) {

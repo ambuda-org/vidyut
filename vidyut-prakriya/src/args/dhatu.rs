@@ -1,6 +1,8 @@
+use crate::args::Anubandha;
 use crate::args::Pratipadika;
 use crate::args::Slp1String;
 use crate::core::errors::{Error, Result};
+use crate::it_samjna;
 use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -167,6 +169,15 @@ impl Sanadi {
     /// Returns the *aupadeśika* form of this *pratyaya*.
     pub(crate) fn aupadeshika(&self) -> &'static str {
         self.as_str()
+    }
+
+    /// Returns the anubandhas used by this pratyaya.
+    pub fn anubandhas(&self) -> Vec<Anubandha> {
+        if *self == Self::yaNluk {
+            it_samjna::anubandhas_for_term((Self::yaN).into())
+        } else {
+            it_samjna::anubandhas_for_term((*self).into())
+        }
     }
 }
 
@@ -633,5 +644,27 @@ impl DhatuBuilder {
             sanadi: self.sanadi,
             prefixes: self.prefixes,
         }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanadi_anubandhas() {
+        // Tests that nothing panics.
+        for sanadi in Sanadi::iter() {
+            let _anubandhas = sanadi.anubandhas();
+        }
+
+        // A few examples.
+        use Anubandha as A;
+        assert_eq!(Sanadi::Ric.anubandhas(), vec![A::Rit, A::cit]);
+        assert_eq!(Sanadi::san.anubandhas(), vec![A::nit]);
+
+        // Tricky cases.
+        assert_eq!(Sanadi::yaNluk.anubandhas(), vec![A::Nit]);
+        assert_eq!(Sanadi::kAmyac.anubandhas(), vec![A::cit]);
     }
 }

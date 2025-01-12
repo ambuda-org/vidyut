@@ -108,6 +108,8 @@ pub enum PyKrt {
     ika,
     /// -ikavaka
     ikavaka,
+    /// -i
+    iY,
     /// -itra
     itra,
     /// -in. The trailing `_` is to avoid colliding with Rust's `in` keyword.
@@ -321,13 +323,14 @@ py_enum!(
     Krt,
     [
         a, aN, ac, aR, aDyE, aDyEn, atfn, aTuc, ani, anIyar, ap, ase, asen, Aluc, Aru, ika,
-        ikavaka, itra, in_, ini, izRuc, u, ukaY, Uka, ka, kaY, kaDyE, kaDyEn, kamul, kasun, kap,
-        kase, kasen, kAnac, ki, kin, kurac, kelimar, kta, ktavatu, ktic, ktin, ktri, ktvA, knu,
-        kmarac, kyap, kru, krukan, klukan, kvanip, kvarap, kvasu, ksnu, kvin, kvip, Kac, KaS, Kal,
-        KizRuc, KukaY, Kyun, Ga, GaY, GinuR, Gurac, Nvanip, cAnaS, Yyuw, wa, wak, qa, qara, qu, Ra,
-        Ramul, Rini, Ryat, Ryuw, Rvi, Rvuc, Rvul, taveN, taven, tavE, tavya, tavyat, tumun, tfc,
-        tfn, tosun, Takan, naN, najiN, nan, ni, manin, yat, yuc, ra, ru, lyu, lyuw, vanip, varac,
-        vic, viw, vuY, vun, zAkan, zwran, zvun, Sa, Satf, SaDyE, SaDyEn, SAnac, SAnan, se, sen
+        ikavaka, iY, itra, in_, ini, izRuc, u, ukaY, Uka, ka, kaY, kaDyE, kaDyEn, kamul, kasun,
+        kap, kase, kasen, kAnac, ki, kin, kurac, kelimar, kta, ktavatu, ktic, ktin, ktri, ktvA,
+        knu, kmarac, kyap, kru, krukan, klukan, kvanip, kvarap, kvasu, ksnu, kvin, kvip, Kac, KaS,
+        Kal, KizRuc, KukaY, Kyun, Ga, GaY, GinuR, Gurac, Nvanip, cAnaS, Yyuw, wa, wak, qa, qara,
+        qu, Ra, Ramul, Rini, Ryat, Ryuw, Rvi, Rvuc, Rvul, taveN, taven, tavE, tavya, tavyat, tumun,
+        tfc, tfn, tosun, Takan, naN, najiN, nan, ni, manin, yat, yuc, ra, ru, lyu, lyuw, vanip,
+        varac, vic, viw, vuY, vun, zAkan, zwran, zvun, Sa, Satf, SaDyE, SaDyEn, SAnac, SAnan, se,
+        sen
     ]
 );
 

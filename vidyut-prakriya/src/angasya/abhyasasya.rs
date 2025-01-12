@@ -274,7 +274,7 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
         if dhatu.has_u("ku\\N") && dhatu.has_gana(Gana::Bhvadi) && n.is(S::yaN) {
             p.step("7.4.63");
         } else {
-            p.run_at("7.4.62", i, op::adi_char(&val));
+            p.run_at("7.4.62", i, |t| t.set_adi_char(val));
         }
     }
 

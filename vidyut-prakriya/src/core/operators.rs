@@ -37,11 +37,6 @@ pub fn adi(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_adi(sub)
 }
 
-/// Replaces the first sound in the given term.
-pub fn adi_char(sub: &char) -> impl Fn(&mut Term) + '_ {
-    |t| t.set_adi_char(*sub)
-}
-
 /// Replaces the last sound in the given term.
 pub fn antya(sub: &str) -> impl Fn(&mut Term) + '_ {
     |t| t.set_antya(sub)

@@ -1,5 +1,6 @@
-use crate::args::Pratipadika;
+use crate::args::{Anubandha, Pratipadika};
 use crate::core::errors::*;
+use crate::it_samjna;
 use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -551,6 +552,11 @@ impl Taddhita {
     pub fn aupadeshika(&self) -> &'static str {
         self.as_str()
     }
+
+    /// Returns the anubandhas used by this pratyaya.
+    pub fn anubandhas(&self) -> Vec<Anubandha> {
+        it_samjna::anubandhas_for_term((*self).into())
+    }
 }
 
 /// Models the meaning of a *taddhita pratyaya*.
@@ -972,5 +978,18 @@ mod tests {
         assert!(TasyaApatyam.is_type_of(TasyaApatyam));
         // Parent relationship --> false
         assert!(!TasyaApatyam.is_type_of(Gotra));
+    }
+
+    #[test]
+    fn anubandhas() {
+        // Tests that nothing panics.
+        for taddhita in Taddhita::iter() {
+            let _anubandhas = taddhita.anubandhas();
+        }
+
+        // A few examples.
+        use Anubandha as A;
+        assert_eq!(Taddhita::cPaY.anubandhas(), vec![A::cit, A::Yit]);
+        assert_eq!(Taddhita::jAtIyar.anubandhas(), vec![A::rit]);
     }
 }

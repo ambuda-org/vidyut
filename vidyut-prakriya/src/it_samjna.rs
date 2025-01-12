@@ -4,10 +4,10 @@
 //!
 //! The most "core" prakaraṇa is the it-saṁjñā-prakaraṇa, which identifies remove different `it`
 //! sounds from an upadeśa. Most derivations use this prakaraṇa at least once.
-use crate::args::Gana;
 use crate::args::Sanadi as S;
 use crate::args::Taddhita as D;
 use crate::args::Unadi as U;
+use crate::args::{Anubandha, Gana};
 use crate::core::errors::*;
 use crate::core::Prakriya;
 use crate::core::Rule::Varttika;
@@ -31,9 +31,9 @@ use crate::sounds::{s, Set, AC, HAL};
 //
 // Update 2024-11-27 -- the difference is negligble if I bench `const` before `lazy_static`.
 const TUSMA: Set = s(&["tu~", "s", "m"]);
-const CUTU: Set = s(&["cu~", "wu~"]);
+const CU_TU: Set = s(&["cu~", "wu~"]);
 const CUTU_EXCEPTION: Set = Set::from("CJWQ");
-const LASHAKU: Set = s(&["l", "S", "ku~"]);
+const LA_SHA_KU: Set = s(&["l", "S", "ku~"]);
 
 fn get_adi(s: &str) -> Option<char> {
     s.as_bytes().first().map(|u| *u as char)
@@ -245,11 +245,11 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
                 p.add_tag_at("1.3.6", i_term, T::parse_it(adi)?);
                 changed = true;
                 i_start += 1;
-            } else if CUTU.contains(adi) && !is_exempt_from_cutu(t) {
+            } else if CU_TU.contains(adi) && !is_exempt_from_cutu(t) {
                 p.add_tag_at("1.3.7", i_term, T::parse_it(adi)?);
                 changed = true;
                 i_start += 1;
-            } else if !t.is_taddhita() && t.has_adi(LASHAKU) && !is_exempt_from_lakshaku(t) {
+            } else if !t.is_taddhita() && t.has_adi(LA_SHA_KU) && !is_exempt_from_lakshaku(t) {
                 p.add_tag_at("1.3.8", i_term, T::parse_it(adi)?);
                 changed = true;
                 i_start += 1;
@@ -298,6 +298,49 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Helper function for public APIs that return anubandhas set on a dhatu, krt, etc.
+pub(crate) fn anubandhas_for_term(term: Term) -> Vec<Anubandha> {
+    let mut ret = Vec::new();
+
+    let text = match get_aupadeshika(&term) {
+        Ok(x) => x,
+        _ => return ret,
+    };
+
+    let adi = text.chars().next().expect("present");
+    let antya = text.chars().last().expect("present");
+
+    if term.is_pratyaya() {
+        if adi == 'z' {
+            // 1.3.6
+            ret.push(Anubandha::zit);
+        } else if CU_TU.contains(adi) && !is_exempt_from_cutu(&term) {
+            // 1.3.7
+            ret.push(adi.try_into().expect("ok"));
+        } else if !term.is_taddhita() && LA_SHA_KU.contains(adi) && !is_exempt_from_lakshaku(&term)
+        {
+            // 1.3.8
+            ret.push(adi.try_into().expect("ok"));
+        }
+    }
+
+    // 1.3.2
+    for (i, c) in text.char_indices() {
+        if c == '~' {
+            assert!(i > 0);
+            let ac = text.as_bytes()[i - 1] as char;
+            ret.push(ac.try_into().expect("ok"));
+        }
+    }
+
+    // 1.3.3
+    if HAL.contains(antya) {
+        ret.push(antya.try_into().expect("ok"));
+    }
+
+    ret
 }
 
 #[cfg(test)]

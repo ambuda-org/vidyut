@@ -1,9 +1,8 @@
 use crate::args::dhatu::Dhatu;
 use crate::args::unadi::Unadi;
-use crate::args::Lakara;
-use crate::args::Prayoga;
-use crate::args::Subanta;
+use crate::args::{Anubandha, Lakara, Prayoga, Subanta};
 use crate::core::errors::*;
+use crate::it_samjna;
 use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -54,6 +53,8 @@ pub enum BaseKrt {
     ika,
     /// -ikavaka
     ikavaka,
+    /// -i
+    iY,
     /// -itra
     itra,
     /// -in. The trailing `_` is to avoid colliding with Rust's `in` keyword.
@@ -280,6 +281,7 @@ sanskrit_enum!(BaseKrt, {
     Aru => "Aru",
     ika => "ika",
     ikavaka => "ikavaka",
+    iY => "iY",
     itra => "itra",
     in_ => "in",
     ini => "ini~",
@@ -440,6 +442,12 @@ impl BaseKrt {
                 | SaDyEn // SaDyE
         )
     }
+
+    /// Returns the anubandhas used by this pratyaya.
+    pub fn anubandhas(&self) -> Vec<Anubandha> {
+        let term = Krt::Base(*self).to_term();
+        it_samjna::anubandhas_for_term(term)
+    }
 }
 
 /// Models a *kṛt pratyaya*.
@@ -465,7 +473,7 @@ impl From<Unadi> for Krt {
 }
 
 impl Krt {
-    /// Returns whether the krt suffix is an *ārdhadhātuka* suffix.
+    /// Returns whether the krt pratyaya is called *ārdhadhātuka*.
     ///
     /// We must track this explicitly so that we can "look ahead" and potentially add `-Aya` or
     /// other *pratyaya*s for certain *dhātu*s. For details, see the implementation of rules 3.1.28
@@ -709,5 +717,26 @@ impl KrdantaBuilder {
             artha: self.artha,
             require: self.require.clone(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn anubandhas() {
+        // Test that nothing panics.
+        for krt in BaseKrt::iter() {
+            let _anubandhas = krt.anubandhas();
+        }
+
+        // A few examples.
+        use Anubandha as A;
+        assert_eq!(BaseKrt::GaY.anubandhas(), vec![A::Git, A::Yit]);
+        assert_eq!(BaseKrt::kasun.anubandhas(), vec![A::kit, A::udit, A::nit]);
+
+        // TODO: include udit?
+        assert_eq!(BaseKrt::Rvul.anubandhas(), vec![A::Rit, A::udit, A::lit]);
     }
 }

@@ -341,6 +341,65 @@ This section contains various recipes that show how to use `vidyut.prakriya`
 for different tasks.
 
 
+Generate a single prakriya with its sutras
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    from vidyut.prakriya import *
+
+    data = Data("/path/to/prakriya/data")
+    code_to_sutra = {(s.source, s.code: s.text) for s in data.load_sutras()}
+
+    v = Vyakarana()
+    prakriyas = v.derive(Pada.Tinanta(
+        dhatu=Dhatu.mula(aupadeshika="BU", gana=Gana.Bhvadi),
+        prayoga=Prayoga.Kartari,
+        lakara=Lakara.Lat,
+        purusha=Purusha.Prathama,
+        vacana=Vacana.Eka,
+    ))
+
+    for prakriya in prakriyas:
+        print(prakriya.text)
+        print('===================')
+        for step in prakriya.history:
+            result = ' + '.join(step.result)
+            key = (step.source, step.code)
+
+            # WARNING: use `get` to avoid a KeyError. While 99.9% of sutras are defined in
+            # `code_to_sutras`, there might still be some sutras we have missed.
+            sutra = code_to_sutra.get(key, "(missing)")
+            print("{:<10}: {:<15} {}".format(step.code, result, sutra))
+
+Output:
+
+.. code-block:: text
+
+    Bavati
+    ===================
+    1.3.1     : BU              BUvAdayo DAtavaH
+    3.2.123   : BU + la~w       vartamAne law
+    1.3.2     : BU + la~w       upadeSe'janunAsika it
+    1.3.3     : BU + la~w       halantyam
+    1.3.9     : BU + l          tasya lopaH
+    1.3.78    : BU + l          SezAt kartari parasmEpadam
+    3.4.78    : BU + tip        tiptasJisipTasTamibvasmas tAtAMJaTAsATAMDvamiqvahimahiN
+    1.3.3     : BU + tip        halantyam
+    1.3.9     : BU + ti         tasya lopaH
+    3.4.113   : BU + ti         tiNSitsArvaDAtukam
+    3.1.68    : BU + Sap + ti   kartari Sap
+    1.3.3     : BU + Sap + ti   halantyam
+    1.3.8     : BU + Sap + ti   laSakvatadDite
+    1.3.9     : BU + a + ti     tasya lopaH
+    3.4.113   : BU + a + ti     tiNSitsArvaDAtukam
+    1.4.13    : BU + a + ti     yasmAt pratyayaviDistadAdi pratyaye'Ngam
+    7.3.84    : Bo + a + ti     sArvaDAtukArDaDAtukayoH
+    1.4.14    : Bo + a + ti     suptiNantaM padam
+    6.1.78    : Bav + a + ti    eco'yavAyAvaH
+    8.4.68    : Bav + a + ti    a a
+
+
 Generate all tinantas for some dhatu and prayoga
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -369,8 +428,8 @@ Generate all tinantas for some dhatu and prayoga
    :options: +IGNORE_RESULT
 
 
-Generate all tinantas for some prayoga
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Generate tinantas from the Dhatupatha
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -381,20 +440,20 @@ Generate all tinantas for some prayoga
 
     v = Vyakarana(log_steps=False)
 
+    prayoga = Prayoga.Kartari
     for dhatu in dhatus:
-        for prayoga in Prayoga.choices():
-            for lakara in Lakara.choices():
-                for purusha in Purusha.choices():
-                    for vacana in Vacana.choices():
-                        prakriyas = v.derive(Pada.Tinanta(
-                            dhatu=dhatu,
-                            prayoga=prayoga,
-                            lakara=lakara,
-                            purusha=purusha,
-                            vacana=vacana,
-                        ))
-                        for p in prakriyas:
-                            print(p.text)
+        for lakara in Lakara.choices():
+            for purusha in Purusha.choices():
+                for vacana in Vacana.choices():
+                    prakriyas = v.derive(Pada.Tinanta(
+                        dhatu=dhatu,
+                        prayoga=prayoga,
+                        lakara=lakara,
+                        purusha=purusha,
+                        vacana=vacana,
+                    ))
+                    for p in prakriyas:
+                        print(p.text)
 
 
 Generate all subantas for some pratipadika

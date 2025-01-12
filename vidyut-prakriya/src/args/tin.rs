@@ -130,7 +130,7 @@ sanskrit_enum!(Lakara, {
     Lat => "la~w",
     Lit => "li~w",
     Lut => "lu~w",
-    Lrt => "lf~t",
+    Lrt => "lf~w",
     Let => "le~w",
     Lot => "lo~w",
     Lan => "la~N",

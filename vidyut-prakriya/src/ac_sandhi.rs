@@ -235,7 +235,7 @@ fn try_sup_sandhi_after_angasya_for_term(p: &mut Prakriya, i_sup: usize) -> Opti
             p.step("6.1.105");
         } else if sup.has_adi(AC) {
             let sub = al::to_dirgha(anga.antya()?)?;
-            p.run_at("6.1.102", i_sup, op::adi_char(&sub));
+            p.run_at("6.1.102", i_sup, |t| t.set_adi_char(sub));
 
             let sup = p.get(i_sup)?;
             if p.has_tag(PT::Pum) && sup.is(Sup::Sas) {
