@@ -161,23 +161,35 @@ pub enum Sanadi {
 
 impl Sanadi {
     /// Returns whether this *pratyaya* can be added only after subantas.
-    pub fn is_namadhatu(&self) -> bool {
+    pub fn is_namadhatu(self) -> bool {
         use Sanadi::*;
         matches!(self, kAmyac | kyaN | kyac)
     }
 
     /// Returns the *aupadeśika* form of this *pratyaya*.
-    pub(crate) fn aupadeshika(&self) -> &'static str {
+    pub(crate) fn aupadeshika(self) -> &'static str {
         self.as_str()
     }
 
     /// Returns the anubandhas used by this pratyaya.
-    pub fn anubandhas(&self) -> Vec<Anubandha> {
-        if *self == Self::yaNluk {
+    pub fn anubandhas(self) -> Vec<Anubandha> {
+        if self == Self::yaNluk {
             it_samjna::anubandhas_for_term((Self::yaN).into())
         } else {
-            it_samjna::anubandhas_for_term((*self).into())
+            it_samjna::anubandhas_for_term(self.into())
         }
+    }
+
+    /// Returns the *dr̥śya* form of this *pratyaya*.
+    pub fn drshya(self) -> &'static str {
+        let term = if self == Self::yaNluk {
+            Sanadi::yaN.into()
+        } else {
+            self.into()
+        };
+        let (start, end) = it_samjna::text_without_anubandhas(term);
+        let slice = &self.as_str()[start..end];
+        slice
     }
 }
 
@@ -650,6 +662,19 @@ impl DhatuBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sanadi_drshya() {
+        // Test that nothing panics.
+        for sanadi in Sanadi::iter() {
+            println!("{}", sanadi.drshya());
+        }
+
+        assert_eq!(Sanadi::san.drshya(), "sa");
+        assert_eq!(Sanadi::yaN.drshya(), "ya");
+        assert_eq!(Sanadi::yaNluk.drshya(), "ya");
+        assert_eq!(Sanadi::kAmyac.drshya(), "kAmya");
+    }
 
     #[test]
     fn sanadi_anubandhas() {

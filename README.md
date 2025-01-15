@@ -32,12 +32,12 @@ Installation
 ------------
 
 Vidyut is implemented in [Rust][rust], which provides low-level control with
-high-level ergonomics. We also provide first-class support for Python bindings
-through the [vidyut][vidyut-py] Python package. This section describes how to
-use Vidyut either through Rust or through Python.
+high-level ergonomics. For your convenience, we also provide first-class support
+for Python bindings through the [vidyut][vidyut-py] Python package. This section
+describes how to use Vidyut either through Rust or through Python.
 
-[pypi]: https://vidyut.readthedocs.io/en/latest/
 [rust]: https://www.rust-lang.org/
+[vidyut-py]: https://vidyut.readthedocs.io/en/latest/
 
 ### Through Rust
 
@@ -84,7 +84,7 @@ Python project.
 Once your setup is ready, you can install the `vidyut` package:
 
 ```shell
-# With Pip
+# With pip
 $ pip install vidyut
 
 # With uv
@@ -107,6 +107,8 @@ We recommend using our pre-built linguistic data, which is available as a ZIP fi
 [zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
 
 For more information, see our [Python documentation][rtd].
+
+[rtd]: https://vidyut.readthedocs.io/en/latest/
 
 
 Building from source
@@ -137,6 +139,7 @@ be much faster.
 We recommend using our pre-built linguistic data, which is available as a ZIP file
 [here][zip]. Or if you prefer, you can build this data for yourself:
 
+[nextest]: https://nexte.st/
 [zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
 
 ```shell
@@ -245,9 +248,21 @@ For details, see the [vidyut-sandhi README][vidyut-sandhi].
 Documentation
 -------------
 
-To view documentation for all crates (including private modules and structs),
-run `make docs`. This command will generate Rust's standard documentation and
-open it in your default web browser.
+Our Rust documentation is available [on docs.rs][docs-rs], and our Python
+documentation is available on [readthedocs.org][vidyut-rtd]. You can also build
+our documentation from scratch:
+
+- (Rust) To view documentation for all crates (including private modules and
+  structs), run `make docs` from the repository root. This command will
+  generate Rust's standard documentation and open it in your default web
+  browser.
+
+- (Python) To view the latest build of our Python documentation, run `make docs`
+  from the `bindings-python` directory. This command will write our Python docs
+  to local HTML files, which you should then open manually.
+
+[docs-rs]: https://docs.rs/releases/search?query=vidyut
+[vidyut-rtd]: https://vidyut.readthedocs.io/en/latest/
 
 
 Contributing

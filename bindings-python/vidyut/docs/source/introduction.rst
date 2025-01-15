@@ -61,8 +61,8 @@ and display your output results in Kannada or some other scheme that your users 
 
 Although we haven't run a formal analysis, `vidyut.lipi` compares favorably with standard
 Python transliterators like Aksharamukha and indic_transliteration and even handles a few
-cases that these transliterations miss. But its main feature is that with a small bit of
-work, you can use the same high-quality transliteration engine almost anywhere on your
+cases that these transliterators miss. But its main feature is that with a small bit of
+work, you can use the same high-quality transliteration engine almost anywhere in your
 software stack. For example, `here`_ you can see `vidyut-lipi` running entirely in the
 browser via a WebAssembly build.
 

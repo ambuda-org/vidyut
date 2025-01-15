@@ -9,8 +9,8 @@ releases. That is, versions 0.x.a and 0.x.b will be able to use the same data.
 
 Released 2025-01-12.
 
-- Fix a `PanicException` when making many call to `transliterate`.
-- Fix a `PanicException` when using the `YiWa` pratyaya.
+- Fix a `PanicException` when making many calls to `transliterate`.
+- Fix a `PanicException` when using the ``YiWa`` pratyaya.
 - Add `Kosha.dhatus` and `Kosha.pratipadikas`.
 - Update all `vidyut.prakriya` enums to use SLP1 strings for `as_str`.
 - Update Python enums to use SLP1 strings for `__str__`.

@@ -53,7 +53,7 @@ impl PyDhatuEntry {
         self.dhatu.clone()
     }
 
-    /// Convert this entry to a `Dhatu`.
+    /// Convert this entry to a :class:`~vidyut.prakriya.Dhatu`.
     pub fn to_prakriya_args(&self) -> PyDhatu {
         self.dhatu.clone()
     }
@@ -140,7 +140,7 @@ impl PyPratipadikaEntry {
         }
     }
 
-    /// Convert this entry to a `Pratipadika`.
+    /// Convert this entry to a :class:`~vidyut.prakriya.Pratipadika`.
     pub fn to_prakriya_args(&self) -> PyPratipadika {
         use PyPratipadikaEntry as PE;
         match self {
@@ -269,7 +269,7 @@ pub enum PyPadaEntry {
 impl PyPadaEntry {
     /// The lemma used by this *pada*.
     ///
-    /// The lemma is either aa *dhātu* or a simple *prātipadika*.
+    /// The lemma is either a *dhātu* or a simple *prātipadika*.
     #[getter]
     pub fn lemma(&self) -> Option<String> {
         match self {
@@ -325,7 +325,7 @@ impl PyPadaEntry {
         }
     }
 
-    /// Convert this entry to a `Pada`.
+    /// Convert this entry to a :class:`~vidyut.prakriya.Pada`.
     pub fn to_prakriya_args(&self) -> PyResult<PyPada> {
         PyPada::try_from(self)
     }

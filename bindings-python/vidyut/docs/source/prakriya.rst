@@ -349,7 +349,7 @@ Generate a single prakriya with its sutras
     from vidyut.prakriya import *
 
     data = Data("/path/to/prakriya/data")
-    code_to_sutra = {(s.source, s.code: s.text) for s in data.load_sutras()}
+    code_to_sutra = {(s.source, s.code): s.text for s in data.load_sutras()}
 
     v = Vyakarana()
     prakriyas = v.derive(Pada.Tinanta(

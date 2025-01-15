@@ -4,10 +4,126 @@ Wrappers for vidyut-prakriya arguments.
 Pyo3 doesn't allow us to annotate existing enums, and using a wrapping struct has poor ergonomics
 for callers. So instead, redefine our enums of interest.
 */
-use crate::macro_utils::py_enum;
+use crate::macro_utils::{py_enum, py_pratyaya};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use vidyut_prakriya::args::{BaseKrt as Krt, *};
+
+/// One of the "indicatory" letters attached to an *aupadeśika*.
+#[pyclass(name = "Anubandha", module = "prakriya", eq, eq_int, ord)]
+#[derive(Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
+#[allow(non_camel_case_types)]
+pub enum PyAnubandha {
+    /// Placeholder *it* with no specific meaning.
+    adit,
+    /// (pratyaya) prevents it-agama for nisthA pratyayas per 7.2.16 but allows it optionally in
+    /// non-kartari usage per 7.2.17.
+    Adit,
+    /// (dhatu) indicates the mandatory use of num-Agama (vidi~ -> vind).
+    idit,
+    /// (pratyaya) prevents it-Agama for nisthA pratyayas per 7.2.14.
+    Idit,
+    /// (pratyaya) optionally allows it-agama for ktvA-pratyaya per 7.2.56.
+    udit,
+    /// (pratyaya) optionally allows it-agama per 7.2.44.
+    Udit,
+    /// (dhatu) prevents shortening of the dhatu vowel when followed by Ni + caN per 7.4.2.
+    fdit,
+    /// (dhatu) indicates the use of aN-pratyaya in luN-lakAra per 3.1.55. (gamx~ -> agamat)
+    xdit,
+    /// (dhatu) prevents vrddhi in luN-lakara when followed by it-Agama per 7.2.5
+    edit,
+    /// (dhatu) indicates replacement of the "t" of a nistha-pratyaya with "n" per 8.2.45 (lagta ->
+    /// lagna).
+    odit,
+    /// (krt) prevents guna and vrddhi. Causes samprasarana for vac-Adi roots (vac -> ukta) per
+    /// 6.1.15 and grah-Adi roots (grah -> gfhIta) per 6.1.16.
+    ///
+    /// (taddhita) causes vrddhi per 7.2.118. Indicates antodAtta per 6.1.165.
+    ///
+    /// (agama) indicates that the Agama should be added after the term, per 1.1.46.
+    kit,
+    /// (taddhita) replaced with "In" per 7.1.2.
+    Kit,
+    /// (pratyaya) causes a term's final cavarga sound to shift to kavarga per 7.3.52 (yuj ->
+    /// yoga).
+    Git,
+    /// (pratyaya) prevents guna and vrddhi. Causes samprasarana for grah-Adi roots (grah ->
+    /// gfhIta) per 6.1.15.
+    ///
+    /// (dhatu) marks the dhAtu as taking only Atmanepada endings per 1.3.12.
+    Nit,
+    /// (pratyaya) indicates that the last syllable of the stem is udAtta per 6.1.153.
+    cit,
+    /// (taddhita) replaced with "Iy" per 7.1.2.
+    Cit,
+    /// (pratyaya) used to give distinct names to certain pratyayas, such as `jas`, `jus`, ...
+    jit,
+    /// (pratyaya) first letter of the bahuvacana-prathama-parasmaipada tinanta suffix. It is
+    /// replaced with "ant" or similar options per 7.1.3 - 7.1.5 and with "jus" by 3.4.108 -
+    /// 3.4.112.
+    Jit,
+    /// (dhatu) marks the dhAtu as taking either parasamaipada or Atmanepada endings per 1.3.72.
+    ///
+    /// (pratyaya) causes vrddhi per 7.2.115.
+    Yit,
+    /// (pratyaya) in a lakAra-pratyaya, indicates various transformations such as 3.4.79 and
+    /// 3.4.80.
+    wit,
+    /// (taddhita) replaced by "ik".
+    Wit,
+    /// (adesha) indicates replacement of the "Ti" section of the previous term per 6.4.143.
+    qit,
+    /// (taddhita) replaced with "ey" per 7.1.2.
+    Qit,
+    /// (pratyaya) causes vrddhi per 7.2.115.
+    Rit,
+    /// (pratyaya) causes *svarita*.
+    tit,
+    /// (pratyaya)
+    nit,
+    /// (pratyaya) indicates anudatta accent per 3.1.4. For sarvadhatuka pratyayas, allows guna and
+    /// vrddhi; all other sarvadhatuka pratyayas are marked as `Nit` per 1.2.4 and are thus blocked
+    /// from causing guna and vrddhi changes per 1.1.5.
+    pit,
+    /// (taddhita) replaced with "Ayan" per 7.1.2.
+    Pit,
+    /// (adesha) indicates insertion after the term's last vowel per 1.1.47.
+    ///
+    /// (dhatu) indicates shortening of the dhatu's penultimate vowel when followed by a
+    /// `RI`-pratyaya per 6.4.92.
+    mit,
+    /// (pratyaya)
+    rit,
+    /// (pratyaya)
+    lit,
+    /// (adesha) indicates a total replacement per 1.1.55.
+    ///
+    /// (pratyaya) marks the pratyaya as sArvadhAtuka per 3.4.113.
+    Sit,
+    /// (pratyaya) uses NIz-pratyaya in strI-linga per 4.1.41.
+    zit,
+    /// (pratyaya) indicates that the previous term should be called `pada` per 1.4.16.
+    sit,
+    /// (dhatu) indicates the optional use of aN-pratyaya in luN-lakAra per 3.1.57.
+    irit,
+    /// (dhatu) indicates that kta-pratyaya denotes the present tense as opposed to the past tense.
+    YIt,
+    /// (dhatu) allows the krt-pratyaya "Tuc" per 3.1.90.
+    wvit,
+    /// (dhatu) allows the krt-pratyaya "ktri" per 3.1.89.
+    qvit,
+}
+
+py_enum!(
+    PyAnubandha,
+    Anubandha,
+    [
+        adit, Adit, idit, Idit, udit, Udit, fdit, xdit, edit, odit, kit, Kit, Git, Nit, cit, Cit,
+        jit, Jit, Yit, wit, Wit, qit, Qit, Rit, tit, nit, pit, Pit, mit, rit, lit, Sit, zit, sit,
+        irit, YIt, wvit, qvit
+    ]
+);
 
 #[pyclass(name = "Gana", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
@@ -271,6 +387,8 @@ pub enum PyKrt {
     /// -man
     manin,
     /// -ya
+    ya,
+    /// -ya
     yat,
     /// -ana
     yuc,
@@ -318,7 +436,7 @@ pub enum PyKrt {
     sen,
 }
 
-py_enum!(
+py_pratyaya!(
     PyKrt,
     Krt,
     [
@@ -328,7 +446,7 @@ py_enum!(
         knu, kmarac, kyap, kru, krukan, klukan, kvanip, kvarap, kvasu, ksnu, kvin, kvip, Kac, KaS,
         Kal, KizRuc, KukaY, Kyun, Ga, GaY, GinuR, Gurac, Nvanip, cAnaS, Yyuw, wa, wak, qa, qara,
         qu, Ra, Ramul, Rini, Ryat, Ryuw, Rvi, Rvuc, Rvul, taveN, taven, tavE, tavya, tavyat, tumun,
-        tfc, tfn, tosun, Takan, naN, najiN, nan, ni, manin, yat, yuc, ra, ru, lyu, lyuw, vanip,
+        tfc, tfn, tosun, Takan, naN, najiN, nan, ni, manin, ya, yat, yuc, ra, ru, lyu, lyuw, vanip,
         varac, vic, viw, vuY, vun, zAkan, zwran, zvun, Sa, Satf, SaDyE, SaDyEn, SAnac, SAnan, se,
         sen
     ]
@@ -693,7 +811,7 @@ pub enum PyTaddhita {
     ha,
 }
 
-py_enum!(
+py_pratyaya!(
     PyTaddhita,
     Taddhita,
     [
@@ -831,7 +949,7 @@ pub enum PySanadi {
     kyac,
 }
 
-py_enum!(
+py_pratyaya!(
     PySanadi,
     Sanadi,
     [san, yaN, yaNluk, Ric, kAmyac, kyaN, kyac]

@@ -13,6 +13,8 @@ impl Ganasutra {
     }
 }
 
+// pub const SARVADI: GanaEntry = GanaEntry::new("sarvAdi", "1.1.27", 1, &[]);
+
 /// 1.1.27 sarvAdIni sarvanAmAni (1)
 pub const SARVA_ADI: Ganasutra = Ganasutra(&[
     "sarva", "viSva", "uBa", "uBaya", "qatara", "qatama", "anya", "anyatara", "itara", "tvat",

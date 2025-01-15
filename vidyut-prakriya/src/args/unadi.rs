@@ -960,7 +960,7 @@ sanskrit_enum!(Unadi, {
 
 impl Unadi {
     /// Returns the *aupadesika* form of this pratyaya.
-    pub fn aupadeshika(&self) -> &'static str {
+    pub fn aupadeshika(self) -> &'static str {
         self.as_str()
     }
 }

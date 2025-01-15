@@ -216,6 +216,8 @@ pub enum BaseKrt {
     /// -man
     manin,
     /// -ya
+    ya,
+    /// -ya
     yat,
     /// -ana
     yuc,
@@ -362,6 +364,7 @@ sanskrit_enum!(BaseKrt, {
     nan => "nan",
     ni => "ni",
     manin => "mani~n",
+    ya => "ya",
     yat => "yat",
     yuc => "yu~c",
     ra => "ra",
@@ -389,8 +392,27 @@ sanskrit_enum!(BaseKrt, {
 
 impl BaseKrt {
     /// Returns the *aupadeśika* form of this *pratyaya*.
-    pub fn aupadeshika(&self) -> &'static str {
+    pub fn aupadeshika(self) -> &'static str {
         self.as_str()
+    }
+
+    /// Returns the *dr̥śya* form of this *pratyaya*.
+    pub fn drshya(self) -> &'static str {
+        let term = Krt::Base(self).to_term();
+        let (start, end) = it_samjna::text_without_anubandhas(term);
+        let slice = &self.as_str()[start..end];
+
+        if slice == "yu~" {
+            "ana"
+        } else if slice == "vu~" {
+            "aka"
+        } else if slice == "wra" {
+            "tra"
+        } else if slice == "v" {
+            ""
+        } else {
+            slice
+        }
     }
 
     /// Returns whether this krt pratyaya creates an *avyaya*.
@@ -398,7 +420,7 @@ impl BaseKrt {
     /// This is a convenience function for programs that generate Sanskrit words. If a *krt
     /// pratyaya* creates *avyaya*s, then we don't need to try creating subantas for various
     /// combinations of vibhakti and vacana.
-    pub fn is_avyaya(&self) -> bool {
+    pub fn is_avyaya(self) -> bool {
         use BaseKrt::*;
         matches!(
             self,
@@ -429,7 +451,7 @@ impl BaseKrt {
     ///
     /// Specifically, two pratyayas are near duplicates if they always produce the same results,
     /// with the exception af accent.
-    pub fn is_duplicate(&self) -> bool {
+    pub fn is_duplicate(self) -> bool {
         use BaseKrt::*;
         matches!(
             self,
@@ -444,8 +466,8 @@ impl BaseKrt {
     }
 
     /// Returns the anubandhas used by this pratyaya.
-    pub fn anubandhas(&self) -> Vec<Anubandha> {
-        let term = Krt::Base(*self).to_term();
+    pub fn anubandhas(self) -> Vec<Anubandha> {
+        let term = Krt::Base(self).to_term();
         it_samjna::anubandhas_for_term(term)
     }
 }
@@ -478,7 +500,7 @@ impl Krt {
     /// We must track this explicitly so that we can "look ahead" and potentially add `-Aya` or
     /// other *pratyaya*s for certain *dhātu*s. For details, see the implementation of rules 3.1.28
     /// - 3.1.31.
-    pub fn is_ardhadhatuka(&self) -> bool {
+    pub fn is_ardhadhatuka(self) -> bool {
         use BaseKrt::*;
         match self {
             Krt::Base(k) => !matches!(k, Sa | Satf | SAnac | SAnan | cAnaS | KaS),
@@ -491,7 +513,7 @@ impl Krt {
     /// This is a convenience function for programs that generate Sanskrit words. If a *krt
     /// pratyaya* creates *avyaya*s, then we don't need to try creating subantas for various
     /// combinations of vibhakti and vacana.
-    pub fn is_avyaya(&self) -> bool {
+    pub fn is_avyaya(self) -> bool {
         match self {
             Krt::Base(b) => b.is_avyaya(),
             _ => false,
@@ -502,15 +524,15 @@ impl Krt {
     ///
     /// This mapping is not reversible. This is because some pratyayas are in both `Base` and
     /// `Unadi`.
-    pub fn as_str(&self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         self.aupadeshika()
     }
 
     /// Returns the *aupadesika* form of this pratyaya.
-    pub fn aupadeshika(&self) -> &'static str {
+    pub fn aupadeshika(self) -> &'static str {
         match self {
             Krt::Base(b) => b.aupadeshika(),
-            Krt::Unadi(u) => u.aupadeshika(),
+            Krt::Unadi(unadi) => unadi.aupadeshika(),
         }
     }
 }
@@ -723,6 +745,20 @@ impl KrdantaBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn drshya() {
+        // Test that nothing panics.
+        for krt in BaseKrt::iter() {
+            println!("{}", krt.drshya());
+        }
+
+        assert_eq!(BaseKrt::GaY.drshya(), "a");
+        assert_eq!(BaseKrt::kasun.drshya(), "as");
+        assert_eq!(BaseKrt::Rvul.drshya(), "aka");
+        assert_eq!(BaseKrt::lyuw.drshya(), "ana");
+        assert_eq!(BaseKrt::kvip.drshya(), "");
+    }
 
     #[test]
     fn anubandhas() {

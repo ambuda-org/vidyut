@@ -343,6 +343,51 @@ pub(crate) fn anubandhas_for_term(term: Term) -> Vec<Anubandha> {
     ret
 }
 
+/// Helper function for public APIs that return anubandhas set on a dhatu, krt, etc.
+pub(crate) fn text_without_anubandhas(term: Term) -> (usize, usize) {
+    let text = get_aupadeshika(&term).expect("ok");
+
+    let mut start = 0;
+    let mut end = text.len();
+    let adi = text.chars().next().expect("present");
+    let antya = text.chars().last().expect("present");
+
+    if term.is_pratyaya() {
+        if adi == 'z' {
+            // 1.3.6
+            start += 1;
+        } else if CU_TU.contains(adi) && !is_exempt_from_cutu(&term) {
+            // 1.3.7
+            start += 1;
+        } else if !term.is_taddhita() && LA_SHA_KU.contains(adi) && !is_exempt_from_lakshaku(&term)
+        {
+            // 1.3.8
+            start += 1;
+        }
+    }
+
+    // 1.3.3
+    if HAL.contains(antya) {
+        end -= 1;
+    }
+
+    // 1.3.2
+    let slice = &text[start..end];
+    if !matches!(slice, "yu~" | "vu~") {
+        for (i, c) in slice.char_indices() {
+            if c == '~' {
+                if i == 1 {
+                    start += 2;
+                } else {
+                    end -= 2;
+                }
+            }
+        }
+    }
+
+    (start, end)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

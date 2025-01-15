@@ -549,13 +549,41 @@ sanskrit_enum!(Taddhita, {
 
 impl Taddhita {
     /// Returns the *aupadeśika* form of this *pratyaya*.
-    pub fn aupadeshika(&self) -> &'static str {
+    pub fn aupadeshika(self) -> &'static str {
         self.as_str()
     }
 
+    /// Returns the *dr̥śya* form of this *pratyaya*.
+    pub fn drshya(self) -> &'static str {
+        use Taddhita::*;
+
+        match self {
+            // "āyanēyīnīyiyaḥ phaḍhakhacchaghāṁ pratyayādīnām"
+            Pak | PaY => "Ayana",
+            PiY => "Ayani",
+            Qak | Qa | QaY => "eya",
+            QakaY => "eyaka",
+            Qinuk => "eyin",
+            Qrak => "eyra",
+            Ka | KaY => "Ina",
+            Ca | CaR | Cas => "Iya",
+            Ga | Gac | Gan | Gas => "ina",
+            // ṭhasyēkaḥ
+            Wak | Wac | WaY | Wan | Wap | YiWa => "ika",
+            zwarac => "tara",
+            _ => {
+                let term = self.into();
+                let (start, end) = it_samjna::text_without_anubandhas(term);
+                let slice = &self.as_str()[start..end];
+
+                slice
+            }
+        }
+    }
+
     /// Returns the anubandhas used by this pratyaya.
-    pub fn anubandhas(&self) -> Vec<Anubandha> {
-        it_samjna::anubandhas_for_term((*self).into())
+    pub fn anubandhas(self) -> Vec<Anubandha> {
+        it_samjna::anubandhas_for_term((self).into())
     }
 }
 
@@ -978,6 +1006,25 @@ mod tests {
         assert!(TasyaApatyam.is_type_of(TasyaApatyam));
         // Parent relationship --> false
         assert!(!TasyaApatyam.is_type_of(Gotra));
+    }
+
+    #[test]
+    fn drshya() {
+        // Test that nothing panics.
+        for taddhita in Taddhita::iter() {
+            println!("{}", taddhita.drshya());
+        }
+
+        use Taddhita as T;
+        assert_eq!(T::tamap.drshya(), "tama");
+        assert_eq!(T::jAtIyar.drshya(), "jAtIya");
+
+        assert_eq!(T::Pak.drshya(), "Ayana");
+        assert_eq!(T::Qa.drshya(), "eya");
+        assert_eq!(T::Ka.drshya(), "Ina");
+        assert_eq!(T::CaR.drshya(), "Iya");
+        assert_eq!(T::Gac.drshya(), "ina");
+        assert_eq!(T::Wak.drshya(), "ika");
     }
 
     #[test]

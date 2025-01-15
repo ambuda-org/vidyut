@@ -1,5 +1,5 @@
-API
-===
+API reference
+=============
 
 This page defines an API reference for the `vidyut` package.
 
