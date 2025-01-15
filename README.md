@@ -36,7 +36,7 @@ high-level ergonomics. We also provide first-class support for Python bindings
 through the [vidyut][vidyut-py] Python package. This section describes how to
 use Vidyut either through Rust or through Python.
 
-[pypi]: https://vidyut.readthedocs.io/en/latest/
+[vidyut-py]: https://vidyut.readthedocs.io/en/latest/
 [rust]: https://www.rust-lang.org/
 
 ### Through Rust
@@ -107,6 +107,8 @@ We recommend using our pre-built linguistic data, which is available as a ZIP fi
 [zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
 
 For more information, see our [Python documentation][rtd].
+
+[rtd]: https://vidyut.readthedocs.io/
 
 
 Building from source
