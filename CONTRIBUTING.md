@@ -10,6 +10,7 @@ Here are some of the many ways you can help:
 - [Report bugs and request features](#report-bugs-and-request-features)
 - [Write documentation](#write-documentation)
 - [Write code](#write-code)
+- [Spread the word](#spread-the-word)
 
 And whether you contribute or not, we would love to have you join our community:
 
@@ -83,7 +84,7 @@ Vidyut is written by a small team, and we are eager for more contributors!
 
 ### Building
 
-First, make sure you have `uv` and `cargo installed:
+First, make sure you have `uv` and `cargo` installed:
 
 ```
 $ uv --version
@@ -140,7 +141,7 @@ are especially important:
 
 Vidyut is a new project, and almost everything needs improvement. We encourage
 you to work on whatever intererests you, but if you would like more direction,
-here are the areas we carea bout most:
+here are the areas we care about most:
 
 - *Fixing bugs and writing features* -- This is self-explanatory. Check our
   [issues tracker][issues] for bugs and feature requests.
@@ -157,7 +158,14 @@ here are the areas we carea bout most:
   parts of the code that have weak coverage.
 
 - *Clarifying code* -- Vidyut aims to support the next century of Sanskrit
-  software, and it can do so only if the code is clear and simple. Many of
+  software, and it can do so only if the code is clear and simple. Due to our
+  high development velocity, many core functions are not as clear as they could
+  be and would benefit from comments and light refactoring.
+
+- *Improve compile times* -- This is especially an issue for `vidyut-prakriya`,
+  which is our largest crate by far. We think there's plenty of low-hanging
+  fruit here to make the compilation much faster, but we haven't invested the
+  time to look into it further.
 
 
 ### Preparing your change
@@ -165,3 +173,13 @@ here are the areas we carea bout most:
 Once your change is ready, run `make lint` and `make test` then submit a PR.
 
 [issues]: https://github.com/ambuda-org/vidyut/issues
+
+
+Spread the word
+---------------
+
+Vidyut is still a new project, and much of the Sanskrit ecosystem does not know
+about it. If you know someone working on Sanskrit software, please let them
+know that Vidyut exists and might help with some of their problems. Our hope is
+that Vidyut will free programmers up to work on more interesting and ambitious
+problems.
