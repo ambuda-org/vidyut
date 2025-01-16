@@ -625,7 +625,7 @@ fn read_basic_avyayas(builder: &mut Builder, path: &Path) -> Result<Pratipadikas
 }
 
 fn create_sarvanamas(builder: &mut Builder) -> Entries {
-    let mut sarva_adi: Vec<&str> = vidyut_prakriya::ganapatha::SARVA_ADI
+    let mut sarva_adi: Vec<&str> = vidyut_prakriya::ganapatha::SARVADI
         .items()
         .iter()
         .filter(|x| !matches!(**x, "qatara" | "qatama" | "Batavu~"))
@@ -640,7 +640,7 @@ fn create_sarvanamas(builder: &mut Builder) -> Entries {
     let mut ret = Vec::new();
     let v = create_vyakarana();
     let lvv = sup_options();
-    for text in vidyut_prakriya::ganapatha::SARVA_ADI.items() {
+    for text in vidyut_prakriya::ganapatha::SARVADI.items() {
         let phit = Pratipadika::basic(Slp1String::from(text).expect("ascii"));
         let b = match phit {
             Pratipadika::Basic(ref b) => b,

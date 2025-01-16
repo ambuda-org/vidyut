@@ -14,6 +14,7 @@ pub struct Entry {
     artha: String,
 }
 
+/// A quick code -> `Gana` parser for numeric codes in dhatupatha.tsv
 fn numeric_to_gana(s: &str) -> Result<Gana> {
     let ret = match s {
         "1" => Gana::Bhvadi,

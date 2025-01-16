@@ -800,10 +800,10 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
 /// Runs asiddhavat rules that alter a Ri suffix.
 pub fn run_for_ni_at_index(p: &mut Prakriya, i_ni: usize) -> Option<()> {
+    p.debug("asiddhavat::run_for_ni_at_index");
     let _ = p.get_if(i_ni, |t| t.is_ni_pratyaya())?;
 
-    // Find the mula dhatu. Avoid checking for `pratyaya` so we keep nAmadhAtus.
-    let i_dhatu = p.find_prev_where(i_ni, |t| t.is_dhatu() && !t.is_empty())?;
+    let i_dhatu = p.find_prev_where(i_ni, |t| !t.is_empty() && !t.is_agama())?;
     let dhatu = p.get(i_dhatu)?;
     let n = p.pratyaya(i_ni + 1)?;
     let i_p = n.end();

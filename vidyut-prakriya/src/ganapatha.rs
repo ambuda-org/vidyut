@@ -102,7 +102,7 @@ impl GanapathaEntry {
 /// *sarvādi-gaṇa* (1), first used in the following *sūtra*:
 ///
 /// > 1.1.27 *sarvādīni sarvanāmāni*
-pub(crate) const SARVADI: GanapathaEntry = GanapathaEntry::basic(
+pub const SARVADI: GanapathaEntry = GanapathaEntry::basic(
     "sarvAdiH",
     1,
     "1.1.27",
@@ -1753,8 +1753,8 @@ pub(crate) const BHIDADI: GanapathaEntry = GanapathaEntry::basic(
         // <<BidA vidAraRe>>
         // <<CidA dveDIkaraRe>>
         "vidA", "kzipA", // <<guhA giryozaDyoH>>
-        "SradDA", "meDA", "goDA", // <<ArA SastryAm>>
-        "hArA", // <<kArA banDane>>
+        "SradDA", "meDA", "goDA",  // <<ArA SastryAm>>
+        "hArA",  // <<kArA banDane>>
         "kziyA", // <<tArA jyotizi>>
         // <<DArA prapAtane>>
         "reKA", "cUqA", "pIqA", "vapA", "vasA", "sfjA", // <<krapeH saMprasAraRaM ca>>

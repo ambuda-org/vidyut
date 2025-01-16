@@ -8,7 +8,7 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga, Taddhita};
+use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga, Sanadi, Taddhita};
 use vidyut_prakriya::Vyakarana;
 
 #[test]
@@ -320,4 +320,12 @@ fn anancanas() {
 #[test]
 fn prabhinnavish() {
     assert_has_sup_1p("praBinnaviz", Pum, &["praBinnavizaH"]);
+}
+
+// Fixes bug with "nizWAyAM seti" for nAma-dhATus
+#[test]
+fn spastitah() {
+    let spastaya = Dhatu::nama(phit("spazwa"), Some(Sanadi::Ric));
+    let spastita = krdanta(&[], &spastaya, Krt::kta);
+    assert_has_sup_1s(spastita, Pum, &["spazwitaH"]);
 }
