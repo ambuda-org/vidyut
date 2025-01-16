@@ -1,10 +1,9 @@
 extern crate test_utils;
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
+
 use test_utils::*;
 
-lazy_static! {
-    static ref S: Tester = Tester::with_svara_rules();
-}
+static S: LazyLock<Tester> = LazyLock::new(|| Tester::with_svara_rules());
 
 #[test]
 fn sutra_6_2_27() {

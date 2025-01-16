@@ -1,4 +1,5 @@
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
+
 use regex::Regex;
 
 /// Creates a normalized version of `text` that is easier to process.
@@ -8,10 +9,8 @@ use regex::Regex;
 /// 2. Delete all whitespace spans.
 /// 3. Separate all remaining spans with a single " ".
 pub fn normalize(text: &str) -> String {
-    lazy_static! {
-        static ref RE: Regex =
-            Regex::new(r"([a-zA-Z']+)|(\s+)|([^a-zA-Z']+)").expect("always defined");
-    }
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"([a-zA-Z']+)|(\s+)|([^a-zA-Z']+)").expect("always defined"));
 
     let mut ret = RE
         .find_iter(text)

@@ -34,9 +34,8 @@ We chose SLP1 over something like [WX][wx] merely because we have more familiari
 [slp1]: https://en.wikipedia.org/wiki/SLP1
 [wx]: https://en.wikipedia.org/wiki/WX_notation
 */
-use lazy_static::lazy_static;
 use rustc_hash::FxHashMap;
-use std::fmt;
+use std::{fmt, sync::LazyLock};
 
 type Sound = char;
 
@@ -49,9 +48,7 @@ pub const HAL: Set = s(&["hal"]);
 pub const YAN: Set = s(&["yaR"]);
 pub const VAL: Set = s(&["val"]);
 
-lazy_static! {
-    static ref SOUND_PROPS: FxHashMap<Sound, Uccarana> = create_sound_props();
-}
+static SOUND_PROPS: LazyLock<FxHashMap<Sound, Uccarana>> = LazyLock::new(create_sound_props);
 
 /// A set of Sanskrit sounds.
 ///

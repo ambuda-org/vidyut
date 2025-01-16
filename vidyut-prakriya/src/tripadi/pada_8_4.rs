@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use crate::args::Aupadeshika as Au;
 use crate::args::Gana;
 use crate::args::Lakara::*;
@@ -10,7 +12,6 @@ use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set, AC, HAL, JHAL};
-use lazy_static::lazy_static;
 
 const AT_KU_PU_M: Set = s(&["aw", "ku~", "pu~", "M"]);
 const AA: Set = s(&["a"]);
@@ -27,11 +28,9 @@ const YAY: Set = s(&["yay"]);
 const JHAY: Set = s(&["Jay"]);
 const AT: Set = s(&["aw"]);
 
-lazy_static! {
-    static ref JHAL_TO_CAR: Map = map("Jal", "car");
-    static ref JHAL_TO_JASH: Map = map("Jal", "jaS");
-    static ref JHAL_TO_JASH_CAR: Map = map("Jal", "jaS car");
-}
+static JHAL_TO_CAR: LazyLock<Map> = LazyLock::new(|| map("Jal", "car"));
+static JHAL_TO_JASH: LazyLock<Map> = LazyLock::new(|| map("Jal", "jaS"));
+static JHAL_TO_JASH_CAR: LazyLock<Map> = LazyLock::new(|| map("Jal", "jaS car"));
 
 /// Runs rules that change `n` to `R`.
 /// Example: krInAti -> krIRAti.

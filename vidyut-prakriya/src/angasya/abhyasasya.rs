@@ -6,6 +6,8 @@ abhyasasya
 Runs rules that modify the abhyāsa.
 */
 
+use std::sync::LazyLock;
+
 use crate::args::Agama as A;
 use crate::args::Agama;
 use crate::args::Aupadeshika;
@@ -23,7 +25,6 @@ use crate::dhatu_gana as gana;
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set, AC, HAL};
-use lazy_static::lazy_static;
 
 const AA: Set = s(&["a"]);
 const ANUNASIKA: Set = s(&["Yam"]);
@@ -33,9 +34,7 @@ const KHAY: Set = s(&["Kay"]);
 const F_HAL: Set = s(&["f hal"]);
 const PU_YAN_J: Set = s(&["pu~", "yaR", "j"]);
 
-lazy_static! {
-    static ref KUH_CU: Map = map("ku~ h", "cu~");
-}
+static KUH_CU: LazyLock<Map> = LazyLock::new(|| map("ku~ h", "cu~"));
 
 /// Simplifies the abhyasa per 7.4.60.
 fn try_haladi(text: &str) -> TermString {

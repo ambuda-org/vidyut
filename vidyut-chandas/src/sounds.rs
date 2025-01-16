@@ -1,10 +1,8 @@
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
-lazy_static! {
-    static ref HRASVA: Set = Set::from("aiufx");
-    static ref AC: Set = Set::from("aAiIuUfFxXeEoO");
-    static ref HAL: Set = Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL");
-}
+static HRASVA: LazyLock<Set> = LazyLock::new(|| Set::from("aiufx"));
+static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
+static HAL: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL"));
 
 type Sound = char;
 

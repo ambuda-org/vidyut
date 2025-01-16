@@ -70,15 +70,13 @@ use crate::krt::utils::KrtPrakriya;
 use crate::sounds::{s, Set, AC, HAL, IK};
 use crate::stem_gana::TYAD_ADI;
 use crate::Rule::Varttika;
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 const II: Set = s(&["i"]);
 const UU: Set = s(&["u"]);
 const PU: Set = s(&["pu~"]);
 
-lazy_static! {
-    static ref EMPTY_TERM: Term = Term::make_text("");
-}
+static EMPTY_TERM: LazyLock<Term> = LazyLock::new(|| Term::make_text(""));
 
 /// Tries to add various pratyayas that are just "a."
 fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {

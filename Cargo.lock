@@ -1789,7 +1789,6 @@ version = "0.1.0"
 dependencies = [
  "csv",
  "glob",
- "lazy_static",
  "multimap",
  "vidyut-chandas",
  "vidyut-cheda",
@@ -1805,7 +1804,6 @@ name = "vidyut-chandas"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
- "lazy_static",
  "serde",
  "serde-wasm-bindgen",
  "serde_derive",
@@ -1819,7 +1817,6 @@ dependencies = [
  "clap",
  "compact_str 0.8.1",
  "env_logger",
- "lazy_static",
  "log",
  "priority-queue",
  "regex",
@@ -1891,7 +1888,6 @@ dependencies = [
  "csv",
  "enumset",
  "flate2",
- "lazy_static",
  "rayon",
  "rmp-serde",
  "rustc-hash",
@@ -1924,7 +1920,6 @@ dependencies = [
  "clap",
  "compact_str 0.7.1",
  "csv",
- "lazy_static",
  "rustc-hash",
  "tempfile",
 ]

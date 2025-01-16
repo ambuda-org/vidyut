@@ -1,6 +1,6 @@
 //! Utility functions for checking Sanskrit sounds.
 
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 /// A set of Sanskrit sounds.
 ///
@@ -43,9 +43,8 @@ impl Default for Set {
 /// - other punctuation characters (|, ||, numbers)
 /// - characters or symbols from non-SLP1 encodings
 pub fn is_sanskrit(c: char) -> bool {
-    lazy_static! {
-        static ref CHARS: Set = Set::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'");
-    }
+    static CHARS: LazyLock<Set> =
+        LazyLock::new(|| Set::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'"));
     CHARS.contains(c)
 }
 
@@ -54,18 +53,15 @@ pub fn is_sanskrit(c: char) -> bool {
 /// `ac` is the Paninian name for the Sanskrit vowels.
 #[allow(dead_code)]
 pub fn is_ac(c: char) -> bool {
-    lazy_static! {
-        static ref AC: Set = Set::from("aAiIuUfFxXeEoO");
-    }
+    static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
     AC.contains(c)
 }
 
 /// Returns whether the given sound is voiced.
 #[allow(dead_code)]
 pub fn is_ghosha(c: char) -> bool {
-    lazy_static! {
-        static ref GHOSHA: Set = Set::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh");
-    }
+    static GHOSHA: LazyLock<Set> =
+        LazyLock::new(|| Set::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh"));
     GHOSHA.contains(c)
 }
 

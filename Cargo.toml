@@ -33,7 +33,6 @@ vidyut-prakriya = { path = "./vidyut-prakriya" }
 vidyut-sandhi = { path = "./vidyut-sandhi" }
 csv = "1.1.6"
 multimap = "0.8.3"
-lazy_static = "1.4.0"
 glob = "0.3.1"
 
 [workspace.dependencies]

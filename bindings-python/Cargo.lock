@@ -727,7 +727,6 @@ name = "vidyut-chandas"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
- "lazy_static",
  "serde",
  "serde-wasm-bindgen",
  "serde_derive",
@@ -811,7 +810,6 @@ dependencies = [
  "clap",
  "compact_str 0.7.1",
  "csv",
- "lazy_static",
  "rustc-hash",
 ]
 

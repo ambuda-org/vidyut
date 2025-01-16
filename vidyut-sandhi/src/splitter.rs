@@ -17,11 +17,11 @@ use crate::errors::Result;
 use crate::sounds;
 use crate::sounds::Set;
 use compact_str::CompactString;
-use lazy_static::lazy_static;
 use rustc_hash::FxHashMap;
 use std::cmp;
 use std::collections::hash_map::Keys;
 use std::path::Path;
+use std::sync::LazyLock;
 
 /// Describes the type of sandhi split that occurred.
 #[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
@@ -331,14 +331,14 @@ fn visarga_to_r(s: &str) -> CompactString {
 }
 
 /// Returns whether the first item in a sandhi split is OK according to some basic heuristics.
+#[allow(dead_code)]
 fn is_good_first(text: &str) -> bool {
-    lazy_static! {
-        static ref AC: Set = Set::from("aAiIuUfFxXeEoO");
-        static ref SPARSHA: Set = Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm");
-        static ref HAL: Set = Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvzSsh");
-        // Vowels, standard consonants, and "s" and "r"
-        static ref VALID_FINALS: Set = Set::from("aAiIuUfFxXeEoOHkNwRtpnmsr");
-    }
+    static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
+    static SPARSHA: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm"));
+    static HAL: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvzSsh"));
+    // Vowels, standard consonants, and "s" and "r"
+    static VALID_FINALS: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoOHkNwRtpnmsr"));
+
     let mut chars = text.chars().rev();
     if let (Some(y), Some(x)) = (chars.next(), chars.next()) {
         if (AC.contains(x) && AC.contains(y)) || (HAL.contains(x) && HAL.contains(y)) {
@@ -353,11 +353,10 @@ fn is_good_first(text: &str) -> bool {
 
 /// Returns whether the second item in a sandhi split is OK according to some basic heuristics.
 fn is_good_second(text: &str) -> bool {
-    lazy_static! {
-        static ref YAN: Set = Set::from("yrlv");
-        static ref AC: Set = Set::from("aAiIuUfFxXeEoO");
-        static ref SPARSHA: Set = Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm");
-    }
+    static YAN: LazyLock<Set> = LazyLock::new(|| Set::from("yrlv"));
+    static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
+    static SPARSHA: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm"));
+
     let mut chars = text.chars();
     if let (Some(x), Some(y)) = (chars.next(), chars.next()) {
         if AC.contains(x) && AC.contains(y) {

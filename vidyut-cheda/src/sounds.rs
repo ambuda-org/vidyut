@@ -1,6 +1,6 @@
 //! Utility functions for checking Sanskrit sounds.
 
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 /// A set of Sanskrit sounds.
 ///
@@ -42,10 +42,8 @@ impl Default for SoundSet {
 /// - other punctuation characters (|, ||, numbers)
 /// - characters or symbols from non-SLP1 encodings
 pub fn is_sanskrit(c: char) -> bool {
-    lazy_static! {
-        static ref CHARS: SoundSet =
-            SoundSet::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'");
-    }
+    static CHARS: LazyLock<SoundSet> =
+        LazyLock::new(|| SoundSet::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'"));
     CHARS.contains(c)
 }
 
@@ -53,9 +51,7 @@ pub fn is_sanskrit(c: char) -> bool {
 ///
 /// `ac` is the Paninian name for the Sanskrit vowels.
 pub fn is_ac(c: char) -> bool {
-    lazy_static! {
-        static ref AC: SoundSet = SoundSet::from("aAiIuUfFxXeEoO");
-    }
+    static AC: LazyLock<SoundSet> = LazyLock::new(|| SoundSet::from("aAiIuUfFxXeEoO"));
     AC.contains(c)
 }
 
@@ -64,18 +60,16 @@ pub fn is_ac(c: char) -> bool {
 /// `hal` is the Paninian name for the Sanskrit consonants.
 #[allow(unused)]
 pub fn is_hal(c: char) -> bool {
-    lazy_static! {
-        static ref HAL: SoundSet = SoundSet::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL");
-    }
+    static HAL: LazyLock<SoundSet> =
+        LazyLock::new(|| SoundSet::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL"));
     HAL.contains(c)
 }
 
 /// Returns whether the given sound is voiced.
 #[allow(unused)]
 pub fn is_ghosha(c: char) -> bool {
-    lazy_static! {
-        static ref GHOSHA: SoundSet = SoundSet::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh");
-    }
+    static GHOSHA: LazyLock<SoundSet> =
+        LazyLock::new(|| SoundSet::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh"));
     GHOSHA.contains(c)
 }
 
