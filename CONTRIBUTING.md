@@ -180,6 +180,6 @@ Spread the word
 
 Vidyut is still a new project, and much of the Sanskrit ecosystem does not know
 about it. If you know someone working on Sanskrit software, please let them
-know that Vidyut exists and might help with some of their problems. Our hope is
-that Vidyut will free programmers up to work on more interesting and ambitious
-problems.
+know that Vidyut exists and might help with some of their problems. Ultimately,
+our hope is that Vidyut will give programmers the freedom and tools to work on
+more interesting and ambitious projects.

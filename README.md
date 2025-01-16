@@ -4,6 +4,22 @@
 
 Vidyut provides reliable infrastructure for Sanskrit software.
 
+Specifically, Vidyut aims to provide performant and high-quality solutions for the
+common problems that Sanskrit programmers face. Some of these problems include:
+
+- *Transliteration*, or conversion of Sanskrit text from one script to another. (भू → bhū)
+
+- *Word generation*, or converting bases and suffixes into complete words. (भू → भवति)
+
+- *Word lookup*, or mapping a complete word back to its bases and suffixes. (भवति → भू)
+
+- *Metrical analysis*, or understanding the meter used by a piece of Sanskrit text.
+
+- *Sandhi changes*, or applying and undoing the sound changes that occur between pieces of
+  Sanskrit text. (चैव → च एव)
+
+- *Segmentation*, or splitting a piece of Sanskrit text into distinct words. (भवत्येव → भवति एव)
+
 Vidyut compiles to fast and efficient native code, and it can be bound to other
 programming languages with minimal work. We provide first-class support for
 Python and are eager to support other bindings as well.
