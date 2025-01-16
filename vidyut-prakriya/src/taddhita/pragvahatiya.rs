@@ -56,7 +56,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         let prati = tp.prati();
         if prati.has_text("Akarza") {
             tp.try_add("4.4.9", P::zWal);
-        } else if prati.has_text_in(gana::PARPA_ADI) {
+        } else if prati.has_text_in(gana::PARPADI) {
             tp.try_add("4.4.10", P::zWan);
         } else if prati.has_text("SvagaRa") {
             let code = "4.4.11";
@@ -69,7 +69,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TenaJivati, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::VETANA_ADI) {
+        if prati.has_text_in(gana::VETANADI) {
             tp.try_add("4.4.12", P::Wak);
         } else if prati.has_text_in(&["vasna", "kraya", "vikraya", "krayavikraya"]) {
             if prati.has_text("krayavikraya") {
@@ -109,7 +109,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TenaNirvrtte, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::AKSHADYUTA_ADI) {
+        if prati.has_text_in(gana::AKSHADYUTADI) {
             tp.try_add("4.4.19", P::Wak);
         } else if prati.has_text_in(&["apamitya", "yAcita"]) {
             let sub = if prati.has_text("apamitya") {
@@ -331,7 +331,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(Shilam, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::CHATRA_ADI) && (!prati.has_text("sTA") || upasarge) {
+        if prati.has_text_in(gana::CHATRADI) && (!prati.has_text("sTA") || upasarge) {
             // per Kashika, sTA must have an upasarga.
             tp.try_add("4.4.62", P::Ra);
         } else {

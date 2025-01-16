@@ -186,7 +186,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TadAsyaSamjatam, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::TARAKA_ADI) {
+        if prati.has_text_in(gana::TARAKADI) {
             tp.try_add("5.2.36", itac);
         }
     });

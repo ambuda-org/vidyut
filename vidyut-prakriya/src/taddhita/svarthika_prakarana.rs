@@ -15,15 +15,15 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             tp.try_add("5.3.101", QaY);
         } else if prati.has_text("SilA") {
             tp.try_add("5.3.102", Qa);
-        } else if prati.has_text_in(gana::SHAKHA_ADI) {
+        } else if prati.has_text_in(gana::SHAKHADI) {
             // SAKya, ...
             tp.try_add("5.3.103", yat);
         } else if prati.has_text("kuSAgra") {
             // kuSAgrIya
             tp.try_add("5.3.105", Ca);
-        } else if prati.has_text_in(gana::SHARKARA_ADI) {
+        } else if prati.has_text_in(gana::SHARKARADI) {
             tp.try_add("5.3.107", aR);
-        } else if prati.has_text_in(gana::ANGULI_ADI) {
+        } else if prati.has_text_in(gana::ANGULYADI) {
             tp.try_add("5.3.108", Wak);
         } else if prati.has_text("ekaSAlA") {
             // ekaSAlikaH, EkaSAlikaH
@@ -44,7 +44,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         if prati.has_text("vfka") {
             // vArkeRya
             tp.try_add("5.3.115", weRyaR);
-        } else if prati.has_text_in(gana::DAMANI_ADI)
+        } else if prati.has_text_in(gana::DAMANYADI)
             || prati.has_text_in(&[
                 "kORqoparaTa",
                 "dARqaki",
@@ -62,11 +62,11 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(Svarthe, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::DAMANI_ADI) {
+        if prati.has_text_in(gana::DAMANYADI) {
             // TODO: others
             tp.try_add("5.3.116", Ca);
-        } else if prati.has_text_in(gana::PARSHU_ADI) || prati.has_text_in(gana::YAUDHEYA_ADI) {
-            let sub = if prati.has_text_in(gana::YAUDHEYA_ADI) {
+        } else if prati.has_text_in(gana::PARSHVADI) || prati.has_text_in(gana::YAUDHEYADI) {
+            let sub = if prati.has_text_in(gana::YAUDHEYADI) {
                 aY
             } else {
                 aR
@@ -81,7 +81,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(PrakaraVacane, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::STHULA_ADI) {
+        if prati.has_text_in(gana::STHULADI) {
             tp.try_add("5.4.3", kan);
         } else if prati.has_text_in(&["caYcat", "bfhat"]) {
             tp.try_add(Varttika("5.4.3.1"), kan);
@@ -167,7 +167,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     } else if prati.has_text("avi") {
         // avika
         tp.try_add("5.4.28", ka);
-    } else if prati.has_text_in(gana::YAVA_ADI) {
+    } else if prati.has_text_in(gana::YAVADI) {
         // yAvaka
         tp.try_add("5.4.29", kan);
     } else if prati.has_text("lohita") {
@@ -178,7 +178,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     } else if prati.has_text("kAla") {
         // kAlaka
         tp.try_add("5.4.33", kan);
-    } else if prati.has_text_in(gana::VINAYA_ADI) {
+    } else if prati.has_text_in(gana::VINAYADI) {
         tp.try_add_with("5.4.34", Wak, |p| {
             p.set(i_prati, |t| {
                 if t.has_text("upAya") {

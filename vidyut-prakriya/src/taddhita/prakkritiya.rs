@@ -14,7 +14,7 @@ fn try_base_cases(tp: &mut TaddhitaPrakriya, _rule: &'static str) {
     let prati = tp.prati();
     if prati.has_text("kambala") {
         tp.optional_try_add("5.1.3", yat);
-    } else if prati.has_text_in(&["AmikzA", "puroqASa"]) || prati.has_text_in(gana::APUPA_ADI) {
+    } else if prati.has_text_in(&["AmikzA", "puroqASa"]) || prati.has_text_in(gana::APUPADI) {
         tp.optional_try_add("5.1.4", yat);
     }
 

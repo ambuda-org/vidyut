@@ -212,7 +212,8 @@ fn sutra_4_1_4() {
     assert_has_stri("aSva", &["aSvA"]);
     assert_has_stri("mUzika", &["mUzikA"]);
     // ajAdi -- vayaH
-    assert_has_stri("bAla", &["bAlA"]);
+    // bAlI also by 4.1.45
+    assert_has_stri("bAla", &["bAlA", "bAlI"]);
     assert_has_stri("hoQa", &["hoQA"]);
     assert_has_stri("pAka", &["pAkA"]);
     assert_has_stri("vatsa", &["vatsA"]);
@@ -578,11 +579,11 @@ fn sutra_4_1_111() {
 #[test]
 fn sutra_4_1_112() {
     assert_has_taddhita("Siva", T::aR, &["SEva"]);
-    assert_has_taddhita("prOzWa", T::aR, &["prOzWa"]);
+    assert_has_taddhita("prozWa", T::aR, &["prOzWa"]);
 
     // apavAda
     assert_has_taddhita("Siva", T::iY, &[]);
-    assert_has_taddhita("prOzWa", T::iY, &[]);
+    assert_has_taddhita("prozWa", T::iY, &[]);
 }
 
 #[test]
@@ -693,6 +694,7 @@ fn sutra_4_1_128_v1() {
 #[test]
 fn sutra_4_1_129() {
     assert_has_artha_taddhita("goDA", TasyaApatyam, T::Qrak, &["gODera"]);
+    assert_has_artha_taddhita("goDA", TasyaApatyam, T::Qak, &["gODeya"]);
 }
 
 #[test]

@@ -163,7 +163,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         } else if purva.has_text_in(&["su", "dur", "dus"]) && uttara.has_text("hfdaya") {
             // suhfd, durhfd
             p.optional_run_at("5.4.150", i_uttara, |t| t.set_text("hfd"));
-        } else if uttara.has_text_in(gana::URAH_PRABHRTI) && uttara.is_ekavacana() {
+        } else if uttara.has_text_in(gana::URAHPRABHRTAYAH) && uttara.is_ekavacana() {
             // vyUQoraska, ...
             add("5.4.151", p, kap);
         }

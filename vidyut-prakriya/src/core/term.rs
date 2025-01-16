@@ -3,7 +3,7 @@ use crate::args::{
     Taddhita, Tin, Unadi, Upasarga, Vikarana,
 };
 use crate::core::Tag;
-use crate::ganapatha::Ganasutra;
+use crate::ganapatha::GanapathaEntry;
 use crate::sounds;
 use crate::sounds::Pattern;
 use crate::sounds::AC;
@@ -378,9 +378,9 @@ impl Term {
     }
 
     /// Returns whether the term has an aupadeshika in the specified list.
-    pub fn has_u_in(&self, items: &[&str]) -> bool {
+    pub(crate) fn has_u_in(&self, items: impl Strings) -> bool {
         match &self.u {
-            Some(u) => items.contains(&u.as_str()),
+            Some(u) => items.as_strings().contains(&u.as_str()),
             None => false,
         }
     }
@@ -1105,9 +1105,9 @@ pub(crate) trait Strings {
     fn as_strings(&self) -> &[&str];
 }
 
-impl Strings for Ganasutra {
+impl Strings for GanapathaEntry {
     fn as_strings(&self) -> &[&str] {
-        self.0
+        self.items()
     }
 }
 

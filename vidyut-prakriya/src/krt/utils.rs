@@ -118,7 +118,7 @@ impl<'a> KrtPrakriya<'a> {
     /// Returns whether the term before the dhatu has the given upapada.
     pub fn has_upapada_in(&self, values: &[&str]) -> bool {
         if let Some(i_upapada) = self.i_upapada() {
-            self.p.has(i_upapada, |t| t.has_u_in(&values))
+            self.p.has(i_upapada, |t| t.has_u_in(values))
         } else {
             false
         }

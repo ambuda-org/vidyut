@@ -58,9 +58,9 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     tp.with_context(TadAsyaAstiAsmin, |tp| {
         let prati = tp.prati();
         // TODO: do these block matup?
-        if prati.has_text_in(gana::VIMUKTA_ADI) {
+        if prati.has_text_in(gana::VIMUKTADI) {
             tp.try_add("5.2.61", aR);
-        } else if prati.has_text_in(gana::GOSHADA_ADI) {
+        } else if prati.has_text_in(gana::GOSHADADI) {
             tp.try_add("5.2.62", vun);
         }
     });
@@ -69,7 +69,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         let prati = tp.prati();
         if prati.has_text("paTin") {
             tp.try_add("5.2.63", vun);
-        } else if prati.has_text_in(gana::AKARSHA_ADI) {
+        } else if prati.has_text_in(gana::AKARSHADI) {
             tp.try_add("5.2.64", kan);
         }
     });
@@ -85,11 +85,11 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
     tp.with_context(TadAsyaAstiAsmin, |tp| {
         let prati = tp.prati();
 
-        if prati.has_text_in(gana::RASA_ADI) {
+        if prati.has_text_in(gana::RASADI) {
             tp.try_add("5.2.95", matup);
         } else if prati.has_antya('A') {
             tp.optional_try_add("5.2.96", lac);
-        } else if prati.has_text_in(gana::SIDHMA_ADI) {
+        } else if prati.has_text_in(gana::SIDHMADI) {
             tp.optional_try_add("5.2.97", lac);
         } else if prati.has_text_in(&["vatsa", "aMsa"]) {
             tp.optional_try_add("5.2.98", lac);
@@ -97,13 +97,13 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             let code = "5.2.99";
             tp.try_add(code, lac);
             tp.try_add(code, ilac);
-        } else if prati.has_text_in(gana::LOMA_ADI)
-            || prati.has_text_in(gana::PAMA_ADI)
-            || prati.has_text_in(gana::PICCHA_ADI)
+        } else if prati.has_text_in(gana::LOMADI)
+            || prati.has_text_in(gana::PAMADI)
+            || prati.has_text_in(gana::PICCHADI)
         {
-            let sub = if prati.has_text_in(gana::LOMA_ADI) {
+            let sub = if prati.has_text_in(gana::LOMADI) {
                 Sa
-            } else if prati.has_text_in(gana::PAMA_ADI) {
+            } else if prati.has_text_in(gana::PAMADI) {
                 na
             } else {
                 ilac
@@ -112,7 +112,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
         } else if prati.has_text_in(&["rajas", "kfzi", "Asuti", "parizad"]) {
             // rajasvala, ...
             tp.try_add("5.2.112", valac);
-        } else if prati.has_text_in(gana::TUNDA_ADI) {
+        } else if prati.has_text_in(gana::TUNDADI) {
             let code = "5.2.117";
             tp.optional_try_add(code, ini);
             tp.optional_try_add(code, Wan);

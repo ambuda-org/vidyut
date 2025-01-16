@@ -153,7 +153,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
         sp.add_with(Rule::Dhatupatha("10.0502"), Ric.as_str(), |p| {
             p.set(i_base + 1, |t| t.add_tag(T::FlagNoArdhadhatuka));
         });
-    } else if sup && base.has_text_in(gana::BHRSHA_ADI) {
+    } else if sup && base.has_text_in(gana::BHRSHADI) {
         // BfSAyate, ..
         sp.add_with("3.1.12", kyaN.as_str(), |p| {
             p.set(i_base, |t| {
@@ -162,7 +162,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
                 }
             })
         });
-    } else if sup && base.has_text_in(gana::LOHITA_ADI) || base.has_u("qAc") {
+    } else if sup && base.has_text_in(gana::LOHITADI) || base.has_u("qAc") {
         // lohitAyati, lohitAyate, ..
         sp.add("3.1.13", "kyaz");
     } else if sup && base.has_text("kazwa") {
@@ -200,7 +200,7 @@ fn try_add(p: &mut Prakriya, sanadi: &Option<Sanadi>, is_ardhadhatuka: bool) -> 
     {
         // awAyate, ...
         sp.add(Varttika("3.1.17.2"), kyaN.as_str());
-    } else if sup && base.has_text_in(gana::SUKHA_ADI) {
+    } else if sup && base.has_text_in(gana::SUKHADI) {
         // suKAyate, ...
         sp.add("3.1.18", kyaN.as_str());
     } else if sup && base.has_text_in(&["namas", "varivas", "citra"]) {

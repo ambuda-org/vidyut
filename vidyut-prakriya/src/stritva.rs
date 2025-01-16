@@ -172,10 +172,10 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
             sp.try_add("4.1.15", NIp);
         } else if last.is(D::yaY) {
             sp.try_add("4.1.16", NIp);
-        } else if last.has_tag(T::zit) || last.has_text_in(gana::GAURA_ADI) {
+        } else if last.has_tag(T::zit) || last.has_text_in(gana::GAURADI) {
             // nartanI, gOrI
             sp.try_add("4.1.41", NIz);
-        } else if last.has_text_in(gana::BAHU_ADI) {
+        } else if last.has_text_in(gana::BAHVADI) {
             // bahvI, bahu
             sp.optional_try_add("4.1.45", NIz);
         } else if last.has_text_in(INDRA_ADI) {
@@ -197,7 +197,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     }
 
     let last = sp.last();
-    if last.has_tag(T::zaw) || last.has_text_in(gana::SVASR_ADI) {
+    if last.has_tag(T::zaw) || last.has_text_in(gana::SVASRADI) {
         // svasA, duhitA, ...
         sp.block("4.1.10");
     } else if last.has_text("pAd") {
@@ -240,7 +240,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
 
     // Base cases.
     let last = sp.last();
-    if last.has_text_in(gana::AJA_ADI) || last.has_antya('a') {
+    if last.has_text_in(gana::AJADI) || last.has_antya('a') {
         // ajA, ...
         sp.try_add("4.1.4", wAp);
     } else if last.ends_with("van") {

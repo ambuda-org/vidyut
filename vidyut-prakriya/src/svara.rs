@@ -168,7 +168,7 @@ fn run_at(sp: &mut SvaraPrakriya, i_x: usize) -> Option<SvaraState> {
     } else if x.has_u_in(&["paTin", "maTin"]) && next.is_sarvanamasthana() {
         // pa/nTA
         sp.mark_adi_udatta("6.1.199", i_x);
-    } else if x.has_text_in(gana::VRSHA_ADI) {
+    } else if x.has_text_in(gana::VRSHADI) {
         sp.mark_adi_udatta("6.1.203", i_x);
     } else if x.has_u_in(&["yuzmad", "asmad"]) {
         if y.is(Sup::Nasi) {

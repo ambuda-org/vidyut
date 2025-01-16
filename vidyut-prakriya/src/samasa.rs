@@ -281,7 +281,7 @@ fn decide_samasa_type(p: &mut Prakriya, args: &Samasa) -> Option<bool> {
                 sp.mark_tatpurusha("2.1.39");
             }
         } else if purva.is_saptami() {
-            if uttara.has_text_in(gana::SHAUNDA_ADI) {
+            if uttara.has_text_in(gana::SHAUNDADI) {
                 sp.mark_tatpurusha("2.1.40");
             } else if uttara.has_text_in(&["sidDa", "Suzka", "pakva", "banDa"]) {
                 sp.mark_tatpurusha("2.1.41");
@@ -343,7 +343,7 @@ fn decide_samasa_type(p: &mut Prakriya, args: &Samasa) -> Option<bool> {
             } else if purva.is_krtya() || purva.has_text("tulya") {
                 // BojyozRa
                 sp.mark_tatpurusha("2.1.68");
-            } else if purva.has_text("kumAra") && uttara.has_text_in(gana::SHRAMANA_ADI) {
+            } else if purva.has_text("kumAra") && uttara.has_text_in(gana::SHRAMANADI) {
                 // kumAraSramaRa, ...
                 sp.mark_tatpurusha("2.1.70");
             } else {
@@ -358,13 +358,12 @@ fn decide_samasa_type(p: &mut Prakriya, args: &Samasa) -> Option<bool> {
         } else if purva.has_text("Izat") && !uttara.is_krt() {
             sp.mark_tatpurusha("2.2.7");
         } else if purva.is_sasthi() {
-            if uttara.has_text_in(gana::YAJAKA_ADI) {
+            if uttara.has_text_in(gana::YAJAKADI) {
                 sp.mark_tatpurusha("2.2.9");
             } else {
                 sp.mark_tatpurusha("2.2.8");
             }
-        } else if purva.has_text("ku") || purva.last().is_gati() || purva.has_text_in(gana::PRA_ADI)
-        {
+        } else if purva.has_text("ku") || purva.last().is_gati() || purva.has_text_in(gana::PRADI) {
             sp.mark_tatpurusha("2.2.18");
         }
     } else if args.is_bahuvrihi() {

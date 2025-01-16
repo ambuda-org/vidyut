@@ -8,6 +8,7 @@ RULE_OK = "✅"
 RULE_UNTESTED = "⚠️ "
 RULE_MISSING = "❌"
 
+
 def print_legend():
     print("===== Legend ======")
     print(f"{RULE_OK}\t\tSutra is tested.")
@@ -17,6 +18,7 @@ def print_legend():
     print("These statuses are heuristics. Verify them by checking the underlying code.")
     print("===================")
 
+
 base = Path(__file__).parent.parent
 src = base / "src"
 tests = base / "tests"
@@ -24,7 +26,7 @@ tests = base / "tests"
 all_rules = []
 with open(base / "data/sutrapatha.tsv") as f:
     for line in f:
-        code, text = line.split('\t')
+        code, text = line.split("\t")
         all_rules.append(code)
 
 
@@ -40,7 +42,7 @@ for path in glob.glob("**/*.rs", root_dir=tests, recursive=True):
     with open(tests / path) as f:
         for line in f:
             for match in re.findall(r"(\d+_\d+_\d+)", line):
-                tested_rules.add(match.replace('_', '.'))
+                tested_rules.add(match.replace("_", "."))
 
 had_ok = False
 for rule in all_rules:
@@ -64,7 +66,7 @@ pada_written = Counter()
 pada_tested = Counter()
 pada_missing = Counter()
 for rule in all_rules:
-    ap, _, sutra = rule.rpartition('.')
+    ap, _, sutra = rule.rpartition(".")
     pada_total[ap] += 1
     if rule in tested_rules:
         pada_tested[ap] += 1

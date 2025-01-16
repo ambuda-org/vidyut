@@ -6,7 +6,7 @@ use crate::taddhita::utils::TaddhitaPrakriya;
 pub fn run(tp: &mut TaddhitaPrakriya) {
     tp.with_context(TasyaBhava, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::PRTHU_ADI) {
+        if prati.has_text_in(gana::PRTHVADI) {
             tp.try_add("5.1.122", imanic);
         } else if prati.has_text_in(&["mitrayu"]) {
             tp.try_add("5.1.134", vuY);

@@ -118,7 +118,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TatraSadhu, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::PRATIJANA_ADI) {
+        if prati.has_text_in(gana::PRATIJANADI) {
             // prAtijanIna, ...
             tp.try_add("4.4.99", P::KaY);
         } else if prati.has_text("Bakta") {
@@ -129,10 +129,10 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             tp.try_add(Rule::Kashika("4.4.101"), P::Ra);
             // pArizadya
             tp.try_add("4.4.101", P::Rya);
-        } else if prati.has_text_in(gana::KATHA_ADI) {
+        } else if prati.has_text_in(gana::KATHADI) {
             // kATika, ...
             tp.try_add("4.4.102", P::Wak);
-        } else if prati.has_text_in(gana::GUDA_ADI) {
+        } else if prati.has_text_in(gana::GUDADI) {
             // gOqika, ...
             tp.try_add("4.4.103", P::WaY);
         } else if prati.has_text_in(&["paTi", "atiTi", "vasati", "svapati"]) {

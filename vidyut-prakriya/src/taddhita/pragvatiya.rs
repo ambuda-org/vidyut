@@ -31,7 +31,7 @@ fn try_base_cases_arhiya(tp: &mut TaddhitaPrakriya, code: &'static str) {
     use Taddhita as P;
     let prati = tp.prati();
 
-    if prati.has_text_in(gana::NISHKA_ADI) && !prati.is_samasa() {
+    if prati.has_text_in(gana::NISHKADI) && !prati.is_samasa() {
         // nEzkika
         tp.try_add("5.1.20", P::Wak);
     } else if prati.has_text_in(&["SatamAna", "viMSatika", "sahasra", "vasana"]) {
@@ -144,7 +144,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
 
     tp.with_context(TadArhati, |tp| {
         let prati = tp.prati();
-        if prati.has_text_in(gana::CHEDA_ADI) {
+        if prati.has_text_in(gana::CHEDADI) {
             // CEdika, ...
             try_base_cases_arhiya(tp, "5.1.64");
         } else if prati.has_text("SIrSacCeda") {
@@ -152,7 +152,7 @@ pub fn run(tp: &mut TaddhitaPrakriya) {
             let code = "5.1.65";
             tp.try_add(code, yat);
             try_base_cases_arhiya(tp, code);
-        } else if prati.has_text_in(gana::DANDA_ADI) {
+        } else if prati.has_text_in(gana::DANDADI) {
             // daRqya, ...
             tp.try_add("5.1.66", yat);
         } else if prati.has_text("pAtra") {

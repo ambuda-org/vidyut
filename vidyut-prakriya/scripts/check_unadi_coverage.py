@@ -13,14 +13,14 @@ base = Path(__file__).parent.parent
 all_rules = []
 with open(base / "data/unadipatha.tsv") as f:
     for line in f:
-        code, text = line.strip().split('\t')
+        code, text = line.strip().split("\t")
         all_rules.append(code)
 
 tested_rules = set()
 with open(base / "tests/kaumudi_67.rs") as f:
     for line in f:
-        for match in re.findall(r'unadi_(\d+_\d+)', line):
-            tested_rules.add(match.replace('_', '.'))
+        for match in re.findall(r"unadi_(\d+_\d+)", line):
+            tested_rules.add(match.replace("_", "."))
 
 
 num_ok = 0

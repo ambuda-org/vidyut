@@ -78,7 +78,7 @@ pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
         } else {
             // HACK to allow this rule to apply only if explicitly an avyaya, otherwise we can't
             // add sup to BUyas used as a nominal (BUyAMsi).
-            t.has_tag(T::Avyaya) && t.has_text_in(gana::SVAR_ADI)
+            t.has_tag(T::Avyaya) && t.has_text_in(gana::SVARADI)
         }
     };
 
@@ -161,7 +161,7 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if is_tiya(prati) && p.has(i + 1, |t| t.has_tag(T::Nit)) {
         // dvitIyAya, dvitIyasmE, ...
         p.optional_run_at(Varttika("1.1.33.1"), i, add_tag(T::Sarvanama));
-    } else if prati.is_any_phit(gana::SARVA_ADI) || prati.is_any_phit(USES_DATARA_DATAMA) {
+    } else if prati.is_any_phit(gana::SARVADI) || prati.is_any_phit(USES_DATARA_DATAMA) {
         let mut sarvanama = true;
         if prati.is_any_phit(PURVA_ADI) && jasi {
             sarvanama = !p.optional_run("1.1.34", |_| {});
@@ -299,7 +299,7 @@ pub fn try_nipata_rules(p: &mut Prakriya, i: usize) -> Option<()> {
         let dhatu = p.get(i_dhatu?)?;
         let is_kr = dhatu.is_u(Au::qukfY);
 
-        if t.has_text_in(gana::URI_ADI) || t.is(D::cvi) || t.has_u("qAc") {
+        if t.has_text_in(gana::URYADI) || t.is(D::cvi) || t.has_u("qAc") {
             // urIkftya, ...
             p.run_at("1.4.61", i, set_gati);
         } else if t.has_text_in(&["sad", "asad"]) {
@@ -336,7 +336,7 @@ pub fn try_nipata_rules(p: &mut Prakriya, i: usize) -> Option<()> {
             } else if t.has_text_in(&["upAje", "anvAje"]) {
                 // upAjekftya, upAje kftvA, ...
                 p.optional_run_at("1.4.73", i, set_gati);
-            } else if t.has_text_in(gana::SAKSHAT_PRABHRTI) {
+            } else if t.has_text_in(gana::SAKSHATPRABHRTI) {
                 // sAkzAtkftya, sAkzAt kftvA, ...
                 p.optional_run_at("1.4.74", i, set_gati);
             } else if t.has_text_in(&["urasi", "manasi"]) {
@@ -356,7 +356,7 @@ pub fn try_nipata_rules(p: &mut Prakriya, i: usize) -> Option<()> {
                 p.optional_run_at("1.4.79", i, set_gati);
             }
         }
-    } else if t.has_text_in(gana::CA_ADI) {
+    } else if t.has_text_in(gana::CADI) {
         // ca, vA, ...
         p.add_tag_at("1.4.57", i, T::Nipata);
     }

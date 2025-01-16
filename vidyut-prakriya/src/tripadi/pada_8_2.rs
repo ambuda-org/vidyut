@@ -13,6 +13,7 @@ use crate::core::term::TermString;
 use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, PrakriyaTag as PT, Rule, Tag as T, Term};
 use crate::dhatu_gana;
+use crate::ganapatha;
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set, AC, HAL, IK, JHAL};
 use lazy_static::lazy_static;
@@ -94,9 +95,6 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
 
 /// (8.2.9 - 8.2.10)
 fn try_matup_to_vatup(p: &mut Prakriya) -> Option<()> {
-    const YAVA_ADI: &[&str] = &[
-        "yava", "dalmi", "Urmi", "BUmi", "kfmi", "kruYcA", "vaSA", "drAkzA",
-    ];
     const MA: Set = Set::from("aAm");
     const JHAY: Set = s(&["Jay"]);
 
@@ -105,7 +103,7 @@ fn try_matup_to_vatup(p: &mut Prakriya) -> Option<()> {
         let y = p.get(i)?;
         if y.is(D::matup) {
             let mat_upadha = x.has_antya(MA) || x.has_upadha(MA);
-            let yavadi = x.has_u_in(YAVA_ADI);
+            let yavadi = x.has_u_in(ganapatha::YAVADI_8);
             if mat_upadha && !yavadi {
                 p.run_at("8.2.9", i, |t| t.set_adi("v"));
             } else if x.has_antya(JHAY) {
