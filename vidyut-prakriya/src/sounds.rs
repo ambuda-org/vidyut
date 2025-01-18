@@ -35,7 +35,7 @@ We chose SLP1 over something like [WX][wx] merely because we have more familiari
 [wx]: https://en.wikipedia.org/wiki/WX_notation
 */
 use rustc_hash::FxHashMap;
-use std::{fmt, sync::LazyLock};
+use std::{fmt, sync::OnceLock};
 
 type Sound = char;
 
@@ -48,7 +48,7 @@ pub const HAL: Set = s(&["hal"]);
 pub const YAN: Set = s(&["yaR"]);
 pub const VAL: Set = s(&["val"]);
 
-static SOUND_PROPS: LazyLock<FxHashMap<Sound, Uccarana>> = LazyLock::new(create_sound_props);
+static SOUND_PROPS: OnceLock<FxHashMap<Sound, Uccarana>> = OnceLock::new();
 
 /// A set of Sanskrit sounds.
 ///
@@ -633,17 +633,18 @@ pub const fn savarna(c: Sound) -> Set {
 pub(crate) fn map(keys: &str, values: &str) -> Map {
     let keys = s_old(keys);
     let values = s_old(values);
+    let sound_props = SOUND_PROPS.get_or_init(|| create_sound_props());
 
     let mut map = Map::new();
     for key in keys.to_string().chars() {
-        let key_props = SOUND_PROPS.get(&key).expect("called statically");
+        let key_props = sound_props.get(&key).expect("called statically");
 
         // The best sound has the minimal distance.
         let best_value = values
             .to_string()
             .chars()
             .min_by_key(|v| {
-                SOUND_PROPS
+                sound_props
                     .get(v)
                     .expect("called statically")
                     .distance(key_props)

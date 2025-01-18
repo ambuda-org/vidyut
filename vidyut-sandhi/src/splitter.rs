@@ -21,7 +21,7 @@ use rustc_hash::FxHashMap;
 use std::cmp;
 use std::collections::hash_map::Keys;
 use std::path::Path;
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 /// Describes the type of sandhi split that occurred.
 #[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
@@ -333,39 +333,58 @@ fn visarga_to_r(s: &str) -> CompactString {
 /// Returns whether the first item in a sandhi split is OK according to some basic heuristics.
 #[allow(dead_code)]
 fn is_good_first(text: &str) -> bool {
-    static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
-    static SPARSHA: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm"));
-    static HAL: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvzSsh"));
+    static AC: OnceLock<Set> = OnceLock::new();
+    AC.get_or_init(|| Set::from("aAiIuUfFxXeEoO"));
+    let ac = AC.get().unwrap();
+
+    // static SPARSHA: OnceLock<Set> = OnceLock::new();
+    // SPARSHA.get_or_init(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm"));
+    // let sparsha = SPARSHA.get().unwrap();
+
+    static HAL: OnceLock<Set> = OnceLock::new();
+    HAL.get_or_init(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvzSsh"));
+    let hal = HAL.get().unwrap();
+
     // Vowels, standard consonants, and "s" and "r"
-    static VALID_FINALS: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoOHkNwRtpnmsr"));
+    static VALID_FINALS: OnceLock<Set> = OnceLock::new();
+    VALID_FINALS.get_or_init(|| Set::from("aAiIuUfFxXeEoOHkNwRtpnmsr"));
+    let valid_finals = VALID_FINALS.get().unwrap();
 
     let mut chars = text.chars().rev();
     if let (Some(y), Some(x)) = (chars.next(), chars.next()) {
-        if (AC.contains(x) && AC.contains(y)) || (HAL.contains(x) && HAL.contains(y)) {
+        if (ac.contains(x) && ac.contains(y)) || (hal.contains(x) && hal.contains(y)) {
             return false;
         }
     }
     match text.chars().last() {
-        Some(c) => VALID_FINALS.contains(c),
+        Some(c) => valid_finals.contains(c),
         None => true,
     }
 }
 
 /// Returns whether the second item in a sandhi split is OK according to some basic heuristics.
 fn is_good_second(text: &str) -> bool {
-    static YAN: LazyLock<Set> = LazyLock::new(|| Set::from("yrlv"));
-    static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
-    static SPARSHA: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm"));
+    static YAN: OnceLock<Set> = OnceLock::new();
+    YAN.get_or_init(|| Set::from("yrlv"));
+    let yan = YAN.get().unwrap();
+
+    static AC: OnceLock<Set> = OnceLock::new();
+    AC.get_or_init(|| Set::from("aAiIuUfFxXeEoO"));
+    let ac = AC.get().unwrap();
+
+    static SPARSHA: OnceLock<Set> = OnceLock::new();
+    SPARSHA.get_or_init(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBm"));
+    let sparsha = SPARSHA.get().unwrap();
 
     let mut chars = text.chars();
     if let (Some(x), Some(y)) = (chars.next(), chars.next()) {
-        if AC.contains(x) && AC.contains(y) {
+        if ac.contains(x) && ac.contains(y) {
             // Must not start with a double vowel.
             // But, "afRin" is acceptable.
             text.starts_with("afR")
         } else {
             // Initial yrlv must not be followed by sparsha.
-            !(YAN.contains(x) && SPARSHA.contains(y))
+            !(yan.contains(x) && sparsha.contains(y))
         }
     } else {
         true

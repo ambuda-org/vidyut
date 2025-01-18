@@ -3,7 +3,7 @@ Utilities for generating sandhi rules.
 
 For details, see the `create_rules` function below.
 */
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 use crate::sounds::Set;
 
@@ -64,14 +64,16 @@ fn is_savarna_ac(f: char, s: char) -> bool {
 
 /// Returns whether the given sound is voiced.
 fn is_ghoshavat(c: char) -> bool {
-    static S: LazyLock<Set> = LazyLock::new(|| Set::from(r"aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh"));
-    S.contains(c)
+    static S: OnceLock<Set> = OnceLock::new();
+    S.get_or_init(|| Set::from(r"aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh"));
+    S.get().unwrap().contains(c)
 }
 
 /// Returns whether the given sound is nasal.
 fn is_anunasika(c: char) -> bool {
-    static S: LazyLock<Set> = LazyLock::new(|| Set::from(r"NYRnm"));
-    S.contains(c)
+    static S: OnceLock<Set> = OnceLock::new();
+    S.get_or_init(|| Set::from(r"NYRnm"));
+    S.get().unwrap().contains(c)
 }
 
 /// Returns the lengthened form of a vowel.

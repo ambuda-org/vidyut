@@ -1,5 +1,5 @@
 extern crate test_utils;
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
@@ -10,7 +10,7 @@ use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha as TA;
 use vidyut_prakriya::args::*;
 
-static S: LazyLock<Tester> = LazyLock::new(|| Tester::with_svara_rules());
+static S: OnceLock<Tester> = OnceLock::new();
 
 fn sanadi(p: Pratipadika, s: Sanadi) -> Dhatu {
     Dhatu::nama(p, Some(s))
@@ -37,19 +37,21 @@ fn sutra_3_1_2() {
 #[test]
 fn sutra_3_1_3() {
     let kf = d("qukf\\Y", Tanadi);
-    S.assert_has_krdanta(&[], &kf, Krt::tavyat, &["kartavya^"]);
-    S.assert_has_artha_taddhita("tittiri", TA::TenaProktam, T::CaR, &["tEttirI/ya"]);
+    let s = S.get_or_init(|| Tester::with_svara_rules());
+    s.assert_has_krdanta(&[], &kf, Krt::tavyat, &["kartavya^"]);
+    s.assert_has_artha_taddhita("tittiri", TA::TenaProktam, T::CaR, &["tEttirI/ya"]);
 }
 
 #[test]
 fn sutra_3_1_4() {
+    let s = S.get_or_init(|| Tester::with_svara_rules());
     // sup
-    S.assert_has_sup_1d("dfzad", Pum, &["dfza/dO"]);
-    S.assert_has_sup_1p("dfzad", Pum, &["dfza/daH"]);
+    s.assert_has_sup_1d("dfzad", Pum, &["dfza/dO"]);
+    s.assert_has_sup_1p("dfzad", Pum, &["dfza/daH"]);
 
     // pit
-    S.assert_has_tip(&[], &d("qupa\\ca~^z", Bhvadi), Lat, &["pa/cati"]);
-    S.assert_has_tip(&[], &d("paWa~", Bhvadi), Lat, &["pa/Wati"]);
+    s.assert_has_tip(&[], &d("qupa\\ca~^z", Bhvadi), Lat, &["pa/cati"]);
+    s.assert_has_tip(&[], &d("paWa~", Bhvadi), Lat, &["pa/Wati"]);
 }
 
 #[test]

@@ -1,4 +1,4 @@
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 use crate::args::Agama as A;
 use crate::args::Aupadeshika as Au;
@@ -26,9 +26,9 @@ const BASH: Set = s(&["baS"]);
 const JHAL_TO_JASH_EXCEPTIONS: Set = Set::from("cSsh");
 const HASH: Set = s(&["haS"]);
 
-static BASH_TO_BHAZ: LazyLock<Map> = LazyLock::new(|| map("baS", "Baz"));
-static JHAL_TO_JASH: LazyLock<Map> = LazyLock::new(|| map("Jal", "jaS"));
-static CU_TO_KU: LazyLock<Map> = LazyLock::new(|| map("cu~", "ku~"));
+static BASH_TO_BHAZ: OnceLock<Map> = OnceLock::new();
+static JHAL_TO_JASH: OnceLock<Map> = OnceLock::new();
+static CU_TO_KU: OnceLock<Map> = OnceLock::new();
 
 fn do_ru_adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize) {
     p.run_at(rule, i, |t| {
@@ -455,7 +455,7 @@ fn per_term_1a(p: &mut Prakriya) -> Option<()> {
 
         if x.has_antya(CU) && (is_jhali || is_ante) {
             if let Some(c) = x.antya() {
-                let sub = CU_TO_KU.get(c)?;
+                let sub = CU_TO_KU.get_or_init(|| map("cu~", "ku~")).get(c)?;
                 p.run_at("8.2.30", i, |t| {
                     // TODO: what is the rule that allows this change?
                     if t.has_upadha('Y') {
@@ -490,7 +490,9 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
         };
 
         if x.has_adi(BASH) && x.has_antya(JHAZ) && x.is_ekac() && x.is_dhatu() && if_y {
-            let sub = BASH_TO_BHAZ.get(x.adi()?)?;
+            let sub = BASH_TO_BHAZ
+                .get_or_init(|| map("baS", "Baz"))
+                .get(x.adi()?)?;
             p.run_at("8.2.37", i, |t| t.set_adi_char(sub));
         }
     }
@@ -515,7 +517,7 @@ fn per_term_1b(p: &mut Prakriya) -> Option<()> {
             && !t.has_tag_in(&[T::FlagAntyaAcSandhi, T::FlagPratipadikaTiLopa])
         {
             let key = t.antya()?;
-            let sub = JHAL_TO_JASH.get(key)?;
+            let sub = JHAL_TO_JASH.get_or_init(|| map("Jal", "jaS")).get(key)?;
             p.run_at("8.2.39", i, |t| t.set_antya_char(sub));
         }
     }

@@ -1,4 +1,4 @@
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 use crate::args::Aupadeshika as Au;
 use crate::args::Gana;
@@ -28,9 +28,9 @@ const YAY: Set = s(&["yay"]);
 const JHAY: Set = s(&["Jay"]);
 const AT: Set = s(&["aw"]);
 
-static JHAL_TO_CAR: LazyLock<Map> = LazyLock::new(|| map("Jal", "car"));
-static JHAL_TO_JASH: LazyLock<Map> = LazyLock::new(|| map("Jal", "jaS"));
-static JHAL_TO_JASH_CAR: LazyLock<Map> = LazyLock::new(|| map("Jal", "jaS car"));
+static JHAL_TO_CAR: OnceLock<Map> = OnceLock::new();
+static JHAL_TO_JASH: OnceLock<Map> = OnceLock::new();
+static JHAL_TO_JASH_CAR: OnceLock<Map> = OnceLock::new();
 
 /// Runs rules that change `n` to `R`.
 /// Example: krInAti -> krIRAti.
@@ -377,7 +377,7 @@ fn try_jhal_adesha(ip: &mut IndexPrakriya) -> Option<()> {
         let x = ip.char_at(&i_x);
         let y = ip.char_at(i_y);
 
-        let sub = JHAL_TO_JASH.get(x);
+        let sub = JHAL_TO_JASH.get_or_init(|| map("Jal", "jaS")).get(x);
         if sub.is_some() && JHASH.contains(y) {
             let sub = sub.expect("present");
             if x != sub {
@@ -392,7 +392,10 @@ fn try_jhal_adesha(ip: &mut IndexPrakriya) -> Option<()> {
 
         // Check for jaz-car to avoid applying a rule that causes no changee.
         if x.is_abhyasa() && x.has_adi(JHAL) && !x.has_adi(JASH_CAR) {
-            let sub = JHAL_TO_JASH_CAR.get(x.adi().expect("ok")).expect("ok");
+            let sub = JHAL_TO_JASH_CAR
+                .get_or_init(|| map("Jal", "jaS car"))
+                .get(x.adi().expect("ok"))
+                .expect("ok");
             ip.p.run_at("8.4.54", i, |t| t.set_adi_char(sub));
         }
 
@@ -424,8 +427,9 @@ fn try_jhal_adesha(ip: &mut IndexPrakriya) -> Option<()> {
         let i_x = ip.prev(i_y)?;
         let x = ip.char_at(&i_x);
         let y = ip.char_at(i_y);
+        let sub = JHAL_TO_CAR.get_or_init(|| map("Jal", "car")).get(x);
 
-        if let Some(sub) = JHAL_TO_CAR.get(x) {
+        if let Some(sub) = sub {
             if KHAR.contains(y) {
                 if x != sub {
                     ip.run_for_char("8.4.55", &i_x, &sub.to_string());
@@ -437,7 +441,8 @@ fn try_jhal_adesha(ip: &mut IndexPrakriya) -> Option<()> {
 
     ip.iter(|ip, i_x| {
         let x = ip.char_at(i_x);
-        let sub = JHAL_TO_CAR.get(x);
+        let sub = JHAL_TO_CAR.get_or_init(|| map("Jal", "car")).get(x);
+
         if let Some(sub) = sub {
             let last = ip.p.terms().last()?;
             if x != sub {

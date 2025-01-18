@@ -8,6 +8,7 @@ our system.
 This document assumes some familiarity with basic Rust concepts like structs,
 enums, closures, and lifetimes.
 
+
 Goals and values
 ----------------
 
@@ -39,6 +40,7 @@ than wait for perfect clarity. Fortunately, we have found that as the program
 has grown and matured, we have become more and more able to remove hacks and
 solve problems in a more fundamental way.
 
+
 Core data types
 ---------------
 
@@ -64,17 +66,20 @@ In addition to these three types, we recommend exploring the types in the
 part of its API. Our hope is that callers can lean on Rust's type system to
 define meaningful requests and receive correct derivations.
 
+
 Core modules
 ------------
 
 We start our description here with the high-level `vyakarana` module then work
 our way into specific implementation details.
 
+
 ### `vyakarana`
 
 This defines the public API. Given certain input conditions, the method here
 return all `Prakriya`s compatible with those conditions. `vyakarana` is a thin
 wrapper over the `ashtadhyayi` module, which we describe below.
+
 
 ### `args`
 
@@ -83,6 +88,8 @@ Paninian categories as closely as possible, so we have types like `Dhatu`,
 `Krdanta`, `Subanta`, and so on. Likewise, the type system enforces that
 arguments are well formed. For example, a `Krdanta` must have a `Dhatu` and a
 `Krt`.
+
+
 
 ### `ashtadhyayi`
 
@@ -111,6 +118,7 @@ their own modules. Some examples:
 - `unadipatha`, which defines the rules of the Unadipatha. These rules enter
   the Ashtadhyayi through rule 3.3.1 (*uṇādayo bahulam*)
 
+
 ### `prakriya`, `terms`, and `tags`
 
 These define the `Prakriya` and `Term` types, as well as some useful secondary
@@ -122,6 +130,7 @@ variety of ad-hoc flags.
 
 Since `Term` and `Tag` are not stable, we do not expose them in our public API.
 
+
 ### `prakriya_stack`
 
 This module defines utilities for exploring different paths of optional rules.
@@ -129,10 +138,12 @@ The core type here is `PrakriyaStack`, which manages a stack of rule paths.
 (`RulePathStack` might be a clearer name, but it doesn't quite roll off the
 tongue!)
 
+
 ### `sounds`
 
 This defines various functions for testing and modifying Sanskrit sounds. The
 core data structure here is `Set`, which stores sounds in a simple array.
+
 
 Code style
 ----------
@@ -153,6 +164,7 @@ Our code routinely uses short variable names to reduce visual noise and make
 the logic of each rule more obvious. Here, `p` is a `Prakriya`, `i` is the
 index of some `Term` within the `Prakriya`, and `|t| ...` is a closure (inline
 function) that accepts a `Term`.
+
 
 ### Closures
 
@@ -176,6 +188,7 @@ for `p.terms[i]`. `Prakriya` also defines many methods for working with
     indices, such as `find_first_where`, `find_last_where`, `find_next_where`,
     and so on.
 
+
 ### Naming conventions
 
 Since we have so many rules to write, we use short variable names for common
@@ -189,6 +202,7 @@ concepts. Some examples:
 
 [rust-borrow]: https://users.rust-lang.org/t/newbie-mut-with-nested-structs/84755
 [rust-q]: https://doc.rust-lang.org/rust-by-example/std/result/question_mark.html
+
 
 Control flow
 ------------
@@ -212,6 +226,7 @@ directly encodes a critical principle of the grammar.
 The sections below extend the example above and illustrate the various kinds of
 control flow we use, ordered from least to most complex.
 
+
 ### Rule sequences
 
 The control flow in the example above is appropriate for simple sequences of
@@ -225,6 +240,7 @@ if condition_2 {
     p.run_at("rule_2", i, |t| t.do_something_2());
 }
 ```
+
 
 ### Simple rule blocking
 
@@ -240,6 +256,7 @@ if condition_1 {
     p.run_at("rule_3", i, |t| t.do_something_2());
 }
 ```
+
 
 ### Falling through
 
@@ -259,6 +276,7 @@ if condition_2 {
 ```
 
 Here, `rule_2` is accessible even if we reject `rule_1`.
+
 
 ### Simple locking
 
@@ -281,6 +299,7 @@ if done {
     p.run_at("rule_3", i, |t| t.do_something_2());
 }
 ```
+
 
 ### Extended locking
 
@@ -326,6 +345,7 @@ If we use the new `do_something_1` and `do_something_2` methods here,
 the original `Prakriya` struct, we can access it through `lp.p`. Once the
 lifetime of `lp` has ended, we can continue using `p` as before.
 
+
 ### Context-aware locking
 
 Suppose we wish to derive a *taddhitānta* that uses a specific
@@ -333,3 +353,4 @@ taddhita-pratyaya only if available in a specific meaning context. In this
 case, we can extend the `LockingPrakriya` pattern above to record other useful
 metadata, such as the meaning condition we wish to derive (if any). For
 examples of this pattern, see `KrtPrakriya` and `TaddhitaPrakriya`.
+

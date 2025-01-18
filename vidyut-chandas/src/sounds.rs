@@ -1,8 +1,8 @@
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
-static HRASVA: LazyLock<Set> = LazyLock::new(|| Set::from("aiufx"));
-static AC: LazyLock<Set> = LazyLock::new(|| Set::from("aAiIuUfFxXeEoO"));
-static HAL: LazyLock<Set> = LazyLock::new(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL"));
+static HRASVA: OnceLock<Set> = OnceLock::new();
+static AC: OnceLock<Set> = OnceLock::new();
+static HAL: OnceLock<Set> = OnceLock::new();
 
 type Sound = char;
 
@@ -35,22 +35,23 @@ impl Set {
 
 /// Returns whether `c` is a vowel.
 pub(crate) fn is_ac(c: Sound) -> bool {
-    AC.contains(c)
+    AC.get_or_init(|| Set::from("aAiIuUfFxXeEoO")).contains(c)
 }
 
 /// Returns whether `c` is a short vowel.
 pub(crate) fn is_hrasva(c: Sound) -> bool {
-    HRASVA.contains(c)
+    HRASVA.get_or_init(|| Set::from("aiufx")).contains(c)
 }
 
 /// Returns whether `c` is a consonant.
 pub(crate) fn is_hal(c: Sound) -> bool {
-    HAL.contains(c)
+    HAL.get_or_init(|| Set::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL"))
+        .contains(c)
 }
 
 /// Returns whether `c` is a Sanskrit sound.
 pub(crate) fn is_sanskrit(c: Sound) -> bool {
-    AC.contains(c) || HAL.contains(c) || matches!(c, 'M' | 'H')
+    is_ac(c) || is_hal(c) || matches!(c, 'M' | 'H')
 }
 
 /// Returns whether `s` starts with a consonant cluster.
