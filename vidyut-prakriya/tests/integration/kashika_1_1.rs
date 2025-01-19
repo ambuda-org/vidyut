@@ -1,5 +1,6 @@
 extern crate test_utils;
-use lazy_static::lazy_static;
+use std::sync::OnceLock;
+
 use test_utils::*;
 use vidyut_prakriya::args::BaseKrt as Krt;
 use vidyut_prakriya::args::Gana::*;
@@ -10,9 +11,7 @@ use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::TaddhitaArtha::*;
 use vidyut_prakriya::args::Unadi;
 
-lazy_static! {
-    static ref S: Tester = Tester::with_svara_rules();
-}
+static S: OnceLock<Tester> = OnceLock::new();
 
 #[test]
 fn sutra_1_1_1() {
@@ -271,8 +270,10 @@ fn sutra_1_1_20() {
 
 #[test]
 fn sutra_1_1_21() {
-    S.assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::tavya, &["karta/vya"]);
-    S.assert_has_taddhita("upagu", T::aR, &["Opagava/"]);
+    let s = S.get_or_init(|| Tester::with_svara_rules());
+
+    s.assert_has_krdanta(&[], &d("qukf\\Y", Tanadi), Krt::tavya, &["karta/vya"]);
+    s.assert_has_taddhita("upagu", T::aR, &["Opagava/"]);
     assert_has_sup_3d("vfkza", Pum, &["vfkzAByAm"]);
 }
 

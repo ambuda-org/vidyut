@@ -1,6 +1,6 @@
 //! Utility functions for checking Sanskrit sounds.
 
-use lazy_static::lazy_static;
+use std::sync::OnceLock;
 
 /// A set of Sanskrit sounds.
 ///
@@ -42,21 +42,19 @@ impl Default for SoundSet {
 /// - other punctuation characters (|, ||, numbers)
 /// - characters or symbols from non-SLP1 encodings
 pub fn is_sanskrit(c: char) -> bool {
-    lazy_static! {
-        static ref CHARS: SoundSet =
-            SoundSet::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'");
-    }
-    CHARS.contains(c)
+    static CHARS: OnceLock<SoundSet> = OnceLock::new();
+    let chars =
+        CHARS.get_or_init(|| SoundSet::from("aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL'"));
+    chars.contains(c)
 }
 
 /// Returns whether the given sound is a vowel.
 ///
 /// `ac` is the Paninian name for the Sanskrit vowels.
 pub fn is_ac(c: char) -> bool {
-    lazy_static! {
-        static ref AC: SoundSet = SoundSet::from("aAiIuUfFxXeEoO");
-    }
-    AC.contains(c)
+    static AC: OnceLock<SoundSet> = OnceLock::new();
+    let ac = AC.get_or_init(|| SoundSet::from("aAiIuUfFxXeEoO"));
+    ac.contains(c)
 }
 
 /// Returns whether the given sound is a consonant.
@@ -64,19 +62,19 @@ pub fn is_ac(c: char) -> bool {
 /// `hal` is the Paninian name for the Sanskrit consonants.
 #[allow(unused)]
 pub fn is_hal(c: char) -> bool {
-    lazy_static! {
-        static ref HAL: SoundSet = SoundSet::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL");
-    }
-    HAL.contains(c)
+    static HAL: OnceLock<SoundSet> = OnceLock::new();
+
+    let hal = HAL.get_or_init(|| SoundSet::from("kKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzshL"));
+    hal.contains(c)
 }
 
 /// Returns whether the given sound is voiced.
 #[allow(unused)]
 pub fn is_ghosha(c: char) -> bool {
-    lazy_static! {
-        static ref GHOSHA: SoundSet = SoundSet::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh");
-    }
-    GHOSHA.contains(c)
+    static GHOSHA: OnceLock<SoundSet> = OnceLock::new();
+
+    let ghosha = GHOSHA.get_or_init(|| SoundSet::from("aAiIuUfFxXeEoOgGNjJYqQRdDnbBmyrlvh"));
+    ghosha.contains(c)
 }
 
 #[cfg(test)]

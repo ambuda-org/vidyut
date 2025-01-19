@@ -70,15 +70,13 @@ use crate::krt::utils::KrtPrakriya;
 use crate::sounds::{s, Set, AC, HAL, IK};
 use crate::stem_gana::TYAD_ADI;
 use crate::Rule::Varttika;
-use lazy_static::lazy_static;
+use std::sync::OnceLock;
 
 const II: Set = s(&["i"]);
 const UU: Set = s(&["u"]);
 const PU: Set = s(&["pu~"]);
 
-lazy_static! {
-    static ref EMPTY_TERM: Term = Term::make_text("");
-}
+static EMPTY_TERM: OnceLock<Term> = OnceLock::new();
 
 /// Tries to add various pratyayas that are just "a."
 fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
@@ -563,7 +561,7 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
 
     let upapada = match kp.p.get_if(0, |t| t.has_tag(T::Pratipadika)) {
         Some(t) => t,
-        None => &EMPTY_TERM,
+        None => &EMPTY_TERM.get_or_init(|| Term::make_text("")),
     };
     let upapade = kp.p.has(0, |t| t.has_tag(T::Pratipadika));
 

@@ -9,7 +9,6 @@ edition = "2021"
 clap = { version = "4.0.12", features = ["derive"] }
 compact_str = "0.7.1"
 csv = "1.1.6"
-lazy_static = "1.4.0"
 rustc-hash = "2.1.0"
 
 [dev-dependencies]
