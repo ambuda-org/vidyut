@@ -1285,15 +1285,22 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
         }
 
         K::manin | K::kvanip | K::vanip | K::vic => {
-            let code = "3.2.75";
-            if krt == K::manin && dhatu.has_text("Bas") {
-                kp.try_add(code, krt);
-            } else if krt == K::vic && dhatu.has_text("riz") {
-                kp.try_add(code, krt);
-            } else if !dhatu.has_text_in(&["ay", "av"]) {
-                // suSarmA, prAtaritvan, vijAvA, rez, ...
-                // Exclude 'ay' and 'av' because they produce weird output.
-                kp.try_add("3.2.75", krt);
+            if dhatu.ends_with("A") {
+                // viSvapA, ...
+                kp.try_add("3.2.74", krt);
+            } else {
+                let code = "3.2.75";
+                if krt == K::manin && dhatu.has_text("Bas") {
+                    kp.try_add(code, krt);
+                } else if krt == K::vic && dhatu.has_text("riz") {
+                    kp.try_add(code, krt);
+                } else if dhatu.has_text_in(&["pA"]) {
+                    /*
+                    // suSarmA, prAtaritvan, vijAvA, rez, ...
+                    // Exclude 'ay' and 'av' because they produce weird output.
+                    kp.try_add("3.2.75", krt);
+                    */
+                }
             }
         }
 

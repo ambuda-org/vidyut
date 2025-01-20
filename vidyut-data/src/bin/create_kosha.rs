@@ -192,9 +192,9 @@ fn create_all_dhatus(
     // Create the final list of dhatus.
     let v = Vyakarana::new();
     let mut ret = Vec::new();
-    let new = Vec::new();
+    let no_upasargas = vec![Vec::new()];
     for entry in &dhatupatha {
-        let upasarga_groups = upasarga_dhatus.get(entry.code()).unwrap_or(&new);
+        let upasarga_groups = upasarga_dhatus.get(entry.code()).unwrap_or(&no_upasargas);
 
         for sanadi in &sanadis {
             for prefixes in upasarga_groups {

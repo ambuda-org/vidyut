@@ -430,6 +430,7 @@ impl BaseKrt {
                 | sen
                 | ase
                 | asen
+                | kamul
                 | kase
                 | kasen
                 | aDyE

@@ -8,6 +8,7 @@ use crate::core::errors::*;
 use std::path::Path;
 
 /// An entry in the Dhatupatha.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Entry {
     code: String,
     dhatu: Dhatu,
