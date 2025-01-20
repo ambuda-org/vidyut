@@ -102,16 +102,16 @@ pub enum PartOfSpeech {
 
 /// A subanta suffix as part of some paradigm.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct SubantaSuffix {
+pub struct SubantaSuffix {
     text: String,
     linga: Linga,
     vibhakti: Vibhakti,
     vacana: Vacana,
 }
 
-/// A sup paradigm.
+/// A subanta paradigm.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct SubantaParadigm {
+pub struct SubantaParadigm {
     endings: Vec<SubantaSuffix>,
 }
 
@@ -124,9 +124,19 @@ impl SubantaSuffix {
             vacana,
         }
     }
+
+    /// Returns the text of this suffix.
+    pub fn text(&self) -> &str {
+        &self.text
+    }
 }
 
 impl SubantaParadigm {
+    /// Returns all endings defined on this paradigm.
+    pub fn endings(&self) -> &[SubantaSuffix] {
+        &self.endings
+    }
+
     fn from_padas(padas: &[(String, Linga, Vibhakti, Vacana)]) -> Self {
         assert!(!padas.is_empty());
 
@@ -202,29 +212,28 @@ pub(crate) struct SmallKrdanta {
 #[bitfield(bits = 30)]
 #[derive(Debug)]
 pub struct PackedSubantaPrefix {
-    #[allow(unused)]
-    pratipadika_id: B21,
-    paradigm_id: B9,
+    pub pratipadika_id: B21,
+    pub paradigm_id: B9,
 }
 
-/// Semantics for an *avyaya*.
+/// Semantics for a *subanta*.
 #[bitfield(bits = 30)]
-struct PackedSubanta {
-    sup_id: B7,
-    pratipadika_id: B23,
+pub struct PackedSubanta {
+    pub sup_id: B7,
+    pub pratipadika_id: B23,
 }
 
 /// Semantics for a *tinanta*.
 #[bitfield(bits = 30)]
-struct PackedTinanta {
-    tin_id: B8,
-    dhatu_id: B22,
+pub struct PackedTinanta {
+    pub tin_id: B8,
+    pub dhatu_id: B22,
 }
 
 /// Semantics for an *avyaya*.
 #[bitfield(bits = 30)]
-struct PackedAvyaya {
-    pratipadika_id: B30,
+pub struct PackedAvyaya {
+    pub pratipadika_id: B30,
 }
 
 /// Semantics for a *pada*.
@@ -268,23 +277,23 @@ impl Tin {
 }
 
 impl PackedEntry {
-    /// Unsafely interprets this packed pada as an avyaya.
-    fn as_packed_avyaya(self) -> PackedAvyaya {
+    /// Interprets this packed pada as an avyaya.
+    pub fn as_packed_avyaya(self) -> PackedAvyaya {
         PackedAvyaya::from_bytes(self.payload().to_le_bytes())
     }
 
-    /// Unsafely interprets this packed pada as a subanta.
+    /// Interprets this packed pada as a subanta.
     pub fn as_packed_subanta_prefix(self) -> PackedSubantaPrefix {
         PackedSubantaPrefix::from_bytes(self.payload().to_le_bytes())
     }
 
-    /// Unsafely interprets this packed pada as a tinanta.
-    fn as_packed_subanta(self) -> PackedSubanta {
+    /// Interprets this packed pada as a tinanta.
+    pub fn as_packed_subanta(self) -> PackedSubanta {
         PackedSubanta::from_bytes(self.payload().to_le_bytes())
     }
 
-    /// Unsafely interprets this packed pada as a tinanta.
-    fn as_packed_tinanta(self) -> PackedTinanta {
+    /// Interprets this packed pada as a tinanta.
+    pub fn as_packed_tinanta(self) -> PackedTinanta {
         PackedTinanta::from_bytes(self.payload().to_le_bytes())
     }
 
@@ -310,7 +319,7 @@ struct Registry {
 }
 
 /// Packs and unpacks linguistic data.
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub(crate) struct Packer {
     sups: Vec<Sup>,
     sup_to_index: FxHashMap<Sup, Id>,
@@ -327,7 +336,7 @@ pub(crate) struct Packer {
     pub(crate) pratipadikas: Vec<SmallPratipadika>,
     pratipadika_to_index: FxHashMap<SmallPratipadika, Id>,
 
-    paradigms: Vec<SubantaParadigm>,
+    pub(crate) paradigms: Vec<SubantaParadigm>,
     paradigm_to_index: FxHashMap<SubantaParadigm, Id>,
 
     dhatu_meta: Vec<DhatuMeta>,
@@ -336,7 +345,7 @@ pub(crate) struct Packer {
 
 impl Packer {
     /// Creates a new packer.
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         let mut ret = Self::default();
 
         for linga in Linga::iter() {
@@ -428,7 +437,7 @@ impl Packer {
     }
 
     /// Writes the registry to disk.
-    pub fn write(&self, registry_path: &Path) -> Result<()> {
+    pub(crate) fn write(&self, registry_path: &Path) -> Result<()> {
         let registry = Registry {
             krts: self.krts.clone(),
             dhatus: self.dhatus.clone(),

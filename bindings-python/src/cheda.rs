@@ -71,6 +71,7 @@ impl PyChedaka {
 }
 
 #[pyclass(name = "Model")]
+#[allow(dead_code)]
 pub struct PyModel(Model);
 
 #[pyclass(name = "ModelBuilder")]

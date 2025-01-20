@@ -442,6 +442,17 @@ impl<'a> PadaEntry<'a> {
     }
 }
 
+impl<'a> From<PadaEntry<'a>> for Pada {
+    fn from(val: PadaEntry<'a>) -> Pada {
+        match val {
+            PadaEntry::Subanta(s) => Pada::Subanta(s.into()),
+            PadaEntry::Tinanta(t) => Pada::Tinanta(t.into()),
+            PadaEntry::Avyaya(a) => Pada::Subanta(a.into()),
+            PadaEntry::Unknown => Pada::Unknown("".to_string()),
+        }
+    }
+}
+
 impl<'a> TryFrom<&'a Pada> for PadaEntry<'a> {
     type Error = Error;
 

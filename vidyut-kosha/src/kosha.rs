@@ -35,7 +35,7 @@
 //! specific storage cost will vary depending on the words in the input list.
 use crate::entries::{DhatuEntry, PadaEntry, PratipadikaEntry};
 use crate::errors::{Error, Result};
-use crate::packing::{Id, PackedEntry, Packer, PartOfSpeech};
+use crate::packing::{Id, PackedEntry, Packer, PartOfSpeech, SubantaParadigm};
 use fst::map::Stream;
 use fst::raw::{Fst, Node, Output};
 use fst::{Map, MapBuilder};
@@ -139,6 +139,28 @@ impl Kosha {
     pub fn pratipadikas(&self) -> impl Iterator<Item = PratipadikaEntry> {
         let n = self.packer.pratipadikas.len();
         (0..n).filter_map(|i| self.packer.unpack_pratipadika(Id(i)).ok())
+    }
+
+    /// Returns an iterator over all of the paradigms contained in the kosha.
+    ///
+    /// Paradigms are an implementation detail, but they might be useful for better understanding
+    /// how the kosha is constructed.
+    ///
+    /// # Usage
+    ///
+    /// ```rust,no_run
+    /// # use vidyut_kosha::*;
+    /// use vidyut_kosha::Kosha;
+    ///
+    /// let kosha = Kosha::new("/path/to/kosha/data")?;
+    ///
+    /// for paradigm in kosha.paradigms() {
+    ///   println!("{:?}", paradigm);
+    /// }
+    /// # Ok::<(), Error>(())
+    /// ```
+    pub fn paradigms(&self) -> &[SubantaParadigm] {
+        &self.packer.paradigms
     }
 
     /// Returns a reference to this kosha's underlying FST.
@@ -365,7 +387,7 @@ impl Kosha {
         Ok(())
     }
 
-    /// Iterates over all keys in the FST.
+    /// Iterates over all key-value pairs in the FST.
     ///
     /// NOTE: this method currently has limited functionality for krdantas.
     pub fn stream(&self) -> Stream<'_> {
