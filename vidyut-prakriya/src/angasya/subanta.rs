@@ -86,7 +86,7 @@ fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
             p.run_at("6.4.10", i_anga, |t| {
                 t.set_at(c, &sub.to_string());
             });
-        } else if anga.has_text("ap")
+        } else if (anga.has_text("ap") && !anga.is_upasarga())
             || [K::tfn, K::tfc].iter().any(|k| anga.is(*k))
             || anga.has_tag(T::FlagTrjvat)
             || anga.is_any_phit(&[

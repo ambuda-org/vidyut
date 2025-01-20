@@ -1,6 +1,6 @@
 use std::fs::File;
 use tempfile::{tempdir, NamedTempFile};
-use vidyut_kosha::entries::PadaEntry;
+use vidyut_kosha::packing::PackedEntry;
 use vidyut_kosha::{Builder, Error, Kosha};
 
 fn assert_is_fst_error<T>(ret: Result<T, Error>) {
@@ -33,22 +33,6 @@ fn build_with_existing_file() {
 // No support for `Unknown`
 #[ignore]
 #[test]
-fn build_with_out_of_order_keys() {
-    let dir = tempdir().unwrap();
-    let path = dir.path().join("output");
-
-    let mut builder = Builder::new(&path).unwrap();
-
-    let ret = builder.insert("b", &PadaEntry::Unknown);
-    assert!(ret.is_ok());
-
-    let ret = builder.insert("a", &PadaEntry::Unknown);
-    assert_is_fst_error(ret);
-}
-
-// No support for `Unknown`
-#[ignore]
-#[test]
 fn build_with_too_many_duplicates() {
     let dir = tempdir().unwrap();
     let path = dir.path().join("output");
@@ -56,10 +40,10 @@ fn build_with_too_many_duplicates() {
     let mut builder = Builder::new(&path).unwrap();
 
     for _ in 0..=4225 {
-        let ret = builder.insert("a", &PadaEntry::Unknown);
+        let ret = builder.insert_packed("a", &PackedEntry::new());
         assert!(ret.is_ok());
     }
-    let ret = builder.insert("a", &PadaEntry::Unknown);
+    let ret = builder.insert_packed("a", &PackedEntry::new());
     assert!(ret.is_err());
 }
 

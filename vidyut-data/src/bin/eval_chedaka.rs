@@ -74,24 +74,25 @@ fn to_slp1(text: &str) -> String {
 /// Vidyut semantics and DCS semantics into a coarser space.
 fn as_code(w: &Token) -> String {
     match &w.data() {
-        PadaEntry::Subanta(s) => {
-            format!("n-{}-{}-{}", s.linga(), s.vibhakti(), s.vacana(),)
+        Some(PadaEntry::Subanta(s)) => {
+            if s.pratipadika_entry().is_avyaya() {
+                let val = match &s.pratipadika_entry() {
+                    PratipadikaEntry::Basic(_) => "i",
+                    PratipadikaEntry::Krdanta(k) => match k.krt() {
+                        vp::Krt::Base(vp::BaseKrt::ktvA) => "ktva",
+                        vp::Krt::Base(vp::BaseKrt::tumun) => "tumun",
+                        _ => "_",
+                    },
+                };
+                val.to_string()
+            } else {
+                format!("n-{}-{}-{}", s.linga(), s.vibhakti(), s.vacana(),)
+            }
         }
-        PadaEntry::Tinanta(s) => {
-            format!("v-{}-{}", s.purusha().as_str(), s.vacana().as_str())
+        Some(PadaEntry::Tinanta(t)) => {
+            format!("v-{}-{}", t.purusha().as_str(), t.vacana().as_str())
         }
-        PadaEntry::Unknown => "_".to_string(),
-        PadaEntry::Avyaya(a) => {
-            let val = match &a.pratipadika_entry() {
-                PratipadikaEntry::Basic(_) => "i",
-                PratipadikaEntry::Krdanta(k) => match k.krt() {
-                    vp::Krt::Base(vp::BaseKrt::ktvA) => "ktva",
-                    vp::Krt::Base(vp::BaseKrt::tumun) => "tumun",
-                    _ => "_",
-                },
-            };
-            val.to_string()
-        }
+        _ => "_".to_string(),
     }
 }
 

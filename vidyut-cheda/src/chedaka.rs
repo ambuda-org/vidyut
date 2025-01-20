@@ -17,7 +17,7 @@ pub struct Token<'a> {
     /// The underlying text of the given word.
     pub(crate) text: CompactString,
     /// The data associated with this word.
-    pub(crate) data: PadaEntry<'a>,
+    pub(crate) data: Option<PadaEntry<'a>>,
 }
 
 /// A small cache that stores all tokens seen during a segmentation.
@@ -82,7 +82,7 @@ impl<'a> Token<'a> {
     pub fn new(text: &str, data: PadaEntry<'a>) -> Self {
         Self {
             text: CompactString::from(text),
-            data,
+            data: Some(data),
         }
     }
 
@@ -92,20 +92,28 @@ impl<'a> Token<'a> {
     }
 
     /// The information we have about this word.
-    pub fn data(&self) -> &PadaEntry {
+    pub fn data(&self) -> &Option<PadaEntry> {
         &self.data
     }
 
     pub fn lemma(&self) -> &str {
-        self.data.lemma().unwrap_or("")
+        match &self.data {
+            Some(data) => data.lemma().unwrap_or(""),
+            _ => "",
+        }
     }
 
     pub fn pos_tag(&self) -> POSTag {
         match &self.data {
-            PadaEntry::Subanta(_) => POSTag::Subanta,
-            PadaEntry::Tinanta(_) => POSTag::Tinanta,
-            PadaEntry::Avyaya(_) => POSTag::Avyaya,
-            PadaEntry::Unknown => POSTag::Unknown,
+            Some(PadaEntry::Subanta(s)) => {
+                if s.pratipadika_entry().is_avyaya() {
+                    POSTag::Avyaya
+                } else {
+                    POSTag::Subanta
+                }
+            }
+            Some(PadaEntry::Tinanta(_)) => POSTag::Tinanta,
+            _ => POSTag::Unknown,
         }
     }
 }
@@ -167,7 +175,7 @@ impl Chedaka {
         let initial_state = Phrase::new(normalized_text.to_string());
 
         let mut pq = PriorityQueue::new();
-        let mut word_cache: FxHashMap<String, Vec<PadaEntry<'a>>> = FxHashMap::default();
+        let mut word_cache: FxHashMap<String, Vec<Option<PadaEntry<'a>>>> = FxHashMap::default();
         let mut token_pool: TokenPool<'a> = TokenPool::new();
 
         // viterbi_cache[remainder][state] = the best result that ends with $state and has $remainder
@@ -212,7 +220,7 @@ impl Chedaka {
                         };
                         let i = token_pool.insert(Token {
                             text: CompactString::from(first),
-                            data: PadaEntry::Unknown,
+                            data: None,
                         });
                         new.tokens.push(i);
                         new
@@ -226,7 +234,7 @@ impl Chedaka {
                         };
                         let i = token_pool.insert(Token {
                             text: CompactString::from(cur.remaining),
-                            data: PadaEntry::Unknown,
+                            data: None,
                         });
                         new.tokens.push(i);
                         new
@@ -302,11 +310,12 @@ impl Chedaka {
                     let token = token_pool.get(*i).expect("present").clone();
 
                     // Do this goofy round-trip to avoid lifetime complaints.
-                    let data = if token.data == PadaEntry::Unknown {
-                        PadaEntry::Unknown
-                    } else {
-                        let packed_data = self.kosha.pack(&token.data).expect("ok");
-                        self.kosha.unpack(packed_data).expect("ok")
+                    let data = match token.data {
+                        Some(data) => {
+                            let packed_data = self.kosha.pack(&data).expect("ok");
+                            Some(self.kosha.unpack(packed_data).expect("ok"))
+                        }
+                        None => None,
                     };
 
                     let token = Token {
@@ -327,17 +336,21 @@ impl Chedaka {
         &'a self,
         text: &str,
         split: &Split,
-        cache: &mut FxHashMap<String, Vec<PadaEntry<'a>>>,
+        cache: &mut FxHashMap<String, Vec<Option<PadaEntry<'a>>>>,
     ) -> Result<()> {
         if !cache.contains_key(text) {
-            let mut res = self.kosha.get_all(text);
+            let mut added = Vec::new();
+
+            for entry in self.kosha.get_all(text) {
+                added.push(Some(entry));
+            }
 
             // Add the option to skip an entire chunk. (For typos, junk, etc.)
             if split.is_end_of_chunk() || text.starts_with(|c| !sounds::is_sanskrit(c)) {
-                res.push(PadaEntry::Unknown);
+                added.push(None);
             }
 
-            cache.insert(text.to_string(), res);
+            cache.insert(text.to_string(), added);
         };
         Ok(())
     }

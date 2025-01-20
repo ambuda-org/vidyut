@@ -11,13 +11,14 @@ pub(crate) fn is_valid_word(
     cur: &Phrase,
     pool: &TokenPool,
     split: &Split,
-    semantics: &PadaEntry,
+    semantics: &Option<PadaEntry>,
 ) -> bool {
-    if let PadaEntry::Subanta(s) = &semantics {
-        if_purvapada_then_not_chunk_end(split, s)
-            && if_ac_pada_then_not_hal(split, s.is_purvapada())
-            && if_not_in_compound_then_linga_match(cur, pool, s)
-    } else if let PadaEntry::Tinanta(_) = &semantics {
+    if let Some(PadaEntry::Subanta(s)) = &semantics {
+        let x = if_purvapada_then_not_chunk_end(split, s);
+        let y = if_ac_pada_then_not_hal(split, s.is_purvapada());
+        let z = if_not_in_compound_then_linga_match(cur, pool, s);
+        x && y && z
+    } else if let Some(PadaEntry::Tinanta(_)) = &semantics {
         if_ac_pada_then_not_hal(split, false)
     } else {
         true
@@ -54,7 +55,7 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Suban
     let in_compound = match cur.tokens.last() {
         Some(i) => match pool.get(*i) {
             Some(t) => match &t.data {
-                PadaEntry::Subanta(s) => s.is_purvapada(),
+                Some(PadaEntry::Subanta(s)) => s.is_purvapada(),
                 _ => false,
             },
             None => false,
@@ -64,7 +65,10 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Suban
 
     if in_compound {
         true
+    } else if s.is_avyaya() {
+        true
     } else {
+        dbg!(s.pratipadika_entry());
         match s.pratipadika_entry() {
             PratipadikaEntry::Basic(b) => b.lingas().contains(&s.linga()),
             // Otherwise, any linga is allowed.
@@ -85,6 +89,7 @@ mod tests {
         Slp1String::from(s).expect("ok")
     }
 
+    // TODO: re-enable
     #[test]
     fn test_is_valid_word() {
         let cur = Phrase::new("tatra".to_string());
@@ -94,8 +99,8 @@ mod tests {
             Location::EndOfChunk,
             Kind::Prefix,
         );
-        let avyaya = Subanta::avyaya(Pratipadika::basic(safe("grAma")));
-        let data = PadaEntry::Avyaya((&avyaya).try_into().expect("ok"));
+        let avyaya = Subanta::avyaya(Pratipadika::avyaya(safe("tatra")));
+        let data = Some(PadaEntry::Subanta((&avyaya).try_into().expect("ok")));
 
         let mut token_pool = TokenPool::new();
         token_pool.insert(Token {

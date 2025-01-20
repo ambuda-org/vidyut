@@ -25,7 +25,7 @@ def test_run_for_word(chedaka, word):
     assert len(entries) == 1
 
     token = entries[0]
-    assert not isinstance(token.data, PadaEntry.Unknown)
+    assert not token.data is not None
 
 
 @pytest.mark.parametrize(

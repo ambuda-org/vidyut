@@ -12,14 +12,17 @@ pub struct PyToken {
     /// The token text.
     pub text: String,
     /// Other information associated with the token.
-    pub data: PyPadaEntry,
+    pub data: Option<PyPadaEntry>,
 }
 
 #[pymethods]
 impl PyToken {
     #[getter]
     fn lemma(&self) -> Option<String> {
-        self.data.lemma()
+        match &self.data {
+            Some(d) => d.lemma(),
+            _ => None,
+        }
     }
 
     fn __repr__(&self) -> String {
@@ -27,7 +30,10 @@ impl PyToken {
             "Token<(text=\'{}\', lemma='{}', info={})>",
             self.text,
             self.lemma().unwrap_or_default(),
-            self.data.__repr__()
+            self.data
+                .as_ref()
+                .map(|x| x.__repr__())
+                .unwrap_or("None".to_string()),
         )
     }
 }
@@ -62,7 +68,10 @@ impl PyChedaka {
         for token in tokens {
             ret.push(PyToken {
                 text: token.text().to_string(),
-                data: token.data().into(),
+                data: match token.data() {
+                    Some(data) => Some(data.into()),
+                    None => None,
+                },
             });
         }
 

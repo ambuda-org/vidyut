@@ -129,7 +129,7 @@ def test_dhatu__dunders():
 
 def test_pratipadika_new():
     p = Pratipadika.basic("deva")
-    assert repr(p) == "Pratipadika(text='deva')"
+    assert repr(p) == "Pratipadika(text='deva', is_avyaya=False)"
 
 
 def test_pratipadika_new__fails_if_no_args():
@@ -156,7 +156,7 @@ def test_pratipadika__dunders():
     _ = sorted([deva, eva])
 
     # __repr__
-    assert repr(deva) == "Pratipadika(text='deva')"
+    assert repr(deva) == "Pratipadika(text='deva', is_avyaya=False)"
 
 
 def test_subanta():

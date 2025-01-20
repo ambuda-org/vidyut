@@ -178,12 +178,19 @@ impl SmallRegistry {
                 linga,
                 vibhakti,
                 vacana,
-            } => PadaEntry::Subanta(SubantaEntry::new(
-                self.to_pratipadika_entry(pratipadika_entry)?,
-                (*linga).into(),
-                (*vibhakti).into(),
-                (*vacana).into(),
-            )),
+            } => {
+                let rs_phit_entry = self.to_pratipadika_entry(pratipadika_entry)?;
+                if let (Some(li), Some(vi), Some(va)) = (linga, vibhakti, vacana) {
+                    PadaEntry::Subanta(SubantaEntry::new(
+                        rs_phit_entry,
+                        (*li).into(),
+                        (*vi).into(),
+                        (*va).into(),
+                    ))
+                } else {
+                    PadaEntry::Subanta(SubantaEntry::avyaya(rs_phit_entry))
+                }
+            }
             PyPadaEntry::Tinanta {
                 dhatu_entry,
                 prayoga,
@@ -197,10 +204,6 @@ impl SmallRegistry {
                 (*purusha).into(),
                 (*vacana).into(),
             )),
-            PyPadaEntry::Avyaya { pratipadika_entry } => PadaEntry::Avyaya(SubantaEntry::avyaya(
-                self.to_pratipadika_entry(pratipadika_entry)?,
-            )),
-            PyPadaEntry::Unknown() => PadaEntry::Unknown,
         };
 
         Ok(ret)

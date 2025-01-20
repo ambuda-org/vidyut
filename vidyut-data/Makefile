@@ -27,7 +27,7 @@ create_sandhi_rules:
 
 # Creates a kosha and write it to disk.
 create_kosha:
-	RUST_LOG=info cargo run --release --bin create_kosha -- \
+	RUST_BACKTRACE=1 RUST_LOG=info cargo run --release --bin create_kosha -- \
 			 --input-dir data/raw/lex \
 			 --dhatupatha ../vidyut-prakriya/data/dhatupatha.tsv \
 			 --output-dir data/build/vidyut-latest/kosha

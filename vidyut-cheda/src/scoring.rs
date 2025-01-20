@@ -64,13 +64,18 @@ impl State {
     }
 }
 
-impl<'a> From<&PadaEntry<'a>> for State {
-    fn from(val: &PadaEntry) -> Self {
+impl<'a> From<&Option<PadaEntry<'a>>> for State {
+    fn from(val: &Option<PadaEntry>) -> Self {
         match val {
-            PadaEntry::Subanta(s) => State::Subanta(s.linga(), s.vibhakti(), s.vacana()),
-            PadaEntry::Tinanta(t) => State::Tinanta(t.purusha(), t.vacana()),
-            PadaEntry::Avyaya(_) => State::Avyaya,
-            PadaEntry::Unknown => State::Unknown,
+            Some(PadaEntry::Subanta(s)) => {
+                if s.pratipadika_entry().is_avyaya() {
+                    State::Subanta(s.linga(), s.vibhakti(), s.vacana())
+                } else {
+                    State::Avyaya
+                }
+            }
+            Some(PadaEntry::Tinanta(t)) => State::Tinanta(t.purusha(), t.vacana()),
+            None => State::Unknown,
         }
     }
 }
@@ -170,11 +175,15 @@ impl Model {
             let last = pool.get(*i_last).expect("present");
             let cur_state = self.to_state_code(last.data());
 
-            let maybe_lemma_log_prob = (|| {
+            let maybe_lemma_log_prob = {
                 let pada = last.data();
                 let state: State = pada.into();
-                self.lemma_log_probability(&pada.lemma()?, state.pos_tag())
-            })();
+                let lemma = match pada {
+                    Some(p) => p.lemma().unwrap_or(""),
+                    None => "",
+                };
+                self.lemma_log_probability(lemma, state.pos_tag())
+            };
 
             let lemma_log_prob = match maybe_lemma_log_prob {
                 Some(p) => p,
@@ -201,10 +210,11 @@ impl Model {
     }
 
     /// Packs a PadaEntry into a `StateCode`.
-    pub(crate) fn to_state_code(&self, entry: &PadaEntry) -> StateCode {
+    pub(crate) fn to_state_code(&self, entry: &Option<PadaEntry>) -> StateCode {
         let state: State = entry.into();
         match self.states.get(&state) {
             Some(c) => *c,
+            // = Unknown
             None => StateCode(0),
         }
     }

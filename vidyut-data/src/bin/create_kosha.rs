@@ -5,7 +5,7 @@ use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process;
-use vidyut_kosha::entries::{DhatuEntry, PadaEntry, PratipadikaEntry, SubantaEntry};
+use vidyut_kosha::entries::{DhatuEntry, PadaEntry, PratipadikaEntry, SubantaEntry, TinantaEntry};
 use vidyut_kosha::packing::PackedEntry;
 use vidyut_kosha::Builder;
 use vidyut_prakriya::args::*;
@@ -16,6 +16,7 @@ type UpasargaDhatuMap = HashMap<String, Vec<Vec<String>>>;
 type Pratipadikas = Vec<(String, Pratipadika)>;
 type Entries = Vec<(String, PackedEntry)>;
 type SmallSubanta = (String, Linga, Vibhakti, Vacana);
+type SmallTinanta = (String, Prayoga, Lakara, Purusha, Vacana);
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -280,33 +281,94 @@ fn create_bare_krdantas(all_dhatus: &[Dhatu]) -> Vec<Krdanta> {
 /// - `dhatu` comes from the Dhatupatha on ashtadhyayi.com
 ///
 /// TODO: gati, cvi
-fn create_all_tinantas(builder: &Builder, all_dhatus: &[Dhatu]) -> Entries {
+fn create_all_tinantas(builder: &mut Builder, all_dhatus: &[Dhatu]) -> Entries {
     let plpv = tin_options();
     let v = create_vyakarana();
 
-    all_dhatus
+    let paradigms: Vec<(Dhatu, Vec<SmallTinanta>)> = all_dhatus
         .par_chunks(1 + all_dhatus.len() / 100)
         .flat_map(|chunk| {
             let mut ret = Vec::new();
 
             for dhatu in chunk {
-                let dhatu = dhatu.clone();
-                for (prayoga, lakara, purusha, vacana) in plpv.iter().copied() {
-                    let args = Tinanta::new(dhatu.clone(), prayoga, lakara, purusha, vacana);
+                for variant in v.derive_dhatus(dhatu) {
+                    // Restrict all padas to use the same rule choices as this pratipadika variant.
+                    // This properly groups padas by their common prefix and lets us generate a
+                    // useful paradigm.
+                    let v_variant = create_vyakarana()
+                        .into_builder()
+                        .rule_choices(variant.rule_choices().to_vec())
+                        .build();
+                    let dhatu = dhatu.clone();
+                    let mut padas = Vec::new();
+                    for (prayoga, lakara, purusha, vacana) in plpv.iter().copied() {
+                        let args = Tinanta::new(dhatu.clone(), prayoga, lakara, purusha, vacana);
 
-                    let prakriyas = v.derive_tinantas(&args);
-                    for prakriya in prakriyas {
-                        let text = prakriya.text();
-                        let entry = PadaEntry::Tinanta((&args).into());
-                        let packed_entry = builder.pack(&entry).expect("ok");
-                        ret.push((text, packed_entry))
+                        let prakriyas = v_variant.derive_tinantas(&args);
+                        for prakriya in prakriyas {
+                            let text = prakriya.text();
+                            padas.push((text, prayoga, lakara, purusha, vacana));
+                        }
                     }
+                    ret.push((dhatu.clone(), padas));
                 }
             }
 
             ret.into_par_iter()
         })
-        .collect()
+        .collect();
+
+    let mut entries = Vec::new();
+    for (dhatu, padas) in paradigms {
+        let dhatu_entry = DhatuEntry::new(&dhatu, "");
+
+        let mut common_prefix = String::from(&padas[0].0);
+        for pada in &padas[1..] {
+            for ((i, x), y) in common_prefix.char_indices().zip(pada.0.chars()) {
+                if x != y {
+                    common_prefix.truncate(i);
+                    break;
+                }
+            }
+        }
+
+        let mut paradigm_padas = Vec::new();
+        let mut normal_padas = Vec::new();
+        for pada in padas {
+            // not enough in common, and `a` prefix throws things off
+            if matches!(pada.2, Lakara::Lun | Lakara::Lan | Lakara::Lrn)
+            // too noisy
+            || dhatu.sanadi().contains(&Sanadi::yaNluk)
+            // ordinary verbs don't create clean paradigms
+            || dhatu.sanadi().is_empty()
+            // no shared prefix at all
+            || common_prefix.is_empty()
+            {
+                normal_padas.push(pada);
+            } else {
+                paradigm_padas.push(pada);
+            }
+        }
+
+        if !paradigm_padas.is_empty() {
+            let (prefix, prefix_entry) = builder
+                .register_tinanta_paradigm(&dhatu_entry, &paradigm_padas)
+                .expect("ok");
+            entries.push((prefix, prefix_entry));
+        }
+
+        for pada in normal_padas {
+            let entry = TinantaEntry::new(dhatu_entry.clone(), pada.1, pada.2, pada.3, pada.4);
+            let packed_entry = builder.pack(&entry.into()).expect("ok");
+            entries.push((pada.0, packed_entry));
+        }
+    }
+
+    // Needed to avoid spurious optional rules, which cause the dhatu set to
+    // overgenerate.
+    entries.par_sort();
+    entries.dedup();
+    entries
 }
 
 /// Creates all krdantas that form nominals.
@@ -361,13 +423,41 @@ fn create_inflected_krt_subantas(builder: &mut Builder, all_krdantas: &[Krdanta]
         let phit_entry = (&phit).try_into().expect("ok");
         builder.register_pratipadika_entry(&phit_entry);
 
-        // Prefixed subantas.
-        let (key, value) = builder
-            .register_subanta_paradigm(&(&phit).try_into().expect("ok"), &padas)
-            .expect("ok");
+        let mut common_prefix = String::from(&padas[0].0);
+        for pada in &padas[1..] {
+            for ((i, x), y) in common_prefix.char_indices().zip(pada.0.chars()) {
+                if x != y {
+                    common_prefix.truncate(i);
+                    break;
+                }
+            }
+        }
 
-        entries.push((key, value));
+        if common_prefix.len() < 2 {
+            // Often 0 for kvip-pratyayas (Duk, duhAm), etc.
+            for (text, linga, vibhakti, vacana) in padas {
+                let entry = PadaEntry::Subanta(SubantaEntry::new(
+                    phit_entry.clone(),
+                    linga,
+                    vibhakti,
+                    vacana,
+                ));
+                let packed_semantics = builder.pack(&entry).expect("valid");
+                entries.push((text, packed_semantics));
+            }
+        } else {
+            let (key, value) = builder
+                .register_subanta_paradigm(&(&phit).try_into().expect("ok"), &padas)
+                .expect("ok");
+
+            entries.push((key, value));
+        }
     }
+
+    // Needed to avoid spurious optional rules, which cause the dhatu set to
+    // overgenerate.
+    entries.sort();
+    entries.dedup();
 
     entries
 }
@@ -402,7 +492,7 @@ fn create_avyaya_krt_subantas(builder: &mut Builder, all_dhatus: &[Dhatu]) -> En
                 let prakriyas = v.derive_subantas(&args);
                 for prakriya in &prakriyas {
                     let text = prakriya.text();
-                    let entry = PadaEntry::Avyaya((&args).try_into().expect("ok"));
+                    let entry = PadaEntry::Subanta((&args).try_into().expect("ok"));
                     let packed_semantics = builder.pack(&entry).expect("valid");
                     ret.push((text, packed_semantics))
                 }
@@ -700,7 +790,7 @@ fn create_avyayas(builder: &Builder, avyaya_pratipadikas: &Pratipadikas) -> Entr
                 let text = x.text();
                 // TODO: add spelling variants later. For now, buggy.
                 let args = Subanta::avyaya(prati.clone());
-                let entry = PadaEntry::Avyaya((&args).try_into().expect("ok"));
+                let entry = PadaEntry::Subanta((&args).try_into().expect("ok"));
 
                 let packed_entry = builder.pack(&entry).expect("ok");
                 ret.push((text.to_string(), packed_entry))
@@ -790,8 +880,11 @@ fn run(args: Args) -> Result<()> {
             info!("");
             info!("Tinantas");
             info!("---------------------");
-            let all_tinantas = create_all_tinantas(&builder, &all_dhatus);
-            info!("Created {} tinantas.", all_tinantas.len());
+            let all_tinantas = create_all_tinantas(&mut builder, &all_dhatus);
+            info!(
+                "Created {} tinanta entries (prefixes + padas).",
+                all_tinantas.len()
+            );
             entries.extend(all_tinantas);
         }
 

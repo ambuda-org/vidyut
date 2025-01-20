@@ -355,17 +355,11 @@ impl PyVyakarana {
                 linga,
                 vibhakti,
                 vacana,
-                is_avyaya,
             } => {
-                let args = if is_avyaya {
-                    Subanta::avyaya(pratipadika.as_ref())
+                let args = if let (Some(li), Some(vi), Some(va)) = (linga, vibhakti, vacana) {
+                    Subanta::new(pratipadika.as_ref(), li.into(), vi.into(), va.into())
                 } else {
-                    Subanta::new(
-                        pratipadika.as_ref(),
-                        linga.into(),
-                        vibhakti.into(),
-                        vacana.into(),
-                    )
+                    Subanta::avyaya(pratipadika.as_ref())
                 };
                 let results = self.0.derive_subantas(&args);
                 to_py_prakriyas(results)
@@ -451,7 +445,6 @@ impl PyVyakarana {
     /// Exceptions:
     ///
     /// - :exc:`TypeError` if `args` is not one of the types above.
-    /// - :exc:`ValueError` if `args` is `PadaEntry.Unknown()`.
     ///
     /// Results are returned as a list of :class:`~vidyut.prakriya.Prakriya` objects.
     pub fn derive(&self, args: Derivable) -> PyResult<Vec<PyPrakriya>> {

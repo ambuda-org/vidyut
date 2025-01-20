@@ -70,7 +70,7 @@ fn test_tinantas(kosha: &Kosha) {
     info!("Testing tinantas.");
 
     let dhatus: Vec<_> = kosha.dhatus().collect();
-    assert!(dhatus.len() > 10_000);
+    assert!(dhatus.len() > 30_000);
 
     let v = create_vyakarana();
     let plpv = tin_options();

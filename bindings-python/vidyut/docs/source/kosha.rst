@@ -67,7 +67,53 @@ structure and usage.
 ~~~~~~~~~~~~~~~~~~
 
 The core return type is :class:`PadaEntry`, which contains morphological data
-for a single Sanskrit *pada*. :class:`PadaEntry` has four basic varieties:
+for a single Sanskrit *pada*. :class:`PadaEntry` has two basic varieties. The
+first variety is `PadaEntry.Subanta`, which models a *subanta* (nominal):
+
+.. testcode::
+
+    from vidyut.kosha import PratipadikaEntry, PadaEntry
+    from vidyut.prakriya import Pratipadika, Linga, Vibhakti, Vacana
+
+    rama = Pratipadika.basic("rAma")
+    rama_entry = PratipadikaEntry.Basic(pratipadika=rama, lingas=[Linga.Pum])
+    ramah = PadaEntry.Subanta(
+        pratipadika_entry=rama_entry,
+        linga=Linga.Pum,
+        vibhakti=Vibhakti.Prathama,
+        vacana=Vacana.Eka)
+    assert ramah.lemma == "rAma"
+
+`PadaEntry.Subanta` also models an *avyaya* (indeclinable):
+
+.. testcode::
+
+    from vidyut.kosha import PratipadikaEntry, PadaEntry
+    from vidyut.prakriya import Pratipadika
+
+    ca = Pratipadika.basic("ca", is_avyaya=True)
+    ca_entry = PratipadikaEntry.Basic(pratipadika=ca, lingas=[])
+    pada = PadaEntry.Subanta(pratipadika_entry=ca_entry)
+    assert pada.is_avyaya
+
+The second variety is `PadaEntry.Tinanta`, which models a *tinanta* (verb):
+
+.. testcode::
+
+    from vidyut.kosha import DhatuEntry, PadaEntry
+    from vidyut.prakriya import Dhatu, Gana, Prayoga, Lakara, Purusha, Vacana
+
+    gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
+    gam_entry = DhatuEntry(dhatu=gam, clean_text="gam")
+    gacchati = PadaEntry.Tinanta(
+        dhatu_entry=gam_entry,
+        prayoga=Prayoga.Kartari,
+        lakara=Lakara.Lat,
+        purusha=Purusha.Prathama,
+        vacana=Vacana.Eka)
+    assert gacchati.lemma == "gam"
+
+You can separate these two cases by using a ``match`` statement:
 
 .. testcode::
 
@@ -80,81 +126,10 @@ for a single Sanskrit *pada*. :class:`PadaEntry` has four basic varieties:
                 return "subanta"
             case PadaEntry.Tinanta():
                 return "tinanta"
-            case PadaEntry.Avyaya():
-                return "avyaya"
-            case PadaEntry.Unknown():
-                return "unknown"
 
-    unk = PadaEntry.Unknown()
-    assert check_type(unk) == "unknown"
-        
-The first variety is `PadaEntry.Subanta`, which models a *subanta* (nominal):
-
-.. testcode::
-
-    from vidyut.kosha import PratipadikaEntry, PadaEntry
-    from vidyut.prakriya import Pratipadika, Linga, Vibhakti, Vacana
-
-    rama = Pratipadika.basic("rAma")
-    rama_entry = PratipadikaEntry.Basic(pratipadika=rama, lingas=[Linga.Pum])
-    pada = PadaEntry.Subanta(
-        pratipadika_entry=rama_entry,
-        linga=Linga.Pum,
-        vibhakti=Vibhakti.Prathama,
-        vacana=Vacana.Eka)
-    assert pada.lemma == "rAma"
-
-.. testoutput::
-   :hide:
-   :options: +IGNORE_RESULT
-
-The second variety is `PadaEntry.Tinanta`, which models a *tinanta* (verb):
-
-.. testcode::
-
-    from vidyut.kosha import DhatuEntry, PadaEntry
-    from vidyut.prakriya import Dhatu, Gana, Prayoga, Lakara, Purusha, Vacana
-
-    gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
-    gam_entry = DhatuEntry(dhatu=gam, clean_text="gam")
-    pada = PadaEntry.Tinanta(
-        dhatu_entry=gam_entry,
-        prayoga=Prayoga.Kartari,
-        lakara=Lakara.Lat,
-        purusha=Purusha.Prathama,
-        vacana=Vacana.Eka)
-    assert pada.lemma == "gam"
-
-.. testoutput::
-   :hide:
-   :options: +IGNORE_RESULT
-
-The third variety is `PadaEntry.Avyaya`, which models an *avyaya* (indeclinable):
-
-.. testcode::
-
-    from vidyut.kosha import PratipadikaEntry, PadaEntry
-    from vidyut.prakriya import Pratipadika
-
-    ca = Pratipadika.basic("ca")
-    ca_entry = PratipadikaEntry.Basic(pratipadika=ca, lingas=[])
-    pada = PadaEntry.Avyaya(pratipadika_entry=ca_entry)
-    assert pada.lemma == "ca"
-
-The fourth and final variety is `PadaEntry.Unknown`, which models that data
-is missing or unknown:
-
-.. testcode::
-
-    from vidyut.kosha import PadaEntry
-
-    unk = PadaEntry.Unknown()
-    assert unk.lemma is None
-
-.. testoutput::
-   :hide:
-   :options: +IGNORE_RESULT
-
+    assert check_type(ramah) == "subanta"
+    assert check_type(gacchati) == "tinanta"
+ 
 
 :class:`PratipadikaEntry`
 ~~~~~~~~~~~~~~~~~~~~~~~~~

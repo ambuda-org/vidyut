@@ -26,9 +26,9 @@ def create_kosha(output_dir):
     for word in words:
         # For this test, we don't care about the semantics, so just use
         # "avyaya" for the semantics.
-        pada = PadaEntry.Avyaya(
+        pada = PadaEntry.Subanta(
             pratipadika_entry=PratipadikaEntry.Basic(
-                pratipadika=Pratipadika.basic(word), lingas=[]
+                pratipadika=Pratipadika.basic(word, is_avyaya=True), lingas=[]
             ),
         )
         b.insert(word, pada)
@@ -101,7 +101,7 @@ def test_run__unknown_word(chedaka):
     assert len(tokens) == 1
     gacchati = tokens[0]
     assert gacchati.text == "gacCatf"
-    assert gacchati.data == PadaEntry.Unknown()
+    assert gacchati.data is None
 
 
 def test_run__invalid_input(chedaka):

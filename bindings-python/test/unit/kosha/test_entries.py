@@ -93,7 +93,8 @@ def test_pratipadika_entry__dunders():
 
     # __repr__
     assert repr(rama_entry) == (
-        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='rAma'), lingas=[Linga.Pum])"
+        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='rAma', is_avyaya=False), "
+        "lingas=[Linga.Pum])"
     )
 
     assert repr(gata_entry) == (
@@ -147,21 +148,17 @@ def test_pada_entry__tinanta():
 
 
 def test_pada_entry__avyaya():
-    ca = Pratipadika.basic("ca")
+    ca = Pratipadika.basic("ca", is_avyaya=True)
     ca_entry = PratipadikaEntry.Basic(pratipadika=ca, lingas=[])
-    pada = PadaEntry.Avyaya(pratipadika_entry=ca_entry)
+    pada = PadaEntry.Subanta(pratipadika_entry=ca_entry)
 
     assert pada.pratipadika_entry == ca_entry
     assert pada.lemma == "ca"
+    assert pada.is_avyaya
 
     v = Vyakarana()
     results = {p.text for p in v.derive(pada)}
     assert results == {"ca"}
-
-
-def test_pada_entry__unknown():
-    unk = PadaEntry.Unknown()
-    assert unk.lemma is None
 
 
 def test_pada_entry__dunders():
@@ -184,23 +181,22 @@ def test_pada_entry__dunders():
         vacana=Vacana.Eka,
     )
 
-    ca = Pratipadika.basic("ca")
+    ca = Pratipadika.basic("ca", is_avyaya=True)
     ca_entry = PratipadikaEntry.Basic(pratipadika=ca, lingas=[])
-    ca_pada = PadaEntry.Avyaya(pratipadika_entry=ca_entry)
-
-    unk_pada = PadaEntry.Unknown()
+    ca_pada = PadaEntry.Subanta(pratipadika_entry=ca_entry)
 
     # __eq__, __ne__
     assert rama_pada == rama_pada
     assert rama_pada != gacchati_pada
 
     # __lt__, __gt__
-    _ = sorted([rama_pada, gacchati_pada, ca_pada, unk_pada])
+    _ = sorted([rama_pada, gacchati_pada, ca_pada])
 
     # __repr__
     assert repr(rama_pada) == (
         "PadaEntry.Subanta("
-        "pratipadika_entry=PratipadikaEntry.Basic(pratipadika=Pratipadika(text='rAma'), lingas=[Linga.Pum]), "
+        "pratipadika_entry=PratipadikaEntry.Basic("
+        "pratipadika=Pratipadika(text='rAma', is_avyaya=False), lingas=[Linga.Pum]), "
         "linga=Linga.Pum, vibhakti=Vibhakti.Prathama, vacana=Vacana.Eka)"
     )
 
@@ -211,8 +207,7 @@ def test_pada_entry__dunders():
     )
 
     assert repr(ca_pada) == (
-        "PadaEntry.Avyaya(pratipadika_entry="
-        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='ca'), lingas=[]))"
+        "PadaEntry.Subanta(pratipadika_entry="
+        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='ca', is_avyaya=True), lingas=[]), "
+        "linga=None, vibhakti=None, vacana=None)"
     )
-
-    assert repr(unk_pada) == "PadaEntry.Unknown()"

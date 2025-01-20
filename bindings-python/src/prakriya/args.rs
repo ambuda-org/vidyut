@@ -1193,7 +1193,15 @@ impl PyPratipadika {
 impl PyPratipadika {
     pub fn __repr__(&self) -> String {
         match &self.pratipadika {
-            Pratipadika::Basic(_) => format!("Pratipadika(text='{}')", self.text),
+            Pratipadika::Basic(_) => format!(
+                "Pratipadika(text='{}', is_avyaya={})",
+                self.text,
+                if self.pratipadika.is_avyaya() {
+                    "True"
+                } else {
+                    "False"
+                }
+            ),
             _ => "Pratipadika(...)".to_string(),
         }
     }
@@ -1202,8 +1210,8 @@ impl PyPratipadika {
     ///
     /// `text` should be an SLP1 string.
     #[staticmethod]
-    #[pyo3(signature = (text))]
-    pub fn basic(text: String) -> PyResult<Self> {
+    #[pyo3(signature = (text, is_avyaya=false))]
+    pub fn basic(text: String, is_avyaya: bool) -> PyResult<Self> {
         let safe = match Slp1String::from(text.clone()) {
             Ok(s) => s,
             Err(_) => {
@@ -1213,7 +1221,11 @@ impl PyPratipadika {
             }
         };
         Ok(Self {
-            pratipadika: Pratipadika::basic(safe),
+            pratipadika: if is_avyaya {
+                Pratipadika::avyaya(safe)
+            } else {
+                Pratipadika::basic(safe)
+            },
             text,
         })
     }
@@ -1248,6 +1260,12 @@ impl PyPratipadika {
             _ => None,
         }
     }
+
+    /// Whether or not this pratipadika represents an *avyaya*.
+    #[getter]
+    pub fn is_avyaya(&self) -> bool {
+        self.pratipadika.is_avyaya()
+    }
 }
 
 impl From<Pratipadika> for PyPratipadika {
@@ -1273,13 +1291,12 @@ impl From<Pratipadika> for PyPratipadika {
 #[pyclass(name = "Pada", module = "prakriya", eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum PyPada {
-    #[pyo3(constructor = (pratipadika, linga, vibhakti, vacana, *, is_avyaya = false))]
+    #[pyo3(constructor = (pratipadika, linga, vibhakti, vacana, *))]
     Subanta {
         pratipadika: PyPratipadika,
-        linga: PyLinga,
-        vibhakti: PyVibhakti,
-        vacana: PyVacana,
-        is_avyaya: bool,
+        linga: Option<PyLinga>,
+        vibhakti: Option<PyVibhakti>,
+        vacana: Option<PyVacana>,
     },
 
     #[pyo3(constructor = (dhatu, prayoga, lakara, purusha, vacana, *, dhatu_pada = None, skip_at_agama = false))]
@@ -1300,10 +1317,9 @@ impl PyPada {
     pub fn make_avyaya(pratipadika: PyPratipadika) -> Self {
         Self::Subanta {
             pratipadika: pratipadika.clone(),
-            linga: PyLinga::Pum,
-            vibhakti: PyVibhakti::Prathama,
-            vacana: PyVacana::Eka,
-            is_avyaya: true,
+            linga: None,
+            vibhakti: None,
+            vacana: None,
         }
     }
 }

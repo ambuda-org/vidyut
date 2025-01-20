@@ -35,7 +35,7 @@
 //! specific storage cost will vary depending on the words in the input list.
 use crate::entries::{DhatuEntry, PadaEntry, PratipadikaEntry};
 use crate::errors::{Error, Result};
-use crate::packing::{Id, PackedEntry, Packer, PartOfSpeech, SubantaParadigm};
+use crate::packing::{Id, PackedEntry, Packer, SubantaSuffixes, TinantaSuffixes};
 use fst::map::Stream;
 use fst::raw::{Fst, Node, Output};
 use fst::{Map, MapBuilder};
@@ -44,7 +44,7 @@ use rustc_hash::FxHashMap;
 use std::fs::File;
 use std::io;
 use std::path::{Path, PathBuf};
-use vidyut_prakriya::args::{Linga, Vacana, Vibhakti};
+use vidyut_prakriya::args::{Lakara, Linga, Prayoga, Purusha, Vacana, Vibhakti};
 
 // Use the range [0, 64] to avoid confusion with the ASCII range, which starts at 65 (01000001,
 // i.e. uppercase `A`).
@@ -143,8 +143,8 @@ impl Kosha {
 
     /// Returns an iterator over all of the paradigms contained in the kosha.
     ///
-    /// Paradigms are an implementation detail, but they might be useful for better understanding
-    /// how the kosha is constructed.
+    /// Suffix tables are an implementation detail, but they might be useful for better
+    /// understanding how the kosha is constructed.
     ///
     /// # Usage
     ///
@@ -154,13 +154,35 @@ impl Kosha {
     ///
     /// let kosha = Kosha::new("/path/to/kosha/data")?;
     ///
-    /// for paradigm in kosha.paradigms() {
-    ///   println!("{:?}", paradigm);
+    /// for suffixes in kosha.subanta_suffixes() {
+    ///   println!("{:?}", suffixes);
     /// }
     /// # Ok::<(), Error>(())
     /// ```
-    pub fn paradigms(&self) -> &[SubantaParadigm] {
-        &self.packer.paradigms
+    pub fn subanta_suffixes(&self) -> &[SubantaSuffixes] {
+        &self.packer.subanta_suffixes
+    }
+
+    /// Returns an iterator over all of the tinanta suffix tables contained in the kosha.
+    ///
+    /// Suffx tables are an implementation detail, but they might be useful for better
+    /// understanding how the kosha is constructed.
+    ///
+    /// # Usage
+    ///
+    /// ```rust,no_run
+    /// # use vidyut_kosha::*;
+    /// use vidyut_kosha::Kosha;
+    ///
+    /// let kosha = Kosha::new("/path/to/kosha/data")?;
+    ///
+    /// for suffixes in kosha.tinanta_suffixes() {
+    ///   println!("{:?}", suffixes);
+    /// }
+    /// # Ok::<(), Error>(())
+    /// ```
+    pub fn tinanta_suffixes(&self) -> &[TinantaSuffixes] {
+        &self.packer.tinanta_suffixes
     }
 
     /// Returns a reference to this kosha's underlying FST.
@@ -200,7 +222,7 @@ impl Kosha {
             };
             if node.is_final() {
                 let suffix = &key[i_b + 1..];
-                if self.contains_subanta_suffix(suffix, node, out) {
+                if self.contains_suffix(suffix, node, out) {
                     return true;
                 }
             }
@@ -208,24 +230,21 @@ impl Kosha {
         node.is_final()
     }
 
-    fn contains_subanta_suffix(&self, suffix: &str, node: Node, out_base: Output) -> bool {
-        let entry_base = to_packed_entry(out_base);
+    fn contains_suffix(&self, suffix: &str, node: Node, out_base: Output) -> bool {
+        let prefix_entry = to_packed_entry(out_base);
 
-        if entry_base.pos() == PartOfSpeech::SubantaPrefix {
-            let entry_base = entry_base.as_packed_subanta_prefix();
-            if self.packer.contains_subanta_suffix(&entry_base, suffix) {
-                return true;
-            }
+        if self.packer.contains_suffix(&prefix_entry, suffix) {
+            return true;
         }
 
         let fst = self.fst.as_fst();
-        for c1 in 0..=DUPES_PER_BYTE {
+        for c1 in 0..DUPES_PER_BYTE {
             if let Some(i1) = node.find_input(c1) {
                 let t1 = node.transition(i1);
                 let o1 = out_base.cat(t1.out);
                 let n1 = fst.node(t1.addr);
 
-                for c2 in 0..=DUPES_PER_BYTE {
+                for c2 in 0..DUPES_PER_BYTE {
                     if let Some(i2) = n1.find_input(c2) {
                         let t2 = n1.transition(i2);
                         let o2 = o1.cat(t2.out);
@@ -236,11 +255,8 @@ impl Kosha {
 
                         let output = o2.cat(n2.final_output());
                         let entry = to_packed_entry(output);
-                        if entry.pos() == PartOfSpeech::SubantaPrefix {
-                            let entry = entry.as_packed_subanta_prefix();
-                            if self.packer.contains_subanta_suffix(&entry, suffix) {
-                                return true;
-                            }
+                        if self.packer.contains_suffix(&entry, suffix) {
+                            return true;
                         }
                     } else {
                         return false;
@@ -299,67 +315,86 @@ impl Kosha {
     /// ```
     #[inline]
     pub fn get_all(&self, key: &str) -> Vec<PadaEntry> {
-        let mut ret = Vec::new();
+        // This code is complex, so it has extensive comments.
 
+        // Start by walking the FST. We do so by moving from node to node and incrementing
+        // an output value for each edge we traverse.
+        //
+        // We have two types of entries to handle:
+        // - complete words
+        // - prefixes, which point to a suffix table.
+        //
+        // We use prefixes because they save an enormous amount of space when used well.
+        let mut ret = Vec::new();
         let fst = self.fst.as_fst();
         let mut node = fst.root();
         let mut out = Output::zero();
         for (i_b, b) in key.bytes().enumerate() {
             node = match node.find_input(b) {
-                None => return ret,
+                None => {
+                    // No more matches from this string -- return what we have so far.
+                    return ret;
+                }
                 Some(i) => {
+                    // Still searching -- transition to next sode and state.
                     let t = node.transition(i);
                     out = out.cat(t.out);
                     fst.node(t.addr)
                 }
             };
 
-            // Possible subanta prefix -- check for all suffix matches.
+            // Possible prefix -- check for all suffix matches.
             if node.is_final() {
-                let out_final = out.cat(node.final_output());
                 let suffix = &key[i_b + 1..];
-                self.get_all_from_subanta_suffixes(&mut ret, suffix, node, out_final)
-                    .ok();
+                self.get_all_for_suffix(&mut ret, suffix, node, out).ok();
             }
         }
 
+        // Exact match with input word. This is NOT a prefix and should not use prefix logic.
         if node.is_final() {
             let packed = to_packed_entry(out.cat(node.final_output()));
-            let entry = match self.packer.unpack(&packed) {
-                Ok(e) => e,
-                _ => panic!("aoeu"),
-            };
+            if !packed.is_prefix() {
+                let entry = match self.packer.unpack(&packed) {
+                    Ok(e) => e,
+                    _ => {
+                        // TODO: not sure how to handle this condition.
+                        // This should never happen.
+                        return ret;
+                    }
+                };
 
-            ret.push(entry);
-            self.add_duplicates(node, out, fst, &mut ret);
+                ret.push(entry);
+            }
+
+            // Run even if first entry prefix, since duplicates might not be prefixes.
+            self.add_pada_duplicates(node, out, fst, &mut ret);
         }
 
         ret
     }
 
-    fn get_all_from_subanta_suffixes<'a>(
+    fn get_all_for_suffix<'a>(
         &'a self,
         ret: &mut Vec<PadaEntry<'a>>,
         suffix: &str,
         node: Node,
-        out_base: Output,
+        out_base_non_final: Output,
     ) -> Result<()> {
-        let entry_base = to_packed_entry(out_base);
-
-        if entry_base.pos() == PartOfSpeech::SubantaPrefix {
-            let entry_base = entry_base.as_packed_subanta_prefix();
-            self.packer
-                .get_all_from_subanta_paradigm(ret, &entry_base, suffix)?;
+        // Handle possible first prefix
+        {
+            let out_base_final = out_base_non_final.cat(node.final_output());
+            let entry = to_packed_entry(out_base_final);
+            self.packer.get_all_for_suffix(ret, &entry, suffix)?;
         }
 
         let fst = self.fst.as_fst();
-        for c1 in 0..=DUPES_PER_BYTE {
+        for c1 in 0..DUPES_PER_BYTE {
             if let Some(i1) = node.find_input(c1) {
                 let t1 = node.transition(i1);
-                let o1 = out_base.cat(t1.out);
+                let o1 = out_base_non_final.cat(t1.out);
                 let n1 = fst.node(t1.addr);
 
-                for c2 in 0..=DUPES_PER_BYTE {
+                for c2 in 0..DUPES_PER_BYTE {
                     if let Some(i2) = n1.find_input(c2) {
                         let t2 = n1.transition(i2);
                         let o2 = o1.cat(t2.out);
@@ -370,11 +405,7 @@ impl Kosha {
 
                         let output = o2.cat(n2.final_output());
                         let entry = to_packed_entry(output);
-                        if entry.pos() == PartOfSpeech::SubantaPrefix {
-                            let entry = entry.as_packed_subanta_prefix();
-                            self.packer
-                                .get_all_from_subanta_paradigm(ret, &entry, suffix)?;
-                        }
+                        self.packer.get_all_for_suffix(ret, &entry, suffix)?;
                     } else {
                         return Ok(());
                     }
@@ -387,13 +418,6 @@ impl Kosha {
         Ok(())
     }
 
-    /// Iterates over all key-value pairs in the FST.
-    ///
-    /// NOTE: this method currently has limited functionality for krdantas.
-    pub fn stream(&self) -> Stream<'_> {
-        self.fst.stream()
-    }
-
     /// Appends all available duplicates to our list of results.
     ///
     /// Args:
@@ -401,7 +425,7 @@ impl Kosha {
     /// - `out`: the output corresponding to this state.
     /// - `fst`: the underlying FST.
     /// - `results`: the results list.
-    fn add_duplicates<'a>(
+    fn add_pada_duplicates<'a>(
         &'a self,
         node: Node,
         out: Output,
@@ -423,11 +447,13 @@ impl Kosha {
                         // In our current scheme, this node is always final.
                         if n2.is_final() {
                             let packed = to_packed_entry(o2.cat(n2.final_output()));
-                            let entry = match self.packer.unpack(&packed) {
-                                Ok(e) => e,
-                                _ => panic!("aoeu"),
-                            };
-                            results.push(entry);
+                            if !packed.is_prefix() {
+                                let entry = match self.packer.unpack(&packed) {
+                                    Ok(e) => e,
+                                    Err(e) => panic!("Could not unpack: {e}"),
+                                };
+                                results.push(entry);
+                            }
                         }
                     } else {
                         return;
@@ -437,6 +463,13 @@ impl Kosha {
                 return;
             }
         }
+    }
+
+    /// Iterates over all key-value pairs in the FST.
+    ///
+    /// NOTE: this method currently has limited functionality.
+    pub fn stream(&self) -> Stream<'_> {
+        self.fst.stream()
     }
 
     /// Packs the given `PadaEntry` into a simple integer code.
@@ -470,7 +503,6 @@ pub struct Builder {
 /// two bytes. (Our most duplicated forms appear around 100 times, so we need at least 2 bytes to
 /// support them.)
 fn create_extended_key(key: &str, tag: usize) -> Result<Vec<u8>> {
-    // FIXME: make this an Error.
     if tag < MAX_DUPLICATES {
         let mut extended_key = key.as_bytes().to_vec();
         extended_key.push((tag / (DUPES_PER_BYTE as usize)) as u8);
@@ -554,9 +586,7 @@ impl Builder {
     pub fn register_pada_entry(&mut self, entry: &PadaEntry) {
         match entry {
             PadaEntry::Subanta(s) => self.register_pratipadika_entry(&s.pratipadika_entry()),
-            PadaEntry::Avyaya(a) => self.register_pratipadika_entry(&a.pratipadika_entry()),
             PadaEntry::Tinanta(t) => self.register_dhatu_entry(&t.dhatu_entry()),
-            PadaEntry::Unknown => (),
         }
     }
 
@@ -567,6 +597,15 @@ impl Builder {
         padas: &[(String, Linga, Vibhakti, Vacana)],
     ) -> Result<(String, PackedEntry)> {
         self.packer.register_subanta_paradigm(pratipadika, padas)
+    }
+
+    /// Registers the given paradigm of subantas and returns the prefix they all share.
+    pub fn register_tinanta_paradigm(
+        &mut self,
+        dhatu: &DhatuEntry,
+        padas: &[(String, Prayoga, Lakara, Purusha, Vacana)],
+    ) -> Result<(String, PackedEntry)> {
+        self.packer.register_tinanta_suffixes(dhatu, padas)
     }
 
     /// Packs the given *pada* into a more compact format.

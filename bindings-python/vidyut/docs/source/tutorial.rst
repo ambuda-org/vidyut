@@ -61,13 +61,12 @@ So, let's fix both of these problems and make our interface a little nicer::
     def display_entry(e: PadaEntry):
         match e:
             case PadaEntry.Subanta():
-                print(f"subanta: {e.lemma:10} {e.linga}, {e.vibhakti}, {e.vacana}")
-            case PadaEntry.Avyaya():
-                print(f"avyaya: {e.lemma:10}")
+                if e.is_avyaya:
+                    print(f"avyaya: {e.lemma:10}")
+                else:
+                    print(f"subanta: {e.lemma:10} {e.linga}, {e.vibhakti}, {e.vacana}")
             case PadaEntry.Tinanta():
                 print(f"tinanta: {e.lemma:10} {e.prayoga}, {e.lakara}, {e.purusha}, {e.vacana}")
-            case PadaEntry.Unknown():
-                print("unknown type")
 
 
     def run(query: str):
@@ -113,13 +112,12 @@ as a first step, let's make this program more human-friendly::
         lemma = transliterate(e.lemma, Scheme.Slp1, output_scheme)
         match e:
             case PadaEntry.Subanta():
-                print(f"subanta: {e.lemma:10} {e.linga}, {e.vibhakti}, {e.vacana}")
-            case PadaEntry.Avyaya():
-                print(f"avyaya: {e.lemma:10}")
+                if e.is_avyaya:
+                    print(f"avyaya: {e.lemma:10}")
+                else:
+                    print(f"subanta: {e.lemma:10} {e.linga}, {e.vibhakti}, {e.vacana}")
             case PadaEntry.Tinanta():
                 print(f"tinanta: {e.lemma:10} {e.prayoga}, {e.lakara}, {e.purusha}, {e.vacana}")
-            case PadaEntry.Unknown():
-                print("unknown type")
 
 
     def run(query: str, output_scheme: Scheme):
@@ -163,14 +161,13 @@ verb might take::
         lemma = transliterate(e.lemma, Scheme.Slp1, output_scheme)
         match e:
             case PadaEntry.Subanta():
-                print(f"subanta: {e.lemma:10} {e.linga}, {e.vibhakti}, {e.vacana}")
-            case PadaEntry.Avyaya():
-                print(f"avyaya: {e.lemma:10}")
+                if e.is_avyaya:
+                    print(f"avyaya: {e.lemma:10}")
+                else:
+                    print(f"subanta: {e.lemma:10} {e.linga}, {e.vibhakti}, {e.vacana}")
             case PadaEntry.Tinanta():
                 print(f"tinanta: {e.lemma:10} {e.prayoga}, {e.lakara}, {e.purusha}, {e.vacana}")
                 show_tinantas(e.dhatu_entry.dhatu, output_scheme)
-            case PadaEntry.Unknown():
-                print("unknown type")
 
 
 Our word generator uses traditional Sanskrit terms like *prayoga* and *vacana*

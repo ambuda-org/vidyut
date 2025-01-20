@@ -97,7 +97,7 @@ pub enum PartOfSpeech {
     /// A tinanta.
     Tinanta,
     /// A tinanta prefix.
-    Avyaya,
+    TinantaPrefix,
 }
 
 /// A subanta suffix as part of some paradigm.
@@ -109,10 +109,26 @@ pub struct SubantaSuffix {
     vacana: Vacana,
 }
 
-/// A subanta paradigm.
+/// A subanta suffix table.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub struct SubantaParadigm {
+pub struct SubantaSuffixes {
     endings: Vec<SubantaSuffix>,
+}
+
+/// A tinanta suffix as part of some paradigm.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub struct TinantaSuffix {
+    text: String,
+    prayoga: Prayoga,
+    lakara: Lakara,
+    purusha: Purusha,
+    vacana: Vacana,
+}
+
+/// A tinanta suffix table.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub struct TinantaSuffixes {
+    endings: Vec<TinantaSuffix>,
 }
 
 impl SubantaSuffix {
@@ -131,8 +147,8 @@ impl SubantaSuffix {
     }
 }
 
-impl SubantaParadigm {
-    /// Returns all endings defined on this paradigm.
+impl SubantaSuffixes {
+    /// Returns all suffixes defined in this table.
     pub fn endings(&self) -> &[SubantaSuffix] {
         &self.endings
     }
@@ -164,6 +180,62 @@ impl SubantaParadigm {
     }
 }
 
+impl TinantaSuffix {
+    fn new(
+        text: String,
+        prayoga: Prayoga,
+        lakara: Lakara,
+        purusha: Purusha,
+        vacana: Vacana,
+    ) -> Self {
+        Self {
+            text,
+            prayoga,
+            lakara,
+            purusha,
+            vacana,
+        }
+    }
+
+    /// Returns the text of this suffix.
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+}
+
+impl TinantaSuffixes {
+    /// Returns all suffixes defined in this table.
+    pub fn endings(&self) -> &[TinantaSuffix] {
+        &self.endings
+    }
+
+    fn from_padas(padas: &[(String, Prayoga, Lakara, Purusha, Vacana)]) -> Self {
+        assert!(!padas.is_empty());
+
+        let mut common_prefix = String::from(&padas[0].0);
+        for pada in &padas[1..] {
+            for ((i, x), y) in common_prefix.char_indices().zip(pada.0.chars()) {
+                if x != y {
+                    common_prefix.truncate(i);
+                    break;
+                }
+            }
+        }
+
+        let offset = common_prefix.len();
+        let endings: Vec<_> = padas
+            .iter()
+            .map(|p| {
+                let ending = String::from(&p.0[offset..]);
+                TinantaSuffix::new(ending, p.1, p.2, p.3, p.4)
+            })
+            .collect();
+
+        assert!(endings.len() == padas.len());
+        Self { endings }
+    }
+}
+
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 struct DhatuMeta {
     clean_text: String,
@@ -175,10 +247,13 @@ struct PratipadikaMeta {
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct Sup {
-    linga: Linga,
-    vibhakti: Vibhakti,
-    vacana: Vacana,
+enum Sup {
+    Basic {
+        linga: Linga,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+    },
+    Avyaya,
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -223,17 +298,19 @@ pub struct PackedSubanta {
     pub pratipadika_id: B23,
 }
 
+/// A prefix to some paradigm of sup endings.
+#[bitfield(bits = 30)]
+#[derive(Debug)]
+pub struct PackedTinantaPrefix {
+    pub dhatu_id: B18,
+    pub paradigm_id: B12,
+}
+
 /// Semantics for a *tinanta*.
 #[bitfield(bits = 30)]
 pub struct PackedTinanta {
     pub tin_id: B8,
     pub dhatu_id: B22,
-}
-
-/// Semantics for an *avyaya*.
-#[bitfield(bits = 30)]
-pub struct PackedAvyaya {
-    pub pratipadika_id: B30,
 }
 
 /// Semantics for a *pada*.
@@ -257,7 +334,7 @@ struct PackedUnknown {
 
 impl Sup {
     fn new(linga: Linga, vibhakti: Vibhakti, vacana: Vacana) -> Self {
-        Self {
+        Self::Basic {
             linga,
             vibhakti,
             vacana,
@@ -277,11 +354,6 @@ impl Tin {
 }
 
 impl PackedEntry {
-    /// Interprets this packed pada as an avyaya.
-    pub fn as_packed_avyaya(self) -> PackedAvyaya {
-        PackedAvyaya::from_bytes(self.payload().to_le_bytes())
-    }
-
     /// Interprets this packed pada as a subanta.
     pub fn as_packed_subanta_prefix(self) -> PackedSubantaPrefix {
         PackedSubantaPrefix::from_bytes(self.payload().to_le_bytes())
@@ -290,6 +362,11 @@ impl PackedEntry {
     /// Interprets this packed pada as a tinanta.
     pub fn as_packed_subanta(self) -> PackedSubanta {
         PackedSubanta::from_bytes(self.payload().to_le_bytes())
+    }
+
+    /// Interprets this packed pada as a subanta.
+    pub fn as_packed_tinanta_prefix(self) -> PackedTinantaPrefix {
+        PackedTinantaPrefix::from_bytes(self.payload().to_le_bytes())
     }
 
     /// Interprets this packed pada as a tinanta.
@@ -306,6 +383,10 @@ impl PackedEntry {
     pub fn from_u32(u: u32) -> Self {
         Self::from_bytes(u.to_le_bytes())
     }
+
+    pub(crate) fn is_prefix(&self) -> bool {
+        self.pos() == PartOfSpeech::SubantaPrefix || self.pos() == PartOfSpeech::TinantaPrefix
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -315,7 +396,8 @@ struct Registry {
     dhatu_meta: Vec<DhatuMeta>,
     pratipadikas: Vec<SmallPratipadika>,
     pratipadika_meta: FxHashMap<Id, PratipadikaMeta>,
-    paradigms: Vec<SubantaParadigm>,
+    subanta_suffixes: Vec<SubantaSuffixes>,
+    tinanta_suffixes: Vec<TinantaSuffixes>,
 }
 
 /// Packs and unpacks linguistic data.
@@ -336,8 +418,11 @@ pub(crate) struct Packer {
     pub(crate) pratipadikas: Vec<SmallPratipadika>,
     pratipadika_to_index: FxHashMap<SmallPratipadika, Id>,
 
-    pub(crate) paradigms: Vec<SubantaParadigm>,
-    paradigm_to_index: FxHashMap<SubantaParadigm, Id>,
+    pub(crate) subanta_suffixes: Vec<SubantaSuffixes>,
+    subanta_suffixes_to_index: FxHashMap<SubantaSuffixes, Id>,
+
+    pub(crate) tinanta_suffixes: Vec<TinantaSuffixes>,
+    tinanta_suffixes_to_index: FxHashMap<TinantaSuffixes, Id>,
 
     dhatu_meta: Vec<DhatuMeta>,
     pratipadika_meta: FxHashMap<Id, PratipadikaMeta>,
@@ -357,6 +442,11 @@ impl Packer {
                     ret.sup_to_index.insert(sup, id);
                 }
             }
+        }
+        {
+            let id = Id(ret.sups.len());
+            ret.sups.push(Sup::Avyaya);
+            ret.sup_to_index.insert(Sup::Avyaya, id);
         }
         assert!(ret.sups.len() < 1 << 7);
 
@@ -393,7 +483,8 @@ impl Packer {
             krts,
             dhatus,
             pratipadikas,
-            paradigms,
+            subanta_suffixes,
+            tinanta_suffixes,
             dhatu_meta,
             pratipadika_meta,
         } = registry;
@@ -401,7 +492,8 @@ impl Packer {
         ret.krts = krts;
         ret.dhatus = dhatus;
         ret.pratipadikas = pratipadikas;
-        ret.paradigms = paradigms;
+        ret.subanta_suffixes = subanta_suffixes;
+        ret.tinanta_suffixes = tinanta_suffixes;
         ret.dhatu_meta = dhatu_meta;
         ret.pratipadika_meta = pratipadika_meta;
 
@@ -426,8 +518,8 @@ impl Packer {
             .map(|(i, x)| (x.clone(), Id(i)))
             .collect();
 
-        ret.paradigm_to_index = ret
-            .paradigms
+        ret.subanta_suffixes_to_index = ret
+            .subanta_suffixes
             .iter()
             .enumerate()
             .map(|(i, x)| (x.clone(), Id(i)))
@@ -442,7 +534,8 @@ impl Packer {
             krts: self.krts.clone(),
             dhatus: self.dhatus.clone(),
             pratipadikas: self.pratipadikas.clone(),
-            paradigms: self.paradigms.clone(),
+            subanta_suffixes: self.subanta_suffixes.clone(),
+            tinanta_suffixes: self.tinanta_suffixes.clone(),
 
             dhatu_meta: self.dhatu_meta.clone(),
             pratipadika_meta: self.pratipadika_meta.clone(),
@@ -456,41 +549,81 @@ impl Packer {
         Ok(())
     }
 
-    pub(crate) fn contains_subanta_suffix(
-        &self,
-        prefix: &PackedSubantaPrefix,
-        suffix: &str,
-    ) -> bool {
-        // TODO: slow, just getting it working first.
-        if let Some(paradigm) = self.paradigms.get(prefix.paradigm_id() as usize) {
-            paradigm.endings.iter().any(|e| e.text == suffix)
+    // TODO: slow, just getting it working first.
+    pub(crate) fn contains_suffix(&self, base_prefix: &PackedEntry, suffix: &str) -> bool {
+        if base_prefix.pos() == PartOfSpeech::SubantaPrefix {
+            let prefix = base_prefix.as_packed_subanta_prefix();
+            if let Some(paradigm) = self.subanta_suffixes.get(prefix.paradigm_id() as usize) {
+                paradigm.endings.iter().any(|e| e.text == suffix)
+            } else {
+                false
+            }
+        } else if base_prefix.pos() == PartOfSpeech::TinantaPrefix {
+            let prefix = base_prefix.as_packed_tinanta_prefix();
+            if let Some(paradigm) = self.tinanta_suffixes.get(prefix.paradigm_id() as usize) {
+                paradigm.endings.iter().any(|e| e.text == suffix)
+            } else {
+                false
+            }
         } else {
             false
         }
     }
 
-    pub(crate) fn get_all_from_subanta_paradigm<'a>(
+    // TODO: slow, just getting it working first.
+    pub(crate) fn get_all_for_suffix<'a>(
         &'a self,
         ret: &mut Vec<PadaEntry<'a>>,
-        entry: &PackedSubantaPrefix,
+        base_entry: &PackedEntry,
         suffix: &str,
     ) -> Result<()> {
-        // TODO: slow, just getting it working first.
-        let paradigm = &self
-            .paradigms
-            .get(entry.paradigm_id() as usize)
-            .ok_or_else(|| Error::UnknownId("paradigm", entry.paradigm_id() as usize))?;
-        let phit = self.unpack_pratipadika(Id(entry.pratipadika_id() as usize))?;
+        if base_entry.pos() == PartOfSpeech::SubantaPrefix {
+            let entry = base_entry.as_packed_subanta_prefix();
+            let paradigm = &self
+                .subanta_suffixes
+                .get(entry.paradigm_id() as usize)
+                .ok_or_else(|| Error::UnknownId("paradigm", entry.paradigm_id() as usize))?;
+            let phit = self.unpack_pratipadika(Id(entry.pratipadika_id() as usize))?;
 
-        for ending in &paradigm.endings {
-            if ending.text == suffix {
-                ret.push(PadaEntry::Subanta(SubantaEntry::new(
-                    // Stack-allocated, clones are cheap.
-                    phit.clone(),
-                    ending.linga,
-                    ending.vibhakti,
-                    ending.vacana,
-                )));
+            for ending in &paradigm.endings {
+                if ending.text == suffix {
+                    ret.push(PadaEntry::Subanta(SubantaEntry::new(
+                        // Stack-allocated, clones are cheap.
+                        phit.clone(),
+                        ending.linga,
+                        ending.vibhakti,
+                        ending.vacana,
+                    )));
+                }
+            }
+        } else if base_entry.pos() == PartOfSpeech::TinantaPrefix {
+            let entry = base_entry.as_packed_tinanta_prefix();
+
+            /*
+            println!(
+                "-- get_all_for_suffix: {:?} {:?}",
+                entry.dhatu_id(),
+                entry.paradigm_id()
+            );
+            */
+
+            let paradigm = &self
+                .tinanta_suffixes
+                .get(entry.paradigm_id() as usize)
+                .ok_or_else(|| Error::UnknownId("paradigm", entry.paradigm_id() as usize))?;
+            let dhatu = self.unpack_dhatu(Id(entry.dhatu_id() as usize))?;
+
+            for ending in &paradigm.endings {
+                if ending.text == suffix {
+                    ret.push(PadaEntry::Tinanta(TinantaEntry::new(
+                        // Stack-allocated, clones are cheap.
+                        dhatu.clone(),
+                        ending.prayoga,
+                        ending.lakara,
+                        ending.purusha,
+                        ending.vacana,
+                    )));
+                }
             }
         }
 
@@ -513,6 +646,9 @@ impl Packer {
                 .get_mut(id.0)
                 .expect("just pushed")
                 .clean_text = entry.clean_text().to_string();
+
+            assert!(self.dhatus.len() == self.dhatu_meta.len());
+            assert!(self.dhatus.len() == self.dhatu_to_index.len());
 
             id
         }
@@ -563,6 +699,8 @@ impl Packer {
                 );
             }
 
+            assert!(self.pratipadikas.len() == self.pratipadika_to_index.len());
+
             id
         }
     }
@@ -575,7 +713,7 @@ impl Packer {
     ) -> Result<(String, PackedEntry)> {
         assert!(!padas.is_empty());
 
-        let paradigm = SubantaParadigm::from_padas(padas);
+        let paradigm = SubantaSuffixes::from_padas(padas);
         let key = {
             let prefix = padas[0]
                 .0
@@ -585,12 +723,12 @@ impl Packer {
         };
 
         let pratipadika_id = self.register_pratipadika_entry(pratipadika);
-        let paradigm_id = match self.paradigm_to_index.get(&paradigm) {
+        let paradigm_id = match self.subanta_suffixes_to_index.get(&paradigm) {
             Some(id) => *id,
             None => {
-                let id = Id(self.paradigms.len());
-                self.paradigms.push(paradigm.clone());
-                self.paradigm_to_index.insert(paradigm, id);
+                let id = Id(self.subanta_suffixes.len());
+                self.subanta_suffixes.push(paradigm.clone());
+                self.subanta_suffixes_to_index.insert(paradigm, id);
                 id
             }
         };
@@ -602,6 +740,50 @@ impl Packer {
 
             PackedEntry::new()
                 .with_pos(PartOfSpeech::SubantaPrefix)
+                .with_payload(u32::from_le_bytes(prefix.into_bytes()))
+        };
+
+        Ok((key, value))
+    }
+
+    pub(crate) fn register_tinanta_suffixes(
+        &mut self,
+        dhatu: &DhatuEntry,
+        padas: &[(String, Prayoga, Lakara, Purusha, Vacana)],
+    ) -> Result<(String, PackedEntry)> {
+        let suffixes = TinantaSuffixes::from_padas(padas);
+        let key = {
+            let prefix = padas[0]
+                .0
+                .strip_suffix(&suffixes.endings[0].text)
+                .expect("aligned");
+            String::from(prefix)
+        };
+
+        let dhatu_id = self.register_dhatu_entry(dhatu);
+        let paradigm_id = match self.tinanta_suffixes_to_index.get(&suffixes) {
+            Some(id) => *id,
+            None => {
+                let id = Id(self.tinanta_suffixes.len());
+                self.tinanta_suffixes.push(suffixes.clone());
+                self.tinanta_suffixes_to_index.insert(suffixes, id);
+
+                assert_eq!(
+                    self.tinanta_suffixes.len(),
+                    self.tinanta_suffixes_to_index.len()
+                );
+
+                id
+            }
+        };
+
+        let value = {
+            let prefix = PackedTinantaPrefix::new()
+                .with_dhatu_id(dhatu_id.0.try_into()?)
+                .with_paradigm_id(paradigm_id.0.try_into()?);
+
+            PackedEntry::new()
+                .with_pos(PartOfSpeech::TinantaPrefix)
                 .with_payload(u32::from_le_bytes(prefix.into_bytes()))
         };
 
@@ -641,26 +823,19 @@ impl Packer {
             .ok_or_else(|| Error::NotRegistered("krt"))
     }
 
-    fn pack_avyaya(&self, s: &SubantaEntry) -> Result<PackedAvyaya> {
-        let packed_pratipadika = self.pack_pratipadika(s.pratipadika_entry())?;
-
-        match self.pratipadika_to_index.get(&packed_pratipadika) {
-            Some(pratipadika_id) => {
-                let ret = PackedAvyaya::new().with_pratipadika_id(pratipadika_id.0.try_into()?);
-                Ok(ret)
-            }
-            None => Err(Error::NotRegistered("pratipadika")),
-        }
-    }
-
     fn pack_subanta(&self, s: &SubantaEntry) -> Result<PackedSubanta> {
         let packed_pratipadika = self.pack_pratipadika(s.pratipadika_entry())?;
         match self.pratipadika_to_index.get(&packed_pratipadika) {
             Some(pratipadika_id) => {
-                let sup_id = self
-                    .sup_to_index
-                    .get(&Sup::new(s.linga(), s.vibhakti(), s.vacana()))
-                    .ok_or_else(|| Error::NotRegistered("sup"))?;
+                let sup_id = if s.pratipadika_entry().is_avyaya() {
+                    self.sup_to_index
+                        .get(&Sup::Avyaya)
+                        .ok_or_else(|| Error::NotRegistered("sup"))?
+                } else {
+                    self.sup_to_index
+                        .get(&Sup::new(s.linga(), s.vibhakti(), s.vacana()))
+                        .ok_or_else(|| Error::NotRegistered("sup"))?
+                };
                 let ret = {
                     PackedSubanta::new()
                         .with_pratipadika_id(pratipadika_id.0.try_into()?)
@@ -687,10 +862,10 @@ impl Packer {
     /// Packs the given semantics into an integer value.
     pub(crate) fn pack(&self, pada: &PadaEntry) -> Result<PackedEntry> {
         let ret = match pada {
-            PadaEntry::Avyaya(a) => {
-                let payload = self.pack_avyaya(a)?;
+            PadaEntry::Subanta(s) => {
+                let payload = self.pack_subanta(s)?;
                 PackedEntry::new()
-                    .with_pos(PartOfSpeech::Avyaya)
+                    .with_pos(PartOfSpeech::Subanta)
                     .with_payload(u32::from_le_bytes(payload.into_bytes()))
             }
             PadaEntry::Tinanta(t) => {
@@ -698,15 +873,6 @@ impl Packer {
                 PackedEntry::new()
                     .with_pos(PartOfSpeech::Tinanta)
                     .with_payload(u32::from_le_bytes(payload.into_bytes()))
-            }
-            PadaEntry::Subanta(s) => {
-                let payload = self.pack_subanta(s)?;
-                PackedEntry::new()
-                    .with_pos(PartOfSpeech::Subanta)
-                    .with_payload(u32::from_le_bytes(payload.into_bytes()))
-            }
-            PadaEntry::Unknown => {
-                return Err(Error::NotRegistered("Unknown"));
             }
         };
 
@@ -773,12 +939,14 @@ impl Packer {
     fn unpack_subanta(&self, packed: PackedSubanta) -> Result<SubantaEntry> {
         let pratipadika = self.unpack_pratipadika(Id(packed.pratipadika_id() as usize))?;
         let sup = self.unpack_sup(Id(packed.sup_id() as usize))?;
-        Ok(SubantaEntry::new(
-            pratipadika,
-            sup.linga,
-            sup.vibhakti,
-            sup.vacana,
-        ))
+        match sup {
+            Sup::Basic {
+                linga,
+                vibhakti,
+                vacana,
+            } => Ok(SubantaEntry::new(pratipadika, *linga, *vibhakti, *vacana)),
+            Sup::Avyaya => Ok(SubantaEntry::avyaya(pratipadika)),
+        }
     }
 
     fn unpack_tinanta(&self, packed: PackedTinanta) -> Result<TinantaEntry> {
@@ -794,11 +962,6 @@ impl Packer {
         ))
     }
 
-    fn unpack_avyaya(&self, packed: PackedAvyaya) -> Result<SubantaEntry> {
-        let pratipadika = self.unpack_pratipadika(Id(packed.pratipadika_id() as usize))?;
-        Ok(SubantaEntry::avyaya(pratipadika))
-    }
-
     /// Unpacks the given packed pada.
     pub fn unpack(&self, pada: &PackedEntry) -> Result<PadaEntry> {
         match pada.pos() {
@@ -810,12 +973,100 @@ impl Packer {
                 let tinanta = self.unpack_tinanta(pada.as_packed_tinanta())?;
                 Ok(PadaEntry::Tinanta(tinanta))
             }
-            PartOfSpeech::Avyaya => {
-                let avyaya = self.unpack_avyaya(pada.as_packed_avyaya())?;
-                Ok(PadaEntry::Avyaya(avyaya))
-            }
-            _ => Ok(PadaEntry::Unknown),
+            _ => Err(Error::NotRegistered("Prefix")),
         }
+    }
+
+    pub(crate) fn debug_print(&self, entry: &PackedEntry) {
+        fn create_dhatu_str(dhatu: &Dhatu) -> String {
+            let mut ret = String::new();
+            if !dhatu.prefixes().is_empty() {
+                for (i, prefix) in dhatu.prefixes().iter().enumerate() {
+                    if i != 0 {
+                        ret.push('-');
+                    }
+                    ret.push_str(prefix);
+                }
+                ret.push_str(" + ");
+            }
+
+            ret.push_str(dhatu.aupadeshika().unwrap_or("___"));
+
+            if !dhatu.sanadi().is_empty() {
+                ret.push_str(" + ");
+                for (i, sanadi) in dhatu.sanadi().iter().enumerate() {
+                    if i != 0 {
+                        ret.push('-');
+                    }
+                    ret.push_str(sanadi.as_str());
+                }
+            }
+
+            ret
+        }
+
+        let create_krdanta_entry_str = |k: &SmallKrdanta| {
+            format!(
+                "{} + {}",
+                create_dhatu_str(&self.dhatus[k.dhatu_id.0]),
+                k.krt_id.0
+            )
+        };
+
+        let create_pratipadika_entry_str = |p: &SmallPratipadika| match p {
+            SmallPratipadika::Basic(b) => {
+                format!("(Basic {})", b.text())
+            }
+            SmallPratipadika::Krdanta(k) => {
+                format!("(Krdanta {})", create_krdanta_entry_str(&k))
+            }
+        };
+
+        let str = match entry.pos() {
+            PartOfSpeech::Subanta => {
+                let s = entry.as_packed_subanta();
+                format!(
+                    "(Subanta, pratipadika={}, sup={}) --- {}",
+                    s.pratipadika_id(),
+                    s.sup_id(),
+                    create_pratipadika_entry_str(&self.pratipadikas[s.pratipadika_id() as usize]),
+                )
+            }
+            PartOfSpeech::SubantaPrefix => {
+                let s = entry.as_packed_subanta_prefix();
+                // let paradigm_id = s.paradigm_id();
+                // let paradigm = &kosha.paradigms()[paradigm_id as usize];
+
+                format!(
+                    "(SubantaPrefix, pratipadika={}, paradigm={}) --- {}",
+                    s.pratipadika_id(),
+                    s.paradigm_id(),
+                    create_pratipadika_entry_str(&self.pratipadikas[s.pratipadika_id() as usize]),
+                )
+            }
+            PartOfSpeech::Tinanta => {
+                let s = entry.as_packed_tinanta();
+                format!(
+                    "(Tinanta, dhatu={}, tin={}) --- {}",
+                    s.dhatu_id(),
+                    s.tin_id(),
+                    create_dhatu_str(&self.dhatus[s.dhatu_id() as usize]),
+                )
+            }
+            PartOfSpeech::TinantaPrefix => {
+                let t = entry.as_packed_tinanta_prefix();
+                // let paradigm_id = s.paradigm_id();
+                // let paradigm = &kosha.paradigms()[paradigm_id as usize];
+
+                format!(
+                    "(TinantaPrefix, dhatu={}, paradigm={}) --- {}",
+                    t.dhatu_id(),
+                    t.paradigm_id(),
+                    create_dhatu_str(&self.dhatus[t.dhatu_id() as usize]),
+                )
+            }
+        };
+        println!("{str}");
     }
 }
 
@@ -898,8 +1149,8 @@ mod tests {
         packer.register_pratipadika_entry(&iti_entry);
         packer.register_pratipadika_entry(&ca_entry);
 
-        let iti = PadaEntry::Avyaya(SubantaEntry::avyaya(iti_entry));
-        let ca = PadaEntry::Avyaya(SubantaEntry::avyaya(ca_entry));
+        let iti = PadaEntry::Subanta(SubantaEntry::avyaya(iti_entry));
+        let ca = PadaEntry::Subanta(SubantaEntry::avyaya(ca_entry));
 
         let iti_code = packer.pack(&iti)?;
         let ca_code = packer.pack(&ca)?;

@@ -10,9 +10,10 @@
 //! FST tinantas only:       22.0M (15.7M entries)
 //! FST krdantas only:       11.0M (2.3M prefix entries)
 //! FST krdantas + tinantas: 55.0M (17.8M entries)
-//!                          35.0M (17.8M entries, no nic+san or san+nic)
-//!                          16.0M (17.8M entries, verbs are not sanadi)
-//!                           6.0M (17.8M entries, no sanadi)
+//!                          35.0M (---M entries, no nic+san or san+nic)
+//!                          28.0M (---M entries, size estimate of sanadi)
+//!                          16.0M (---M entries, verbs are not sanadi)
+//!                           6.0M (---M entries, no sanadi)
 //! FST krdantas + basic:    19.0M (15.4M entries)
 //! FST all:                 65.0M (35M entries)
 use clap::{Args, Parser, Subcommand};
@@ -41,8 +42,10 @@ enum Command {
     Pratipadikas(PratipadikaArgs),
     /// List all paradigms used in the kosha.
     Paradigms(ParadigmArgs),
-    /// List all entries in the kosha.
-    Entries(EntryArgs),
+    /// List all FST entries in the kosha.
+    Fst(EntryArgs),
+    /// List all FST entries in the kosha.
+    Get(GetArgs),
     /// List all prakriyas that derive the given key.
     ///
     /// TODO: buggy for "DraB", perhaps other SubantaPrefix entries with empty prefixes.
@@ -81,6 +84,18 @@ struct EntryArgs {
 }
 
 #[derive(Debug, Args)]
+struct GetArgs {
+    /// Path to the kosha data.
+    #[arg(long)]
+    data_dir: PathBuf,
+    /// The string to derive.
+    #[arg(long)]
+    key: String,
+    #[arg(long)]
+    kind: Option<String>,
+}
+
+#[derive(Debug, Args)]
 struct DeriveArgs {
     /// Path to the kosha data.
     #[arg(long)]
@@ -103,6 +118,8 @@ fn create_dhatu_str(dhatu: &Dhatu) -> String {
     }
 
     ret.push_str(dhatu.aupadeshika().unwrap_or("___"));
+    ret.push('|');
+    ret.push_str(dhatu.gana().map(|x| x.as_str()).unwrap_or("?"));
 
     if !dhatu.sanadi().is_empty() {
         ret.push_str(" + ");
@@ -160,12 +177,38 @@ fn print_pratipadikas(args: PratipadikaArgs) -> Result<(), Box<dyn Error>> {
 
 fn print_paradigms(args: ParadigmArgs) -> Result<(), Box<dyn Error>> {
     let kosha = Kosha::new(args.data_dir)?;
-    for (i, paradigm) in kosha.paradigms().iter().enumerate() {
-        println!("{i}:");
+
+    for (i, paradigm) in kosha.subanta_suffixes().iter().enumerate() {
+        println!("sup {i}:");
         for ending in paradigm.endings() {
             println!("- {ending:?}");
         }
     }
+
+    for (i, paradigm) in kosha.tinanta_suffixes().iter().enumerate() {
+        println!("tin {i}:");
+        for ending in paradigm.endings() {
+            println!("- {ending:?}");
+        }
+    }
+
+    Ok(())
+}
+
+fn get_entries(args: GetArgs) -> Result<(), Box<dyn Error>> {
+    let kosha = Kosha::new(args.data_dir)?;
+    let entries = kosha.get_all(&args.key);
+    for entry in entries {
+        if let Some(kind) = &args.kind {
+            match &entry {
+                PadaEntry::Subanta(_) if kind != "Subanta" => continue,
+                PadaEntry::Tinanta(_) if kind != "Tinanta" => continue,
+                _ => (),
+            }
+        }
+        println!("{:?}", entry);
+    }
+
     Ok(())
 }
 
@@ -231,9 +274,17 @@ fn print_entries(args: EntryArgs) -> Result<(), Box<dyn Error>> {
                     create_dhatu_str(&dhatus[s.dhatu_id() as usize].dhatu()),
                 )
             }
-            PartOfSpeech::Avyaya => {
-                let a = value.as_packed_avyaya();
-                format!("{raw_value} (Avyaya, {})", a.pratipadika_id())
+            PartOfSpeech::TinantaPrefix => {
+                let t = value.as_packed_tinanta_prefix();
+                // let paradigm_id = s.paradigm_id();
+                // let paradigm = &kosha.paradigms()[paradigm_id as usize];
+
+                format!(
+                    "{raw_value} (TinantaPrefix, dhatu={}, paradigm={}) --- {}",
+                    t.dhatu_id(),
+                    t.paradigm_id(),
+                    create_dhatu_str(&dhatus[t.dhatu_id() as usize].dhatu()),
+                )
             }
         };
 
@@ -250,10 +301,8 @@ fn derive_entries(args: DeriveArgs) -> Result<(), Box<dyn Error>> {
     let v = Vyakarana::new();
     for entry in kosha.get_all(&args.key) {
         let prakriyas = match entry {
-            PadaEntry::Tinanta(t) => v.derive_tinantas(&t.into()),
             PadaEntry::Subanta(s) => v.derive_subantas(&s.into()),
-            PadaEntry::Avyaya(a) => v.derive_subantas(&a.into()),
-            _ => panic!("Unsupported"),
+            PadaEntry::Tinanta(t) => v.derive_tinantas(&t.into()),
         };
 
         for p in prakriyas {
@@ -281,7 +330,8 @@ fn main() {
         Command::Dhatus(args) => print_dhatus(args),
         Command::Pratipadikas(args) => print_pratipadikas(args),
         Command::Paradigms(args) => print_paradigms(args),
-        Command::Entries(args) => print_entries(args),
+        Command::Fst(args) => print_entries(args),
+        Command::Get(args) => get_entries(args),
         Command::Derive(args) => derive_entries(args),
     };
 

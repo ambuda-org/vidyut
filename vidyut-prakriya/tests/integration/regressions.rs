@@ -329,3 +329,10 @@ fn spastitah() {
     let spastita = krdanta(&[], &spastaya, Krt::kta);
     assert_has_sup_1s(spastita, Pum, &["spazwitaH"]);
 }
+
+// Fixes bug with "apa" being treated like "ap" ("ApaH").
+#[test]
+fn apombhyat() {
+    let unbhaya = d("unBa~", Tudadi).with_sanadi(&[Sanadi::Ric]);
+    assert_has_tip(&["apa"], &unbhaya, AshirLin, &["apomByAt"]);
+}

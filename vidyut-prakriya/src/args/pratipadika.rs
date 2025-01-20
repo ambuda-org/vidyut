@@ -18,6 +18,11 @@ impl BasicPratipadika {
     pub fn text(&self) -> &str {
         &self.text.0
     }
+
+    /// Returns whether this pratipadika is an *avyaya*.
+    pub fn is_avyaya(&self) -> bool {
+        self.is_avyaya
+    }
 }
 
 /// A nominal stem.
@@ -75,7 +80,7 @@ impl Pratipadika {
     /// Returns whether the pratipadika describes an avyaya.
     pub fn is_avyaya(&self) -> bool {
         match self {
-            Self::Basic(b) => b.is_avyaya,
+            Self::Basic(b) => b.is_avyaya(),
             Self::Krdanta(k) => k.krt().is_avyaya(),
             _ => false,
         }

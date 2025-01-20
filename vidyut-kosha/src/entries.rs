@@ -66,12 +66,8 @@ pub struct TinantaEntry<'a> {
 /// A Sanskrit *pada* (word).
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum PadaEntry<'a> {
-    /// Unknown data.
-    Unknown,
-    /// A *subanta* that is not an *avyaya*.
+    /// A *subanta*.
     Subanta(SubantaEntry<'a>),
-    /// A *subanta* that is also an *avyaya*.
-    Avyaya(SubantaEntry<'a>),
     /// A *tiṅanta* (verb).
     Tinanta(TinantaEntry<'a>),
 }
@@ -120,6 +116,7 @@ impl<'a> BasicPratipadikaEntry<'a> {
             lingas,
         }
     }
+
     /// Returns the *prātipadika* that generates this entry.
     pub fn pratipadika(&self) -> &BasicPratipadika {
         self.pratipadika
@@ -130,6 +127,11 @@ impl<'a> BasicPratipadikaEntry<'a> {
     /// If empty, the *prātipadika* has no specific linga.
     pub fn lingas(&self) -> &[Linga] {
         self.lingas
+    }
+
+    /// Returns whether this entry represents an *avyaya*.
+    pub fn is_avyaya(&self) -> bool {
+        self.pratipadika.is_avyaya()
     }
 }
 
@@ -178,6 +180,11 @@ impl<'a> KrdantaEntry<'a> {
     pub fn lakara(&self) -> Option<Lakara> {
         self.lakara
     }
+
+    /// Returns whether this entry represents an *avyaya*.
+    pub fn is_avyaya(&self) -> bool {
+        self.krt.is_avyaya()
+    }
 }
 
 impl<'a> From<KrdantaEntry<'a>> for Krdanta {
@@ -216,6 +223,14 @@ impl<'a> PratipadikaEntry<'a> {
         match self {
             PratipadikaEntry::Basic(b) => b.pratipadika().text(),
             PratipadikaEntry::Krdanta(k) => k.dhatu_text(),
+        }
+    }
+
+    /// Returns whether this entry represents an *avyaya*.
+    pub fn is_avyaya(&self) -> bool {
+        match self {
+            PratipadikaEntry::Basic(b) => b.is_avyaya(),
+            PratipadikaEntry::Krdanta(k) => k.is_avyaya(),
         }
     }
 }
@@ -309,6 +324,13 @@ impl<'a> SubantaEntry<'a> {
     pub fn vacana(&self) -> Vacana {
         self.vacana
     }
+
+    /// Returns whether this entry represents an *avyaya*.
+    ///
+    /// This is just sugar for `self.pratipadika_entry().is_avyaya()`.
+    pub fn is_avyaya(&self) -> bool {
+        self.pratipadika_entry.is_avyaya()
+    }
 }
 
 impl<'a> From<SubantaEntry<'a>> for vp::Subanta {
@@ -332,12 +354,16 @@ impl<'a> TryFrom<&'a vp::Subanta> for SubantaEntry<'a> {
     type Error = Error;
 
     fn try_from(val: &'a Subanta) -> Result<Self> {
-        Ok(SubantaEntry::new(
-            val.pratipadika().try_into()?,
-            val.linga(),
-            val.vibhakti(),
-            val.vacana(),
-        ))
+        if val.is_avyaya() {
+            Ok(SubantaEntry::avyaya(val.pratipadika().try_into()?))
+        } else {
+            Ok(SubantaEntry::new(
+                val.pratipadika().try_into()?,
+                val.linga(),
+                val.vibhakti(),
+                val.vacana(),
+            ))
+        }
     }
 }
 
@@ -435,9 +461,8 @@ impl<'a> PadaEntry<'a> {
     /// Returns the lemma associated with this `PadaEntry`.
     pub fn lemma(&self) -> Option<&str> {
         match self {
-            PadaEntry::Unknown => None,
             PadaEntry::Tinanta(t) => Some(t.dhatu_text()),
-            PadaEntry::Subanta(s) | PadaEntry::Avyaya(s) => Some(s.pratipadika_entry.lemma()),
+            PadaEntry::Subanta(s) => Some(s.pratipadika_entry.lemma()),
         }
     }
 }
@@ -447,8 +472,6 @@ impl<'a> From<PadaEntry<'a>> for Pada {
         match val {
             PadaEntry::Subanta(s) => Pada::Subanta(s.into()),
             PadaEntry::Tinanta(t) => Pada::Tinanta(t.into()),
-            PadaEntry::Avyaya(a) => Pada::Subanta(a.into()),
-            PadaEntry::Unknown => Pada::Unknown("".to_string()),
         }
     }
 }
@@ -460,11 +483,7 @@ impl<'a> TryFrom<&'a Pada> for PadaEntry<'a> {
         match val {
             Pada::Subanta(s) => {
                 let entry: SubantaEntry = s.try_into()?;
-                if s.is_avyaya() {
-                    Ok(PadaEntry::Avyaya(entry))
-                } else {
-                    Ok(PadaEntry::Subanta(entry))
-                }
+                Ok(PadaEntry::Subanta(entry))
             }
             Pada::Tinanta(t) => {
                 let entry: TinantaEntry = t.into();
@@ -570,13 +589,7 @@ mod tests {
     fn pada_entry_avyaya() {
         let iti = Pratipadika::basic(safe("iti"));
         let iti_entry: PratipadikaEntry = (&iti).try_into().expect("ok");
-        let iti_pada = PadaEntry::Avyaya(SubantaEntry::avyaya(iti_entry));
+        let iti_pada = PadaEntry::Subanta(SubantaEntry::avyaya(iti_entry));
         assert_eq!(iti_pada.lemma(), Some("iti"));
-    }
-
-    #[test]
-    fn pada_entry_unknown() {
-        let unk = PadaEntry::Unknown;
-        assert_eq!(unk.lemma(), None);
     }
 }

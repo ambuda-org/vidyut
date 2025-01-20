@@ -272,7 +272,7 @@ impl Vyakarana {
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
-    ///     .pada(DhatuPada::Atmane)
+    ///     .pada(DhatuPada::Atmanepada)
     ///     .build()
     ///     .unwrap();
     /// let prakriyas = v.derive_tinantas(&args);
@@ -332,7 +332,7 @@ impl Vyakarana {
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
-    ///     .pada(DhatuPada::Atmane)
+    ///     .pada(DhatuPada::Atmanepada)
     ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "kurute");
