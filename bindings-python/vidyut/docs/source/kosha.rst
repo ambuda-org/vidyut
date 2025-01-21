@@ -270,7 +270,9 @@ passed to :meth:`vidyut.prakriya.Vyakarana.derive`:
     `vidyut.kosha` types contain useful metadata:
 
     - :class:`DhatuEntry` contains `clean_text`, which is the dictionary version
-      of the dhatu with sandhi applied and accent marks removed.
+      of the dhatu with sandhi applied and accent marks removed. It also contains
+      meanings in Sanskrit (`artha_sa`), English (`artha_en`), and Hindi (`artha_hi`)
+      as well as some other metadata.
 
     - :class:`PratipadikaEntry` contains `lingas`, which includes the lingas
       typcially used with this pratipadika.

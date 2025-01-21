@@ -2,10 +2,13 @@
 use clap::Parser;
 use log::info;
 use rayon::prelude::*;
+use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process;
-use vidyut_kosha::entries::{DhatuEntry, PadaEntry, PratipadikaEntry, SubantaEntry, TinantaEntry};
+use vidyut_kosha::entries::{
+    DhatuEntry, DhatuMeta, PadaEntry, PratipadikaEntry, SubantaEntry, TinantaEntry,
+};
 use vidyut_kosha::packing::PackedEntry;
 use vidyut_kosha::Builder;
 use vidyut_prakriya::args::*;
@@ -48,6 +51,7 @@ pub struct DataPaths {
     pub pratipadikas: PathBuf,
     pub gati: PathBuf,
     pub upasarga_dhatus: PathBuf,
+    pub dhatu_metadata: PathBuf,
 }
 
 impl DataPaths {
@@ -57,6 +61,7 @@ impl DataPaths {
             pratipadikas: base.join("nominal-stems.csv"),
             gati: base.join("prefix-groups.csv"),
             upasarga_dhatus: base.join("upasarga-dhatus.csv"),
+            dhatu_metadata: base.join("dhatu-metadata.csv"),
         }
     }
 }
@@ -154,11 +159,21 @@ fn create_subanta_endings() -> HashMap<String, Vec<(String, Linga, Vibhakti, Vac
     ret
 }
 
+#[derive(Deserialize)]
+struct DhatuMetadata {
+    code: String,
+    artha_en: String,
+    artha_hi: String,
+    karma: String,
+    pada: String,
+    settva: String,
+}
+
 /// Creates all standard combinations of (upasarga x dhatu x sanadi)
 fn create_all_dhatus(
     builder: &mut Builder,
     dhatupatha_path: &Path,
-    upasarga_dhatu_path: &Path,
+    paths: &DataPaths,
 ) -> Result<Vec<Dhatu>> {
     let sanadis = {
         use Sanadi::*;
@@ -175,9 +190,10 @@ fn create_all_dhatus(
 
     // Load mula dhatus and the upasarga combinations they support.
     let dhatupatha = Dhatupatha::from_path(dhatupatha_path)?;
+
     let mut upasarga_dhatus: UpasargaDhatuMap = HashMap::new();
     {
-        let mut rdr = csv::Reader::from_path(upasarga_dhatu_path)?;
+        let mut rdr = csv::Reader::from_path(&paths.upasarga_dhatus)?;
         for maybe_row in rdr.records() {
             let r = maybe_row?;
             let upasargas: Vec<_> = r[0].split("-").map(|x| x.to_string()).collect();
@@ -190,12 +206,22 @@ fn create_all_dhatus(
         }
     }
 
+    let mut dhatu_metadata = HashMap::new();
+    {
+        let mut rdr = csv::Reader::from_path(&paths.dhatu_metadata)?;
+        for row in rdr.deserialize() {
+            let value: DhatuMetadata = row?;
+            dhatu_metadata.insert(value.code.clone(), value);
+        }
+    }
+
     // Create the final list of dhatus.
     let v = Vyakarana::new();
     let mut ret = Vec::new();
     let no_upasargas = vec![Vec::new()];
     for entry in &dhatupatha {
         let upasarga_groups = upasarga_dhatus.get(entry.code()).unwrap_or(&no_upasargas);
+        let metadata = dhatu_metadata.get(entry.code());
 
         for sanadi in &sanadis {
             for prefixes in upasarga_groups {
@@ -207,8 +233,22 @@ fn create_all_dhatus(
                 let prakriyas = v.derive_dhatus(&dhatu);
                 if let Some(p) = prakriyas.first() {
                     let text = p.text();
-                    let entry = DhatuEntry::new(&dhatu, &text);
-                    builder.register_dhatu_entry(&entry);
+                    let mut meta_builder = DhatuMeta::builder()
+                        .clean_text(text.to_string())
+                        .artha_sa(entry.artha().to_string());
+
+                    if let Some(meta) = metadata {
+                        meta_builder = meta_builder
+                            .artha_en(meta.artha_en.to_string())
+                            .artha_hi(meta.artha_hi.to_string())
+                            .karmatva(meta.karma.to_string())
+                            .ittva(meta.settva.to_string())
+                            .pada(meta.pada.to_string());
+                    }
+
+                    let meta = meta_builder.build()?;
+                    let dhatu_entry = DhatuEntry::new(&dhatu).with_meta(&meta);
+                    builder.register_dhatu_entry(&dhatu_entry);
 
                     // Add valid dhatus only.
                     ret.push(dhatu);
@@ -320,7 +360,7 @@ fn create_all_tinantas(builder: &mut Builder, all_dhatus: &[Dhatu]) -> Entries {
 
     let mut entries = Vec::new();
     for (dhatu, padas) in paradigms {
-        let dhatu_entry = DhatuEntry::new(&dhatu, "");
+        let dhatu_entry = DhatuEntry::new(&dhatu);
 
         let mut common_prefix = String::from(&padas[0].0);
         for pada in &padas[1..] {
@@ -850,8 +890,7 @@ fn run(args: Args) -> Result<()> {
     let mut entries = Vec::new();
     let mut builder = Builder::new(&args.output_dir)?;
     {
-        let mut all_dhatus =
-            create_all_dhatus(&mut builder, &args.dhatupatha, &paths.upasarga_dhatus)?;
+        let mut all_dhatus = create_all_dhatus(&mut builder, &args.dhatupatha, &paths)?;
         if let Some(n) = args.num_dhatus {
             all_dhatus.drain(n..);
         }

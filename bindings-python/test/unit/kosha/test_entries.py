@@ -16,10 +16,11 @@ from vidyut.prakriya import (
 
 def test_dhatu_entry():
     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
-    entry = DhatuEntry(dhatu=gam, clean_text="gam")
+    entry = DhatuEntry(dhatu=gam, clean_text="gam", artha_sa="gatO")
 
     assert entry.dhatu == gam
     assert entry.clean_text == "gam"
+    assert entry.artha_sa == "gatO"
 
     # Nested attributes
     assert entry.dhatu.aupadeshika == "ga\\mx~"
@@ -32,10 +33,10 @@ def test_dhatu_entry():
 
 def test_dhatu_entry__dunders():
     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
-    entry_gam = DhatuEntry(dhatu=gam, clean_text="gam")
+    entry_gam = DhatuEntry(dhatu=gam, clean_text="gam", artha_sa="gatO")
 
     bhu = Dhatu.mula("BU", Gana.Bhvadi)
-    entry_bhu = DhatuEntry(dhatu=bhu, clean_text="BU")
+    entry_bhu = DhatuEntry(dhatu=bhu, clean_text="BU", artha_sa="sattAyAm")
 
     # __eq__, __ne__
     assert entry_gam == entry_gam
@@ -47,7 +48,7 @@ def test_dhatu_entry__dunders():
     # __repr__
     assert repr(entry_gam) == (
         "DhatuEntry(dhatu=Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), "
-        "clean_text='gam')"
+        "clean_text='gam', artha_sa='gatO')"
     )
 
 
@@ -70,6 +71,7 @@ def test_pratipadika_entry__krdanta():
     assert gata.krt == Krt.kta
     assert gata.prayoga is None
     assert gata.lakara is None
+    assert gata.lingas == [Linga.Pum, Linga.Stri, Linga.Napumsaka]
 
     v = Vyakarana()
     results = {p.text for p in v.derive(gata)}
@@ -99,7 +101,7 @@ def test_pratipadika_entry__dunders():
 
     assert repr(gata_entry) == (
         "PratipadikaEntry.Krdanta(dhatu_entry=DhatuEntry(dhatu="
-        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam'), "
+        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam', artha_sa=None), "
         "krt=Krt.kta, prayoga=None, lakara=None)"
     )
 
@@ -202,7 +204,7 @@ def test_pada_entry__dunders():
 
     assert repr(gacchati_pada) == (
         "PadaEntry.Tinanta(dhatu_entry=DhatuEntry(dhatu="
-        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam'), "
+        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam', artha_sa=None), "
         "prayoga=Prayoga.Kartari, lakara=Lakara.Lat, purusha=Purusha.Prathama, vacana=Vacana.Eka)"
     )
 

@@ -1842,6 +1842,7 @@ dependencies = [
  "rayon",
  "regex",
  "rustc-hash",
+ "serde",
  "vidyut-cheda",
  "vidyut-kosha",
  "vidyut-lipi",

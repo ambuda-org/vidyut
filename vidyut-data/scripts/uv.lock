@@ -1,0 +1,47 @@
+version = 1
+requires-python = ">=3.13"
+
+[[package]]
+name = "scripts"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "vidyut" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "vidyut", specifier = ">=0.3.1" }]
+
+[[package]]
+name = "vidyut"
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/26/13/bc20340c3a3cdfd01192280a5a128710092da4770603681d24d35b03110b/vidyut-0.3.1.tar.gz", hash = "sha256:ae3d2a3eae61bf5cb633dd8e17d6ecda12c68ed779da67497907363fa62cd185", size = 893450 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/03/2e/346816c88589164f834a2e2d3eb90e1a060ab0854a826c5da34aac1f2a11/vidyut-0.3.1-cp313-cp313t-macosx_10_12_x86_64.whl", hash = "sha256:8ad99e0aa3117e2c2236f47d9357650ebc978130ad36e753187c44dd0cd4c561", size = 2436536 },
+    { url = "https://files.pythonhosted.org/packages/32/8a/9f696088ce35d5b0fad9de62c9aa8497a74ba56ea1c7d9e5dd3dc0c6dd2b/vidyut-0.3.1-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:0873c4edeff499df51feb2015e7b281eb0b67e68d03fcdd4b09cf63f012ade65", size = 2365640 },
+    { url = "https://files.pythonhosted.org/packages/3d/57/618f4f1d41879b42923dfc4c977177be96368cbd526b63e78b651909d294/vidyut-0.3.1-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b71ba6b49a9e868324d4058a004d00fb05f915bf7ac84e89df505fc620aaa112", size = 18245631 },
+    { url = "https://files.pythonhosted.org/packages/be/01/c2c3caeab13bd5578b058fa7510feecc2eac4e407ad3f37d0fe4ea01f2e7/vidyut-0.3.1-cp313-cp313t-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:8c844eb32e4273ae9d387b7833d0ad16a85af50be3379d1f73b5cb09851dd1c1", size = 17549661 },
+    { url = "https://files.pythonhosted.org/packages/28/37/5ba4bbfd7e4b6044ef1d9c4e9854378044e92270bf1448fb3d4c1e268ea0/vidyut-0.3.1-cp313-cp313t-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:0b53e8dbf473eb5803d9723a96041a8d738a38e42a1f08df9b7ae8fbd586ca88", size = 18294835 },
+    { url = "https://files.pythonhosted.org/packages/6c/d3/5522f9a60f52792bc456a1e9a4cdb81788bf12b83882c20ae46da5578107/vidyut-0.3.1-cp313-cp313t-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:2bd157fb9a339e16d3c4301688bce133d62bf6c3cd7146cdad720107c887851c", size = 23269821 },
+    { url = "https://files.pythonhosted.org/packages/99/02/0974be8dc887a4cd37fc746e572eb1c3695ea6cc6d41a09e5b9d54f2d20e/vidyut-0.3.1-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ff931bc2ad1a1c7553d6f77595e4a136f3742ad01b0f6f81fc0b1d899f7c93d5", size = 18739574 },
+    { url = "https://files.pythonhosted.org/packages/be/cb/18629528676aa37e2967cb34d003401cfd554f0936742924cf6679cd4eec/vidyut-0.3.1-cp313-cp313t-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:7abbdc2f8bc2140766b8130e00fd2fb940f6c393f53c873c53d84c6795d0c0ea", size = 17897720 },
+    { url = "https://files.pythonhosted.org/packages/e8/07/69e4c0fbef1cd427f11550fe0c8ac3ca6e881227a3208da69bcd125fb32a/vidyut-0.3.1-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:9e667585bf95c99ef96903f1250976786554fd305ef6a2a55b57df7902e53d54", size = 18268582 },
+    { url = "https://files.pythonhosted.org/packages/63/67/be58e6a900e111a8f3f86de9c33af186c6bdd311271b067c6141c7cb7664/vidyut-0.3.1-cp313-cp313t-musllinux_1_2_armv7l.whl", hash = "sha256:f51536e076b9b9086461bca1a3d3d3d385a4827fd11da4905ab105ec7b900a37", size = 17776433 },
+    { url = "https://files.pythonhosted.org/packages/fb/56/8aa3fdfe706a64e19f2a2bf66bf77fc218b1ca057d5d9c0189d5699e382e/vidyut-0.3.1-cp313-cp313t-musllinux_1_2_i686.whl", hash = "sha256:dbd2201a6ba0ce9015efde54d1c2cd3cd9f61e8e32d16460c434ac88a35838b7", size = 17732233 },
+    { url = "https://files.pythonhosted.org/packages/4e/20/5c3a97e6bb9e5c458c34d440fae13ae3e7b4c21904c6644e4dcf3694a2c8/vidyut-0.3.1-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:f03e6dbc635cbeeea54385bebbac7a1e4dce99152dd30a1584120c4215bafb55", size = 18736801 },
+    { url = "https://files.pythonhosted.org/packages/20/09/3acd0fb706bc9e3f27e8812325076b29ebad6f6e4361975051022a659fc1/vidyut-0.3.1-cp37-abi3-macosx_10_12_x86_64.whl", hash = "sha256:a513fb9bda8f71b57cf7f661832bd73fbc1d87f0c44dcac03f9e4b0e4430729b", size = 2461599 },
+    { url = "https://files.pythonhosted.org/packages/fd/97/4a6350f2db09c7dd72b490fb55ff668f9904d112847aa7fe08043bcfbf8b/vidyut-0.3.1-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:381a6112265d0599a0b0c7d1356f0fcc8dac57fcfce21de5a503fdc3943b27a2", size = 2382015 },
+    { url = "https://files.pythonhosted.org/packages/18/c6/417046926c22271aeaf1e4d3be4ebe7f08e2246f8d3c24d06e8a7caa38f2/vidyut-0.3.1-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fc6ed10d17c06314c5be600d44612aeca58500bd2bf085fd9ca7b5a3588d0231", size = 18107319 },
+    { url = "https://files.pythonhosted.org/packages/05/0b/64e1d5cf738a34d8d71ba01843a0d52fb6d6a13227679c70f46d7083b40c/vidyut-0.3.1-cp37-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:d80452d2980d658bdb583e83c0168a29ee9c026f99db4e66077f4039cf719bff", size = 17418951 },
+    { url = "https://files.pythonhosted.org/packages/92/a1/a0af295c5e06ddf3b928e06e15de775b9d595b51a55ff3a90514ea45375f/vidyut-0.3.1-cp37-abi3-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:29bb669f18769f0cd65ab436fc102fada6a9d7ed73a20a8cef11517a179f538c", size = 18157788 },
+    { url = "https://files.pythonhosted.org/packages/79/3d/06d6f70f74bd387c5a76385063208573bac24b50166f95f3f144cd44688a/vidyut-0.3.1-cp37-abi3-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:887cf67261617f145e3fee39c5124efd2f23bf5a9a2a83c7b0aa7f770473896d", size = 23209759 },
+    { url = "https://files.pythonhosted.org/packages/08/35/070f225bc14f17febbbac47db24f5164458d69d7d37cb5693a423ba1579a/vidyut-0.3.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e38031d9537755d71079b52c10b3a6a25e4cb686fcc7fb23085c07c4adac5363", size = 18600804 },
+    { url = "https://files.pythonhosted.org/packages/a6/d3/22c208ab7703140393fa464e33a2cc650e4a108cdb8698af29796d001524/vidyut-0.3.1-cp37-abi3-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:b3ee1b32d12be856dc7fcf9755e5e23bcaecf3af80de17205f2a7472acc91cd5", size = 17783284 },
+    { url = "https://files.pythonhosted.org/packages/13/ec/e0d3a9252f3361eb2303615e0cc9ceb8a8c9797323ff3ff20ce90235f398/vidyut-0.3.1-cp37-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:38cab374d99f447c671309b891693d9a6efaf7733a2064051cab8a70b2df3665", size = 18138879 },
+    { url = "https://files.pythonhosted.org/packages/7e/80/b1af8074accc30182b60d929f6c4038349ee2d20d3a4935a4567e4f82805/vidyut-0.3.1-cp37-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:a8cc4d7dad21c185deedc2e8bb123ae121d5408c2d3d35b709bfd366697dd97e", size = 17642300 },
+    { url = "https://files.pythonhosted.org/packages/80/0a/63c25d83767082ed6797518d24e6f59c4cc01e20d588d71f9434ca3f0086/vidyut-0.3.1-cp37-abi3-musllinux_1_2_i686.whl", hash = "sha256:a12b935a68896ae2afff730f77b54f729ce50f0bf364fb4da69584961f2f8707", size = 17616975 },
+    { url = "https://files.pythonhosted.org/packages/68/71/5ce280d441025cb1aff3dacd53f12c393672ba7df186d91ba226d3d67b29/vidyut-0.3.1-cp37-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:d73d04f0d9f871ba59277bc6072988659ec4b32dcd121d996ef647d71729953f", size = 18598765 },
+    { url = "https://files.pythonhosted.org/packages/33/23/94d138ee23f8889a9ec592e0bdfac467b2822be308abe352dfdf925f0f94/vidyut-0.3.1-cp37-abi3-win32.whl", hash = "sha256:f3971612891aab92ba2201cdbb94e0b24320a538c7da62e69b5047d50bac2d1e", size = 1909313 },
+    { url = "https://files.pythonhosted.org/packages/dc/44/8b34ea6b20c52fa0f83a9b70c6fb1d1e39cd124a9f81df1ebeb603d08df7/vidyut-0.3.1-cp37-abi3-win_amd64.whl", hash = "sha256:a934baf0a45e883a90777f85428c4b297ccfb176381be1781ab0897afdbe8d89", size = 2026445 },
+]

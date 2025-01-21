@@ -1,6 +1,6 @@
 use crate::args::dhatu::Dhatu;
 use crate::args::unadi::Unadi;
-use crate::args::{Anubandha, Lakara, Prayoga, Subanta};
+use crate::args::{Anubandha, Lakara, Linga, Prayoga, Subanta};
 use crate::core::errors::*;
 use crate::it_samjna;
 use crate::sanskrit_enum;
@@ -412,6 +412,21 @@ impl BaseKrt {
             ""
         } else {
             slice
+        }
+    }
+
+    /// Returns all of the lingas associated with this *pratyaya*.
+    ///
+    /// This method returns `&[]` for avyayas and for pratyayas we have not yet supported.
+    pub fn lingas(self) -> &'static [Linga] {
+        const ALL: &[Linga] = &[Linga::Pum, Linga::Stri, Linga::Napumsaka];
+        const STRI: &[Linga] = &[Linga::Stri];
+
+        use BaseKrt::*;
+        match self {
+            kta | tavyat | tavya | anIyar | yat | Satf | SAnac | kvasu | Rvul | tfc => ALL,
+            ktin | Rvuc | ani | yuc | aN | a | Sa => STRI,
+            _ => &[],
         }
     }
 

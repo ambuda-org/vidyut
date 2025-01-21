@@ -3,8 +3,8 @@ use pyo3::exceptions::{PyKeyError, PyOSError, PyValueError};
 use pyo3::prelude::*;
 use std::path::PathBuf;
 use vidyut_kosha::entries::{
-    BasicPratipadikaEntry, DhatuEntry, KrdantaEntry, PadaEntry, PratipadikaEntry, SubantaEntry,
-    TinantaEntry,
+    BasicPratipadikaEntry, DhatuEntry, DhatuMeta, KrdantaEntry, PadaEntry, PratipadikaEntry,
+    SubantaEntry, TinantaEntry,
 };
 use vidyut_kosha::{Builder, Kosha};
 use vidyut_prakriya::args as vp;
@@ -27,9 +27,9 @@ impl PyKosha {
     fn new(path: PathBuf) -> PyResult<Self> {
         match Kosha::new(path.clone()) {
             Ok(kosha) => Ok(Self(kosha)),
-            Err(_) => Err(PyOSError::new_err(
-                "Unknown error. The input file might be missing.",
-            )),
+            Err(e) => Err(PyOSError::new_err(format!(
+                "Could not load kosha. Error was: {e:?}"
+            ))),
         }
     }
 
@@ -46,6 +46,10 @@ impl PyKosha {
         } else {
             Ok(ret)
         }
+    }
+
+    fn __len__(&self) -> usize {
+        self.0.len()
     }
 
     fn __repr__(&self) -> String {
@@ -131,11 +135,38 @@ pub struct PyBuilder {
 #[derive(Default)]
 struct SmallRegistry {
     lingas: Vec<Vec<vp::Linga>>,
+    dhatu_meta: Vec<DhatuMeta>,
 }
 
 impl SmallRegistry {
-    fn to_dhatu_entry<'a>(&self, entry: &'a PyDhatuEntry) -> DhatuEntry<'a> {
-        DhatuEntry::new(entry.dhatu.as_rust(), &entry.clean_text)
+    fn to_dhatu_entry<'a>(&'a mut self, entry: &'a PyDhatuEntry) -> DhatuEntry<'a> {
+        let mut builder = DhatuMeta::builder();
+
+        builder = builder.clean_text(entry.clean_text.to_string());
+        if let Some(s) = &entry.artha_sa {
+            builder = builder.artha_sa(s.to_string());
+        }
+        if let Some(s) = &entry.artha_en {
+            builder = builder.artha_en(s.to_string());
+        }
+        if let Some(s) = &entry.artha_hi {
+            builder = builder.artha_hi(s.to_string());
+        }
+        if let Some(s) = &entry.ittva {
+            builder = builder.ittva(s.to_string());
+        }
+        if let Some(s) = &entry.karmatva {
+            builder = builder.karmatva(s.to_string());
+        }
+        if let Some(s) = &entry.pada {
+            builder = builder.pada(s.to_string());
+        }
+
+        let meta = builder.build().expect("clean_text defined");
+        self.dhatu_meta.push(meta);
+
+        let m = self.dhatu_meta.last().expect("just pushed");
+        DhatuEntry::new(entry.dhatu.as_rust()).with_meta(m)
     }
 
     fn to_pratipadika_entry<'a>(

@@ -242,6 +242,7 @@ fn test_subantas(k: &Kosha) {
 
 fn run_tests(args: Args) -> Result<(), Box<dyn Error>> {
     let kosha = Kosha::new(args.data_dir)?;
+    assert!(kosha.len() > 150_000_000);
     test_tinantas(&kosha);
     test_krdantas(&kosha);
     test_subantas(&kosha);

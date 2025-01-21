@@ -16,6 +16,13 @@ fn py_repr_string(text: &str) -> String {
     }
 }
 
+fn py_repr_option_string(option: &Option<String>) -> String {
+    match option {
+        Some(text) => py_repr_string(&text),
+        None => String::from("None"),
+    }
+}
+
 /// A verb root.
 #[pyclass(name = "DhatuEntry", get_all, eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -29,28 +36,60 @@ pub struct PyDhatuEntry {
     /// - `qukf\\Y` --> `kf`
     /// - `vidi~` --> `vind`
     pub(crate) clean_text: String,
+
+    /// The meaning of this dhatu's *mūla* as an SLP1 string.
+    ///
+    /// We have meaning strings only for the ~2000 *mūla* dhatus from the Dhatupatha. Any roots
+    /// derived from these ~2000 will share their `artha` with the dhatu they come from.
+    ///
+    /// Examples:
+    ///
+    /// - `BU` --> `sattAyAm`
+    /// - `aBiBU` --> `sattAyAm`
+    /// - `aBibuBUza` --> `sattAyAm`
+    pub(crate) artha_sa: Option<String>,
+    pub(crate) artha_en: Option<String>,
+    pub(crate) artha_hi: Option<String>,
+    pub(crate) karmatva: Option<String>,
+    pub(crate) ittva: Option<String>,
+    pub(crate) pada: Option<String>,
 }
 
 #[pymethods]
 impl PyDhatuEntry {
     /// Create a new `DhatuEntry`.
     #[new]
-    #[pyo3(signature = (*, dhatu, clean_text))]
-    fn new(dhatu: PyDhatu, clean_text: String) -> Self {
-        Self { dhatu, clean_text }
+    #[pyo3(signature = (dhatu, clean_text, *, artha_sa = None, artha_en = None, artha_hi = None,
+        karmatva = None, ittva = None, pada = None))]
+    fn new(
+        dhatu: PyDhatu,
+        clean_text: String,
+        artha_sa: Option<String>,
+        artha_en: Option<String>,
+        artha_hi: Option<String>,
+        karmatva: Option<String>,
+        ittva: Option<String>,
+        pada: Option<String>,
+    ) -> Self {
+        Self {
+            dhatu,
+            clean_text,
+            artha_sa,
+            artha_en,
+            artha_hi,
+            karmatva,
+            ittva,
+            pada,
+        }
     }
 
     fn __repr__(&self) -> String {
         format!(
-            "DhatuEntry(dhatu={}, clean_text={})",
+            "DhatuEntry(dhatu={}, clean_text={}, artha_sa={})",
             self.dhatu.__repr__(),
-            py_repr_string(&self.clean_text)
+            py_repr_string(&self.clean_text),
+            py_repr_option_string(&self.artha_sa),
         )
-    }
-
-    #[getter]
-    fn dhatu(&self) -> PyDhatu {
-        self.dhatu.clone()
     }
 
     /// Convert this entry to a :class:`~vidyut.prakriya.Dhatu`.
@@ -64,6 +103,12 @@ impl<'a> From<&DhatuEntry<'a>> for PyDhatuEntry {
         Self {
             dhatu: val.dhatu().into(),
             clean_text: val.clean_text().to_string(),
+            artha_sa: val.artha_sa().map(|x| x.to_string()),
+            artha_en: val.artha_en().map(|x| x.to_string()),
+            artha_hi: val.artha_hi().map(|x| x.to_string()),
+            ittva: None,
+            karmatva: None,
+            pada: None,
         }
     }
 }
@@ -140,6 +185,21 @@ impl PyPratipadikaEntry {
         }
     }
 
+    /// Returns the lingas that this *prātipadika* is allowed to use.
+    ///
+    /// If empty, lingas might not yet be implemented for this *prātipadika* type.
+    #[getter]
+    pub fn lingas(&self) -> Vec<PyLinga> {
+        match self {
+            Self::Basic { lingas, .. } => lingas.clone(),
+            Self::Krdanta { krt, .. } => vp::BaseKrt::from(*krt)
+                .lingas()
+                .iter()
+                .map(|x| (*x).into())
+                .collect(),
+        }
+    }
+
     #[getter]
     pub fn is_avyaya(&self) -> bool {
         match self {
@@ -158,7 +218,7 @@ impl PyPratipadikaEntry {
                 krt,
                 prayoga: _,
                 lakara: _,
-            } => PyPratipadika::krdanta(dhatu_entry.dhatu().clone(), krt.clone()),
+            } => PyPratipadika::krdanta(dhatu_entry.dhatu.clone(), krt.clone()),
         }
     }
 }

@@ -101,6 +101,11 @@ impl Kosha {
         Ok(Self { fst, packer })
     }
 
+    /// Returns the number of words in the kosha.
+    pub fn len(&self) -> usize {
+        self.packer.count
+    }
+
     /// Returns an iterator over all dhatus contained in the kosha.
     ///
     /// # Usage
@@ -569,6 +574,11 @@ impl Builder {
             self.fst_builder.insert(key, u64_payload)?;
         };
 
+        // We can't reply on `fst.len()` because a single FST entry might map to an ending
+        // paradigm containing multiple suffixes. So instead, maintain our own count. We
+        // keep this count on the packer so we can reuse its MessagePack serde.
+        self.packer.increment(value)?;
+
         Ok(())
     }
 
@@ -689,7 +699,7 @@ mod tests {
         let dir = tempdir()?;
         let mut builder = Builder::new(dir.path())?;
 
-        let gam_entry = DhatuEntry::new(&gam, "gam");
+        let gam_entry = DhatuEntry::new(&gam);
         builder.register_dhatu_entry(&gam_entry);
         builder.register_pratipadika_entry(&(&gacchan).try_into().expect("ok"));
         builder.register_pratipadika_entry(&(&agni).try_into().expect("ok"));

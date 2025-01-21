@@ -67,7 +67,7 @@ TODO: investigate different packing orders to see if we can reduce the size of t
 #![allow(dead_code)]
 
 use crate::entries::{
-    DhatuEntry, KrdantaEntry, PadaEntry, PratipadikaEntry, SubantaEntry, TinantaEntry,
+    DhatuEntry, DhatuMeta, KrdantaEntry, PadaEntry, PratipadikaEntry, SubantaEntry, TinantaEntry,
 };
 use crate::errors::{Error, Result};
 use modular_bitfield::prelude::*;
@@ -237,11 +237,6 @@ impl TinantaSuffixes {
 }
 
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct DhatuMeta {
-    clean_text: String,
-}
-
-#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 struct PratipadikaMeta {
     lingas: Vec<Linga>,
 }
@@ -391,6 +386,7 @@ impl PackedEntry {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 struct Registry {
+    count: usize,
     krts: Vec<RichKrt>,
     dhatus: Vec<Dhatu>,
     dhatu_meta: Vec<DhatuMeta>,
@@ -403,6 +399,8 @@ struct Registry {
 /// Packs and unpacks linguistic data.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub(crate) struct Packer {
+    pub(crate) count: usize,
+
     sups: Vec<Sup>,
     sup_to_index: FxHashMap<Sup, Id>,
 
@@ -425,6 +423,7 @@ pub(crate) struct Packer {
     tinanta_suffixes_to_index: FxHashMap<TinantaSuffixes, Id>,
 
     dhatu_meta: Vec<DhatuMeta>,
+    // This is a Map because not all pratipadikas have metadata.
     pratipadika_meta: FxHashMap<Id, PratipadikaMeta>,
 }
 
@@ -480,6 +479,7 @@ impl Packer {
         let registry: Registry = rmp_serde::from_read(reader)?;
 
         let Registry {
+            count,
             krts,
             dhatus,
             pratipadikas,
@@ -489,6 +489,7 @@ impl Packer {
             pratipadika_meta,
         } = registry;
 
+        ret.count = count;
         ret.krts = krts;
         ret.dhatus = dhatus;
         ret.pratipadikas = pratipadikas;
@@ -531,6 +532,7 @@ impl Packer {
     /// Writes the registry to disk.
     pub(crate) fn write(&self, registry_path: &Path) -> Result<()> {
         let registry = Registry {
+            count: self.count,
             krts: self.krts.clone(),
             dhatus: self.dhatus.clone(),
             pratipadikas: self.pratipadikas.clone(),
@@ -630,6 +632,26 @@ impl Packer {
         Ok(())
     }
 
+    /// Increments the count of entries stored in the packer.
+    pub(crate) fn increment(&mut self, entry: &PackedEntry) -> Result<()> {
+        if entry.pos() == PartOfSpeech::SubantaPrefix {
+            let prefix = entry.as_packed_subanta_prefix();
+            match self.subanta_suffixes.get(prefix.paradigm_id() as usize) {
+                Some(paradigm) => self.count += paradigm.endings.len(),
+                None => return Err(Error::UnknownId("paradigm", prefix.paradigm_id() as usize)),
+            }
+        } else if entry.pos() == PartOfSpeech::TinantaPrefix {
+            let prefix = entry.as_packed_tinanta_prefix();
+            match self.tinanta_suffixes.get(prefix.paradigm_id() as usize) {
+                Some(paradigm) => self.count += paradigm.endings.len(),
+                None => return Err(Error::UnknownId("paradigm", prefix.paradigm_id() as usize)),
+            }
+        } else {
+            self.count += 1;
+        }
+        Ok(())
+    }
+
     /// Registers the given dhatu and returns its interned ID.
     pub(crate) fn register_dhatu_entry(&mut self, entry: &DhatuEntry) -> Id {
         let dhatu = entry.dhatu();
@@ -639,16 +661,16 @@ impl Packer {
         } else {
             let id = Id(self.dhatus.len());
             self.dhatus.push(dhatu.clone());
-            self.dhatu_meta.push(DhatuMeta::default());
             self.dhatu_to_index.insert(dhatu.clone(), id);
+            let meta = if let Some(m) = entry.meta {
+                m.clone()
+            } else {
+                DhatuMeta::default()
+            };
+            self.dhatu_meta.push(meta);
 
-            self.dhatu_meta
-                .get_mut(id.0)
-                .expect("just pushed")
-                .clean_text = entry.clean_text().to_string();
-
-            assert!(self.dhatus.len() == self.dhatu_meta.len());
-            assert!(self.dhatus.len() == self.dhatu_to_index.len());
+            assert_eq!(self.dhatus.len(), self.dhatu_meta.len());
+            assert_eq!(self.dhatus.len(), self.dhatu_to_index.len());
 
             id
         }
@@ -902,8 +924,9 @@ impl Packer {
 
     pub(crate) fn unpack_dhatu(&self, id: Id) -> Result<DhatuEntry> {
         match (self.dhatus.get(id.0), self.dhatu_meta.get(id.0)) {
-            (Some(d), Some(m)) => {
-                let entry = DhatuEntry::new(d, &m.clean_text);
+            (Some(dhatu), Some(meta)) => {
+                let mut entry = DhatuEntry::new(dhatu);
+                entry.meta = Some(meta);
                 Ok(entry)
             }
             _ => Err(Error::UnknownId("dhatu", id.0)),
@@ -1106,8 +1129,16 @@ mod tests {
     #[test]
     fn test_tinanta_packing() -> TestResult {
         let gam = Dhatu::mula(safe("ga\\mx~"), vp::Gana::Bhvadi);
+        let gam_meta = DhatuMeta::builder()
+            .clean_text("gam".to_string())
+            .artha_sa("gatO".to_string())
+            .artha_en("go".to_string())
+            .artha_hi("जाना".to_string())
+            .build()
+            .expect("ok");
+        let gam_entry = DhatuEntry::new(&gam).with_meta(&gam_meta);
         let gacchati = PadaEntry::Tinanta(TinantaEntry::new(
-            DhatuEntry::new(&gam, "gam"),
+            gam_entry.clone(),
             Prayoga::Kartari,
             Lakara::Lat,
             Purusha::Prathama,
@@ -1115,16 +1146,18 @@ mod tests {
         ));
 
         let car = Dhatu::mula(safe("cara~"), vp::Gana::Bhvadi);
+        let car_meta = DhatuMeta::builder()
+            .clean_text("car".to_string())
+            .build()
+            .expect("ok");
+        let car_entry = DhatuEntry::new(&car).with_meta(&car_meta);
         let carati = PadaEntry::Tinanta(TinantaEntry::new(
-            DhatuEntry::new(&car, "car"),
+            car_entry.clone(),
             Prayoga::Kartari,
             Lakara::Lat,
             Purusha::Prathama,
             Vacana::Eka,
         ));
-
-        let gam_entry = DhatuEntry::new(&gam, "gam");
-        let car_entry = DhatuEntry::new(&car, "car");
 
         let mut packer = Packer::new();
         packer.register_dhatu_entry(&gam_entry);

@@ -82,7 +82,11 @@ def test_getitem(kosha):
     assert kosha["gacCati"] is not None
 
     with pytest.raises(KeyError):
-        x = kosha["missing"]
+        _ = kosha["missing"]
+
+
+def test_len(kosha):
+    assert len(kosha) == 3
 
 
 def test_repr(kosha):

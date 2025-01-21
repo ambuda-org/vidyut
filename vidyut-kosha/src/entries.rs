@@ -2,6 +2,7 @@
 //!
 //! All entries make heavy use of lifetime annotations to refer to data defined on `Kosha`.
 use crate::errors::{Error, Result};
+use serde::{Deserialize, Serialize};
 use vidyut_prakriya::args as vp;
 use vidyut_prakriya::args::{
     BasicPratipadika, Dhatu, Krdanta, Krt, Lakara, Linga, Pada, Pratipadika, Prayoga, Purusha,
@@ -11,8 +12,32 @@ use vidyut_prakriya::args::{
 /// A dhatu with its metadata.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct DhatuEntry<'a> {
-    dhatu: &'a Dhatu,
-    clean_text: &'a str,
+    pub(crate) dhatu: &'a Dhatu,
+    pub(crate) meta: Option<&'a DhatuMeta>,
+}
+
+/// Metadata for some dhatu.
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub struct DhatuMeta {
+    pub(crate) clean_text: String,
+    pub(crate) artha_sa: Option<String>,
+    pub(crate) artha_hi: Option<String>,
+    pub(crate) artha_en: Option<String>,
+    pub(crate) karmatva: Option<String>,
+    pub(crate) ittva: Option<String>,
+    pub(crate) pada: Option<String>,
+}
+
+/// A builder for a `DhatuEntry`.
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
+pub struct DhatuMetaBuilder {
+    clean_text: Option<String>,
+    artha_sa: Option<String>,
+    artha_hi: Option<String>,
+    artha_en: Option<String>,
+    karmatva: Option<String>,
+    ittva: Option<String>,
+    pada: Option<String>,
 }
 
 /// A basic *prātipadika* with its metadata.
@@ -73,11 +98,9 @@ pub enum PadaEntry<'a> {
 }
 
 impl<'a> DhatuEntry<'a> {
-    /// Creates a new `DhatuEntry`.
-    ///
-    /// `clean_text` should be the text obtained by calling `Vyakarana::derive_dhatus` on `dhatu`.
-    pub fn new(dhatu: &'a Dhatu, clean_text: &'a str) -> Self {
-        Self { dhatu, clean_text }
+    /// Creates a new `DhatuEntry` with no metadata. To set metadata, use `builder()` instead.
+    pub fn new(dhatu: &'a Dhatu) -> Self {
+        Self { dhatu, meta: None }
     }
 
     /// Returns the dhatu that generates this entry.
@@ -92,19 +115,127 @@ impl<'a> DhatuEntry<'a> {
     /// - `qukf\\Y` --> `kf`
     /// - `vidi~` --> `vind`
     pub fn clean_text(&self) -> &str {
-        self.clean_text
+        self.meta.map_or("", |x| &x.clean_text)
+    }
+
+    /// Returns the Sanskrit meaning of this dhatu's *mūla* as an SLP1 string.
+    ///
+    /// We have meaning strings only for the ~2000 *mūla* dhatus from the Dhatupatha. Any roots
+    /// derived from these ~2000 will share their `artha` with the dhatu they come from.
+    ///
+    /// Examples:
+    ///
+    /// - `BU` --> `sattAyAm`
+    /// - `aBiBU` --> `sattAyAm`
+    /// - `aBibuBUza` --> `sattAyAm`
+    ///
+    /// Data is sourced from <https://ashtadhyayi.com>.
+    pub fn artha_sa(&self) -> Option<&str> {
+        self.meta.map(|x| x.artha_sa.as_deref()).flatten()
+    }
+
+    /// Returns the English meaning of this dhatu's *mūla* in Latin text.
+    ///
+    /// Data is sourced from <https://ashtadhyayi.com>.
+    pub fn artha_en(&self) -> Option<&str> {
+        self.meta.map(|x| x.artha_en.as_deref()).flatten()
+    }
+
+    /// Returns the Hindi meaning of this dhatu's *mūla* in Devanagari.
+    ///
+    /// Data is sourced from <https://ashtadhyayi.com>.
+    pub fn artha_hi(&self) -> Option<&str> {
+        self.meta.map(|x| x.artha_hi.as_deref()).flatten()
+    }
+
+    /// Sets the metadata on this dhatu.
+    ///
+    /// This method is for libraries building a `Kosha` from scratch.
+    pub fn with_meta(mut self, meta: &'a DhatuMeta) -> Self {
+        self.meta = Some(meta);
+        self
     }
 }
 
 impl<'a> From<&'a Dhatu> for DhatuEntry<'a> {
     fn from(val: &'a Dhatu) -> Self {
-        DhatuEntry::new(val, "")
+        DhatuEntry::new(val)
     }
 }
 
 impl<'a> From<DhatuEntry<'a>> for Dhatu {
     fn from(val: DhatuEntry<'a>) -> Self {
         val.dhatu.clone()
+    }
+}
+
+impl DhatuMeta {
+    /// Returns a builder over this `DhatuEntry`.
+    ///
+    /// This builder is utility code for inserting new `DhatuEntry` objects into a `Kosha`. If you
+    /// are not building a `Kosha` yourself, you can ignore this method.
+    pub fn builder() -> DhatuMetaBuilder {
+        DhatuMetaBuilder::default()
+    }
+}
+
+impl DhatuMetaBuilder {
+    /// Sets `clean_text`.
+    pub fn clean_text(mut self, text: String) -> Self {
+        self.clean_text = Some(text);
+        self
+    }
+
+    /// (Optional) Sets `artha_sa`.
+    pub fn artha_sa(mut self, artha: String) -> Self {
+        self.artha_sa = Some(artha);
+        self
+    }
+
+    /// (Optional) Sets `artha_en`.
+    pub fn artha_en(mut self, artha: String) -> Self {
+        self.artha_en = Some(artha);
+        self
+    }
+
+    /// (Optional) Sets `artha_hi`.
+    pub fn artha_hi(mut self, artha: String) -> Self {
+        self.artha_hi = Some(artha);
+        self
+    }
+
+    /// (Optional) Sets the karmatva.
+    pub fn karmatva(mut self, artha: String) -> Self {
+        self.artha_hi = Some(artha);
+        self
+    }
+
+    /// (Optional) Sets the ittva.
+    pub fn ittva(mut self, ittva: String) -> Self {
+        self.ittva = Some(ittva);
+        self
+    }
+
+    /// (Optional) Sets the dhatu pada for this entry.
+    pub fn pada(mut self, pada: String) -> Self {
+        self.pada = Some(pada);
+        self
+    }
+
+    /// Builds a `DhatuEntry`.
+    pub fn build(self) -> Result<DhatuMeta> {
+        Ok(DhatuMeta {
+            clean_text: match self.clean_text {
+                Some(x) => x,
+                _ => return Err(Error::UnsupportedType),
+            },
+            artha_sa: self.artha_sa,
+            artha_en: self.artha_en,
+            artha_hi: self.artha_hi,
+            karmatva: self.karmatva,
+            ittva: self.ittva,
+            pada: self.pada,
+        })
     }
 }
 
@@ -163,7 +294,7 @@ impl<'a> KrdantaEntry<'a> {
 
     /// The *dhātu* used by this krdanta.
     pub fn dhatu_text(&self) -> &str {
-        self.dhatu_entry.clean_text
+        self.dhatu_entry.clean_text()
     }
 
     /// Returns the *krt pratyaya* used by this krdanta.
@@ -226,6 +357,19 @@ impl<'a> PratipadikaEntry<'a> {
         }
     }
 
+    /// Returns the lingas that this *prātipadika* is allowed to use.
+    ///
+    /// If empty, lingas might not yet be implemented for this *prātipadika* type.
+    pub fn lingas(&self) -> &[Linga] {
+        match self {
+            Self::Basic(b) => b.lingas(),
+            Self::Krdanta(k) => match k.krt {
+                Krt::Base(b) => b.lingas(),
+                _ => &[],
+            },
+        }
+    }
+
     /// Returns whether this entry represents an *avyaya*.
     pub fn is_avyaya(&self) -> bool {
         match self {
@@ -263,7 +407,7 @@ impl<'a> TryFrom<&'a Pratipadika> for PratipadikaEntry<'a> {
                 Ok(PratipadikaEntry::Basic(basic_entry))
             }
             Pratipadika::Krdanta(k) => {
-                let dhatu_entry = DhatuEntry::new(k.dhatu(), "");
+                let dhatu_entry = DhatuEntry::new(k.dhatu());
                 let krdanta_entry =
                     KrdantaEntry::new(dhatu_entry, k.krt(), k.prayoga(), k.lakara());
                 Ok(PratipadikaEntry::Krdanta(krdanta_entry))
@@ -518,7 +662,12 @@ mod tests {
     #[test]
     fn pada_entry_tinanta() {
         let gam = Dhatu::mula(safe("ga\\mx~"), Gana::Bhvadi);
-        let gam_entry = DhatuEntry::new(&gam, "gam");
+        let gam_meta = DhatuMeta::builder()
+            .clean_text("gam".to_string())
+            .artha_sa("gatO".to_string())
+            .build()
+            .expect("ok");
+        let gam_entry = DhatuEntry::new(&gam).with_meta(&gam_meta);
         let gacchati = PadaEntry::Tinanta(TinantaEntry::new(
             gam_entry.clone(),
             Prayoga::Kartari,
@@ -569,7 +718,12 @@ mod tests {
     #[test]
     fn pada_entry_krdanta_subanta() {
         let gam = Dhatu::mula(safe("ga\\mx~"), Gana::Bhvadi);
-        let gam_entry = DhatuEntry::new(&gam, "gam");
+        let gam_meta = DhatuMeta::builder()
+            .clean_text("gam".to_string())
+            .artha_sa("gatO".to_string())
+            .build()
+            .expect("ok");
+        let gam_entry = DhatuEntry::new(&gam).with_meta(&gam_meta);
         let gamaka = PratipadikaEntry::Krdanta(KrdantaEntry::new(
             gam_entry,
             BaseKrt::Rvul.into(),
