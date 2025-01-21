@@ -28,5 +28,5 @@ docs:
 	cargo doc --all --no-deps --open --document-private-items
 
 # Runs documentation tests for all crates in the repository.
-test_doc:
+test_docs:
 	cargo test --all --doc

@@ -95,7 +95,7 @@ def test_pratipadika_entry__dunders():
 
     # __repr__
     assert repr(rama_entry) == (
-        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='rAma', is_avyaya=False), "
+        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='rAma'), "
         "lingas=[Linga.Pum])"
     )
 
@@ -198,7 +198,7 @@ def test_pada_entry__dunders():
     assert repr(rama_pada) == (
         "PadaEntry.Subanta("
         "pratipadika_entry=PratipadikaEntry.Basic("
-        "pratipadika=Pratipadika(text='rAma', is_avyaya=False), lingas=[Linga.Pum]), "
+        "pratipadika=Pratipadika(text='rAma'), lingas=[Linga.Pum]), "
         "linga=Linga.Pum, vibhakti=Vibhakti.Prathama, vacana=Vacana.Eka)"
     )
 

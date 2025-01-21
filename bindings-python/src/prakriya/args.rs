@@ -1193,15 +1193,15 @@ impl PyPratipadika {
 impl PyPratipadika {
     pub fn __repr__(&self) -> String {
         match &self.pratipadika {
-            Pratipadika::Basic(_) => format!(
-                "Pratipadika(text='{}', is_avyaya={})",
-                self.text,
+            Pratipadika::Basic(_) => {
                 if self.pratipadika.is_avyaya() {
-                    "True"
+                    format!("Pratipadika(text='{}', is_avyaya=True)", self.text)
+                } else if self.pratipadika.is_nyap() {
+                    format!("Pratipadika(text='{}', is_nyap=True)", self.text)
                 } else {
-                    "False"
+                    format!("Pratipadika(text='{}')", self.text)
                 }
-            ),
+            }
             _ => "Pratipadika(...)".to_string(),
         }
     }
@@ -1226,6 +1226,26 @@ impl PyPratipadika {
             } else {
                 Pratipadika::basic(safe)
             },
+            text,
+        })
+    }
+
+    /// Create a new pratipadika that is treated as ending in a nyAp-pratyaya.
+    ///
+    /// `text` should be an SLP1 string.
+    #[staticmethod]
+    #[pyo3(signature = (text))]
+    pub fn nyap(text: String) -> PyResult<Self> {
+        let safe = match Slp1String::from(text.clone()) {
+            Ok(s) => s,
+            Err(_) => {
+                return Err(PyValueError::new_err(format!(
+                    "{text} must be an SLP1 string."
+                )))
+            }
+        };
+        Ok(Self {
+            pratipadika: Pratipadika::nyap(safe),
             text,
         })
     }
@@ -1265,6 +1285,12 @@ impl PyPratipadika {
     #[getter]
     pub fn is_avyaya(&self) -> bool {
         self.pratipadika.is_avyaya()
+    }
+
+    /// Whether or not this pratipadika should be treated as a *nyAp-anta*.
+    #[getter]
+    pub fn is_nyap(&self) -> bool {
+        self.pratipadika.is_nyap()
     }
 }
 

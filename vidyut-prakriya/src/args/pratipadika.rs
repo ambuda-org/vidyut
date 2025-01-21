@@ -23,6 +23,11 @@ impl BasicPratipadika {
     pub fn is_avyaya(&self) -> bool {
         self.is_avyaya
     }
+
+    /// Returns whether this pratipadika should be treated as ending in a *nyAp pratyaya*.
+    pub fn is_nyap(&self) -> bool {
+        self.is_nyap
+    }
 }
 
 /// A nominal stem.
@@ -82,6 +87,15 @@ impl Pratipadika {
         match self {
             Self::Basic(b) => b.is_avyaya(),
             Self::Krdanta(k) => k.krt().is_avyaya(),
+            _ => false,
+        }
+    }
+
+    /// Returns whether the pratipadika describes an avyaya.
+    pub fn is_nyap(&self) -> bool {
+        match self {
+            Self::Basic(b) => b.is_nyap(),
+            Self::Krdanta(_) => false,
             _ => false,
         }
     }

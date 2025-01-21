@@ -229,6 +229,18 @@ def test_derive_subantas():
     assert expected == actual
 
 
+def test_derive_subantas_with_nyap():
+    v = Vyakarana()
+    prakriyas = v.derive(
+        Pada.Subanta(
+            Pratipadika.nyap("nadI"), Linga.Stri, Vibhakti.Prathama, Vacana.Eka
+        )
+    )
+    expected = {"nadI"}
+    actual = {x.text for x in prakriyas}
+    assert expected == actual
+
+
 @pytest.mark.parametrize(
     "code,expected",
     [

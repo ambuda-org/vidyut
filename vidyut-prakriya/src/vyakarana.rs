@@ -231,68 +231,6 @@ impl Vyakarana {
     ///     .prayoga(Prayoga::Kartari)
     ///     .purusha(Purusha::Prathama)
     ///     .vacana(Vacana::Eka)
-    ///     .build()
-    ///     .unwrap();
-    /// let prakriyas = v.derive_tinantas(&args);
-    /// assert_eq!(prakriyas[0].text(), "aBiBavati");
-    /// # Ok::<(), Error>(())
-    /// ```
-    ///
-    /// A *tiṅanta* whose *dhātu* has one or more *sanādi-pratyaya*s:
-    ///
-    /// ```
-    /// # use vidyut_prakriya::*;
-    /// # use vidyut_prakriya::args::*;
-    /// # let v = Vyakarana::new();
-    /// let bobhuya = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi).with_sanadi(&[Sanadi::yaN]);
-    /// let args = Tinanta::builder()
-    ///     .dhatu(bobhuya)
-    ///     .lakara(Lakara::Lat)
-    ///     .prayoga(Prayoga::Kartari)
-    ///     .purusha(Purusha::Prathama)
-    ///     .vacana(Vacana::Eka)
-    ///     .build()
-    ///     .unwrap();
-    /// let prakriyas = v.derive_tinantas(&args);
-    /// assert_eq!(prakriyas[0].text(), "boBUyate");
-    /// # Ok::<(), Error>(())
-    /// ```
-    ///
-    /// A *tiṅanta* that must use *ātmanepada*. If the *dhātu* cannot support the requested *pada*,
-    /// this method returns no results:
-    ///
-    /// ```
-    /// # use vidyut_prakriya::*;
-    /// # use vidyut_prakriya::args::*;
-    /// # let v = Vyakarana::new();
-    /// let kr = Dhatu::mula(Slp1String::from("qukf\\Y")?, Gana::Tanadi);
-    /// let args = Tinanta::builder()
-    ///     .dhatu(kr)
-    ///     .lakara(Lakara::Lat)
-    ///     .prayoga(Prayoga::Kartari)
-    ///     .purusha(Purusha::Prathama)
-    ///     .vacana(Vacana::Eka)
-    ///     .pada(DhatuPada::Atmanepada)
-    ///     .build()
-    ///     .unwrap();
-    /// let prakriyas = v.derive_tinantas(&args);
-    /// assert_eq!(prakriyas[0].text(), "kurute");
-    /// # Ok::<(), Error>(())
-    /// ```
-    ///
-    /// A *tiṅanta* with one or more *upasarga*s:
-    ///
-    /// ```
-    /// # use vidyut_prakriya::*;
-    /// # use vidyut_prakriya::args::*;
-    /// # let v = Vyakarana::new();
-    /// let abhibhu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi).with_prefixes(&["aBi"]);
-    /// let args = Tinanta::builder()
-    ///     .dhatu(abhibhu)
-    ///     .lakara(Lakara::Lat)
-    ///     .prayoga(Prayoga::Kartari)
-    ///     .purusha(Purusha::Prathama)
-    ///     .vacana(Vacana::Eka)
     ///     .build()?;
     /// let prakriyas = v.derive_tinantas(&args);
     /// assert_eq!(prakriyas[0].text(), "aBiBavati");
@@ -367,6 +305,8 @@ impl Vyakarana {
     ///
     /// ### Example
     ///
+    /// A basic subanta:
+    ///
     /// ```
     /// # use vidyut_prakriya::*;
     /// # use vidyut_prakriya::args::*;
@@ -392,7 +332,7 @@ impl Vyakarana {
     ///
     /// ### Example
     ///
-    /// Using a basic *kṛt pratyaya*:
+    /// A basic *kṛt pratyaya*:
     ///
     /// ```
     /// # use vidyut_prakriya::*;
@@ -405,7 +345,22 @@ impl Vyakarana {
     /// # Ok::<(), Error>(())
     /// ```
     ///
-    /// Using an *uṇādi pratyaya*:
+    /// A basic *kṛt pratyaya* with a specific *prayoga* and *lakāra*:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::*;
+    /// # use vidyut_prakriya::args::*;
+    /// let v = Vyakarana::new();
+    /// let dhatu = Dhatu::mula(Slp1String::from("BU")?, Gana::Bhvadi);
+    /// let args = Krdanta::new(dhatu, BaseKrt::Satf)
+    ///   .with_prayoga(Prayoga::Kartari)
+    ///   .with_lakara(Lakara::Lat);
+    /// let prakriyas = v.derive_krdantas(&args);
+    /// assert_eq!(prakriyas[0].text(), "Bavat");
+    /// # Ok::<(), Error>(())
+    /// ```
+    ///
+    /// An *uṇādi pratyaya*:
     ///
     /// ```
     /// # use vidyut_prakriya::*;

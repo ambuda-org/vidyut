@@ -1,7 +1,5 @@
-/*!
-Utility functions for working with the Dhatupatha file included in this crate. For details, see the
-comments on the `Dhatupatha` struct.
-*/
+//! Utility functions for working with the Dhatupatha file included in this crate.
+//! For details, see the comments on the `Dhatupatha` struct.
 
 use crate::args::{Antargana, Dhatu, Gana};
 use crate::core::errors::*;
@@ -119,7 +117,7 @@ pub fn create_dhatu(aupadeshika: impl AsRef<str>, gana: Gana, number: u16) -> Re
 }
 
 impl Dhatupatha {
-    /// Loads a dhatupatha from the provided TSV.
+    /// Loads a dhatupatha from a TSV file.
     ///
     /// This function expects a TSV with headers and at least two columns. The first column is a
     /// short numeric code associated with the dhatu (e.g. `"01.0001"`), and the second column is
@@ -139,7 +137,7 @@ impl Dhatupatha {
         Self::from_text(&content)
     }
 
-    /// Loads a dhatupatha from the input text string.
+    /// Loads a dhatupatha from a TSV string.
     ///
     /// This function is best suited for environments that don't have access to an underlying file
     /// system, such as when running with WebAssembly.
@@ -196,7 +194,7 @@ impl Dhatupatha {
         }
     }
 
-    /// Returns an iterator over this dhatupatha's contents.
+    /// Returns an iterator over all dhatus in the Dhatupatha.
     pub fn iter(&self) -> std::slice::Iter<Entry> {
         self.0.iter()
     }

@@ -668,6 +668,18 @@ impl Krdanta {
         self.require.as_ref()
     }
 
+    /// Sets the prayoga to use with this krdanta.
+    pub fn with_prayoga(mut self, prayoga: Prayoga) -> Self {
+        self.prayoga = Some(prayoga);
+        self
+    }
+
+    /// Sets the lakara to use with this krdanta.
+    pub fn with_lakara(mut self, lakara: Lakara) -> Self {
+        self.lakara = Some(lakara);
+        self
+    }
+
     /// Sets the required value for this krdanta.
     pub fn with_require(mut self, s: impl AsRef<str>) -> Self {
         self.require = Some(s.as_ref().to_string());

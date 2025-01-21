@@ -1,17 +1,16 @@
 <div align="center">
 <h1>विद्युत्</h1>
+<p><i>Reliable infrastructure for Sanskrit software</i></p>
 </div>
 
-Vidyut provides reliable infrastructure for Sanskrit software.
-
-Specifically, Vidyut aims to provide performant and high-quality solutions for the
-common problems that Sanskrit programmers face. Some of these problems include:
-
-- *Transliteration*, or conversion of Sanskrit text from one script to another. (भू → bhū)
+Vidyut aims to provide performant and high-quality solutions for the common problems
+that Sanskrit programmers face. Some of these problems include:
 
 - *Word generation*, or converting bases and suffixes into complete words. (भू → भवति)
 
 - *Word lookup*, or mapping a complete word back to its bases and suffixes. (भवति → भू)
+
+- *Transliteration*, or conversion of Sanskrit text from one script to another. (भू → bhū)
 
 - *Metrical analysis*, or understanding the meter used by a piece of Sanskrit text.
 
@@ -100,20 +99,25 @@ Python project.
 Once your setup is ready, you can install the `vidyut` package:
 
 ```shell
-# With pip
-$ pip install vidyut
-
 # With uv
 $ uv add vidyut
+
+# With pip
+$ pip install vidyut
 ````
 
 You can also install directly from this repository. Doing so compiles the repository
 from scratch and might take several minutes, so we strongly suggest using our latest
 [PyPI release][pypi] instead.
 
-```
-# The command is very slow, so pass `--verbose` to monitor its status.
-pip install -e "git+https://github.com/ambuda-org/vidyut.git#egg=vidyut&subdirectory=bindings-python" --verbose
+```shell
+# Building from scratch is slow, so we pass `--verbose` to monitor its status.
+
+# With uv
+$ uv add "git+https://github.com/ambuda-org/vidyut.git#subdirectory=bindings-python" --verbose
+
+# With pip
+$ pip install -e "git+https://github.com/ambuda-org/vidyut.git#egg=vidyut&subdirectory=bindings-python" --verbose
 ```
 
 We recommend using our pre-built linguistic data, which is available as a ZIP file

@@ -8,9 +8,10 @@
 [paper]: https://iscls.github.io/assets/files/proceedings/2024.iscls.7.pdf
 
 `vidyut-prakriya` generates Sanskrit words with their prakriyās (derivations)
-according to the rules of Paninian grammar and currently implements around
-2,000 rules. Our long-term goal is to provide a complete implementation of the
-Ashtadhyayi.
+according to the rules of traditional Sanskrit grammar. It currently implements
+more than 2,000 rules from the *Aṣṭādhyāyī*, the core text of the grammatical
+tradition. Our long-term goal is to provide a complete implementation of the
+*Aṣṭādhyāyī*.
 
 This [crate][crate] is under active development as part of the [Ambuda][ambuda]
 project. If you enjoy our work and wish to contribute to it, please see the
@@ -18,7 +19,8 @@ project. If you enjoy our work and wish to contribute to it, please see the
 Discord server][discord], where you can meet other Sanskrit programmers and
 enthusiasts.
 
-An online demo is available [here][demo].
+An online demo, which also demonstrates this crate's WebAssembly bindings, is
+available [here][demo].
 
 - [Overview](#overview)
 - [Usage](#usage)
@@ -39,22 +41,23 @@ Overview
 `vidyut-prakriya` has three distinguishing qualities:
 
 1. *Fidelity*. We follow the rules of Paninian grammar as closely as possible.
-   Each word we return can optionally include a prakriyā that lists each rule
+   Each word we return can optionally include a *prakriyā* that lists each rule
    that was used as well as its result.
 
-2. *Speed*. On my laptop (a 2.4GHz 8-core CPU with 64 GB of DDR4 RAM), this
-   crate generates almost 50,000 words per second on a single thread. All else
-   equal, a fast program is easier to run and test, which means that we can
-   produce a larger word list at a higher standard of quality.
+2. *Speed*. We have paid special attention to overall performance, especially
+   by caching partial results. These kinds of changes make `vidyut-prakriya`
+   several orders of magnitude faster than other word generators.
 
 3. *Portability*. This crate compiles to fast native code and can be bound to
-   most other progamming languages with a bit of effort. In particular, this
-   crate can be compiled to WebAssembly, which means that it can run in a
-   modern web browser.
+   most other progamming languages with a bit of effort. We provide first-class
+   support for Python bindings through our [vidyut][vidyut-py] Python package,
+   and we also maintain bindings for WebAssembly.
 
 `vidyut-prakriya` has excellent support for Sanskrit's basic word types,
 including *subanta*s, *tiṅanta*s, *kṛdanta*s, and *taddhitānta*s. It has
 moderate support for *samāsa*s and weak support for accent rules.
+
+[vidyut-py]: https://vidyut.readthedocs.io/en/latest/
 
 
 Usage
@@ -62,7 +65,7 @@ Usage
 
 `vidyut-prakriya` supports two modes of use:
 
-### Command-line use
+### As a binary
 
 The first way to use `vidyut-prakriya` is as a command-line tool for generating
 Sanskrit words. For example, you can generate all basic *tiṅanta*s in *kartari
@@ -80,10 +83,10 @@ compile and complete within a few seconds.
 You can find other example commands by exploring the `Makefile` and in
 particular the various invocations in `create_test_files`.
 
-### Programmatic use
+### As a library
 
-The second way to use `vidyut-prakriya` is programmatically. For example, we
-can generate simple verbs like so:
+The second way to use `vidyut-prakriya` is as a library in your own binaries.
+For example, we can generate simple verbs like so:
 
 ```rust
 use vidyut_prakriya::Vyakarana;
