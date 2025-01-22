@@ -39,6 +39,9 @@ const BENGALI_VIRAMA: char = '\u{09cd}';
 /// Used instead of space (' ') in Bhaiksuki.
 const BHAIKSUKI_WORD_SEPARATOR: char = '\u{11c43}';
 
+/// Used to mark pluta in Grantha.
+const GRANTHA_SIGN_PLUTA: char = '\u{1135d}';
+
 /// Javanese virama.
 const JAVANESE_PANGKON: char = '\u{a9c0}';
 
@@ -77,11 +80,14 @@ const MYANMAR_SIGN_VIRAMA: char = '\u{1039}';
 
 const MYANMAR_SIGN_ASAT: char = '\u{103a}';
 
-// Tai Tham virama.
+/// Tai Tham virama.
 const TAI_THAM_SIGN_RA_HAAM: char = '\u{1a7a}';
 
-// Tai Tham combiner.
+/// Tai Tham combiner.
 const TAI_THAM_SIGN_SAKOT: char = '\u{1a60}';
+
+/// Tamil digit 3 (also used in Grantha)
+const TAMIL_DIGIT_THREE: char = '\u{0be9}';
 
 /// Used instead of space (' ') in Tibetan
 const TIBETAN_MARK_INTERSYLLABLIC_TSHEG: char = '\u{0f0b}';
@@ -104,6 +110,29 @@ const ZANABAZAR_SQUARE_SUBJOINER: char = '\u{11a47}';
 
 fn is_svara(c: char) -> bool {
     matches!(c, '\u{0951}' | '\u{0952}' | '\u{1cda}')
+}
+
+fn is_bengali_sound(c: char) -> bool {
+    match c {
+        // Signs, vowels, consonants
+        '\u{0981}'..='\u{09bc}' => true,
+        // Dependent vowels
+        '\u{09be}'..='\u{09cc}' => true,
+        // Other consonants and signs
+        '\u{09ce}'..='\u{09e3}' => true,
+        // Assamese
+        '\u{09f0}'..='\u{09f1}' => true,
+        _ => false,
+    }
+}
+
+fn accepts_grantha_pluta_marker(c: char) -> bool {
+    // Independent vowels, consonants
+    ('\u{11305}'..='\u{11339}').contains(&c)
+        // Dependent vowel signs
+        || ('\u{1133e}'..='\u{1134c}').contains(&c)
+        // R, RR, L, LL
+        || ('\u{11360}'..='\u{11363}').contains(&c)
 }
 
 fn is_grantha_svara(c: char) -> bool {
@@ -611,6 +640,9 @@ pub fn reshape_before(input: &str, from: Scheme) -> String {
             while m.not_empty() {
                 if m.match_2(|x, y| is_grantha_ayogavaha(x) && is_grantha_svara(y)) {
                     m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else if m.match_1(|x| x == GRANTHA_SIGN_PLUTA) {
+                    // Convert back to 3 for other schemes.
+                    m.take_1(|buf, _| buf.extend(&[TAMIL_DIGIT_THREE]));
                 } else {
                     m.push_next();
                 }
@@ -807,20 +839,6 @@ pub fn reshape_before(input: &str, from: Scheme) -> String {
     }
 }
 
-fn is_bengali_sound(c: char) -> bool {
-    match c {
-        // Signs, vowels, consonants
-        '\u{0981}'..='\u{09bc}' => true,
-        // Dependent vowels
-        '\u{09be}'..='\u{09cc}' => true,
-        // Other consonants and signs
-        '\u{09ce}'..='\u{09e3}' => true,
-        // Assamese
-        '\u{09f0}'..='\u{09f1}' => true,
-        _ => false,
-    }
-}
-
 /// Reshapes `output` after we run the main transliteration function.
 pub fn reshape_after(output: String, to: Scheme) -> String {
     let mut m = Matcher::new(output);
@@ -933,6 +951,10 @@ pub fn reshape_after(output: String, to: Scheme) -> String {
             while m.not_empty() {
                 if m.match_2(|x, y| is_grantha_svara(x) && is_grantha_ayogavaha(y)) {
                     m.take_2(|buf, x, y| buf.extend(&[y, x]));
+                } else if m
+                    .match_2(|x, y| accepts_grantha_pluta_marker(x) && y == TAMIL_DIGIT_THREE)
+                {
+                    m.take_2(|buf, x, _| buf.extend(&[x, GRANTHA_SIGN_PLUTA]));
                 } else {
                     m.push_next();
                 }

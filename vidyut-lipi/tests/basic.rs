@@ -272,6 +272,46 @@ fn sanskrit_dependent_vowels() {
     );
 }
 
+// TODO: not very familiar with pluta, check with someone who knows better.
+#[test]
+fn sanskrit_pluta() {
+    // Independent vowels.
+    assert_two_way_pairwise(&[
+        (
+            HarvardKyoto,
+            "a3 A3 i3 I3 u3 U3 R3 RR3 lR3 lRR3 e3 ai3 o3 au3",
+        ),
+        (Slp1, "a3 A3 i3 I3 u3 U3 f3 F3 x3 X3 e3 E3 o3 O3"),
+        (Devanagari, "अ३ आ३ इ३ ई३ उ३ ऊ३ ऋ३ ॠ३ ऌ३ ॡ३ ए३ ऐ३ ओ३ औ३"),
+        (Grantha, "𑌅𑍝 𑌆𑍝 𑌇𑍝 𑌈𑍝 𑌉𑍝 𑌊𑍝 𑌋𑍝 𑍠𑍝 𑌌𑍝 𑍡𑍝 𑌏𑍝 𑌐𑍝 𑌓𑍝 𑌔𑍝"),
+    ]);
+
+    // Dependent vowels.
+    assert_two_way_pairwise(&[
+        (
+            HarvardKyoto,
+            "ka3 kA3 ki3 kI3 ku3 kU3 kR3 kRR3 klR3 klRR3 ke3 kai3 ko3 kau3",
+        ),
+        (
+            Slp1,
+            "ka3 kA3 ki3 kI3 ku3 kU3 kf3 kF3 kx3 kX3 ke3 kE3 ko3 kO3",
+        ),
+        (Devanagari, "क३ का३ कि३ की३ कु३ कू३ कृ३ कॄ३ कॢ३ कॣ३ के३ कै३ को३ कौ३"),
+        (
+            Grantha,
+            "𑌕𑍝 𑌕𑌾𑍝 𑌕𑌿𑍝 𑌕𑍀𑍝 𑌕𑍁𑍝 𑌕𑍂𑍝 𑌕𑍃𑍝 𑌕𑍄𑍝 𑌕𑍢𑍝 𑌕𑍣𑍝 𑌕𑍇𑍝 𑌕𑍈𑍝 𑌕𑍋𑍝 𑌕𑍌𑍝",
+        ),
+    ]);
+
+    // Candrabindu.
+    assert_two_way_pairwise(&[
+        (HarvardKyoto, "a~3 ka~3"),
+        (HarvardKyoto, "a~3 ka~3"),
+        (Devanagari, "अँ३ कँ३"),
+        (Grantha, "𑌅𑌁௩ 𑌕𑌁௩"),
+    ]);
+}
+
 #[test]
 fn sanskrit_ayogavahas() {
     assert_two_way_pairwise(&[
