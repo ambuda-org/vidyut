@@ -89,8 +89,11 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
                 p.step(DP("01.0940"));
                 is_mit_blocked = true;
             } else if p.has_prev_non_empty(i, |t| t.is(U::apa)) {
+                // TODO: can't find a source for this.
+                /*
                 // apasKAdayati, apasKadayati
                 is_mit_blocked = p.optional_run(Kaumudi("2353"), |_| {});
+                */
             }
         }
     }
@@ -147,7 +150,7 @@ fn try_run_gana_sutras(p: &mut Prakriya, i: usize) -> Option<()> {
     } else if dhatu.has_gana(Gana::Tanadi) {
         if dhatu.has_u("vanu~\\") {
             // vanute, vanoti
-            p.optional_run_at(Kaumudi("2547"), i, |t| t.remove_tag(T::anudattet));
+            p.optional_run_at(Kaumudi("2547.2"), i, |t| t.remove_tag(T::anudattet));
         }
     } else if is_curadi {
         if dhatu.has_u_in(gana::JNAP_ADI) {

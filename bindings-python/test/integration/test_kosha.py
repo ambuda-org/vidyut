@@ -53,14 +53,14 @@ def test_basic_subanta(kosha):
 
 def test_basic_avyaya(kosha):
     entries = kosha.get("ca")
-    entries = [e for e in entries if isinstance(e, PadaEntry.Avyaya)]
+    entries = [e for e in entries if isinstance(e, PadaEntry.Subanta)]
 
     ca = entries[0]
     assert ca.lemma == "ca"
 
     assert repr(ca) == (
-        "PadaEntry.Avyaya(pratipadika_entry="
-        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='ca'), lingas=[Linga.Pum]))"
+        "PadaEntry.Subanta(pratipadika_entry="
+        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='ca', is_avyaya=True), lingas=[Linga.Pum]))"
     )
 
 
@@ -167,4 +167,4 @@ def test_contains_subanta(kosha, word):
 )
 def test_contains_avyaya(kosha, word):
     entries = kosha.get(word)
-    assert any(isinstance(e, PadaEntry.Avyaya) for e in entries)
+    assert any(isinstance(e, PadaEntry.Subanta) for e in entries)

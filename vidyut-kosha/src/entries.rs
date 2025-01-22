@@ -1,6 +1,7 @@
 //! Models the entries stored in the kosha.
 //!
 //! All entries make heavy use of lifetime annotations to refer to data defined on `Kosha`.
+//! To persist this data for your application, clone the specific fields you need.
 use crate::errors::{Error, Result};
 use serde::{Deserialize, Serialize};
 use vidyut_prakriya::args as vp;
@@ -17,6 +18,9 @@ pub struct DhatuEntry<'a> {
 }
 
 /// Metadata for some dhatu.
+///
+/// We store metadata in its own `struct` so that we avoid bloating `DhatuEntry` and the objects
+/// that use `DhatuEntry`, such as `PratipadikaEntry` and `PadaEntry`.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct DhatuMeta {
     pub(crate) clean_text: String,
@@ -118,7 +122,8 @@ impl<'a> DhatuEntry<'a> {
         self.meta.map_or("", |x| &x.clean_text)
     }
 
-    /// Returns the Sanskrit meaning of this dhatu's *mūla* as an SLP1 string.
+    /// Returns the Sanskrit meaning of this dhatu's *mūla* as an SLP1 string. All of these
+    /// meaning strings come directly from the Dhatupatha.
     ///
     /// We have meaning strings only for the ~2000 *mūla* dhatus from the Dhatupatha. Any roots
     /// derived from these ~2000 will share their `artha` with the dhatu they come from.
@@ -150,7 +155,8 @@ impl<'a> DhatuEntry<'a> {
 
     /// Sets the metadata on this dhatu.
     ///
-    /// This method is for libraries building a `Kosha` from scratch.
+    /// This method is for libraries building a `Kosha` from scratch. Otherwise, prefer using
+    /// the accessor methods defined on `DhatuEntry`.
     pub fn with_meta(mut self, meta: &'a DhatuMeta) -> Self {
         self.meta = Some(meta);
         self
@@ -170,7 +176,7 @@ impl<'a> From<DhatuEntry<'a>> for Dhatu {
 }
 
 impl DhatuMeta {
-    /// Returns a builder over this `DhatuEntry`.
+    /// Returns a builder for some `DhatuMeta` struct.
     ///
     /// This builder is utility code for inserting new `DhatuEntry` objects into a `Kosha`. If you
     /// are not building a `Kosha` yourself, you can ignore this method.
@@ -216,13 +222,13 @@ impl DhatuMetaBuilder {
         self
     }
 
-    /// (Optional) Sets the dhatu pada for this entry.
+    /// (Optional) Sets the dhatu pada.
     pub fn pada(mut self, pada: String) -> Self {
         self.pada = Some(pada);
         self
     }
 
-    /// Builds a `DhatuEntry`.
+    /// Builds a `DhatuMeta`.
     pub fn build(self) -> Result<DhatuMeta> {
         Ok(DhatuMeta {
             clean_text: match self.clean_text {

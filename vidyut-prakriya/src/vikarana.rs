@@ -369,7 +369,7 @@ pub fn try_add_am_pratyaya_for_lit(p: &mut Prakriya) -> Option<()> {
         p.step(Rule::Varttika("3.1.36.1"));
         return None;
     } else if !dhatu.is_ekac() {
-        if dhatu.is_u(Au::daridrA) && p.optional_run(Rule::Kaumudi("2483"), |_| {}) {
+        if dhatu.is_u(Au::daridrA) && p.optional_run(Rule::Kaumudi("2483.1"), |_| {}) {
             return None;
         }
         p.run(Varttika("3.1.35.1"), add_aam);

@@ -22,12 +22,13 @@ create_all_data:
 	@./scripts/create_all_data.sh
 
 create_sandhi_rules:
+	mkdir -p data/build/vidyut-latest/sandhi/
 	RUST_LOG=info cargo run --release --bin create_sandhi_rules -- \
-			 --data-dir data/build/vidyut-latest
+			 --output-path data/build/vidyut-latest/sandhi/rules.csv
 
 # Creates a kosha and write it to disk.
 create_kosha:
-	# cd scripts && uv run fetch_dhatu_metadata.py > ../data/raw/lex/dhatu-metadata.csv
+	cd scripts && uv run fetch_dhatu_metadata.py > ../data/raw/lex/dhatu-metadata.csv
 	RUST_BACKTRACE=1 RUST_LOG=info cargo run --release --bin create_kosha -- \
 			 --input-dir data/raw/lex \
 			 --dhatupatha ../vidyut-prakriya/data/dhatupatha.tsv \

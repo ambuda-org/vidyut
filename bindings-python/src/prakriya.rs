@@ -267,16 +267,24 @@ impl PyData {
     pub fn load_sutras(&self) -> PyResult<Vec<PySutra>> {
         let mut sutras = Vec::new();
 
-        for (filename, source) in &[
-            ("dhatupatha-ganasutras.tsv", PySource::Dhatupatha),
-            ("sutrapatha.tsv", PySource::Ashtadhyayi),
-            ("varttikas.tsv", PySource::Varttika),
-            ("unadipatha.tsv", PySource::Unadipatha),
+        for (source, filename) in &[
+            (PySource::Ashtadhyayi, "sutrapatha.tsv"),
+            (PySource::Dhatupatha, "dhatupatha-ganasutras.tsv"),
+            (PySource::Kashika, "kashika.tsv"),
+            (PySource::Kaumudi, "kaumudi.tsv"),
+            (PySource::Linganushasana, "linganushasanam.tsv"),
+            (PySource::Phit, "phit-sutras.tsv"),
+            (PySource::Unadipatha, "unadipatha.tsv"),
+            (PySource::Varttika, "varttikas.tsv"),
         ] {
             let path = self.0.join(filename);
             let text = std::fs::read_to_string(path)?;
 
-            for line in text.lines() {
+            for (i, line) in text.lines().enumerate() {
+                if i == 0 {
+                    // Skip headers.
+                    continue;
+                }
                 let fields: Vec<_> = line.split('\t').collect();
                 if let &[code, text] = &fields[..] {
                     sutras.push(PySutra::new(*source, code.to_string(), text.to_string()))

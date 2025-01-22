@@ -39,7 +39,7 @@ create_data:
 #
 # VIDYUT_DATA_DIR="/path/to/your/dir" make integration_tests
 integration_tests: develop
-	VIDYUT_DATA_DIR="data-0.3.0" uv run pytest test/integration/
+	VIDYUT_DATA_DIR="../vidyut-data/data/build/vidyut-latest" uv run pytest test/integration/
 
 # Lints all Rust and Python code.
 lint:

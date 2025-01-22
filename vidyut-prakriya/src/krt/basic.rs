@@ -1207,9 +1207,9 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             } else if dhatu.has_u_in(&["wudu\\", "RI\\Y"]) && !upasarge {
                 kp.try_add("3.1.142", K::Ra);
             } else if krt == K::ac {
-                // ajvidhiḥ sarvadhātubhyaḥ paṭhyante ca pacādayaḥ। aṇbādhanārtham eva
-                // syāt sidhyanti śvapacādayaḥ।
-                kp.try_add(Rule::Kashika("3.1.134"), K::ac);
+                // ajvidhiḥ sarvadhātubhyaḥ paṭhyante ca pacādayaḥ।
+                // aṇbādhanārtham eva syāt sidhyanti śvapacādayaḥ।
+                kp.try_add(Rule::Varttika("3.1.134.1"), K::ac);
             }
         }
 

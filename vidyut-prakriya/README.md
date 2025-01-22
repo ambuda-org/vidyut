@@ -109,7 +109,11 @@ for p in prakriyas {
     println!("{}", p.text());
     println!("---------------------------");
     for step in p.history() {
-        let terms: Vec<_> = step.result().iter().map(|x| x.text()).filter(|x| !x.is_empty()).collect();
+        let terms: Vec<_> = step.result()
+            .iter()
+            .map(|x| x.text())
+            .filter(|x| !x.is_empty())
+            .collect();
         let result = terms.join(" + ");
         println!("{:<10} | {}", step.rule().code(), result);
     }

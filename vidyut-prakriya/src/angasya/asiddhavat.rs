@@ -1,15 +1,13 @@
-/*!
-asiddhavat
-==========
-(6.4.22 - 6.4.175)
+//! asiddhavat
+//! ==========
+//! (6.4.22 - 6.4.175)
 
-Rules in the *asiddhavat* rules do not interfere with each other. That is, if
-a rule A would ordinary block a rule B, both are allowed to apply if they are
-defined within this section.
+//! Rules in the *asiddhavat* rules do not interfere with each other. That is, if
+//! a rule A would ordinary block a rule B, both are allowed to apply if they are
+//! defined within this section.
 
-*asiddhavat* rules are within the scope of the *aNgasya* adhikAra. For details,
-see the `angasya` module.
-*/
+//! *asiddhavat* rules are within the scope of the *aNgasya* adhikAra. For details,
+//! see the `angasya` module.
 
 use crate::ac_sandhi;
 use crate::args::Agama as A;
@@ -683,7 +681,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
                 return None;
             }
         } else if last.is_san() || last.is_any_krt(&[K::Rvul, K::lyuw]) {
-            p.run(Rule::Kaumudi("2483"), |_| {});
+            p.run(Rule::Kaumudi("2483.3"), |_| {});
             return None;
         }
 

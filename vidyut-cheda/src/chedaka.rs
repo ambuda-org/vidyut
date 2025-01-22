@@ -126,7 +126,7 @@ impl Config {
     }
 
     pub fn sandhi_rules(&self) -> PathBuf {
-        self.vidyut_base_path.join("sandhi-rules.csv")
+        self.vidyut_base_path.join("sandhi/rules.csv")
     }
 
     pub fn kosha_path(&self) -> PathBuf {

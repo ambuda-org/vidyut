@@ -1847,6 +1847,7 @@ dependencies = [
  "vidyut-kosha",
  "vidyut-lipi",
  "vidyut-prakriya",
+ "vidyut-sandhi",
 ]
 
 [[package]]

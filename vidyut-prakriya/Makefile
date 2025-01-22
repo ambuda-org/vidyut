@@ -55,19 +55,19 @@ test_krdantas:
 	cargo run --release --example snapshot_tests validate \
 		--test-type krdantas \
 		-f test-files/krdantas-basic.msgpack \
-		-h "abe607447082b6ca6758018a7457e27f0bf9f5b271ac918d79ad8248e6f5f742" \
+		-h "a9f8335433aaabf6497a3bd3c8bbfd5bc1f42cc4f3398eb93ce606e825cd9449" \
 		-f test-files/krdantas-nic.msgpack \
-		-h "4eedde749a5849b36136e304af9273e03993667d486f02d3bf8323419fe59495" \
+		-h "c0eeacf5c5d987148aab0d08c5c6c63b5220d69014f2f2cff84d488ffbd4906b" \
 		-f test-files/krdantas-san.msgpack \
-		-h "7e08b483201ae98d3c16c130e2c696a5a7ad8c16f7cafce1c2f3910d1d17ef38" \
+		-h "0a3650fb93ac3d5893d88a1bbd1e517e65ff1c8ac4f87187248e15a9bb689ea7" \
 		-f test-files/krdantas-yan.msgpack \
-		-h "ec01fd40625cb40ad75195c713aad8c52ab4d8bb8bfc87e6818637211699efe2" \
+		-h "e8b244e52be039dd8efaaa5fc274150b4550cc74a09e33b45d0bfd22b70c9b2a" \
 		-f test-files/krdantas-yan-luk.msgpack \
-		-h "9b6f271c9ae57bf9ae05472fb4652489b0d8d6fee4d8c499fc63fc7edd1064ae" \
+		-h "62a0366f77543a2a17b5aa0806b42c1855ee1e85fe33e011c3284e87eecbe4a7" \
 		-f test-files/krdantas-san-nic.msgpack \
-		-h "ec38109021286d0ffb6ed5343f472ab8a6ffe8179aa6f76cb11449b3fb650c4c" \
+		-h "e28a61e8c3e078c4d2ddae93e78ab5fb8ed44d700f2ae55ca72d9ae9544b6f58" \
 		-f test-files/krdantas-nic-san.msgpack \
-		-h "de4a2869943599d21ce8a760bf2861b116aeee4bf6c78e3ac416b7bbbdcf1011"
+		-h "292154fceae7d2821420076949d9df89564f6f7fc9e38a00298363f9116cef63"
 
 test_dhatus:
 	cargo run --release --example snapshot_tests validate \

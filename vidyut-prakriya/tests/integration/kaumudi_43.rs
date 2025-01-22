@@ -3323,12 +3323,15 @@ fn sk_2353() {
     assert_has_tip(&["ava"], &nic(&skhad), Lat, &["avasKAdayati"]);
     assert_has_tip(&["pari"], &nic(&skhad), Lat, &["parisKAdayati"]);
 
+    // TODO: can't find a source for this.
+    /*
     assert_has_tip(
         &["apa"],
         &nic(&skhad),
         Lat,
         &["apasKAdayati", "apasKadayati"],
     );
+    */
 }
 
 #[test]

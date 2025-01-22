@@ -2,18 +2,21 @@ Data
 ====
 
 We have designed `vidyut-prakriya` so that it can run without any side data.
-But in practice, it is useful to have a dhatupatha available to generate
-various words and stems. For this reason, the `vidyut-prakriya` crate includes
-`dhatupatha.tsv`, a comprehensive Dhatupatha that we also use in our exhaustive
-test suite.
+But in practice, it is useful to have side data available to generate words
+and show the text of specific rules.
+
+Most of the data files here were sourced from from [ashtadhyayi.com][a-com],
+and the author of ashtadhyayi.com has graciously agreed to share thse files
+with us under an MIT license.
+
+[a-com]: https://ashtadhyayi.com
 
 
-Creating the data file
-----------------------
+`dhatupatha.tsv`
+----------------
 
-`dhatupatha.tsv` was sourced from [ashtadhyayi.com][a-com], and the author
-of ashtadhyayi.com has graciously agreed to share their dhatupatha with us
-under an MIT license.
+`dhatupatha.tsv` is a comprehensive Dhatupatha that we also use in our
+exhaustive test suite.
 
 This dhatupatha is a superset of traditional dhatupathas from five different
 sources:
@@ -46,6 +49,18 @@ create `dhatupatha.tsv`, we downloaded this file and made the following changes:
 [sanskrit-verb]: https://github.com/drdhaval2785/SanskritVerb
 
 
-[a-com]: https://ashtadhyayi.com
+Sutra files
+-----------
 
+Our sutras are split into the following 5 files:
 
+- `dhatupatha-ganasutras.tsv` contains gana-sutras from the Dhatupatha.
+- `linganushasanam.tsv` contains sutras from the Linganushasanam.
+- `phit-sutras.tsv` contains sutras from the Phit Sutras.
+- `sutrapatha.tsv` contains the Ashtadhyayi.
+- `unadipatha.tsv` contains the Unadipatha.
+
+All sutra files are 2-column TSV files with the following columns:
+
+- `code`, a short identifier for this sutra.
+- `text`, the sutra text encoded in SLP1.

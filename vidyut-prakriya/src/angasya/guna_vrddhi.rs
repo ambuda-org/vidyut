@@ -483,7 +483,7 @@ fn run_for_index(p: &mut Prakriya, i_anga: usize, i_n: usize) -> Option<()> {
         && n.is(V::u)
     {
         // kziRoti, kzeRoti, ...
-        p.optional_add_tag_at(Rule::Kaumudi("2547"), i_anga, T::FlagGunaApavada);
+        p.optional_add_tag_at(Rule::Kaumudi("2547.1"), i_anga, T::FlagGunaApavada);
     }
 
     let anga = p.get(i_anga)?;

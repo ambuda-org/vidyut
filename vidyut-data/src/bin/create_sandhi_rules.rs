@@ -1,21 +1,19 @@
 //! Generates most of the common sandhi rules that occur between two *pada*s.
 
-/*
 use clap::Parser;
+use std::error::Error;
 use std::path::{Path, PathBuf};
-use vidyut_cheda::Config;
-use vidyut_cheda::Result;
 use vidyut_sandhi::{generate_rules, Rule};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Args {
-    /// Path to the output data directory.
+    /// Where to write our rules.
     #[arg(short, long)]
-    data_dir: PathBuf,
+    output_path: PathBuf,
 }
 
-fn write_rules(rules: &[Rule], path: &Path) -> Result<()> {
+fn write_rules(rules: &[Rule], path: &Path) -> Result<(), Box<dyn Error>> {
     let mut w = csv::Writer::from_path(path)?;
     w.write_record(["first", "second", "result"])?;
     for r in rules {
@@ -28,13 +26,9 @@ fn write_rules(rules: &[Rule], path: &Path) -> Result<()> {
 fn main() {
     let args = Args::parse();
     let rules = generate_rules();
-    let config = Config::new(args.data_dir);
 
-    if let Err(err) = write_rules(&rules, config.sandhi()) {
+    if let Err(err) = write_rules(&rules, &args.output_path) {
         println!("{}", err);
         std::process::exit(1);
     }
 }
-*/
-
-fn main() {}

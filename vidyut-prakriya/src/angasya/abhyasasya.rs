@@ -337,7 +337,7 @@ fn try_rules_for_lit(p: &mut Prakriya, i: usize) -> Option<()> {
         if dhatu.has_antya(HAL) && dhatu.has_upadha(F_HAL) {
             // 'A' acepted only by some grammarians
             if dhatu.has_adi('A') {
-                p.optionally(Rule::Kashika("7.4.71.k"), |rule, p| {
+                p.optionally(Rule::Kashika("7.4.71"), |rule, p| {
                     add_nut_agama(rule, p, i_dhatu);
                 });
             } else {

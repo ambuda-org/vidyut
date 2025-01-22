@@ -68,7 +68,6 @@ fn if_not_in_compound_then_linga_match(cur: &Phrase, pool: &TokenPool, s: &Suban
     } else if s.is_avyaya() {
         true
     } else {
-        dbg!(s.pratipadika_entry());
         match s.pratipadika_entry() {
             PratipadikaEntry::Basic(b) => b.lingas().contains(&s.linga()),
             // Otherwise, any linga is allowed.
