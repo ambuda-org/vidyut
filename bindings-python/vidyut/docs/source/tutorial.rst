@@ -8,13 +8,19 @@ so by showing you how to use Vidyut to build a simple Sanskrit dictionary.
 Setup
 -----
 
-First, install Vidyut and its side data:
+First, install Vidyut:
 
 .. code-block:: text
 
     $ pip install vidyut
-    $ curl -LO https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
-    $ unzip data-0.3.0.zip
+
+Then, install its side data::
+
+    import vidyut
+
+    # `path` is wherever you want to store your data.
+    path = "vidyut-0.4.0"
+    vidyut.download_data(path)
 
 You can confirm that your setup works by trying to load :class:`~vidyut.kosha.Kosha`:
 
@@ -24,7 +30,7 @@ You can confirm that your setup works by trying to load :class:`~vidyut.kosha.Ko
     import sys
     from vidyut.kosha import Kosha
 
-    kosha = Kosha("vidyut-latest/kosha")
+    kosha = Kosha("vidyut-0.4.0/kosha")
 
     query = sys.argv[1]
     for entry in kosha.get(query):
@@ -70,7 +76,7 @@ So, let's fix both of these problems and make our interface a little nicer::
 
 
     def run(query: str):
-        kosha = Kosha("vidyut-latest/kosha")
+        kosha = Kosha("vidyut-0.4.0/kosha")
         entries = get_all(kosha, query)
         for entry in entries:
             display_entry(entry)
@@ -126,7 +132,7 @@ as a first step, let's make this program more human-friendly::
         encoding = detect(query) or Scheme.HarvardKyoto
         slp_query = transliterate(query, encoding, Scheme.Slp1)
 
-        kosha = Kosha("vidyut-latest/kosha")
+        kosha = Kosha("vidyut-0.4.0/kosha")
         entries = get_all(kosha, slp_query)
         for entry in entries:
             display_entry(entry, output_scheme)

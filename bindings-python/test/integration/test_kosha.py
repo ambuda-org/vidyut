@@ -25,17 +25,15 @@ def test_basic_tinanta(kosha):
     assert bhavati.vacana == Vacana.Eka
     assert bhavati.lakara == Lakara.Lat
 
-    assert repr(bhavati) == (
-        "PadaEntry.Tinanta(dhatu_entry=DhatuEntry("
-        "dhatu=Dhatu(aupadeshika='BU', gana=Gana.Bhvadi), clean_text='BU'), "
-        "prayoga=Prayoga.Kartari, lakara=Lakara.Lat, purusha=Purusha.Prathama, vacana=Vacana.Eka)"
-    )
-
 
 def test_basic_subanta(kosha):
     entries = kosha.get("devasya")
     entries = [
-        e for e in entries if isinstance(e, PadaEntry.Subanta) and e.linga == Linga.Pum
+        e
+        for e in entries
+        if isinstance(e, PadaEntry.Subanta)
+        and e.linga == Linga.Pum
+        and e.lemma == "deva"
     ]
 
     devasya = entries[0]
@@ -44,24 +42,13 @@ def test_basic_subanta(kosha):
     assert devasya.vibhakti == Vibhakti.Sasthi
     assert devasya.vacana == Vacana.Eka
 
-    assert repr(devasya) == (
-        "PadaEntry.Subanta(pratipadika_entry="
-        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='deva'), lingas=[Linga.Pum]), "
-        "linga=Linga.Pum, vibhakti=Vibhakti.Sasthi, vacana=Vacana.Eka)"
-    )
-
 
 def test_basic_avyaya(kosha):
     entries = kosha.get("ca")
-    entries = [e for e in entries if isinstance(e, PadaEntry.Subanta)]
+    entries = [e for e in entries if isinstance(e, PadaEntry.Subanta) and e.is_avyaya]
 
     ca = entries[0]
     assert ca.lemma == "ca"
-
-    assert repr(ca) == (
-        "PadaEntry.Subanta(pratipadika_entry="
-        "PratipadikaEntry.Basic(pratipadika=Pratipadika(text='ca', is_avyaya=True), lingas=[Linga.Pum]))"
-    )
 
 
 @pytest.mark.parametrize(

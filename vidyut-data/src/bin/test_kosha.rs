@@ -117,7 +117,7 @@ fn test_tinantas(kosha: &Kosha) {
         .collect();
 
     let num_passed = statuses.iter().filter(|x| **x).count();
-    println!("- {} / {} dhatus passed", num_passed, statuses.len());
+    info!("- {} / {} dhatus passed", num_passed, statuses.len());
 }
 
 fn test_krdantas(kosha: &Kosha) {
@@ -133,7 +133,7 @@ fn test_krdantas(kosha: &Kosha) {
     let v = create_vyakarana();
     let lvv = sup_options();
 
-    println!("Testing {} krdantas.", krdantas.len());
+    info!("Testing {} krdantas.", krdantas.len());
     let statuses: Vec<_> = krdantas
         .par_chunks(1 + krdantas.len() / 100)
         .flat_map(|chunk| {
@@ -182,11 +182,11 @@ fn test_krdantas(kosha: &Kosha) {
         .collect();
 
     let num_passed = statuses.iter().filter(|x| **x).count();
-    println!("- {} / {} krdantas passed.", num_passed, statuses.len());
+    info!("- {} / {} krdantas passed.", num_passed, statuses.len());
 }
 
 fn test_subantas(k: &Kosha) {
-    println!("Testing basic subantas.");
+    info!("Testing basic subantas.");
 
     let keys = vec![
         ("devas", "deva"),
@@ -233,11 +233,11 @@ fn test_subantas(k: &Kosha) {
         if found && has_lemma {
             i += 1;
         } else {
-            println!("FAILED: {key} (found = {found}, has_lemma={has_lemma})");
+            info!("FAILED: {key} (found = {found}, has_lemma={has_lemma})");
         }
     }
     let n = keys.len();
-    println!("- {i} / {n} subantas passed.");
+    info!("- {i} / {n} subantas passed.");
 }
 
 fn run_tests(args: Args) -> Result<(), Box<dyn Error>> {

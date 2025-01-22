@@ -1,27 +1,35 @@
 Deployment checklist
 ====================
 
-Data (if a major release):
+
+Step 1: Prepare data (if major release)
+---------------------------------------
+
+Check:
 
 - `make create_all_data` passes.
-- Data directory exists with release version.
-  (`zip -r data-VERSION.zip data-VERSION/`)
+- Data directory exists with release version
+  (`cd .../vidyut-latest && zip -r data-VERSION.zip data-VERSION/`)
 
-Version number:
+NOTE: important to cd *into* vidyut-latest so that the zip files aren't nested.
+
+
+Step 2: Update version number
+-----------------------------
 
 - Increase version number in various files:
     - `pyproject.toml`.
     - `vidyut/docs/source/conf.py`
     - If updating data:
-        - `Makefile`
-        - `bindings-python/README.md`
         - `introduction.rst`
 - Create changelog entry in CHANGES.rst. Use a temporary release date if
   necessary.
 - Grep for previous version and confirm it exists only in comments and
   CHANGES.rst.
 
-Quality:
+
+Step 3: Quality checks
+----------------------
 
 - `make test` passes
 - `make integration_tests` passes

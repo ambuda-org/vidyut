@@ -81,7 +81,7 @@ cargo add vidyut-lipi --git https://github.com/ambuda-org/vidyut.git
 We recommend using our pre-built linguistic data, which is available as a ZIP file
 [here][zip].
 
-[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
+[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.4.0/data-0.4.0.zip
 
 For more information, see our [Rust documentation][docs-rs].
 
@@ -124,7 +124,7 @@ We recommend using our pre-built linguistic data, which is available as a ZIP fi
 [here][zip].
 
 [pypi]: https://pypi.org/project/vidyut/
-[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
+[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.4.0/data-0.4.0.zip
 
 For more information, see our [Python documentation][rtd].
 
@@ -160,7 +160,7 @@ We recommend using our pre-built linguistic data, which is available as a ZIP fi
 [here][zip]. Or if you prefer, you can build this data for yourself:
 
 [nextest]: https://nexte.st/
-[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
+[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.4.0/data-0.4.0.zip
 
 ```shell
 $ cd vidyut-data

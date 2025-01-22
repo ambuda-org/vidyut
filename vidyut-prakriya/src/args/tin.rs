@@ -1,7 +1,7 @@
 use crate::args::dhatu::Dhatu;
+use crate::args::macros::sanskrit_enum;
 use crate::core::errors::Error;
 use crate::core::{PrakriyaTag, Tag};
-use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]

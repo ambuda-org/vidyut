@@ -1,5 +1,5 @@
+use crate::args::macros::sanskrit_enum;
 use crate::core::errors::*;
-use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]

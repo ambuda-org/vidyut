@@ -1,5 +1,5 @@
+use crate::args::macros::sanskrit_enum;
 use crate::core::errors::*;
-use crate::sanskrit_enum;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

@@ -123,18 +123,21 @@ Linguistic data
 ---------------
 
 Vidyut is more interesting when used with our rich linguistic data, which you
-can download here:
+can download like so:
 
-.. code-block:: text
+.. code-block::
 
-    $ wget https://github.com/ambuda-org/vidyut-py/releases/download/0.3.0/data-0.3.0.zip
-    $ unzip data-0.3.0.zip
+    import vidyut
+
+    # `path` is wherever you want to store your data.
+    path = "vidyut-0.4.0"
+    vidyut.download_data(path)
 
 You can use this data like so::
 
     from vidyut.kosha import Kosha
 
-    kosha = kosha("data-0.3.0/kosha")
+    kosha = kosha("vidyut-0.4.0/kosha")
     for entry in kosha.get("gacCati"):
         print(entry)
 

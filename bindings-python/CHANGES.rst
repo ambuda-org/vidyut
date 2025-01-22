@@ -4,6 +4,26 @@ releases. That is, versions 0.x.a and 0.x.b will be able to use the same data.
 .. _`Semantic Versioning`: https://semver.org/
 
 
+0.4.0
+-----
+
+Released 2025-01-21.
+
+vidyut.kosha:
+- Include dhatus that never use upasargas. These were previously omitted due
+  to a bug.
+- Add more metadata, including dhatu meanings in Sanskrit, Hindi, and English.
+- Use a more space-efficient storage approach for tinantas.
+
+vidyut.lipi:
+- Add basic support for Grantha pluta.
+
+vidyut.prakriya:
+- Fix some buggy behavior for nāmadhātus.
+- Add `drshya` and `anubandhas` methods to most types.
+- Add `nyap` constructor and bindings.
+
+
 0.3.1
 -----
 

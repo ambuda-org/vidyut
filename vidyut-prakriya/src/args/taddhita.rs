@@ -1,7 +1,7 @@
+use crate::args::macros::sanskrit_enum;
 use crate::args::{Anubandha, Pratipadika};
 use crate::core::errors::*;
 use crate::it_samjna;
-use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]

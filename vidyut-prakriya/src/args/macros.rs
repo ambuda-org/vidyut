@@ -1,5 +1,4 @@
 /// Implements various boilerplate for enums representing Sanskrit linguistic data.
-#[macro_export]
 macro_rules! sanskrit_enum {
     ($Enum:ident, { $( $variant:ident => $str:literal ),* $(,)? }) => {
         impl $Enum {
@@ -50,3 +49,5 @@ macro_rules! sanskrit_enum {
         }
     }
 }
+
+pub(crate) use sanskrit_enum;

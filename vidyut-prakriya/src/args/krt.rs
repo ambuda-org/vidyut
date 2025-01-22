@@ -1,9 +1,9 @@
 use crate::args::dhatu::Dhatu;
+use crate::args::macros::sanskrit_enum;
 use crate::args::unadi::Unadi;
 use crate::args::{Anubandha, Lakara, Linga, Prayoga, Subanta};
 use crate::core::errors::*;
 use crate::it_samjna;
-use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -463,6 +463,43 @@ impl BaseKrt {
         )
     }
 
+    /// Returns whether this krt pratyaya is used only in Vedic compositions:
+    ///
+    /// ```
+    /// use vidyut_prakriya::args::BaseKrt;
+    /// assert!(BaseKrt::kAnac.is_chandasa());
+    /// assert!(BaseKrt::kasun.is_chandasa());
+    /// ```
+    ///
+    /// This method returns `false` if the *pratyaya* also appears in regular Sanskrit:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::args::BaseKrt;
+    /// assert_eq!(BaseKrt::kvasu.is_chandasa(), false);
+    /// ```
+    pub fn is_chandasa(&self) -> bool {
+        use BaseKrt::*;
+        matches!(
+            self,
+            tosun
+                | kasun
+                | kAnac
+                | se
+                | sen
+                | ase
+                | asen
+                | aDyE
+                | aDyEn
+                | kaDyE
+                | kaDyEn
+                | SaDyE
+                | SaDyEn
+                | tavE
+                | taveN
+                | taven
+        )
+    }
+
     /// Returns whether this krt pratyaya is a near-duplicate of another.
     ///
     /// Specifically, two pratyayas are near duplicates if they always produce the same results,
@@ -536,7 +573,27 @@ impl Krt {
         }
     }
 
-    /// Returns a simple human-readable string that represents this enum's value.
+    /// Returns whether this krt pratyaya is used only in Vedic compositions:
+    ///
+    /// ```
+    /// use vidyut_prakriya::args::{Krt, BaseKrt};
+    /// assert!(Krt::Base(BaseKrt::kAnac).is_chandasa());
+    /// ```
+    ///
+    /// This method returns `false` if the *pratyaya* also appears in regular Sanskrit:
+    ///
+    /// ```
+    /// # use vidyut_prakriya::args::BaseKrt;
+    /// assert_eq!(Krt::Base(BaseKrt::kvasu).is_chandasa(), false);
+    /// ```
+    pub fn is_chandasa(&self) -> bool {
+        match self {
+            Krt::Base(b) => b.is_chandasa(),
+            Krt::Unadi(_) => false,
+        }
+    }
+
+    /// Returns a simple human-readable string that represents this enum's value:
     ///
     /// This mapping is not reversible. This is because some pratyayas are in both `Base` and
     /// `Unadi`.

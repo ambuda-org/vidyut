@@ -743,7 +743,7 @@ fn read_basic_avyayas(builder: &mut Builder, path: &Path) -> Result<Pratipadikas
         }
 
         let stem = Slp1String::from(stem).expect("ok");
-        let pratipadika = Pratipadika::basic(stem.clone());
+        let pratipadika = Pratipadika::avyaya(stem.clone());
         ret.push((r[0].to_string(), pratipadika));
     }
 
@@ -792,14 +792,14 @@ fn create_sarvanamas(builder: &mut Builder) -> Entries {
                 // Not implemented in vidyut-prakriya yet.
                 match text.as_str() {
                     "mAm" => ret.push(("mA".to_string(), packed_entry)),
-                    "AvAm" | "AvayoH" => ret.push(("nO".to_string(), packed_entry)),
-                    "asmAn" | "asmaByam" | "asmAkam" => ret.push(("naH".to_string(), packed_entry)),
+                    "AvAm" | "Avayos" => ret.push(("nO".to_string(), packed_entry)),
+                    "asmAn" | "asmaByam" | "asmAkam" => ret.push(("nas".to_string(), packed_entry)),
                     "mahyam" | "mama" => ret.push(("me".to_string(), packed_entry)),
 
                     "tvAm" => ret.push(("tvA".to_string(), packed_entry)),
-                    "yuvAm" | "yuvayoH" => ret.push(("vAm".to_string(), packed_entry)),
+                    "yuvAm" | "yuvayos" => ret.push(("vAm".to_string(), packed_entry)),
                     "yuzmAn" | "yuzmaByam" | "yuzmAkam" => {
-                        ret.push(("vaH".to_string(), packed_entry))
+                        ret.push(("vas".to_string(), packed_entry))
                     }
                     "tuByam" | "tava" => ret.push(("te".to_string(), packed_entry)),
                     _ => (),

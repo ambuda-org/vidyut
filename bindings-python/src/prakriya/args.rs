@@ -123,6 +123,7 @@ py_enum!(
     ]
 );
 
+/// A dhatu's *gaṇa* or major category.
 #[pyclass(name = "Gana", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
 pub enum PyGana {
@@ -156,6 +157,7 @@ py_enum!(
     [Bhvadi, Adadi, Juhotyadi, Divadi, Svadi, Tudadi, Rudhadi, Tanadi, Kryadi, Curadi, Kandvadi]
 );
 
+/// A dhatu's *gaṇa* or minor category.
 #[pyclass(name = "Antargana", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PyAntargana {
@@ -184,6 +186,8 @@ py_enum!(
 );
 
 /// The complete list of ordinary *kṛt* pratyayas.
+///
+/// Each pratyaya name is written in the SLP1 encoding scheme.
 #[pyclass(name = "Krt", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[allow(non_camel_case_types)]
@@ -876,7 +880,7 @@ pub enum PyLinga {
 
 py_enum!(PyLinga, Linga, [Pum, Stri, Napumsaka]);
 
-/// The prayoga of some tinanta.
+/// The *prayoga* of some tinanta.
 #[pyclass(name = "Prayoga", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PyPrayoga {
@@ -909,14 +913,15 @@ py_enum!(PyPurusha, Purusha, [Prathama, Madhyama, Uttama]);
 #[pyclass(name = "DhatuPada", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PyDhatuPada {
-    /// *Parasmaipada*.
+    /// *Parasmaipada*, sometimes imprecisely called the "active voice."
     Parasmaipada,
-    /// *Ātmanepada*.
+    /// *Ātmanepada*, sometimes imprecisely called the "middle voice."
     Atmanepada,
 }
 
 py_enum!(PyDhatuPada, DhatuPada, [Parasmaipada, Atmanepada]);
 
+/// A *pratyaya* that creates a new dhatu.
 #[allow(non_camel_case_types)]
 #[pyclass(name = "Sanadi", module = "prakriya", eq, eq_int, ord)]
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

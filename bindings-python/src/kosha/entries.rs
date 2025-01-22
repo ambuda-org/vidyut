@@ -256,8 +256,9 @@ impl<'a> From<&PratipadikaEntry<'a>> for PyPratipadikaEntry {
 
 /// An entry in the kosha.
 ///
-/// A `PadaEntry` is a simple dataclass that has one of four types. These types are
-/// constructed by `Kosha` directly, but you can create them yourself if you so choose.
+/// A `PadaEntry` is a simple dataclass that models either a Subanta or a Tinanta. These types
+/// are constructed by `Kosha` directly, and we strongly encourage you to avoid creating these
+/// types for yourself unless you are creating a Kosha for yourself.
 ///
 /// The `PadaEntry.Subanta` constructor creates a *subanta*:
 ///
@@ -295,7 +296,7 @@ impl<'a> From<&PratipadikaEntry<'a>> for PyPratipadikaEntry {
 /// .. testcode::
 ///
 ///     from vidyut.kosha import DhatuEntry, PadaEntry
-///     from vidyut.prakriya import Dhatu, Prayoga, Lakara, Purusha, Vacana
+///     from vidyut.prakriya import Dhatu, Prayoga, Lakara, Purusha, Vacana, Gana
 ///
 ///     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
 ///     gam_entry = DhatuEntry(dhatu=gam, clean_text="gam")
@@ -307,7 +308,6 @@ impl<'a> From<&PratipadikaEntry<'a>> for PyPratipadikaEntry {
 ///         vacana=Vacana.Eka)
 ///
 ///     assert pada.lemma == "gam"
-///
 #[pyclass(name = "PadaEntry", get_all, eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum PyPadaEntry {

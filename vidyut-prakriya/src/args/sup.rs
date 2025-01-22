@@ -1,8 +1,8 @@
+use crate::args::macros::sanskrit_enum;
 use crate::args::tin::Vacana;
 use crate::args::Pratipadika;
 use crate::core::errors::Error;
 use crate::core::Tag;
-use crate::sanskrit_enum;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]

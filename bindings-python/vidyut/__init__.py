@@ -22,3 +22,19 @@ https://en.wikipedia.org/wiki/SLP1.
 from vidyut import vidyut as __mod
 
 __version__ = __mod.__version__
+
+
+def download_data(path):
+    """Downloads Vidyut's linguistic data and saves it to `path`."""
+    from io import BytesIO
+    import urllib.request
+    from zipfile import ZipFile
+    url = (
+        "https://github.com/ambuda-org/vidyut/releases/download/py-0.4.0/data-0.4.0.zip"
+    )
+    print(f"Downloading {url} ...")
+
+    resp = urllib.request.urlopen(url)
+    archive = ZipFile(BytesIO(resp.read()))
+    archive.extractall(path=path)
+    print(f"Complete. (Wrote data to `{path}`)")
