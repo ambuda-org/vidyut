@@ -367,7 +367,7 @@ macro_rules! py_pratyaya {
 }
 
 macro_rules! py_only_enum {
-    ($Py:ident, $Name:ident, [$( $variant:ident ),*]) => {
+    ($Py:ident, $Name:ident, { $( $variant:ident => $str:literal ),* } ) => {
         impl std::fmt::Display for $Py {
             fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 write!(f, "{}", self.name())
@@ -380,7 +380,7 @@ macro_rules! py_only_enum {
             fn new(val: &str) -> PyResult<Self> {
                 match val {
                     $(
-                        stringify!($variant) => Ok($Py::$variant),
+                        $str => Ok($Py::$variant),
                     )*
                     _ =>  Err(pyo3::exceptions::PyValueError::new_err(
                         format!("{:?} is not a valid {}", val, stringify!($Rust))))
@@ -391,12 +391,16 @@ macro_rules! py_only_enum {
                 format!("{{{}:{}}}", self.name(), spec)
             }
 
-            fn __repr__(&self) -> String {
-                format!("{}.{}", stringify!{$Name}, self.name())
+            fn __str__(&self) -> String {
+                match self {
+                    $(
+                        $Py::$variant => $str.to_string(),
+                    )*
+                }
             }
 
-            fn __str__(&self) -> String {
-                self.name()
+            fn __repr__(&self) -> String {
+                format!("{}.{}", stringify!{$Name}, self.name())
             }
 
             /// The name used to define the `Enum` member.
@@ -426,7 +430,7 @@ macro_rules! py_only_enum {
             /// (Defined for compatibility with Python enums.)
             #[getter]
             fn value(&self) -> String {
-                self.name()
+                self.__str__()
             }
 
             /// The value associated with this variant. This is identical
@@ -458,7 +462,7 @@ macro_rules! py_only_enum {
             fn from_string(val: &str) -> PyResult<Self> {
                 match val {
                     $(
-                        stringify!($variant) => Ok($Py::$variant),
+                        $str => Ok($Py::$variant),
                     )*
                     _ => Err(pyo3::exceptions::PyValueError::new_err(format!("Could not parse {val}"))),
                 }

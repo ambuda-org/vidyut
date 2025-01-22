@@ -35,16 +35,16 @@ pub enum PySource {
 py_only_enum!(
     PySource,
     Source,
-    [
-        Ashtadhyayi,
-        Dhatupatha,
-        Kashika,
-        Kaumudi,
-        Linganushasana,
-        Phit,
-        Unadipatha,
-        Varttika
-    ]
+    {
+        Ashtadhyayi => "azwADyAyI",
+        Dhatupatha => "DAtupAWaH",
+        Kashika => "kASikA",
+        Kaumudi => "kOmudI",
+        Linganushasana => "liNgAnuSAsanam",
+        Phit => "PiwsUtrARi",
+        Unadipatha => "uRAdipAWaH",
+        Varttika => "vArttikAH"
+    }
 );
 
 /// A sutra from the Ashtadhyayi or a related text.

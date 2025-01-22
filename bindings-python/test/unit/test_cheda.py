@@ -35,7 +35,8 @@ def create_kosha(output_dir):
     b.finish()
 
 
-def create_sandhi_rules(output_path):
+def create_sandhi_rules(output_path: Path):
+    output_path.parent.mkdir(exist_ok=True)
     with open(output_path, "w") as f:
         f.write("first,second,result\n")
         f.write("i,a,y a\n")
@@ -52,7 +53,7 @@ def chedaka() -> Chedaka:
     with tempfile.TemporaryDirectory() as tempdir:
         tempdir: Path = Path(tempdir)
         create_kosha(tempdir / "kosha")
-        create_sandhi_rules(tempdir / "sandhi-rules.csv")
+        create_sandhi_rules(tempdir / "sandhi" / "rules.csv")
         create_model(tempdir)
 
         return Chedaka(tempdir)
@@ -76,7 +77,7 @@ def test_init__kosha_invalid():
     with tempfile.TemporaryDirectory() as tempdir:
         tempdir: Path = Path(tempdir)
         create_kosha(tempdir / "kosha")
-        create_sandhi_rules(tempdir / "sandhi-rules.csv")
+        create_sandhi_rules(tempdir / "sandhi" / "rules.csv")
         create_model(tempdir)
 
         with open(tempdir / "kosha" / "padas.fst", "w") as f:

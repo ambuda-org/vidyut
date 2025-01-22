@@ -63,6 +63,14 @@ pub enum Rule {
 
 impl Rule {
     /// The string representation of this rule.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use vidyut_prakriya::*;
+    /// let rule = Rule::Ashtadhyayi("1.1.1");
+    /// assert_eq!(rule.code(), "1.1.1");
+    /// ```
     pub fn code(&self) -> &'static str {
         match self {
             Self::Ashtadhyayi(x) => x,
@@ -73,6 +81,28 @@ impl Rule {
             Self::Phit(x) => x,
             Self::Kashika(x) => x,
             Self::Kaumudi(x) => x,
+        }
+    }
+
+    /// Returns the name of the rule source in SLP1.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use vidyut_prakriya::*;
+    /// let rule = Rule::Ashtadhyayi("1.1.1");
+    /// assert_eq!(rule.source_name(), "azwADyAyI");
+    /// ```
+    pub fn source_name(&self) -> &'static str {
+        match self {
+            Self::Ashtadhyayi(_) => "azwADyAyI",
+            Self::Dhatupatha(_) => "DAtupAWaH",
+            Self::Kashika(_) => "kASikA",
+            Self::Kaumudi(_) => "kOmudI",
+            Self::Linganushasana(_) => "liNgAnuSAsanam",
+            Self::Phit(_) => "PiwsUtrARi",
+            Self::Unadipatha(_) => "uRAdipAWaH",
+            Self::Varttika(_) => "vArttikAH",
         }
     }
 }

@@ -1,9 +1,7 @@
-/*!
-Wrappers for vidyut-prakriya arguments.
-
-Pyo3 doesn't allow us to annotate existing enums, and using a wrapping struct has poor ergonomics
-for callers. So instead, redefine our enums of interest.
-*/
+//! Wrappers for vidyut-prakriya arguments.
+//!
+//! Pyo3 doesn't allow us to annotate existing enums, and using a wrapping struct has poor
+//! ergonomics for callers. So instead, redefine our enums of interest.
 use crate::macro_utils::{py_enum, py_pratyaya};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
