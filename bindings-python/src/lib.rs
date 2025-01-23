@@ -147,6 +147,7 @@ fn py_prakriya(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Prakriya types
     m.add_class::<prakriya::PyPrakriya>()?;
     m.add_class::<prakriya::PyStep>()?;
+    m.add_class::<prakriya::PyTerm>()?;
 
     // Argument types.
     // For details on these symbols, see the comments in `py_kosha`.

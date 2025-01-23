@@ -163,6 +163,9 @@ Output types
 .. autoclass:: vidyut.prakriya.Step
    :members:
 
+.. autoclass:: vidyut.prakriya.Term
+   :members:
+
 .. autoclass:: vidyut.prakriya.Source
    :members:
    :undoc-members:

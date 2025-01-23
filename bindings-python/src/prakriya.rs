@@ -19,6 +19,15 @@ fn py_repr_string(text: &str) -> String {
     }
 }
 
+/// Renders a boolean Pythonically.
+fn py_repr_bool(val: bool) -> &'static str {
+    if val {
+        "True"
+    } else {
+        "False"
+    }
+}
+
 /// Defines the source of some rule.
 #[pyclass(name = "Source", eq, ord, frozen, hash)]
 #[derive(Copy, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -80,6 +89,32 @@ impl PySutra {
     }
 }
 
+#[pyclass(name = "Term", eq, get_all, ord)]
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
+pub struct PyTerm {
+    /// The text of this term in SLP1 transliteration.
+    text: String,
+    /// Whether or not this term was changed.
+    was_changed: bool,
+}
+
+#[pymethods]
+impl PyTerm {
+    #[new]
+    #[pyo3(signature = (text, was_changed = false))]
+    fn new(text: String, was_changed: bool) -> Self {
+        Self { text, was_changed }
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "Term({}, was_changed={})",
+            py_repr_string(&self.text),
+            py_repr_bool(self.was_changed),
+        )
+    }
+}
+
 /// A step in the derivation.
 #[pyclass(name = "Step", eq, get_all, ord)]
 #[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
@@ -91,16 +126,14 @@ pub struct PyStep {
     /// but a small number of rules are from other sources. See the `source` attribute to learn
     /// where a rule has come from.
     pub code: String,
-    /// The result of applying the given rule to the derivation.
-    ///
-    /// `result` is a list of SLP1 strings.
-    pub result: Vec<String>,
+    /// The terms produced by this result.
+    pub result: Vec<PyTerm>,
 }
 
 #[pymethods]
 impl PyStep {
     #[new]
-    fn new(source: PySource, code: String, result: Vec<String>) -> Self {
+    fn new(source: PySource, code: String, result: Vec<PyTerm>) -> Self {
         Self {
             source,
             code,
@@ -110,10 +143,14 @@ impl PyStep {
 
     fn __repr__(&self) -> String {
         format!(
-            "Step(source={}, code={}, result={:?})",
+            "Step(source={}, code={}, result=[{}])",
             self.source.__repr__(),
             py_repr_string(&self.code),
             self.result
+                .iter()
+                .map(|x| x.__repr__())
+                .collect::<Vec<_>>()
+                .join(", ")
         )
     }
 }
@@ -149,7 +186,14 @@ fn to_py_history(history: &[Step]) -> Vec<PyStep> {
             PyStep {
                 source,
                 code: code.to_string(),
-                result: x.result().iter().map(|t| t.text().to_string()).collect(),
+                result: x
+                    .result()
+                    .iter()
+                    .map(|t| PyTerm {
+                        text: t.text().to_string(),
+                        was_changed: t.was_changed(),
+                    })
+                    .collect(),
             }
         })
         .collect()

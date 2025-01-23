@@ -13,6 +13,7 @@ from vidyut.prakriya import (
     Pratipadika,
     Prayoga,
     Purusha,
+    Term,
     Sanadi,
     Source,
     Sutra,
@@ -73,28 +74,34 @@ def test_prakriya():
     # Filter out debugging rules, which have `rule` = "    "
     filtered_steps = [step for step in p.history if step.code.strip()]
 
+    # o = ok, c = changed
+    o = lambda x: Term(x)
+    c = lambda x: Term(x, was_changed=True)
+
+    # TODO: these c/o assignments don't make sense, but just match Rust
+    # for now.
     a = Source.Ashtadhyayi
     assert filtered_steps == [
-        Step(source=a, code="1.3.1", result=["BU"]),
-        Step(source=a, code="3.2.123", result=["BU", "la~w"]),
-        Step(source=a, code="1.3.2", result=["BU", "la~w"]),
-        Step(source=a, code="1.3.3", result=["BU", "la~w"]),
-        Step(source=a, code="1.3.9", result=["BU", "l"]),
-        Step(source=a, code="1.3.78", result=["BU", "l"]),
-        Step(source=a, code="3.4.78", result=["BU", "tip"]),
-        Step(source=a, code="1.3.3", result=["BU", "tip"]),
-        Step(source=a, code="1.3.9", result=["BU", "ti"]),
-        Step(source=a, code="3.4.113", result=["BU", "ti"]),
-        Step(source=a, code="3.1.68", result=["BU", "Sap", "ti"]),
-        Step(source=a, code="1.3.3", result=["BU", "Sap", "ti"]),
-        Step(source=a, code="1.3.8", result=["BU", "Sap", "ti"]),
-        Step(source=a, code="1.3.9", result=["BU", "a", "ti"]),
-        Step(source=a, code="3.4.113", result=["BU", "a", "ti"]),
-        Step(source=a, code="1.4.13", result=["BU", "a", "ti"]),
-        Step(source=a, code="7.3.84", result=["Bo", "a", "ti"]),
-        Step(source=a, code="1.4.14", result=["Bo", "a", "ti"]),
-        Step(source=a, code="6.1.78", result=["Bav", "a", "ti"]),
-        Step(source=a, code="8.4.68", result=["Bav", "a", "ti"]),
+        Step(source=a, code="1.3.1", result=[c("BU")]),
+        Step(source=a, code="3.2.123", result=[c("BU"), o("la~w")]),
+        Step(source=a, code="1.3.2", result=[o("BU"), c("la~w")]),
+        Step(source=a, code="1.3.3", result=[o("BU"), c("la~w")]),
+        Step(source=a, code="1.3.9", result=[o("BU"), c("l")]),
+        Step(source=a, code="1.3.78", result=[o("BU"), o("l")]),
+        Step(source=a, code="3.4.78", result=[o("BU"), c("tip")]),
+        Step(source=a, code="1.3.3", result=[o("BU"), c("tip")]),
+        Step(source=a, code="1.3.9", result=[o("BU"), c("ti")]),
+        Step(source=a, code="3.4.113", result=[o("BU"), c("ti")]),
+        Step(source=a, code="3.1.68", result=[c("BU"), o("Sap"), o("ti")]),
+        Step(source=a, code="1.3.3", result=[o("BU"), c("Sap"), o("ti")]),
+        Step(source=a, code="1.3.8", result=[o("BU"), c("Sap"), o("ti")]),
+        Step(source=a, code="1.3.9", result=[o("BU"), c("a"), o("ti")]),
+        Step(source=a, code="3.4.113", result=[o("BU"), c("a"), o("ti")]),
+        Step(source=a, code="1.4.13", result=[c("BU"), o("a"), o("ti")]),
+        Step(source=a, code="7.3.84", result=[c("Bo"), o("a"), o("ti")]),
+        Step(source=a, code="1.4.14", result=[c("Bo"), o("a"), o("ti")]),
+        Step(source=a, code="6.1.78", result=[c("Bav"), o("a"), o("ti")]),
+        Step(source=a, code="8.4.68", result=[o("Bav"), o("a"), o("ti")]),
     ]
 
 
