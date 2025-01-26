@@ -585,6 +585,15 @@ impl Taddhita {
     pub fn anubandhas(self) -> Vec<Anubandha> {
         it_samjna::anubandhas_for_term((self).into())
     }
+
+    /// Returns whether this pratyaya is classified as a *vibhakti*.
+    pub fn is_vibhakti(&self) -> bool {
+        use Taddhita::*;
+        matches!(
+            self,
+            tasil | tral | ha | at | dA | rhil | dAnIm | TAl | Tamu
+        )
+    }
 }
 
 /// Models the meaning of a *taddhita pratyaya*.

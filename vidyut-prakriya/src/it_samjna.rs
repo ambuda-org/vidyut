@@ -337,7 +337,10 @@ pub(crate) fn anubandhas_for_term(term: Term) -> Vec<Anubandha> {
 
     // 1.3.3
     if HAL.contains(antya) {
-        ret.push(antya.try_into().expect("ok"));
+        // 1.3.4
+        if !term.is_vibhakti() {
+            ret.push(antya.try_into().expect("ok"));
+        }
     }
 
     ret
@@ -368,7 +371,10 @@ pub(crate) fn text_without_anubandhas(term: Term) -> (usize, usize) {
 
     // 1.3.3
     if HAL.contains(antya) {
-        end -= 1;
+        // 1.3.4
+        if !term.is_vibhakti() {
+            end -= 1;
+        }
     }
 
     // 1.3.2
