@@ -82,6 +82,10 @@ fn is_exempt_from_lakshaku(t: &Term) -> bool {
     }
 }
 
+fn is_exempt_from_vibhaktau(t: &Term) -> bool {
+    t.is(D::at) && t.is_taddhita()
+}
+
 fn get_aupadeshika(t: &Term) -> Result<&str> {
     match &t.u {
         Some(s) => Ok(s),
@@ -222,8 +226,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
             // - But, at-pratyaya *should* have its final t deleted.
             //
             // For now, hard-code an exception.
-            let is_vibhakti_exception = t.is(D::at) && t.is_taddhita();
-            if vibhaktau_tusmah && !is_vibhakti_exception {
+            if vibhaktau_tusmah && !is_exempt_from_vibhaktau(t) {
                 p.step("1.3.4");
             } else {
                 p.add_tag_at("1.3.3", i_term, T::parse_it(antya)?);
@@ -301,53 +304,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
 }
 
 /// Helper function for public APIs that return anubandhas set on a dhatu, krt, etc.
-pub(crate) fn anubandhas_for_term(term: Term) -> Vec<Anubandha> {
-    let mut ret = Vec::new();
-
-    let text = match get_aupadeshika(&term) {
-        Ok(x) => x,
-        _ => return ret,
-    };
-
-    let adi = text.chars().next().expect("present");
-    let antya = text.chars().last().expect("present");
-
-    if term.is_pratyaya() {
-        if adi == 'z' {
-            // 1.3.6
-            ret.push(Anubandha::zit);
-        } else if CU_TU.contains(adi) && !is_exempt_from_cutu(&term) {
-            // 1.3.7
-            ret.push(adi.try_into().expect("ok"));
-        } else if !term.is_taddhita() && LA_SHA_KU.contains(adi) && !is_exempt_from_lakshaku(&term)
-        {
-            // 1.3.8
-            ret.push(adi.try_into().expect("ok"));
-        }
-    }
-
-    // 1.3.2
-    for (i, c) in text.char_indices() {
-        if c == '~' {
-            assert!(i > 0);
-            let ac = text.as_bytes()[i - 1] as char;
-            ret.push(ac.try_into().expect("ok"));
-        }
-    }
-
-    // 1.3.3
-    if HAL.contains(antya) {
-        // 1.3.4
-        if !term.is_vibhakti() {
-            ret.push(antya.try_into().expect("ok"));
-        }
-    }
-
-    ret
-}
-
-/// Helper function for public APIs that return anubandhas set on a dhatu, krt, etc.
-pub(crate) fn text_without_anubandhas(term: Term) -> (usize, usize) {
+pub(crate) fn drshya_for_term(term: &Term) -> (usize, usize) {
     let text = get_aupadeshika(&term).expect("ok");
 
     let mut start = 0;
@@ -355,7 +312,12 @@ pub(crate) fn text_without_anubandhas(term: Term) -> (usize, usize) {
     let adi = text.chars().next().expect("present");
     let antya = text.chars().last().expect("present");
 
-    if term.is_pratyaya() {
+    if term.is_dhatu() {
+        if term.has_prefix_in(&["Yi", "wu", "qu"]) {
+            // 1.3.5
+            start += 2;
+        }
+    } else if term.is_pratyaya() {
         if adi == 'z' {
             // 1.3.6
             start += 1;
@@ -371,8 +333,9 @@ pub(crate) fn text_without_anubandhas(term: Term) -> (usize, usize) {
 
     // 1.3.3
     if HAL.contains(antya) {
-        // 1.3.4
-        if !term.is_vibhakti() {
+        if term.is_vibhakti() && !is_exempt_from_vibhaktau(&term) {
+            // 1.3.4
+        } else {
             end -= 1;
         }
     }
@@ -380,18 +343,83 @@ pub(crate) fn text_without_anubandhas(term: Term) -> (usize, usize) {
     // 1.3.2
     let slice = &text[start..end];
     if !matches!(slice, "yu~" | "vu~") {
-        for (i, c) in slice.char_indices() {
-            if c == '~' {
-                if i == 1 {
-                    start += 2;
-                } else {
-                    end -= 2;
-                }
-            }
+        if slice.chars().nth(1) == Some('~') {
+            start += 2;
+        }
+
+        if slice.ends_with("~\\") || slice.ends_with("~^") {
+            // Vowel + anunasika + svara = 3 chars
+            end -= 3;
+        } else if slice.ends_with('~') {
+            end -= 2;
         }
     }
 
     (start, end)
+}
+
+/// Helper function for public APIs that return anubandhas set on a dhatu, krt, etc.
+pub(crate) fn anubandhas_for_term(term: Term) -> Vec<Anubandha> {
+    let mut ret = Vec::new();
+
+    let text = get_aupadeshika(&term).expect("verified OK with exhaustive unit tests.");
+    let (i_start, i_end) = drshya_for_term(&term);
+    let start = &text[..i_start];
+    let end = &text[i_end..];
+
+    if !start.is_empty() {
+        if term.is_dhatu() && start.len() >= 2 {
+            // 1.3.5
+            match &start[..2] {
+                "Yi" => ret.push(Anubandha::YIt),
+                "wu" => ret.push(Anubandha::wvit),
+                "qu" => ret.push(Anubandha::qvit),
+                _ => (),
+            };
+
+            if start.ends_with('~') {
+                // 1.3.2
+                let ac = start.chars().nth_back(1).expect("present");
+                ret.push(ac.try_into().expect("TODO verify"))
+            }
+        } else if term.is_pratyaya() {
+            let adi = start.chars().next().expect("present");
+            if adi == 'z' {
+                // 1.3.6
+                ret.push(Anubandha::zit);
+            } else if CU_TU.contains(adi) && !is_exempt_from_cutu(&term) {
+                // 1.3.7
+                ret.push(adi.try_into().expect("in CU_TU"));
+            } else if !term.is_taddhita()
+                && LA_SHA_KU.contains(adi)
+                && !is_exempt_from_lakshaku(&term)
+            {
+                // 1.3.8
+                ret.push(adi.try_into().expect("in LA_SHA_KU"));
+            }
+        }
+    }
+
+    if !end.is_empty() {
+        if term.has_suffix_in(&["i~r", "i~^r", "i~\\r"]) {
+            // 1.3.3.1
+            ret.push(Anubandha::irit);
+        } else {
+            let antya = end.chars().next_back().expect("not empty");
+
+            if HAL.contains(antya) {
+                ret.push(antya.try_into().expect("in HAL"));
+            }
+
+            if end.chars().nth(1) == Some('~') {
+                // 1.3.2
+                let ac = end.chars().next().expect("present");
+                ret.push(ac.try_into().expect("TODO verify"))
+            }
+        }
+    }
+
+    ret
 }
 
 #[cfg(test)]
@@ -400,7 +428,15 @@ mod tests {
     use crate::args::{Agama, BaseKrt, Krt, Sanadi, Stri, Sup, Taddhita, Vikarana};
     use crate::core::Term;
 
-    fn check(t: Term) -> Term {
+    /// Checks that this term passes various functions without panicking.
+    fn check_all(t: Term) -> Term {
+        // Term --> anubandha list
+        _ = anubandhas_for_term(t.clone());
+
+        // Term --> raw text
+        _ = drshya_for_term(&t);
+
+        // Derivation with term
         let mut p = Prakriya::new();
         p.push(t);
         match run(&mut p, 0) {
@@ -435,7 +471,7 @@ mod tests {
         ];
 
         for (raw, expected, tags) in tests {
-            let t = check(Term::make_upadesha(raw));
+            let t = check_all(Term::make_upadesha(raw));
             assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags));
         }
@@ -455,7 +491,7 @@ mod tests {
         for (raw, expected, tags) in tests {
             let mut start = Term::make_upadesha(raw);
             start.add_tag(T::Vibhakti);
-            let t = check(start);
+            let t = check_all(start);
 
             assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags));
@@ -479,7 +515,7 @@ mod tests {
                 start.lakara = Some(Lakara::Lat)
             }
 
-            let t = check(start);
+            let t = check_all(start);
             assert_eq!(expected, t.text);
             assert!(t.has_all_tags(&tags), "Missing one or more of `{tags:?}`");
         }
@@ -488,7 +524,7 @@ mod tests {
     #[test]
     fn agamas() {
         for agama in Agama::iter() {
-            check(agama.into());
+            check_all(agama.into());
         }
     }
 
@@ -496,42 +532,42 @@ mod tests {
     fn krt_pratyayas() {
         for krt in BaseKrt::iter() {
             let t = Krt::Base(krt).to_term();
-            check(t);
+            check_all(t);
         }
     }
 
     #[test]
     fn taddhita_pratyayas() {
         for taddhita in Taddhita::iter() {
-            check(taddhita.into());
+            check_all(taddhita.into());
         }
     }
 
     #[test]
     fn sanadi_pratyayas() {
         for sanadi in Sanadi::iter() {
-            check(sanadi.into());
+            check_all(sanadi.into());
         }
     }
 
     #[test]
     fn sup_pratyayas() {
         for s in Sup::iter() {
-            check(s.into());
+            check_all(s.into());
         }
     }
 
     #[test]
     fn stri_pratyayas() {
         for stri in Stri::iter() {
-            check(stri.into());
+            check_all(stri.into());
         }
     }
 
     #[test]
     fn vikarana_pratyayas() {
         for vikarana in Vikarana::iter() {
-            check(vikarana.into());
+            check_all(vikarana.into());
         }
     }
 }

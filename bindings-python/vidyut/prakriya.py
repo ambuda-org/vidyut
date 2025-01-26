@@ -34,3 +34,6 @@ Vibhakti = __mod.Vibhakti
 Prakriya = __mod.Prakriya
 Step = __mod.Step
 Term = __mod.Term
+
+# Metadata
+Anubandha = __mod.Anubandha

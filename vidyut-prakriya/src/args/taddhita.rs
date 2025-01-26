@@ -573,7 +573,7 @@ impl Taddhita {
             zwarac => "tara",
             _ => {
                 let term = self.into();
-                let (start, end) = it_samjna::text_without_anubandhas(term);
+                let (start, end) = it_samjna::drshya_for_term(&term);
                 let slice = &self.as_str()[start..end];
 
                 slice
@@ -1019,12 +1019,13 @@ mod tests {
 
     #[test]
     fn drshya() {
-        // Test that nothing panics.
-        for taddhita in Taddhita::iter() {
-            println!("{}", taddhita.drshya());
+        use Taddhita as T;
+
+        // Tests that nothing panics.
+        for taddhita in T::iter() {
+            let _drshya = taddhita.drshya();
         }
 
-        use Taddhita as T;
         assert_eq!(T::tamap.drshya(), "tama");
         assert_eq!(T::jAtIyar.drshya(), "jAtIya");
 
@@ -1034,18 +1035,30 @@ mod tests {
         assert_eq!(T::CaR.drshya(), "Iya");
         assert_eq!(T::Gac.drshya(), "ina");
         assert_eq!(T::Wak.drshya(), "ika");
+
+        // drshya for vibhakti
+        assert_eq!(T::dAnIm.drshya(), "dAnIm");
+        // But, just 'a' for at
+        assert_eq!(T::at.drshya(), "a");
     }
 
     #[test]
     fn anubandhas() {
+        use Taddhita as T;
+
         // Tests that nothing panics.
-        for taddhita in Taddhita::iter() {
+        for taddhita in T::iter() {
             let _anubandhas = taddhita.anubandhas();
         }
 
         // A few examples.
         use Anubandha as A;
-        assert_eq!(Taddhita::cPaY.anubandhas(), vec![A::cit, A::Yit]);
-        assert_eq!(Taddhita::jAtIyar.anubandhas(), vec![A::rit]);
+        assert_eq!(T::cPaY.anubandhas(), vec![A::cit, A::Yit]);
+        assert_eq!(T::jAtIyar.anubandhas(), vec![A::rit]);
+
+        // anubandhas for vibhakti
+        assert_eq!(T::dAnIm.anubandhas(), vec![]);
+        // But, just 'a' for at
+        assert_eq!(T::at.anubandhas(), vec![A::tit]);
     }
 }

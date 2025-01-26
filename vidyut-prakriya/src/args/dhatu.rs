@@ -3,6 +3,7 @@ use crate::args::Anubandha;
 use crate::args::Pratipadika;
 use crate::args::Slp1String;
 use crate::core::errors::{Error, Result};
+use crate::core::{Tag, Term};
 use crate::it_samjna;
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -187,7 +188,7 @@ impl Sanadi {
         } else {
             self.into()
         };
-        let (start, end) = it_samjna::text_without_anubandhas(term);
+        let (start, end) = it_samjna::drshya_for_term(&term);
         let slice = &self.as_str()[start..end];
         slice
     }
@@ -560,6 +561,20 @@ impl Dhatu {
         }
     }
 
+    /// Returns the anubandhas defined on this dhatu.
+    ///
+    /// This excludes anubandhas on nAma-dhAtus and anubandhas added by sutras.
+    pub fn anubandhas(&self) -> Vec<Anubandha> {
+        match self {
+            Dhatu::Mula(m) => {
+                let mut t = Term::make_upadesha(&m.aupadeshika);
+                t.add_tag(Tag::Dhatu);
+                it_samjna::anubandhas_for_term(t)
+            }
+            Dhatu::Nama(_) => Vec::new(),
+        }
+    }
+
     /// Sets the prefixes on the dhatu.
     pub fn with_prefixes(mut self, values: &[impl AsRef<str>]) -> Self {
         match self {
@@ -664,6 +679,28 @@ mod tests {
     use super::*;
 
     #[test]
+    fn anubandhas() {
+        use Anubandha as A;
+
+        let get_anubandhas = |text: &str| {
+            let d = Dhatu::mula(Slp1String::from(text).expect("ok"), Gana::Bhvadi);
+            d.anubandhas()
+        };
+
+        assert_eq!(get_anubandhas("BU"), vec![]);
+        assert_eq!(get_anubandhas("zWA\\"), vec![]);
+        assert_eq!(get_anubandhas("eDa~\\"), vec![A::adit]);
+        assert_eq!(get_anubandhas("vadi~\\"), vec![A::idit]);
+        assert_eq!(get_anubandhas("cyuti~r"), vec![A::irit]);
+
+        assert_eq!(
+            get_anubandhas("wuo~sPUrjA~"),
+            vec![A::wvit, A::odit, A::Adit]
+        );
+        assert_eq!(get_anubandhas("qukf\\Y"), vec![A::qvit, A::Yit]);
+    }
+
+    #[test]
     fn sanadi_drshya() {
         // Test that nothing panics.
         for sanadi in Sanadi::iter() {
@@ -678,13 +715,14 @@ mod tests {
 
     #[test]
     fn sanadi_anubandhas() {
+        use Anubandha as A;
+
         // Tests that nothing panics.
         for sanadi in Sanadi::iter() {
             let _anubandhas = sanadi.anubandhas();
         }
 
         // A few examples.
-        use Anubandha as A;
         assert_eq!(Sanadi::Ric.anubandhas(), vec![A::Rit, A::cit]);
         assert_eq!(Sanadi::san.anubandhas(), vec![A::nit]);
 

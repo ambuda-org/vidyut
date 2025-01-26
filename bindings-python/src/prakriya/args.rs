@@ -1079,39 +1079,6 @@ impl PyDhatu {
         self.0.clone().with_sanadi(&sanadi).into()
     }
 
-    /// The aupadeshika form of this dhatu.
-    #[getter]
-    pub fn aupadeshika(&self) -> String {
-        match self.0.aupadeshika() {
-            Some(s) => s.to_string(),
-            None => String::new(),
-        }
-    }
-
-    /// The gana that this dhatu belongs to.
-    #[getter]
-    pub fn gana(&self) -> Option<PyGana> {
-        self.0.gana().map(|g| g.into())
-    }
-
-    /// The antargana that this dhatu belongs to.
-    #[getter]
-    pub fn antargana(&self) -> Option<PyAntargana> {
-        self.0.antargana().map(|g| g.into())
-    }
-
-    /// The prefixes that this dhatu uses.
-    #[getter]
-    pub fn prefixes(&self) -> Vec<String> {
-        self.0.prefixes().to_vec()
-    }
-
-    /// The sanadi pratyayas that this dhatu uses.
-    #[getter]
-    pub fn sanadi(&self) -> Vec<PySanadi> {
-        self.0.sanadi().iter().map(|x| (*x).into()).collect()
-    }
-
     pub fn __repr__(&self) -> String {
         let mut args = String::new();
         args.push_str(&format!("aupadeshika='{}'", self.aupadeshika()));
@@ -1151,6 +1118,43 @@ impl PyDhatu {
         }
 
         format!("Dhatu({})", args)
+    }
+
+    /// The aupadeshika form of this dhatu.
+    #[getter]
+    pub fn aupadeshika(&self) -> String {
+        match self.0.aupadeshika() {
+            Some(s) => s.to_string(),
+            None => String::new(),
+        }
+    }
+
+    /// The gana that this dhatu belongs to.
+    #[getter]
+    pub fn gana(&self) -> Option<PyGana> {
+        self.0.gana().map(|g| g.into())
+    }
+
+    /// The antargana that this dhatu belongs to.
+    #[getter]
+    pub fn antargana(&self) -> Option<PyAntargana> {
+        self.0.antargana().map(|g| g.into())
+    }
+
+    /// The prefixes that this dhatu uses.
+    #[getter]
+    pub fn prefixes(&self) -> Vec<String> {
+        self.0.prefixes().to_vec()
+    }
+
+    /// The sanadi pratyayas that this dhatu uses.
+    #[getter]
+    pub fn sanadi(&self) -> Vec<PySanadi> {
+        self.0.sanadi().iter().map(|x| (*x).into()).collect()
+    }
+
+    pub fn anubandhas(&self) -> Vec<PyAnubandha> {
+        self.0.anubandhas().iter().map(|x| (*x).into()).collect()
     }
 }
 

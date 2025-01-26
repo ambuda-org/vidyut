@@ -399,7 +399,7 @@ impl BaseKrt {
     /// Returns the *dr̥śya* form of this *pratyaya*.
     pub fn drshya(self) -> &'static str {
         let term = Krt::Base(self).to_term();
-        let (start, end) = it_samjna::text_without_anubandhas(term);
+        let (start, end) = it_samjna::drshya_for_term(&term);
         let slice = &self.as_str()[start..end];
 
         if slice == "yu~" {
@@ -413,6 +413,12 @@ impl BaseKrt {
         } else {
             slice
         }
+    }
+
+    /// Returns the anubandhas used by this pratyaya.
+    pub fn anubandhas(self) -> Vec<Anubandha> {
+        let term = Krt::Base(self).to_term();
+        it_samjna::anubandhas_for_term(term)
     }
 
     /// Returns all of the lingas associated with this *pratyaya*.
@@ -516,12 +522,6 @@ impl BaseKrt {
                 | kaDyEn // kaDyE
                 | SaDyEn // SaDyE
         )
-    }
-
-    /// Returns the anubandhas used by this pratyaya.
-    pub fn anubandhas(self) -> Vec<Anubandha> {
-        let term = Krt::Base(self).to_term();
-        it_samjna::anubandhas_for_term(term)
     }
 }
 

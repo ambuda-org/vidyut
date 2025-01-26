@@ -1011,6 +1011,10 @@ impl From<Taddhita> for Term {
         // `Pratyaya` by 3.1.1.
         // `Taddhita` by 4.1.76.
         t.add_tags(&[Tag::Pratyaya, Tag::Taddhita]);
+
+        if val.is_vibhakti() {
+            t.add_tag(Tag::Vibhakti);
+        }
         t
     }
 }
