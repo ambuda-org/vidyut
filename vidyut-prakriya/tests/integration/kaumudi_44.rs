@@ -587,8 +587,6 @@ fn sk_2459() {
 #[test]
 fn skip_sk_2460_to_sk_2461() {}
 
-// TODO: avyan
-#[ignore]
 #[test]
 fn sk_2462() {
     let in_ = d("i\\N", Adadi);
@@ -772,7 +770,6 @@ fn sk_2471() {
     assert_has_tip(&[], &as_, Lun, &["aBUt"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2472() {
     let as_ = d("asa~", Adadi);
@@ -828,33 +825,32 @@ fn sk_2476() {
     assert_has_sip(&[], &svap, Lit, &["suzvapiTa", "suzvapTa"]);
 }
 
-#[ignore]
 #[test]
 fn sk_2477() {
     let svap = d("Yizva\\pa~", Adadi);
-    assert_has_tas(&[], &svap, Lit, &["suzuzupatuH"]);
-    assert_has_jhi(&[], &svap, Lit, &["suzuzupuH"]);
-    assert_has_tip(&[], &svap, Lat, &["susuzvApa"]);
-    assert_has_tip(&[], &svap, Lut, &["susvaptA"]);
-    assert_has_tip(&[], &svap, Lat, &["asvapIt"]);
-    assert_has_tip(&[], &svap, Lat, &["asvapat"]);
-    assert_has_tip(&[], &svap, AshirLin, &["svapyAt"]);
+    assert_has_tas(&["su"], &svap, Lit, &["suzuzupatuH"]);
+    assert_has_jhi(&["su"], &svap, Lit, &["suzuzupuH"]);
+    assert_has_tip(&["su"], &svap, Lit, &["susuzvApa"]);
+    assert_has_tip(&["su"], &svap, Lut, &["susvaptA"]);
+    assert_has_tip(&[], &svap, Lan, &["asvapIt", "asvapat"]);
+    assert_has_tip(&[], &svap, VidhiLin, &["svapyAt"]);
     assert_has_tip(&[], &svap, AshirLin, &["supyAt"]);
-    assert_has_tip(&[], &svap, AshirLin, &["suzupyAt"]);
-    assert_has_tip(&[], &svap, Lat, &["asvApsIt"]);
-    assert_has_tip(&[], &svap, Lat, &["Svasiti"]);
-    assert_has_tip(&[], &svap, Lut, &["SvasitA"]);
-    assert_has_tip(&[], &svap, Lat, &["aSvasIt"]);
-    assert_has_tip(&[], &svap, Lat, &["aSvasat"]);
-    assert_has_tip(&[], &svap, Lat, &["SvasyAtAm"]);
-    assert_has_tas(&[], &svap, AshirLin, &["SvasyAstAm"]);
-    assert_has_tip(&[], &svap, Lat, &["hmyantakzaRa"]);
-    assert_has_tip(&[], &svap, Lat, &["aSvasIt"]);
-    assert_has_tip(&[], &svap, Lat, &["aniti"]);
-    assert_has_tip(&[], &svap, Lat, &["Ana"]);
-    assert_has_tip(&[], &svap, Lut, &["anitA"]);
-    assert_has_tip(&[], &svap, Lat, &["AnIt"]);
-    assert_has_tip(&[], &svap, Lat, &["Anat"]);
+    assert_has_tip(&["su"], &svap, AshirLin, &["suzupyAt"]);
+    assert_has_tip(&[], &svap, Lun, &["asvApsIt"]);
+
+    let shvas = d("Svasa~", Adadi);
+    assert_has_tip(&[], &shvas, Lat, &["Svasiti"]);
+    assert_has_tip(&[], &shvas, Lut, &["SvasitA"]);
+    assert_has_tip(&[], &shvas, Lan, &["aSvasIt", "aSvasat"]);
+    assert_has_tas(&[], &shvas, VidhiLin, &["SvasyAtAm"]);
+    assert_has_tas(&[], &shvas, AshirLin, &["SvasyAstAm"]);
+    assert_has_tip(&[], &shvas, Lun, &["aSvasIt"]);
+
+    let an = d("ana~", Adadi);
+    assert_has_tip(&[], &an, Lat, &["aniti"]);
+    assert_has_tip(&[], &an, Lit, &["Ana"]);
+    assert_has_tip(&[], &an, Lut, &["anitA"]);
+    assert_has_tip(&[], &an, Lan, &["AnIt", "Anat"]);
 }
 
 #[test]

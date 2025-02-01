@@ -21,7 +21,7 @@ use crate::args::Unadi as U;
 use crate::args::Vikarana as V;
 use crate::args::{Artha, Gana, TaddhitaArtha};
 use crate::core::operators as op;
-use crate::core::Rule::Varttika;
+use crate::core::Rule::{Kaumudi, Varttika};
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Tag as T, Term};
 use crate::dhatu_gana as gana;
 use crate::it_samjna;
@@ -745,13 +745,18 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         } else {
             p.run_at("6.4.81", i_anga, op::antya("y"));
         }
-    } else if anga.has_antya(II) && is_anekac(p, i_anga) && anga.is_dhatu() && is_asamyogapurva {
-        // `Dhatu` is understood here even if not stated in the rule.
-        // ("dhātoḥ iti vartate" -- Kashika)
-        if anga.has_text("suDI") {
-            p.step("6.4.85");
-        } else {
-            p.run_at("6.4.82", i_anga, op::antya("y"));
+    } else if anga.has_antya(II) && anga.is_dhatu() && is_asamyogapurva {
+        let is_anekac = is_anekac(p, i_anga);
+        if is_anekac {
+            // `Dhatu` is understood here even if not stated in the rule.
+            // ("dhātoḥ iti vartate" -- Kashika)
+            if anga.has_text("suDI") {
+                p.step("6.4.85");
+            } else {
+                p.run_at("6.4.82", i_anga, op::antya("y"));
+            }
+        } else if anga.has_text("vI") && i_anga > 0 && p.has(i_anga - 1, |t| t.is(A::aw)) {
+            p.optional_run_at(Kaumudi("2462"), i_anga, op::antya("y"));
         }
     } else if anga.has_antya(UU)
         && anga.is_dhatu()

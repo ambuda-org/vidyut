@@ -514,6 +514,8 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         // 2. it_agama (affects kit-Nit)
         // 3. atidesha (for kit-Nit)
         samprasarana::run_for_dhatu_after_atidesha(p, is_sani_or_cani);
+        // For suzuzupatuH -- must run after samprasarana but before dvitva.
+        tripadi::run_before_dvitva(p);
         // Ad-Adeza and other special tasks for Ardhadhatuka
         ardhadhatuka::run_before_dvitva(p);
 

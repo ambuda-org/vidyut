@@ -715,6 +715,31 @@ fn sutra_8_3_82() {
 }
 
 #[test]
+fn sutra_8_3_87() {
+    let as_ = d("asa~", Adadi);
+
+    assert_has_jhi(&["aBi"], &as_, Lat, &["aBizanti"]);
+    assert_has_jhi(&["ni"], &as_, Lat, &["nizanti"]);
+    assert_has_jhi(&["vi"], &as_, Lat, &["vizanti"]);
+    assert_has_jhi(&["prAdus"], &as_, Lat, &["prAduzzanti", "prAduHzanti"]);
+
+    assert_has_tip(&["aBi"], &as_, VidhiLin, &["aBizyAt"]);
+    assert_has_tip(&["ni"], &as_, VidhiLin, &["nizyAt"]);
+    assert_has_tip(&["vi"], &as_, VidhiLin, &["vizyAt"]);
+    assert_has_tip(&["prAdus"], &as_, VidhiLin, &["prAduzzyAt", "prAduHzyAt"]);
+
+    // asti?
+    let sr = d("sf\\", Bhvadi);
+    assert_has_krdanta(&["anu"], &sr, Krt::kta, &["anusfta"]);
+    assert_has_krdanta(&["vi"], &sr, Krt::kta, &["visfta"]);
+
+    // yacparaH?
+    assert_has_tas(&["ni"], &as_, Lat, &["nistaH"]);
+    assert_has_tas(&["vi"], &as_, Lat, &["vistaH"]);
+    assert_has_tas(&["prAdus"], &as_, Lat, &["prAduHstaH", "prAdusstaH"]);
+}
+
+#[test]
 fn sutra_8_3_96() {
     assert_has_avyaya_tatpurusha("vi", "sTala", &["vizWala"]);
     assert_has_avyaya_tatpurusha("ku", "sTala", &["kuzWala"]);

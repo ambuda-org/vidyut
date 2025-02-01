@@ -407,14 +407,14 @@ pub(crate) fn anubandhas_for_term(term: Term) -> Vec<Anubandha> {
         } else {
             let antya = end.chars().next_back().expect("not empty");
 
-            if HAL.contains(antya) {
-                ret.push(antya.try_into().expect("in HAL"));
-            }
-
             if end.chars().nth(1) == Some('~') {
                 // 1.3.2
                 let ac = end.chars().next().expect("present");
                 ret.push(ac.try_into().expect("TODO verify"))
+            }
+
+            if HAL.contains(antya) {
+                ret.push(antya.try_into().expect("in HAL"));
             }
         }
     }

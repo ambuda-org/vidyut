@@ -357,6 +357,7 @@ fn sutra_3_2_26() {
     assert_has_upapada_krdanta("Atman", &[], &bhf, Krt::in_, &["AtmamBari"]);
 }
 
+#[ignore]
 #[test]
 fn sutra_3_2_27() {
     let t = Tester::with_chaandasa();

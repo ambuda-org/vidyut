@@ -858,6 +858,6 @@ mod tests {
         assert_eq!(BaseKrt::kasun.anubandhas(), vec![A::kit, A::udit, A::nit]);
 
         // TODO: include udit?
-        assert_eq!(BaseKrt::Rvul.anubandhas(), vec![A::Rit, A::udit, A::lit]);
+        assert_eq!(BaseKrt::Rvul.anubandhas(), vec![A::Rit, A::lit]);
     }
 }

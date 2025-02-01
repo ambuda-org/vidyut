@@ -80,7 +80,12 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
 
     let dhatu = &p.get(i)?;
     if let Some(j) = BEFORE.iter().position(|x| dhatu.has_u(x)) {
-        Some(AFTER[j])
+        if dhatu.text == "zup" {
+            // Special case for suzuzupatuH.
+            Some("zuap")
+        } else {
+            Some(AFTER[j])
+        }
     } else {
         None
     }

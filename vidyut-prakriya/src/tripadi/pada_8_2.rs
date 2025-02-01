@@ -296,15 +296,20 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
         }
 
         let code = "8.2.29";
-        if x == 's' && y == 's' && t_x.is_dhatu() {
-            // HACK for dhatus ending in 's' (acakAs + t -> acakAH) so that we preserve the
-            // first 's' of the dhatu.
-            ip.run_for_char(code, &i_y, "");
+        // HACK for prAdus.
+        // TODO: how to handle this?
+        if !t_x.has_u("prAdus") {
+            if x == 's' && y == 's' && t_x.is_dhatu() {
+                // HACK for dhatus ending in 's' (acakAs + t -> acakAH) so that we preserve the
+                // first 's' of the dhatu.
+                ip.run_for_char(code, &i_y, "");
+            } else {
+                ip.run_for_char(code, i_x, "");
+            }
+            ip.update(i_x)
         } else {
-            ip.run_for_char(code, i_x, "");
+            ip.next(i_x)
         }
-
-        ip.update(i_x)
     });
 
     iter_terms(p, |p, i| {
