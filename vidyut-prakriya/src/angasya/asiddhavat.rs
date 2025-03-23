@@ -196,7 +196,7 @@ pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> 
         // TODO: rule is chAndasa, but SK applies it for Juhotyadi "Basa~"
         p.run_at("6.4.100", i, op::upadha_lopa);
     } else if anga.has_u("Ga\\sx~") && n.last().has_lakara(Lit) {
-        // TODO(sriram): rule is chAndasa, but interprested for "Lit" only (implies Kvasu)
+        // TODO(sriram): rule is chAndasa, but interpreted for "Lit" only (Kvasu also?)
         p.run_at("6.4.100", i, op::upadha_lopa);
 
     }
