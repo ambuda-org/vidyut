@@ -215,16 +215,6 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
             abhyasa.set_adi("");
         }
 
-        // For natva with Upsarga, the original FlagNaAdeshadi needs to be carried
-        // over to the abhyasa. For eg. if "ni" is carried over when the upadesha avastha
-        // is "RIY", then "pra" + "ni" (abhyasa) + "ni" (dhatu)  will not become "praRi".
-        // Appending the tag seems sufficient for this purpose.
-        // Ideally for abhyasa "Term::make_abhyasa" should probably copy the "upadhesha tags"
-        //  (and not the other tags).
-        if dhatu.has_tag(T::FlagNaAdeshadi) {
-            abhyasa.add_tag(T::FlagNaAdeshadi);
-        }
-
         // Insert abhyasa before suw-Agama, if present.
         let i_abhyasa = if i_dhatu > 0 && p.has(i_dhatu - 1, |t| t.is(A::suw)) {
             i_dhatu - 1

@@ -152,47 +152,6 @@ fn derive_tinantas() {
     assert_has_results(prakriyas, &["kurute"]);
 }
 
-// #[ignore]
-#[test]
-fn derive_tinanta_for_natva_with_upsarga() {
-    let v = Vyakarana::new();
-    let kr = mula("RI\\Y", Gana::Bhvadi).with_prefixes(&["pra"]);
-
-    // Should get 2 results.
-    let args_ubaya = Tinanta::builder()
-        .dhatu(kr.clone())
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lit)
-        .build()
-        .unwrap();
-    let prakriyas = v.derive_tinantas(&args_ubaya);
-    assert_has_results(prakriyas, &["praRinAya", "praRinye"]);
-
-}
-
-// #[ignore]
-#[test]
-fn derive_tinanta_for_zatva_with_upsarga() {
-    let v = Vyakarana::new();
-    let kr = mula("RI\\Y", Gana::Bhvadi).with_prefixes(&["pra"]);
-
-    // Should get 2 results.
-    let args_ubaya = Tinanta::builder()
-        .dhatu(kr.clone())
-        .prayoga(Prayoga::Kartari)
-        .purusha(Purusha::Prathama)
-        .vacana(Vacana::Eka)
-        .lakara(Lakara::Lit)
-        .build()
-        .unwrap();
-    let prakriyas = v.derive_tinantas(&args_ubaya);
-    assert_has_results(prakriyas, &["praRinAya", "praRinye"]);
-
-}
-
-
 #[test]
 fn derive_tinantas_with_invalid_dhatu() {
     let v = Vyakarana::new();
