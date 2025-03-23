@@ -2222,7 +2222,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                         p.set(i, |t| t.set_antya("ur"));
                         p.set(i + 1, |t| t.add_tag(T::kit));
                     });
-                } else if dhatu.has_u("Gasx~") {
+                } else if dhatu.has_u("Ga\\sx~") {
                     // kzIra
                     up.add_with(UP("4.34"), mark_as(T::kit));
                 }

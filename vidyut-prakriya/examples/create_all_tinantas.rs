@@ -132,7 +132,7 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
 fn main() {
     let args = Args::parse();
 
-    let dhatus = match Dhatupatha::from_path("data/dhatupatha.tsv") {
+    let dhatus = match Dhatupatha::from_path("vidyut-prakriya/data/dhatupatha.tsv") {
         Ok(res) => res,
         Err(err) => {
             println!("{}", err);

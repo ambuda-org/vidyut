@@ -283,13 +283,13 @@ pub fn run_before_vikarana(
     if dhatu.has_text("ad") {
         if n.has_lakara(Lun) || n.last().is_san() {
             // aGasat, jiGatsati
-            op::adesha("2.4.37", p, i, "Gasx~");
+            op::adesha("2.4.37", p, i, "Ga\\sx~");
         } else if n.last().is_any_krt(&[K::GaY, K::ap]) {
             // GAsa, praGasa
-            op::adesha("2.4.38", p, i, "Gasx~");
+            op::adesha("2.4.38", p, i, "Ga\\sx~");
         } else if n.has_lakara(Lit) {
             // jaGAsa
-            op::optional_adesha("2.4.40", p, i, "Gasx~");
+            op::optional_adesha("2.4.40", p, i, "Ga\\sx~");
         } else if n.has_u("lyap") || (n.has_adi('t') && n.has_tag(T::kit)) {
             // jagDvA, vijagDya
             op::adesha("2.4.36", p, i, "jagDi~");
