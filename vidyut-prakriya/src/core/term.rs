@@ -370,6 +370,11 @@ impl Term {
     // ---------------
 
     /// Returns whether the term has a specific aupadeshika form.
+     /// NOTE: Please use the correct SLP1 encoding with "anudatta udatta" encoded accents
+    ///      in case of Dhatus being the argument
+    ///      Correct invocation -->     x.has_u("Ga\\sx~")
+    ///      x.has_u("Gasx~") is incorrect. Please
+    ///      (validate with data/dhatupatha.tsv file)
     pub fn has_u(&self, s: &str) -> bool {
         match &self.u {
             Some(u) => u == s,
@@ -378,6 +383,11 @@ impl Term {
     }
 
     /// Returns whether the term has an aupadeshika in the specified list.
+    /// NOTE: Please use the correct SLP1 encoding with "anudatta udatta" encoded accents
+    ///      in case of Dhatus being the argument
+    ///      Correct invocation -->     x.has_u(&["Ga\\sx~"])
+    ///        x.has_u(&["Gasx~"]) is incorrect if the aupadeshika form has an accent
+    ///        (validate with data/dhatupatha.tsv file)
     pub(crate) fn has_u_in(&self, items: impl Strings) -> bool {
         match &self.u {
             Some(u) => items.as_strings().contains(&u.as_str()),

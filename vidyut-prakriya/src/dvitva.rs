@@ -162,7 +162,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
         //              "uDrasa~" 10.0271, "aji~" 10.0316, "ahi~" 10.0328, "arca~" 10.0340
         //              ""
         if abhyasa.has_adi('s') && !dhatu.text.contains('s') {
-             abhyasa.add_tag(T::FlagSaAdeshadi);
+            abhyasa.add_tag(T::FlagSaAdeshadi);
         }
 
         let dhatu_len = dhatu.len();
