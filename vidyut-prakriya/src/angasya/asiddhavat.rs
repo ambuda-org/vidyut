@@ -193,11 +193,10 @@ pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> 
         // jagmatuH, jaGnatuH, jajJe, ...
         p.run_at("6.4.98", i, op::upadha_lopa);
     } else if anga.has_u("Basa~") {
-        // TODO: rule is chAndasi, but SK applies it for Juhotyadi "Basa~"
-        //
+        // TODO: rule is chAndasa, but SK applies it for Juhotyadi "Basa~"
         p.run_at("6.4.100", i, op::upadha_lopa);
     } else if anga.has_u("Ga\\sx~") && n.last().has_lakara(Lit) {
-        // TODO: rule is chAndasi, which we interpret this for "Lit Lakar" only
+        // TODO(sriram): rule is chAndasa, but interprested for "Lit" only (implies Kvasu)
         p.run_at("6.4.100", i, op::upadha_lopa);
 
     }

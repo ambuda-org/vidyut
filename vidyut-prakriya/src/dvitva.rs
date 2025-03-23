@@ -140,7 +140,8 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
             abhyasa.set_adi("");
         }
         // For zatva in 8.3.55 specifically for the following dhatus to apply the rules of
-        // San. For Ric also it seems to
+        // San.
+        // Todo(sriram): Investigate triggering in case of Ajadi Ric also. Can that be avoided ?
         // Bhvadi    -> "uN" 01.1102, "ft" 01.1166
         // Adadi     -> "Ira~\" 02.0008, "Iqa~\" 02.0009, "ISa~\" 02.0010, "Asa~\" 02.0011,
         //              "UrRuY" 02.0034 (multiple), "ana~" 02.0065,
