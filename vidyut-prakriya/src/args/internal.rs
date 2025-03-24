@@ -286,7 +286,7 @@ internal_term!(Aupadeshika, {
     jyA => "jyA\\",
     ovrascU => "o~vrascU~",
     praCa => "pra\\Ca~",
-    vayi => "vayi~",
+    vayi => "vaya~\\",
     vaSa => "vaSa~",
     vyaDa => "vya\\Da~",
     dIDIN => "dIDIN",

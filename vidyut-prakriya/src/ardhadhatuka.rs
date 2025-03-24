@@ -296,7 +296,7 @@ pub fn run_before_vikarana(
         }
         // Skip 2.4.39 (bahulaM chandasi).
     } else if dhatu.has_u("ve\\Y") && n.has_lakara(Lit) {
-        if op::optional_adesha("2.4.41", p, i, "vayi~") {
+        if op::optional_adesha("2.4.41", p, i, Au::vayi.as_str()) {
             p.set(i, |t| t.morph = Morph::Dhatu(Au::vayi))
         }
     } else if dhatu.has_text("han") {

@@ -1143,6 +1143,11 @@ fn sutra_7_2_61() {
     assert_has_krdanta(&["vi"], &dhu, Krt::tfc, &["viDotf", "viDavitf"]);
     // SK justifies viduDoTa.
     assert_has_sip(&["vi"], &dhu, Lit, &["viduDaviTa", "viduDoTa"]);
+
+    // This is the path that has to skip 6.1.16
+    assert_has_thaas(&[], &d("vaya~\\", Bhvadi), Lit, &["vavayize"]);
+    assert_has_dhvam(&[], &d("vaya~\\", Bhvadi), Lit, &["vavayiDve", "vavayiQve"])
+
 }
 
 #[test]
@@ -1174,7 +1179,8 @@ fn sutra_7_2_65() {
 
 #[test]
 fn sutra_7_2_66() {
-    assert_has_sip(&[], &d("a\\da~", Adadi), Lit, &["AdiTa", "jaGasTa", "jaGasiTa"]);
+    assert_has_sip(&[], &d("a\\da~", Adadi), Lit, &["AdiTa", "jaGasiTa"]);
+    assert_has_sip(&[], &d("Ga\\sx~", Bhvadi), Lit, &["jaGasTa", "jaGasiTa"]);
     assert_has_sip(&[], &d("f\\", Bhvadi), Lit, &["AriTa"]);
     assert_has_sip(&[], &d("vye\\Y", Bhvadi), Lit, &["vivyayiTa"]);
 }

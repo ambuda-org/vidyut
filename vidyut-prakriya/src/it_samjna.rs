@@ -292,8 +292,11 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
             if t.has_tag(T::zit) && t.has_adi('w') {
                 t.set_adi("t");
             }
-
-            t.maybe_save_sthanivat();
+            // Note: it_samjna processing should not be changing Dhatu's sthanivat
+            //       for eg. if an adesh changes the dhatu ("ad"->"Gasx~" by 2.4.40)
+            if ! t.is_dhatu() {
+                t.maybe_save_sthanivat();
+            }
         });
     } else {
         // Remove accents. This should happen even if `changed` is false.
