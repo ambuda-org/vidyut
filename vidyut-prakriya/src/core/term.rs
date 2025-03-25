@@ -73,7 +73,13 @@ pub struct Term {
     /// The form of the term to use for sthAnivad-bhAva substitutions, e.g. for dvitva on the
     /// dhatu. For example, when applying dvitva for BAvi, the abhyasa should be BO, not BAv.
     ///
-    /// For a complete example in English, see S. C. Vasu's commentary on rule 1.1.59, part (e).
+    /// For a complete understanding in English, please see S. C. Vasu's commentaries
+    /// 1.1.[56-59] and specifically 1.1.59 part (e).
+    ///
+    /// Implementation notes:
+    ///  - If Term is a dhatu this should ideally be a WriteOnce field (due to the absence of
+    ///    2+ hop transitive dhatu Adesha)
+    ///
     sthanivat: TermString,
     /// If this term is a dhatu, the dhatu's gana.
     gana: Option<Gana>,

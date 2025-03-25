@@ -18,7 +18,7 @@ fn sk_2424() {
     assert_has_tip(&[], &ad, Lit, &["jaGAsa", "Ada"]);
     assert_has_tas(&[], &ad, Lit, &["jakzatuH", "AdatuH"]);
     assert_has_jhi(&[], &ad, Lit, &["jakzuH", "AduH"]);
-    assert_has_sip(&[], &ad, Lit, &["AdiTa", "jaGasiTa" ]);
+    assert_has_sip(&[], &ad, Lit, &["jaGasiTa", "AdiTa"]);
 
     assert_has_tip(&[], &ad, Lut, &["attA"]);
     assert_has_tip(&[], &ad, Lrt, &["atsyati"]);

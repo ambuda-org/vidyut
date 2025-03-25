@@ -307,12 +307,12 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
 
                 if (anga.has_antya(AC) || anga.text.contains('a')) && is_anit_for_tas {
                     let code =
-                        if anga.has_u_in(&["Ga\\sx~", Au::vayi.as_str()]) &&
+                        if anga.has_u_in(&[Au::Gasx.as_str(), Au::vayi.as_str()]) &&
                             (anga.sthanivat() == "ad" || anga.sthanivat() == "ve") {
-                            // Skip these because they are not eligible per tAs, per KV on 7.2.61.
-                            // ONLY iff they are the adeshas of "Ada -> Gasx" or  "vey --> vaya~"
-                            //      by checking for their original "sthanivat" fields
-                            // Do not skip if directly invoked !!
+                            // Skip these because they are not eligible per tAs
+                            //   ONLY iff they are the adeshas of "ada -> Gasx" or  "veY --> vaya"
+                            //   as per the fineprint in the last 6 sentences of KV 7.2.61
+                            // Do not skip if directly invoked for Gasx or vaya
                         None
                     } else if anga.has_antya(AC) {
                         Some("7.2.61")

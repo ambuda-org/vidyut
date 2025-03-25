@@ -241,6 +241,12 @@ internal_term!(Upasarga, {
     upa => "upa",
 });
 
+/*
+    Dhatus in Aupadeshika avastha. If you add something here
+    Please validate with data/dhatupatha.tsv file for fidelity
+    with correct accent/swara and that accent's position in the string
+    "SAsu~" != "SAsu~\\"
+*/
 internal_term!(Aupadeshika, {
     gAN => "gAN",
     Divi => "Divi~",
@@ -311,6 +317,8 @@ internal_term!(Aupadeshika, {
     vancu => "vancu~",
     vida_2 => "vida~",
     opyAyI => "o~pyAyI~\\",
+    ada => "a\\da~",
+    Gasx => "Ga\\sx~",
 });
 
 impl Sup {
