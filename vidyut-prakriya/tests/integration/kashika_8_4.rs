@@ -94,7 +94,8 @@ fn sutra_8_4_14() {
     assert_has_ta(&["pra"], &ni, Lit, &["praRinye"]);
     assert_has_tip(&["pari"], &ni, Lit, &["pariRinAya"]);
     assert_has_tip(&["pari"], &san(&ni), Lat, &["pariRinIzati"]);
-    assert_has_tip(&["pra"], &nic(&ni), Lat, &["praRAyayati"]);
+    assert_has_ta(&["pra"], &yan(&ni), Lat, &["praRenIyate"]);
+    assert_has_tip(&["pra"], &yan_luk(&ni), Lat, &["praRenayIti", "praReneti"]);
     assert_has_mip(&["pra"], &nam, Lit, &["praRanAma", "praRanama"]);
 }
 
