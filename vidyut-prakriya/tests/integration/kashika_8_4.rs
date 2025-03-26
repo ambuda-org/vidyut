@@ -97,6 +97,8 @@ fn sutra_8_4_14() {
     assert_has_ta(&["pra"], &yan(&ni), Lat, &["praRenIyate"]);
     assert_has_tip(&["pra"], &yan_luk(&ni), Lat, &["praRenayIti", "praReneti"]);
     assert_has_mip(&["pra"], &nam, Lit, &["praRanAma", "praRanama"]);
+    // -ive test: Two upasarga with ni to validate not being Ratva-fied
+    assert_has_tip(&["dus","ni"], &ni, Lit, &["durRininAya", "durnininAya"]);
 }
 
 #[test]
