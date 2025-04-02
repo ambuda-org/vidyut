@@ -383,6 +383,7 @@ impl Term {
         }
     }
 
+    /// Returns whether the term has an aupadeshika in the specified list.
     pub(crate) fn has_u_in(&self, items: impl Strings) -> bool {
         match &self.u {
             Some(u) => items.as_strings().contains(&u.as_str()),
