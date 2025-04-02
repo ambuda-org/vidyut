@@ -307,7 +307,7 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
 
                 if (anga.has_antya(AC) || anga.text.contains('a')) && is_anit_for_tas {
                     let code =
-                        if anga.has_u_in(&[Au::Gasx.as_str(), Au::vayi.as_str()]) &&
+                        if anga.is_any_u(&[Au::Gasx, Au::vayi]) &&
                             (anga.sthanivat() == "ad" || anga.sthanivat() == "ve") {
                             // Skip these because they are not eligible per tAs
                             //   ONLY iff they are the adeshas of "ada -> Gasx" or  "veY --> vaya"

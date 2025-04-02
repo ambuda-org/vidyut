@@ -139,28 +139,12 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
         if abhyasa.starts_with("tC") {
             abhyasa.set_adi("");
         }
-        // For zatva in 8.3.55 specifically for the following dhatus to apply the rules of
-        // San.
-        // Todo(sriram): Investigate triggering in case of Ajadi Ric also. Can that be avoided ?
-        // Bhvadi    -> "uN" 01.1102, "ft" 01.1166
-        // Adadi     -> "Ira~\" 02.0008, "Iqa~\" 02.0009, "ISa~\" 02.0010, "Asa~\" 02.0011,
-        //              "UrRuY" 02.0034 (multiple), "ana~" 02.0065,
-        // Juhotyadi -> "f\" 03.0017
-        // Divadi    -> "iza~" 04.0022, "IN" 04.0038, "aRa~\" 04.0071, "asu~" 04.0106
-        //              "uca~" 04.0135, "fDu~ 04.0160
-        // Svadi     -> "Apx~" 05.0016, "aSU~\" 05.0020, "fDu~" 05.0027, "aha~" 05.0029
-        //              "fkzi" 05.0038
-        // Tudadi    -> "fzl~" 06.0007, "uCi~" 06.0014, "fCa~" 06.0016, "ubja~" 06.0023
-        //              "ujJa~" 06.0024, "fha~" 06.0029, "fPa~" 06.0040, "fnPa~" 06.0041
-        //              "uBa~" 06.0044, "unBa~" 06.0045, "izu~" 06.0078, "ila~" 06.0084
-        // Rudadi    -> "YiinDI~\" 07.0011, "undI~" 07.0020, "anjU~" 07.0021,
-        // Tanadi    -> "fRu~^" 08.0005
-        // Kryadi    -> "F" 09.0032 ,"aSa~ 09.0059, "iza~" 09.0061,
-        // Churadi   -> "olaqi~" 10.0014, "urja~" 10.0023, "adwa~" 10.0037, "ulaqi~" 10.0105
-        //              "arka~" 10.0145, "ila~" 10.0167, "asta~" 10.0169, "Iqa~" 10.0183
-        //              "ama~" 10.0245, "arja~" 10.0250,  "arha~" 10.0257, "ancu~" 10.0266
-        //              "uDrasa~" 10.0271, "aji~" 10.0316, "ahi~" 10.0328, "arca~" 10.0340
-        //              ""
+        // For zatva in 8.3.55 specifically only the following dhatus seem to trigger
+        // it.
+        // Bhvadi    -> "uN" 01.1102 san
+        // Juhotyadi -> "f\" 03.0017 yaNluk
+        // Divadi    -> "IN" 04.0038 san
+        // Kryadi    -> "F"  09.0032 san
         if abhyasa.has_adi('s') && !dhatu.text.contains('s') {
             abhyasa.add_tag(T::FlagSaAdeshadi);
         }

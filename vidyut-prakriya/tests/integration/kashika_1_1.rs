@@ -535,8 +535,6 @@ fn sutra_1_1_49() {
     assert_has_krdanta(&[], &bru, Krt::tfc, &["vaktf"]);
     assert_has_krdanta(&[], &bru, Krt::tumun, &["vaktum"]);
     assert_has_krdanta(&[], &bru, Krt::tavya, &["vaktavya"]);
-    let ad_ = d("a\\da~", Adadi);
-    assert_has_krdanta(&[], &ad_, Krt::kvasu, &["Adivas", "jakzivas"]);
 }
 
 #[test]

@@ -248,7 +248,7 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
                 // Per ashtadhyayi.com, skip samprasarana for praC + naN.
             } else {
                 do_samprasarana_for_dhatu("6.1.16", p, i);
-                if p.has(i, |t| t.has_text("uy") && t.has_u(Au::vayi.as_str())) {
+                if p.has(i, |t| t.has_text("uy") && t.is_u(Au::vayi)) {
                     optional_set_text("6.1.39", p, "uv");
                 }
             }

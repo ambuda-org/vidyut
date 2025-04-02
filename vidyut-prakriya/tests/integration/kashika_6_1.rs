@@ -438,7 +438,7 @@ fn sutra_6_1_38_and_sutra_6_1_39_and_sutra_6_1_40() {
     assert_has_tip(&[], &ve, Lit, &["uvAya", "vavO"]);
     assert_has_tas(&[], &ve, Lit, &["UyatuH", "UvatuH", "vavatuH"]);
     assert_has_jhi(&[], &ve, Lit, &["UyuH", "UvuH", "vavuH"]);
-    // TODO: uvayitha
+    assert_has_sip(&[], &ve, Lit, &["uvayiTa", "vavATa", "vaviTa"]);
 }
 
 #[test]
