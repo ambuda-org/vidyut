@@ -1,18 +1,24 @@
 ### Make variable sections
 
+### Generally useful variables
+OS_FLAVOR ?= $(shell uname -o)
 GIT_BRANCH := $(shell git branch --show-current)
 # Define the top-level .git directory
 GIT_ROOT := $(shell git rev-parse --show-toplevel)
 
+# Outputs of creating all Tinnantas and krdantas for dhatupatha
 CREATE_ALL_TINANTAS:=$(GIT_ROOT)/target/debug/examples/create_all_tinantas
 CREATE_ALL_KRDANTAS:=$(GIT_ROOT)/target/debug/examples/create_all_krdantas
 
 CURRENT_TINANTA_OUTPUT:=tinantas_$(GIT_BRANCH).txt
 CURRENT_KRDANTA_OUTPUT:=krdantas_$(GIT_BRANCH).txt
 
+# Same as above but for the "main" branch for diff output
 PRIOR_TINANTA_OUTPUT:=tinantas_main.txt
 PRIOR_KRDANTA_OUTPUT:=krdantas_main.txt
-# Build
+
+
+### Build section
 # -----
 
 # Verifies that everything builds.
@@ -136,19 +142,24 @@ wasm_dev:
 debugger:
 	./scripts/run-debugger.sh
 
+## This is for debugging Makefile variable values by printing them
+## To print a computed variable  --> (g)make ECHO__<VARIABLE_NAME>
+## For eg. "make ECHO__GIT_ROOT" will print the toplevel git directory
+ECHO__%:
+	@echo $*=$($*)
 
-############ Expensive: Regression test rules below for regression ###############
+ifeq ($(OS_FLAVOR),Darwin)        ### BEGIN: For now the following rules are only on OSX/Darwin
+############ Experimental: Regression test rules below for regression ###############
 
-create_all_outputs:
-	@echo "$(CREATE_ALL_TINANTAS)  tinantas_$(GIT_BRANCH).txt"
+$(CREATE_ALL_TINANTAS) $(CREATE_ALL_KRDANTAS): build_all
 
-$(CREATE_ALL_TINANTAS) $(CREATE_ALL_KRDANTAS):: build_all
-
+## M3 MacbookPro: 7-8 minutes
 $(CURRENT_TINANTA_OUTPUT): $(CREATE_ALL_TINANTAS)
-	$^ > $@
+	time $^ > $@
 
+## M3 MacbookPro : 1-2 minutes
 $(CURRENT_KRDANTA_OUTPUT): $(CREATE_ALL_KRDANTAS)
-	$^ > $@
+	time $^ > $@
 
 current_regression_data: $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
 
@@ -163,14 +174,25 @@ $(PRIOR_TINANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT):
 	@echo and then switch back to current branch currently \"$(GIT_BRANCH)\";
 	@echo Use \"git stash\" \(to save WIP \) and  \"git stash pop\" \(to restore WIP \) judiciously
 	@echo; echo; echo; exit 1
+
+## This is a convenience call for the above target but requires one to be adept with
+## figuring out how to recover the development state if this fails halfway.
+## Use with care.
+## M3 Macbook Pro: 9-10 minutes
+main_regression_data_with_trepidation:
+	cp Makefile main.mk; git stash; git checkout main; \
+	$(MAKE) -f main.mk current_regression_data; \
+	git checkout $(GIT_BRANCH) ; git stash pop; rm -f main.mk
+
 endif
 
-regression_test: current_regression_data prior_regression_data
-	diff $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true
-	diff $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true
+## Depends on volume of change but usually quick
+regression-test: all-krt-tin-anta-diff.txt
+	@echo ; echo "Diff output: \"$^\""; echo
 
-## This is for debugging Makefile variable values by printing them
-## To print a computed variable  --> (g)make ECHO__<VARIABLE_NAME>
-## For eg. "make ECHO__GIT_ROOT" will print the toplevel git directory
-ECHO__%:
-	@echo $*=$($*)
+all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
+	@(diff --suppress-common-lines -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
+    echo "-----------------------------------------------------  krdantas below    ----------------------------------------------------------"; \
+	diff --suppress-common-lines -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
+
+endif   ## END OSFlavor=Darwin
