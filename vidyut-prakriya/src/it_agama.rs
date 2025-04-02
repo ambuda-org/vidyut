@@ -239,7 +239,7 @@ pub fn run_for_kvasu_pratyaya(p: &mut Prakriya, i: usize) -> Option<bool> {
         dhatu.num_vowels() == 1 && (i > 0 && ip.p.has(i - 1, |t| t.is_abhyasa() && t.is_empty()));
 
     let code = "7.2.67";
-    if is_ac_adi || is_eka_ac || dhatu.has_antya('A') || dhatu.has_u("Ga\\sx~") {
+    if is_ac_adi || is_eka_ac || dhatu.has_antya('A') || dhatu.is_u(Au::Gasx) {
         // AdivAn, yayivAn, jakzivAn, ...
         ip.try_add(code);
         // baBUvAn, ...

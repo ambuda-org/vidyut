@@ -707,7 +707,7 @@ fn run_shatva_rules(p: &mut Prakriya) -> Option<()> {
         p,
         |x, _| {
             // Also include SAsu~\\ for ASizO, etc.
-            x.has_dhatu_u_in(&["va\\sa~", "SAsu~", "SAsu~\\", "Ga\\sx~"])
+            x.is_any_u(&[Au::vasa_1, Au::SAsu_u, Au::SAsu_a, Au::Gasx])
                 && ((x.has_upadha(IN_KU) && x.has_antya('s'))
                 // HACK for UsatuH (U + s + atuH)
                 || x.has_text("s"))
