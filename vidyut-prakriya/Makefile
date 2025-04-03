@@ -187,7 +187,7 @@ main_regression_data_with_trepidation:
 endif
 
 ## Depends on volume of change but usually quick
-regression-test: all-krt-tin-anta-diff.txt
+regression_test: all-krt-tin-anta-diff.txt
 	@echo ; echo "Diff output: \"$^\""; echo
 
 all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
