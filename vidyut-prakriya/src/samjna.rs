@@ -448,11 +448,14 @@ pub fn try_decide_pratipadika(p: &mut Prakriya) -> Option<()> {
             // (e.g. samana containing pratipadikas).
         } else if t.is_krt() || t.is_taddhita() || t.is_samasa() {
             p.add_tag_at("1.2.46", i, T::Pratipadika);
-        } else if !t.is_dhatu()
+        } else if !t.is_empty()
+            && !t.is_dhatu()
             && !t.is_pratyaya()
             && !t.is_agama()
             && !t.is_abhyasa()
             && !t.is_pada()
+            && !t.is_upasarga()
+
         {
             // 1.2.45 specifies "arthavat", so exclude meaningless terms (agamas and abhyasas).
             // TODO: is there anything else that's not arthavat?

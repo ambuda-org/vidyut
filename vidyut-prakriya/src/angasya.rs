@@ -167,7 +167,7 @@ fn try_pratyaya_adesha_at_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
         if anga.is_u(Au::vida_2) && anga.has_gana(Adadi) && n.has_u("Satf~") {
             op::optional_adesha("7.1.36", p, i_n, "vasu~");
-        } else if n.is(K::ktvA) && p.terms().first()?.is_pratipadika() {
+        } else if n.is(K::ktvA) && (p.terms().first()?.is_pratipadika() || p.terms().first()?.is_upasarga()) {
             op::adesha("7.1.37", p, i_n, "lyap");
         }
     }
