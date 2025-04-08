@@ -344,3 +344,19 @@ fn apombhyat() {
     let unbhaya = d("unBa~", Tudadi).with_sanadi(&[Sanadi::Ric]);
     assert_has_tip(&["apa"], &unbhaya, AshirLin, &["apomByAt"]);
 }
+
+#[test]
+fn ratva_8_4_14() {
+    // These are for testing णत्व with Dvitvam with Upsarga
+    let ni = d("RI\\Y", Bhvadi);
+    let nam = d("Rama~", Bhvadi);
+    assert_has_tip(&["pra"], &ni, Lit, &["praRinAya"]);
+    assert_has_ta(&["pra"], &ni, Lit, &["praRinye"]);
+    assert_has_tip(&["pari"], &ni, Lit, &["pariRinAya"]);
+    assert_has_tip(&["pari"], &san(&ni), Lat, &["pariRinIzati"]);
+    assert_has_ta(&["pra"], &yan(&ni), Lat, &["praRenIyate"]);
+    assert_has_tip(&["pra"], &yan_luk(&ni), Lat, &["praRenayIti", "praReneti"]);
+    assert_has_mip(&["pra"], &nam, Lit, &["praRanAma", "praRanama"]);
+    // -ive test: Two upasarga with ni to validate not being Ratva-fied
+    assert_has_tip(&["dus","ni"], &ni, Lit, &["durRininAya", "durnininAya"]);
+}
