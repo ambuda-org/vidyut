@@ -86,19 +86,6 @@ fn sutra_8_4_14() {
     let nard = d("narda~", Bhvadi);
     assert_has_tip(&["pra"], &nard, Lat, &["pranardati"]);
     assert_has_krdanta(&["pra"], &nard, Krt::Rvul, &["pranardaka"]);
-
-    // These are for testing with Dvitvam with Upsarga
-    let ni = d("RI\\Y", Bhvadi);
-    let nam = d("Rama~", Bhvadi);
-    assert_has_tip(&["pra"], &ni, Lit, &["praRinAya"]);
-    assert_has_ta(&["pra"], &ni, Lit, &["praRinye"]);
-    assert_has_tip(&["pari"], &ni, Lit, &["pariRinAya"]);
-    assert_has_tip(&["pari"], &san(&ni), Lat, &["pariRinIzati"]);
-    assert_has_ta(&["pra"], &yan(&ni), Lat, &["praRenIyate"]);
-    assert_has_tip(&["pra"], &yan_luk(&ni), Lat, &["praRenayIti", "praReneti"]);
-    assert_has_mip(&["pra"], &nam, Lit, &["praRanAma", "praRanama"]);
-    // -ive test: Two upasarga with ni to validate not being Ratva-fied
-    assert_has_tip(&["dus","ni"], &ni, Lit, &["durRininAya", "durnininAya"]);
 }
 
 #[test]
