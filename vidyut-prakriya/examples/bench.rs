@@ -78,13 +78,15 @@ fn run(dhatupatha: Dhatupatha) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let dhatus = match Dhatupatha::from_path("data/dhatupatha.tsv") {
-        Ok(res) => res,
-        Err(err) => {
-            println!("{}", err);
-            std::process::exit(1);
+    let dhatus = Dhatupatha::from_path("data/dhatupatha.tsv").unwrap_or_else(|_err| {
+        match Dhatupatha::from_path("vidyut-prakriya/data/dhatupatha.tsv") {
+            Ok(res) => res,
+            Err(err) => {
+                println!("{}", err);
+                std::process::exit(1);
+            }
         }
-    };
+    });
 
     match run(dhatus) {
         Ok(()) => (),

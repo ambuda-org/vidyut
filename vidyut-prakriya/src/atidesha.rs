@@ -8,7 +8,6 @@ use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::Lakara::*;
 use crate::args::Vikarana as V;
-use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::Tag as T;
 use crate::core::{Prakriya, Rule};
@@ -286,6 +285,9 @@ fn run_before_attva_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 }
 
+/* Sriram:: Refactoring seems to have fixed this circular dep.
+            Keeping this around for reference till 2026
+
 /// Runs atidesha rules that must follow rule 6.1.45 (Adeca upadeSe 'Siti).
 ///
 /// If we don't use a separate function for these rules, we have a dependency loop:
@@ -320,3 +322,5 @@ pub fn run_after_attva(p: &mut Prakriya) -> Option<()> {
 
     Some(())
 }
+*/
+

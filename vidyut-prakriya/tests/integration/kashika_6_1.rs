@@ -524,12 +524,8 @@ fn sutra_6_1_48() {
 
 #[test]
 fn sutra_6_1_49() {
-    assert_has_tip(
-        &[],
-        &nic(&d("zi\\Du~", Divadi)),
-        Lat,
-        &["sADayati", "seDayati"],
-    );
+    let zid = d("zi\\Du~", Divadi);
+    assert_has_tip(&[],  &nic(&zid), Lat, &["sADayati", "seDayati"]);
 }
 
 #[test]
