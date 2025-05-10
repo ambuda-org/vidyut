@@ -377,3 +377,24 @@ fn ratva_8_4_14() {
     // -ive test: Two upasarga with ni to validate not being Ratva-fied
     assert_has_tip(&["dus","ni"], &ni, Lit, &["durRininAya", "durnininAya"]);
 }
+
+#[test]
+fn zta_with_upsarga() {
+    let myd = d("zWA\\", Bhvadi);
+    // No upsarga actually has both atmane and parasmai padi forms
+    assert_has_krdanta(&[], &san(&myd), Krt::Satf, &["tizWAsat"]);
+    assert_has_krdanta(&[], &san(&myd), Krt::SAnac, &["tizWAsamAna"]);
+    // "pari" upasarga is always parasmaipadi
+    assert_has_krdanta(&["pari"], &san(&myd), Krt::Satf, &["paritizWAsat"]);
+    assert_has_krdanta(&["pari"], &san(&myd), Krt::SAnac, &[]); // fails
+    // "pra" upasarga is always atmanepadi
+    assert_has_krdanta(&["pra"], &san(&myd), Krt::SAnac, &["pratizWAsamAna"]);
+    assert_has_krdanta(&["pra"], &san(&myd), Krt::Satf, &[]); // fails
+}
+
+#[ignore]
+#[test]
+fn testcase_try() {
+    let myd = d("qukf\\Y", Tanadi);
+    assert_has_krdanta(&[], &myd, Krt::ktvA, &["kryA"]);
+}

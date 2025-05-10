@@ -246,9 +246,8 @@ fn sutra_6_4_20() {
 fn sutra_6_4_21() {
     let murch = d("murCA~", Bhvadi);
     assert_has_krdanta(&[], &murch, Krt::kvip, &["mur"]);
-    // TODO: why mUrta and not mUrRa?
-    // assert_has_krdanta(&[], &murch, Krt::kta, &["mUrta"]);
-    // assert_has_krdanta(&[], &murch, Krt::ktavatu, &["mUrtavat"]);
+    assert_has_krdanta(&[], &murch, Krt::kta, &["mUrta"]);
+    assert_has_krdanta(&[], &murch, Krt::ktavatu, &["mUrtavat"]);
     assert_has_krdanta(&[], &murch, Krt::ktin, &["mUrti"]);
 
     let hurch = d("hurCA~", Bhvadi);
