@@ -456,8 +456,6 @@ pub fn try_decide_pratipadika(p: &mut Prakriya) -> Option<()> {
             && !t.is_agama()
             && !t.is_abhyasa()
             && !t.is_pada()
-            && !t.is_upasarga()
-
         {
             // 1.2.45 specifies "arthavat", so exclude meaningless terms (agamas and abhyasas).
             // TODO: is there anything else that's not arthavat?
