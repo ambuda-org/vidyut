@@ -1175,6 +1175,7 @@ fn sutra_7_2_65() {
 #[test]
 fn sutra_7_2_66() {
     assert_has_sip(&[], &d("a\\da~", Adadi), Lit, &["AdiTa", "jaGasiTa"]);
+    assert_has_sip(&[], &d("Ga\\sx~", Bhvadi), Lit, &["jaGasTa", "jaGasiTa"]);
     assert_has_sip(&[], &d("f\\", Bhvadi), Lit, &["AriTa"]);
     assert_has_sip(&[], &d("vye\\Y", Bhvadi), Lit, &["vivyayiTa"]);
 }
@@ -1192,7 +1193,7 @@ fn sutra_7_2_67() {
     assert_has_kvasu_su(&d("zWA\\", Bhvadi), &["tasTivAn"]);
 
     // Gas
-    assert_has_kvasu_su(&d("Gasx~", Bhvadi), &["jakzivAn"]);
+    assert_has_kvasu_su(&d("Ga\\sx~", Bhvadi), &["jakzivAn"]);
 
     // ekAc?
     assert_has_kvasu_su(&d("Bi\\di~^r", Rudhadi), &["biBidvAn"]);

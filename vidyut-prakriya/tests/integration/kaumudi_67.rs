@@ -2128,7 +2128,7 @@ fn unadi_4_33() {
 
 #[test]
 fn unadi_4_34() {
-    assert_has_krdanta(&[], &d("Gasx~", Bhvadi), Iran, &["kzIra"]);
+    assert_has_krdanta(&[], &d("Ga\\sx~", Bhvadi), Iran, &["kzIra"]);
 }
 
 #[test]

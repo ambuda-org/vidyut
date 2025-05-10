@@ -239,7 +239,7 @@ pub fn run_for_kvasu_pratyaya(p: &mut Prakriya, i: usize) -> Option<bool> {
         dhatu.num_vowels() == 1 && (i > 0 && ip.p.has(i - 1, |t| t.is_abhyasa() && t.is_empty()));
 
     let code = "7.2.67";
-    if is_ac_adi || is_eka_ac || dhatu.has_antya('A') || dhatu.has_u("Gasx~") {
+    if is_ac_adi || is_eka_ac || dhatu.has_antya('A') || dhatu.is_u(Au::Gasx) {
         // AdivAn, yayivAn, jakzivAn, ...
         ip.try_add(code);
         // baBUvAn, ...
@@ -306,8 +306,13 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                 let is_anit_for_tas = rule_7_2_10;
 
                 if (anga.has_antya(AC) || anga.text.contains('a')) && is_anit_for_tas {
-                    let code = if anga.has_u_in(&["Gasx~", "vayi~"]) {
-                        // Skip these because they are not eligible per tAs, per KV on 7.2.61.
+                    let code =
+                        if anga.is_any_u(&[Au::Gasx, Au::vayi]) &&
+                            (anga.sthanivat() == "ad" || anga.sthanivat() == "ve") {
+                            // Skip these because they are not eligible per tAs
+                            //   ONLY iff they are the adeshas of "ada -> Gasx" or  "veY --> vaya"
+                            //   as per the fineprint in the last 6 sentences of KV 7.2.61
+                            // Do not skip if directly invoked for Gasx or vaya
                         None
                     } else if anga.has_antya(AC) {
                         Some("7.2.61")

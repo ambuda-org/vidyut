@@ -583,7 +583,7 @@ impl Krt {
     /// This method returns `false` if the *pratyaya* also appears in regular Sanskrit:
     ///
     /// ```
-    /// # use vidyut_prakriya::args::BaseKrt;
+    /// use vidyut_prakriya::args::{Krt, BaseKrt};
     /// assert_eq!(Krt::Base(BaseKrt::kvasu).is_chandasa(), false);
     /// ```
     pub fn is_chandasa(&self) -> bool {

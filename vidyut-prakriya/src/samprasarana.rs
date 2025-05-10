@@ -23,11 +23,9 @@ fn is_vaci_svapi(t: &Term) -> bool {
 
 fn is_grahi_jya(t: &Term) -> bool {
     t.is_dhatu()
-        && t.is_any_u(&[
+        && (t.is_any_u(&[
             Au::graha,
             Au::jyA,
-            // vayi~ replaces ve\\Y in 2.4.41
-            Au::vayi,
             Au::vyaDa,
             Au::vaSa,
             Au::vyaca,
@@ -35,6 +33,8 @@ fn is_grahi_jya(t: &Term) -> bool {
             Au::praCa,
             Au::Brasja,
         ])
+        // ONLY if vaya~ replaces ve\\Y in 2.4.41
+        || (t.sthanivat() == "ve" && t.has_u(Au::vayi.as_str())))
 }
 
 fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
@@ -54,9 +54,7 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
         // grahi-jyA
         "graha~^",
         "jyA\\",
-        // vayi~ replaces ve\\Y in 2.4.41
-        "vayi~",
-        // not sure how to handle "vay" root
+        // vaya~ replaces ve\\Y in 2.4.41
         "vaya~\\",
         "vya\\Da~",
         "vaSa~",
@@ -72,7 +70,7 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
         // vaci-svapi
         "uac", "uac", "suap", "iaj", "uap", "uah", "uas", "ue", "vie", "hue", "uad", "Sui",
         // grahi-jyA
-        "gfah", "jiA", "uay", "uay", "viaD", "uaS", "viac", "vfasc", "pfaC", "Bfasj",
+        "gfah", "jiA", "uay", "viaD", "uaS", "viac", "vfasc", "pfaC", "Bfasj",
         // other rules
         "siam", "siam",
     ];
@@ -250,13 +248,12 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
                 // Per ashtadhyayi.com, skip samprasarana for praC + naN.
             } else {
                 do_samprasarana_for_dhatu("6.1.16", p, i);
-                if p.has(i, |t| t.has_text("uy") && t.has_u("vayi~")) {
+                if p.has(i, |t| t.has_text("uy") && t.is_u(Au::vayi)) {
                     optional_set_text("6.1.39", p, "uv");
                 }
             }
         }
     }
-
     Some(())
 }
 

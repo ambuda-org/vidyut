@@ -1,4 +1,24 @@
-# Build
+### Make variable sections
+
+### Generally useful variables
+OS_FLAVOR ?= $(shell uname -o)
+GIT_BRANCH := $(shell git branch --show-current)
+# Define the top-level .git directory
+GIT_ROOT := $(shell git rev-parse --show-toplevel)
+
+# Outputs of creating all Tinnantas and krdantas for dhatupatha
+CREATE_ALL_TINANTAS:=$(GIT_ROOT)/target/debug/examples/create_all_tinantas
+CREATE_ALL_KRDANTAS:=$(GIT_ROOT)/target/debug/examples/create_all_krdantas
+
+CURRENT_TINANTA_OUTPUT:=tinantas_$(GIT_BRANCH).txt
+CURRENT_KRDANTA_OUTPUT:=krdantas_$(GIT_BRANCH).txt
+
+# Same as above but for the "main" branch for diff output
+PRIOR_TINANTA_OUTPUT:=tinantas_main.txt
+PRIOR_KRDANTA_OUTPUT:=krdantas_main.txt
+
+
+### Build section
 # -----
 
 # Verifies that everything builds.
@@ -37,7 +57,7 @@ test_tinantas:
 	cargo run --release --example snapshot_tests validate \
 		--test-type tinantas \
 		-f test-files/tinantas-basic.msgpack \
-		-h "1ca53f0f7612728943699d20b5e42d80ca340ed330102cdede1e2e3b8af9e973" \
+		-h "5e4c09fb92097bd0ce11de29f41f3ae8de6733154a564b7c8bef31569ed6ab65" \
 		-f test-files/tinantas-nic.msgpack \
 		-h "a8b186ff62fe20a08e147537614bbb3220fbfd8d2fce356514e5e595d1e579fb" \
 		-f test-files/tinantas-san.msgpack \
@@ -45,7 +65,7 @@ test_tinantas:
 		-f test-files/tinantas-yan.msgpack \
 		-h "0ba293917913f2aed9423ea3125071c56426ca2fc9e06a2632f27297de4b0139" \
 		-f test-files/tinantas-yan-luk.msgpack \
-		-h "871c631461aa2ab1ded884de5bdf12464879f5da46c660c3076c333a3a90fd7f" \
+		-h "c2e938768653f10e0cc89fd99d67061b2fa8ff0309bd967cb02f4472763b6aa1" \
 		-f test-files/tinantas-san-nic.msgpack \
 		-h "66b82321c244f4369422b06c2db9254d61a680eceeb6e9c0e8b8ac24a274b3c8" \
 		-f test-files/tinantas-nic-san.msgpack \
@@ -55,15 +75,15 @@ test_krdantas:
 	cargo run --release --example snapshot_tests validate \
 		--test-type krdantas \
 		-f test-files/krdantas-basic.msgpack \
-		-h "a9f8335433aaabf6497a3bd3c8bbfd5bc1f42cc4f3398eb93ce606e825cd9449" \
+		-h "9db1f1a6c061692f53cefb61ac2d9fb40c69ed7874422c9788e7f2d30f44948c" \
 		-f test-files/krdantas-nic.msgpack \
 		-h "c0eeacf5c5d987148aab0d08c5c6c63b5220d69014f2f2cff84d488ffbd4906b" \
 		-f test-files/krdantas-san.msgpack \
 		-h "0a3650fb93ac3d5893d88a1bbd1e517e65ff1c8ac4f87187248e15a9bb689ea7" \
 		-f test-files/krdantas-yan.msgpack \
-		-h "e8b244e52be039dd8efaaa5fc274150b4550cc74a09e33b45d0bfd22b70c9b2a" \
+		-h "33a9b0ddc5051a7b1364166bb4e870ba8526a1bef30cdba9394b4cd488075b15" \
 		-f test-files/krdantas-yan-luk.msgpack \
-		-h "62a0366f77543a2a17b5aa0806b42c1855ee1e85fe33e011c3284e87eecbe4a7" \
+		-h "4e15713bb607ceab477c254aec5d799fe6162306985fafba48abaf13eede019e" \
 		-f test-files/krdantas-san-nic.msgpack \
 		-h "e28a61e8c3e078c4d2ddae93e78ab5fb8ed44d700f2ae55ca72d9ae9544b6f58" \
 		-f test-files/krdantas-nic-san.msgpack \
@@ -121,3 +141,58 @@ wasm_dev:
 # Builds a simple web debugger.
 debugger:
 	./scripts/run-debugger.sh
+
+## This is for debugging Makefile variable values by printing them
+## To print a computed variable  --> (g)make ECHO__<VARIABLE_NAME>
+## For eg. "make ECHO__GIT_ROOT" will print the toplevel git directory
+ECHO__%:
+	@echo $*=$($*)
+
+ifeq ($(OS_FLAVOR),Darwin)        ### BEGIN: For now the following rules are only on OSX/Darwin
+############ Experimental: Regression test rules below for regression ###############
+
+$(CREATE_ALL_TINANTAS) $(CREATE_ALL_KRDANTAS): build_all
+
+## M3 MacbookPro: 7-8 minutes
+$(CURRENT_TINANTA_OUTPUT): $(CREATE_ALL_TINANTAS)
+	time $^ > $@
+
+## M3 MacbookPro : 1-2 minutes
+$(CURRENT_KRDANTA_OUTPUT): $(CREATE_ALL_KRDANTAS)
+	time $^ > $@
+
+current_regression_data: $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
+
+PHONY: prior_regression_data
+
+ifneq ($(GIT_BRANCH), main)
+
+prior_regression_data: $(PRIOR_TINANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT)
+
+$(PRIOR_TINANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT):
+	@echo To capture prior regression data please \"git checkout main\" and run \"make current_regression_data\";
+	@echo and then switch back to current branch currently \"$(GIT_BRANCH)\";
+	@echo Use \"git stash\" \(to save WIP \) and  \"git stash pop\" \(to restore WIP \) judiciously
+	@echo; echo; echo; exit 1
+
+## This is a convenience call for the above target but requires one to be adept with
+## figuring out how to recover the development state if this fails halfway.
+## Use with care.
+## M3 Macbook Pro: 9-10 minutes
+main_regression_data_with_trepidation:
+	cp Makefile main.mk; git stash; git checkout main; \
+	$(MAKE) -f main.mk current_regression_data; \
+	git checkout $(GIT_BRANCH) ; git stash pop; rm -f main.mk
+
+endif
+
+## Depends on volume of change but usually quick
+regression_test: all-krt-tin-anta-diff.txt
+	@echo ; echo "Diff output: \"$^\""; echo
+
+all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
+	@(diff --suppress-common-lines -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
+    echo "-----------------------------------------------------  krdantas below    ----------------------------------------------------------"; \
+	diff --suppress-common-lines -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
+
+endif   ## END OSFlavor=Darwin

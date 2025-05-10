@@ -10,7 +10,7 @@ use crate::args::{Dhatu, Gana, Lakara, Sanadi, Unadi};
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::TermView;
-use crate::core::{Morph, Prakriya, Rule};
+use crate::core::{Prakriya, Rule};
 use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
 use crate::sounds::{s, Set, AC, JHAL, VAL};
@@ -283,22 +283,20 @@ pub fn run_before_vikarana(
     if dhatu.has_text("ad") {
         if n.has_lakara(Lun) || n.last().is_san() {
             // aGasat, jiGatsati
-            op::adesha("2.4.37", p, i, "Gasx~");
+            op::adesha("2.4.37", p, i, Au::Gasx.as_str());
         } else if n.last().is_any_krt(&[K::GaY, K::ap]) {
             // GAsa, praGasa
-            op::adesha("2.4.38", p, i, "Gasx~");
+            op::adesha("2.4.38", p, i, Au::Gasx.as_str());
         } else if n.has_lakara(Lit) {
             // jaGAsa
-            op::optional_adesha("2.4.40", p, i, "Gasx~");
+            op::optional_adesha("2.4.40", p, i, Au::Gasx.as_str());
         } else if n.has_u("lyap") || (n.has_adi('t') && n.has_tag(T::kit)) {
             // jagDvA, vijagDya
-            op::adesha("2.4.36", p, i, "jagDi~");
+            op::adesha("2.4.36", p, i, "jagD"); // KV: "ikAra uccAraRArTaH, nAnubanDaH"
         }
         // Skip 2.4.39 (bahulaM chandasi).
     } else if dhatu.has_u("ve\\Y") && n.has_lakara(Lit) {
-        if op::optional_adesha("2.4.41", p, i, "vayi~") {
-            p.set(i, |t| t.morph = Morph::Dhatu(Au::vayi))
-        }
+        op::optional_adesha("2.4.41", p, i, Au::vayi.as_str());
     } else if dhatu.has_text("han") {
         if n.last().is_lin_lakara() {
             // vaDyAt

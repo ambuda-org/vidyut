@@ -139,7 +139,12 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
         if abhyasa.starts_with("tC") {
             abhyasa.set_adi("");
         }
-        // For zatva in 8.3.
+        // For zatva in 8.3.55 specifically only the following dhatus seem to trigger
+        // it.
+        // Bhvadi    -> "uN" 01.1102 san
+        // Juhotyadi -> "f\" 03.0017 yaNluk
+        // Divadi    -> "IN" 04.0038 san
+        // Kryadi    -> "F"  09.0032 san
         if abhyasa.has_adi('s') && !dhatu.text.contains('s') {
             abhyasa.add_tag(T::FlagSaAdeshadi);
         }

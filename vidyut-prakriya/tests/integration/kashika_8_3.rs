@@ -276,6 +276,10 @@ fn sutra_8_3_60() {
     assert_has_tas(&[], &ad, Lit, &["jakzatuH", "AdatuH"]);
     assert_has_jhi(&[], &ad, Lit, &["jakzuH", "AduH"]);
 
+    let gas = d("Ga\\sx~", Bhvadi);
+    assert_has_tas(&[], &gas, Lit, &["jakzatuH"]);
+    assert_has_jhi(&[], &gas, Lit, &["jakzuH"]);
+
     // TODO: others
 }
 

@@ -127,6 +127,14 @@ fn vavati() {
         &["vAvati", "vAvayIti"],
     );
 }
+#[test]
+fn vavayize() {
+    // The derivations for Lit are very different for "vaya~" if invoked directly
+    // versus as a replacement Adesh for "ve\\Y" via 6.1.16
+    // This test is for the direct case
+    assert_has_thaas(&[], &d("vaya~\\", Bhvadi), Lit, &["vavayize"]);
+    assert_has_dhvam(&[], &d("vaya~\\", Bhvadi), Lit, &["vavayiDve", "vavayiQve"])
+}
 
 #[test]
 fn rnjitva() {

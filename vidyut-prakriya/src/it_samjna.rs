@@ -131,6 +131,11 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
         return Ok(());
     }
 
+    // Dhatu adesha's like "ad\\a" --> "jagD" don't need it_samjna rocessing
+    if t.is_dhatu() && t.has_text_in(&["jagD"]) {
+        return Ok(());
+    }
+
     // All it sounds are removed at once by 1.3.9 "tasya lopaH". Before then, keep the text in the
     // term unchanged. Instead, mutate a new temporary string and copy it over as part of 1.3.9.
     let mut changed = false;
@@ -292,8 +297,11 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
             if t.has_tag(T::zit) && t.has_adi('w') {
                 t.set_adi("t");
             }
-
-            t.maybe_save_sthanivat();
+            // Note: it_samjna processing should not be changing Dhatu's sthanivat
+            //       for eg. if an adesh changes the dhatu ("ad"->"Gasx~" by 2.4.40)
+            if ! t.is_dhatu() {
+                t.maybe_save_sthanivat();
+            }
         });
     } else {
         // Remove accents. This should happen even if `changed` is false.

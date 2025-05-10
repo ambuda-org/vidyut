@@ -164,8 +164,10 @@ pub fn adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize, sub: &str) {
         t.set_u(sub);
         t.set_text(sub);
         if matches!(t.morph, Morph::Dhatu(_)) {
-            // TODO: for now, just reset morph for dhatus.
-            t.morph = Morph::None;
+            t.morph = match sub.parse::<Aupadeshika>() {
+                Ok(au) => Morph::Dhatu(au),
+                Err(_) => Morph::None,
+            };
         }
     });
     it_samjna::run(p, i).expect("should always succeed");
