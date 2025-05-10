@@ -104,11 +104,11 @@ fn sutra_3_2_7() {
 #[test]
 fn sutra_3_2_8() {
     let gai = d("gE\\", Bhvadi);
-    // assert_has_upapada_krdanta("Sakra", &[], &gai, Krt::wak, &["Sakraga"]);
-    // assert_has_upapada_krdanta("sAman", &[], &gai, Krt::wak, &["sAmaga"]);
+    assert_has_upapada_krdanta("Sakra", &[], &gai, Krt::wak, &["Sakraga"]);
+    assert_has_upapada_krdanta("sAman", &[], &gai, Krt::wak, &["sAmaga"]);
 
     // an-upasarge?
-    // assert_has_upapada_krdanta("Sakra", &["sam"], &gai, Krt::wak, &[]);
+    assert_has_upapada_krdanta("Sakra", &["sam"], &gai, Krt::wak, &[]);
     assert_has_upapada_krdanta("Sakra", &["sam"], &gai, Krt::aR, &["SakrasaNgAya"]);
     assert_has_upapada_krdanta("sAman", &["sam"], &gai, Krt::wak, &[]);
     assert_has_upapada_krdanta("sAman", &["sam"], &gai, Krt::aR, &["sAmasaNgAya"]);
