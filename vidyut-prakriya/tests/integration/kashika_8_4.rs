@@ -75,18 +75,17 @@ fn sutra_8_4_2() {
 
 #[test]
 fn sutra_8_4_8() {
-    let mut rule_choices: Vec<RuleChoice> = vec![];
     let vah = d("va\\ha~^", Bhvadi);
 
     // 8.4.8 has two rules
     //  Nipatana ufor vAhana always
     // 8.4.8.1 : Ahita for vAhanam
-    rule_choices.push(RuleChoice {
-        rule: Rule::Ashtadhyayi("8.4.8.1"),
-        decision: Decision::Accept
-    });
-
-    let mut t = Tester::with_rule_choices(rule_choices);
+    let mut t = Tester::with_rule_choices(vec![
+        RuleChoice {
+            rule: Rule::Ashtadhyayi("8.4.8.1"),
+            decision: Decision::Accept
+        },
+    ]);
 
     t.assert_has_upapada_krdanta("ikzu", &[], &vah, Krt::lyuw, &["ikzuvAhaRa"]);
     t.assert_has_upapada_krdanta("darBa", &[], &vah, Krt::lyuw, &["darBavAhaRa"]);
@@ -96,13 +95,12 @@ fn sutra_8_4_8() {
     t.assert_has_bahuvrihi("darBa", "vAhana", &["darBavAhaRa"]);
 
     // Swamitva artha
-    rule_choices = vec![];
-    rule_choices.push(RuleChoice {
-        rule: Rule::Ashtadhyayi("8.4.8.1"),
-        decision: Decision::Decline
-    });
-
-    t = Tester::with_rule_choices(rule_choices);
+    t = Tester::with_rule_choices(vec![
+        RuleChoice {
+            rule: Rule::Ashtadhyayi("8.4.8.1"),
+            decision: Decision::Decline
+        },
+    ]);
     t.assert_has_upapada_krdanta("dAkzi", &[], &vah, Krt::lyuw, &["dAkzivAhana"]);
 
     // As in dAkzi's vAhana .. (sasthi tatpurusha intent so Decline the rule)
@@ -309,15 +307,13 @@ fn sutra_8_4_24() {
     assert_has_jhi(&["antar"], &han, Lat, &["antarGnanti"]);
     assert_has_krdanta(&["antar"], &han, Krt::lyuw, &["antarhaRana", "antarhanana"]);
 
-    // Forcing a specific choice to assume "desh" context
-    let mut rule_choices = vec![];
-    rule_choices.push(RuleChoice {
-        rule: Rule::Ashtadhyayi("8.4.24"),
-        decision: Decision::Decline
-    });
-
     // The "desh" case
-    let t = Tester::with_rule_choices(rule_choices);
+    let t = Tester::with_rule_choices(vec![
+        RuleChoice {
+            rule: Rule::Ashtadhyayi("8.4.24"),
+            decision: Decision::Decline
+        }
+    ]);
     t.assert_has_ta_k(&["antar"], &han, Lat, &["antarhanyate"]);
     t.assert_has_ta_k(&["antar"], &han, Lun, &["antaraGAni", "antaravaDi"]); // No change
     t.assert_has_jhi(&["antar"], &han, Lat, &["antarGnanti"]);
@@ -326,26 +322,22 @@ fn sutra_8_4_24() {
 
 #[test]
 fn sutra_8_4_25() {
-    let mut rule_choices: Vec<RuleChoice> = vec![];
-
-    // 8.4.25 : Accept
-    rule_choices.push(RuleChoice {
-        rule: Rule::Ashtadhyayi("8.4.25"),
-        decision: Decision::Accept
-    });
-
-    let mut t = Tester::with_rule_choices(rule_choices);
+    let mut t = Tester::with_rule_choices(vec![
+        RuleChoice {
+            rule: Rule::Ashtadhyayi("8.4.25"),
+            decision: Decision::Accept
+        }
+    ]);
     // antaH (antarasmin?) ayanam
     t.assert_has_saptami_tatpurusha("antar", "ayana", &["antarayaRa"]);
 
     // 8.4.25: Decline ("Desh" case)
-    rule_choices = vec![];
-    rule_choices.push(RuleChoice {
-        rule: Rule::Ashtadhyayi("8.4.25"),
-        decision: Decision::Decline
-    });
-
-    t = Tester::with_rule_choices(rule_choices);
+    t = Tester::with_rule_choices(vec![
+        RuleChoice {
+            rule: Rule::Ashtadhyayi("8.4.25"),
+            decision: Decision::Decline
+        }
+    ]);
     // antaH Iyate asmin deSe
     t.assert_has_bahuvrihi("antar", "ayana", &["antarayana"]);
 }

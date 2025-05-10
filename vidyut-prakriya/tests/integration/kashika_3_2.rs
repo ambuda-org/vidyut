@@ -525,12 +525,9 @@ fn sutra_3_2_45() {
 
 #[test]
 fn sutra_3_2_46() {
-    let mut myd = d("Df\\Y", Bhvadi);
-    assert_has_upapada_krdanta("vasu", &[], &nic(&myd), Krt::Kac, &["vasunDara"]);
-    myd = d("quBf\\Y", Juhotyadi);
-    assert_has_upapada_krdanta("viSva", &[], &myd, Krt::Kac, &["viSvamBara"]);
-    myd = d("tF", Bhvadi);
-    assert_has_upapada_krdanta("raTa", &[], &myd, Krt::Kac, &["raTantara"]);
+    assert_has_upapada_krdanta("vasu", &[], &nic(&d("Df\\Y", Bhvadi)), Krt::Kac, &["vasunDara"]);
+    assert_has_upapada_krdanta("viSva", &[], &d("quBf\\Y", Juhotyadi), Krt::Kac, &["viSvamBara"]);
+    assert_has_upapada_krdanta("raTa", &[], &d("tF", Bhvadi), Krt::Kac, &["raTantara"]);
 }
 
 #[test]

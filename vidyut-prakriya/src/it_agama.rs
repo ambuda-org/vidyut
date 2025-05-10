@@ -517,7 +517,6 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                 can_block = !ip.optional_try_add("7.2.17");
             }
             if can_block {
-                // Block iw-agama
                 ip.try_block("7.2.16");
             }
         } else if anga.has_u_in(&["wuvama~", "Svasa~"]) {

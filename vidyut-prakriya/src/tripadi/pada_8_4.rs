@@ -63,20 +63,6 @@ fn try_natva_for_span(
         }
     }
 
-    /* This is only for debugging
-    if let Some(i_dhatu2) = ip.p.find_first_with_tag(T::Pada) {
-        let term = ip.p.get(i_dhatu2)?;
-
-        if term.has_u_in( &["BU", "BA\\", "pUY"]) {
-            ip.p.debug("Found term BA");
-        } else {
-            ip.p.debug("did not find term BA");
-            ip.p.debug(format!("i_x={}, i_y={:?}", i_x, i_y));
-        }
-        ip.p.dump();
-    }
-    // End Debugging */
-
     let x = ip.p.get(i_x)?;
     let y = ip.p.get(i_y)?;
 
@@ -225,14 +211,12 @@ fn try_natva_for_span(
 
             if dhatu.has_u_in( &["BU", "BA\\", "pUY",
                     Aupadeshika::opyAyI.as_str(), "ga\\mx~", "kamu~\\", "wuvepf~\\"]) {
-                // Really do not apply anything but note the usage of the rule to deny Ratva
                 ip.p.step("8.4.34");
             } else if dhatu.has_antya(HAL) && dhatu.has_tag(T::idit) {
                 if dhatu.has_u_adi(IC) {
                     ip.p.run_at("8.4.32", i_y, |t| t.find_and_replace_text("n", "R"));
                 } else {
-                    // Do nothing but note the step for clarification
-                    //   this is the case for परिमङ्गनम् and प्राङ्गनम्
+                    // This is the case for परिमङ्गनम् and प्राङ्गनम्
                     ip.p.step("8.4.32");
                 }
             } else if prev_is_ac {

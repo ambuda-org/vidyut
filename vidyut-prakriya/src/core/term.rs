@@ -232,7 +232,7 @@ impl Term {
     }
 
     pub fn u_adi(&self) -> Option<char> {
-        self.u.clone().unwrap().bytes().next().map(|x| x as char)
+        self.u.as_ref()?.bytes().next().map(|x| x as char)
     }
 
     /// Returns the last sound in the term if it exists.

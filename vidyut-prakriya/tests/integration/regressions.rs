@@ -379,15 +379,16 @@ fn ratva_8_4_14() {
 }
 
 #[test]
+#[allow(non_snake_case)]
 fn zta_with_upsarga() {
-    let myd = d("zWA\\", Bhvadi);
+    let zWA = d("zWA\\", Bhvadi);
     // No upsarga actually has both atmane and parasmai padi forms
-    assert_has_krdanta(&[], &san(&myd), Krt::Satf, &["tizWAsat"]);
-    assert_has_krdanta(&[], &san(&myd), Krt::SAnac, &["tizWAsamAna"]);
+    assert_has_krdanta(&[], &san(&zWA), Krt::Satf, &["tizWAsat"]);
+    assert_has_krdanta(&[], &san(&zWA), Krt::SAnac, &["tizWAsamAna"]);
     // "pari" upasarga is always parasmaipadi
-    assert_has_krdanta(&["pari"], &san(&myd), Krt::Satf, &["paritizWAsat"]);
-    assert_has_krdanta(&["pari"], &san(&myd), Krt::SAnac, &[]); // fails
+    assert_has_krdanta(&["pari"], &san(&zWA), Krt::Satf, &["paritizWAsat"]);
+    assert_has_krdanta(&["pari"], &san(&zWA), Krt::SAnac, &[]);
     // "pra" upasarga is always atmanepadi
-    assert_has_krdanta(&["pra"], &san(&myd), Krt::SAnac, &["pratizWAsamAna"]);
-    assert_has_krdanta(&["pra"], &san(&myd), Krt::Satf, &[]); // fails
+    assert_has_krdanta(&["pra"], &san(&zWA), Krt::SAnac, &["pratizWAsamAna"]);
+    assert_has_krdanta(&["pra"], &san(&zWA), Krt::Satf, &[]);
 }
