@@ -143,8 +143,7 @@ fn main() {
         }
     });
 
-
-                                                                             match run(dhatus, args) {
+    match run(dhatus, args) {
         Ok(()) => (),
         Err(err) => {
             eprintln!("{}", err);
