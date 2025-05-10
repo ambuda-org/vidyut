@@ -15,7 +15,7 @@ use vidyut_prakriya::args::SamasaType::*;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
-use vidyut_prakriya::Rule;
+pub use vidyut_prakriya::{Rule, RuleChoice};
 use vidyut_prakriya::Vyakarana;
 use vidyut_prakriya::{Decision, Prakriya};
 
@@ -108,6 +108,11 @@ impl Tester {
     /// Creates a tester that enables chAndasa rules.
     pub fn with_chaandasa() -> Self {
         Self::new(Vyakarana::builder().is_chandasi(true).build())
+    }
+
+    // Creates a tester that enables certain rule choices
+    pub fn with_rule_choices(rule_choices: Vec<RuleChoice>) -> Self {
+        Self::new(Vyakarana::builder().rule_choices(rule_choices).build())
     }
 
     /// Creates a tester that enables svara rules.
@@ -912,7 +917,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Trtiya), expected);
     }
 
-    fn assert_has_caturthi_tatpurusha(
+    pub fn assert_has_caturthi_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -921,7 +926,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Caturthi), expected);
     }
 
-    fn assert_has_panchami_tatpurusha(
+    pub fn assert_has_panchami_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -930,7 +935,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Panchami), expected);
     }
 
-    fn assert_has_sasthi_tatpurusha(
+    pub fn assert_has_sasthi_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -939,7 +944,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Sasthi), expected);
     }
 
-    fn assert_has_saptami_tatpurusha(
+    pub fn assert_has_saptami_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,

@@ -231,6 +231,10 @@ impl Term {
         self.text.bytes().next().map(|x| x as char)
     }
 
+    pub fn u_adi(&self) -> Option<char> {
+        self.u.clone().unwrap().bytes().next().map(|x| x as char)
+    }
+
     /// Returns the last sound in the term if it exists.
     pub fn antya(&self) -> Option<char> {
         self.text.bytes().last().map(|x| x as char)
@@ -273,6 +277,11 @@ impl Term {
     /// Returns whether the term has a first sound that matches the given pattern.
     pub fn has_adi(&self, pattern: impl Pattern) -> bool {
         self.matches_sound_pattern(self.adi(), pattern)
+    }
+
+    /// Returns whether the term in aupadeshika form has a first sound that matches the given pattern.
+    pub fn has_u_adi(&self, pattern: impl Pattern) -> bool {
+        self.matches_sound_pattern(self.u_adi(), pattern)
     }
 
     /// Returns whether the term has a final sound that matches the given pattern.

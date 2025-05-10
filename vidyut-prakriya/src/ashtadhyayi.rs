@@ -178,7 +178,8 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> 
 fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> {
     let is_ardhadhatuka = args.is_ardhadhatuka;
     p.debug("~~~~~~~~~~~~~~ <prepare-dhatu> ~~~~~~~~~~~~~~~~~~");
-
+    let orig_stage = p.stage.clone();
+    p.stage = Stage::DhatuPrep;
     match dhatu {
         Dhatu::Mula(m) => {
             dhatu_karya::run(p, m)?;
@@ -187,6 +188,7 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
             dhatu_karya::try_add_prefixes(p, n.prefixes());
             sanadi::try_create_namadhatu(p, n);
             if !p.terms().last().expect("ok").is_dhatu() {
+                p.stage = Stage::Error;
                 return Err(Error::Abort(p.rule_choices().to_vec()));
             }
         }
@@ -215,7 +217,7 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
     }
 
     p.debug("~~~~~~~~~~~~~~ </prepare-dhatu> ~~~~~~~~~~~~~~~~~~");
-
+    p.stage = orig_stage.clone();
     // Dhatu prep stage: Defer tripadi until we add/process other pratyayas.
     Ok(())
 }
@@ -271,8 +273,7 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
     }
 
     linganushasanam::run(p);
-    stritva::run(p);
-    samjna::run(p);
+    samjna::run_prepare_krdanta(p);
 
     Ok(())
 }
@@ -612,16 +613,16 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
     // Depends on it_agama for certain rules and
     atidesha::run_before_attva(p);
 
-        // Samprasarana of the dhatu is conditioned on several other operations, which we must execute
-        // first:
-        //
-        // 1. jha_adesha (affects it-Agama).
-        // 2. it_agama (affects kit-Nit)
-        // 3. atidesha (for kit-Nit)
-        samprasarana::run_for_dhatu_after_atidesha(p, is_sani_or_cani);
+    // Samprasarana of the dhatu is conditioned on several other operations, which we must execute
+    // first:
+    //
+    // 1. jha_adesha (affects it-Agama).
+    // 2. it_agama (affects kit-Nit)
+    // 3. atidesha (for kit-Nit)
+    samprasarana::run_for_dhatu_after_atidesha(p, is_sani_or_cani);
 
-        // Ad-Adeza and other special tasks for Ardhadhatuka
-        ardhadhatuka::run_before_dvitva(p);
+    // Ad-Adeza and other special tasks for Ardhadhatuka
+    ardhadhatuka::run_before_dvitva(p);
 
     // Must follow it-Agama, which could change the first sound of the pratyaya.
     ardhadhatuka::try_add_am_agama(p);
@@ -630,13 +631,8 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
 
     // After guna
     ardhadhatuka::try_aa_adesha_for_sedhayati(p);
-
-    p.debug("==== Dvitva (Prepare Dhatu) ====");
     dvitva::run(p);
-
-    p.debug("==== After dvitva (Prepare Dhatu) ====");
     angasya::run_after_dvitva(p);
-
     ac_sandhi::run_common(p);
 }
 

@@ -4,7 +4,6 @@
 
 use crate::args::Agama as A;
 use crate::args::Aupadeshika as Au;
-use crate::args::Sanadi as S;
 use crate::args::Sup;
 use crate::args::Unadi;
 use crate::args::Upasarga as U;
@@ -12,6 +11,7 @@ use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::Prakriya;
 use crate::core::{PrakriyaTag as PT, Tag as T};
+use crate::core::Stage::DhatuPrep;
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
@@ -359,6 +359,7 @@ pub fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
+/* tbdasap: Hack perhaps is not needed
 fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
         let x = p.get(i)?;
@@ -376,6 +377,7 @@ fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
 
     Some(())
 }
+*/
 
 /// Runs antaranga ac-sandhi rules.
 ///
@@ -413,8 +415,18 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    apply_general_ac_sandhi(p, 0, p.len() - 1);
-    hacky_apply_ni_asiddhavat_rules(p);
+    let mut index = 0;
+    if p.stage == DhatuPrep {
+        // Compute from which index ac_sandhi rules must be done for dhatu-prepare stage
+        // Typically we want to apply rules pertaining to dhatu + pratyaya
+        // Upasarga sandhi rules to be deferred to tinnsiddhi time
+        index = p.find_first_where(| t | { t.is_abhyasta() || t.is_dhatu() }).unwrap();
+        if index == p.len() -1 { // No dhatu or abhyasa in "dhatu prep" ?
+            index = 0;           // Probably namadhatu..so fallback.
+        }
+    }
+    apply_general_ac_sandhi(p, index, p.len() - 1);
+    // hacky_apply_ni_asiddhavat_rules(p);
 
     Some(())
 }

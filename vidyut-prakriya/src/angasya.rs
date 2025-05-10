@@ -31,7 +31,7 @@ use crate::args::Taddhita as D;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
 use crate::core::char_view::IndexPrakriya;
-use crate::core::operators as op;
+use crate::core::{operators as op, Stage};
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Rule::Varttika, Tag as T, Term};
 use crate::dhatu_gana as gana;
 use crate::it_agama;
@@ -458,6 +458,9 @@ fn try_dhatu_rt_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// (7.3.101 - 7.3.111)
 fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
+    if p.stage == Stage::DhatuPrep {
+        return None;
+    }
     // HACK: work around lack of support for "ekah pUrvaparayoH" by skipping empty wAp-pratyaya.
     let i_next = p.next_not_empty(i)?;
     let n = p.pratyaya(i_next)?;
@@ -758,7 +761,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
                 p.run_at("7.2.83", i, op::adi("I"));
             } else if anga.has_antya('a') && sarva.has_text("Ana") {
                 // pacamAna, ...
-                op::insert_after("7.2.80", p, i_anga, A::muk);
+                op::insert_after("7.2.82", p, i_anga, A::muk);
             } else if anga.has_antya('a') && sarva.has_adi('A') && sarva.has_tag(T::Nit) {
                 // pacayAt --> pacet
                 p.run_at("7.2.81", i, op::adi("iy"));
@@ -980,7 +983,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
         // Dhatu may be multi-part, so insert before abhyasa.
         // But abhyasa may follow main dhatu (e.g. undidizati) --
         // So, use the first match we find that's not a prefix.
-        let i_start = p.find_first_where(|t| !t.is_upasarga() && !t.is_lupta())?;
+        let i_start = p.find_first_where(|t| !t.is_upasarga() && !t.is_lupta() && !t.is_gati())?;
 
         // Agama already added in a previous iteration, so return.
         // (To prevent infinite loops)
@@ -1585,8 +1588,9 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    subanta::run(p);
-
+    if p.stage != Stage::DhatuPrep {
+        subanta::run(p);
+    }
     for index in 0..p.len() {
         try_ato_dirgha(p, index);
         asiddhavat::run_final(p, index);

@@ -312,7 +312,6 @@ fn sutra_1_2_18() {
     assert_has_krdanta(&["ni"], &d("kuca~", Tudadi), Krt::kta, &["nikucita"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_1_2_19() {
     use Krt::{kta, ktavatu};
@@ -321,21 +320,27 @@ fn sutra_1_2_19() {
     assert_has_krdanta(&[], &shi, kta, &["Sayita"]);
     assert_has_krdanta(&[], &shi, ktavatu, &["Sayitavat"]);
 
+    // For ONLY the 4 "Adit" dhatus 1.2.19 allows iw-agama form for Nishta.
+    //     7.2.17 conditions the actual usage of this allowance (i.e Bhave/Adikarmani)
+    //     prasvedita form is with iw-agama
+    //     prasvinna form is based on the usual rules. There isn't a prohibition of this
+    //     form in the prakriya.
+    //     Although kashika only mentions prasvedita, for testing both seem necessary here
     let svid = d("zvi\\dA~", Divadi);
-    assert_has_krdanta(&["pra"], &svid, kta, &["prasvedita"]);
-    assert_has_krdanta(&["pra"], &svid, ktavatu, &["prasveditavat"]);
+    assert_has_artha_krdanta(&["pra"], &svid, KrtArtha::Bhava, kta, &["prasvedita", "prasvinna"]);
+    assert_has_artha_krdanta(&["pra"], &svid, KrtArtha::Bhava, ktavatu, &["prasveditavat", "prasvinnavat"]);
 
     let mid = d("YimidA~\\", Bhvadi);
-    assert_has_krdanta(&["pra"], &mid, kta, &["pramedita"]);
-    assert_has_krdanta(&["pra"], &mid, ktavatu, &["prameditavat"]);
+    assert_has_artha_krdanta(&["pra"], &mid, KrtArtha::Bhava, kta, &["pramedita", "praminna"]);
+    assert_has_artha_krdanta(&["pra"], &mid, KrtArtha::Bhava, ktavatu, &["prameditavat", "praminnavat"]);
 
     let kshved = d("YikzvidA~", Bhvadi);
-    assert_has_krdanta(&["pra"], &kshved, kta, &["prakzvedita"]);
-    assert_has_krdanta(&["pra"], &kshved, ktavatu, &["prakzveditavat"]);
+    assert_has_artha_krdanta(&["pra"], &kshved, KrtArtha::Bhava, kta, &["prakzvedita", "prakzviRRa"]);
+    assert_has_artha_krdanta(&["pra"], &kshved, KrtArtha::Bhava, ktavatu, &["prakzveditavat", "prakzviRRavat"]);
 
     let dharsh = d("YiDfzA~", Svadi);
-    assert_has_krdanta(&["pra"], &dharsh, kta, &["praDarzita"]);
-    assert_has_krdanta(&["pra"], &dharsh, ktavatu, &["praDarzitavat"]);
+    assert_has_artha_krdanta(&["pra"], &dharsh, KrtArtha::Bhava, kta, &["praDarzita", "praDfzwa"]);
+    assert_has_artha_krdanta(&["pra"], &dharsh, KrtArtha::Bhava, ktavatu, &["praDarzitavat", "praDfzwavat"]);
 
     // set?
     assert_has_krdanta(&[], &svid, kta, &["svinna"]);

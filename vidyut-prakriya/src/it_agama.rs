@@ -26,7 +26,7 @@ Order of operations:
   a following `sya`, `si~c`, etc.
 */
 
-use crate::args::Agama as A;
+use crate::args::{Agama as A, KrtArtha};
 use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::Gana::*;
@@ -34,6 +34,7 @@ use crate::args::Lakara::*;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
 use crate::args::{Tin, Upasarga};
+use crate::args::Artha::Krt;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::{Decision, Prakriya, Rule};
@@ -507,12 +508,16 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
 
         let anga = ip.anga();
         if anga.has_tag(T::Adit) {
-            let mut can_run = true;
+            let mut can_block = true;
             // TODO: Adikarmani.
-            if ip.p.has_tag_in(&[PT::Bhave]) {
-                can_run = ip.p.optional_run("7.2.17", |_| {});
+            if ip.p.has_tag_in(&[PT::Bhave]) || ip.p.has_artha(Krt(KrtArtha::Bhava)) {
+                // This optionally adds "iw" and returns true if "agama" was added
+                // If it was added, we don't want to "block" what we just added
+                // and hence the "!" before the call
+                can_block = !ip.optional_try_add("7.2.17");
             }
-            if can_run {
+            if can_block {
+                // Block iw-agama
                 ip.try_block("7.2.16");
             }
         } else if anga.has_u_in(&["wuvama~", "Svasa~"]) {

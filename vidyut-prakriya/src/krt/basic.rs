@@ -249,7 +249,12 @@ fn try_add_various_pratyayas(kp: &mut KrtPrakriya) {
         } else if kp.has_sanadi_in(&["ya\\ja~", "japa~", "da\\nSa~"], S::yaN) {
             // yAyajUka, ...
             kp.try_add("3.2.166", Uka);
-        } else if dhatu.has_text_in(&["nam", "kanp", "smi", "jas", "kam", "hins", "dIp"]) {
+        }
+
+        // Break the If because we need to try "kamu" below
+        let dhatu = kp.dhatu_end();
+
+        if dhatu.has_text_in(&["nam", "kanp", "smi", "jas", "kam", "hins", "dIp"]) {
             kp.try_add("3.2.167", ra);
         } else if dhatu.has_text_in(&["svap", "tfz"]) {
             kp.try_add("3.2.172", najiN);
@@ -567,10 +572,12 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
 
     let nau = kp.p.has(i_dhatu + 1, |t| t.is(S::Ric));
     let upasarge = kp.p.has_prev_non_empty(i_dhatu, |t| t.is_upasarga());
-
+    let dhatu_nau = kp.p.get(i_dhatu)?; // Used when nau is true
+    const EC: Set = s(&["ec"]);
     let krt = kp.krt;
     match krt {
         aR | ka | ac | wa | wak if upapade => {
+            let mut ar_apavada = false;
             if upapada.has_text_in(&["kzema", "priya", "madre"]) && dhatu.is_u(Au::qukfY) {
                 // Also repeated for khac below.
                 kp.try_add("3.2.44", aR);
@@ -608,8 +615,10 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                     // dhAri-arthe
                     kp.optional_try_add(Varttika("3.2.9.2"), ac);
                 }
-            } else if !upasarge && dhatu.has_antya('A') {
+            } else if !upasarge && (dhatu.has_antya('A') || dhatu.has_antya(EC)) {
+                // EC for rule 6.1.45 as it has not yet applied at this stage !!
                 kp.try_add("3.2.3", ka);
+                ar_apavada = true; // If "ka" matches, then 3.2.1 "aR" cannot be applied.
             } else if kp.has_upasarga_dhatu(i_dhatu, "pari", "mfjU~")
                 || kp.has_upasarga_dhatu(i_dhatu, "apa", "Ru\\da~^")
             {
@@ -620,6 +629,16 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 kp.try_add("3.2.11", ac);
             } else if dhatu.has_u("arha~") {
                 kp.try_add("3.2.12", ac);
+            } else if upapada.has_text_in(&["stamba", "karRa"]) &&
+                dhatu.has_u_in(&["ra\\ma~\\", "japa~"]) {
+                let i_upapada = kp.i_upapada().unwrap();
+                kp.try_add_with("3.2.13", ac, |p| {
+                    p.set(i_upapada, |t| {
+                        t.set_antya("e");
+                        t.add_tag(T::Complete)
+                    });
+
+                });
             } else if upapada.has_text("Sam") {
                 kp.try_add("3.2.14", ac);
             } else if dhatu.is_u(Au::SIN) {
@@ -669,7 +688,7 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             }
 
             // (base case)
-            if !kp.has_krt {
+            if !kp.has_krt && !ar_apavada {
                 // kumBakAra, ...
                 kp.try_add("3.2.1", aR);
             }
@@ -702,7 +721,7 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             let stana = upapada.has_text("stana");
             let dhma = dhatu.has_u("DmA\\");
             let dhe = dhatu.has_u("De\\w");
-            if dhatu.has_u("ejf~\\") && nau {
+            if dhatu_nau.has_u("ejf~\\") && nau {
                 // aNgamejaya, janamejaya
                 kp.try_add("3.2.28", krt);
             } else if (nasika && (dhma || dhe)) || (stana && dhe) {
@@ -772,6 +791,10 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 }
             } else if upapada.has_text("ASita") && dhatu.has_u("BU") {
                 kp.try_add("3.2.45", krt);
+            } else if dhatu.has_u_in(&["quBf\\Y", "tF", "vfY", "ji\\" ]) ||
+                nau && dhatu_nau.has_u_in(&["Df\\Y", "damu~"]) {
+                // vasunDara viSvambara etc.
+                kp.try_add("3.2.46", krt);
             } else if upapada.has_text("suta") && dhatu.has_u("ga\\mx~") {
                 // sutaNgama
                 kp.try_add("3.2.47", krt);

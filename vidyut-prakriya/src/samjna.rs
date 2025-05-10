@@ -70,7 +70,9 @@ pub fn try_pragrhya_rules(p: &mut Prakriya) -> Option<()> {
 
 pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let t = p.get(i)?;
-
+    if t.is_avyaya() {
+        return Some(());
+    }
     let is_svaradi = |t: &Term| {
         if t.is_dhatu() || t.is_pratyaya() || t.is_agama() {
             // svarAdi contains more than 150 items, so short-circuit the check however we can.
@@ -482,6 +484,13 @@ pub fn run(p: &mut Prakriya) {
     try_run_for_pratipadika(p);
     try_run_for_sup(p);
     try_run_for_taddhita(p);
+    for i in 0..p.len() {
+        try_avyaya_rules(p, i);
+    }
+}
+
+pub fn run_prepare_krdanta(p: &mut Prakriya) {
+    try_run_for_dhatu(p);
     for i in 0..p.len() {
         try_avyaya_rules(p, i);
     }
