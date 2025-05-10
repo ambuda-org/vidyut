@@ -391,10 +391,3 @@ fn zta_with_upsarga() {
     assert_has_krdanta(&["pra"], &san(&myd), Krt::SAnac, &["pratizWAsamAna"]);
     assert_has_krdanta(&["pra"], &san(&myd), Krt::Satf, &[]); // fails
 }
-
-#[ignore]
-#[test]
-fn testcase_try() {
-    let myd = d("qukf\\Y", Tanadi);
-    assert_has_krdanta(&[], &myd, Krt::ktvA, &["kryA"]);
-}
