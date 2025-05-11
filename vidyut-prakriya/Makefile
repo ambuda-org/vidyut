@@ -59,7 +59,7 @@ test_tinantas:
 	cargo run --release --example snapshot_tests validate \
 		--test-type tinantas \
 		-f test-files/tinantas-basic.msgpack \
-		-h "5e4c09fb92097bd0ce11de29f41f3ae8de6733154a564b7c8bef31569ed6ab65" \
+		-h "63e31ea70a59f051cd80773ebe3187ebda8df8dec0632695af6d00ad0e731f71" \
 		-f test-files/tinantas-nic.msgpack \
 		-h "a8b186ff62fe20a08e147537614bbb3220fbfd8d2fce356514e5e595d1e579fb" \
 		-f test-files/tinantas-san.msgpack \
