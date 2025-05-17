@@ -1892,6 +1892,7 @@ dependencies = [
  "csv",
  "enumset",
  "flate2",
+ "itertools",
  "rayon",
  "rmp-serde",
  "rustc-hash",

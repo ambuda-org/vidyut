@@ -11,6 +11,7 @@
 //!     cargo run --release --example create_all_krdantas -- --output-scheme Devanagari
 use clap::Parser;
 use serde::Serialize;
+use itertools::Itertools;
 use std::error::Error;
 use std::io;
 use vidyut_lipi::{Lipika, Scheme};
@@ -48,6 +49,7 @@ fn create_output_string(
     mut items: Vec<String>,
     output_scheme: Scheme,
 ) -> String {
+    items = items.into_iter().unique().collect();
     items.sort();
     if output_scheme != Scheme::Slp1 {
         for s in items.iter_mut() {
