@@ -13,6 +13,7 @@
 //!     cargo run --release --example create_all_tinantas -- --output-scheme Devanagari
 use clap::Parser;
 use serde::Serialize;
+use itertools::Itertools;
 use std::error::Error;
 use std::io;
 use vidyut_lipi::{Lipika, Scheme};
@@ -52,6 +53,7 @@ fn create_output_string(
     output_scheme: Scheme,
 ) -> String {
     items.sort();
+    items = items.into_iter().unique().collect();
     if output_scheme != Scheme::Slp1 {
         for s in items.iter_mut() {
             *s = lipika.transliterate(&s, Scheme::Slp1, output_scheme);
