@@ -198,7 +198,7 @@ impl Config {
     }
 }
 
-#[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Stage {
     #[default]
     DhatuPrep,

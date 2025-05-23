@@ -178,7 +178,7 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> 
 fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> {
     let is_ardhadhatuka = args.is_ardhadhatuka;
     p.debug("~~~~~~~~~~~~~~ BEGIN: prepare-dhatu ~~~~~~~~~~~~~~~~~~");
-    let orig_stage = p.stage.clone();
+    let orig_stage = p.stage;
     p.stage = Stage::DhatuPrep;
     match dhatu {
         Dhatu::Mula(m) => {
@@ -222,7 +222,7 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
         p.step("3.1.32");
     }
     p.debug("~~~~~~~~~~~~~~ END: prepare-dhatu ~~~~~~~~~~~~~~~~~~");
-    p.stage = orig_stage.clone();
+    p.stage = orig_stage;
     // Dhatu prep stage: complete
     Ok(())
 }
