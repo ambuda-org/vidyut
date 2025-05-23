@@ -15,9 +15,9 @@ use vidyut_prakriya::args::SamasaType::*;
 use vidyut_prakriya::args::Vacana::*;
 use vidyut_prakriya::args::Vibhakti::*;
 use vidyut_prakriya::args::*;
-pub use vidyut_prakriya::{Rule, RuleChoice};
 use vidyut_prakriya::Vyakarana;
 use vidyut_prakriya::{Decision, Prakriya};
+pub use vidyut_prakriya::{Rule, RuleChoice};
 
 fn pum_s(pratipadika: Pratipadika, vibhakti: Vibhakti) -> Subanta {
     Subanta::new(pratipadika, Linga::Pum, vibhakti, Vacana::Eka)
