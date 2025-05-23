@@ -525,8 +525,20 @@ fn sutra_3_2_45() {
 
 #[test]
 fn sutra_3_2_46() {
-    assert_has_upapada_krdanta("vasu", &[], &nic(&d("Df\\Y", Bhvadi)), Krt::Kac, &["vasunDara"]);
-    assert_has_upapada_krdanta("viSva", &[], &d("quBf\\Y", Juhotyadi), Krt::Kac, &["viSvamBara"]);
+    assert_has_upapada_krdanta(
+        "vasu",
+        &[],
+        &nic(&d("Df\\Y", Bhvadi)),
+        Krt::Kac,
+        &["vasunDara"],
+    );
+    assert_has_upapada_krdanta(
+        "viSva",
+        &[],
+        &d("quBf\\Y", Juhotyadi),
+        Krt::Kac,
+        &["viSvamBara"],
+    );
     assert_has_upapada_krdanta("raTa", &[], &d("tF", Bhvadi), Krt::Kac, &["raTantara"]);
 }
 

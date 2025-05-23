@@ -12,8 +12,8 @@
 //!
 //!     cargo run --release --example create_all_tinantas -- --output-scheme Devanagari
 use clap::Parser;
-use serde::Serialize;
 use itertools::Itertools;
+use serde::Serialize;
 use std::error::Error;
 use std::io;
 use vidyut_lipi::{Lipika, Scheme};

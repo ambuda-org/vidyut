@@ -1,14 +1,14 @@
 use std::sync::OnceLock;
 
-use crate::args::{Aupadeshika as Au, Aupadeshika};
 use crate::args::BaseKrt::lyuw;
 use crate::args::Gana;
 use crate::args::Lakara::*;
 use crate::args::Sup;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
+use crate::args::{Aupadeshika as Au, Aupadeshika};
 use crate::core::char_view::{CharIndex, IndexPrakriya};
-use crate::core::{operators as op};
+use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
@@ -76,8 +76,9 @@ fn try_natva_for_span(
     }
     */
 
-    if (i_y > 0 && ip.p.get(i_y -1)?.has_dhatu_u_in(&["va\\ha~^"]) && x.is_pada())
-        || (x.is_pratipadika() && y.has_u("vAhana")) {
+    if (i_y > 0 && ip.p.get(i_y - 1)?.has_dhatu_u_in(&["va\\ha~^"]) && x.is_pada())
+        || (x.is_pratipadika() && y.has_u("vAhana"))
+    {
         // Some shortcircuit rules for 8.4.8  vAhanam
         // Two cases here
         // 1. (Chandasi Yyuw)        3.2.65
@@ -87,11 +88,11 @@ fn try_natva_for_span(
         //       applicable i.e. it will produce "goDUmavahana" as Ratva is inapplicable
         //       for pada goDUma
 
-        if x.has_text( "purIza") && ip.p.is_chandasi() {
+        if x.has_text("purIza") && ip.p.is_chandasi() {
             ip.run_for_char("8.4.8", i_n, "R"); // Special case for 3.2.65 ...
-        } else if (ip.p.get(i_y -1)?.has_text("vah"))&& y.is_any_krt(&[lyuw]) {
+        } else if (ip.p.get(i_y - 1)?.has_text("vah")) && y.is_any_krt(&[lyuw]) {
             // nipAtana vridDi always happens
-            ip.p.run_at("8.4.8", i_y -1, |t| t.set_text("vAh"));
+            ip.p.run_at("8.4.8", i_y - 1, |t| t.set_text("vAh"));
             // Ratva happens if applicable
             ip.p.optional_run("8.4.8.1", |p| {
                 p.set(i_y, |t| t.set_text("aRa"));
@@ -104,12 +105,12 @@ fn try_natva_for_span(
     } else if i_x != i_y && ip.p.is_pada(i_x) && x.has_antya('z') {
         // nizpAna, ...
         ip.p.step("8.4.35");
-    } else if  i_x != i_y && x.has_u("antar") && y.has_u("ayana") {
+    } else if i_x != i_y && x.has_u("antar") && y.has_u("ayana") {
         // antarayaRam on "adesha" i.e not desha
-        ip.p.optional_run("8.4.25", |p | {
+        ip.p.optional_run("8.4.25", |p| {
             p.set(i_y, |t| t.set_text("ayaRa"));
         });
-    } else if  i_x != i_y && y.has_tag(T::Samasa) && y.has_u("nas") {
+    } else if i_x != i_y && y.has_tag(T::Samasa) && y.has_u("nas") {
         ip.p.run("8.4.28", |p| p.set(i_y, |t| t.set_adi("R")));
     } else if y.has_u("Ra\\Sa~") && (y.has_antya('z') || y.has_antya('k')) {
         // pranazwa, ...
@@ -153,8 +154,9 @@ fn try_natva_for_span(
         let is_mina = || (dhatu.has_text("mI") && y.is(V::SnA));
 
         if y.has_adi('n') && y.has_tag(T::FlagNaAdeshadi) {
-            let has_krt = ip.p.find_next_where(i_dhatu, |t| t.is_krt() && !t.is_empty()) != None;
-            if (has_krt) && dhatu.has_u_in(&["Risi~\\", "Rikza~", "Ridi~" ]) {
+            let has_krt =
+                ip.p.find_next_where(i_dhatu, |t| t.is_krt() && !t.is_empty()) != None;
+            if (has_krt) && dhatu.has_u_in(&["Risi~\\", "Rikza~", "Ridi~"]) {
                 // Note: ONLY for krt pratyaya (and not for Tin pratyaya)
                 ip.optional_run_for_char("8.4.33", i_n, "R");
             } else {
@@ -202,15 +204,22 @@ fn try_natva_for_span(
         } else if y.is_krt() {
             // SC Vasu: the change takes place, even where the कृत् affix does not follow directly after the affix णि
             // So check if there is a णिच् after the dhatu in some position. This takes care of पुक् Agama also
-            let dhatu_pratayaya_is_nic = ! ip.p.find_next_where(i_dhatu, |t| t.is_nic()).is_none();
+            let dhatu_pratayaya_is_nic = !ip.p.find_next_where(i_dhatu, |t| t.is_nic()).is_none();
             let prev_is_ac = if let Some(i) = ip.prev(i_n) {
                 AC.contains(ip.char_at(&i))
             } else {
                 false
             };
 
-            if dhatu.has_u_in( &["BU", "BA\\", "pUY",
-                    Aupadeshika::opyAyI.as_str(), "ga\\mx~", "kamu~\\", "wuvepf~\\"]) {
+            if dhatu.has_u_in(&[
+                "BU",
+                "BA\\",
+                "pUY",
+                Aupadeshika::opyAyI.as_str(),
+                "ga\\mx~",
+                "kamu~\\",
+                "wuvepf~\\",
+            ]) {
                 ip.p.step("8.4.34");
             } else if dhatu.has_antya(HAL) && dhatu.has_tag(T::idit) {
                 if dhatu.has_u_adi(IC) {

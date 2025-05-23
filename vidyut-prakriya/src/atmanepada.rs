@@ -183,7 +183,8 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
         pp.optional_atma("1.3.26");
         // 1.3.26 can be handled with 1.3.25.
     } else if pp.i_dhatu == 0 && pp.is(&[], &["zWA\\"])
-           || pp.i_dhatu == 1 && pp.is(&[], &["zWA\\"]) && pp.p.get(0).unwrap().is_abhyasa() {
+        || pp.i_dhatu == 1 && pp.is(&[], &["zWA\\"]) && pp.p.get(0).unwrap().is_abhyasa()
+    {
         // purely  "zWA\\" without upasarga.
         pp.optional_atma("1.3.23");
         // The remaining upasargas (like "aBi" "aPi" "parA") will be parasmaipada

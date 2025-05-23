@@ -641,7 +641,6 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
     ac_sandhi::run_common(p);
 }
 
-
 /// Derives a single dhatu from the given conditions.
 pub fn derive_dhatu(mut prakriya: Prakriya, dhatu: &Dhatu) -> Result<Prakriya> {
     let p = &mut prakriya;

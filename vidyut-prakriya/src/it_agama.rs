@@ -26,15 +26,15 @@ Order of operations:
   a following `sya`, `si~c`, etc.
 */
 
-use crate::args::{Agama as A, KrtArtha};
+use crate::args::Artha::Krt;
 use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::Gana::*;
 use crate::args::Lakara::*;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
+use crate::args::{Agama as A, KrtArtha};
 use crate::args::{Tin, Upasarga};
-use crate::args::Artha::Krt;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::{Decision, Prakriya, Rule};

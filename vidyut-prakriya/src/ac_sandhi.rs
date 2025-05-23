@@ -10,8 +10,8 @@ use crate::args::Upasarga as U;
 use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::Prakriya;
-use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::core::Stage::DhatuPrep;
+use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
@@ -420,9 +420,12 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
         // Compute from which index ac_sandhi rules must be done for dhatu-prepare stage
         // Typically we want to apply rules pertaining to dhatu + pratyaya
         // Upasarga sandhi rules to be deferred to tinnsiddhi time
-        index = p.find_first_where(| t | { t.is_abhyasta() || t.is_dhatu() }).unwrap();
-        if index == p.len() -1 { // No dhatu or abhyasa in "dhatu prep" ?
-            index = 0;           // Probably namadhatu..so fallback.
+        index = p
+            .find_first_where(|t| t.is_abhyasta() || t.is_dhatu())
+            .unwrap();
+        if index == p.len() - 1 {
+            // No dhatu or abhyasa in "dhatu prep" ?
+            index = 0; // Probably namadhatu..so fallback.
         }
     }
     apply_general_ac_sandhi(p, index, p.len() - 1);
