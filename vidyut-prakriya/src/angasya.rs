@@ -586,9 +586,17 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
             let piti = last.has_tag(T::pit) && !last.has_tag(T::Nit);
 
             if is_dhatu && anga.has_text("brU") && piti {
-                op::insert_before("7.3.93", p, i_n, A::Iw);
+                if  p.has(i_anga + 1, |t| t.is_yan()) {
+                    // HACK: use `i_anga + 1` to point to yaN, which is empty due to luk.
+                    p.optionally("7.3.94", |rule, p| {
+                        op::insert_before(rule, p, i_n, A::Iw);
+                    });
+                } else {
+                    op::insert_before("7.3.93", p, i_n, A::Iw);
+                }
             } else if is_dhatu && p.has(i_anga + 1, |t| t.is_yan()) && piti {
                 // HACK: use `i_anga + 1` to point to yaN, which is empty due to luk.
+                // The "brU" case does not land here. So it has to be copied above
                 p.optionally("7.3.94", |rule, p| {
                     op::insert_before(rule, p, i_n, A::Iw);
                 });

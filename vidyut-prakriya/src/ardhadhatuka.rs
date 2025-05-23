@@ -56,6 +56,7 @@ fn do_vadha_adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize) {
             p.terms_mut().remove(i - 2);
         }
         it_samjna::run(p, i - 2).expect("ok");
+        p.step(rule);
     } else {
         op::adesha(rule, p, i, "vaDa");
     }
@@ -279,6 +280,11 @@ pub fn run_before_vikarana(
 
     let dhatu = p.get(i)?;
     let n = p.pratyaya(j)?;
+
+    if dhatu.has_tag(T::Abhyasta) && !dhatu.has_u("ha\\na~") {
+        // HACK: For "han" dvitva/abhayasa itself gets negated as per kaumudi-2651
+        return None;
+    }
 
     if dhatu.has_text("ad") {
         if n.has_lakara(Lun) || n.last().is_san() {
