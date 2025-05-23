@@ -177,7 +177,7 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> 
 /// Like `prepare_dhatu` but without the cache logic.
 fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> {
     let is_ardhadhatuka = args.is_ardhadhatuka;
-    p.debug("~~~~~~~~~~~~~~ <prepare-dhatu> ~~~~~~~~~~~~~~~~~~");
+    p.debug("~~~~~~~~~~~~~~ BEGIN: prepare-dhatu ~~~~~~~~~~~~~~~~~~");
     let orig_stage = p.stage.clone();
     p.stage = Stage::DhatuPrep;
     match dhatu {
@@ -216,9 +216,14 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
         }
     }
 
-    p.debug("~~~~~~~~~~~~~~ </prepare-dhatu> ~~~~~~~~~~~~~~~~~~");
+    let t = p.terms().last().unwrap();
+    if t.has_all_tags(&[Tag::Dhatu, Tag::Pratyaya]) {
+        // This is an indicator of a 3.1.32 dhatu samjna
+        p.step("3.1.32");
+    }
+    p.debug("~~~~~~~~~~~~~~ END: prepare-dhatu ~~~~~~~~~~~~~~~~~~");
     p.stage = orig_stage.clone();
-    // Dhatu prep stage: Defer tripadi until we add/process other pratyayas.
+    // Dhatu prep stage: complete
     Ok(())
 }
 

@@ -137,7 +137,7 @@ wasm_release:
 # This is a dev build. Creating it will be faster, but size and performance
 # will not be optimized.
 wasm_dev:
-	wasm-pack build --target web -- --features serde
+	wasm-pack build --target web --debug -- --features serde
 
 # Builds a simple web debugger.
 debugger:
@@ -156,11 +156,11 @@ $(CREATE_ALL_TINANTAS) $(CREATE_ALL_KRDANTAS): build_all
 
 ## M3 MacbookPro: 7-8 minutes
 $(CURRENT_TINANTA_OUTPUT): $(CREATE_ALL_TINANTAS)
-	time $^ > $@
+	time $^ $(OUTPUT_SCHEME) > $@
 
 ## M3 MacbookPro : 1-2 minutes
 $(CURRENT_KRDANTA_OUTPUT): $(CREATE_ALL_KRDANTAS)
-	time $^ > $@
+	time $^ $(OUTPUT_SCHEME) > $@
 
 current_regression_data: $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
 
@@ -192,8 +192,8 @@ regression_test: all-krt-tin-anta-diff.txt
 	@echo ; echo "Diff output: \"$^\""; echo
 
 all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
-	@(diff --suppress-common-lines -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
-    echo "-----------------------------------------------------  krdantas below    ----------------------------------------------------------"; \
-	diff --suppress-common-lines -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
+	@(echo "Tinantas"; diff --suppress-common-lines -W 400 -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
+    echo "Krdantas"; \
+	diff --suppress-common-lines -W 400 -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
 
 endif   ## END OSFlavor=Darwin

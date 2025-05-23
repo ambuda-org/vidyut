@@ -392,3 +392,9 @@ fn zta_with_upsarga() {
     assert_has_krdanta(&["pra"], &san(&zWA), Krt::SAnac, &["pratizWAsamAna"]);
     assert_has_krdanta(&["pra"], &san(&zWA), Krt::Satf, &[]);
 }
+
+#[test]
+#[allow(non_snake_case)]
+fn bru_with_yanluk() {
+    assert_has_lat(&[], &yan_luk(&d("brUY", Adadi)), &["bobravIti", "bobroti"]);
+}
