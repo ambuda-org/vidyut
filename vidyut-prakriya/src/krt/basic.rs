@@ -629,15 +629,15 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 kp.try_add("3.2.11", ac);
             } else if dhatu.has_u("arha~") {
                 kp.try_add("3.2.12", ac);
-            } else if upapada.has_text_in(&["stamba", "karRa"]) &&
-                dhatu.has_u_in(&["ra\\ma~\\", "japa~"]) {
+            } else if upapada.has_text_in(&["stamba", "karRa"])
+                && dhatu.has_u_in(&["ra\\ma~\\", "japa~"])
+            {
                 let i_upapada = kp.i_upapada().unwrap();
                 kp.try_add_with("3.2.13", ac, |p| {
                     p.set(i_upapada, |t| {
                         t.set_antya("e");
                         t.add_tag(T::Complete)
                     });
-
                 });
             } else if upapada.has_text("Sam") {
                 kp.try_add("3.2.14", ac);
@@ -791,8 +791,9 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 }
             } else if upapada.has_text("ASita") && dhatu.has_u("BU") {
                 kp.try_add("3.2.45", krt);
-            } else if dhatu.has_u_in(&["quBf\\Y", "tF", "vfY", "ji\\" ]) ||
-                nau && dhatu_nau.has_u_in(&["Df\\Y", "damu~"]) {
+            } else if dhatu.has_u_in(&["quBf\\Y", "tF", "vfY", "ji\\"])
+                || nau && dhatu_nau.has_u_in(&["Df\\Y", "damu~"])
+            {
                 // vasunDara viSvambara etc.
                 kp.try_add("3.2.46", krt);
             } else if upapada.has_text("suta") && dhatu.has_u("ga\\mx~") {

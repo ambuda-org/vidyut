@@ -26,15 +26,15 @@ Order of operations:
   a following `sya`, `si~c`, etc.
 */
 
-use crate::args::{Agama as A, KrtArtha};
+use crate::args::Artha::Krt;
 use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::Gana::*;
 use crate::args::Lakara::*;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
+use crate::args::{Agama as A, KrtArtha};
 use crate::args::{Tin, Upasarga};
-use crate::args::Artha::Krt;
 use crate::core::operators as op;
 use crate::core::Rule::Varttika;
 use crate::core::{Decision, Prakriya, Rule};
@@ -307,13 +307,13 @@ fn run_valadau_ardhadhatuke_before_attva_for_term(ip: &mut ItPrakriya) -> Option
                 let is_anit_for_tas = rule_7_2_10;
 
                 if (anga.has_antya(AC) || anga.text.contains('a')) && is_anit_for_tas {
-                    let code =
-                        if anga.is_any_u(&[Au::Gasx, Au::vayi]) &&
-                            (anga.sthanivat() == "ad" || anga.sthanivat() == "ve") {
-                            // Skip these because they are not eligible per tAs
-                            //   ONLY iff they are the adeshas of "ada -> Gasx" or  "veY --> vaya"
-                            //   as per the fineprint in the last 6 sentences of KV 7.2.61
-                            // Do not skip if directly invoked for Gasx or vaya
+                    let code = if anga.is_any_u(&[Au::Gasx, Au::vayi])
+                        && (anga.sthanivat() == "ad" || anga.sthanivat() == "ve")
+                    {
+                        // Skip these because they are not eligible per tAs
+                        //   ONLY iff they are the adeshas of "ada -> Gasx" or  "veY --> vaya"
+                        //   as per the fineprint in the last 6 sentences of KV 7.2.61
+                        // Do not skip if directly invoked for Gasx or vaya
                         None
                     } else if anga.has_antya(AC) {
                         Some("7.2.61")
