@@ -192,8 +192,8 @@ regression_test: all-krt-tin-anta-diff.txt
 	@echo ; echo "Diff output: \"$^\""; echo
 
 all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
-	@(echo "Tinantas"; diff --suppress-common-lines -W 400 -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
+	@(echo "Tinantas"; diff --suppress-common-lines -W 1000 -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
     echo "Krdantas"; \
-	diff --suppress-common-lines -W 400 -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
+	diff --suppress-common-lines -W 1000 -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
 
 endif   ## END OSFlavor=Darwin
