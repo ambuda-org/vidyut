@@ -1,8 +1,7 @@
+VERBOSE ?= "-v"
+
 # Initializes the repository for local development.
-install:
-	uv sync
-	uv run make develop
-	uv run make test
+install: test
 	@echo "vidyut-python built successfully."
 
 # Builds the package.
@@ -10,20 +9,21 @@ install:
 # Use this command directly instead of `cargo build`, which will likely fail
 # due to missing linker arguments.
 build:
-	uv run maturin build
+	uv sync
+	uv run maturin build --release --out dist --interpreter=$$(which python3)
+	uv run pip3 install dist/vidyut-* --force-reinstall
 
-# Builds the package and installs it in the local virtualenv.
-develop:
-	uv run maturin develop
 
 # Runs all Python-specific unit tests.
-test: develop
-	uv run pytest test/unit/
+test: build
+	uv run pytest $(VERBOSE) test/unit/
+
+coverage-clean:
+	(cargo --list | grep llvm-cov) || cargo install cargo-llvm-cov
+	cargo llvm-cov clean --workspace
 
 # https://github.com/Michael-J-Ward/rust-python-coverage
-coverage:
-	cargo llvm-cov clean --workspace
-	maturin develop
+coverage: coverage-clean build
 	uv run pytest --cov=vidyut --cov-report lcov:python-coverage.lcov
 	cargo llvm-cov report --html
 
