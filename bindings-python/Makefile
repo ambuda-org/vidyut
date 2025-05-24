@@ -9,7 +9,7 @@ install: test
 # Use this command directly instead of `cargo build`, which will likely fail
 # due to missing linker arguments.
 build:
-	uv sync
+	rm -rf dist .venv; uv sync
 	uv run maturin build --release --out dist --interpreter=$$(which python3)
 	uv run pip3 install dist/vidyut-* --force-reinstall
 
