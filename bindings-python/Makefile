@@ -1,6 +1,7 @@
 ## make test VERBOSE=-vvv
 ## as above should print out verbose test results
-VERBOSE ?= ""
+VERBOSE ?= "-v"
+RELEASE ?= "--release"
 
 # Initializes the repository for local development.
 install: test
@@ -13,9 +14,11 @@ clean:
 #
 # Use this command directly instead of `cargo build`, which will likely fail
 # due to missing linker arguments.
+#
+# Todo(tbdasap): Without --release the prakriya tests fail. "make test RELEASE=" will fail
 develop:
 	uv sync
-	uv run maturin develop --release
+	uv run maturin develop $(RELEASE)
 
 
 # Runs all Python-specific unit tests.
