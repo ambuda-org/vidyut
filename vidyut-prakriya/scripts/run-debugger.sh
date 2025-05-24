@@ -14,13 +14,13 @@ fi
 if [ -z "$DEBUG" ]; then
   echo wasm-pack build --target web --release -- --features serde
   wasm-pack build --target web --release -- --features serde
-  export HTTP_PORT=8001
+  export HTTP_PORT=8000
   WWW_DIR=www-release
   mkdir $WWW_DIR; cp www/* $WWW_DIR/
 else
   echo wasm-pack build --target web --debug -- --features serde
   wasm-pack build --target web --debug -- --features serde
-  export HTTP_PORT=8000
+  export HTTP_PORT=8001
   WWW_DIR=www
 fi;
 mkdir -p $WWW_DIR/static/wasm && cp pkg/* $WWW_DIR/static/wasm
