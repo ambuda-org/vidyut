@@ -835,8 +835,13 @@ impl Prakriya {
                 was_changed: false,
             })
             .collect();
-
-        if let Some(prev) = self.history.last() {
+        // Get the correct previous StepTerm in history by skipping "debug"
+        // statements for determining "was_changed"
+        if let Some(prev) = self
+            .history
+            .iter()
+            .rfind(|st| st.rule != Rule::Ashtadhyayi("    "))
+        {
             let prev = prev.result();
             let had_insertion = prev.len() < result.len();
             let mut any_changed = false;

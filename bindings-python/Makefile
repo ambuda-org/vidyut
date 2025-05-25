@@ -1,7 +1,7 @@
 ## make test VERBOSE=-vvv
 ## as above should print out verbose test results
 VERBOSE ?= "-v"
-RELEASE ?= "--release"
+RELEASE ?=
 
 # Initializes the repository for local development.
 install: test
@@ -14,10 +14,11 @@ clean:
 #
 # Use this command directly instead of `cargo build`, which will likely fail
 # due to missing linker arguments.
-#
-# Todo(tbdasap): Without --release the prakriya tests fail. "make test RELEASE=" will fail
-develop:
+build:
 	uv sync
+	uv run maturin build
+
+develop: build
 	uv run maturin develop $(RELEASE)
 
 

@@ -177,7 +177,7 @@ fn prepare_dhatu(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> 
 /// Like `prepare_dhatu` but without the cache logic.
 fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Result<()> {
     let is_ardhadhatuka = args.is_ardhadhatuka;
-    p.debug("~~~~~~~~~~~~~~ BEGIN: prepare-dhatu ~~~~~~~~~~~~~~~~~~");
+    p.debug("== Begin: Prepare Dhatu ==");
     let orig_stage = p.stage;
     p.stage = Stage::DhatuPrep;
     match dhatu {
@@ -221,7 +221,7 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
         // This is an indicator of a 3.1.32 dhatu samjna
         p.step("3.1.32");
     }
-    p.debug("~~~~~~~~~~~~~~ END: prepare-dhatu ~~~~~~~~~~~~~~~~~~");
+    p.debug("== End: Prepare Dhatu  ==");
     p.stage = orig_stage;
     // Dhatu prep stage: complete
     Ok(())
@@ -465,7 +465,9 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
     let is_lit_or_ashirlin = matches!(lakara, Some(Lakara::Lit) | Some(Lakara::AshirLin));
     let is_lun = lakara == Some(Lakara::Lun);
 
-    p.debug("==== Tin-siddhi ====");
+    if is_tinanta {
+        p.debug("== tiN sidDi ==");
+    }
     // Do lit-siddhi and AzIrlin-siddhi first to support the valAdi vArttika for aj -> vi.
     if is_tinanta && is_lit_or_ashirlin {
         if let Some(lakara) = lakara {
@@ -599,8 +601,6 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
     let skip_at_agama = args.skip_at_agama;
     let is_lun = lakara == Some(Lakara::Lun);
     let is_sani_or_cani = is_sani_or_cani(p, dhatu_args, is_lun);
-
-    p.debug("==== Dhatu Prep tasks ====");
 
     // A couple of examples below (atidesha dhatu siddhi part only)
     // 1. Lun-lakara : "a\\da~ + san" --> "Ji + Gat + sa" [2.4.37]

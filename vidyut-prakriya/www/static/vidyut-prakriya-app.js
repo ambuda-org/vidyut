@@ -428,6 +428,9 @@ const App = () => ({
             if (term.wasChanged) {
                 text = `<span class="text-red-700">${text}</span>`
             }
+            if (step.rule.code === "    ") {
+                text = `<span class="text-blue-700">${term.text}</span>`
+            }
             res += text;
         })
         return res;
