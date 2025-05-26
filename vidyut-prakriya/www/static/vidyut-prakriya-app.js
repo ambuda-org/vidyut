@@ -369,7 +369,9 @@ const App = () => ({
 
     renderStepRuleLinkText(rule) {
         let prefix = "";
-        if (rule.source === "varttika") {
+        if (rule.code === "    ") { // For debug statements in prakriya
+            prefix = "__";
+        } else if (rule.source === "varttika") {
             prefix = "vArttika ";
         } else if (rule.source === "kaumudi") {
             prefix = "kOmudI ";
@@ -389,7 +391,11 @@ const App = () => ({
 
     renderStepRuleLink(rule) {
         if (rule.source === "ashtadhyayi" || rule.source === "varttika") {
-            return "https://ashtadhyayi.com/sutraani/" + rule.code;
+            if (rule.code === "    ") { // For debug statements in prakriya
+                return '';
+            } else {
+                return "https://ashtadhyayi.com/sutraani/" + rule.code;
+            }
         } else if (rule.source === "kaumudi") {
             return "https://ashtadhyayi.com/sutraani/sk" + rule.code;
         } else {
@@ -404,11 +410,14 @@ const App = () => ({
 
     stepClasses(step) {
         const code = step.rule.code;
-        let minor = new Set(["1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.3.5", "1.3.6", "1.3.7", "1.3.8", "1.3.9", "1.2.45", "1.2.46", "3.4.114", "1.1.43", "1.4.14",
-            "1.4.58", "1.4.59", "1.4.60", "1.4.80", "3.1.32", "6.1.4", "6.1.5", "8.4.68", "3.4.113", "2.3.48", "1.4.17", "2.3.49", "1.4.7",
+        let minor = new Set(["1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.3.5", "1.3.6", "1.3.7", "1.3.8", "1.3.9", "1.2.45", "1.2.46", "3.4.114", "1.1.43",
+            "1.4.58", "1.4.59", "1.4.60", "1.4.80", "6.1.4", "6.1.5", "8.4.68", "3.4.113", "2.3.48", "1.4.17", "2.3.49", "1.4.7",
         ]);
+        let samjna = new Set (["1.4.14", "3.1.32"]);
         if (minor.has(code)) {
             return ["opacity-40"];
+        } else if (samjna.has(code)) {
+            return ["bg-lime-200"];
         } else {
             return [];
         }

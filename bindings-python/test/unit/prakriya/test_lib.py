@@ -100,8 +100,8 @@ def test_prakriya():
         Step(source=a, code="3.4.113", result=[o("BU"), o("a"), c("ti")]),
         Step(source=a, code="1.4.13", result=[c("BU"), c("a"), c("ti")]),
         Step(source=a, code="7.3.84", result=[c("Bo"), o("a"), o("ti")]),
-        Step(source=a, code="1.4.14", result=[o("Bo"), o("a"), c("ti")]),
-        Step(source=a, code="6.1.78", result=[c("Bav"), o("a"), o("ti")]),
+        Step(source=a, code="6.1.78", result=[c("Bav"), o("a"), c("ti")]),
+        Step(source=a, code="1.4.14", result=[o("Bav"), o("a"), o("ti")]),
         Step(source=a, code="8.4.68", result=[o("Bav"), o("a"), o("ti")]),
     ]
 

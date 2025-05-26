@@ -63,7 +63,8 @@ impl<'a> SanadiPrakriya<'a> {
         });
 
         let i_pratyaya = i_base + 1;
-        p.add_tag_at("3.1.32", i_pratyaya, T::Dhatu);
+        // Trigger 3.1.32 processing by adding Dhatu tag.
+        p.get_mut(i_pratyaya).unwrap().add_tag(T::Dhatu);
         it_samjna::run(p, i_pratyaya).expect("ok")
     }
 

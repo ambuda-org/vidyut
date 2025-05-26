@@ -8,8 +8,8 @@ use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
 use crate::args::{Aupadeshika as Au, Aupadeshika};
 use crate::core::char_view::{CharIndex, IndexPrakriya};
-use crate::core::operators as op;
 use crate::core::Rule::Varttika;
+use crate::core::{operators as op, Tag};
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set, AC, HAL, JHAL};
@@ -655,7 +655,15 @@ pub fn run(p: &mut Prakriya) {
 
     let p = ip.into_p();
 
+    // This is an indicator of a 1.4.14 Pada samjna
+    let last_term = p.terms().last().unwrap();
+    if last_term.has_all_tags(&[Tag::Pada, Tag::Tin])
+        || last_term.has_all_tags(&[Tag::Pada, Tag::Sup])
+    {
+        p.step("1.4.14");
+    }
     // a a iti
+    // Note: devO,devAH,devAn,devEH etc. do not trigger the following rule
     if p.terms().iter().any(|t| t.text.contains('a')) {
         p.step("8.4.68");
     }

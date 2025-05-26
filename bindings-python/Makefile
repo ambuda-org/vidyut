@@ -4,7 +4,7 @@ VERBOSE ?= "-v"
 RELEASE ?=
 
 # Initializes the repository for local development.
-install: test
+install: develop test
 	@echo "vidyut-python built successfully."
 
 clean:
@@ -21,9 +21,10 @@ build:
 develop: build
 	uv run maturin develop $(RELEASE)
 
+.PHONY: test
 
 # Runs all Python-specific unit tests.
-test: develop
+test:
 	uv run pytest $(VERBOSE) test/unit/
 
 coverage-clean:

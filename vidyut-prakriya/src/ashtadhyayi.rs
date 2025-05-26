@@ -216,8 +216,11 @@ fn prepare_dhatu_inner(p: &mut Prakriya, dhatu: &Dhatu, args: MainArgs) -> Resul
         }
     }
 
-    let t = p.terms().last().unwrap();
-    if t.has_all_tags(&[Tag::Dhatu, Tag::Pratyaya]) {
+    if p.terms()
+        .last()
+        .unwrap()
+        .has_all_tags(&[Tag::Dhatu, Tag::Pratyaya])
+    {
         // This is an indicator of a 3.1.32 dhatu samjna
         p.step("3.1.32");
     }
