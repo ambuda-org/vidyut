@@ -245,7 +245,8 @@ pub fn try_run_for_pada_or_bha(p: &mut Prakriya) -> Option<()> {
                     }
                 });
             } else {
-                p.add_tag_at("1.4.14", i, T::Pada);
+                // Trigger 1.4.14 processing by adding Pada tag but display it in prakriya end
+                p.get_mut(i).unwrap().add_tag(T::Pada);
             }
         } else {
             let next = match p.pratyaya(i + 1) {

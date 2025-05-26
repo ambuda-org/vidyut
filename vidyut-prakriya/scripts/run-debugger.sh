@@ -16,7 +16,7 @@ if [ -z "$DEBUG" ]; then
   wasm-pack build --target web --release -- --features serde
   export HTTP_PORT=8000
   WWW_DIR=www-release
-  mkdir $WWW_DIR; cp www/* $WWW_DIR/
+  mkdir $WWW_DIR; cp -r www/* $WWW_DIR/
 else
   echo wasm-pack build --target web --debug -- --features serde
   wasm-pack build --target web --debug -- --features serde
