@@ -200,7 +200,7 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
             abhyasa.set_adi("");
         }
 
-        // For natva with Upsarga, the original FlagNaAdeshadi needs to be carried
+        // For natva with upasarga, the original FlagNaAdeshadi needs to be carried
         // over to the abhyasa. For eg. if "ni" is carried over when the upadesha avastha
         // is "RIY", then "pra" + "ni" (abhyasa) + "ni" (dhatu)  will not become "praRi".
         //

@@ -231,6 +231,7 @@ impl Term {
         self.text.bytes().next().map(|x| x as char)
     }
 
+    /// Returns the first sound in the term's aupadeshika form.
     pub fn u_adi(&self) -> Option<char> {
         self.u.as_ref()?.bytes().next().map(|x| x as char)
     }

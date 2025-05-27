@@ -661,6 +661,9 @@ pub fn run(p: &mut Prakriya) {
         || last_term.has_all_tags(&[Tag::Pada, Tag::Sup])
     {
         p.step("1.4.14");
+    } else if last_term.is_krt() || last_term.is_taddhita() || last_term.is_samasa() {
+        // Pratipadika samjna
+        p.step("1.2.46");
     }
     // a a iti
     // Note: devO,devAH,devAn,devEH etc. do not trigger the following rule

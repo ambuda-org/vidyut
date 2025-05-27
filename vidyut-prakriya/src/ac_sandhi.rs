@@ -359,26 +359,6 @@ pub fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-/* tbdasap: Hack perhaps is not needed
-fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
-    for i in 0..p.terms().len() {
-        let x = p.get(i)?;
-        let y = p.get(i + 1)?;
-
-        // HACK: duplicate 6.4.92 from the asiddhavat section for ci -> cAy, cap
-        if x.has_tag(T::mit) && x.has_text_in(&["cAy", "cA"]) && (y.is(S::Ric) || y.is(A::puk)) {
-            if x.has_text("cA") {
-                p.run_at("6.4.92", i, op::antya("a"));
-            } else {
-                p.run_at("6.4.92", i, op::upadha("a"));
-            }
-        }
-    }
-
-    Some(())
-}
-*/
-
 /// Runs antaranga ac-sandhi rules.
 ///
 /// (Example: div -> dyU + sa -> dudyUzati)
@@ -429,7 +409,5 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
         }
     }
     apply_general_ac_sandhi(p, index, p.len() - 1);
-    // hacky_apply_ni_asiddhavat_rules(p);
-
     Some(())
 }
