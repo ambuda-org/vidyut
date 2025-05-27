@@ -450,7 +450,8 @@ pub fn try_decide_pratipadika(p: &mut Prakriya) -> Option<()> {
             // do nothing. This can occur if we call `try_decide_pratipadika` on nested derivations
             // (e.g. samana containing pratipadikas).
         } else if t.is_krt() || t.is_taddhita() || t.is_samasa() {
-            p.add_tag_at("1.2.46", i, T::Pratipadika);
+            // Add tag here but print it later at end of prakriya
+            p.get_mut(i)?.add_tag(T::Pratipadika);
         } else if !t.is_empty()
             && !t.is_dhatu()
             && !t.is_pratyaya()
