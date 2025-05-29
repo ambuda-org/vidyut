@@ -1879,6 +1879,7 @@ dependencies = [
  "rustc-hash",
  "serde-wasm-bindgen",
  "unicode-normalization",
+ "vidyut-chandas",
  "wasm-bindgen",
 ]
 

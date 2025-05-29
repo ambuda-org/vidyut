@@ -12,6 +12,7 @@ mod reshape;
 mod scheme;
 mod transliterate;
 mod unicode_norm;
+pub mod uvts;
 pub mod wasm;
 
 pub use detect::detect;

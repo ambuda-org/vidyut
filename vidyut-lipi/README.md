@@ -4,7 +4,8 @@
 </div>
 
 `vidyut-lipi` is a transliteration library for Sanskrit and Pali that also
-supports many of the scripts used within the Indosphere. Our goal is to provide
+supports many of the scripts used within the Indosphere, including comprehensive
+support for Vedic texts with accent notation. Our goal is to provide
 a standard transliterator that is easy to bind to other programming languages.
 
 This [crate][crate] is under active development as part of the [Ambuda][ambuda]
@@ -125,7 +126,7 @@ for scheme in Scheme::iter() {
 }
 ```
 
-As of 2024-01-27, this code prints the following:
+As of 2025-01-29, this code prints the following:
 
 ```text
 Balinese        ᬲᬂᬲ᭄ᬓᬺᬢᬫ᭄
@@ -158,6 +159,7 @@ Telugu          సంస్కృతమ్
 Thai            สํสฺกฺฤตมฺ
 Tibetan         སཾསྐྲྀཏམ
 Tirhuta         𑒮𑓀𑒮𑓂𑒏𑒵𑒞𑒧𑓂
+Uvts            saMskRtam
 Velthuis        sa.msk.rtam
 Wx              saMskqwam
 ```
@@ -173,3 +175,51 @@ let mapping = Mapping::new(Scheme::HarvardKyoto, Scheme::Devanagari);
 let result = transliterate("saMskRtam", &mapping);
 assert_eq!(result, "संस्कृतम्");
 ```
+
+## Vedic Support
+
+`vidyut-lipi` provides comprehensive support for Vedic texts, including:
+
+### UVTS (Unified Vedic Transliteration Scheme)
+A new ASCII-safe encoding scheme specifically designed for Vedic texts:
+
+```rust
+use vidyut_lipi::{Lipika, Scheme};
+
+let mut lipika = Lipika::new();
+
+// Vedic text with accents using UVTS notation
+let uvts_text = "agni= ILe/ hota\\ puro/hitam"; // = (svarita), / (anudātta), \ (udātta)
+let devanagari = lipika.transliterate(uvts_text, Scheme::Uvts, Scheme::Devanagari);
+println!("{}", devanagari); // "अग्नि॑ ईळे॒ होत उदत्तa पुरो॒हितम्"
+```
+
+### Extended Scheme Support
+All major transliteration schemes now support Vedic characters:
+
+```rust
+use vidyut_lipi::{Lipika, Scheme};
+
+// Convert between any schemes preserving Vedic characters
+let mut lipika = Lipika::new();
+let devanagari_vedic = "अग्नि॑म् होताᳵ"; // With svarita (॑) and jihvāmūlīya (ᳵ)
+let iast = lipika.transliterate(devanagari_vedic, Scheme::Devanagari, Scheme::Iast);
+println!("{}", iast); // "agni॑m hotaḵ"
+
+let slp1 = lipika.transliterate(devanagari_vedic, Scheme::Devanagari, Scheme::Slp1);
+println!("{}", slp1); // "agni^m hotaZ"
+```
+
+### Advanced Features
+For detailed accent placement and musical notation:
+
+```rust
+use vidyut_lipi::uvts::devanagari_to_uvts_with_vedic_accents;
+
+// Automatic syllable-aware accent placement
+let devanagari = "अग्नि॑म्ईळे॒पुरो॒हितम्";
+let uvts = devanagari_to_uvts_with_vedic_accents(devanagari);
+println!("{}", uvts); // "agni=mILe/puro/hitam"
+```
+
+For complete documentation on Vedic features, see [SCHEME_EXTENSIONS.md](SCHEME_EXTENSIONS.md) and [UVTS_IMPLEMENTATION_NOTES.md](UVTS_IMPLEMENTATION_NOTES.md).

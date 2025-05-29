@@ -1291,3 +1291,162 @@ fn velthuis_basic() {
 fn test_mixed_content() {
     assert_transliterate("saMskftam 漢語", HarvardKyoto, Devanagari, "संस्क्फ़्तम् 漢語");
 }
+
+// UVTS tests
+// ----------
+
+#[test]
+fn uvts_basic() {
+    assert_two_way_pairwise(&[
+        (Slp1, "ka kA ki kI ku kU kf kF kx kX ke kE ko kO"),
+        (Uvts, "ka kA ki kI ku kU kR kq kL kQ ke kE ko kO"),
+        (Devanagari, "क का कि की कु कू कृ कॄ कॢ कॣ के कै को कौ"),
+    ]);
+}
+
+#[test]
+fn uvts_consonants() {
+    assert_two_way_pairwise(&[
+        (Slp1, "ka Ka ga Ga Na ca Ca ja Ja Ya"),
+        (Uvts, "ka Ka ga Ga fa ca Ca ja Ja Fa"),
+        (Devanagari, "क ख ग घ ङ च छ ज झ ञ"),
+    ]);
+    
+    assert_two_way_pairwise(&[
+        (Slp1, "wa Wa qa Qa Ra ta Ta da Da na"),
+        (Uvts, "wa Wa xa Xa Na ta Ta da Da na"),
+        (Devanagari, "ट ठ ड ढ ण त थ द ध न"),
+    ]);
+    
+    assert_two_way_pairwise(&[
+        (Slp1, "pa Pa ba Ba ma ya ra la va"),
+        (Uvts, "pa Pa ba Ba ma ya ra la va"),
+        (Devanagari, "प फ ब भ म य र ल व"),
+    ]);
+    
+    assert_two_way_pairwise(&[
+        (Slp1, "Sa za sa ha"),
+        (Uvts, "Sa za sa ha"),
+        (Devanagari, "श ष स ह"),
+    ]);
+}
+
+#[test]
+fn uvts_special_characters() {
+    assert_two_way_pairwise(&[
+        (Slp1, "aM aH"),
+        (Uvts, "aM aH"),
+        (Devanagari, "अं अः"),
+    ]);
+    
+    assert_two_way_pairwise(&[
+        (Slp1, "kza jYa"),
+        (Uvts, "kSa jFa"),
+        (Devanagari, "क्ष ज्ञ"),
+    ]);
+}
+
+#[test]
+fn uvts_numerals() {
+    assert_two_way_pairwise(&[
+        (Slp1, "0 1 2 3 4 5 6 7 8 9"),
+        (Uvts, "0 1 2 3 4 5 6 7 8 9"),
+        (Devanagari, "० १ २ ३ ४ ५ ६ ७ ८ ९"),
+    ]);
+}
+
+#[test]
+fn uvts_punctuation() {
+    assert_two_way_pairwise(&[
+        (Slp1, ". .."),
+        (Uvts, "| ||"),
+        (Devanagari, "। ॥"),
+    ]);
+}
+
+#[test]
+fn uvts_sample_text() {
+    assert_two_way_pairwise(&[
+        (Slp1, "saMskftam"),
+        (Uvts, "saMskRtam"),
+        (Devanagari, "संस्कृतम्"),
+    ]);
+    
+    assert_two_way_pairwise(&[
+        (Slp1, "Darma eva hato hanti Darmo rakzati rakzitaH"),
+        (Uvts, "Darma eva hato hanti Darmo rakSati rakSitaH"),
+        (Devanagari, "धर्म एव हतो हन्ति धर्मो रक्षति रक्षितः"),
+    ]);
+}
+
+#[test]
+fn uvts_advanced_features() {
+    use vidyut_lipi::uvts::{parse_uvts_accents, 
+                           add_regional_variant, RegionalVariant, parse_musical_notations};
+    
+    // Test parsing UVTS with accents
+    let uvts_with_accents = "a/gni\\m I/Le";
+    let parsed_accents = parse_uvts_accents(uvts_with_accents);
+    assert_eq!(parsed_accents.len(), 4);
+    assert_eq!(parsed_accents[0].text, "a");
+    assert_eq!(parsed_accents[1].text, "gni");
+    
+    // Test regional variants
+    let uvts = "namaste";
+    let with_region = add_regional_variant(uvts, RegionalVariant::Kerala);
+    assert_eq!(with_region, "namaste [kerala]");
+    
+    // Test musical notations
+    let samaveda = "agni+m I++Le puro^hita";
+    let musical_parts = parse_musical_notations(samaveda);
+    assert!(musical_parts.len() > 0);
+}
+
+#[test]
+fn extended_schemes_vedic_characters() {
+    // Test that major transliteration schemes now support Vedic characters
+    
+    // Test Vedic accents in various schemes
+    assert_two_way_pairwise(&[
+        (Slp1, "agni^ hotaZ"),  // SLP1 already had these
+        (HarvardKyoto, "agni̭ hotajhh"),  // Now extended
+        (Iast, "agni॑ hotaḵ"),  // Now extended
+        (Iso15919, "agni॑ hōtaẖ"), // Now extended (uses ẖ for jihvāmūlīya per ISO15919 standard)
+        (Uvts, "agni= hota{"),  // UVTS format
+        (Devanagari, "अग्नि॑ होतᳵ"),  // Devanagari with accents
+    ]);
+    
+    // Test jihvāmūlīya and upadhmānīya across schemes
+    assert_two_way_pairwise(&[
+        (Slp1, "aZ aV"),  // jihvāmūlīya, upadhmānīya
+        (HarvardKyoto, "ajhh aphh"),
+        (Iast, "aḵ aṗ"),
+        (Iso15919, "aẖ aḫ"),
+        (Uvts, "a{ a}"),
+        (Devanagari, "अᳵ अᳶ"),
+    ]);
+}
+
+#[test]
+fn extended_indic_scripts_vedic_characters() {
+    // Test that Indic scripts now support Vedic characters
+    
+    // Test jihvāmūlīya and upadhmānīya in Indic scripts
+    assert_two_way_pairwise(&[
+        (Slp1, "aZ aV"),
+        (Devanagari, "अᳵ अᳶ"),
+        (Tamil, "அக்‌ அப்‌"),
+        (Telugu, "అక్‌ అప్‌"),
+        (Malayalam, "അക്‌ അപ്‌"),
+        (Bengali, "অক্‌ অপ্‌"),
+        (Gujarati, "અક્‌ અપ્‌"),
+    ]);
+    
+    // Test that existing Vedic-complete scripts still work
+    assert_two_way_pairwise(&[
+        (Slp1, "aZ aV"),
+        (Devanagari, "अᳵ अᳶ"),
+        (Kannada, "ಅೱ ಅೲ"),  // Kannada has native characters
+        (Sharada, "𑆃𑇂 𑆃𑇃"),  // Sharada has native characters
+    ]);
+}

@@ -552,6 +552,9 @@ pub const BENGALI: &[(&str, &str)] = &[
     (DIRGHA_SVARITA, "᳚"),
     (CANDRABINDU_VIRAMA, "ৼ"),
     (ABBREVIATION_SIGN, "৽"),
+    // Vedic characters (Bengali approximations)
+    (JIHVAMULIYA, "ক্‌"),  // ka + virama + ZWNJ
+    (UPADHMANIYA, "প্‌"), // pa + virama + ZWNJ
     (E, "ऎ"),
     (O, "ऒ"),
     (SIGN_E, "ॆ"),
@@ -1632,6 +1635,9 @@ pub const GUJARATI: &[(&str, &str)] = &[
     (ANUDATTA, "॒"),
     (DIRGHA_SVARITA, "᳚"),
     (ABBREVIATION_SIGN, "૰"),
+    // Vedic characters (Gujarati approximations)
+    (JIHVAMULIYA, "ક્‌"),  // ka + virama + ZWNJ
+    (UPADHMANIYA, "પ્‌"), // pa + virama + ZWNJ
     (E, "ऎ"),
     (O, "ऒ"),
     (SIGN_E, "ॆ"),
@@ -2672,6 +2678,9 @@ pub const MALAYALAM: &[(&str, &str)] = &[
     (DIRGHA_SVARITA, "᳚"),
     (SIGN_AU, "ൌ"),
     (CANDRABINDU_VIRAMA, "ഄ"),
+    // Vedic characters (Malayalam approximations)
+    (JIHVAMULIYA, "ക്‌"),  // ka + virama + ZWNJ
+    (UPADHMANIYA, "പ്‌"), // pa + virama + ZWNJ
     (E, "എ"),
     (O, "ഒ"),
     (SIGN_E, "െ"),
@@ -4098,6 +4107,9 @@ pub const TAMIL: &[(&str, &str)] = &[
     (LLLA, "ழ"),
     (NNNA, "ன"),
     (TAMIL_AYTHAM, "ஃ"),
+    // Vedic characters (Tamil doesn't have specific glyphs, use combination)
+    (JIHVAMULIYA, "க்‌"),  // ka + virama + ZWNJ (approximation)
+    (UPADHMANIYA, "ப்‌"), // pa + virama + ZWNJ (approximation)
     (E, "எ"),
     (O, "ஒ"),
     (SIGN_E, "ெ"),
@@ -4193,6 +4205,9 @@ pub const TELUGU: &[(&str, &str)] = &[
     (ANUDATTA, "॒"),
     (DIRGHA_SVARITA, "᳚"),
     (NUKTA, "఼"),
+    // Vedic characters (Telugu approximations)
+    (JIHVAMULIYA, "క్‌"),  // ka + virama + ZWNJ
+    (UPADHMANIYA, "ప్‌"), // pa + virama + ZWNJ
     (E, "ఎ"),
     (O, "ఒ"),
     (SIGN_E, "ె"),
@@ -4824,6 +4839,11 @@ pub const HK: &[(&str, &str)] = &[
     (RRA, "r2"),
     (LLLA, "zh"),
     (NNNA, "n2"),
+    // Vedic accent marks
+    (SVARITA, "̭"),
+    (ANUDATTA, "॒"),
+    (JIHVAMULIYA, "jhh"),
+    (UPADHMANIYA, "phh"),
     (E, "è"),
     (O, "ò"),
     (SIGN_E, "è"),
@@ -4863,7 +4883,7 @@ pub const IAST: &[(&str, &str)] = &[
     (CANDRABINDU, "m̐"),
     (CANDRABINDU_VIRAMA, "m̐"),
     (VIRAMA, ""),
-    (SVARITA, "̭"),
+    (SVARITA, "॑"),
     (ANUDATTA, "॒"),
     (ATHARVAVEDA_INDEPENDENT_SVARITA, "̀"),
     (COMBINING_DIGIT_1, "́"),
@@ -4952,6 +4972,9 @@ pub const IAST: &[(&str, &str)] = &[
     (SIGN_RR, "r̥̄"),
     (COMBINING_DIGIT_1, "¹"),
     (CANDRABINDU, "̃"),
+    // Vedic accent marks (NOTE: SVARITA and ANUDATTA already exist in IAST above)
+    (JIHVAMULIYA, "ḵ"),  // IAST uses ḵ for jihvāmūlīya
+    (UPADHMANIYA, "ṗ"), // IAST uses ṗ for upadhmānīya
     (E, "è"),
     (O, "ò"),
     (SIGN_E, "è"),
@@ -4994,7 +5017,7 @@ pub const ISO_15919: &[(&str, &str)] = &[
     (CANDRABINDU, "m̐"),
     (VIRAMA, ""),
     (ZERO_WIDTH_JOINER, "{}"),
-    (SVARITA, "̭"),
+    (SVARITA, "॑"),
     (ANUDATTA, "॒"),
     (ATHARVAVEDA_INDEPENDENT_SVARITA, "̀"),
     (COMBINING_DIGIT_1, "́"),
@@ -5106,6 +5129,7 @@ pub const ISO_15919: &[(&str, &str)] = &[
     ("द्ह", "d:h"),
     ("प्ह", "p:h"),
     ("ब्ह", "b:h"),
+    // Vedic characters (NOTE: SVARITA, ANUDATTA, and UPADHMANIYA already exist in ISO15919 above)
     (E, "e"),
     (O, "o"),
     (SIGN_E, "e"),
@@ -5456,6 +5480,11 @@ pub const VELTHUIS: &[(&str, &str)] = &[
     (HIGH_SPACING_DOT, "#"),
     (RRA, "^r"),
     (YYA, ".y"),
+    // Vedic accent marks
+    (SVARITA, "\\accent"),  // Velthuis-style
+    (ANUDATTA, "/accent"), // Velthuis-style
+    (JIHVAMULIYA, ".jh"),  // Velthuis uses dots for special chars
+    (UPADHMANIYA, ".ph"), // Velthuis uses dots for special chars
     (E, "è"),
     (O, "ò"),
     (SIGN_E, "è"),
@@ -5544,8 +5573,104 @@ pub const WX: &[(&str, &str)] = &[
     (AVAGRAHA, "Z"),
     (DANDA, "."),
     (DOUBLE_DANDA, ".."),
+    // Vedic accent marks
+    (SVARITA, "="),  // WX-style
+    (ANUDATTA, "/"), // WX-style
+    (JIHVAMULIYA, "{"),  // WX uses braces
+    (UPADHMANIYA, "}"), // WX uses braces
     (E, "eV"),
     (O, "oV"),
     (SIGN_E, "eV"),
     (SIGN_O, "oV"),
+];
+
+pub const UVTS: &[(&str, &str)] = &[
+    (A, "a"),
+    (AA, "A"),
+    (I, "i"),
+    (II, "I"),
+    (U, "u"),
+    (UU, "U"),
+    (R, "R"),
+    (RR, "q"),
+    (L, "L"),
+    (LL, "Q"),
+    (EE, "e"),
+    (AI, "E"),
+    (OO, "o"),
+    (AU, "O"),
+    (SIGN_AA, "A"),
+    (SIGN_I, "i"),
+    (SIGN_II, "I"),
+    (SIGN_U, "u"),
+    (SIGN_UU, "U"),
+    (SIGN_R, "R"),
+    (SIGN_RR, "q"),
+    (SIGN_L, "L"),
+    (SIGN_LL, "Q"),
+    (SIGN_EE, "e"),
+    (SIGN_AI, "E"),
+    (SIGN_OO, "o"),
+    (SIGN_AU, "O"),
+    (ANUSVARA, "M"),
+    (VISARGA, "H"),
+    (CANDRABINDU, "~"),
+    (VIRAMA, ""),
+    (KA, "k"),
+    (KHA, "K"),
+    (GA, "g"),
+    (GHA, "G"),
+    (NGA, "f"),
+    (CA, "c"),
+    (CHA, "C"),
+    (JA, "j"),
+    (JHA, "J"),
+    (NYA, "F"),
+    (TTA, "w"),
+    (TTHA, "W"),
+    (DDA, "x"),
+    (DDHA, "X"),
+    (NNA, "N"),
+    (TA, "t"),
+    (THA, "T"),
+    (DA, "d"),
+    (DHA, "D"),
+    (NA, "n"),
+    (PA, "p"),
+    (PHA, "P"),
+    (BA, "b"),
+    (BHA, "B"),
+    (MA, "m"),
+    (YA, "y"),
+    (RA, "r"),
+    (LA, "l"),
+    (VA, "v"),
+    (SHA, "S"),
+    (SSA, "z"),
+    (SA, "s"),
+    (HA, "h"),
+    (LLA, "lY"),
+    (KSSA, "kS"),
+    (JNYA, "jF"),
+    (DIGIT_0, "0"),
+    (DIGIT_1, "1"),
+    (DIGIT_2, "2"),
+    (DIGIT_3, "3"),
+    (DIGIT_4, "4"),
+    (DIGIT_5, "5"),
+    (DIGIT_6, "6"),
+    (DIGIT_7, "7"),
+    (DIGIT_8, "8"),
+    (DIGIT_9, "9"),
+    (OM, "oM"),
+    (AVAGRAHA, "'"),
+    (DANDA, "|"),
+    (DOUBLE_DANDA, "||"),
+    // Vedic accent marks
+    (SVARITA, "="),  // svarita
+    (ANUDATTA, "/"),  // anudātta
+    // Note: udātta is marked with \ after the syllable in UVTS, not as a combining mark
+    // Additional markers that exist in the constants
+    (JIHVAMULIYA, "{"),
+    (UPADHMANIYA, "}"),
 ];

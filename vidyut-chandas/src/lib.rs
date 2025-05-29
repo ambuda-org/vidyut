@@ -2,7 +2,8 @@
 #![deny(missing_docs)]
 #![deny(clippy::unwrap_used)]
 
-mod akshara;
+/// Sanskrit syllable (akshara) analysis and syllabification.
+pub mod akshara;
 mod chandas;
 mod error;
 mod macros;
@@ -11,6 +12,6 @@ mod sounds;
 
 mod wasm;
 
-pub use akshara::{Akshara, Weight};
+pub use akshara::{scan_line, Akshara, Weight};
 pub use chandas::{Chandas, Match, Matches};
 pub use padya::{Jati, MatchType, Vrtta, VrttaPada, VrttaWeight};

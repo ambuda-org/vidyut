@@ -325,6 +325,20 @@ pub enum Scheme {
     ///
     /// TODO: find documentation link for WX.
     Wx,
+
+    /// Unified Vedic Transliteration Scheme (UVTS).
+    ///
+    /// An ASCII-safe encoding scheme that can represent all Vedic śākhās' accent systems,
+    /// regional pronunciation variants, and manuscript traditions using only ASCII characters (32-126).
+    ///
+    /// Features:
+    /// - Base character mappings for consonants and vowels
+    /// - Primary accent notation (udātta \, anudātta /, svarita =)
+    /// - Sāmaveda musical extensions
+    /// - Regional variant notation with bracketed suffixes
+    /// - Manuscript tradition markers
+    /// - Śākhā-specific extensions
+    Uvts,
 }
 
 impl Scheme {
@@ -389,6 +403,7 @@ impl Scheme {
             Tirhuta => "Tirh",
             Velthuis => "Latn",
             Wx => "Latn",
+            Uvts => "Latn",
             ZanabazarSquare => "Zanb",
         }
     }
@@ -454,6 +469,7 @@ impl Scheme {
             Tirhuta => 326,
             Velthuis => 215,
             Wx => 215,
+            Uvts => 215,
             ZanabazarSquare => 339,
         }
     }
@@ -523,6 +539,7 @@ impl Scheme {
             Tirhuta => 158,
             Velthuis => 25,
             Wx => 25,
+            Uvts => 25,
             ZanabazarSquare => 177,
         }
     }
@@ -581,6 +598,7 @@ impl Scheme {
             Tirhuta => auto::TIRHUTA,
             Velthuis => auto::VELTHUIS,
             Wx => auto::WX,
+            Uvts => auto::UVTS,
             ZanabazarSquare => auto::ZANABAZAR_SQUARE,
         }
     }
@@ -650,7 +668,7 @@ impl Scheme {
 
             // Alphabets are all `false`.
             BarahaSouth | HarvardKyoto | Iso15919 | Itrans | Iast | OlChiki | Slp1 | Velthuis
-            | Wx => false,
+            | Wx | Uvts => false,
         }
     }
 
@@ -803,6 +821,7 @@ scheme_utils![
     Tirhuta,
     Velthuis,
     Wx,
+    Uvts,
     ZanabazarSquare
 ];
 
@@ -838,7 +857,7 @@ mod tests {
                 | Kharoshthi | Khmer | Khudawadi | Limbu | Malayalam | MasaramGondi
                 | MeeteiMayek | Nandinagari | Modi | Mon | Newa | Odia | OlChiki | Saurashtra
                 | Sharada | Siddham | Sinhala | Slp1 | Soyombo | TaiTham | Takri | Tamil
-                | Telugu | Thai | Tibetan | Tirhuta | Velthuis | Wx | ZanabazarSquare => {
+                | Telugu | Thai | Tibetan | Tirhuta | Velthuis | Wx | Uvts | ZanabazarSquare => {
                     expected.push(*s);
                 }
             }
