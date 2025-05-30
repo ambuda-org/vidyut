@@ -552,9 +552,9 @@ pub const BENGALI: &[(&str, &str)] = &[
     (DIRGHA_SVARITA, "᳚"),
     (CANDRABINDU_VIRAMA, "ৼ"),
     (ABBREVIATION_SIGN, "৽"),
-    // Vedic characters (Bengali approximations)
-    (JIHVAMULIYA, "ক্‌"),  // ka + virama + ZWNJ
-    (UPADHMANIYA, "প্‌"), // pa + virama + ZWNJ
+    // Vedic characters (use Devanagari equivalents)
+    (JIHVAMULIYA, "ᳵ"),  // Devanagari Vedic character
+    (UPADHMANIYA, "ᳶ"), // Devanagari Vedic character
     (E, "ऎ"),
     (O, "ऒ"),
     (SIGN_E, "ॆ"),
@@ -1635,9 +1635,9 @@ pub const GUJARATI: &[(&str, &str)] = &[
     (ANUDATTA, "॒"),
     (DIRGHA_SVARITA, "᳚"),
     (ABBREVIATION_SIGN, "૰"),
-    // Vedic characters (Gujarati approximations)
-    (JIHVAMULIYA, "ક્‌"),  // ka + virama + ZWNJ
-    (UPADHMANIYA, "પ્‌"), // pa + virama + ZWNJ
+    // Vedic characters (use Devanagari equivalents)
+    (JIHVAMULIYA, "ᳵ"),  // Devanagari Vedic character
+    (UPADHMANIYA, "ᳶ"), // Devanagari Vedic character
     (E, "ऎ"),
     (O, "ऒ"),
     (SIGN_E, "ॆ"),
@@ -2678,9 +2678,9 @@ pub const MALAYALAM: &[(&str, &str)] = &[
     (DIRGHA_SVARITA, "᳚"),
     (SIGN_AU, "ൌ"),
     (CANDRABINDU_VIRAMA, "ഄ"),
-    // Vedic characters (Malayalam approximations)
-    (JIHVAMULIYA, "ക്‌"),  // ka + virama + ZWNJ
-    (UPADHMANIYA, "പ്‌"), // pa + virama + ZWNJ
+    // Vedic characters (use Devanagari equivalents)
+    (JIHVAMULIYA, "ᳵ"),  // Devanagari Vedic character
+    (UPADHMANIYA, "ᳶ"), // Devanagari Vedic character
     (E, "എ"),
     (O, "ഒ"),
     (SIGN_E, "െ"),
@@ -4108,8 +4108,8 @@ pub const TAMIL: &[(&str, &str)] = &[
     (NNNA, "ன"),
     (TAMIL_AYTHAM, "ஃ"),
     // Vedic characters (Tamil doesn't have specific glyphs, use combination)
-    (JIHVAMULIYA, "க்‌"),  // ka + virama + ZWNJ (approximation)
-    (UPADHMANIYA, "ப்‌"), // pa + virama + ZWNJ (approximation)
+    (JIHVAMULIYA, "ᳵ"),  // Devanagari Vedic character
+    (UPADHMANIYA, "ᳶ"), // Devanagari Vedic character
     (E, "எ"),
     (O, "ஒ"),
     (SIGN_E, "ெ"),
@@ -4206,8 +4206,8 @@ pub const TELUGU: &[(&str, &str)] = &[
     (DIRGHA_SVARITA, "᳚"),
     (NUKTA, "఼"),
     // Vedic characters (Telugu approximations)
-    (JIHVAMULIYA, "క్‌"),  // ka + virama + ZWNJ
-    (UPADHMANIYA, "ప్‌"), // pa + virama + ZWNJ
+    (JIHVAMULIYA, "ᳵ"),  // Devanagari Vedic character
+    (UPADHMANIYA, "ᳶ"), // Devanagari Vedic character
     (E, "ఎ"),
     (O, "ఒ"),
     (SIGN_E, "ె"),
