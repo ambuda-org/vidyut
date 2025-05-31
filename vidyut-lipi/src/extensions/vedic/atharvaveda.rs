@@ -18,4 +18,14 @@ impl VedicSakha for AtharvavedaSaunaka {
             ("_", "\u{0952}", VedicAccent::Anudatta),
         ]
     }
+    
+    fn phonetic_mappings(&self) -> Vec<(&'static str, &'static str)> {
+        vec![
+            // Vedic-specific characters common to all sakhas
+            ("L", "\u{0962}"),  // Vedic L
+            ("LL", "\u{0963}"), // Vedic LL
+            ("Z", "\u{1cf5}"),  // Upadhmaniya (ᳵ)
+            ("V", "\u{1cf6}"),  // Jihvamuliya (ᳶ)
+        ]
+    }
 }

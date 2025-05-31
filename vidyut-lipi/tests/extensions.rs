@@ -178,3 +178,22 @@ fn test_accent_count_preservation() {
     assert_eq!(deva_udatta, udatta_count, "Udatta count mismatch");
     assert_eq!(deva_anudatta, anudatta_count, "Anudatta count mismatch");
 }
+
+#[test]
+fn test_vedic_fricatives() {
+    let mut lipika = Lipika::new()
+        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+    
+    // Test upadhmaniya and jihvamuliya
+    let text_with_fricatives = "ka'Z ka'V"; // Z = upadhmaniya, V = jihvamuliya
+    let result = lipika.transliterate(text_with_fricatives, Scheme::Slp1, Scheme::Devanagari);
+    
+    // Should contain the Vedic fricatives
+    assert!(result.contains("\u{1cf5}"), "Should contain upadhmaniya (ᳵ). Result: {}", result);
+    assert!(result.contains("\u{1cf6}"), "Should contain jihvamuliya (ᳶ). Result: {}", result);
+    assert!(result.contains("\u{0951}"), "Should contain udatta marks. Result: {}", result);
+    
+    // Round-trip test
+    let back = lipika.transliterate(&result, Scheme::Devanagari, Scheme::Slp1);
+    assert_eq!(back, text_with_fricatives, "Round-trip should preserve fricatives and accents");
+}

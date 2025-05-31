@@ -35,6 +35,8 @@ impl VedicSakha for TaittiriyaYajurveda {
             // Vedic-specific characters
             ("L", "\u{0962}"),  // Vedic L
             ("LL", "\u{0963}"), // Vedic LL
+            ("Z", "\u{1cf5}"),  // Upadhmaniya (ᳵ)
+            ("V", "\u{1cf6}"),  // Jihvamuliya (ᳶ)
             
             // Word boundary markers (preserve as-is in transliteration)
             // These are semantic markers, not phonetic, so they pass through unchanged

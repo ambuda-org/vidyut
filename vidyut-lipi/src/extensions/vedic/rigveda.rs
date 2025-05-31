@@ -29,6 +29,10 @@ impl VedicSakha for RigvedaShakala {
             ("L", "\u{0962}"),  // Vedic vowel L
             ("LL", "\u{0963}"), // Vedic vowel LL
             
+            // Vedic fricatives (important for Rigveda)
+            ("Z", "\u{1cf5}"),  // Upadhmaniya (ᳵ)
+            ("V", "\u{1cf6}"),  // Jihvamuliya (ᳶ)
+            
             // Anusvara variations
             ("M~", "\u{0901}"), // Candrabindu for nasalization
             
