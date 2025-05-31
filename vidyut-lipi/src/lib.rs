@@ -5,6 +5,7 @@
 mod autogen_schemes;
 mod detect;
 mod errors;
+pub mod extensions;
 mod lipika;
 mod mapping;
 mod numerals;
@@ -16,6 +17,6 @@ pub mod wasm;
 
 pub use detect::detect;
 pub use lipika::Lipika;
-pub use mapping::Mapping;
+pub use mapping::{Mapping, SpanKind};
 pub use scheme::Scheme;
 pub use transliterate::transliterate;

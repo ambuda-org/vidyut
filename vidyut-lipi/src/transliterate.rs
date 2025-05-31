@@ -44,7 +44,13 @@ pub fn transliterate(input: impl AsRef<str>, mapping: &Mapping) -> String {
 /// pass. For more complex scheme pairs (such as `Tibetan` to `Khmer`), this code will make three
 /// passes total.
 fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
-    let input = reshape_before(input, mapping.from());
+    // Apply extension pre-processing
+    let mut input = input.to_string();
+    for extension in &mapping.extensions {
+        input = extension.pre_process(&input);
+    }
+    
+    let input = reshape_before(&input, mapping.from());
 
     let is_to_alphabet = mapping.to.is_alphabet();
     let is_to_abugida = mapping.to.is_abugida();
@@ -203,7 +209,14 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
         }
     }
 
-    reshape_after(output, mapping.to())
+    let mut output = reshape_after(output, mapping.to());
+    
+    // Apply extension post-processing
+    for extension in &mapping.extensions {
+        output = extension.post_process(&output);
+    }
+    
+    output
 }
 
 /// Finds the end byte of a sequence of numerals starting at byte offset `i`.

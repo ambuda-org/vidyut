@@ -1,7 +1,9 @@
 //! Creates maps between different schemes.   
 
+use crate::extensions::TransliterationExtension;
 use crate::scheme::Scheme;
 use rustc_hash::{FxHashMap, FxHashSet};
+use std::sync::Arc;
 
 /// A mapping between a span of input text and a span of output text.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -36,7 +38,7 @@ impl Span {
 
 /// Models how a token behaves in relation to other tokens.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-pub(crate) enum SpanKind {
+pub enum SpanKind {
     /// A consonant. A following vowel is generally a vowel mark.
     Consonant,
     /// A vowel mark, which generally must follow a consonant.
@@ -255,7 +257,7 @@ impl OneWayMapping {
 }
 
 /// Defines a mapping between two schemes.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone)]
 pub struct Mapping {
     pub(crate) from: Scheme,
     pub(crate) to: Scheme,
@@ -269,6 +271,9 @@ pub struct Mapping {
     pub(crate) int_to_numeral: FxHashMap<u32, String>,
 
     tokens_by_first_char: FxHashMap<char, Vec<Span>>,
+    
+    /// Extensions applied to this mapping
+    pub(crate) extensions: Vec<Arc<dyn TransliterationExtension>>,
 }
 
 impl Mapping {
@@ -415,7 +420,25 @@ impl Mapping {
             numeral_to_int,
             int_to_numeral,
             tokens_by_first_char,
+            extensions: Vec::new(),
         }
+    }
+    
+    /// Creates a new mapping with extensions.
+    pub(crate) fn with_extensions(
+        from: Scheme,
+        to: Scheme,
+        extensions: Vec<Arc<dyn TransliterationExtension>>,
+    ) -> Self {
+        let mut mapping = Self::new(from, to);
+        
+        // Apply each extension
+        for extension in &extensions {
+            extension.extend_mapping(&mut mapping);
+        }
+        
+        mapping.extensions = extensions;
+        mapping
     }
 
     /// The source scheme.
@@ -436,6 +459,29 @@ impl Mapping {
         match self.tokens_by_first_char.get(&c) {
             Some(v) => v,
             None => &[],
+        }
+    }
+    
+    /// Adds a new mapping to this `Mapping`.
+    ///
+    /// This is used by extensions to add custom character mappings.
+    pub fn add_mapping(&mut self, from: &str, to: &str, kind: SpanKind) {
+        let span = Span::new(from.to_string(), to.to_string(), kind);
+        
+        // Add to main mapping
+        self.all.insert(from.to_string(), span.clone());
+        
+        // Add to marks if it's a vowel mark
+        if kind == SpanKind::VowelMark {
+            self.marks.insert(from.to_string(), to.to_string());
+        }
+        
+        // Update tokens_by_first_char
+        if let Some(first_char) = from.chars().next() {
+            self.tokens_by_first_char
+                .entry(first_char)
+                .or_insert_with(Vec::new)
+                .push(span);
         }
     }
 

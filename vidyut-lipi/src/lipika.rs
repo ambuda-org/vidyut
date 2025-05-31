@@ -1,8 +1,10 @@
 //! Provides a convenient transliteration API for end users.
 
+use crate::extensions::TransliterationExtension;
 use crate::mapping::Mapping;
 use crate::scheme::Scheme;
 use crate::transliterate::transliterate;
+use std::sync::Arc;
 
 // Size of the internal `Vec` cache. We search this cache with a linear scan, so keep this small.
 const CACHE_CAPACITY: usize = 10;
@@ -12,7 +14,7 @@ const CACHE_CAPACITY: usize = 10;
 /// While creating a `Mapping` is cheap, doing so repeatedly within an inner loop will add some
 /// unnecessary overhead. So, cache common mappings so that callers can reuse them. Essentially, we
 /// are memoizing the `Mapping` constructor.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone)]
 struct CachedMapping {
     /// A "timestamp" that represents when the mapping was last used.
     stamp: i32,
@@ -20,6 +22,8 @@ struct CachedMapping {
     from: Scheme,
     /// The destination scheme.
     to: Scheme,
+    /// Extensions applied to this mapping.
+    extensions: Vec<Arc<dyn TransliterationExtension>>,
     /// The mapping between `from` and `to`.
     mapping: Mapping,
 }
@@ -52,13 +56,15 @@ struct CachedMapping {
 /// let original = lipika.transliterate(deva, detected, Scheme::HarvardKyoto);
 /// assert_eq!(original, "saMskRtam");
 /// ```
-#[derive(Clone, Default, Eq, PartialEq)]
+#[derive(Clone, Default)]
 pub struct Lipika {
     cache: Vec<CachedMapping>,
     // Indicates when a mapping was last used.
     //
     // Use an i32 so that we can safely overflow (if in a long-running process)
     next_stamp: i32,
+    // Current extension applied to all transliterations
+    current_extension: Option<Arc<dyn TransliterationExtension>>,
 }
 
 impl Lipika {
@@ -67,7 +73,16 @@ impl Lipika {
         Self {
             cache: Vec::new(),
             next_stamp: 0,
+            current_extension: None,
         }
+    }
+    
+    /// Adds an extension to this `Lipika` instance.
+    ///
+    /// The extension will be applied to all subsequent transliterations.
+    pub fn with_extension(mut self, extension: Box<dyn TransliterationExtension>) -> Self {
+        self.current_extension = Some(Arc::from(extension));
+        self
     }
 
     /// Transliterates the given input text.
@@ -84,7 +99,7 @@ impl Lipika {
 
     /// Finds an existing mapping to reuse, or creates one if absent.
     ///
-    /// This code assumes that a `Mapping` is a pure function of `from` and `to`.
+    /// This code assumes that a `Mapping` is a pure function of `from`, `to`, and extensions.
     fn find_or_create_mapping(&mut self, from: Scheme, to: Scheme) -> &Mapping {
         self.next_stamp = match self.next_stamp.checked_add(1) {
             Some(i) => i,
@@ -99,8 +114,18 @@ impl Lipika {
             }
         };
 
-        // Check the cache. For now, assume that a `Mapping` is a pure function of `from` and `to`.
-        if let Some(i) = self.cache.iter().position(|x| x.from == from && x.to == to) {
+        let extensions = self.current_extension.iter().cloned().collect::<Vec<_>>();
+        let extensions_match = |cached: &[Arc<dyn TransliterationExtension>]| {
+            cached.len() == extensions.len()
+                && cached.iter().zip(extensions.iter()).all(|(a, b)| Arc::ptr_eq(a, b))
+        };
+
+        // Check the cache. Assume that a `Mapping` is a pure function of `from`, `to`, and extensions.
+        if let Some(i) = self
+            .cache
+            .iter()
+            .position(|x| x.from == from && x.to == to && extensions_match(&x.extensions))
+        {
             // Cache hit.
             self.cache[i].stamp = self.next_stamp;
             &self.cache[i].mapping
@@ -119,11 +144,18 @@ impl Lipika {
                 }
             }
 
+            let mapping = if extensions.is_empty() {
+                Mapping::new(from, to)
+            } else {
+                Mapping::with_extensions(from, to, extensions.clone())
+            };
+
             let entry = CachedMapping {
                 stamp: self.next_stamp,
                 from,
                 to,
-                mapping: Mapping::new(from, to),
+                extensions,
+                mapping,
             };
             self.cache.push(entry);
             &self.cache.last().expect("just pushed").mapping
