@@ -35,12 +35,15 @@ impl VedicSakha for TaittiriyaYajurveda {
             // Vedic-specific characters
             ("L", "\u{0962}"),  // Vedic L
             ("LL", "\u{0963}"), // Vedic LL
+            
+            // Word boundary markers (preserve as-is in transliteration)
+            // These are semantic markers, not phonetic, so they pass through unchanged
         ]
     }
     
     fn pre_process(&self, text: &str) -> String {
-        // Handle Baraha-style annotations while preserving accents
-        // Only remove the sandhi break marker " - " but keep all accent marks
-        text.replace(" - ", "")  // Remove sandhi break markers only
+        // Preserve all text including pada markers (| and " - ")
+        // These are linguistic markers that should pass through transliteration
+        text.to_string()
     }
 }

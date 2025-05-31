@@ -217,7 +217,7 @@ fn test_accent_consistency_across_scripts() {
         let ascii_anudatta = result.matches('_').count();
         
         let total_udatta = udatta_count + ascii_udatta;
-        let total_anudatta = anudatta_count + ascii_anudatta;
+        let _total_anudatta = anudatta_count + ascii_anudatta;
         
         assert_eq!(
             total_udatta, expected_udatta,
@@ -226,10 +226,11 @@ fn test_accent_consistency_across_scripts() {
         );
         
         // Note: Some scripts might not distinguish all accent types
+        // Just check that we got a result - anudatta count varies by script
         assert!(
-            total_anudatta >= 0,
-            "Anudatta should be preserved for {:?}. Result: {}",
-            script, result
+            !result.is_empty(),
+            "Result should not be empty for {:?}",
+            script
         );
     }
 }
