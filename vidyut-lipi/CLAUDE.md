@@ -23,6 +23,22 @@ This file tracks ongoing development work and PRs that need attention.
 - [ ] Address any requested changes
 - [ ] Update tests if needed
 - [ ] Resolve any merge conflicts
+- [ ] Update PR demonstration comment after each commit
+
+**PR Demonstration Comments**:
+- **Purpose**: Track sakha-specific Vedic transliteration with real examples over time
+- **Data Source**: Authentic Vedic verses with udātta/anudātta marks from udapaana corpus
+- **Verses Used**:
+  - RV 1.1.1 (RigvedaShakala extension)
+  - AV 2.1.1 (AtharvavedaSaunaka extension) 
+  - SV 1.1.1 (SamavedaKauthuma extension)
+  - TS 1.1.1.1 (TaittiriyaYajurveda extension)
+- **Scripts Demonstrated**: Devanagari, Telugu, ISO 15919, WX (sakha-specific)
+- **Update Script**: `create_pr_comment_with_accents.py` 
+- **Update Command**: `gh pr comment https://github.com/ambuda-org/vidyut/pull/204 --body "$(python3 create_pr_comment_with_accents.py)"`
+- **Update Strategy**: Add new comment after each significant commit to track progress
+- **Comment History**:
+  - 2925895271: Initial sakha-specific demonstration (2025-01-31)
 
 **Files Changed**:
 - Core: `src/lib.rs`, `src/lipika.rs`, `src/mapping.rs`, `src/transliterate.rs`

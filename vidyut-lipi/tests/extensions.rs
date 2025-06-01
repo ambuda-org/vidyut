@@ -1,7 +1,7 @@
 //! Tests for the extension system.
 
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_lipi::extensions::vedic::{RigvedaShakala, TaittiriyaYajurveda, VedicExtension};
+use vidyut_lipi::extensions::vedic::{rigveda_shakala, yajurveda_taittiriya};
 
 #[test]
 fn test_basic_transliteration_without_extension() {
@@ -13,7 +13,7 @@ fn test_basic_transliteration_without_extension() {
 #[test]
 fn test_rigveda_extension() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Test basic text
     let result = lipika.transliterate("namaste", Scheme::HarvardKyoto, Scheme::Devanagari);
@@ -35,7 +35,7 @@ fn test_rigveda_extension() {
 #[test]
 fn test_rigveda_pre_processing() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Test numeric accent conversion
     let result = lipika.transliterate("soma3", Scheme::Wx, Scheme::Devanagari);
@@ -48,7 +48,7 @@ fn test_rigveda_pre_processing() {
 #[test]
 fn test_extension_caching() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Multiple transliterations should use cached mapping
     for _ in 0..5 {
@@ -60,7 +60,7 @@ fn test_extension_caching() {
 #[test]
 fn test_extension_with_different_schemes() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Test WX to IAST
     let result = lipika.transliterate("agni'", Scheme::Wx, Scheme::Iast);
@@ -94,9 +94,9 @@ fn test_round_trip_accent_preservation() {
     for (from_scheme, to_scheme) in scheme_pairs {
         for test_case in &test_cases {
             let mut forward_lipika = Lipika::new()
-                .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+                .with_extension(rigveda_shakala());
             let mut reverse_lipika = Lipika::new()
-                .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+                .with_extension(rigveda_shakala());
             
             // Forward transliteration
             let intermediate = forward_lipika.transliterate(test_case, from_scheme, to_scheme);
@@ -131,9 +131,9 @@ fn test_complex_round_trip_preservation() {
     // Test Rigveda
     for test_case in rigveda_tests {
         let mut forward = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         let mut reverse = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         
         // HK -> Devanagari -> HK
         let deva = forward.transliterate(test_case, Scheme::HarvardKyoto, Scheme::Devanagari);
@@ -145,9 +145,9 @@ fn test_complex_round_trip_preservation() {
     // Test Taittiriya
     for test_case in taittiriya_tests {
         let mut forward = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+            .with_extension(yajurveda_taittiriya());
         let mut reverse = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+            .with_extension(yajurveda_taittiriya());
         
         // HK -> Devanagari -> HK
         let deva = forward.transliterate(test_case, Scheme::HarvardKyoto, Scheme::Devanagari);
@@ -160,7 +160,7 @@ fn test_complex_round_trip_preservation() {
 #[test]
 fn test_accent_count_preservation() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     let text = "a'gni_m I'Le_ puro'hita_m";
     
@@ -182,7 +182,7 @@ fn test_accent_count_preservation() {
 #[test]
 fn test_vedic_fricatives() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Test upadhmaniya and jihvamuliya
     let text_with_fricatives = "ka'Z ka'V"; // Z = upadhmaniya, V = jihvamuliya
