@@ -73,14 +73,14 @@ fn test_extension_with_different_schemes() {
 
 #[test]
 fn test_round_trip_accent_preservation() {
-    // Test cases with various accent patterns
+    // Test cases with various accent patterns (updated to new ASCII-only WX)
     let test_cases = vec![
-        "a'gni_m I'le puro'hitam",  // Multiple accents (lowercase L)
-        "ya'jasya de'vam Rtvi'jam",  // Accents on different syllables
-        "ho'tAram ratna'dhAtamam",   // Mixed case with accents
-        "agni' agni_",               // Adjacent words with different accents
-        "'indra_sya",                // Accent at word beginning
-        "soma'",                     // Accent at word end
+        "a=gni_m I=le puro=hitam",  // Multiple accents (lowercase L)
+        "ya=jasya de=vam Rtvi=jam",  // Accents on different syllables
+        "ho=tAram ratna=dhAtamam",   // Mixed case with accents
+        "agni= agni_",               // Adjacent words with different accents
+        "=indra_sya",                // Accent at word beginning
+        "soma=",                     // Accent at word end
     ];
     
     // Test round-trip for each scheme pair
@@ -117,9 +117,9 @@ fn test_round_trip_accent_preservation() {
 fn test_complex_round_trip_preservation() {
     // Test with different sakhas
     let rigveda_tests = vec![
-        "agni'mI_le puro'hitam",
-        "ya'jJasya de_vam",
-        "'agnA_ye",
+        "agni=mI_le puro=hitam",
+        "ya=jJasya de_vam",
+        "=agnA_ye",
     ];
     
     let taittiriya_tests = vec![
@@ -162,10 +162,10 @@ fn test_accent_count_preservation() {
     let mut lipika = Lipika::new()
         .with_extension(rigveda_shakala());
     
-    let text = "a'gni_m I'Le_ puro'hita_m";
+    let text = "a=gni_m I=Le_ puro=hita_m";
     
-    // Count accents in original
-    let udatta_count = text.matches('\'').count();
+    // Count accents in original (using new ASCII-only notation)
+    let udatta_count = text.matches('=').count();
     let anudatta_count = text.matches('_').count();
     
     // Transliterate to Devanagari
@@ -184,8 +184,8 @@ fn test_vedic_fricatives() {
     let mut lipika = Lipika::new()
         .with_extension(rigveda_shakala());
     
-    // Test upadhmaniya and jihvamuliya
-    let text_with_fricatives = "ka'Z ka'V"; // Z = upadhmaniya, V = jihvamuliya
+    // Test upadhmaniya and jihvamuliya (updated to new ASCII-only WX)
+    let text_with_fricatives = "ka=Z ka=V"; // Z = jihvamuliya, V = upadhmaniya
     let result = lipika.transliterate(text_with_fricatives, Scheme::Slp1, Scheme::Devanagari);
     
     // Should contain the Vedic fricatives

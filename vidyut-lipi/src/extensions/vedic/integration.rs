@@ -61,19 +61,20 @@ impl TransliterationExtension for UnifiedVedicExtension {
             }
             // From Devanagari to WX: map Unicode marks to ASCII
             (crate::Scheme::Devanagari, crate::Scheme::Wx) => {
-                mapping.add_mapping("\u{0951}", "'", SpanKind::Accent); // udatta (prefer legacy for back-compat)
+                mapping.add_mapping("\u{0951}", "=", SpanKind::Accent); // udatta (new ASCII-only)
                 mapping.add_mapping("\u{0952}", "_", SpanKind::Accent); // anudatta
                 mapping.add_mapping("\u{0953}", "~", SpanKind::Accent); // pracaya
                 mapping.add_mapping("\u{0971}", "*", SpanKind::Accent); // kampa
             }
             // From any ASCII scheme to Devanagari: map simple accents
             (from, crate::Scheme::Devanagari) if from.is_alphabet() => {
-                mapping.add_mapping("'", "\u{0951}", SpanKind::Accent); // udatta
+                mapping.add_mapping("=", "\u{0951}", SpanKind::Accent); // udatta (new)
+                mapping.add_mapping("'", "\u{0951}", SpanKind::Accent); // udatta (legacy)
                 mapping.add_mapping("_", "\u{0952}", SpanKind::Accent); // anudatta
             }
             // From Devanagari to any ASCII scheme: reverse mapping
             (crate::Scheme::Devanagari, to) if to.is_alphabet() => {
-                mapping.add_mapping("\u{0951}", "'", SpanKind::Accent); // udatta
+                mapping.add_mapping("\u{0951}", "=", SpanKind::Accent); // udatta (new ASCII-only)
                 mapping.add_mapping("\u{0952}", "_", SpanKind::Accent); // anudatta
             }
             // For other combinations, add basic mappings
