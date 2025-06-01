@@ -1,5 +1,6 @@
 use clap::Parser;
 use vidyut_lipi::{Lipika, Scheme};
+use vidyut_lipi::extensions::vedic::{rigveda_shakala, samaveda_kauthuma, yajurveda_taittiriya, atharvaveda_shaunaka};
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 enum ClapScheme {
@@ -66,6 +67,14 @@ impl From<ClapScheme> for Scheme {
     }
 }
 
+#[derive(clap::ValueEnum, Clone, Debug)]
+enum VedicExtension {
+    RigvedaShakala,
+    SamavedaKauthuma,
+    YajurvedaTaittiriya,
+    AtharvavedaShaunaka,
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Args {
@@ -77,12 +86,27 @@ struct Args {
     #[arg(short, long)]
     to: ClapScheme,
 
+    /// Optional Vedic extension to apply.
+    #[arg(long)]
+    vedic_extension: Option<VedicExtension>,
+
     /// The text to transliterate.
     text: String,
 }
 
 fn run(args: Args) {
     let mut lipika = Lipika::new();
+    
+    // Apply Vedic extension if specified
+    if let Some(extension) = args.vedic_extension {
+        lipika = match extension {
+            VedicExtension::RigvedaShakala => lipika.with_extension(rigveda_shakala()),
+            VedicExtension::SamavedaKauthuma => lipika.with_extension(samaveda_kauthuma()),
+            VedicExtension::YajurvedaTaittiriya => lipika.with_extension(yajurveda_taittiriya()),
+            VedicExtension::AtharvavedaShaunaka => lipika.with_extension(atharvaveda_shaunaka()),
+        };
+    }
+    
     let result = lipika.transliterate(args.text, args.from.into(), args.to.into());
     println!("{result}");
 }
