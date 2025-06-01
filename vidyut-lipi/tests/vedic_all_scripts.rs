@@ -1,7 +1,7 @@
 //! Tests demonstrating Vedic extensions work across all Indic and Roman scripts.
 
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_lipi::extensions::vedic::{RigvedaShakala, VedicExtension};
+use vidyut_lipi::extensions::vedic::rigveda_shakala;
 
 #[test]
 fn test_vedic_across_all_indic_scripts() {
@@ -31,9 +31,9 @@ fn test_vedic_across_all_indic_scripts() {
     
     for target_script in indic_scripts {
         let mut forward_lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         let mut reverse_lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         
         // Transliterate to target script
         let result = forward_lipika.transliterate(verse, Scheme::HarvardKyoto, target_script);
@@ -78,9 +78,9 @@ fn test_vedic_across_all_roman_scripts() {
         }
         
         let mut forward_lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         let mut reverse_lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         
         // Transliterate to target scheme
         let result = forward_lipika.transliterate(verse, Scheme::HarvardKyoto, target_scheme);
@@ -134,7 +134,7 @@ fn test_vedic_multi_script_chain() {
     
     for next_scheme in chain.iter().skip(1) {
         let mut lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         
         current = lipika.transliterate(&current, current_scheme, *next_scheme);
         current_scheme = *next_scheme;
@@ -175,7 +175,7 @@ fn test_vedic_special_scripts() {
     
     for (script, description) in special_scripts {
         let mut lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         
         let result = lipika.transliterate(verse, Scheme::HarvardKyoto, script);
         
@@ -204,7 +204,7 @@ fn test_accent_consistency_across_scripts() {
     
     for script in all_scripts {
         let mut lipika = Lipika::new()
-            .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+            .with_extension(rigveda_shakala());
         
         let result = lipika.transliterate(verse, Scheme::HarvardKyoto, script);
         

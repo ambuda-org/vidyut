@@ -1,7 +1,7 @@
 //! Generate demo output for PR comment
 
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_lipi::extensions::vedic::{VedicExtension, RigvedaShakala, TaittiriyaYajurveda, SamavedaKauthuma, AtharvavedaSaunaka};
+use vidyut_lipi::extensions::vedic::{rigveda_shakala, yajurveda_taittiriya, samaveda_kauthuma, atharvaveda_shaunaka};
 
 #[test]
 fn generate_pr_demo_output() {
@@ -12,7 +12,7 @@ fn generate_pr_demo_output() {
     println!("## 🕉️ Rigveda Shakala Tests\n");
     
     let mut rigveda_lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Famous opening verse of Rigveda (1.1.1)
     let verse1 = "agni'mI_le puro'hitam ya'jJasya de'vam Rtvi'jam |";
@@ -30,7 +30,7 @@ fn generate_pr_demo_output() {
     println!("## 🔥 Taittiriya Yajurveda Tests\n");
     
     let mut yajurveda_lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+        .with_extension(yajurveda_taittiriya());
     
     // Opening of Taittiriya Samhita
     let verse3 = "i#She tvo#rje tvA# vA#yavaqH sthaq de#vo vaqH savitA# |";
@@ -42,7 +42,7 @@ fn generate_pr_demo_output() {
     println!("## 🎵 Samaveda Kauthuma Tests\n");
     
     let mut samaveda_lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(SamavedaKauthuma)));
+        .with_extension(samaveda_kauthuma());
     
     // Samaveda with musical notation
     let verse4 = "agn1e2 A3 yA2hi vI1taye2 gRNa3no2 havya1dA2taye3 |";
@@ -54,7 +54,7 @@ fn generate_pr_demo_output() {
     println!("## 🕊️ Atharvaveda Saunaka Tests\n");
     
     let mut atharvaveda_lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(AtharvavedaSaunaka)));
+        .with_extension(atharvaveda_shaunaka());
     
     // Atharvaveda verse
     let verse5 = "bhadram kar'Nebhih SrNuya_ma devAH bhadram paS'ye_mAkSa_bhir yajatrAH |";

@@ -19,11 +19,13 @@ This file tracks ongoing development work and PRs that need attention.
 - Works with 40+ scripts
 
 **Action Items**:
+- [x] Fixed Telugu punctuation mapping (danda ॑ now correctly preserved)
+- [x] Updated test imports to use new factory functions
 - [ ] Monitor PR for review comments
 - [ ] Address any requested changes
 - [ ] Update tests if needed
 - [ ] Resolve any merge conflicts
-- [ ] Update PR demonstration comment after each commit
+- [x] Update PR demonstration comment after each commit
 
 **PR Demonstration Comments**:
 - **Purpose**: Track sakha-specific Vedic transliteration with real examples over time
@@ -40,6 +42,7 @@ This file tracks ongoing development work and PRs that need attention.
 - **Comment History**:
   - 2925895271: Initial sakha-specific demonstration (2025-01-31)
   - 2926311811: Requirements-based system demonstration (2025-01-31)
+  - [Next]: Telugu punctuation fix and test updates (2025-01-31)
 
 **Files Changed**:
 - Core: `src/lib.rs`, `src/lipika.rs`, `src/mapping.rs`, `src/transliterate.rs`

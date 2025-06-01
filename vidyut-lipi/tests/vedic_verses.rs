@@ -2,13 +2,13 @@
 
 use vidyut_lipi::{Lipika, Scheme};
 use vidyut_lipi::extensions::vedic::{
-    RigvedaShakala, TaittiriyaYajurveda, SamavedaKauthuma, AtharvavedaSaunaka, VedicExtension
+    rigveda_shakala, yajurveda_taittiriya, samaveda_kauthuma, atharvaveda_shaunaka
 };
 
 #[test]
 fn test_taittiriya_yajurveda_verse() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+        .with_extension(yajurveda_taittiriya());
     
     // First verse of Taittiriya Samhita (1.1.1.1) adapted to HK
     // Using # for udatta and q for anudatta as per TY convention
@@ -27,7 +27,7 @@ fn test_taittiriya_yajurveda_verse() {
 #[test]
 fn test_taittiriya_with_phonetic_annotations() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+        .with_extension(yajurveda_taittiriya());
     
     // Example with special phonetic annotation
     let text = "dRu(gm)ha#svaq";
@@ -41,7 +41,7 @@ fn test_taittiriya_with_phonetic_annotations() {
 #[test]
 fn test_rigveda_verse() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Famous Gayatri mantra with accents
     // tat savitur varenyam (with appropriate accent marks)
@@ -55,7 +55,7 @@ fn test_rigveda_verse() {
 #[test]
 fn test_samaveda_musical_notation() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(SamavedaKauthuma)));
+        .with_extension(samaveda_kauthuma());
     
     // Samaveda uses numeric notation for musical tones
     let verse = "agna1 A2 ya3hi";
@@ -68,7 +68,7 @@ fn test_samaveda_musical_notation() {
 #[test]
 fn test_atharvaveda_verse() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(AtharvavedaSaunaka)));
+        .with_extension(atharvaveda_shaunaka());
     
     // Atharvaveda verse with simple accent marking
     let verse = "bhadram kar'Nebhih";
@@ -81,7 +81,7 @@ fn test_atharvaveda_verse() {
 #[test] 
 fn test_complex_sandhi_with_accents() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+        .with_extension(yajurveda_taittiriya());
     
     // Complex sandhi with accents
     let text = "aGaSaMsa# ityaGa";
@@ -97,7 +97,7 @@ fn test_complex_sandhi_with_accents() {
 #[test]
 fn test_verse_with_danda() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Verse with danda markers
     let verse = "om bhUr bhu'vah svah |";
@@ -110,7 +110,7 @@ fn test_verse_with_danda() {
 #[test]
 fn test_multiple_accent_types() {
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+        .with_extension(yajurveda_taittiriya());
     
     // Text with multiple accent types
     let text = "sa#tyam bRha#d Rtaqm ugra#m";

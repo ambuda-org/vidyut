@@ -1,7 +1,7 @@
 //! Example demonstrating Vedic transliteration across all supported scripts.
 
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_lipi::extensions::vedic::{RigvedaShakala, VedicExtension};
+use vidyut_lipi::extensions::vedic::rigveda_shakala;
 
 fn main() {
     println!("=== Vedic Extensions Across All Scripts ===\n");
@@ -12,7 +12,7 @@ fn main() {
     println!("Accents: ' = udatta (high), _ = anudatta (low)\n");
     
     let mut lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     // Major Indic scripts
     println!("=== Major Indic Scripts ===");

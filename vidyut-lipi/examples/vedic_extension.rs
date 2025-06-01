@@ -1,7 +1,7 @@
 //! Example demonstrating Vedic transliteration extensions.
 
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_lipi::extensions::vedic::{RigvedaShakala, TaittiriyaYajurveda, VedicExtension};
+use vidyut_lipi::extensions::vedic::{rigveda_shakala, yajurveda_taittiriya};
 
 fn main() {
     println!("=== Vedic Transliteration Extension Example ===\n");
@@ -17,7 +17,7 @@ fn main() {
     // Rigveda Shakala extension
     println!("2. With Rigveda Shakala extension:");
     let mut rigveda_lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(RigvedaShakala)));
+        .with_extension(rigveda_shakala());
     
     let text_with_accents = "agni'mILe puro_hitam";
     let result = rigveda_lipika.transliterate(text_with_accents, Scheme::HarvardKyoto, Scheme::Devanagari);
@@ -28,7 +28,7 @@ fn main() {
     // Taittiriya Yajurveda extension with special notation
     println!("3. With Taittiriya Yajurveda extension:");
     let mut taittiriya_lipika = Lipika::new()
-        .with_extension(Box::new(VedicExtension::new(TaittiriyaYajurveda)));
+        .with_extension(yajurveda_taittiriya());
     
     let ty_text = "i#She tvo#rje tvA# vA#yavaqH";
     let result = taittiriya_lipika.transliterate(ty_text, Scheme::HarvardKyoto, Scheme::Devanagari);
