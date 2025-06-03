@@ -360,7 +360,7 @@ mod tests {
             println!("Testing: {scheme:?}");
             for (_, token) in scheme.token_pairs() {
                 let expected: String = token.nfc().collect();
-                let actual = to_nfc(&token);
+                let actual = to_nfc(token);
                 let t_codes: Vec<_> = token.chars().map(|c| c as u32).collect();
                 let e_codes: Vec<_> = expected.chars().map(|c| c as u32).collect();
                 let a_codes: Vec<_> = actual.chars().map(|c| c as u32).collect();
@@ -378,7 +378,7 @@ mod tests {
             println!("Testing: {scheme:?}");
             for (_, token) in scheme.token_pairs() {
                 let expected: String = token.nfd().collect();
-                let actual = to_nfd(&token);
+                let actual = to_nfd(token);
                 let t_codes: Vec<_> = token.chars().map(|c| c as u32).collect();
                 let e_codes: Vec<_> = expected.chars().map(|c| c as u32).collect();
                 let a_codes: Vec<_> = actual.chars().map(|c| c as u32).collect();

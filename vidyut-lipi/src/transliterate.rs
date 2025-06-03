@@ -49,7 +49,7 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
     for extension in &mapping.extensions {
         input = extension.pre_process(&input);
     }
-    
+
     let input = reshape_before(&input, mapping.from());
 
     let is_to_alphabet = mapping.to.is_alphabet();
@@ -210,12 +210,12 @@ fn transliterate_inner(input: &str, mapping: &Mapping) -> String {
     }
 
     let mut output = reshape_after(output, mapping.to());
-    
+
     // Apply extension post-processing
     for extension in &mapping.extensions {
         output = extension.post_process(&output);
     }
-    
+
     output
 }
 

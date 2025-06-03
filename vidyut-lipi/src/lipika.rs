@@ -76,7 +76,7 @@ impl Lipika {
             current_extension: None,
         }
     }
-    
+
     /// Adds an extension to this `Lipika` instance.
     ///
     /// The extension will be applied to all subsequent transliterations.
@@ -117,7 +117,10 @@ impl Lipika {
         let extensions = self.current_extension.iter().cloned().collect::<Vec<_>>();
         let extensions_match = |cached: &[Arc<dyn TransliterationExtension>]| {
             cached.len() == extensions.len()
-                && cached.iter().zip(extensions.iter()).all(|(a, b)| Arc::ptr_eq(a, b))
+                && cached
+                    .iter()
+                    .zip(extensions.iter())
+                    .all(|(a, b)| Arc::ptr_eq(a, b))
         };
 
         // Check the cache. Assume that a `Mapping` is a pure function of `from`, `to`, and extensions.

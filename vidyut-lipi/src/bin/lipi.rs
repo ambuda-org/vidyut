@@ -1,6 +1,8 @@
 use clap::Parser;
+use vidyut_lipi::extensions::vedic::{
+    atharvaveda_shaunaka, rigveda_shakala, samaveda_kauthuma, yajurveda_taittiriya,
+};
 use vidyut_lipi::{Lipika, Scheme};
-use vidyut_lipi::extensions::vedic::{rigveda_shakala, samaveda_kauthuma, yajurveda_taittiriya, atharvaveda_shaunaka};
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 enum ClapScheme {
@@ -96,7 +98,7 @@ struct Args {
 
 fn run(args: Args) {
     let mut lipika = Lipika::new();
-    
+
     // Apply Vedic extension if specified
     if let Some(extension) = args.vedic_extension {
         lipika = match extension {
@@ -106,7 +108,7 @@ fn run(args: Args) {
             VedicExtension::AtharvavedaShaunaka => lipika.with_extension(atharvaveda_shaunaka()),
         };
     }
-    
+
     let result = lipika.transliterate(args.text, args.from.into(), args.to.into());
     println!("{result}");
 }

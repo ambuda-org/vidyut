@@ -271,7 +271,7 @@ pub struct Mapping {
     pub(crate) int_to_numeral: FxHashMap<u32, String>,
 
     tokens_by_first_char: FxHashMap<char, Vec<Span>>,
-    
+
     /// Extensions applied to this mapping
     pub(crate) extensions: Vec<Arc<dyn TransliterationExtension>>,
 }
@@ -423,7 +423,7 @@ impl Mapping {
             extensions: Vec::new(),
         }
     }
-    
+
     /// Creates a new mapping with extensions.
     pub(crate) fn with_extensions(
         from: Scheme,
@@ -431,12 +431,12 @@ impl Mapping {
         extensions: Vec<Arc<dyn TransliterationExtension>>,
     ) -> Self {
         let mut mapping = Self::new(from, to);
-        
+
         // Apply each extension
         for extension in &extensions {
             extension.extend_mapping(&mut mapping);
         }
-        
+
         mapping.extensions = extensions;
         mapping
     }
@@ -461,26 +461,26 @@ impl Mapping {
             None => &[],
         }
     }
-    
+
     /// Adds a new mapping to this `Mapping`.
     ///
     /// This is used by extensions to add custom character mappings.
     pub fn add_mapping(&mut self, from: &str, to: &str, kind: SpanKind) {
         let span = Span::new(from.to_string(), to.to_string(), kind);
-        
+
         // Add to main mapping
         self.all.insert(from.to_string(), span.clone());
-        
+
         // Add to marks if it's a vowel mark
         if kind == SpanKind::VowelMark {
             self.marks.insert(from.to_string(), to.to_string());
         }
-        
+
         // Update tokens_by_first_char
         if let Some(first_char) = from.chars().next() {
             self.tokens_by_first_char
                 .entry(first_char)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(span);
         }
     }

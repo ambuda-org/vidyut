@@ -12,19 +12,19 @@ use crate::mapping::Mapping;
 pub trait TransliterationExtension: Send + Sync {
     /// Returns the name of this extension.
     fn name(&self) -> &str;
-    
+
     /// Extends the mapping with additional character mappings.
     ///
     /// This is called during `Mapping` construction to add extension-specific mappings.
     fn extend_mapping(&self, mapping: &mut Mapping);
-    
+
     /// Pre-processes input text before transliteration.
     ///
     /// This can be used to normalize or prepare text for transliteration.
     fn pre_process(&self, text: &str) -> String {
         text.to_string()
     }
-    
+
     /// Post-processes output text after transliteration.
     ///
     /// This can be used to apply final transformations or fix edge cases.

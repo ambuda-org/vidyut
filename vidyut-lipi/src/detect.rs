@@ -222,7 +222,7 @@ fn detect_latin(input: &str) -> Option<Scheme> {
     }
 
     use Scheme::*;
-    if input.chars().all(|x| x.is_ascii()) {
+    if input.is_ascii() {
         const ITRANS_ONLY_TRIGRAMS: &[&[u8]] = &[b"chh", b"RRi", b"RRI", b"LLi", b"LLI"];
         const ITRANS_ONLY_BIGRAMS: &[&[u8]] = &[
             b"ee", b"oo", b"^i", b"^I", b"Ch", b"JN", b"sh", b"Sh", b"~N", b".a", b"N^",
@@ -438,8 +438,7 @@ mod tests {
     fn detect_abugidas() {
         use Scheme::*;
 
-        let schemes: Vec<Scheme> = Scheme::iter()
-            .map(|s| *s)
+        let schemes: Vec<Scheme> = Scheme::iter().copied()
             // Assamese is confused for Bengali, and Mon is confused for Burmese.
             .filter(|s| s.is_abugida() && !matches!(*s, Assamese | Mon))
             .collect();

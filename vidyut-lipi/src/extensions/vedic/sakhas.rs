@@ -14,9 +14,7 @@ impl VedicSakha for RigvedaShakala {
                 AccentType::Anudatta,
                 AccentType::Svarita,
             ],
-            special_notations: vec![
-                SpecialNotation::Avagraha,
-            ],
+            special_notations: vec![SpecialNotation::Avagraha],
             contextual_rules: vec![
                 ContextualRule::AccentsOnAllVowels,
                 ContextualRule::AccentedSandhiRules,
@@ -24,25 +22,31 @@ impl VedicSakha for RigvedaShakala {
             minimum_required: RequirementLevel::Basic,
         }
     }
-    
+
     fn is_supported_by(&self, adapter: &dyn SchemeAdapter) -> SupportLevel {
         let reqs = self.requirements();
-        
+
         // Check if all basic accents are supported
-        let has_basic_accents = reqs.accent_marks.iter()
+        let has_basic_accents = reqs
+            .accent_marks
+            .iter()
             .all(|&accent| adapter.accent_representation(accent).is_some());
-        
+
         if !has_basic_accents {
             return SupportLevel::None;
         }
-        
+
         // Check for avagraha support
-        let has_avagraha = adapter.notation_representation(&SpecialNotation::Avagraha).is_some();
-        
+        let has_avagraha = adapter
+            .notation_representation(&SpecialNotation::Avagraha)
+            .is_some();
+
         if has_avagraha {
             SupportLevel::Full
         } else {
-            SupportLevel::Partial { missing: "avagraha" }
+            SupportLevel::Partial {
+                missing: "avagraha",
+            }
         }
     }
 }
@@ -73,30 +77,37 @@ impl VedicSakha for SamavedaKauthuma {
             minimum_required: RequirementLevel::Partial,
         }
     }
-    
+
     fn is_supported_by(&self, adapter: &dyn SchemeAdapter) -> SupportLevel {
         let _reqs = self.requirements();
-        
+
         // Must have at least basic accents
         let basic_accents = [AccentType::Udatta, AccentType::Anudatta];
-        let has_basic = basic_accents.iter()
+        let has_basic = basic_accents
+            .iter()
             .all(|&accent| adapter.accent_representation(accent).is_some());
-        
+
         if !has_basic {
             return SupportLevel::None;
         }
-        
+
         // Check for musical features
         let has_kampa = adapter.accent_representation(AccentType::Kampa).is_some();
         let has_pauses = (1..=3).any(|i| {
-            adapter.notation_representation(&SpecialNotation::MusicalPause(i)).is_some()
+            adapter
+                .notation_representation(&SpecialNotation::MusicalPause(i))
+                .is_some()
         });
-        
+
         match (has_kampa, has_pauses) {
             (true, true) => SupportLevel::Full,
-            (true, false) => SupportLevel::Partial { missing: "musical pauses" },
+            (true, false) => SupportLevel::Partial {
+                missing: "musical pauses",
+            },
             (false, true) => SupportLevel::Partial { missing: "kampa" },
-            (false, false) => SupportLevel::Partial { missing: "musical notation" },
+            (false, false) => SupportLevel::Partial {
+                missing: "musical notation",
+            },
         }
     }
 }
@@ -128,43 +139,57 @@ impl VedicSakha for YajurvedaTaittiriya {
             minimum_required: RequirementLevel::Partial,
         }
     }
-    
+
     fn is_supported_by(&self, adapter: &dyn SchemeAdapter) -> SupportLevel {
         let _reqs = self.requirements();
-        
+
         // Must support basic accents
         let has_basic = [AccentType::Udatta, AccentType::Anudatta]
             .iter()
             .all(|&accent| adapter.accent_representation(accent).is_some());
-        
+
         if !has_basic {
             return SupportLevel::None;
         }
-        
+
         // Check for pada boundary support (critical for Yajurveda)
-        let has_pada = adapter.notation_representation(&SpecialNotation::PadaBoundary).is_some();
-        
+        let has_pada = adapter
+            .notation_representation(&SpecialNotation::PadaBoundary)
+            .is_some();
+
         if !has_pada {
-            return SupportLevel::Partial { missing: "pada boundaries" };
+            return SupportLevel::Partial {
+                missing: "pada boundaries",
+            };
         }
-        
+
         // Check for other features
-        let has_dirgha = adapter.accent_representation(AccentType::DirghaSvarita).is_some();
-        let has_chandrabindu = adapter.notation_representation(
-            &SpecialNotation::AnunasikaType(AnunasikaVariant::Chandrabindu)
-        ).is_some();
-        
+        let has_dirgha = adapter
+            .accent_representation(AccentType::DirghaSvarita)
+            .is_some();
+        let has_chandrabindu = adapter
+            .notation_representation(&SpecialNotation::AnunasikaType(
+                AnunasikaVariant::Chandrabindu,
+            ))
+            .is_some();
+
         match (has_dirgha, has_chandrabindu) {
             (true, true) => SupportLevel::Full,
-            (true, false) => SupportLevel::Partial { missing: "chandrabindu" },
-            (false, true) => SupportLevel::Partial { missing: "dirgha svarita" },
-            (false, false) => SupportLevel::Partial { missing: "advanced features" },
+            (true, false) => SupportLevel::Partial {
+                missing: "chandrabindu",
+            },
+            (false, true) => SupportLevel::Partial {
+                missing: "dirgha svarita",
+            },
+            (false, false) => SupportLevel::Partial {
+                missing: "advanced features",
+            },
         }
     }
-    
+
     fn preprocess(&self, text: &str) -> String {
         // Handle BarahaSouth encoding if present
-        text.replace("q", "̱")   // Convert special accent markers
+        text.replace("q", "̱") // Convert special accent markers
             .to_string()
     }
 }
@@ -194,32 +219,39 @@ impl VedicSakha for AtharvavedaShaunaka {
             minimum_required: RequirementLevel::Basic,
         }
     }
-    
+
     fn is_supported_by(&self, adapter: &dyn SchemeAdapter) -> SupportLevel {
         let _reqs = self.requirements();
-        
+
         // Check basic accent support
-        let has_basic = [AccentType::Udatta, AccentType::Anudatta, AccentType::Svarita]
-            .iter()
-            .all(|&accent| adapter.accent_representation(accent).is_some());
-        
+        let has_basic = [
+            AccentType::Udatta,
+            AccentType::Anudatta,
+            AccentType::Svarita,
+        ]
+        .iter()
+        .all(|&accent| adapter.accent_representation(accent).is_some());
+
         if !has_basic {
             return SupportLevel::None;
         }
-        
+
         // Check for special fricatives
-        let has_fricatives = [
-            SpecialNotation::Jihvamuliya,
-            SpecialNotation::Upadhmaniya,
-        ].iter().any(|notation| adapter.notation_representation(notation).is_some());
-        
+        let has_fricatives = [SpecialNotation::Jihvamuliya, SpecialNotation::Upadhmaniya]
+            .iter()
+            .any(|notation| adapter.notation_representation(notation).is_some());
+
         let has_pracaya = adapter.accent_representation(AccentType::Pracaya).is_some();
-        
+
         match (has_fricatives, has_pracaya) {
             (true, true) => SupportLevel::Full,
             (true, false) => SupportLevel::Partial { missing: "pracaya" },
-            (false, true) => SupportLevel::Partial { missing: "special fricatives" },
-            (false, false) => SupportLevel::Partial { missing: "advanced features" },
+            (false, true) => SupportLevel::Partial {
+                missing: "special fricatives",
+            },
+            (false, false) => SupportLevel::Partial {
+                missing: "advanced features",
+            },
         }
     }
 }

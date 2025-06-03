@@ -11,7 +11,7 @@ impl SchemeAdapter for WxAdapter {
     fn scheme(&self) -> Scheme {
         Scheme::Wx
     }
-    
+
     fn accent_representation(&self, accent: AccentType) -> Option<String> {
         match accent {
             AccentType::Udatta => Some("=".to_string()),
@@ -22,7 +22,7 @@ impl SchemeAdapter for WxAdapter {
             AccentType::Kampa => Some("*".to_string()),
         }
     }
-    
+
     fn notation_representation(&self, notation: &SpecialNotation) -> Option<String> {
         match notation {
             SpecialNotation::PadaBoundary => Some("#".to_string()),
@@ -34,12 +34,14 @@ impl SchemeAdapter for WxAdapter {
             SpecialNotation::Jihvamuliya => Some("H".to_string()),
             SpecialNotation::Upadhmaniya => Some("F".to_string()),
             SpecialNotation::AnunasikaType(AnunasikaVariant::Standard) => Some("M".to_string()),
-            SpecialNotation::AnunasikaType(AnunasikaVariant::Chandrabindu) => Some("~M".to_string()),
+            SpecialNotation::AnunasikaType(AnunasikaVariant::Chandrabindu) => {
+                Some("~M".to_string())
+            }
             SpecialNotation::AnunasikaType(AnunasikaVariant::Ardhabindu) => Some("'M".to_string()),
             SpecialNotation::Custom(s) => Some(format!("[{}]", s)),
         }
     }
-    
+
     fn supports_rule(&self, rule: &ContextualRule) -> bool {
         match rule {
             ContextualRule::AccentsOnAllVowels => true,
@@ -47,25 +49,22 @@ impl SchemeAdapter for WxAdapter {
             _ => false,
         }
     }
-    
+
     fn create_mappings(&self, requirements: &ExtensionRequirements) -> HashMap<String, String> {
         let mut mappings = HashMap::new();
-        
+
         // Add accent mappings for all vowels
         let vowels = ["a", "A", "i", "I", "u", "U", "q", "Q", "e", "E", "o", "O"];
-        
+
         for vowel in &vowels {
             for accent in &requirements.accent_marks {
                 if let Some(mark) = self.accent_representation(*accent) {
                     // WX uses postfix notation
-                    mappings.insert(
-                        format!("{}{}", vowel, mark),
-                        format!("{}{}", vowel, mark),
-                    );
+                    mappings.insert(format!("{}{}", vowel, mark), format!("{}{}", vowel, mark));
                 }
             }
         }
-        
+
         mappings
     }
 }
@@ -77,7 +76,7 @@ impl SchemeAdapter for DevanagariAdapter {
     fn scheme(&self) -> Scheme {
         Scheme::Devanagari
     }
-    
+
     fn accent_representation(&self, accent: AccentType) -> Option<String> {
         match accent {
             AccentType::Udatta => Some("\u{0951}".to_string()),
@@ -88,7 +87,7 @@ impl SchemeAdapter for DevanagariAdapter {
             AccentType::Kampa => Some("\u{0971}".to_string()), // Vedic tone mark
         }
     }
-    
+
     fn notation_representation(&self, notation: &SpecialNotation) -> Option<String> {
         match notation {
             SpecialNotation::PadaBoundary => Some("।".to_string()),
@@ -105,7 +104,7 @@ impl SchemeAdapter for DevanagariAdapter {
             SpecialNotation::Custom(_) => None,
         }
     }
-    
+
     fn supports_rule(&self, rule: &ContextualRule) -> bool {
         match rule {
             ContextualRule::AccentsOnAllVowels => true,
@@ -115,7 +114,7 @@ impl SchemeAdapter for DevanagariAdapter {
             ContextualRule::RegionalVariant(_) => true,
         }
     }
-    
+
     fn create_mappings(&self, _requirements: &ExtensionRequirements) -> HashMap<String, String> {
         // Devanagari handles accents as combining marks, so no pre-mapping needed
         HashMap::new()
@@ -129,7 +128,7 @@ impl SchemeAdapter for Iso15919Adapter {
     fn scheme(&self) -> Scheme {
         Scheme::Iso15919
     }
-    
+
     fn accent_representation(&self, accent: AccentType) -> Option<String> {
         match accent {
             AccentType::Udatta => Some("\u{0301}".to_string()), // Combining acute
@@ -137,10 +136,10 @@ impl SchemeAdapter for Iso15919Adapter {
             AccentType::Svarita => Some("\u{0302}".to_string()), // Combining circumflex
             AccentType::Pracaya => Some("\u{0303}".to_string()), // Combining tilde
             AccentType::DirghaSvarita => Some("\u{0304}".to_string()), // Combining macron
-            AccentType::Kampa => Some("\u{0330}".to_string()), // Combining tilde below
+            AccentType::Kampa => Some("\u{0330}".to_string()),  // Combining tilde below
         }
     }
-    
+
     fn notation_representation(&self, notation: &SpecialNotation) -> Option<String> {
         match notation {
             SpecialNotation::PadaBoundary => Some(" | ".to_string()),
@@ -154,7 +153,7 @@ impl SchemeAdapter for Iso15919Adapter {
             SpecialNotation::Custom(s) => Some(format!("<{}>", s)),
         }
     }
-    
+
     fn supports_rule(&self, rule: &ContextualRule) -> bool {
         match rule {
             ContextualRule::AccentsOnAllVowels => true,
@@ -163,7 +162,7 @@ impl SchemeAdapter for Iso15919Adapter {
             _ => false,
         }
     }
-    
+
     fn create_mappings(&self, _requirements: &ExtensionRequirements) -> HashMap<String, String> {
         // ISO uses combining marks, handled during transliteration
         HashMap::new()
@@ -177,7 +176,7 @@ impl SchemeAdapter for IastAdapter {
     fn scheme(&self) -> Scheme {
         Scheme::Iast
     }
-    
+
     fn accent_representation(&self, accent: AccentType) -> Option<String> {
         // IAST traditionally doesn't mark accents, but we can use combining marks
         match accent {
@@ -187,7 +186,7 @@ impl SchemeAdapter for IastAdapter {
             _ => None,
         }
     }
-    
+
     fn notation_representation(&self, notation: &SpecialNotation) -> Option<String> {
         match notation {
             SpecialNotation::Avagraha => Some("'".to_string()),
@@ -196,14 +195,14 @@ impl SchemeAdapter for IastAdapter {
             _ => None,
         }
     }
-    
+
     fn supports_rule(&self, rule: &ContextualRule) -> bool {
         match rule {
             ContextualRule::AccentsOnAllVowels => true,
             _ => false,
         }
     }
-    
+
     fn create_mappings(&self, _requirements: &ExtensionRequirements) -> HashMap<String, String> {
         HashMap::new()
     }
@@ -216,7 +215,7 @@ impl SchemeAdapter for TeluguAdapter {
     fn scheme(&self) -> Scheme {
         Scheme::Telugu
     }
-    
+
     fn accent_representation(&self, accent: AccentType) -> Option<String> {
         // Telugu uses same Unicode Vedic marks as Devanagari
         match accent {
@@ -226,7 +225,7 @@ impl SchemeAdapter for TeluguAdapter {
             _ => None,
         }
     }
-    
+
     fn notation_representation(&self, notation: &SpecialNotation) -> Option<String> {
         match notation {
             SpecialNotation::PadaBoundary => Some("।".to_string()),
@@ -236,7 +235,7 @@ impl SchemeAdapter for TeluguAdapter {
             _ => None,
         }
     }
-    
+
     fn supports_rule(&self, rule: &ContextualRule) -> bool {
         match rule {
             ContextualRule::AccentsOnAllVowels => true,
@@ -244,7 +243,7 @@ impl SchemeAdapter for TeluguAdapter {
             _ => false,
         }
     }
-    
+
     fn create_mappings(&self, _requirements: &ExtensionRequirements) -> HashMap<String, String> {
         HashMap::new()
     }

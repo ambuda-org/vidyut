@@ -915,7 +915,7 @@ mod tests {
         for expected in Scheme::iter() {
             let code = expected.iso_15924_code();
             assert!(
-                ALL_CODES.iter().find(|c| c.code() == code).is_some(),
+                ALL_CODES.iter().any(|c| c.code() == code),
                 "{code} is not a valid code."
             );
         }
@@ -926,7 +926,7 @@ mod tests {
         for expected in Scheme::iter() {
             let num = expected.iso_15924_numeric_code();
             assert!(
-                ALL_CODES.iter().find(|c| c.numeric_code() == num).is_some(),
+                ALL_CODES.iter().any(|c| c.numeric_code() == num),
                 "{num} is not a valid numeric code."
             );
         }

@@ -256,7 +256,7 @@ mod tests {
     fn roman_to_devanagari() {
         let roman_to_deva = Mapping::new(Iast, Devanagari);
         for (roman, deva) in DEVANAGARI_TESTS {
-            let actual = transliterate(&roman, &roman_to_deva);
+            let actual = transliterate(roman, &roman_to_deva);
             assert_eq!(deva, &actual);
         }
     }
@@ -276,7 +276,7 @@ mod tests {
     fn devanagari_to_roman() {
         let deva_to_roman = Mapping::new(Devanagari, Iast);
         for (roman, deva) in DEVANAGARI_TESTS {
-            let actual = transliterate(&deva, &deva_to_roman);
+            let actual = transliterate(deva, &deva_to_roman);
             assert_eq!(roman, &actual);
         }
     }
@@ -329,7 +329,7 @@ mod tests {
     fn roman_to_grantha() {
         let roman_to_grantha = Mapping::new(Iast, Grantha);
         for (roman, grantha) in GRANTHA_TESTS {
-            let actual = transliterate(&roman, &roman_to_grantha);
+            let actual = transliterate(roman, &roman_to_grantha);
             assert_eq!(grantha, &actual);
         }
     }
@@ -349,7 +349,7 @@ mod tests {
     fn grantha_to_roman() {
         let grantha_to_roman = Mapping::new(Grantha, Iast);
         for (roman, grantha) in GRANTHA_TESTS {
-            let actual = transliterate(&grantha, &grantha_to_roman);
+            let actual = transliterate(grantha, &grantha_to_roman);
             assert_eq!(roman, &actual);
         }
     }
@@ -369,7 +369,7 @@ mod tests {
     fn grantha_to_grantha() {
         let grantha_to_grantha = Mapping::new(Grantha, Grantha);
         for (_, grantha) in GRANTHA_TESTS {
-            let actual = transliterate(&grantha, &grantha_to_grantha);
+            let actual = transliterate(grantha, &grantha_to_grantha);
             assert_eq!(grantha, &actual);
         }
     }
@@ -378,7 +378,7 @@ mod tests {
     fn roman_to_roman() {
         let roman_to_grantha = Mapping::new(Iast, HarvardKyoto);
         for (roman, _) in GRANTHA_TESTS {
-            let actual = transliterate(&roman, &roman_to_grantha);
+            let actual = transliterate(roman, &roman_to_grantha);
             assert_eq!(roman, &actual);
         }
     }
