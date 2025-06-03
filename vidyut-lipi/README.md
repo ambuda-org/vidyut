@@ -88,6 +88,8 @@ following short-term benefits:
 Usage
 -----
 
+### Basic Transliteration
+
 We recommend using `vidyut-lipi` through our `Lipika` API:
 
 ```rust
@@ -124,6 +126,38 @@ for scheme in Scheme::iter() {
   println!("{:15} {result}", format!("{:?}", scheme));
 }
 ```
+
+### Vedic Extensions
+
+`vidyut-lipi` includes an extension system for Vedic transliteration that preserves accent marks (udātta, anudātta, svarita) across all supported scripts:
+
+```rust
+use vidyut_lipi::{Lipika, Scheme};
+use vidyut_lipi::extensions::vedic;
+
+// Create a transliterator with Rigveda Shakala extension
+let mut lipika = Lipika::new()
+    .with_extension(vedic::rigveda_shakala());
+
+// Transliterate Vedic text with accents
+let verse = "agni=mI_le puro=hitam"; // = for udatta, _ for anudatta
+let devanagari = lipika.transliterate(verse, Scheme::HarvardKyoto, Scheme::Devanagari);
+assert_eq!(devanagari, "अग्नि॑मी॒ले पुरो॑हितम्");
+
+// Accents are preserved through round-trip transliteration
+let back = lipika.transliterate(&devanagari, Scheme::Devanagari, Scheme::HarvardKyoto);
+assert_eq!(back, "agni=mI_le puro=hitam");
+```
+
+Supported Vedic traditions:
+- **Rigveda Shakala**: `rigveda_shakala()`
+- **Taittiriya Yajurveda**: `taittiriya_yajurveda()`  
+- **Samaveda Kauthuma**: `samaveda_kauthuma()`
+- **Atharvaveda Saunaka**: `atharvaveda_saunaka()`
+
+Each tradition uses its own accent notation system, and accents are preserved across all 40+ supported scripts including Devanagari, Bengali, Tamil, Telugu, IAST, Harvard-Kyoto, and others.
+
+For detailed information about the Vedic extension system, see [README_VEDIC_EXTENSIONS.md](README_VEDIC_EXTENSIONS.md).
 
 As of 2024-01-27, this code prints the following:
 

@@ -13,6 +13,16 @@ This means we focus on:
 - making our API more Pythonic
 - adding extensive tests for our Rust-Python conversions
 
+## Features
+
+Vidyut's Python bindings provide comprehensive transliteration capabilities:
+
+- **40+ transliteration schemes** including modern Indic scripts, historical scripts, and Roman schemes
+- **Vedic extensions** for accurate accent preservation (udātta, anudātta, svarita) across all scripts
+- **Sakha-specific support** for Rigveda, Yajurveda, Samaveda, and Atharvaveda traditions
+- **Round-trip transliteration** ensuring perfect preservation of linguistic information
+- **High performance** with Rust-powered transliteration engine
+
 
 Links
 -----

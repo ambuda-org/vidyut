@@ -49,6 +49,104 @@ If the input scheme is not known, you can use :func:`detect` to guess it:
 
     output = transliterate(text, source, Scheme.Devanagari)
 
+Advanced Usage with Lipika
+---------------------------
+
+For more complex transliteration needs, especially when working with Vedic texts 
+that require accent preservation, you can use the :class:`Lipika` class directly:
+
+.. testcode::
+
+    from vidyut.lipi import Lipika, Scheme
+
+    # Create a Lipika instance for advanced transliteration
+    lipika = Lipika()
+
+    # Basic transliteration works the same way
+    text = "saMskRtam"
+    result = lipika.transliterate(text, Scheme.HarvardKyoto, Scheme.Devanagari)
+    print(result)
+
+Output:
+
+.. testoutput::
+
+    संस्कृतम्
+
+Vedic Extensions
+----------------
+
+The :class:`Lipika` class supports Vedic extensions that preserve accent marks 
+(udātta, anudātta, svarita) across all supported scripts. This is essential for 
+accurate Vedic text processing:
+
+.. testcode::
+
+    from vidyut.lipi import Lipika, Scheme
+
+    # Create a Lipika instance with Rigveda Shakala extension
+    lipika = Lipika()
+    lipika.with_rigveda_extension()
+
+    # Transliterate Vedic text with accents
+    # = represents udātta (raised tone), _ represents anudātta (lowered tone)
+    verse = "agni=mI_le puro=hitam"
+    devanagari = lipika.transliterate(verse, Scheme.HarvardKyoto, Scheme.Devanagari)
+    print(devanagari)
+
+    # Accents are preserved through round-trip transliteration
+    back = lipika.transliterate(devanagari, Scheme.Devanagari, Scheme.HarvardKyoto)
+    print(back)
+
+Output:
+
+.. testoutput::
+
+    अग्नि॑मी॒ले पुरो॑हितम्
+    agni=mI_le puro=hitam
+
+Available Vedic Extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following Vedic traditions are supported, each with their own accent notation:
+
+.. testcode::
+
+    from vidyut.lipi import Lipika
+
+    lipika = Lipika()
+
+    # Rigveda Shakala tradition
+    lipika.with_rigveda_extension()
+
+    # Taittiriya Yajurveda tradition  
+    lipika.with_yajurveda_extension()
+
+    # Samaveda Kauthuma tradition
+    lipika.with_samaveda_extension()
+
+    # Atharvaveda Saunaka tradition
+    lipika.with_atharvaveda_extension()
+
+Each extension configures the transliterator to properly handle the accent 
+notation system used by that particular Vedic tradition. The accents are 
+preserved across all supported scripts including:
+
+- All modern Indic scripts (Devanagari, Bengali, Tamil, Telugu, etc.)
+- Historical scripts (Brahmi, Grantha, Sharada, etc.)  
+- Roman transliteration schemes (IAST, Harvard-Kyoto, ISO 15919, etc.)
+
+API Reference
+-------------
+
+.. autoclass:: vidyut.lipi.Lipika
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Scheme Support
+--------------
+
 `vidyut.lipi` supports a wide variety of transliteration schemes. For example:
 
 .. testcode::
