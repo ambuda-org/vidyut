@@ -123,6 +123,7 @@ fn py_kosha(m: &Bound<'_, PyModule>) -> PyResult<()> {
 #[pyo3(name = "lipi")]
 fn py_lipi(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<lipi::PyScheme>()?;
+    m.add_class::<lipi::PyLipika>()?;
     m.add_function(wrap_pyfunction!(lipi::detect, m)?)?;
     m.add_function(wrap_pyfunction!(lipi::transliterate, m)?)?;
 

@@ -8,3 +8,4 @@ transliterate = __mod.transliterate
 
 # Types
 Scheme = __mod.Scheme
+Lipika = __mod.Lipika

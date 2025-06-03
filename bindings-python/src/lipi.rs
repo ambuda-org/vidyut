@@ -494,6 +494,84 @@ pub fn detect(input_text: &str) -> Option<PyScheme> {
     lipi::detect(input_text).map(PyScheme::from)
 }
 
+/// A transliteration engine.
+///
+/// Lipika can transliterate text from one script to another, with optional support
+/// for Vedic extensions that preserve accent marks and special notations.
+#[pyclass(name = "Lipika", module = "lipi")]
+pub struct PyLipika {
+    inner: Lipika,
+}
+
+#[pymethods]
+impl PyLipika {
+    /// Create a new Lipika instance.
+    #[new]
+    pub fn new() -> Self {
+        Self {
+            inner: Lipika::new(),
+        }
+    }
+
+    /// Add a Rigveda Shakala extension for preserving Vedic accents.
+    ///
+    /// This extension supports udatta, anudatta, and other accent marks
+    /// used in the Rigveda tradition.
+    pub fn with_rigveda_extension(&mut self) -> () {
+        let new_lipika = std::mem::replace(&mut self.inner, Lipika::new())
+            .with_extension(lipi::extensions::vedic::rigveda_shakala());
+        self.inner = new_lipika;
+    }
+
+    /// Add a Yajurveda Taittiriya extension for preserving Vedic accents.
+    ///
+    /// This extension supports pada boundaries and accent marks
+    /// used in the Krishna-Yajurveda Taittiriya tradition.
+    pub fn with_yajurveda_extension(&mut self) -> () {
+        let new_lipika = std::mem::replace(&mut self.inner, Lipika::new())
+            .with_extension(lipi::extensions::vedic::yajurveda_taittiriya());
+        self.inner = new_lipika;
+    }
+
+    /// Add a Samaveda Kauthuma extension for preserving musical notation.
+    ///
+    /// This extension supports musical accent marks and notation
+    /// used in the Samaveda tradition.
+    pub fn with_samaveda_extension(&mut self) -> () {
+        let new_lipika = std::mem::replace(&mut self.inner, Lipika::new())
+            .with_extension(lipi::extensions::vedic::samaveda_kauthuma());
+        self.inner = new_lipika;
+    }
+
+    /// Add an Atharvaveda Shaunaka extension for preserving special marks.
+    ///
+    /// This extension supports special fricatives and accent marks
+    /// used in the Atharvaveda tradition.
+    pub fn with_atharvaveda_extension(&mut self) -> () {
+        let new_lipika = std::mem::replace(&mut self.inner, Lipika::new())
+            .with_extension(lipi::extensions::vedic::atharvaveda_shaunaka());
+        self.inner = new_lipika;
+    }
+
+    /// Transliterate text from one scheme to another.
+    ///
+    /// Args:
+    ///     text: The text to transliterate
+    ///     source: The source scheme
+    ///     dest: The destination scheme
+    ///
+    /// Returns:
+    ///     The transliterated text
+    pub fn transliterate(&mut self, text: &str, source: PyScheme, dest: PyScheme) -> String {
+        self.inner.transliterate(text, source.into(), dest.into())
+    }
+
+    /// Return a string representation of this Lipika instance.
+    pub fn __repr__(&self) -> String {
+        "Lipika()".to_string()
+    }
+}
+
 /// Transliterates `input_text` from `source` to `dest`.
 ///
 /// `source` and `dest` must be instances of :class:`~vidyut.lipi.Scheme`.
