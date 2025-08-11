@@ -265,6 +265,24 @@ def test_derive_pratipadikas_with_krdanta(code, expected):
     assert expected == actual
 
 
+@pytest.mark.parametrize(
+    "code,krt,prayoga,lakara,expected",
+    [
+        ("01.1137", Krt.Satf, Prayoga.Kartari, Lakara.Lat, "gacCat"),
+        ("01.1137", Krt.Satf, Prayoga.Kartari, Lakara.Lrt, "gamizyat"),
+        ("01.1137", Krt.SAnac, Prayoga.Karmani, Lakara.Lat, "gamyamAna"),
+    ],
+)
+def test_derive_pratipadikas_with_krdanta_prayoga_lakara(code, krt, prayoga, lakara, expected):
+    dhatu = d[code]
+    anga = Pratipadika.krdanta(dhatu, krt, prayoga, lakara)
+    prakriyas = v.derive(anga)
+
+    expected = set(expected.split("|"))
+    actual = {x.text for x in prakriyas}
+    assert expected == actual
+
+
 def test_derive_pratipadikas_with_taddhitanta():
     guru = Pratipadika.basic("guru")
     anga = Pratipadika.taddhitanta(guru, Taddhita.aR)

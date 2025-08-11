@@ -1259,9 +1259,13 @@ impl PyPratipadika {
 
     /// Create a new pratipadika that is a krdanta.
     #[staticmethod]
-    #[pyo3(signature = (dhatu, krt))]
-    pub fn krdanta(dhatu: PyDhatu, krt: PyKrt) -> Self {
-        let krdanta = Krdanta::new(dhatu.into(), BaseKrt::from(krt));
+    #[pyo3(signature = (dhatu, krt, prayoga=None, lakara=None))]
+    pub fn krdanta(dhatu: PyDhatu, krt: PyKrt, prayoga: Option<PyPrayoga>, lakara: Option<PyLakara>) -> Self {
+        let mut builder = Krdanta::builder().dhatu(dhatu.into()).krt(BaseKrt::from(krt));
+        if let (Some(prayoga), Some(lakara)) = (prayoga, lakara) {
+            builder = builder.prayoga(prayoga.into()).lakara(lakara.into());
+        }
+        let krdanta = builder.build().expect("Missing required field");
         Self {
             pratipadika: Pratipadika::Krdanta(krdanta.into()),
             text: "".to_string(),
