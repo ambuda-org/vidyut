@@ -268,8 +268,8 @@ def test_derive_pratipadikas_with_krdanta(code, expected):
 @pytest.mark.parametrize(
     "code,krt,prayoga,expected",
     [
-        ("08.0010", Krt.SAnac, Prayoga.Karmani, "kriyamARa"),
         ("01.1137", Krt.SAnac, Prayoga.Karmani, "gamyamAna"),
+        ("08.0010", Krt.SAnac, Prayoga.Karmani, "kriyamARa"),
     ],
 )
 def test_derive_pratipadikas_with_krdanta_prayoga(code, krt, prayoga, expected):
