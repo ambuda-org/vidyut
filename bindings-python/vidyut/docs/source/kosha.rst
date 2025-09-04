@@ -198,7 +198,7 @@ useful for some *kṛdanta* derivations:
 
     gamyamana = PratipadikaEntry.Krdanta(
         dhatu_entry=gam_entry,
-        krt=Krt.Satf,
+        krt=Krt.SAnac,
         lakara=Lakara.Lat,
         prayoga=Prayoga.Karmani)
 
@@ -255,6 +255,8 @@ passed to :meth:`vidyut.prakriya.Vyakarana.derive`:
     # assert [p.text for p in v.derive(dhatu_entry)] == ["anugami"]
     assert [p.text for p in v.derive(pratipadika_entry)] == ["anugamayat"]
     assert [p.text for p in v.derive(pada_entry)] == ["anugamayantam"]
+    assert [p.text for p in v.derive(gamisyat)] == ["gamizyat"]
+    assert [p.text for p in v.derive(gamyamana)] == ["gamyamAna"]
 
 .. testoutput::
    :hide:

@@ -216,9 +216,9 @@ impl PyPratipadikaEntry {
             PE::Krdanta {
                 dhatu_entry,
                 krt,
-                prayoga: _,
-                lakara: _,
-            } => PyPratipadika::krdanta(dhatu_entry.dhatu.clone(), krt.clone()),
+                prayoga,
+                lakara,
+            } => PyPratipadika::krdanta(dhatu_entry.dhatu.clone(), krt.clone(), prayoga.clone(), lakara.clone()),
         }
     }
 }
