@@ -216,7 +216,7 @@ pub fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let next_is_hi = n.first().has_text("hi");
-    if ((anga.has_text("hu") || anga.has_antya(JHAL)) || anga.has_u("SAsu~")) && next_is_hi {
+    if (anga.has_text("hu") || anga.has_antya(JHAL) || anga.has_u("SAsu~")) && next_is_hi {
         // juhuDi, BindDi,
         // Implementation HACK to allow SAsu~ as it has become "SA" by 6.4.35. Due to
         // "asiddha"-ness across 6.4.*  "SAs" (anga) "has_antya(JHAL)".
@@ -583,7 +583,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
         if old_antya != anga.antya() {
             anga.add_tag(T::FlagNaLopa);
         }
-    } else if anga.is_u(Au::SAsu_u)  {
+    } else if anga.is_u(Au::SAsu_u) {
         if n.last().has_text("hi") {
             // SAs + hi -> SAhi (-> SADi)
             p.run_at("6.4.35", i, op::text("SA"));
