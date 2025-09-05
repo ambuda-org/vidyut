@@ -17,6 +17,11 @@ CURRENT_KRDANTA_OUTPUT:=krdantas_$(GIT_BRANCH).txt
 PRIOR_TINANTA_OUTPUT:=tinantas_main.txt
 PRIOR_KRDANTA_OUTPUT:=krdantas_main.txt
 
+## OUTPUT_SCHEME (defaulted to Deva ... can be also Slp1)
+## Used by "regression_test" target for finding diff with "main".
+## Ensure that you use the same OUTPUT_SCHEME on both branches to avoid useless massive diffs
+## Eg. make regression_test OUTPUT_SCHEME=Slp1
+OUTPUT_SCHEME ?= Devanagari
 
 ### Build section
 # -----
@@ -156,13 +161,16 @@ $(CREATE_ALL_TINANTAS) $(CREATE_ALL_KRDANTAS): build_all
 
 ## M3 MacbookPro: 7-8 minutes
 $(CURRENT_TINANTA_OUTPUT): $(CREATE_ALL_TINANTAS)
-	time $^ $(OUTPUT_SCHEME) > $@
+	time $^ --output-scheme=$(OUTPUT_SCHEME) > $@
 
 ## M3 MacbookPro : 1-2 minutes
 $(CURRENT_KRDANTA_OUTPUT): $(CREATE_ALL_KRDANTAS)
-	time $^ $(OUTPUT_SCHEME) > $@
+	time $^ --output-scheme=$(OUTPUT_SCHEME) > $@
 
 current_regression_data: $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
+
+clean_regression_data:
+	@-/bin/rm -f $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
 
 PHONY: prior_regression_data
 
@@ -189,7 +197,10 @@ endif
 
 ## Depends on volume of change but usually quick
 regression_test: all-krt-tin-anta-diff.txt
-	@echo ; echo "Diff output: \"$^\""; echo
+	@if [[ -d .venv ]]; then \
+		echo "Running " ; uv run --verbose reformat.py $^ > diffs.md ;\
+		count=$$(( $$(wc -l  diffs.md | xargs echo | cut -d ' ' -f 1) - 6 )) ; echo ; echo " ✅  Diffs at: \"diffs.md\" ($$count differences)";\
+	else echo; echo "⚠️  👉🏽  Please create a python venv: 'uv venv -p path_to_python'"; fi
 
 all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
 	@(echo "Tinantas"; diff --suppress-common-lines -W 1000 -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \

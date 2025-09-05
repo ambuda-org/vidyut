@@ -360,7 +360,9 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya) -> Option<()> {
         // visfpa
         // TODO: savanAdi
         sp.try_block("8.3.110");
-    } else if (t.is(D::sAti) && t.is_pratyaya()) || sp.p.prev_char_index(&sp.index).is_none() {
+    } else if (t.is(D::sAti) && t.is_pratyaya())
+        || (t.has_tag(T::FlagSaAdeshadi) && sp.p.prev_char_index(&sp.index).is_none())
+    {
         // daDisAt, daDi siYcati
         sp.try_block("8.3.111");
     } else if t.has_u("zi\\ca~^") && sp.p.has(i_term + 1, |t| t.is_yan()) {

@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Create all of the linguistic data necessary for general usage.
 
@@ -21,9 +21,19 @@ if [ -e "data/raw/dcs" ]; then
 else
     echo "Training data does not exist -- fetching."
     mkdir -p "data/raw/dcs"
-    git clone --depth 1 https://github.com/OliverHellwig/sanskrit.git dcs-data
-    # Use a fixed commit to avoid breakages from later changes.
-    pushd dcs-data && git reset --hard 1bc281e && popd
+    # Use the archive zip style with the full "fixed commit hash"
+    # to avoid cloning with a lot of depth.
+    # NOTE: This hash needs to be updated regularly (at least annually perhaps)
+    FIXED_COMMIT_HASH=1bc281ec4abc41b8d0953b4ac92dc85077c4e610
+    curl -o dcs-data.zip -L "https://github.com/OliverHellwig/sanskrit/archive/${FIXED_COMMIT_HASH}.zip"
+    if [ "$(uname -o)" = "Darwin" ];
+    then
+      ## Use ditto on the mac
+      ditto -V -x -k --sequesterRsrc dcs-data.zip .
+    else
+      unzip dcs-data.zip
+    fi
+    mv "sanskrit-${FIXED_COMMIT_HASH}" dcs-data;
     mv dcs-data/dcs/data/conllu data/raw/dcs/conllu
     rm -Rf dcs-data
 fi

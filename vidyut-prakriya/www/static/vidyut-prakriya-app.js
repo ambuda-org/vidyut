@@ -103,6 +103,15 @@ function removeSlpSvaras(s) {
     return s.replaceAll(/[\^\\]/g, '');
 }
 
+
+function splitIfComma(str) {
+    if (str.includes(',')) {
+        return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    } else {
+        return [str.trim()];
+    }
+}
+
 const App = () => ({
     activeTab: 'about',
 
@@ -579,6 +588,8 @@ const App = () => ({
             { text: "kim", linga: Linga.Stri },
             { text: "idam", linga: Linga.Stri },
             { text: "adas", linga: Linga.Stri },
+            { text: "DI", linga: Linga.Stri },
+            { text: "lakzmI", linga: Linga.Stri },
             { text: "svasf", linga: Linga.Stri },
             { text: "mAtf", linga: Linga.Stri },
             { text: "duhitf", linga: Linga.Stri },
@@ -619,6 +630,7 @@ const App = () => ({
             { text: "kim", linga: Linga.Napumsaka },
             { text: "idam", linga: Linga.Napumsaka },
             { text: "adas", linga: Linga.Napumsaka },
+            { text: "guRin", linga: Linga.Napumsaka },
         ];
     },
 
@@ -696,9 +708,9 @@ const App = () => ({
         }
 
         const mula = this.activeDhatu;
-        const prefixes = this.upasarga ? [this.upasarga] : [];
+        const prefixes = this.upasarga ? splitIfComma(this.upasarga) : [];
         const sanadi = this.sanadi ? [Sanadi[this.sanadi]] : [];
-
+        // const sanadi = this.sanadi ? splitIfComma(this.sanadi) : [];
         const dhatu = {
             aupadeshika: mula.aupadeshika,
             gana: mula.gana,
@@ -764,9 +776,9 @@ const App = () => ({
         const lakaras = Object.values(Lakara).filter(Number.isInteger);
         const tinPadas = Object.values(DhatuPada).filter(Number.isInteger);
         const prayoga = this.prayoga !== null ? this.prayoga : Prayoga.Kartari;
-        const prefixes = this.upasarga ? [this.upasarga] : [];
+        const prefixes = this.upasarga ? splitIfComma(this.upasarga) : [];
         const sanadi = this.sanadi ? [Sanadi[this.sanadi]] : [];
-
+        // const sanadi = this.sanadi ? splitIfComma(this.sanadi)
         const dhatu = {
             aupadeshika: mula.aupadeshika,
             gana: mula.gana,

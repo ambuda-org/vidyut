@@ -1602,8 +1602,8 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
         subanta::run(p);
     }
     for index in 0..p.len() {
-        try_ato_dirgha(p, index);
         asiddhavat::run_final(p, index);
+        try_ato_dirgha(p, index);
         try_dhatu_rt_adesha(p, index);
     }
 

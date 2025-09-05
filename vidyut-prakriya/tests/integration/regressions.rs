@@ -398,3 +398,35 @@ fn zta_with_upsarga() {
 fn bru_with_yanluk() {
     assert_has_lat(&[], &yan_luk(&d("brUY", Adadi)), &["bobravIti", "bobroti"]);
 }
+
+#[test]
+#[allow(non_snake_case)]
+fn bru_with_upsarga_lit() {
+    assert_has_tinantas(
+        &["pra", "ava"],
+        &d("brUY", Adadi),
+        Lit,
+        Prathama,
+        Bahu,
+        &["prAvocire", "prAvocuH"],
+    );
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn ratva_8_4_29_1() {
+    // Some examples from Kos#[test]
+    // #[allow(non_snake_case)]ha
+    assert_has_krdanta(
+        &["a", "nir"],
+        &d("vi\\da~\\", Divadi),
+        Krt::kta,
+        &["anirviRRa"],
+    );
+    assert_has_krdanta(
+        &["su", "nir"],
+        &d("vi\\da~\\", Divadi),
+        Krt::kta,
+        &["sunirviRRa"],
+    );
+}

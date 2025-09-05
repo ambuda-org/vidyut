@@ -1,7 +1,12 @@
 ## make test VERBOSE=-vvv
 ## as above should print out verbose test results
+
+GIT_ROOT_DIR=$(shell git rev-parse --show-toplevel)
 VERBOSE ?= "-v"
 RELEASE ?=
+
+VIDYUT_DATA_DIR ?= $(GIT_ROOT_DIR)/vidyut-data/data/build/vidyut-latest
+export VIDYUT_DATA_DIR
 
 # Initializes the repository for local development.
 install: develop test
@@ -48,7 +53,7 @@ create_data:
 #
 # VIDYUT_DATA_DIR="/path/to/your/dir" make integration_tests
 integration_tests: develop
-	VIDYUT_DATA_DIR="../vidyut-data/data/build/vidyut-latest" uv run pytest $(VERBOSE) test/integration/
+	uv run pytest $(VERBOSE) test/integration/
 
 # Lints all Rust and Python code.
 lint:

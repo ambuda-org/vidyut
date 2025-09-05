@@ -412,9 +412,9 @@ fn try_run_for_dhatu_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     })?;
 
     if pratyaya.is_pratyaya() {
-        if pratyaya.has_lakara(Lit) {
+        if pratyaya.has_lakara(Lit) && !pratyaya.is_ardhadhatuka() {
             p.add_tag_at("3.4.115", i, T::Ardhadhatuka);
-        } else if pratyaya.has_lakara(AshirLin) {
+        } else if pratyaya.has_lakara(AshirLin) && !pratyaya.is_ardhadhatuka() {
             p.add_tag_at("3.4.116", i, T::Ardhadhatuka);
         } else if pratyaya.has_lakara(Let) {
             let i_dhatu = p.find_last_where(|t| t.is_dhatu())?;

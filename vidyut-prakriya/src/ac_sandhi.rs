@@ -48,8 +48,6 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
         if let Some(i_y) = ip.next(i_x) {
             let y = ip.char_at(&i_y);
             if VAL.contains(y) {
-                // Per Neelesh Bodas, remove `Abhyasta` so that we can derive `mAmAva`.
-                ip.p.set(i_x.i_term, |t| t.remove_tag(T::Abhyasta));
                 ip.run_for_char("6.1.66", i_x, "");
             }
         }
@@ -99,12 +97,6 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya, i_start: usize, i_end: usize) {
         let is_uth = || t_y.has_adi('U') && t_y.has_tag(T::FlagUth);
 
         if AK.contains(x) && al::is_savarna(x, y) {
-            // HACK: ignore sandhi between upasarga and dhatu so that we can correctly derive prARinat,
-            // etc.
-            if t_x.is_upasarga() && ip.p.terms().last()?.is_dhatu() {
-                return Some(i_y);
-            }
-
             let sub = al::to_dirgha(x)?;
             ip.run("6.1.101", |ip| {
                 ip.swap_char_at(i_x, sub);
@@ -169,11 +161,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya, i_start: usize, i_end: usize) {
         } else {
             debug_assert!(AA.contains(x));
 
-            if t_x.is_upasarga() && ip.p.terms().last()?.is_dhatu() {
-                // HACK: ignore sandhi between upasarga and dhatu so that we can correctly derive
-                // prARinat, etc.
-                return Some(i_y);
-            } else if t_x.is(Unadi::qau) {
+            if t_x.is(Unadi::qau) {
                 // Skip qau, or else stating this as `qau` would be vyartha.
                 return Some(i_y);
             }
@@ -383,7 +371,7 @@ pub fn run_antaranga(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_common(p: &mut Prakriya) -> Option<()> {
-    for i in 0..p.terms().len() {
+    for i in 0..p.len() {
         if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
             p.run_at("6.1.67", i, op::lopa);
         }
@@ -407,7 +395,20 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
             // No dhatu or abhyasa in "dhatu prep" ?
             index = 0; // Probably namadhatu..so fallback.
         }
+        apply_general_ac_sandhi(p, index, p.len() - 1);
+        return Some(());
     }
-    apply_general_ac_sandhi(p, index, p.len() - 1);
+
+    // Check if there is an upsarga followed by abhyasa/dhatu
+    let index_upasarga = p.find_last_where(|t| t.is_upasarga());
+    let index_abhyasa = p.find_first_where(|t| (t.is_abhyasa() || t.is_dhatu()));
+    if index_upasarga.is_some() && index_abhyasa.is_some() {
+        // First do the ac_sandhi from abhyas onwards
+        apply_general_ac_sandhi(p, index_abhyasa?, p.len() - 1);
+        // And then apply until the abhyasa
+        apply_general_ac_sandhi(p, 0, index_abhyasa?);
+    } else {
+        apply_general_ac_sandhi(p, index, p.len() - 1);
+    }
     Some(())
 }
