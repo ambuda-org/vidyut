@@ -351,6 +351,12 @@ fn sutra_8_4_29() {
 }
 
 #[test]
+fn varttika_8_4_29_1() {
+    // 8.4.29.1  nirviRRasyopasaNKyAnam
+    assert_has_krdanta(&["nir"], &d("vi\\da~\\", Divadi), Krt::kta, &["nirviRRa"]);
+}
+
+#[test]
 fn sutra_8_4_30() {
     let ya = nic(&d("yA", Adadi));
     assert_has_krdanta(&["pra"], &ya, Krt::lyuw, &["prayApaRa", "prayApana"]);

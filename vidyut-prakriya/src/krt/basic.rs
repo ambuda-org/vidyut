@@ -1375,7 +1375,12 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 if krt == K::kvasu && dhatu.has_text_in(&["sad", "vas", "Sru"]) {
                     kp.try_replace_lakara("3.2.108", i_la, krt);
                 } else {
-                    kp.try_replace_lakara("3.2.107", i_la, krt);
+                    let rule = if krt == K::kvasu {
+                        "3.2.107"
+                    } else {
+                        "3.2.106"
+                    };
+                    kp.try_replace_lakara(rule, i_la, krt);
                 }
             }
         }

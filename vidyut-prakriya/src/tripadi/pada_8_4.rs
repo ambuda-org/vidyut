@@ -48,6 +48,7 @@ fn try_natva_for_span(
     let i_x = i_rs.i_term;
     let i_y = i_n.i_term;
 
+    // ip.p.debug("Ratva rules attempt Context"); ip.p.dump();
     // Exceptions to Ratva.
     if let Some(i) = ip.p.find_first_with_tag(T::Dhatu) {
         let dhatu = ip.p.get(i)?;
@@ -240,6 +241,13 @@ fn try_natva_for_span(
                     ip.p.run_at("8.4.29", i_y, |t| t.find_and_replace_text("n", "R"));
                 }
             }
+        } else if x.is_any_upasarga(&[U::nir, U::nis]) && y.has_dhatu_u_in(&["vi\\da~\\"]) {
+            // 8.4.29.1  nirviRRasyopasaNKyAnam
+            //           parasya Ratvam -> hence next term
+            let i_next = ip.p.find_next_where(i_y, |t| t.is_krt())?;
+            ip.p.run_at(Varttika("8.4.29.1"), i_next, |t| {
+                t.find_and_replace_text("na", "Ra")
+            });
         }
     } else {
         // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.

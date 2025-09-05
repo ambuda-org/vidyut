@@ -291,7 +291,7 @@ fn prepare_pratipadika(p: &mut Prakriya, pratipadika: &Pratipadika) -> Result<()
 
     thread_local! {
         static CACHE: RefCell<Cache<(u64, u64), CachedPrakriya>> = RefCell::new(Cache::new(CACHE_SIZE));
-    };
+    }
 
     // Read cache
     let mut cache_hit = false;
@@ -479,14 +479,16 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         }
     }
 
-    p.debug("==== Vikaranas ====");
-    ardhadhatuka::run_before_vikarana(p, dhatu_args, is_ardhadhatuka, is_lun, lakara);
-    vikarana::run(p);
-    samjna::run(p);
+    if p.find_first_with_tag(Tag::Dhatu) != None {
+        p.debug("==== Vikaranas ====");
+        ardhadhatuka::run_before_vikarana(p, dhatu_args, is_ardhadhatuka, is_lun, lakara);
+        vikarana::run(p);
+        samjna::run(p);
 
-    if is_tinanta && !is_lit_or_ashirlin {
-        if let Some(lakara) = lakara {
-            tin_pratyaya::try_general_siddhi(p, lakara);
+        if is_tinanta && !is_lit_or_ashirlin {
+            if let Some(lakara) = lakara {
+                tin_pratyaya::try_general_siddhi(p, lakara);
+            }
         }
     }
 
@@ -495,27 +497,27 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
     // - should also run for subantas.
     angasya::try_add_or_remove_nit(p);
 
-    p.debug("==== Dhatu tasks ====");
-    {
-        let is_sani_or_cani = is_sani_or_cani(p, dhatu_args, is_lun);
-
-        // Needed transitively for dhatu-samprasarana.
-        angasya::try_pratyaya_adesha(p);
+    // Needed transitively for dhatu-samprasarana.
+    angasya::try_pratyaya_adesha(p);
+    if p.find_first_with_tag(Tag::Dhatu) != None {
+        // p.debug("==== Dhatu tasks ====");
         // Must run before it-Agama.
         angasya::try_cinvat_for_bhave_and_karmani_prayoga(p);
 
         // Must run before guna for saYcaskaratuH, etc.
         // Must also run before it-agama since it changes it behavior.
         ac_sandhi::try_sut_kat_purva(p);
+    }
 
-        // Must run before it_agama rules since it affects how those rules are applied.
-        atidesha::run_before_it_agama(p);
-        // Depends on jha_adesha since it conditions on the first sound.
-        it_agama::run_general_rules(p);
+    // Must run before it_agama rules since it affects how those rules are applied.
+    atidesha::run_before_it_agama(p);
+    // Depends on jha_adesha since it conditions on the first sound.
+    it_agama::run_general_rules(p);
+    // Depends on it_agama for certain rules.
+    atidesha::run_before_attva(p);
 
-        // Depends on it_agama for certain rules.
-        atidesha::run_before_attva(p);
-
+    if p.find_first_with_tag(Tag::Dhatu) != None {
+        let is_sani_or_cani = is_sani_or_cani(p, dhatu_args, is_lun);
         // Samprasarana of the dhatu is conditioned on several other operations, which we must execute
         // first:
         //
@@ -527,30 +529,32 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         tripadi::run_before_dvitva(p);
         // Ad-Adeza and other special tasks for Ardhadhatuka
         ardhadhatuka::run_before_dvitva(p);
-
-        // Now finish it_agama
-        it_agama::run_after_attva(p);
     }
 
-    // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
-    ardhadhatuka::try_add_am_agama(p);
+    // Now finish it_agama
+    it_agama::run_after_attva(p);
 
-    p.debug("==== Dvitva (dvirvacane 'ci) ====");
-    dvitva::try_dvirvacane_aci(p);
     let used_dvirvacane_aci = p.find_last_where(Term::is_abhyasta).is_some();
-    if used_dvirvacane_aci {
-        samprasarana::run_for_abhyasa(p);
-    }
+    if p.find_first_with_tag(Tag::Dhatu) != None {
+        // Must follow tin-siddhi and it-Agama, which could change the first sound of the pratyaya.
+        ardhadhatuka::try_add_am_agama(p);
 
-    // If Ji causes dvitva, that dvitva will be performed in `try_dvirvacane_aci` above.
-    // So by this point, it's safe to replace Ji. (See 3.4.109, which replaces Ji if it follows a
-    // term called `abhyasta`.)
-    if is_tinanta && !is_lit_or_ashirlin {
-        if let Some(lakara) = lakara {
-            tin_pratyaya::try_siddhi_for_jhi(p, lakara);
+        p.debug("==== Dvitva (dvirvacane 'ci) ====");
+        dvitva::try_dvirvacane_aci(p);
+
+        if used_dvirvacane_aci {
+            samprasarana::run_for_abhyasa(p);
+        }
+
+        // If Ji causes dvitva, that dvitva will be performed in `try_dvirvacane_aci` above.
+        // So by this point, it's safe to replace Ji. (See 3.4.109, which replaces Ji if it follows a
+        // term called `abhyasta`.)
+        if is_tinanta && !is_lit_or_ashirlin {
+            if let Some(lakara) = lakara {
+                tin_pratyaya::try_siddhi_for_jhi(p, lakara);
+            }
         }
     }
-
     // Samasa rules.
     // TODO: can these be put somewhere more sensible?
     uttarapade::run(p);
@@ -573,13 +577,14 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
     angasya::run_before_dvitva(p, is_lun, skip_at_agama);
 
-    p.debug("==== Dvitva (default) ====");
-    dvitva::run(p);
-    if !used_dvirvacane_aci {
-        samprasarana::run_for_abhyasa(p);
+    if p.find_first_with_tag(Tag::Dhatu) != None {
+        p.debug("==== Dvitva (default) ====");
+        dvitva::run(p);
+        if !used_dvirvacane_aci {
+            samprasarana::run_for_abhyasa(p);
+        }
+        p.debug("==== After dvitva ====");
     }
-
-    p.debug("==== After dvitva ====");
     angasya::run_after_dvitva(p);
     uttarapade::run_after_guna_and_bhasya(p);
 
