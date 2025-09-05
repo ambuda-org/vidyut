@@ -282,8 +282,11 @@ pub fn run_before_vikarana(
     let n = p.pratyaya(j)?;
 
     if dhatu.has_tag(T::Abhyasta) && !dhatu.has_u("ha\\na~") {
-        // HACK: For "han" dvitva/abhayasa itself gets negated as per kaumudi-2651
+        // HACK?? : when "han" dvitva/abhayasa itself gets negated as per kaumudi-2651
         // Refer: https://sa.wikisource.org/wiki/%E0%A4%AA%E0%A5%83%E0%A4%B7%E0%A5%8D%E0%A4%A0%E0%A4%AE%E0%A5%8D%3A%E0%A4%B8%E0%A4%BF%E0%A4%A6%E0%A5%8D%E0%A4%A7%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A4%95%E0%A5%8C%E0%A4%AE%E0%A5%81%E0%A4%A6%E0%A5%80_(%E0%A4%AC%E0%A4%BE%E0%A4%B2%E0%A4%AE%E0%A4%A8%E0%A5%8B%E0%A4%B0%E0%A4%AE%E0%A4%BE_%E0%A4%89%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%B0-%E0%A5%A8).djvu/%E0%A5%A7%E0%A5%AA%E0%A5%A8
+        // This allows "vaDyAt" to be formed (instead of "jaNGanyAt" via dvitva);
+        // This is the only case where an Abhyasta dhatu (via YanLuk) has a Aadesha
+        // applicable via 2.4.[42,43] for "vadaAdesha"
         return None;
     }
 
