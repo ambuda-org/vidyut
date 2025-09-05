@@ -216,8 +216,10 @@ pub fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
     }
 
     let next_is_hi = n.first().has_text("hi");
-    if (anga.has_text("hu") || anga.has_antya(JHAL)) && next_is_hi {
-        // juhuDi, BindDi, SADi, ...
+    if ((anga.has_text("hu") || anga.has_antya(JHAL)) || anga.has_u("SAsu~")) && next_is_hi {
+        // juhuDi, BindDi,
+        // Implementation HACK to allow SAsu~ as it has become "SA" by 6.4.35. Due to
+        // "asiddha"-ness across 6.4.*  "SAs" (anga) "has_antya(JHAL)".
         p.run_at("6.4.101", n.start(), op::text("Di"));
     } else if anga.is(V::ciR) {
         // akAri, ahAri, ...
@@ -299,7 +301,8 @@ fn try_run_kniti_sarvadhatuke_for_shna_and_abhyasta(p: &mut Prakriya, i: usize) 
 
         let anga = p.get(i)?;
         if !changed && !anga.has_tag(T::FlagNaLopa) {
-            if anga.has_antya('A') {
+            // HACK to ignore SAsu~ so that we can derive SADi. "SA" is asiddha
+            if anga.has_antya('A') && !anga.has_u("SAsu~") {
                 if !anga.has_tag(T::Ghu) && n_is_haladi {
                     p.run_at("6.4.113", i, op::antya("I"));
                 } else {
@@ -580,8 +583,11 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
         if old_antya != anga.antya() {
             anga.add_tag(T::FlagNaLopa);
         }
-    } else if anga.is_u(Au::SAsu_u) && !n.last().has_text("hi") {
-        if n.is_knit() && (n.last().is(V::aN) || n.has_adi(HAL)) {
+    } else if anga.is_u(Au::SAsu_u)  {
+        if n.last().has_text("hi") {
+            // SAs + hi -> SAhi (-> SADi)
+            p.run_at("6.4.35", i, op::text("SA"));
+        } else if n.is_knit() && (n.last().is(V::aN) || n.has_adi(HAL)) {
             // "āṅaḥ śāsu icchāyām iti asya na bhavati" -- kashika
             p.run_at("6.4.34", i, op::upadha("i"));
         } else if n.has_u("kvi~p") {
