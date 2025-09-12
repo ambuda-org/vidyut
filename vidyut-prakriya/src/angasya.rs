@@ -993,7 +993,9 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
         // Dhatu may be multi-part, so insert before abhyasa.
         // But abhyasa may follow main dhatu (e.g. undidizati) --
         // So, use the first match we find that's not a prefix.
-        let i_start = p.find_first_where(|t| !t.is_upasarga() && !t.is_lupta() && !t.is_gati())?;
+        let i_start = p.find_first_where(|t| {
+            !t.is_upasarga() && !t.is_lupta() && !t.is_gati() && !t.is_empty()
+        })?;
 
         // Agama already added in a previous iteration, so return.
         // (To prevent infinite loops)
@@ -1302,6 +1304,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
     // (7.4.21 - 7.4.31)
     option_block_iter(p, |p, i| {
         let anga = p.get_if(i, |t| t.is_anga())?;
+        let luk = p.get(i + 1)?; // May be an empty yanLuk
         let i_n = p.next_not_empty(i)?;
         let n = p.pratyaya(i_n)?;
 
@@ -1339,7 +1342,10 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
             //     `ṛ gatiprāpaṇayoḥ` (dhātupāṭhaḥ-936), `ṛ sṛ gatau`
             //     (dhātupāṭhaḥ-1098,1099) - ityetayor bhauvādika-
             //     jauhotyādikayor grahaṇam
-            if anga.is_samyogadi() || anga.has_text("f") {
+            if (anga.is_samyogadi() || anga.has_text("f")) && !luk.is_yan_luk() {
+                // "श्तिपा" applies here as sutra uses "अर्ति" instead of "ऋ"  ^^^
+                // As per https://ashtadhyayi.com/paribhashendushekhar/131 this should
+                //   not apply for yanLuk
                 if n.is_yan() {
                     // arAryate
                     p.run_at("7.4.30", i, op::antya("ar"));
@@ -1348,7 +1354,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
                     p.run_at("7.4.29", i, op::antya("ar"));
                 }
             } else if is_sha_yak_lin {
-                // kriyate, kriyAt, ...
+                // kriyate, kriyAt, ... and yanLuk also
                 p.run_at("7.4.28", i, op::antya("ri"));
             } else if akrt_sarva() && (yi || n.is(D::cvi)) {
                 // mantrIyati

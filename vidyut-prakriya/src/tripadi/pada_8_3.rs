@@ -86,12 +86,21 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
 
         if j.map_or(false, |j| p.has(j, |t| t.has_adi('r'))) {
             p.run_at("8.3.14", i, op::antya(""));
-            let c = p.get(i)?;
+            let mut j = i;
+            let mut c = p.get(j)?;
+            while j > 0 && c.is_empty() {
+                // This gets executed for the "ऋ" (03.0017) abhyasa which becomes "a + r + r + ati"
+                // due to "ruk~" Agama where the "r" is by itself. 8.3.14 makes it "a + [] + r"
+                // So whatever non-empty term is prior to it (the actual abhyasa "a") needs to have
+                // the 6.3.111 rule applied to it.
+                j -= 1;
+                c = p.get(j)?;
+            }
             if c.is_hrasva() {
-                let sub = al::to_dirgha(p.get(i)?.antya()?)?;
+                let sub = al::to_dirgha(p.get(j)?.antya()?)?;
                 // Placed here, otherwise this is vyartha. See `8.3.13` for the Qa case of
                 // this rule.
-                p.run_at("6.3.111", i, |t| t.set_antya_char(sub));
+                p.run_at("6.3.111", j, |t| t.set_antya_char(sub));
             }
         } else if c.ends_with("rr") {
             // Special implementation for apaspAH, etc.

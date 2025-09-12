@@ -25,4 +25,8 @@ else
 fi;
 mkdir -p $WWW_DIR/static/wasm && cp pkg/* $WWW_DIR/static/wasm
 mkdir -p $WWW_DIR/static/data && cp data/* $WWW_DIR/static/data
-cd $WWW_DIR && python3 -m http.server $HTTP_PORT
+if [ -z "$DEBUG" ]; then
+  cd $WWW_DIR && python3 -m http.server $HTTP_PORT
+else
+  cd $WWW_DIR && python3 ../scripts/debug-server.py --map /vidyut-prakriya=$PWD/.. --port $HTTP_PORT
+fi

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 import sys
+from test.test_unittest.testmock.testhelpers import AnyTest
+
+remainderA:dict = {}
+remainderB:dict = {}
+
 
 def openfile(fname):
     try:
@@ -19,7 +24,11 @@ def handle_only_A(line):
 
     if len(flds) > 2:
         value = flds.pop(0).replace("|"," , ")
-        print(f"| {", ".join(flds)} | {value} | - |")
+        verb_defn = ", ".join(flds)
+        if verb_defn in remainderB:
+            print(f"| {verb_defn} | {value} | {remainderB.pop(verb_defn)} |")
+        else:
+            remainderA[verb_defn] = value
 
 def handle_only_B(line):
     line = line.replace(">", "").replace(" ", "")
@@ -27,7 +36,11 @@ def handle_only_B(line):
 
     if len(flds) > 2:
         value = flds.pop(0).replace("|", " , ")
-        print(f"|{", ".join(flds)} | - | {value} |")
+        verb_defn = ", ".join(flds)
+        if verb_defn in remainderA:
+            print(f"| {verb_defn} | {remainderA.pop(verb_defn)} | {value} |")
+        else:
+            remainderB[verb_defn] = value
 
 def handle_change(line):
     flds = line.split(" | ")
@@ -41,7 +54,18 @@ def handle_change(line):
     verb_defn = ", ".join(derivation)
     derivation = flds[1].split(",")
     valueB = derivation.pop(0).replace("|"," , ")
-    print(f"| {verb_defn} | {valueA} | {valueB}")
+    verb_defn2 = ", ".join(derivation)
+    if (verb_defn == verb_defn2):
+        print(f"| {verb_defn} | {valueA} | {valueB} |")
+    elif verb_defn in remainderB:
+        print(f"| {verb_defn} | {valueA} | {remainderB.pop(verb_defn)} |")
+        remainderB[verb_defn2] = valueB
+    elif verb_defn2 in remainderA:
+        print(f"| {verb_defn2} | {remainderA.pop(verb_defn2)} | {valueB} | ")
+        remainderA[verb_defn] = valueA
+    else:
+        remainderB[verb_defn2] = valueB
+        remainderA[verb_defn] = valueA
 
 def handle_section_header(line):
     print(f"#### {line}")
@@ -71,7 +95,10 @@ def process_file(fname):
         i += 1
         if i > 10000:
             break
-
+    for k in remainderA.keys():
+        print(f"| {k} | {remainderA[k]} | - |")
+    for k in remainderB.keys():
+        print(f"| {k} | - | {remainderB[k]} |")
 
 if __name__ == "__main__":
     process_file(sys.argv[1])

@@ -35,6 +35,9 @@ function parseSutras(tsv) {
 }
 const sutras = fetch("/static/data/sutrapatha.tsv").then(resp => resp.text()).then(text => parseSutras(text));
 const varttikas = fetch("/static/data/varttikas.tsv").then(resp => resp.text()).then(text => parseSutras(text));
+const kaumudi = fetch("/static/data/kaumudi.tsv").then(resp => resp.text()).then(text => parseSutras(text));
+const dhatuGanaSutras = fetch("/static/data/dhatupatha-ganasutras.tsv").then(resp => resp.text()).then(text => parseSutras(text));
+const linganushasanam = fetch("/static/data/linganushasanam.tsv").then(resp => resp.text()).then(text => parseSutras(text));
 
 // Parse a dhatupatha string into separate objects.
 function parseDhatus(vidyut, tsvText) {
@@ -103,6 +106,10 @@ function removeSlpSvaras(s) {
     return s.replaceAll(/[\^\\]/g, '');
 }
 
+function fixSvaras(s) {
+    return s.replaceAll('^', " ̭");
+}
+
 
 function splitIfComma(str) {
     if (str.includes(',')) {
@@ -110,6 +117,17 @@ function splitIfComma(str) {
     } else {
         return [str.trim()];
     }
+}
+function parseStepText(input) {
+    const regex = /^(.*?)@\[([^:]+):(\d+)\](.*)$/;
+    const match = input.match(regex);
+
+    if (!match) {
+        return null; // input not in expected form
+    }
+
+    const [, text, filename, line, supporting_info] = match;
+    return { text, filename, line: parseInt(line, 10), supporting_info };
 }
 
 const App = () => ({
@@ -147,6 +165,9 @@ const App = () => ({
     // data
     sutras: {},
     varttikas: {},
+    kaumudi: {},
+    dhatuGanaSutras: {},
+    linganushasanam: {},
 
     // Transliteration script (devanagari, iast, telugu, etc.)
     script: 'devanagari',
@@ -190,6 +211,9 @@ const App = () => ({
 
         this.sutras = await sutras;
         this.varttikas = await varttikas;
+        this.dhatuGanaSutras = await dhatuGanaSutras;
+        this.kaumudi = await kaumudi;
+        this.linganushasanam = await linganushasanam;
     },
 
     // Mutators
@@ -351,7 +375,7 @@ const App = () => ({
 
     // Render the given SLP1 text in Devanagari.
     deva(s) {
-        return Sanscript.t(s, 'slp1', this.script);
+        return Sanscript.t(fixSvaras(s), 'slp1_accented', this.script);
     },
 
     // Render the given SLP1 text in Devanagari without svara marks.
@@ -360,26 +384,37 @@ const App = () => ({
     },
 
     renderStepRule(rule) {
-        if (rule.source === "ashtadhyayi") {
-            let text = this.sutras[rule.code];
-            return text ? this.deva(text) : '';
-        } else if (rule.source === "varttika") {
-            let text = this.varttikas[rule.code];
-            text = this.deva(text || "");
-            if (text) {
-                return `<span class="text-green-500">${text}</span>`;
-            } else {
-                return '';
-            }
-        } else {
-            return "(missing)"
+        let text = '';
+        let annotated_text = 'missing';
+        switch (rule.source) {
+            case "ashtadhyayi":
+                text = this.devaNoSvara(this.sutras[rule.code] || "");
+                annotated_text = text;
+                break;
+            case "kaumudi":
+                text = this.devaNoSvara(this.kaumudi[rule.code] || "");
+                annotated_text = `<span class="text-green-500">${text}</span>`;
+                break;
+            case "varttika":
+                text = this.devaNoSvara(this.varttikas[rule.code] || "");
+                annotated_text = `<span class="text-green-500">${text}</span>`;
+                break;
+            case "dhatupatha":
+                text = this.devaNoSvara(this.dhatuGanaSutras[rule.code] || "");
+                annotated_text = `<span class="text-orange-500">${text}</span>`;
+                break;
+            case "linganushasanam":
+                text = this.devaNoSvara(this.linganushasanam[rule.code] || "");
+                annotated_text = `<span class="text-orange-500">${text}</span>`;
+                break;
         }
+        return annotated_text;
     },
 
     renderStepRuleLinkText(rule) {
         let prefix = "";
         if (rule.code === "    ") { // For debug statements in prakriya
-            prefix = "__";
+            return "👀 source";
         } else if (rule.source === "varttika") {
             prefix = "vArttika ";
         } else if (rule.source === "kaumudi") {
@@ -395,26 +430,42 @@ const App = () => ({
         }
 
         const text = prefix + rule.code;
-        return this.deva(text).replaceAll('।', '.')
+        return this.devaNoSvara(text).replaceAll('।', '.')
     },
 
-    renderStepRuleLink(rule) {
-        if (rule.source === "ashtadhyayi" || rule.source === "varttika") {
-            if (rule.code === "    ") { // For debug statements in prakriya
-                return '';
+    renderStepRuleLink(step) {
+        let rule = step.rule
+        if (rule.code === "    ") { // For debug statements in prakriya
+            let x = parseStepText(step.result[0].text);
+            if (!x) {
+                return '/vidyut-prakriya/src'
             } else {
-                return "https://ashtadhyayi.com/sutraani/" + rule.code;
+                let text = x.text.split("---")
+                return `/${x.filename}#:~:text=${text[0]}`
             }
-        } else if (rule.source === "kaumudi") {
-            return "https://ashtadhyayi.com/sutraani/sk" + rule.code;
-        } else {
-            return "https://ashtadhyayi.com";
         }
+        let linkurl = "https://ashtadhyayi.com/"
+        switch (rule.source) {
+            case "ashtadhyayi":
+            case "varttika":
+                linkurl = linkurl + "sutraani/" + rule.code;
+                break;
+            case "kaumudi":
+                linkurl = linkurl + "sutraani/sk" + rule.code;
+                break;
+            case "dhatupatha":
+                linkurl = linkurl + "dhatu/" + rule.code;
+                break;
+            case "linganushasanam":
+                linkurl = linkurl + "linganushasanam/linganushasanam-" + rule.code;
+                break;
+        }
+        return linkurl;
     },
 
     entryString(entries) {
         let str = entries.map(x => x.text).join(', ');
-        return this.deva(str);
+        return this.devaNoSvara(str);
     },
 
     stepClasses(step) {
@@ -442,12 +493,17 @@ const App = () => ({
             if (res.length !== 0) {
                 res += ' <span class="text-sm text-gray-400">+</span> ';
             }
-            let text = Sanscript.t(removeSlpSvaras(term.text), 'slp1', this.script);
+            let text = this.devaNoSvara(term.text);
             if (term.wasChanged) {
                 text = `<span class="text-red-700">${text}</span>`
             }
             if (step.rule.code === "    ") {
-                text = `<span class="text-blue-700">${term.text}</span>`
+                let x= parseStepText(term.text)
+                if (!x) {
+                    text = `<span class="text-blue-500">${term.text}</span>`
+                } else {
+                    text = `<span class="text-blue-800">${x.text} ${x.supporting_info}</span>`
+                }
             }
             res += text;
         })

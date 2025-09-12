@@ -659,7 +659,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
     let last = n.last();
 
     if anga.has_text("BU") && n.has_adi(AC) && last.has_lakara_in(&[Lun, Lit]) {
-        // aBUvan
+        // aBUvan and ABUvam but not aBUt
         op::insert_after("6.4.88", p, i, A::vuk);
     } else if anga.is_u(Au::guhU) && n.has_adi(AC) && !n.is_knit() {
         // gUhati, agUhat -- but juguhatuH due to Nit on the pratyaya.
@@ -706,7 +706,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
 // (6.4.77 - 6.4.100)
 fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     let i_n = p.find_next_where(i_anga, |t| !t.is_empty())?;
-    let anga = p.get_if(i_anga, |t| !t.is_agama())?;
+    let anga = p.get(i_anga)?;
     let n = p.pratyaya(i_n)?;
 
     if !anga.has_antya(I_U) || !n.has_adi(AC) || anga.is_upasarga() {
@@ -792,7 +792,13 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             // Apnuvanti, ...
             p.run("6.4.77", |p| to_iy_uv(p, i_anga));
         } else {
-            let abhyasa = p.get_if(i_anga, |t| t.is_abhyasa())?;
+            let abhyasa = p.get_if(i_anga, |t| t.is_abhyasa()).or_else(|| {
+                if n.first().has_u("f\\") {
+                    Some(anga)
+                } else {
+                    None
+                }
+            })?;
             let next = p.get(i_n)?;
             let x = abhyasa.antya()?;
             let y = next.adi()?;
