@@ -19,6 +19,10 @@ const NDR: Set = Set::from("ndr");
 fn find_abhyasa_span(text: &str) -> Option<(usize, usize)> {
     let mut start = None;
     let mut end = None;
+    if text.len() == 1 {
+        // E.g. "f\\" 03.0017 for a span of 1
+        return Some((0, 0));
+    }
     for (i, c) in text.chars().enumerate() {
         // Start at first consonant.
         if start.is_none() && HAL.contains(c) {
@@ -323,7 +327,6 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// For more details, see rule 1.1.59 ("dvirvacane 'ci").
 pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
-    p.debug("try_dvirvacane_aci");
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
     let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Dvitva, T::Pratyaya]);
 
@@ -339,7 +342,24 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
         // Exclude it_agama so that we can derive `aririzati` etc.
         let n = p.get(i_n)?;
         if (n.has_adi(AC) && !n.is_it_agama()) || n.has_text("Ji") {
-            run_at_index(p, i);
+            p.debug(format!(
+                "try_dvirvacane_aci--@[{}:{}] loop(*)={}, dhatu={}",
+                file!(),
+                line!(),
+                num_loops,
+                p.get(i)?.text
+            ));
+            if !(p.get(i)?.text == "BU") {
+                run_at_index(p, i);
+            } else {
+                // Impl. HACK: Don't try for regular "BU" on the first loop as it results
+                //             "dvitva" before 6.4.88 is applied.
+                p.debug(format!(
+                    "try_dvirvacane_aci--@[{}:{}] Skipped (until after 6.4.88 is applied)",
+                    file!(),
+                    line!(),
+                ));
+            }
         }
 
         num_loops += 1;

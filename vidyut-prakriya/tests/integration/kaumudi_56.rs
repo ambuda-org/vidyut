@@ -28,7 +28,7 @@ fn sk_2651() {
     assert_has_tas(&[], &bhu, AshirLin, &["boBUyAstAm"]);
 
     // ashtadhyayi.com has "aboBot", but wikisource has "aboBUt".
-    assert_has_tip(&[], &bhu, Lun, &["aboBUvIt", "aboBUt"]);
+    assert_has_tip(&[], &bhu, Lun, &["aboBUvIt", "aboBot"]);
     assert_has_tas(&[], &bhu, Lun, &["aboBUtAm"]);
     assert_has_jhi(&[], &bhu, Lun, &["aboBUvuH"]);
     assert_has_tip(&[], &bhu, Lrn, &["aboBavizyat"]);
@@ -337,6 +337,18 @@ fn sk_2653() {
     assert_has_jhi(&[], &x, Lat, &["tAtirati"]);
     assert_has_sip(&[], &x, Lot, &["tAtIrhi", "tAtIrtAt"]);
     assert_has_mip(&[], &x, Lot, &["tAtarARi"]);
+
+    let f = yan_luk(&d("f\\", Juhotyadi));
+    assert_has_tip(
+        &[],
+        &f,
+        Lat,
+        &["ararIti", "ararti", "ariyarIti", "ariyarti"],
+    );
+    assert_has_tas(&[], &f, Lat, &["arftaH", "ariyftaH"]);
+    assert_has_jhi(&[], &f, Lat, &["Arati", "ariyrati"]);
+    assert_has_tip(&[], &f, AshirLin, &["AriyAt", "ariyriyAt"]);
+    assert_has_tip(&[], &f, Lun, &["ArArIt", "AriyArIt"]);
 }
 
 #[test]
