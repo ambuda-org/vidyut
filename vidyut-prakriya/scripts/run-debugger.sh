@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-if [[ ! $(command -v wasm-pack) ]]
+if [ ! "$(command -v wasm-pack)" ]
 then
     echo "Our debugger requires wasm-pack. Please install wasm-pack:"
     echo "https://rustwasm.github.io/wasm-pack/installer/"
@@ -11,7 +11,22 @@ fi
 # build by default instead. Creating this release build is slow, but the debug
 # build seems to have issues with enum parsing. So, stick with the release
 # build.
-wasm-pack build --target web --release -- --features serde
-mkdir -p www/static/wasm && cp pkg/* www/static/wasm
-mkdir -p www/static/data && cp data/* www/static/data
-cd www && python3 -m http.server
+if [ -z "$DEBUG" ]; then
+  echo wasm-pack build --target web --release -- --features serde
+  wasm-pack build --target web --release -- --features serde
+  export HTTP_PORT=8000
+  WWW_DIR=www-release
+  mkdir $WWW_DIR; cp -r www/* $WWW_DIR/
+else
+  echo wasm-pack build --target web --debug -- --features serde
+  wasm-pack build --target web --debug -- --features serde
+  export HTTP_PORT=8001
+  WWW_DIR=www
+fi;
+mkdir -p $WWW_DIR/static/wasm && cp pkg/* $WWW_DIR/static/wasm
+mkdir -p $WWW_DIR/static/data && cp data/* $WWW_DIR/static/data
+if [ -z "$DEBUG" ]; then
+  cd $WWW_DIR && python3 -m http.server $HTTP_PORT
+else
+  cd $WWW_DIR && python3 ../scripts/debug-server.py --map /vidyut-prakriya=$PWD/.. --port $HTTP_PORT
+fi

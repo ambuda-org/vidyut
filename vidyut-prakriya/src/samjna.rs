@@ -70,7 +70,9 @@ pub fn try_pragrhya_rules(p: &mut Prakriya) -> Option<()> {
 
 pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
     let t = p.get(i)?;
-
+    if t.is_avyaya() {
+        return Some(());
+    }
     let is_svaradi = |t: &Term| {
         if t.is_dhatu() || t.is_pratyaya() || t.is_agama() {
             // svarAdi contains more than 150 items, so short-circuit the check however we can.
@@ -243,7 +245,8 @@ pub fn try_run_for_pada_or_bha(p: &mut Prakriya) -> Option<()> {
                     }
                 });
             } else {
-                p.add_tag_at("1.4.14", i, T::Pada);
+                // Trigger 1.4.14 processing by adding Pada tag but display it in prakriya end
+                p.get_mut(i).unwrap().add_tag(T::Pada);
             }
         } else {
             let next = match p.pratyaya(i + 1) {
@@ -409,9 +412,9 @@ fn try_run_for_dhatu_pratyaya(p: &mut Prakriya, i: usize) -> Option<()> {
     })?;
 
     if pratyaya.is_pratyaya() {
-        if pratyaya.has_lakara(Lit) {
+        if pratyaya.has_lakara(Lit) && !pratyaya.is_ardhadhatuka() {
             p.add_tag_at("3.4.115", i, T::Ardhadhatuka);
-        } else if pratyaya.has_lakara(AshirLin) {
+        } else if pratyaya.has_lakara(AshirLin) && !pratyaya.is_ardhadhatuka() {
             p.add_tag_at("3.4.116", i, T::Ardhadhatuka);
         } else if pratyaya.has_lakara(Let) {
             let i_dhatu = p.find_last_where(|t| t.is_dhatu())?;
@@ -447,8 +450,10 @@ pub fn try_decide_pratipadika(p: &mut Prakriya) -> Option<()> {
             // do nothing. This can occur if we call `try_decide_pratipadika` on nested derivations
             // (e.g. samana containing pratipadikas).
         } else if t.is_krt() || t.is_taddhita() || t.is_samasa() {
-            p.add_tag_at("1.2.46", i, T::Pratipadika);
-        } else if !t.is_dhatu()
+            // Add tag here but print it later at end of prakriya
+            p.get_mut(i)?.add_tag(T::Pratipadika);
+        } else if !t.is_empty()
+            && !t.is_dhatu()
             && !t.is_pratyaya()
             && !t.is_agama()
             && !t.is_abhyasa()
@@ -479,6 +484,13 @@ pub fn run(p: &mut Prakriya) {
     try_run_for_pratipadika(p);
     try_run_for_sup(p);
     try_run_for_taddhita(p);
+    for i in 0..p.len() {
+        try_avyaya_rules(p, i);
+    }
+}
+
+pub fn run_prepare_krdanta(p: &mut Prakriya) {
+    try_run_for_dhatu(p);
     for i in 0..p.len() {
         try_avyaya_rules(p, i);
     }

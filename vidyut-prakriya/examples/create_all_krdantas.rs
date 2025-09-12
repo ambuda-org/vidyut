@@ -10,6 +10,7 @@
 //!
 //!     cargo run --release --example create_all_krdantas -- --output-scheme Devanagari
 use clap::Parser;
+use itertools::Itertools;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
@@ -48,6 +49,7 @@ fn create_output_string(
     mut items: Vec<String>,
     output_scheme: Scheme,
 ) -> String {
+    items = items.into_iter().unique().collect();
     items.sort();
     if output_scheme != Scheme::Slp1 {
         for s in items.iter_mut() {
@@ -133,13 +135,15 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
 fn main() {
     let args = Args::parse();
 
-    let dhatus = match Dhatupatha::from_path("data/dhatupatha.tsv") {
-        Ok(res) => res,
-        Err(err) => {
-            println!("{}", err);
-            std::process::exit(1);
+    let dhatus = Dhatupatha::from_path("data/dhatupatha.tsv").unwrap_or_else(|_err| {
+        match Dhatupatha::from_path("vidyut-prakriya/data/dhatupatha.tsv") {
+            Ok(res) => res,
+            Err(err) => {
+                println!("{}", err);
+                std::process::exit(1);
+            }
         }
-    };
+    });
 
     match run(dhatus, args) {
         Ok(()) => (),

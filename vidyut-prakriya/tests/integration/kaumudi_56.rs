@@ -28,7 +28,7 @@ fn sk_2651() {
     assert_has_tas(&[], &bhu, AshirLin, &["boBUyAstAm"]);
 
     // ashtadhyayi.com has "aboBot", but wikisource has "aboBUt".
-    assert_has_tip(&[], &bhu, Lun, &["aboBUvIt", "aboBUt"]);
+    assert_has_tip(&[], &bhu, Lun, &["aboBUvIt", "aboBot"]);
     assert_has_tas(&[], &bhu, Lun, &["aboBUtAm"]);
     assert_has_jhi(&[], &bhu, Lun, &["aboBUvuH"]);
     assert_has_tip(&[], &bhu, Lrn, &["aboBavizyat"]);
@@ -124,7 +124,8 @@ fn sk_2651() {
     assert_has_sip(&[], &han, Lot, &["jaNGahi", "jaNGatAt"]);
     assert_has_tip(&[], &han, Lan, &["ajaNGanIt", "ajaNGan"]);
     assert_has_tip(&[], &han, VidhiLin, &["jaNGanyAt"]);
-    // TODO: not sure why vaDyAt is the form here.
+    // To see why vaDyAt is the form here
+    // Refer: https://sa.wikisource.org/wiki/%E0%A4%AA%E0%A5%83%E0%A4%B7%E0%A5%8D%E0%A4%A0%E0%A4%AE%E0%A5%8D%3A%E0%A4%B8%E0%A4%BF%E0%A4%A6%E0%A5%8D%E0%A4%A7%E0%A4%BE%E0%A4%A8%E0%A5%8D%E0%A4%A4%E0%A4%95%E0%A5%8C%E0%A4%AE%E0%A5%81%E0%A4%A6%E0%A5%80_(%E0%A4%AC%E0%A4%BE%E0%A4%B2%E0%A4%AE%E0%A4%A8%E0%A5%8B%E0%A4%B0%E0%A4%AE%E0%A4%BE_%E0%A4%89%E0%A4%A4%E0%A5%8D%E0%A4%A4%E0%A4%B0-%E0%A5%A8).djvu/%E0%A5%A7%E0%A5%AA%E0%A5%A8
     assert_has_tip(&[], &han, AshirLin, &["vaDyAt"]);
     assert_has_tip(&[], &han, Lun, &["avaDIt"]);
     assert_has_tas(&[], &han, Lun, &["avaDizwAm"]);
@@ -336,6 +337,18 @@ fn sk_2653() {
     assert_has_jhi(&[], &x, Lat, &["tAtirati"]);
     assert_has_sip(&[], &x, Lot, &["tAtIrhi", "tAtIrtAt"]);
     assert_has_mip(&[], &x, Lot, &["tAtarARi"]);
+
+    let f = yan_luk(&d("f\\", Juhotyadi));
+    assert_has_tip(
+        &[],
+        &f,
+        Lat,
+        &["ararIti", "ararti", "ariyarIti", "ariyarti"],
+    );
+    assert_has_tas(&[], &f, Lat, &["arftaH", "ariyftaH"]);
+    assert_has_jhi(&[], &f, Lat, &["Arati", "ariyrati"]);
+    assert_has_tip(&[], &f, AshirLin, &["AriyAt", "ariyriyAt"]);
+    assert_has_tip(&[], &f, Lun, &["ArArIt", "AriyArIt"]);
 }
 
 #[test]

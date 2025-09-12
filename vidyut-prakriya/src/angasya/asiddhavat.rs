@@ -198,7 +198,6 @@ pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> 
     } else if anga.is_u(Au::Gasx) && n.last().has_lakara(Lit) {
         // TODO(sriram): rule is chAndasa, but interpreted for "Lit" only (Kvasu also?)
         p.run_at("6.4.100", i, op::upadha_lopa);
-
     }
 
     Some(())
@@ -218,8 +217,9 @@ pub fn try_run_kniti_for_dhatu(p: &mut Prakriya, i: usize) -> Option<()> {
 
     let next_is_hi = n.first().has_text("hi");
     if (anga.has_text("hu") || anga.has_antya(JHAL) || anga.has_u("SAsu~")) && next_is_hi {
-        // juhuDi, BindDi, SADi, ...
-        // HACK to allow SAsu~ so that we can derive SADi.
+        // juhuDi, BindDi,
+        // Implementation HACK to allow SAsu~ as it has become "SA" by 6.4.35. Due to
+        // "asiddha"-ness across 6.4.*  "SAs" (anga) "has_antya(JHAL)".
         p.run_at("6.4.101", n.start(), op::text("Di"));
     } else if anga.is(V::ciR) {
         // akAri, ahAri, ...
@@ -301,7 +301,7 @@ fn try_run_kniti_sarvadhatuke_for_shna_and_abhyasta(p: &mut Prakriya, i: usize) 
 
         let anga = p.get(i)?;
         if !changed && !anga.has_tag(T::FlagNaLopa) {
-            // HACK to ignore SAsu~ so that we can derive SADi.
+            // HACK to ignore SAsu~ so that we can derive SADi. "SA" is asiddha
             if anga.has_antya('A') && !anga.has_u("SAsu~") {
                 if !anga.has_tag(T::Ghu) && n_is_haladi {
                     p.run_at("6.4.113", i, op::antya("I"));
@@ -658,8 +658,8 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = p.view(j, i_p)?;
     let last = n.last();
 
-    if anga.has_text("BU") && last.has_lakara_in(&[Lun, Lit]) {
-        // aBUvan
+    if anga.has_text("BU") && n.first().has_adi(AC) && last.has_lakara_in(&[Lun, Lit]) {
+        // aBUvan and ABUvam but not aBUt
         op::insert_after("6.4.88", p, i, A::vuk);
     } else if anga.is_u(Au::guhU) && n.has_adi(AC) && !n.is_knit() {
         // gUhati, agUhat -- but juguhatuH due to Nit on the pratyaya.
@@ -706,7 +706,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
 // (6.4.77 - 6.4.100)
 fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
     let i_n = p.find_next_where(i_anga, |t| !t.is_empty())?;
-    let anga = p.get_if(i_anga, |t| !t.is_agama())?;
+    let anga = p.get(i_anga)?;
     let n = p.pratyaya(i_n)?;
 
     if !anga.has_antya(I_U) || !n.has_adi(AC) || anga.is_upasarga() {
@@ -792,7 +792,13 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             // Apnuvanti, ...
             p.run("6.4.77", |p| to_iy_uv(p, i_anga));
         } else {
-            let abhyasa = p.get_if(i_anga, |t| t.is_abhyasa())?;
+            let abhyasa = p.get_if(i_anga, |t| t.is_abhyasa()).or_else(|| {
+                if n.first().has_u("f\\") {
+                    Some(anga)
+                } else {
+                    None
+                }
+            })?;
             let next = p.get(i_n)?;
             let x = abhyasa.antya()?;
             let y = next.adi()?;
