@@ -1,29 +1,43 @@
+## make test VERBOSE=-vvv
+## as above should print out verbose test results
+
+GIT_ROOT_DIR=$(shell git rev-parse --show-toplevel)
+VERBOSE ?= "-v"
+RELEASE ?=
+
+VIDYUT_DATA_DIR ?= $(GIT_ROOT_DIR)/vidyut-data/data/build/vidyut-latest
+export VIDYUT_DATA_DIR
+
 # Initializes the repository for local development.
-install:
-	uv sync
-	uv run make develop
-	uv run make test
+install: develop test
 	@echo "vidyut-python built successfully."
+
+clean:
+	rm -rf dist .venv
 
 # Builds the package.
 #
 # Use this command directly instead of `cargo build`, which will likely fail
 # due to missing linker arguments.
 build:
+	uv sync
 	uv run maturin build
 
-# Builds the package and installs it in the local virtualenv.
-develop:
-	uv run maturin develop
+develop: build
+	uv run maturin develop $(RELEASE)
+
+.PHONY: test
 
 # Runs all Python-specific unit tests.
-test: develop
-	uv run pytest test/unit/
+test:
+	uv run pytest $(VERBOSE) test/unit/
+
+coverage-clean:
+	(cargo --list | grep llvm-cov) || cargo install cargo-llvm-cov
+	cargo llvm-cov clean --workspace
 
 # https://github.com/Michael-J-Ward/rust-python-coverage
-coverage:
-	cargo llvm-cov clean --workspace
-	maturin develop
+coverage: coverage-clean develop
 	uv run pytest --cov=vidyut --cov-report lcov:python-coverage.lcov
 	cargo llvm-cov report --html
 
@@ -39,7 +53,7 @@ create_data:
 #
 # VIDYUT_DATA_DIR="/path/to/your/dir" make integration_tests
 integration_tests: develop
-	VIDYUT_DATA_DIR="../vidyut-data/data/build/vidyut-latest" uv run pytest test/integration/
+	uv run pytest $(VERBOSE) test/integration/
 
 # Lints all Rust and Python code.
 lint:

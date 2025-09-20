@@ -8,6 +8,8 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
+use vidyut_prakriya::args::Purusha::Prathama;
+use vidyut_prakriya::args::Vacana::Bahu;
 use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga, Sanadi, Taddhita};
 use vidyut_prakriya::Vyakarana;
 
@@ -343,4 +345,83 @@ fn spastitah() {
 fn apombhyat() {
     let unbhaya = d("unBa~", Tudadi).with_sanadi(&[Sanadi::Ric]);
     assert_has_tip(&["apa"], &unbhaya, AshirLin, &["apomByAt"]);
+}
+
+#[test]
+fn ratva_8_4_14() {
+    // These are for testing णत्व with Dvitvam with Upsarga
+    let ni = d("RI\\Y", Bhvadi);
+    let nam = d("Rama~", Bhvadi);
+    assert_has_tip(&["pra"], &ni, Lit, &["praRinAya"]);
+    assert_has_ta(&["pra"], &ni, Lit, &["praRinye"]);
+    assert_has_tip(&["pari"], &ni, Lit, &["pariRinAya"]);
+    assert_has_tip(&["pari"], &san(&ni), Lat, &["pariRinIzati"]);
+    assert_has_ta(&["pra"], &yan(&ni), Lat, &["praRenIyate"]);
+    assert_has_tip(&["pra"], &yan_luk(&ni), Lat, &["praRenayIti", "praReneti"]);
+    assert_has_mip(&["pra"], &nam, Lit, &["praRanAma", "praRanama"]);
+    // -ive test: Two upasarga with ni to validate not being Ratva-fied
+    assert_has_tip(&["dus", "ni"], &ni, Lit, &["durRininAya", "durnininAya"]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn zta_with_upsarga() {
+    let zWA = d("zWA\\", Bhvadi);
+    // No upsarga actually has both atmane and parasmai padi forms
+    assert_has_krdanta(&[], &san(&zWA), Krt::Satf, &["tizWAsat"]);
+    assert_has_krdanta(&[], &san(&zWA), Krt::SAnac, &["tizWAsamAna"]);
+    // "pari" upasarga is always parasmaipadi
+    assert_has_krdanta(&["pari"], &san(&zWA), Krt::Satf, &["paritizWAsat"]);
+    assert_has_krdanta(&["pari"], &san(&zWA), Krt::SAnac, &[]);
+    // "pra" upasarga is always atmanepadi
+    assert_has_krdanta(&["pra"], &san(&zWA), Krt::SAnac, &["pratizWAsamAna"]);
+    assert_has_krdanta(&["pra"], &san(&zWA), Krt::Satf, &[]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn bru_with_yanluk() {
+    assert_has_lat(&[], &yan_luk(&d("brUY", Adadi)), &["bobravIti", "bobroti"]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn bru_with_upsarga_lit() {
+    assert_has_tinantas(
+        &["pra", "ava"],
+        &d("brUY", Adadi),
+        Lit,
+        Prathama,
+        Bahu,
+        &["prAvocire", "prAvocuH"],
+    );
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn ratva_8_4_29_1() {
+    // Some examples from Kos#[test]
+    // #[allow(non_snake_case)]ha
+    assert_has_krdanta(
+        &["a", "nir"],
+        &d("vi\\da~\\", Divadi),
+        Krt::kta,
+        &["anirviRRa"],
+    );
+    assert_has_krdanta(
+        &["su", "nir"],
+        &d("vi\\da~\\", Divadi),
+        Krt::kta,
+        &["sunirviRRa"],
+    );
+}
+
+#[test]
+fn eka_dvi_as_sarvanama() {
+    assert_has_sup_4s("eka", Pum, &["ekasmE"]);
+    assert_has_sup_4s("eka", Stri, &["ekasyE"]);
+    assert_has_sup_4d("dvi", Pum, &["dvAByAm"]);
+    assert_has_sup_1d("dvi", Pum, &["dvO"]);
+    assert_has_sup_1d("dvi", Stri, &["dve"]);
+    assert_has_sup_1d("dvi", Napumsaka, &["dve"]);
 }
