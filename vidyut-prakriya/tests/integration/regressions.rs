@@ -415,3 +415,13 @@ fn ratva_8_4_29_1() {
         &["sunirviRRa"],
     );
 }
+
+#[test]
+fn eka_dvi_as_sarvanama() {
+    assert_has_sup_4s("eka", Pum, &["ekasmE"]);
+    assert_has_sup_4s("eka", Stri, &["ekasyE"]);
+    assert_has_sup_4d("dvi", Pum, &["dvAByAm"]);
+    assert_has_sup_1d("dvi", Pum, &["dvO"]);
+    assert_has_sup_1d("dvi", Stri, &["dve"]);
+    assert_has_sup_1d("dvi", Napumsaka, &["dve"]);
+}
