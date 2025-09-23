@@ -164,8 +164,10 @@ impl StepTerm {
 /// Records whether an optional rule was accepted or declined.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct RuleChoice {
-    pub(crate) rule: Rule,
-    pub(crate) decision: Decision,
+    /// Rule Ashtadhyayi, vartika or other ...
+    pub rule: Rule,
+    /// Decision : Accept or Decline the above rule
+    pub decision: Decision,
 }
 
 impl RuleChoice {
@@ -196,11 +198,13 @@ impl Config {
     }
 }
 
-#[derive(Clone, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Default, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub(crate) enum Stage {
     #[default]
+    DhatuPrep,
     Pada,
     Vakya,
+    Error,
 }
 
 /// Models a Paninian derivation.
@@ -262,13 +266,13 @@ impl Prakriya {
         ret
     }
 
-    /// Returns all of the optional rules that were encountered during the derivation and whether
+    /// Returns all the optional rules that were encountered during the derivation and whether
     /// they were accepted or rejected.
     pub fn rule_choices(&self) -> &[RuleChoice] {
         &self.rule_choices
     }
 
-    /// Returns all of the rules that were applied during the derivation and the output of each
+    /// Returns all the rules that were applied during the derivation and the output of each
     /// step. If history logging has been disabled on `Vyakarana`, then `history()` will return
     /// an empty `Vec`.
     pub fn history(&self) -> &[Step] {
@@ -711,7 +715,7 @@ impl Prakriya {
 
     /// Runs `func` on the `Prakriya` then records `rule` in the derivation history.
     ///
-    /// `rule` will be recorded regardless of whether or not `operator` caused any changes.
+    /// `rule` will be recorded regardless of whether `operator` caused any changes.
     ///
     /// Returns: `true`. We return a boolean value for consistency with functions like
     /// `run_optional`.
@@ -831,8 +835,13 @@ impl Prakriya {
                 was_changed: false,
             })
             .collect();
-
-        if let Some(prev) = self.history.last() {
+        // Get the correct previous StepTerm in history by skipping "debug"
+        // statements for determining "was_changed"
+        if let Some(prev) = self
+            .history
+            .iter()
+            .rfind(|st| st.rule != Rule::Ashtadhyayi("    "))
+        {
             let prev = prev.result();
             let had_insertion = prev.len() < result.len();
             let mut any_changed = false;

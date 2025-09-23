@@ -1260,8 +1260,15 @@ impl PyPratipadika {
     /// Create a new pratipadika that is a krdanta.
     #[staticmethod]
     #[pyo3(signature = (dhatu, krt, prayoga=PyPrayoga::Kartari, lakara=PyLakara::Lat))]
-    pub fn krdanta(dhatu: PyDhatu, krt: PyKrt, prayoga: Option<PyPrayoga>, lakara: Option<PyLakara>) -> Self {
-        let mut builder = Krdanta::builder().dhatu(dhatu.into()).krt(BaseKrt::from(krt));
+    pub fn krdanta(
+        dhatu: PyDhatu,
+        krt: PyKrt,
+        prayoga: Option<PyPrayoga>,
+        lakara: Option<PyLakara>,
+    ) -> Self {
+        let mut builder = Krdanta::builder()
+            .dhatu(dhatu.into())
+            .krt(BaseKrt::from(krt));
         if let Some(prayoga) = prayoga {
             builder = builder.prayoga(prayoga.into());
         }
