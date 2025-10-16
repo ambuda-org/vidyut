@@ -20,7 +20,7 @@ Discord server][discord], where you can meet other Sanskrit programmers and
 enthusiasts.
 
 An online demo, which also demonstrates this crate's WebAssembly bindings, is
-available [here][demo].
+available [here][demo]. For details, see `www/static/vidyut-prakriya.js`.
 
 - [Overview](#overview)
 - [Usage](#usage)

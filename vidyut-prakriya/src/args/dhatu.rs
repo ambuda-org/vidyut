@@ -77,6 +77,7 @@ sanskrit_enum!(Gana, {
 /// callers to follow our specific conventions.)
 #[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[wasm_bindgen]
 pub enum Antargana {
     /// *Antargaṇa* of *bhū* gana. A dhatu in this *antargaṇa* uses a shortened vowel when
     /// followed by *ṇic-pratyaya*.

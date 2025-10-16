@@ -16,9 +16,9 @@ Useful links:
 - wasm-bindgen book: <https://rustwasm.github.io/wasm-bindgen/introduction.html>
 */
 use crate::args::*;
+use crate::core::Error;
 use crate::core::Rule;
 use crate::core::{Prakriya, Step, StepTerm};
-use crate::dhatupatha::Dhatupatha;
 use serde::{Deserialize, Serialize};
 extern crate console_error_panic_hook;
 
@@ -30,6 +30,10 @@ extern "C" {
     /// Exposes `console.error` in case we need to log anything to the JS console.
     #[wasm_bindgen(js_namespace = console, js_name = error)]
     fn error(s: &str);
+
+    /// Exposes `console.error` in case we need to log anything to the JS console.
+    #[wasm_bindgen(js_namespace = console, js_name = debug)]
+    fn debug(s: &str);
 }
 
 /// A rule that was applied in the derivation.
@@ -123,60 +127,74 @@ fn to_web_prakriyas(prakriyas: &[Prakriya]) -> Vec<WebPrakriya> {
         .collect()
 }
 
-/// Expands a mula dhatu by adding *sanādi pratyaya*s and upasargas, as needed.
-fn try_expand_dhatu(dhatu: &Dhatu, sanadi: &[Sanadi], upasargas: &[String]) -> Dhatu {
-    dhatu.clone().with_sanadi(sanadi).with_prefixes(upasargas)
-}
-
+// For now, mula-dhatus only.
 #[derive(Serialize, Deserialize)]
-struct TinantaArgs {
-    code: String,
-    lakara: Lakara,
-    prayoga: Prayoga,
-    purusha: Purusha,
-    vacana: Vacana,
-    pada: Option<DhatuPada>,
+struct DhatuArgs {
+    aupadeshika: String,
+    gana: Gana,
+    antargana: Option<Antargana>,
     sanadi: Vec<Sanadi>,
-    upasarga: Vec<String>,
+    prefixes: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct KrdantaArgs {
-    code: String,
+    dhatu: DhatuArgs,
     krt: BaseKrt,
-    sanadi: Vec<Sanadi>,
-    upasarga: Vec<String>,
     lakara: Option<Lakara>,
     prayoga: Option<Prayoga>,
 }
 
+// rust-wasm does not support enums, so fake enum-like behavior through a struct with optional
+// fields.
+//
+// The API expects that exactly one field is set. Otherwise, the API will throw an error.
+#[derive(Serialize, Deserialize)]
+struct PratipadikaArgs {
+    basic: Option<String>,
+    krdanta: Option<KrdantaArgs>,
+}
+
 #[derive(Serialize, Deserialize)]
 struct SubantaArgs {
-    pratipadika: String,
+    pratipadika: PratipadikaArgs,
     linga: Linga,
     vibhakti: Vibhakti,
     vacana: Vacana,
 }
 
-impl TinantaArgs {
-    fn into_rust(self, raw_dhatu: &Dhatu) -> Tinanta {
-        let dhatu = try_expand_dhatu(raw_dhatu, &self.sanadi, &self.upasarga);
-        let mut args = Tinanta::builder()
-            .dhatu(dhatu)
-            .lakara(self.lakara)
-            .prayoga(self.prayoga)
-            .purusha(self.purusha)
-            .vacana(self.vacana);
-        if let Some(pada) = self.pada {
-            args = args.pada(pada);
-        }
-        args.build().expect("should be well-formed")
+#[derive(Serialize, Deserialize)]
+struct TinantaArgs {
+    dhatu: DhatuArgs,
+    lakara: Lakara,
+    prayoga: Prayoga,
+    purusha: Purusha,
+    vacana: Vacana,
+    pada: Option<DhatuPada>,
+}
+
+/// Shorthand for result type
+pub type Result<T> = std::result::Result<T, Error>;
+
+impl DhatuArgs {
+    fn into_rust(self) -> Result<Dhatu> {
+        let aupadeshika = Slp1String::from(self.aupadeshika)?;
+        let mut dhatu = match self.antargana {
+            Some(antargana) => Dhatu::mula_with_antargana(aupadeshika, self.gana, antargana),
+            None => Dhatu::mula(aupadeshika, self.gana),
+        };
+
+        dhatu = dhatu
+            .with_prefixes(&self.prefixes)
+            .with_sanadi(&self.sanadi);
+
+        Ok(dhatu)
     }
 }
 
 impl KrdantaArgs {
-    fn into_rust(self, raw_dhatu: &Dhatu) -> Krdanta {
-        let dhatu = try_expand_dhatu(raw_dhatu, &self.sanadi, &self.upasarga);
+    fn into_rust(self) -> Result<Krdanta> {
+        let dhatu: Dhatu = self.dhatu.into_rust()?;
         let mut builder = Krdanta::builder().dhatu(dhatu).krt(self.krt);
         if let Some(la) = self.lakara {
             builder = builder.lakara(la);
@@ -185,21 +203,45 @@ impl KrdantaArgs {
             builder = builder.prayoga(prayoga);
         }
 
-        builder.build().expect("should be well-formed")
+        builder.build()
     }
 }
 
 impl SubantaArgs {
-    fn into_rust(self) -> Subanta {
+    fn into_rust(self) -> Result<Subanta> {
+        let pratipadika = match self.pratipadika {
+            PratipadikaArgs {
+                basic: Some(basic),
+                krdanta: None,
+            } => Pratipadika::basic(Slp1String::from(basic).expect("ok")),
+            PratipadikaArgs {
+                basic: None,
+                krdanta: Some(krt),
+            } => Pratipadika::Krdanta(Box::new(krt.into_rust()?)),
+            // TODO: improve error handling, remove placeholder
+            _ => Pratipadika::basic(Slp1String::from("doza").expect("ok")),
+        };
         Subanta::builder()
-            .pratipadika(Pratipadika::basic(
-                Slp1String::from(self.pratipadika).expect("ok"),
-            ))
+            .pratipadika(pratipadika)
             .linga(self.linga)
             .vacana(self.vacana)
             .vibhakti(self.vibhakti)
             .build()
-            .expect("should be well-formed")
+    }
+}
+
+impl TinantaArgs {
+    fn into_rust(self) -> Result<Tinanta> {
+        let mut args = Tinanta::builder()
+            .dhatu(self.dhatu.into_rust()?)
+            .lakara(self.lakara)
+            .prayoga(self.prayoga)
+            .purusha(self.purusha)
+            .vacana(self.vacana);
+        if let Some(pada) = self.pada {
+            args = args.pada(pada);
+        }
+        args.build()
     }
 }
 
@@ -208,44 +250,57 @@ impl SubantaArgs {
 /// Within reason, we have tried to mimic a native JavaScript API. At some point, we wish to
 /// support optional arguments, perhaps by using `Reflect`.
 #[wasm_bindgen]
-pub struct Vidyut {
-    /// An internal reference to a dhatupatha.
-    /// (This dhatupatha is sourced from ashtadhyayi.com.)
-    dhatupatha: Dhatupatha,
-}
+pub struct Vidyut {}
 
 #[wasm_bindgen]
 impl Vidyut {
     /// Creates a new API manager.
     ///
     /// This constructor is not called `new` because `new` is a reserved word in JavaScript.
-    pub fn init(dhatupatha: &str) -> Self {
+    pub fn init() -> Self {
         // Logs panics to the console. Without this, panics are logged as "RuntimeError:
         // Unreachable executed", which is not useful.
         console_error_panic_hook::set_once();
 
-        Vidyut {
-            dhatupatha: Dhatupatha::from_text(dhatupatha).expect("should be well-formed"),
+        Self {}
+    }
+
+    /// Wrapper for `Vyakarana::derive_krdantas`.
+    #[allow(non_snake_case)]
+    pub fn deriveKrdantas(&self, val: JsValue) -> JsValue {
+        let js_args: KrdantaArgs = serde_wasm_bindgen::from_value(val).unwrap();
+
+        match js_args.into_rust() {
+            Ok(args) => {
+                let v = Vyakarana::new();
+                let prakriyas = v.derive_krdantas(&args);
+
+                let web_prakriyas = to_web_prakriyas(&prakriyas);
+                serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
+            }
+            Err(_) => {
+                error(&format!("[vidyut] Derivation error"));
+                serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+            }
         }
     }
 
-    /// Wrapper for `Vyakarana::derive_tinantas`.
-    ///
-    /// TODO: how might we reduce the number of arguments here?
+    /// Wrapper for `Vyakarana::derive_dhatus`.
     #[allow(non_snake_case)]
-    pub fn deriveTinantas(&self, val: JsValue) -> JsValue {
-        let js_args: TinantaArgs = serde_wasm_bindgen::from_value(val).unwrap();
+    pub fn deriveDhatus(&self, val: JsValue) -> JsValue {
+        let v = Vyakarana::new();
+        let js_args: DhatuArgs = serde_wasm_bindgen::from_value(val).unwrap();
 
-        if let Some(raw_dhatu) = self.dhatupatha.get(&js_args.code) {
-            let v = Vyakarana::new();
-            let args = js_args.into_rust(raw_dhatu);
-            let prakriyas = v.derive_tinantas(&args);
-
-            let web_prakriyas = to_web_prakriyas(&prakriyas);
-            serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
-        } else {
-            error(&format!("[vidyut] Dhatu code not found: {}", js_args.code));
-            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+        match js_args.into_rust() {
+            Ok(args) => {
+                let prakriyas = v.derive_dhatus(&args);
+                let web_prakriyas = to_web_prakriyas(&prakriyas);
+                serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
+            }
+            Err(_) => {
+                error(&format!("[vidyut] Derivation error"));
+                serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+            }
         }
     }
 
@@ -254,43 +309,38 @@ impl Vidyut {
     pub fn deriveSubantas(&self, val: JsValue) -> JsValue {
         let v = Vyakarana::new();
         let js_args: SubantaArgs = serde_wasm_bindgen::from_value(val).unwrap();
-        let args = js_args.into_rust();
-        let prakriyas = v.derive_subantas(&args);
 
-        let web_prakriyas = to_web_prakriyas(&prakriyas);
-        serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
-    }
-
-    /// Wrapper for `Vyakarana::derive_krdantas`.
-    #[allow(non_snake_case)]
-    pub fn deriveKrdantas(&self, val: JsValue) -> JsValue {
-        let js_args: KrdantaArgs = serde_wasm_bindgen::from_value(val).unwrap();
-
-        if let Some(raw_dhatu) = self.dhatupatha.get(&js_args.code) {
-            let v = Vyakarana::new();
-            let args = js_args.into_rust(raw_dhatu);
-            let prakriyas = v.derive_krdantas(&args);
-
-            let web_prakriyas = to_web_prakriyas(&prakriyas);
-            serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
-        } else {
-            error(&format!("[vidyut] Dhatu code not found: {}", js_args.code));
-            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+        match js_args.into_rust() {
+            Ok(args) => {
+                let prakriyas = v.derive_subantas(&args);
+                let web_prakriyas = to_web_prakriyas(&prakriyas);
+                serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
+            }
+            Err(_) => {
+                error(&format!("[vidyut] Derivation error"));
+                serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+            }
         }
     }
 
-    /// Wrapper for `Vyakarana::derive_dhatus`.
+    /// Wrapper for `Vyakarana::derive_tinantas`.
+    ///
+    /// TODO: how might we reduce the number of arguments here?
     #[allow(non_snake_case)]
-    pub fn deriveDhatus(&self, code: &str) -> JsValue {
-        if let Some(dhatu) = self.dhatupatha.get(code) {
-            let v = Vyakarana::new();
-            let prakriyas = v.derive_dhatus(dhatu);
+    pub fn deriveTinantas(&self, val: JsValue) -> JsValue {
+        let v = Vyakarana::new();
+        let js_args: TinantaArgs = serde_wasm_bindgen::from_value(val).unwrap();
 
-            let web_prakriyas = to_web_prakriyas(&prakriyas);
-            serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
-        } else {
-            error(&format!("[vidyut] Dhatu code not found: {code}"));
-            serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+        match js_args.into_rust() {
+            Ok(args) => {
+                let prakriyas = v.derive_tinantas(&args);
+                let web_prakriyas = to_web_prakriyas(&prakriyas);
+                serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
+            }
+            Err(_) => {
+                error(&format!("[vidyut] Derivation error"));
+                serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
+            }
         }
     }
 }

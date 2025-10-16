@@ -67,7 +67,7 @@
           <li class="my-1">
             <a href="#" @click.prevent="setActiveDhatu(d.code)" class="block hover:bg-slate-50 p-1 text-lg">
               <span class="bg-slate-100 text-slate-700 rounded p-1" x-text="deva(d.code).replaceAll('।', '.')"></span>
-              <span class="text-red-700" x-text="devaNoSvara(d.upadesha)"></span>
+              <span class="text-red-700" x-text="devaNoSvara(d.aupadeshika)"></span>
               <span class="text-slate-600" x-text="deva(d.artha)"></span>
             </a>
           </li>
@@ -78,7 +78,7 @@
       <template x-if="activeDhatu">
       <div>
         <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
-          &times; <span x-text="devaNoSvara(activeDhatu.upadesha)"></span>
+          &times; <span x-text="devaNoSvara(activeDhatu.aupadeshika)"></span>
         </button>
         <template x-if="activePada">
           <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
@@ -86,7 +86,7 @@
           </button>
         </template>
         <header class="text-center">
-          <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.upadesha)"></h1>
+          <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.aupadeshika)"></h1>
           <p x-text="deva(activeDhatu.artha)"></p>
         </header>
 

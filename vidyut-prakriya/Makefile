@@ -26,7 +26,7 @@ build_all:
 	cargo build --examples
 
 
-# Unit tests
+# Tests
 # ~~~~~~~~~~
 
 # Runs all unit tests in the crate.
@@ -36,6 +36,8 @@ unit_tests:
 # Generates a simple coverage report and writes it to disk as an HTML file.
 coverage:
 	cargo llvm-cov --html
+
+# For WASM tests, run `make debugger` then go to localhost:8000/unit-tests.html
 
 
 # Integration tests
@@ -94,7 +96,6 @@ test_dhatus:
 		--test-type dhatus \
 		-f test-files/dhatus.msgpack \
 		-h "b76f6643625ca659b4fb7e7dd8534d9204237ec20c512943a4d87441ec938dae"
-
 
 test_subantas:
 	cargo run --bin test_subantas -- \
