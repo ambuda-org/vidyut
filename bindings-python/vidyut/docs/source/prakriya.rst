@@ -98,7 +98,7 @@ To illustrate, let's derive the simple verb ``Bavati``:
         print(prakriya.text)
         print('===================')
         for step in prakriya.history:
-            result = ' + '.join(step.result)
+            result = ' + '.join(term.text for term in step.result)
             print("{:<10}: {}".format(step.code, result))
 
 

@@ -434,9 +434,7 @@ const App = () => ({
     },
 
     /// Create all tinantas allowed by the given `args`.
-    createTinantaParadigm(args) {
-        const { dhatu, lakara, prayoga, pada, sanadi, upasarga } = args;
-
+    createTinantaParadigm({dhatu, lakara, prayoga, pada}) {
         let purushas = Object.values(Purusha).filter(Number.isInteger);
         let vacanas = Object.values(Vacana).filter(Number.isInteger);
 
@@ -451,8 +449,6 @@ const App = () => ({
                     purusha,
                     vacana,
                     pada,
-                    sanadi,
-                    upasarga,
                 };
                 let prakriyas = this.vidyut.deriveTinantas(args);
 
@@ -687,9 +683,17 @@ const App = () => ({
             return [];
         }
 
-        const dhatu = this.activeDhatu;
-        const upasarga = this.upasarga ? [this.upasarga] : [];
-        const sanadi = this.sanadi ? [this.sanadi] : [];
+        const mula = this.activeDhatu;
+        const prefixes = this.upasarga ? [this.upasarga] : [];
+        const sanadi = this.sanadi ? [Sanadi[this.sanadi]] : [];
+
+        const dhatu = {
+            aupadeshika: mula.aupadeshika,
+            gana: mula.gana,
+            antargana: mula.antargana,
+            prefixes,
+            sanadi,
+        }
 
         let ret = [];
         const krts = Object.values(Krt).filter(Number.isInteger);
@@ -698,8 +702,6 @@ const App = () => ({
             const args = {
                 dhatu,
                 krt,
-                upasarga,
-                sanadi,
             };
 
             const prakriyas = this.vidyut.deriveKrdantas(args)
@@ -746,12 +748,20 @@ const App = () => ({
             return [];
         }
 
-        const dhatu = this.activeDhatu;
+        const mula = this.activeDhatu;
         const lakaras = Object.values(Lakara).filter(Number.isInteger);
         const tinPadas = Object.values(DhatuPada).filter(Number.isInteger);
         const prayoga = this.prayoga !== null ? this.prayoga : Prayoga.Kartari;
-        const upasarga = this.upasarga ? [this.upasarga] : [];
-        const sanadi = this.sanadi ? [this.sanadi] : [];
+        const prefixes = this.upasarga ? [this.upasarga] : [];
+        const sanadi = this.sanadi ? [Sanadi[this.sanadi]] : [];
+
+        const dhatu = {
+            aupadeshika: mula.aupadeshika,
+            gana: mula.gana,
+            antargana: mula.antargana,
+            sanadi,
+            prefixes,
+        }
 
         let results = [];
         for (const lakara in lakaras) {
@@ -766,8 +776,6 @@ const App = () => ({
                     lakara,
                     prayoga,
                     pada: tinPada,
-                    sanadi,
-                    upasarga,
                 });
 
                 if (paradigm.length !== 0) {

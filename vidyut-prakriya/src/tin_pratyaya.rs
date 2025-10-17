@@ -114,11 +114,13 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         if dhatu.is_u(Au::vida_2) && tin.has_u_in(TIN_PARA) {
             yatha_optional("3.4.83", p, i, TIN_PARA, NAL_PARA);
         } else if dhatu.has_text("brU") && tin.has_u_in(&TIN_PARA[..5]) {
-            p.optional_run("3.4.84", |p| {
+            let ran = p.optional_run("3.4.84", |p| {
                 p.set(i_dhatu, |t| t.set_text("Ah"));
                 op::upadesha_yatha(p, i, TIN_PARA, NAL_PARA);
-                it_samjna::run(p, i).ok();
             });
+            if ran {
+                it_samjna::run(p, i).ok();
+            }
         }
     } else if tin.has_lakara(Let) {
         let agama = if uses_sip_vikarana(p, i_dhatu) {
