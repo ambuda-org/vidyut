@@ -415,7 +415,7 @@ impl BaseKrt {
         }
     }
 
-    /// Returns the anubandhas used by this pratyaya.
+    /// Returns the anubandhas used by this *pratyaya*.
     pub fn anubandhas(self) -> Vec<Anubandha> {
         let term = Krt::Base(self).to_term();
         it_samjna::anubandhas_for_term(term)

@@ -1,5 +1,7 @@
 use crate::args::macros::sanskrit_enum;
+use crate::args::{Anubandha, Krt};
 use crate::core::errors::*;
+use crate::it_samjna;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "serde")]
@@ -962,5 +964,62 @@ impl Unadi {
     /// Returns the *aupadesika* form of this pratyaya.
     pub fn aupadeshika(self) -> &'static str {
         self.as_str()
+    }
+
+    /// Returns the *dr̥śya* form of this *pratyaya*.
+    ///
+    /// NOTE: `Unadi.drshya` has not been tested extensively.
+    pub fn drshya(self) -> &'static str {
+        let term = Krt::Unadi(self).to_term();
+        let (start, end) = it_samjna::drshya_for_term(&term);
+        let slice = &self.as_str()[start..end];
+
+        if slice == "yu~" {
+            "ana"
+        } else if slice == "vu~" {
+            "aka"
+        } else if slice == "wra" {
+            "tra"
+        } else if slice == "v" {
+            ""
+        } else {
+            slice
+        }
+    }
+
+    /// Returns the anubandhas used by this *pratyaya*.
+    pub fn anubandhas(self) -> Vec<Anubandha> {
+        let term = Krt::Unadi(self).to_term();
+        it_samjna::anubandhas_for_term(term)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn drshya() {
+        // Test that nothing panics.
+        for unadi in Unadi::iter() {
+            println!("{}", unadi.drshya());
+        }
+
+        // A few examples.
+        assert_eq!(Unadi::YuR.drshya(), "u");
+        assert_eq!(Unadi::manin.drshya(), "man");
+    }
+
+    #[test]
+    fn anubandhas() {
+        // Test that nothing panics.
+        for unadi in Unadi::iter() {
+            let _anubandhas = unadi.anubandhas();
+        }
+
+        // A few examples.
+        use Anubandha as A;
+        assert_eq!(Unadi::YuR.anubandhas(), vec![A::Yit, A::Rit]);
+        assert_eq!(Unadi::manin.anubandhas(), vec![A::idit, A::nit]);
     }
 }

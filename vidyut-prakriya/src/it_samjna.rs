@@ -299,7 +299,7 @@ pub fn run(p: &mut Prakriya, i_term: usize) -> Result<()> {
             }
             // Note: it_samjna processing should not be changing Dhatu's sthanivat
             //       for eg. if an adesh changes the dhatu ("ad"->"Gasx~" by 2.4.40)
-            if ! t.is_dhatu() {
+            if !t.is_dhatu() {
                 t.maybe_save_sthanivat();
             }
         });

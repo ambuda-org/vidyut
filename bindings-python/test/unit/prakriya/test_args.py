@@ -101,7 +101,10 @@ def test_dhatu__nama_must_have_pratipadika():
 def test_dhatu__anubandhas():
     # TODO: make this a property. migrate once Krt and Taddhita are updated too.
     assert Dhatu.mula("BU", Gana.Bhvadi).anubandhas() == []
-    assert Dhatu.mula("qukf\\Y", Gana.Bhvadi).anubandhas() == [Anubandha.qvit, Anubandha.Yit]
+    assert Dhatu.mula("qukf\\Y", Gana.Bhvadi).anubandhas() == [
+        Anubandha.qvit,
+        Anubandha.Yit,
+    ]
 
 
 def test_dhatu__dunders():

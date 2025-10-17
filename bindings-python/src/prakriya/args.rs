@@ -5,7 +5,7 @@
 use crate::macro_utils::{py_enum, py_pratyaya};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use vidyut_prakriya::args::{BaseKrt as Krt, *};
+use vidyut_prakriya::args::{BaseKrt as Krt, Krt as RustKrt, *};
 
 /// One of the "indicatory" letters attached to an *aupadeśika*.
 #[pyclass(name = "Anubandha", module = "prakriya", eq, eq_int, ord)]
@@ -451,6 +451,667 @@ py_pratyaya!(
         tfc, tfn, tosun, Takan, naN, najiN, nan, ni, manin, ya, yat, yuc, ra, ru, lyu, lyuw, vanip,
         varac, vic, viw, vuY, vun, zAkan, zwran, zvun, Sa, Satf, SaDyE, SaDyEn, SAnac, SAnan, se,
         sen
+    ]
+);
+
+#[pyclass(name = "Unadi", module = "prakriya", eq, eq_int, ord)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[allow(non_camel_case_types)]
+/// The complete list of *uṇādi* pratyayas.
+///
+/// Each pratyaya name is written in the SLP1 encoding scheme.
+pub enum PyUnadi {
+    /// -a
+    a,
+    /// -aknu
+    aknuc,
+    /// -aNga
+    aNgac,
+    /// -adAnu
+    radAnuk,
+    /// -a
+    ac,
+    /// -aj
+    aji,
+    /// -awa
+    awan,
+    /// -aw
+    awi,
+    /// -aWa
+    aWa,
+    /// -aRqa
+    aRqan,
+    /// -ata
+    atac,
+    /// -at
+    ati,
+    /// -ati
+    ati_,
+    /// -atra
+    atran,
+    /// -atri
+    atrin,
+    /// -aTa
+    aTa,
+    /// -ad
+    adi,
+    /// -a
+    an,
+    /// -ani
+    ani,
+    /// -anu
+    anuN,
+    /// -anya
+    anya,
+    /// -anyu
+    anyuc,
+    /// -apa
+    apa,
+    /// -abaka
+    abaka,
+    /// -amba
+    ambac,
+    /// -aBa
+    aBac,
+    /// -ama
+    ama,
+    /// -ama (praTama)
+    amac,
+    /// -amba
+    ambaj,
+    /// -ayu
+    ayu,
+    /// -ara
+    ara,
+    /// -ara
+    aran,
+    /// -ar
+    aran_,
+    /// -aru
+    aru,
+    /// -a
+    al,
+    /// -ala (maNgala)
+    alac,
+    /// -ali
+    alic,
+    /// -avi
+    avi,
+    /// -a
+    asa,
+    /// -asa
+    asac,
+    /// -asAna
+    asAnac,
+    /// -as
+    asi,
+    /// -as (cetas)
+    asun,
+    /// -A
+    A,
+    /// -Aka
+    Aka,
+    /// -AgU
+    AgUc,
+    /// -Awa
+    Awac,
+    /// -ARaka
+    ARaka,
+    /// -Atu
+    Atu,
+    /// -Atfka
+    Atfkan,
+    /// -Anaka
+    Anaka,
+    /// -Ana
+    Anac,
+    /// -Anu
+    Anuk,
+    /// -Anya
+    Anya,
+    /// -Ayya
+    Ayya,
+    /// -Ara
+    Aran,
+    /// -Ala
+    Ala,
+    /// -Ala
+    Alac,
+    /// -Ala
+    AlaY,
+    /// -AlIya
+    AlIyac,
+    /// -A
+    Asa,
+    /// -As
+    Asi,
+    /// -i
+    i,
+    /// -ika
+    ikan,
+    /// -ij
+    iji,
+    /// -i
+    iY,
+    /// -i
+    iR,
+    /// -ita
+    ita,
+    /// -ita
+    itac,
+    /// -ita
+    itan,
+    /// -it
+    iti,
+    /// -itnu
+    itnuc,
+    /// -itra
+    itra,
+    /// -itva
+    itvan,
+    /// -iTi
+    iTin,
+    /// -i
+    in_,
+    /// -ina
+    inac,
+    /// -ina
+    inaR,
+    /// -ina
+    inan,
+    /// -in
+    ini,
+    /// -iman
+    imanic,
+    /// -iman
+    imanin,
+    /// -ila
+    ilac,
+    /// -izWa
+    izWac,
+    /// -izWu
+    izWuc,
+    /// -izRu
+    izRuc,
+    /// -isa
+    isan,
+    /// -is
+    isi,
+    /// -is
+    isin,
+    /// -I
+    I,
+    /// -Ika
+    Ikan,
+    /// -Ici
+    Ici,
+    /// -Ida
+    Ida,
+    /// -Ira
+    Irac,
+    /// -Ira
+    Iran,
+    /// -Iza
+    Izan,
+    /// -u
+    u,
+    /// -uka
+    ukan,
+    /// -uqa
+    uqac,
+    /// -u
+    uR,
+    /// -ut
+    uti,
+    /// -utra
+    utra,
+    /// -una
+    una,
+    /// -una
+    unan,
+    /// -unas
+    unasi,
+    /// -uni
+    uni,
+    /// -unta
+    unta,
+    /// -unti
+    unti,
+    /// -uma
+    uma,
+    /// -umBa
+    umBa,
+    /// -ura
+    urac,
+    /// -ura
+    uran,
+    /// -ur
+    uran_,
+    /// -uri
+    urin,
+    /// -ula
+    ulac,
+    /// -uli
+    uli,
+    /// -uza
+    uzac,
+    /// -us (Danus)
+    usi,
+    /// -U
+    U,
+    /// -Uka
+    Uka,
+    /// -Uka
+    UkaR,
+    /// -UKa
+    UKa,
+    /// -UTa
+    UTan,
+    /// -Uma
+    Uma,
+    /// -U
+    Ur,
+    /// -Ura
+    Uran,
+    /// -Uza
+    Uzan,
+    /// -f
+    f,
+    /// -ft
+    ftin,
+    /// -f
+    fn_,
+    /// -eRu
+    eRu,
+    /// -eRya
+    eRya,
+    /// -era
+    erak,
+    /// -elima
+    elimac,
+    /// -ota
+    otac,
+    /// -ora
+    oran,
+    /// -ola
+    olac,
+    /// -ka
+    ka,
+    /// -ka
+    kak,
+    /// -kaNkaRa
+    kaNkaRa,
+    /// -kaRa
+    kaRa,
+    /// -katu
+    katu,
+    /// -katni
+    katnic,
+    /// -katra
+    katra,
+    /// -kTa
+    kTan,
+    /// -ka
+    kan,
+    /// -anas
+    kanasi,
+    /// -an
+    kanin,
+    /// -kanu
+    kanum,
+    /// -kanya
+    kanyan,
+    /// -kanyu
+    kanyuc,
+    /// -kapa
+    kapa,
+    /// -kapa
+    kapan,
+    /// -am
+    kamin,
+    /// -kaya
+    kayan,
+    /// -kara
+    karan,
+    /// -kala
+    kala,
+    /// -kAku
+    kAku,
+    /// -kAla
+    kAlan,
+    /// -ika
+    kikan,
+    /// -kita
+    kitac,
+    /// -kinda
+    kindac,
+    /// -kira
+    kirac,
+    /// -kizya
+    kizyan,
+    /// -kIka
+    kIkac,
+    /// -kIka
+    kIkan,
+    /// -kIwa
+    kIwan,
+    /// -ku
+    ku,
+    /// -ku
+    kuk,
+    /// -kuka
+    kukan,
+    /// -kuza
+    kuzan,
+    /// -kU
+    kU,
+    /// -kta
+    kta,
+    /// -ktnu
+    ktnu,
+    /// -ktra
+    ktra,
+    /// -kTi
+    kTin,
+    /// -kna
+    kna,
+    /// -kni
+    knin,
+    /// -kmala
+    kmalan,
+    /// -ana
+    kyu,
+    /// -ana
+    kyun,
+    /// -kra
+    kran,
+    /// -krara
+    kraran,
+    /// -kri
+    kri,
+    /// -kri
+    krin,
+    /// -ruka
+    krukan,
+    /// -kru
+    krun,
+    /// -kla
+    kla,
+    /// -kva
+    kvan,
+    /// -van
+    kvanip,
+    /// -kvi
+    kvin,
+    /// -
+    kvip,
+    /// -aka
+    kvun,
+    /// -ksara
+    ksaran,
+    /// -ksi
+    ksi,
+    /// -ksu
+    ksu,
+    /// -kseyya
+    kseyya,
+    /// -ksna
+    ksna,
+    /// -Ka
+    Ka,
+    /// -ga
+    ga,
+    /// -ga
+    gak,
+    /// -ga
+    gaR,
+    /// -ga
+    gan,
+    /// -GaTi
+    GaTin,
+    /// -ca
+    caw,
+    /// -catu
+    catu,
+    /// -c
+    cik,
+    /// -Ja
+    Jac,
+    /// -Ji
+    Jic,
+    /// -Yu
+    YuR,
+    /// -wa
+    wa,
+    /// -wa
+    wan,
+    /// -wiza
+    wizac,
+    /// -Wa
+    Wa,
+    /// -qa
+    qa,
+    /// -qau
+    qau,
+    /// -ra
+    qraw,
+    /// -qati
+    qati,
+    /// -avat
+    qavatu,
+    /// -qim
+    qimi,
+    /// -quta
+    qutac,
+    /// -qu
+    qun,
+    /// -ums
+    qumsun,
+    /// -U
+    qU,
+    /// -E
+    qE,
+    /// -Es
+    qEsi,
+    /// -o
+    qo,
+    /// -os
+    qosi,
+    /// -O
+    qO,
+    /// -qri
+    qri,
+    /// -Qa
+    Qa,
+    /// -Ritra
+    Ritran,
+    /// -Ru
+    Ru,
+    /// -Ruka
+    Rukan,
+    /// -ta
+    ta,
+    /// -taka
+    takan,
+    /// -ta
+    tan,
+    /// -tana
+    tanan,
+    /// -taSa
+    taSan,
+    /// -taSas
+    taSasun,
+    /// -ti
+    ti,
+    /// -tika
+    tikan,
+    /// -tu
+    tu,
+    /// -tu
+    tun,
+    /// -tf
+    tfc,
+    /// -tf
+    tfn,
+    /// -tna
+    tnaR,
+    /// -tyu
+    tyuk,
+    /// -tra
+    tra,
+    /// -tra
+    tran,
+    /// -tri
+    trin,
+    /// -tri
+    trip,
+    /// -tva
+    tvan,
+    /// -Ta
+    Tak,
+    /// -da
+    da,
+    /// -da
+    dan,
+    /// -Du
+    Duk,
+    /// -na
+    na,
+    /// -na
+    nak,
+    /// -ni
+    ni,
+    /// -nu
+    nu,
+    /// -pa
+    pa,
+    /// -pAsa
+    pAsa,
+    /// -Pa
+    Pak,
+    /// -ba
+    ban,
+    /// -Ba
+    Ba,
+    /// -Ba
+    Ban,
+    /// -ma
+    mak,
+    /// -madi
+    madik,
+    /// -ma
+    man,
+    /// -man
+    mani,
+    /// -man
+    maniR,
+    /// -man
+    manin,
+    /// -mi
+    mi,
+    /// -mi
+    min,
+    /// -mu
+    muk,
+    /// -ya
+    ya,
+    /// -ya
+    yak,
+    /// -ya
+    yat,
+    /// -yatu
+    yatuc,
+    /// -yu
+    yuk,
+    /// -ana
+    yuc,
+    /// -ana
+    yun,
+    /// -ra
+    ra,
+    /// -ra
+    rak,
+    /// -ra
+    ran,
+    /// -ru
+    ru,
+    /// -la
+    lak,
+    /// -va
+    va,
+    /// -va
+    vaR,
+    /// -va
+    van,
+    /// -van
+    vanip,
+    /// -vara
+    varaw,
+    /// -vala
+    valaY,
+    /// -vAla
+    vAlac,
+    /// -vAla
+    vAlan,
+    /// -vi
+    vin,
+    /// -aka
+    vun,
+    /// -Sa
+    Sak,
+    /// -Su
+    Sun,
+    /// -Sva
+    SvaR,
+    /// -ziva
+    zivan,
+    /// -zwra
+    zwran,
+    /// -zvara
+    zvarac,
+    /// -sa
+    sa,
+    /// -sa
+    san,
+    /// -sara
+    sara,
+    /// -sika
+    sikan,
+    /// -sTa
+    sTan,
+    /// -sma
+    sman,
+    /// -sya
+    sya,
+    /// -sya
+    syan,
+}
+
+py_pratyaya!(
+    PyUnadi,
+    Unadi,
+    [
+        a, aknuc, aNgac, radAnuk, ac, aji, awan, awi, aWa, aRqan, atac, ati, ati_, atran, atrin,
+        aTa, adi, an, ani, anuN, anya, anyuc, apa, abaka, ambac, aBac, ama, amac, ambaj, ayu, ara,
+        aran, aran_, aru, al, alac, alic, avi, asa, asac, asAnac, asi, asun, A, Aka, AgUc, Awac,
+        ARaka, Atu, Atfkan, Anaka, Anac, Anuk, Anya, Ayya, Aran, Ala, Alac, AlaY, AlIyac, Asa, Asi,
+        i, ikan, iji, iY, iR, ita, itac, itan, iti, itnuc, itra, itvan, iTin, in_, inac, inaR,
+        inan, ini, imanic, imanin, ilac, izWac, izWuc, izRuc, isan, isi, isin, I, Ikan, Ici, Ida,
+        Irac, Iran, Izan, u, ukan, uqac, uR, uti, utra, una, unan, unasi, uni, unta, unti, uma,
+        umBa, urac, uran, uran_, urin, ulac, uli, uzac, usi, U, Uka, UkaR, UKa, UTan, Uma, Ur,
+        Uran, Uzan, f, ftin, fn_, eRu, eRya, erak, elimac, otac, oran, olac, ka, kak, kaNkaRa,
+        kaRa, katu, katnic, katra, kTan, kan, kanasi, kanin, kanum, kanyan, kanyuc, kapa, kapan,
+        kamin, kayan, karan, kala, kAku, kAlan, kikan, kitac, kindac, kirac, kizyan, kIkac, kIkan,
+        kIwan, ku, kuk, kukan, kuzan, kU, kta, ktnu, ktra, kTin, kna, knin, kmalan, kyu, kyun,
+        kran, kraran, kri, krin, krukan, krun, kla, kvan, kvanip, kvin, kvip, kvun, ksaran, ksi,
+        ksu, kseyya, ksna, Ka, ga, gak, gaR, gan, GaTin, caw, catu, cik, Jac, Jic, YuR, wa, wan,
+        wizac, Wa, qa, qau, qraw, qati, qavatu, qimi, qutac, qun, qumsun, qU, qE, qEsi, qo, qosi,
+        qO, qri, Qa, Ritran, Ru, Rukan, ta, takan, tan, tanan, taSan, taSasun, ti, tikan, tu, tun,
+        tfc, tfn, tnaR, tyuk, tra, tran, trin, trip, tvan, Tak, da, dan, Duk, na, nak, ni, nu, pa,
+        pAsa, Pak, ban, Ba, Ban, mak, madik, man, mani, maniR, manin, mi, min, muk, ya, yak, yat,
+        yatuc, yuk, yuc, yun, ra, rak, ran, ru, lak, va, vaR, van, vanip, varaw, valaY, vAlac,
+        vAlan, vin, vun, Sak, Sun, SvaR, zivan, zwran, zvarac, sa, san, sara, sikan, sTan, sman,
+        sya, syan
     ]
 );
 
@@ -1196,6 +1857,19 @@ impl PyPratipadika {
     }
 }
 
+// Wrapper to accept either BaseKrt or Unadi.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, FromPyObject)]
+pub enum PyKrtOrUnadi {
+    Krt(PyKrt),
+    Unadi(PyUnadi),
+}
+
+impl From<PyKrt> for PyKrtOrUnadi {
+    fn from(val: PyKrt) -> Self {
+        PyKrtOrUnadi::Krt(val)
+    }
+}
+
 #[pymethods]
 impl PyPratipadika {
     pub fn __repr__(&self) -> String {
@@ -1260,8 +1934,17 @@ impl PyPratipadika {
     /// Create a new pratipadika that is a krdanta.
     #[staticmethod]
     #[pyo3(signature = (dhatu, krt, prayoga=PyPrayoga::Kartari, lakara=PyLakara::Lat))]
-    pub fn krdanta(dhatu: PyDhatu, krt: PyKrt, prayoga: Option<PyPrayoga>, lakara: Option<PyLakara>) -> Self {
-        let mut builder = Krdanta::builder().dhatu(dhatu.into()).krt(BaseKrt::from(krt));
+    pub fn krdanta(
+        dhatu: PyDhatu,
+        krt: PyKrtOrUnadi,
+        prayoga: Option<PyPrayoga>,
+        lakara: Option<PyLakara>,
+    ) -> Self {
+        let krt = match krt {
+            PyKrtOrUnadi::Krt(k) => RustKrt::Base(k.into()),
+            PyKrtOrUnadi::Unadi(unadi) => RustKrt::Unadi(unadi.into()),
+        };
+        let mut builder = Krdanta::builder().dhatu(dhatu.into()).krt(krt);
         if let Some(prayoga) = prayoga {
             builder = builder.prayoga(prayoga.into());
         }

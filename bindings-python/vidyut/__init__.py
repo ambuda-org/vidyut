@@ -29,6 +29,7 @@ def download_data(path):
     from io import BytesIO
     import urllib.request
     from zipfile import ZipFile
+
     url = (
         "https://github.com/ambuda-org/vidyut/releases/download/py-0.4.0/data-0.4.0.zip"
     )

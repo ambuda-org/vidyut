@@ -4,6 +4,7 @@ from vidyut.prakriya import (
     Vyakarana,
     Data,
     Krt,
+    Unadi,
     Lakara,
     Linga,
     Gana,
@@ -307,7 +308,9 @@ def test_derive_pratipadikas_with_krdanta_lakara(code, krt, lakara, expected):
         ("01.1137", Krt.SAnac, Prayoga.Karmani, Lakara.Lat, "gamyamAna"),
     ],
 )
-def test_derive_pratipadikas_with_krdanta_prayoga_lakara(code, krt, prayoga, lakara, expected):
+def test_derive_pratipadikas_with_krdanta_prayoga_lakara(
+    code, krt, prayoga, lakara, expected
+):
     dhatu = d[code]
     anga = Pratipadika.krdanta(dhatu, krt, prayoga, lakara)
     prakriyas = v.derive(anga)
@@ -315,6 +318,15 @@ def test_derive_pratipadikas_with_krdanta_prayoga_lakara(code, krt, prayoga, lak
     expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
     assert expected == actual
+
+
+def test_derive_pratipadikas_with_krdanta_unadi():
+    dhatu = Dhatu.mula("bfhi~", Gana.Bhvadi)
+    anga = Pratipadika.krdanta(dhatu, Unadi.manin)
+    prakriyas = v.derive(anga)
+
+    actual = {x.text for x in prakriyas}
+    assert {"brahman"} == actual
 
 
 def test_derive_pratipadikas_with_taddhitanta():

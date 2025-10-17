@@ -218,7 +218,12 @@ impl PyPratipadikaEntry {
                 krt,
                 prayoga,
                 lakara,
-            } => PyPratipadika::krdanta(dhatu_entry.dhatu.clone(), krt.clone(), prayoga.clone(), lakara.clone()),
+            } => PyPratipadika::krdanta(
+                dhatu_entry.dhatu.clone(),
+                krt.clone().into(),
+                prayoga.clone(),
+                lakara.clone(),
+            ),
         }
     }
 }

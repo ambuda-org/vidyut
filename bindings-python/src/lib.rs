@@ -163,6 +163,7 @@ fn py_prakriya(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<prakriya::args::PyPurusha>()?;
     m.add_class::<prakriya::args::PySanadi>()?;
     m.add_class::<prakriya::args::PyTaddhita>()?;
+    m.add_class::<prakriya::args::PyUnadi>()?;
     m.add_class::<prakriya::args::PyVacana>()?;
     m.add_class::<prakriya::args::PyVibhakti>()?;
     m.add_class::<prakriya::args::PyPada>()?;
