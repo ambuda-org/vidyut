@@ -67,7 +67,7 @@ test_tinantas:
 		-f test-files/tinantas-yan.msgpack \
 		-h "0ba293917913f2aed9423ea3125071c56426ca2fc9e06a2632f27297de4b0139" \
 		-f test-files/tinantas-yan-luk.msgpack \
-		-h "c2e938768653f10e0cc89fd99d67061b2fa8ff0309bd967cb02f4472763b6aa1" \
+		-h "4c6f073cec0968db59c69f50ea0e3acff468a239d38b41ce99fd836662772c65" \
 		-f test-files/tinantas-san-nic.msgpack \
 		-h "66b82321c244f4369422b06c2db9254d61a680eceeb6e9c0e8b8ac24a274b3c8" \
 		-f test-files/tinantas-nic-san.msgpack \

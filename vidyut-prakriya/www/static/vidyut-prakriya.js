@@ -187,14 +187,14 @@ export class Vidyut {
      * sanadi: a list of strings. Valid values are "san", "Ric", "yaN", and "yaNluk".
      * upasargas: a list of strings. For the upasarga "A", pass "AN".
      */
-    deriveTinantas({ dhatu, lakara, prayoga, purusha, vacana, pada }) {
+    deriveTinantas({ dhatu, lakara, prayoga, purusha, vacana, pada = null }) {
         return this.wasm.deriveTinantas({
             dhatu: createWasmDhatu(dhatu),
             lakara: Lakara[lakara],
             prayoga: Prayoga[prayoga],
             purusha: Purusha[purusha],
             vacana: Vacana[vacana],
-            pada: DhatuPada[pada],
+            pada: isMissing(pada) ? null : DhatuPada[pada],
         });
     }
 }

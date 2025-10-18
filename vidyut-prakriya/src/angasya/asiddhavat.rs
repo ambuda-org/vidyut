@@ -657,7 +657,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
     let n = p.view(j, i_p)?;
     let last = n.last();
 
-    if anga.has_text("BU") && last.has_lakara_in(&[Lun, Lit]) {
+    if anga.has_text("BU") && n.has_adi(AC) && last.has_lakara_in(&[Lun, Lit]) {
         // aBUvan
         op::insert_after("6.4.88", p, i, A::vuk);
     } else if anga.is_u(Au::guhU) && n.has_adi(AC) && !n.is_knit() {

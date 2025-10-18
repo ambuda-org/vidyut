@@ -9,7 +9,11 @@
   <script src="https://code.jquery.com/qunit/qunit-2.24.1.js"></script>
   <script type="module" src="/static/vidyut-prakriya.js"></script>
 <script type="module">
-import {initWasm, Vidyut, Gana, Lakara, Linga, Purusha, Vacana, Vibhakti, Prayoga, Sanadi, Krt} from '/static/vidyut-prakriya.js';
+import {
+  initWasm,
+  Vidyut, Gana, Lakara, Linga, Purusha, Vacana, Vibhakti, Prayoga, Sanadi, Krt,
+  DhatuPada,
+} from '/static/vidyut-prakriya.js';
 
 let wasmInitialized = false;
 
@@ -36,15 +40,23 @@ QUnit.module('dhatus', (hooks) => {
     assert.equal(ret[0].text, "BU");
   });
 
-  QUnit.test('sanadi', (assert) => {
+  QUnit.test.each('sanadyntas', [
+    [[Sanadi.san], "buBUza"],
+    [[Sanadi.Ric], "BAvi"],
+    [[Sanadi.yaN], "boBUya"],
+    [[Sanadi.yaNluk], "boBU"],
+    [[Sanadi.san, Sanadi.Ric], "buBUzi"],
+    [[Sanadi.Ric, Sanadi.san], "biBAvayiza"],
+  ], function(assert, input) {
+    const [sanadi, expected] = input;
     const v = new Vidyut();
     let ret = v.deriveDhatus({
       aupadeshika: "BU",
       gana: Gana.Bhvadi,
-      sanadi: [Sanadi.san],
+      sanadi,
     });
-    assert.equal(ret.length, 1);
-    assert.equal(ret[0].text, "buBUza");
+    const actual = ret.map((x) => x.text).sort().join("|");
+    assert.equal(ret[0].text, expected);
   });
 
   QUnit.test('prefixes', (assert) => {
@@ -57,7 +69,6 @@ QUnit.module('dhatus', (hooks) => {
     assert.equal(ret.length, 1);
     assert.equal(ret[0].text, "pariBU");
   });
-
 
   QUnit.test('prefixes + sanadi', (assert) => {
     const v = new Vidyut();
@@ -137,18 +148,27 @@ QUnit.module('krdantas', (hooks) => {
 QUnit.module('subantas', (hooks) => {
   hooks.before(initializeWasm);
 
-  QUnit.test('basic', (assert) => {
+  QUnit.test.each('basic', [
+    [Vibhakti.Prathama, "rAmaH"],
+    [Vibhakti.Dvitiya, "rAmam"],
+    [Vibhakti.Trtiya, "rAmeRa"],
+    [Vibhakti.Caturthi, "rAmAya"],
+    [Vibhakti.Panchami, "rAmAd|rAmAt"],
+    [Vibhakti.Sasthi, "rAmasya"],
+    [Vibhakti.Saptami, "rAme"],
+  ], function(assert, input) {
+    const [vibhakti, expected] = input;
     const v = new Vidyut();
     let ret = v.deriveSubantas({
       pratipadika: {
         basic: "rAma",
       },
       linga: Linga.Pum,
-      vibhakti: Vibhakti.Trtiya,
+      vibhakti,
       vacana: Vacana.Eka,
     })
-    assert.equal(ret.length, 1);
-    assert.equal(ret[0].text, "rAmeRa");
+    const actual = ret.map((x) => x.text).sort().join("|");
+    assert.equal(actual, expected);
   });
 
   QUnit.test('krdanta', (assert) => {
@@ -196,20 +216,54 @@ QUnit.module('subantas', (hooks) => {
 QUnit.module('tinantas', (hooks) => {
   hooks.before(initializeWasm);
 
-  QUnit.test('basic', (assert) => {
+  QUnit.test.each('basic verbs', [
+    [Lakara.Lat, "Bavati"],
+    [Lakara.Lit, "baBUva"],
+    [Lakara.Lut, "BavitA"],
+    [Lakara.Lrt, "Bavizyati"],
+    [Lakara.Lot, "BavatAd|BavatAt|Bavatu"],
+    [Lakara.Lan, "aBavad|aBavat"],
+    [Lakara.VidhiLin, "Baved|Bavet"],
+    [Lakara.AshirLin, "BUyAd|BUyAt"],
+    [Lakara.Lun, "aBUd|aBUt"],
+    [Lakara.Lrn, "aBavizyad|aBavizyat"],
+  ], function(assert, input) {
+    const [la, expected] = input;
     const v = new Vidyut();
     let ret = v.deriveTinantas({
       dhatu: {
         aupadeshika: "BU",
         gana: Gana.Bhvadi,
       },
+      lakara: la,
+      purusha: Purusha.Prathama,
+      vacana: Vacana.Eka,
+      prayoga: Prayoga.Kartari,
+    });
+    const actual = ret.map((x) => x.text).sort().join("|");
+    assert.equal(actual, expected);
+  });
+
+
+  QUnit.test.each('verb padas', [
+    [DhatuPada.Parasmaipada, "nayati"],
+    [DhatuPada.Atmanepada, "nayate"],
+  ], function(assert, input) {
+    const [pada, expected] = input;
+    const v = new Vidyut();
+    let ret = v.deriveTinantas({
+      dhatu: {
+        aupadeshika: "RI\\Y",
+        gana: Gana.Bhvadi,
+      },
       lakara: Lakara.Lat,
       purusha: Purusha.Prathama,
       vacana: Vacana.Eka,
       prayoga: Prayoga.Kartari,
-    })
-    assert.equal(ret.length, 1);
-    assert.equal(ret[0].text, "Bavati");
+      pada,
+    });
+    const actual = ret.map((x) => x.text).sort().join("|");
+    assert.equal(actual, expected);
   });
 
   QUnit.test('sanadi', (assert) => {

@@ -8,8 +8,10 @@ use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::{BaseKrt as Krt, Dhatu, Lakara, Prayoga, Sanadi, Taddhita};
-use vidyut_prakriya::Vyakarana;
+use vidyut_prakriya::args::{
+    BaseKrt as Krt, Dhatu, Lakara, Prayoga, Purusha, Sanadi, Taddhita, Tinanta, Vacana,
+};
+use vidyut_prakriya::{Rule, Vyakarana};
 
 #[test]
 fn ambibat() {
@@ -343,4 +345,19 @@ fn spastitah() {
 fn apombhyat() {
     let unbhaya = d("unBa~", Tudadi).with_sanadi(&[Sanadi::Ric]);
     assert_has_tip(&["apa"], &unbhaya, AshirLin, &["apomByAt"]);
+}
+
+#[test]
+fn abhut_no_vuk() {
+    let bhu = d("BU", Bhvadi);
+    let abhut = Tinanta::new(bhu, Prayoga::Kartari, Lun, Purusha::Prathama, Vacana::Eka);
+    let v = Vyakarana::new();
+    let prakriyas = v.derive_tinantas(&abhut);
+    let p = prakriyas.iter().find(|p| p.text() == "aBUt").unwrap();
+
+    let has_vuk_rule = p
+        .history()
+        .iter()
+        .any(|r| r.rule() == Rule::Ashtadhyayi("6.4.88"));
+    assert_eq!(has_vuk_rule, false);
 }

@@ -27,8 +27,7 @@ fn sk_2651() {
     assert_has_tas(&[], &bhu, VidhiLin, &["boBUyAtAm"]);
     assert_has_tas(&[], &bhu, AshirLin, &["boBUyAstAm"]);
 
-    // ashtadhyayi.com has "aboBot", but wikisource has "aboBUt".
-    assert_has_tip(&[], &bhu, Lun, &["aboBUvIt", "aboBUt"]);
+    assert_has_tip(&[], &bhu, Lun, &["aboBUvIt", "aboBot"]);
     assert_has_tas(&[], &bhu, Lun, &["aboBUtAm"]);
     assert_has_jhi(&[], &bhu, Lun, &["aboBUvuH"]);
     assert_has_tip(&[], &bhu, Lrn, &["aboBavizyat"]);
