@@ -1,40 +1,7 @@
 //! Utility functions for checking Sanskrit sounds.
 
 use std::sync::OnceLock;
-
-/// A set of Sanskrit sounds.
-///
-/// This implementation is copied directly from `vidyut_prakriya::sounds`. For details, see the
-/// comments there.
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Set([u8; 256]);
-
-impl Set {
-    /// Creates an empty set.
-    pub fn new() -> Self {
-        Set([0; 256])
-    }
-
-    /// Creates a set whose members are the characters in `string`.
-    pub fn from(string: impl AsRef<str>) -> Self {
-        let mut res = Self::new();
-        for c in string.as_ref().chars() {
-            res.0[c as usize] = 1;
-        }
-        res
-    }
-
-    /// Returns whether the set contains the given sound.
-    pub fn contains(&self, c: char) -> bool {
-        self.0[c as usize] == 1
-    }
-}
-
-impl Default for Set {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub(crate) use vidyut_akshara::Set;
 
 /// Returns whether the given character is a Sanskrit sound or *avagraha*.
 ///

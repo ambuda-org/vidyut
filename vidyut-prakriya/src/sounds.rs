@@ -35,9 +35,8 @@ We chose SLP1 over something like [WX][wx] merely because we have more familiari
 [wx]: https://en.wikipedia.org/wiki/WX_notation
 */
 use rustc_hash::FxHashMap;
-use std::{fmt, sync::OnceLock};
-
-type Sound = char;
+use std::sync::OnceLock;
+pub(crate) use vidyut_akshara::{Set, Sound};
 
 pub const AK: Set = s(&["ak"]);
 pub const AC: Set = s(&["ac"]);
@@ -49,77 +48,6 @@ pub const YAN: Set = s(&["yaR"]);
 pub const VAL: Set = s(&["val"]);
 
 static SOUND_PROPS: OnceLock<FxHashMap<Sound, Uccarana>> = OnceLock::new();
-
-/// A set of Sanskrit sounds.
-///
-/// Internally, a `Set` is just a 128-byte array where `array[i]` is 1 if the char with `u8`
-/// value `i` is present in the set and 0 otherwise.
-pub struct Set([u8; 128]);
-
-impl Set {
-    /// Creates an empty set.
-    pub const fn new() -> Self {
-        Set([0; 128])
-    }
-
-    /// Creates a set whose members are the characters in `string`.
-    pub const fn from(text: &str) -> Self {
-        let mut res = Set([0; 128]);
-        let mut i = 0;
-        while i < text.len() {
-            let c = text.as_bytes()[i] as char;
-            res.0[c as usize] = 1;
-            i += 1;
-        }
-        res
-    }
-
-    pub fn add(&mut self, c: Sound) {
-        self.0[c as usize] = 1;
-    }
-
-    const fn add_const(mut self, c: Sound) -> Self {
-        self.0[c as usize] = 1;
-        self
-    }
-
-    const fn or_const(mut self, other: &Set) -> Self {
-        let mut i = 0;
-        while i < self.0.len() {
-            self.0[i] |= other.0[i];
-            i += 1;
-        }
-        self
-    }
-
-    /// Returns whether the set contains the given sound.
-    pub const fn contains(&self, c: Sound) -> bool {
-        self.0[c as usize] == 1
-    }
-
-    pub fn contains_any(&self, s: &str) -> bool {
-        s.as_bytes().iter().any(|c| self.0[*c as usize] == 1)
-    }
-}
-
-impl fmt::Display for Set {
-    /// Returns all chars in this set in their traditional Sanskrit order.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut ret = String::new();
-        for c in "aAiIuUfFxXeEoOMHkKgGNcCjJYwWqQRtTdDnpPbBmyrlvSzsh".chars() {
-            if self.contains(c) {
-                ret.push(c);
-            }
-        }
-        write!(f, "{ret}")
-    }
-}
-
-impl Default for Set {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 /// Maps one Sanskrit sound to another.
 ///
@@ -425,12 +353,12 @@ const fn pratyahara(s: &str) -> Set {
                 started = true;
             }
             if started {
-                ret = ret.add_const(sound);
+                ret.add(sound);
 
                 // Add long vowels, which are not explictly included in the
                 // Shiva Sutras.
                 if let Some(s) = to_dirgha(sound) {
-                    ret = ret.add_const(s);
+                    ret.add(s);
                 }
             }
 
@@ -481,12 +409,12 @@ pub const fn s(terms: &[&str]) -> Set {
         let is_ak = n == 1 && AK.contains(bytes[0] as char);
         if is_udit || is_ak {
             let set = savarna(bytes[0] as char);
-            ret = ret.or_const(&set);
+            ret.extend(&set);
         } else if bytes.len() == 1 {
-            ret = ret.add_const(bytes[0] as char);
+            ret.add(bytes[0] as char);
         } else {
             let set = pratyahara(term);
-            ret = ret.or_const(&set);
+            ret.extend(&set);
         }
 
         t += 1;

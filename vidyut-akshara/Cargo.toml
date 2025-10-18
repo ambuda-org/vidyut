@@ -1,0 +1,14 @@
+[package]
+name = "vidyut-akshara"
+version = "0.2.0"
+authors = ["Arun Prasad <ambuda.library@gmail.com>"]
+description = "A Sanskrit transliterator"
+homepage = "https://github.com/ambuda-org/vidyut"
+repository = "https://github.com/ambuda-org/vidyut"
+categories = ["text-processing"]
+keywords = ["sanskrit"]
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+rustc-hash = { workspace = true }

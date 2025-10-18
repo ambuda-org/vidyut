@@ -10,6 +10,7 @@ clap = { version = "4.0.12", features = ["derive"] }
 compact_str = "0.7.1"
 csv = "1.1.6"
 rustc-hash = "2.1.0"
+vidyut-akshara = { path = "../vidyut-akshara" }
 
 [dev-dependencies]
 tempfile = "3.3.0"

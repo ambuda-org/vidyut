@@ -2,6 +2,7 @@
 
 members = [
     "bindings-python",
+    "vidyut-akshara",
     "vidyut-chandas",
     "vidyut-cheda",
     "vidyut-data",

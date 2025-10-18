@@ -1800,6 +1800,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "vidyut-akshara"
+version = "0.2.0"
+dependencies = [
+ "rustc-hash",
+]
+
+[[package]]
 name = "vidyut-chandas"
 version = "0.1.0"
 dependencies = [
@@ -1807,6 +1814,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_derive",
+ "vidyut-akshara",
  "wasm-bindgen",
 ]
 
@@ -1900,6 +1908,7 @@ dependencies = [
  "sha2 0.10.6",
  "sha256",
  "test_utils",
+ "vidyut-akshara",
  "vidyut-lipi",
  "wasm-bindgen",
 ]
@@ -1926,6 +1935,7 @@ dependencies = [
  "csv",
  "rustc-hash",
  "tempfile",
+ "vidyut-akshara",
 ]
 
 [[package]]
