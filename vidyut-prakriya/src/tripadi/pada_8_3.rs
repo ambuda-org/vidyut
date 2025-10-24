@@ -22,9 +22,53 @@ const IN2: Set = s(&["iR2"]);
 const IN_KU: Set = s(&["iR2", "ku~"]);
 const KU_PU: Set = s(&["ku~", "pu~"]);
 const KHAR: Set = s(&["Kar"]);
+const KHAY: Set = s(&["Kay"]);
 const SHAR: Set = s(&["Sar"]);
+const CHAV: Set = s(&["Cav"]);
 const AA: Set = s(&["a"]);
+const AM: Set = s(&["am"]);
 const ASH: Set = s(&["aS"]);
+
+fn do_ru_adesha(rule: impl Into<Rule>, p: &mut Prakriya, i: usize) {
+    p.run_at(rule, i, |t| {
+        t.set_antya("ru~");
+        t.add_tag(T::Ru);
+    });
+    // Delete nasal vowel of "ru~".
+    p.run_at("1.3.2", i, |t| {
+        t.set_antya("");
+        t.set_antya("");
+    });
+}
+
+fn try_na_adesha(p: &mut Prakriya) -> Option<()> {
+    for i in 0..p.terms().len() {
+        let j = p.next_not_empty(i)?;
+
+        let c = p.get(i)?;
+        let n = p.get(j)?;
+
+        if c.has_text("pum") && n.has_adi(KHAY) && n.has_at(1, AM) {
+            do_ru_adesha("8.3.7", p, i);
+        } else if c.has_antya('n')
+            && c.is_pada()
+            && n.has_adi(CHAV)
+            && n.has_at(1, AM)
+            && !c.has_text("praSAn")
+        {
+            do_ru_adesha("8.3.7", p, i);
+        } else {
+            continue;
+        }
+
+        let ran = p.optional_run_at("8.3.2", i, |t| t.set_antya("~r"));
+        if !ran {
+            p.run_at("8.3.4", i, |t| t.set_antya("Mr"));
+        }
+    }
+
+    Some(())
+}
 
 fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.terms().len() {
@@ -759,7 +803,12 @@ fn try_murdhanya_for_dha_in_tinanta(p: &mut Prakriya) -> Option<()> {
 
 pub fn run(p: &mut Prakriya) {
     // Use `set` for performance to avoid running useless rules.
-    let set = p.sound_set();
+    let mut set = p.sound_set();
+
+    if set.contains('n') || set.contains('m') {
+        try_na_adesha(p);
+        set = p.sound_set();
+    }
 
     if set.contains('r') {
         try_ra_lopa(p);

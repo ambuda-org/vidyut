@@ -18,6 +18,46 @@ fn kamyac(prati: &str) -> Dhatu {
     )
 }
 
+#[ignore]
+#[test]
+fn sutra_8_3_6() {
+    assert_has_sandhi("pum", "putraH", &["pu~s putraH", "puMs putraH"]);
+    assert_has_sandhi("pum", "putraH", &["pu~s Palam", "puMs Palam"]);
+    assert_has_sandhi("pum", "putraH", &["pu~S calI", "puMS calI"]);
+    assert_has_sandhi("pum", "putraH", &["pu~s kAma", "puMs kAma"]);
+
+    // Kay?
+    assert_has_sandhi("pum", "dAsaH", &["puM dAsaH", "pun dAsaH"]);
+    assert_has_sandhi("pum", "gavaH", &["puM gavaH", "puN gavaH"]);
+
+    // ampare?
+    assert_has_sandhi("pum", "kzIram", &["puM kzIram", "puN kzIram"]);
+    assert_has_sandhi("pum", "kzuram", &["puM kzuram", "puN kzuram"]);
+
+    // pare?
+    assert_has_sandhi("pum", "AKyaH", &["pum AKyaH"]);
+    assert_has_sandhi("pum", "AcAraH", &["pum AcAraH"]);
+}
+
+#[test]
+fn sutra_8_3_7() {
+    assert_has_sandhi("BavAn", "CAdayati", &["BavA~S CAdayati", "BavAMS CAdayati"]);
+    assert_has_sandhi("BavAn", "cinoti", &["BavA~S cinoti", "BavAMS cinoti"]);
+    assert_has_sandhi("BavAn", "wIkate", &["BavA~z wIkate", "BavAMz wIkate"]);
+    assert_has_sandhi("BavAn", "tarati", &["BavA~s tarati", "BavAMs tarati"]);
+
+    // Cavi?
+    assert_has_sandhi("BavAn", "karoti", &["BavAn karoti", "BavAn karoti"]);
+
+    // a-praSAn?
+    // TODO: check n --> Y
+    assert_has_sandhi("praSAn", "CAdayati", &["praSAY CAdayati"]);
+    assert_has_sandhi("praSAn", "cinoti", &["praSAY cinoti"]);
+
+    // ampare?
+    assert_has_sandhi("BavAn", "tsarukaH", &["BavAn tsarukaH"]);
+}
+
 #[test]
 fn sutra_8_3_13() {
     assert_has_krdanta(&[], &d("li\\ha~^", Adadi), Krt::kta, &["lIQa"]);

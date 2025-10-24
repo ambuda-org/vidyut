@@ -50,16 +50,16 @@ pub enum Tag {
     // ==========
     /// Placeholder *it* with no specific meaning.
     adit,
-    /// (pratyaya) prevents it-agama for nisthA pratyayas per 7.2.16 but allows it optionally in
+    /// (dhatu) prevents it-agama for nisthA pratyayas per 7.2.16 but allows it optionally in
     /// non-kartari usage per 7.2.17.
     Adit,
     /// (dhatu) indicates the mandatory use of num-Agama (vidi~ -> vind).
     idit,
-    /// (pratyaya) prevents it-Agama for nisthA pratyayas per 7.2.14.
+    /// (dhatu) prevents it-Agama for nisthA pratyayas per 7.2.14.
     Idit,
-    /// (pratyaya) optionally allows it-agama for ktvA-pratyaya per 7.2.56.
+    /// (dhatu) optionally allows it-agama for ktvA-pratyaya per 7.2.56.
     udit,
-    /// (pratyaya) optionally allows it-agama per 7.2.44.
+    /// (dhatu) optionally allows it-agama per 7.2.44.
     Udit,
     /// (dhatu) prevents shortening of the dhatu vowel when followed by Ni + caN per 7.4.2.
     fdit,
