@@ -1,5 +1,68 @@
-use crate::args::{DhatuPada, Purusha, Vacana, Vibhakti};
+use crate::args::{Anubandha, DhatuPada, Purusha, Vacana, Vibhakti};
 use crate::core::errors::Error;
+use crate::it_samjna;
+
+// Requirements:
+// - has `impl<$Enum> for Term`
+macro_rules! public_morph {
+    ($Enum:ident, { $( $variant:ident => $str:literal ),* $(,)? }) => {
+        impl $Enum {
+            /// Returns this enum as a string vaalue.
+            pub fn as_str(&self) -> &'static str {
+                self.aupadeshika()
+            }
+
+            #[doc = "Iterates over all values of "]
+            #[doc = stringify!($Enum)]
+            #[doc = " in order."]
+            pub fn iter() -> impl Iterator<Item = $Enum> {
+                // In Rust, `const` items are created at compile time.
+                const ITEMS: &[$Enum] = &[
+                    $(
+                        $Enum::$variant,
+                    )*
+                ];
+                ITEMS.iter().copied()
+            }
+
+            /// Returns the *aupadeśika* form of this term.
+            pub fn aupadeshika(&self) -> &'static str {
+                match self {
+                    $(
+                        $Enum::$variant => $str,
+                    )*
+                }
+            }
+
+            /// Returns the *dr̥śya* form of this term.
+            pub fn drshya(self) -> &'static str {
+                let term = self.into();
+                let (start, end) = it_samjna::drshya_for_term(&term);
+                let slice = &self.as_str()[start..end];
+                slice
+            }
+
+            /// Returns the anubandhas used by this term.
+            pub fn anubandhas(self) -> Vec<Anubandha> {
+                it_samjna::anubandhas_for_term(self.into())
+            }
+        }
+
+        impl std::str::FromStr for $Enum {
+            type Err = $crate::core::errors::Error;
+
+            fn from_str(value: &str) -> $crate::core::errors::Result<Self> {
+                let ret = match value {
+                    $(
+                        $str => $Enum::$variant,
+                    )*
+                    _ => return Err(Error::enum_parse_error(value))
+                };
+                Ok(ret)
+            }
+        }
+    }
+}
 
 macro_rules! internal_term {
     ($Enum:ident, { $( $variant:ident => $str:literal ),* $(,)? }) => {
@@ -15,6 +78,7 @@ macro_rules! internal_term {
 
         #[allow(unused)]
         impl $Enum {
+            /// Returns this enum as a string vaalue.
             pub fn as_str(&self) -> &'static str {
                 self.aupadeshika()
             }
@@ -31,6 +95,7 @@ macro_rules! internal_term {
                 ITEMS.iter().copied()
             }
 
+            /// Returns the aupadeshika form of this term.
             pub fn aupadeshika(&self) -> &'static str {
                 match self {
                     $(
@@ -96,7 +161,29 @@ macro_rules! internal_term_non_unique {
     }
 }
 
-internal_term!(Stri, {
+/// Creates a feminine stem.
+///
+/// For details, see the rules in section 4.1 of the Ashtadhyayi.
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Stri {
+    /// *-ā* (4.1.74)
+    cAp,
+    /// *-ā* (4.1.4)
+    wAp,
+    /// *-ā* (4.1.13)
+    qAp,
+    /// *-ī* (4.1.73)
+    NIn,
+    /// *-ī* (4.1.5)
+    NIp,
+    /// *-ī* (4.1.25, 4.1.40)
+    NIz,
+    /// *-ū* (4.1.66)
+    UN,
+}
+
+public_morph!(Stri, {
     cAp => "cAp",
     wAp => "wAp",
     qAp => "qAp",
@@ -106,7 +193,49 @@ internal_term!(Stri, {
     UN => "UN",
 });
 
-internal_term!(Vikarana, {
+/// A suffix inserted between a dhatu and a tin-pratyaya.
+///
+/// For details, see the rules in section 3.1 of the Ashtadhyayi.
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Vikarana {
+    /// *luṅ-vikaraṇa* (3.1.52)
+    aN,
+    /// *sārvadhātuka-vikaraṇa* (3.1.79 - 3.1.80)
+    u,
+    /// *luṅ-vikaraṇa* (3.1.45)
+    ksa,
+    /// *luṅ-vikaraṇa* (3.1.48)
+    caN,
+    /// *luṅ-vikaraṇa* (3.1.60, ...)
+    ciR,
+    /// *luṅ-vikaraṇa* (3.1.43)
+    cli,
+    /// *luṭ-vikaraṇa* (3.1.33)
+    tAsi,
+    /// *sārvadhātuka-vikaraṇa* (3.1.67)
+    yak,
+    /// *sārvadhātuka-vikaraṇa* (3.1.77)
+    Sa,
+    /// *sārvadhātuka-vikaraṇa* (3.1.68)
+    Sap,
+    /// *sārvadhātuka-vikaraṇa* (3.1.78)
+    Snam,
+    /// *sārvadhātuka-vikaraṇa* (3.1.81 - 3.1.82)
+    SnA,
+    /// *sārvadhātuka-vikaraṇa* (3.1.73 - 3.1.76)
+    Snu,
+    /// *sārvadhātuka-vikaraṇa* (3.1.69 - 3.1.72)
+    Syan,
+    /// *luṅ-vikaraṇa* (3.1.44)
+    sic,
+    /// *lṛṭ-vikaraṇa* (3.1.33)
+    sya,
+    /// *leṭ-vikaraṇa* (3.1.34)
+    sip,
+}
+
+public_morph!(Vikarana, {
     aN => "aN",
     u => "u",
     ksa => "ksa",
@@ -117,6 +246,7 @@ internal_term!(Vikarana, {
     yak => "yak",
     Sa => "Sa",
     Sap => "Sap",
+    Snam => "Snam",
     SnA => "SnA",
     Snu => "Snu",
     Syan => "Syan",
@@ -125,7 +255,101 @@ internal_term!(Vikarana, {
     sip => "si~p",
 });
 
-internal_term!(Agama, {
+/// An augment that adds sounds to an existing term.
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug, Hash, Eq, Ord, PartialEq, PartialOrd)]
+pub enum Agama {
+    /// TODO
+    aw,
+    /// TODO
+    Aw,
+    /// TODO
+    Anuk,
+    /// TODO
+    Apuk,
+    /// Connecting *-i-* between dhatus and suffixes.
+    iw,
+    /// TODO
+    iruw,
+    /// TODO
+    Iw,
+    /// TODO
+    Muk,
+    /// TODO
+    juk,
+    /// TODO
+    juw,
+    /// TODO
+    Ruk,
+    /// TODO
+    tuk,
+    /// TODO
+    tuw,
+    /// TODO
+    Tuk,
+    /// TODO
+    Tuw,
+    /// TODO
+    duk,
+    /// TODO
+    duw,
+    /// TODO
+    Duw,
+    /// TODO
+    nIk,
+    /// TODO
+    nuk,
+    /// TODO
+    nuw,
+    /// TODO
+    num,
+    /// TODO
+    puk,
+    /// TODO
+    buk,
+    /// TODO
+    maw,
+    /// TODO
+    muk,
+    /// TODO
+    muw,
+    /// Inserted for *parasmaipada-liṅ*.
+    yAsuw,
+    /// TODO
+    yAw,
+    /// TODO
+    yiw,
+    /// TODO
+    yuk,
+    /// TODO
+    yuw,
+    /// TODO
+    rIk,
+    /// TODO
+    rik,
+    /// TODO
+    ruk,
+    /// TODO
+    ruw,
+    /// TODO
+    luk,
+    /// TODO
+    vuk,
+    /// TODO
+    zuk,
+    /// TODO
+    Suw,
+    /// Inserted for *ātmanepada-liṅ*.
+    sIyuw,
+    /// TODO
+    suw,
+    /// TODO
+    syAw,
+    /// TODO
+    huk,
+}
+
+public_morph!(Agama, {
     aw => "aw",
     Aw => "Aw",
     Anuk => "Anu~k",
@@ -147,6 +371,7 @@ internal_term!(Agama, {
     nIk => "nIk",
     nuk => "nu~k",
     nuw => "nu~w",
+    num => "nu~m",
     puk => "pu~k",
     buk => "bu~k",
     maw => "maw",

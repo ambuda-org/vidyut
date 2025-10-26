@@ -8,6 +8,7 @@ use vidyut_prakriya::{Dhatupatha, Vyakarana};
 use vidyut_prakriya::{Prakriya, Step};
 
 pub mod args;
+pub mod morph;
 use args::*;
 
 /// Renders a string Pythonically.

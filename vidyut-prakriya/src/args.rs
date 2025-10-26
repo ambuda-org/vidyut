@@ -17,7 +17,7 @@ mod macros;
 
 mod anubandha;
 pub(crate) mod dhatu;
-mod internal;
+pub(crate) mod internal;
 mod krt;
 mod pada;
 mod pratipadika;

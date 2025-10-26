@@ -15,6 +15,7 @@ pub use crate::vyakarana::{Vyakarana, VyakaranaBuilder};
 pub mod args;
 pub mod dhatupatha;
 pub mod ganapatha;
+pub mod morph;
 
 // Data structures and utilities
 mod caching;

@@ -2,7 +2,7 @@
 //!
 //! Pyo3 doesn't allow us to annotate existing enums, and using a wrapping struct has poor
 //! ergonomics for callers. So instead, redefine our enums of interest.
-use crate::macro_utils::{py_enum, py_pratyaya};
+use crate::macro_utils::{py_aupadeshika, py_enum};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use vidyut_prakriya::args::{BaseKrt as Krt, Krt as RustKrt, *};
@@ -438,7 +438,7 @@ pub enum PyKrt {
     sen,
 }
 
-py_pratyaya!(
+py_aupadeshika!(
     PyKrt,
     Krt,
     [
@@ -1087,7 +1087,7 @@ pub enum PyUnadi {
     syan,
 }
 
-py_pratyaya!(
+py_aupadeshika!(
     PyUnadi,
     Unadi,
     [
@@ -1474,7 +1474,7 @@ pub enum PyTaddhita {
     ha,
 }
 
-py_pratyaya!(
+py_aupadeshika!(
     PyTaddhita,
     Taddhita,
     [
@@ -1613,7 +1613,7 @@ pub enum PySanadi {
     kyac,
 }
 
-py_pratyaya!(
+py_aupadeshika!(
     PySanadi,
     Sanadi,
     [san, yaN, yaNluk, Ric, kAmyac, kyaN, kyac]
@@ -1814,6 +1814,7 @@ impl PyDhatu {
         self.0.sanadi().iter().map(|x| (*x).into()).collect()
     }
 
+    #[getter]
     pub fn anubandhas(&self) -> Vec<PyAnubandha> {
         self.0.anubandhas().iter().map(|x| (*x).into()).collect()
     }

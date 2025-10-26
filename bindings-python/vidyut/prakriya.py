@@ -36,5 +36,10 @@ Prakriya = __mod.Prakriya
 Step = __mod.Step
 Term = __mod.Term
 
+# Morph types
+Agama = __mod.Agama
+Stri = __mod.Stri
+Vikarana = __mod.Vikarana
+
 # Metadata
 Anubandha = __mod.Anubandha

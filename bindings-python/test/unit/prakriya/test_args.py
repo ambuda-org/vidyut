@@ -4,6 +4,7 @@ from vidyut.prakriya import (
     Dhatu,
     DhatuPada,
     Pratipadika,
+    Agama,
     Anubandha,
     Antargana,
     Gana,
@@ -15,9 +16,11 @@ from vidyut.prakriya import (
     Purusha,
     Sanadi,
     Source,
+    Stri,
     Taddhita,
     Vacana,
     Vibhakti,
+    Vikarana,
 )
 
 
@@ -36,6 +39,20 @@ ENUMS = [
     Vibhakti,
     # Also include data enums
     Source,
+    # And morph enums
+    Agama,
+    Stri,
+    Vikarana,
+]
+
+# Enums that support drshya and anubandhas
+AUPADESHIKA_ENUMS = [
+    Agama,
+    Krt,
+    Sanadi,
+    Stri,
+    Taddhita,
+    Vikarana,
 ]
 
 
@@ -100,8 +117,8 @@ def test_dhatu__nama_must_have_pratipadika():
 
 def test_dhatu__anubandhas():
     # TODO: make this a property. migrate once Krt and Taddhita are updated too.
-    assert Dhatu.mula("BU", Gana.Bhvadi).anubandhas() == []
-    assert Dhatu.mula("qukf\\Y", Gana.Bhvadi).anubandhas() == [
+    assert Dhatu.mula("BU", Gana.Bhvadi).anubandhas == []
+    assert Dhatu.mula("qukf\\Y", Gana.Bhvadi).anubandhas == [
         Anubandha.qvit,
         Anubandha.Yit,
     ]
@@ -280,3 +297,17 @@ def test_enum_attr_value_is_unique(enum):
 def test_enum_repr_evals_to_variant(enum):
     for val in enum.choices():
         assert eval(repr(val)) == val
+
+
+@pytest.mark.parametrize("enum", AUPADESHIKA_ENUMS)
+def test_aupadeshika_enum__drshya(enum):
+    for val in enum.choices():
+        ret = val.anubandhas
+        assert isinstance(ret, list)
+
+
+@pytest.mark.parametrize("enum", AUPADESHIKA_ENUMS)
+def test_aupadeshika_enum__drshya(enum):
+    for val in enum.choices():
+        ret = val.drshya
+        assert isinstance(ret, str)

@@ -57,6 +57,24 @@ sanskrit_enum!(Gana, {
     Kandvadi => "kaRqvAdi",
 });
 
+impl Gana {
+    /// A list of all antarganas associated with this gana, in order of appearance.
+    ///
+    /// This method returns only the antarganas defined in `Antargana`.
+    pub fn antarganas(&self) -> &[Antargana] {
+        match self {
+            Gana::Bhvadi => &[Antargana::Ghatadi],
+            Gana::Tudadi => &[Antargana::Kutadi],
+            Gana::Curadi => &[
+                Antargana::Asvadiya,
+                Antargana::Adhrshiya,
+                Antargana::Akusmiya,
+            ],
+            _ => &[],
+        }
+    }
+}
+
 /// Defines an *antargaṇa*.
 ///
 /// The dhatus in the Dhatupatha are organized in ten large *gaṇa*s or classes. Within these larger
@@ -249,9 +267,16 @@ impl Muladhatu {
         &self.sanadi
     }
 
-    /// The prefixes to use with this .
+    /// The prefixes to use with this *dhātu*.
     pub fn prefixes(&self) -> &[String] {
         &self.prefixes
+    }
+
+    /// Returns the anubandhas defined on this dhatu.
+    pub fn anubandhas(&self) -> Vec<Anubandha> {
+        let mut t = Term::make_upadesha(&self.aupadeshika);
+        t.add_tag(Tag::Dhatu);
+        it_samjna::anubandhas_for_term(t)
     }
 
     /// Returns whether the dhatu has the given gana.
@@ -567,11 +592,7 @@ impl Dhatu {
     /// This excludes anubandhas on nAma-dhAtus and anubandhas added by sutras.
     pub fn anubandhas(&self) -> Vec<Anubandha> {
         match self {
-            Dhatu::Mula(m) => {
-                let mut t = Term::make_upadesha(&m.aupadeshika);
-                t.add_tag(Tag::Dhatu);
-                it_samjna::anubandhas_for_term(t)
-            }
+            Dhatu::Mula(m) => m.anubandhas(),
             Dhatu::Nama(_) => Vec::new(),
         }
     }

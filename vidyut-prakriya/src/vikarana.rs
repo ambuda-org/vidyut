@@ -36,7 +36,12 @@ const IC: Set = s(&["ic"]);
 fn add_vikarana(vikarana: Vikarana) -> impl Fn(&mut Prakriya) {
     move |p| {
         if let Some(i) = p.find_last_with_tag(T::Dhatu) {
-            p.insert_after(i, vikarana);
+            if vikarana == Snam {
+                p.set(i, |t| t.add_tag(T::Snam));
+                p.set(i, op::mit("na"));
+            } else {
+                p.insert_after(i, vikarana);
+            }
         }
     }
 }
@@ -488,10 +493,7 @@ fn add_sarvadhatuka_vikarana(p: &mut Prakriya) -> Option<()> {
         p.run("3.1.77", add_vikarana(Sa));
     } else if dhatu.has_gana(Rudhadi) {
         // ruRadDi
-        p.run("3.1.78", |p| {
-            p.set(i, |t| t.add_tag(T::Snam));
-            p.set(i, op::mit("na"));
-        });
+        p.run("3.1.78", add_vikarana(Snam));
     } else if dhatu.has_gana(Tanadi) || dhatu.is_u(Au::qukfY) {
         // tanoti; karoti
         p.run("3.1.79", add_vikarana(u));

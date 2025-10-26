@@ -201,9 +201,10 @@ macro_rules! py_enum {
 ///
 /// Requirements:
 /// - Enum must derive `Hash`
+/// - Enum must define `drshya()` and `anubandhas()`
 ///
 /// For enum compat, see: https://github.com/PyO3/pyo3/issues/2887
-macro_rules! py_pratyaya {
+macro_rules! py_aupadeshika {
     ($Py:ident, $Rust:ident, [$( $variant:ident ),*]) => {
         impl From<$Rust> for $Py {
             fn from(val: $Rust) -> Self {
@@ -350,14 +351,16 @@ macro_rules! py_pratyaya {
                 Err(pyo3::exceptions::PyValueError::new_err(format!("Could not parse {val}")))
             }
 
-            // Pratyaya methods
+            // Aupadeshika methods
             // ----------------
 
+            #[getter]
             fn drshya(&self) -> String {
                 let rust = $Rust::from(*self);
                 rust.drshya().to_string()
             }
 
+            #[getter]
             fn anubandhas(&self) -> Vec<PyAnubandha> {
                 let rust = $Rust::from(*self);
                 rust.anubandhas().iter().map(|x| (*x).into()).collect()
@@ -471,6 +474,6 @@ macro_rules! py_only_enum {
     }
 }
 
+pub(crate) use py_aupadeshika;
 pub(crate) use py_enum;
 pub(crate) use py_only_enum;
-pub(crate) use py_pratyaya;

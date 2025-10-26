@@ -171,6 +171,10 @@ fn py_prakriya(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Metadata
     m.add_class::<prakriya::args::PyAnubandha>()?;
 
+    m.add_class::<prakriya::morph::PyAgama>()?;
+    m.add_class::<prakriya::morph::PyStri>()?;
+    m.add_class::<prakriya::morph::PyVikarana>()?;
+
     Ok(())
 }
 
