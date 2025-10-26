@@ -341,7 +341,7 @@ pub(crate) fn drshya_for_term(term: &Term) -> (usize, usize) {
 
     // 1.3.3
     if HAL.contains(antya) {
-        if term.is_vibhakti() && !is_exempt_from_vibhaktau(&term) {
+        if TUSMA.contains(antya) && term.is_vibhakti() && !is_exempt_from_vibhaktau(&term) {
             // 1.3.4
         } else {
             end -= 1;

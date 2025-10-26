@@ -559,7 +559,7 @@ impl Taddhita {
 
         match self {
             // "āyanēyīnīyiyaḥ phaḍhakhacchaghāṁ pratyayādīnām"
-            Pak | PaY => "Ayana",
+            Pak | PaY | cPaY => "Ayana",
             PiY => "Ayani",
             Qak | Qa | QaY => "eya",
             QakaY => "eyaka",
@@ -576,7 +576,13 @@ impl Taddhita {
                 let (start, end) = it_samjna::drshya_for_term(&term);
                 let slice = &self.as_str()[start..end];
 
-                slice
+                if slice == "yu~" {
+                    "ana"
+                } else if slice == "vu~" {
+                    "aka"
+                } else {
+                    slice
+                }
             }
         }
     }
@@ -587,6 +593,8 @@ impl Taddhita {
     }
 
     /// Returns whether this pratyaya is classified as a *vibhakti*.
+    ///
+    /// For details, see Ashtadhyayi 5.3.1: https://ashtadhyayi.com/sutraani/5/3/1 .
     pub fn is_vibhakti(&self) -> bool {
         use Taddhita::*;
         matches!(
@@ -1040,6 +1048,8 @@ mod tests {
         assert_eq!(T::dAnIm.drshya(), "dAnIm");
         // But, just 'a' for at
         assert_eq!(T::at.drshya(), "a");
+
+        assert_eq!(T::tasil.drshya(), "tas");
     }
 
     #[test]
