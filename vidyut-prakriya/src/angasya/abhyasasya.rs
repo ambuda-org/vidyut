@@ -497,7 +497,8 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
             // 3. For "कृ" etc. one gets च + री + कृ and since it is हलादि
             //    इयङ् from 6.4.78 does not apply but there seems to be no side-effect
             //    to marking ri/rI as an additional "abhyasa" term in the prakriya so far.
-            p.get_mut(i_abhyasa+1)?.add_tags(&[T::Abhyasa, T::Complete]);
+            p.get_mut(i_abhyasa + 1)?
+                .add_tags(&[T::Abhyasa, T::Complete]);
         } else {
             let mut added = false;
             // narnarti, narinarti

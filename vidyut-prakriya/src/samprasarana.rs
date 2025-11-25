@@ -77,7 +77,10 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
     debug_assert!(BEFORE.len() == AFTER.len());
 
     let dhatu = &p.get(i)?;
-    if let Some(j) = BEFORE.iter().position(|x| dhatu.has_u(x) && !dhatu.has_tag(T::FlagNoSamprasarana)) {
+    if let Some(j) = BEFORE
+        .iter()
+        .position(|x| dhatu.has_u(x) && !dhatu.has_tag(T::FlagNoSamprasarana))
+    {
         if dhatu.text == "zup" {
             // Special case for suzuzupatuH.
             Some("zuap")

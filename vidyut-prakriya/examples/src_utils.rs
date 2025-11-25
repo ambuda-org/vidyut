@@ -32,12 +32,12 @@ pub fn find_src_root() -> Option<PathBuf> {
                     println!(".git directory found at: {}", git_dir.display());
                     git_dir.pop();
                     Some(git_dir)
-                },
+                }
                 None => {
                     println!("Could not find .git directory in the path hierarchy.");
                     None
-                },
-            }
+                }
+            };
         }
         Err(e) => eprintln!("Failed to get current exe path: {}", e),
     }

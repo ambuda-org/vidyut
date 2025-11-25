@@ -156,7 +156,8 @@ fn try_natva_for_span(
 
         if y.has_adi('n') && y.has_tag(T::FlagNaAdeshadi) {
             let has_krt =
-                ip.p.find_next_where(i_dhatu, |t| t.is_krt() && !t.is_empty()).is_some();
+                ip.p.find_next_where(i_dhatu, |t| t.is_krt() && !t.is_empty())
+                    .is_some();
             if (has_krt) && dhatu.has_u_in(&["Risi~\\", "Rikza~", "Ridi~"]) {
                 // Note: ONLY for krt pratyaya (and not for Tin pratyaya)
                 ip.optional_run_for_char("8.4.33", i_n, "R");

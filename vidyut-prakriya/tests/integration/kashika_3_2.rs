@@ -1448,7 +1448,7 @@ fn sutra_3_2_177() {
 
 #[test]
 fn sutra_3_2_178() {
-    assert_has_krdanta(&[], &d( "va\\ca~", Bhvadi), Krt::kvip, &["vAc"]);
+    assert_has_krdanta(&[], &d("va\\ca~", Bhvadi), Krt::kvip, &["vAc"]);
     assert_has_krdanta(&[], &d("SriY", Bhvadi), Krt::kvip, &["SrI"]);
     assert_has_krdanta(&[], &d("ju", Bhvadi), Krt::kvip, &["jU"]);
     assert_has_krdanta(&[], &d("pra\\Ca~", Bhvadi), Krt::kvip, &["prAS"]);

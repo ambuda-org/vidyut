@@ -137,8 +137,14 @@ fn main() {
     let args = Args::parse();
 
     let source_root = find_src_root(); // Find the toplevel .git directory
-    assert!(source_root.is_some(), "Could not find toplevel .git directory");
-    let dhatupatha_path = source_root.unwrap().as_path().join("vidyut-prakriya/data/dhatupatha.tsv");
+    assert!(
+        source_root.is_some(),
+        "Could not find toplevel .git directory"
+    );
+    let dhatupatha_path = source_root
+        .unwrap()
+        .as_path()
+        .join("vidyut-prakriya/data/dhatupatha.tsv");
 
     let dhatus = match Dhatupatha::from_path(dhatupatha_path.as_path()) {
         Ok(res) => res,

@@ -393,14 +393,14 @@ fn zta_with_upsarga() {
     assert_has_krdanta(&["pra"], &san(&zWA), Krt::SAnac, &["pratizWAsamAna"]);
     // The following upasargas only have Atmanepadi forms. i.e. don't have parasmaipadi forms
     // as per 1.3.22
-    for upasarga in &["pra", "sam", "ava", "vi" ] {
+    for upasarga in &["pra", "sam", "ava", "vi"] {
         assert_has_krdanta(&[upasarga], &san(&zWA), Krt::Satf, &[]);
     }
     // Prior to this fix, the "paramaipadi"-only upasargas would also produce
     // atmanepadi forms.  "pari" + "ष्ठा" is only parasmaipadi
     assert_has_krdanta(&["pari"], &san(&zWA), Krt::Satf, &["paritizWAsat"]);
     // The following upasargas don't have atmanepadi
-    for upasarga in &["pari", "para", "prati", "api", "ni", "apa", "nis" ] {
+    for upasarga in &["pari", "para", "prati", "api", "ni", "apa", "nis"] {
         assert_has_krdanta(&[upasarga], &san(&zWA), Krt::SAnac, &[]);
     }
 }

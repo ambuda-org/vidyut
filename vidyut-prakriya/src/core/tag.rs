@@ -244,7 +244,7 @@ pub enum Tag {
     /// Blocks rule that causes samprasarana (3.2.178.1 vartika)
     FlagNoSamprasarana,
     /// Force Samprasarana (see 3.2.178.4)
-    FlagForceSamprasarana, 
+    FlagForceSamprasarana,
     /// Force a dvittva (see 3.2.178.2)
     FlagForceDvittva,
     // Indicates that ittva was applied.

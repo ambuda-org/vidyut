@@ -381,7 +381,9 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
-    let filter = |t: &Term| t.is_dhatu() && (!t.has_tag_in(&[T::Dvitva, T::Pratyaya]) || t.has_tag(T::FlagForceDvittva));
+    let filter = |t: &Term| {
+        t.is_dhatu() && (!t.has_tag_in(&[T::Dvitva, T::Pratyaya]) || t.has_tag(T::FlagForceDvittva))
+    };
 
     // Loop for cases like jihriyAmbaBUva, where dvitva occurs twice.
     let mut num_loops = 0;

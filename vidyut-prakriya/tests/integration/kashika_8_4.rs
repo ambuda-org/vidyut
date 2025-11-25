@@ -100,7 +100,7 @@ fn sutra_8_4_8() {
     t.assert_has_upapada_krdanta("dAkzi", &[], &vah, Krt::lyuw, &["dAkzivAhana"]);
 
     // As in dAkzi's vAhana .. (sasthi tatpurusha intent so Decline the rule)
-    assert_t_has_sasthi_tatpurusha(t,"dAkzi", "vAhana", &["dAkzivAhana"]);
+    assert_t_has_sasthi_tatpurusha(t, "dAkzi", "vAhana", &["dAkzivAhana"]);
 }
 
 #[test]
@@ -409,12 +409,7 @@ fn sutra_8_4_34() {
     assert_has_krdanta(&["pra"], &bhaa, Krt::lyuw, &["praBAna"]);
     assert_has_krdanta(&["pari"], &bhaa, Krt::lyuw, &["pariBAna"]);
     assert_has_krdanta(&["pra"], &nic(&bhaa), Krt::lyuw, &["praBApana"]);
-    assert_has_krdanta(
-        &["pari"],
-        &nic(&bhaa),
-        Krt::lyuw,
-        &["pariBApana"],
-    );
+    assert_has_krdanta(&["pari"], &nic(&bhaa), Krt::lyuw, &["pariBApana"]);
     let bu = d("BU", Bhvadi);
     assert_has_krdanta(&["pra"], &bu, Krt::lyuw, &["praBavana"]);
     assert_has_krdanta(&["pari"], &bu, Krt::lyuw, &["pariBavana"]);
@@ -423,39 +418,14 @@ fn sutra_8_4_34() {
     assert_has_krdanta(&["pari"], &pu, Krt::lyuw, &["paripavana"]);
     assert_has_krdanta(&["pari"], &d("ga\\mx~", Bhvadi), Krt::lyuw, &["parigamana"]);
     let kamu = d("kamu~\\", Bhvadi);
-    assert_has_krdanta(
-        &["pari"],
-        &kamu,
-        Krt::lyuw,
-        &["parikamana", "parikAmana"],
-    );
-    assert_has_krdanta(
-        &["pra"],
-        &kamu,
-        Krt::lyuw,
-        &["prakamana", "prakAmana"],
-    );
+    assert_has_krdanta(&["pari"], &kamu, Krt::lyuw, &["parikamana", "parikAmana"]);
+    assert_has_krdanta(&["pra"], &kamu, Krt::lyuw, &["prakamana", "prakAmana"]);
     let vep = d("wuvepf~\\", Bhvadi);
     assert_has_krdanta(&["pra"], &vep, Krt::lyuw, &["pravepana"]);
-    assert_has_krdanta(
-        &["pari"],
-        &vep,
-        Krt::lyuw,
-        &["parivepana"],
-    );
+    assert_has_krdanta(&["pari"], &vep, Krt::lyuw, &["parivepana"]);
     let pya = d("o~pyAyI~\\", Bhvadi);
-    assert_has_krdanta(
-        &["pra"],
-        &pya,
-        Krt::lyuw,
-        &["prapyAyana"],
-    );
-    assert_has_krdanta(
-        &["pari"],
-        &pya,
-        Krt::lyuw,
-        &["paripyAyana"],
-    );
+    assert_has_krdanta(&["pra"], &pya, Krt::lyuw, &["prapyAyana"]);
+    assert_has_krdanta(&["pari"], &pya, Krt::lyuw, &["paripyAyana"]);
 }
 
 #[test]
