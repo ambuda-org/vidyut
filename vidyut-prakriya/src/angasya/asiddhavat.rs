@@ -792,13 +792,7 @@ fn run_for_final_i_or_u(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             // Apnuvanti, ...
             p.run("6.4.77", |p| to_iy_uv(p, i_anga));
         } else {
-            let abhyasa = p.get_if(i_anga, |t| t.is_abhyasa()).or_else(|| {
-                if n.first().has_u("f\\") {
-                    Some(anga)
-                } else {
-                    None
-                }
-            })?;
+            let abhyasa = p.get_if(i_anga, |t| t.is_abhyasa())?;
             let next = p.get(i_n)?;
             let x = abhyasa.antya()?;
             let y = next.adi()?;
@@ -852,19 +846,17 @@ pub fn run_for_ni_at_index(p: &mut Prakriya, i_ni: usize) -> Option<()> {
             //
             // But, we have akraTi/akrATi for ciR-Ramul.
             p.step(Rule::Kaumudi("2353"));
-        } else if let Some(last) = dhatu.last_vowel() {
-            let hrasva = al::to_hrasva(last)?;
+        } else if let Some(_last) = dhatu.last_vowel() {
             // Gawayati, ...
             p.run_at("6.4.92", i_dhatu, |t| {
-                t.set_last_vowel(hrasva);
+                t.mutate_last_vowel(|c| al::to_hrasva(c).unwrap())
             });
 
             // Must use shortened vowel, as opposed to keeping the original long vowel.
             if is_cin_namuloh {
                 // aSami, aSAmi
                 p.optional_run_at("6.4.93", i_dhatu, |t| {
-                    let sub = al::to_dirgha(hrasva).expect("is vowel");
-                    t.set_last_vowel(sub);
+                    t.mutate_last_vowel(|c| al::to_dirgha(c).unwrap())
                 });
             }
         }

@@ -69,10 +69,8 @@ pub fn try_pragrhya_rules(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn try_avyaya_rules(p: &mut Prakriya, i: usize) -> Option<()> {
-    let t = p.get(i)?;
-    if t.is_avyaya() {
-        return Some(());
-    }
+    let t = p.get_if(i, |t| !t.is_avyaya())?;
+
     let is_svaradi = |t: &Term| {
         if t.is_dhatu() || t.is_pratyaya() || t.is_agama() {
             // svarAdi contains more than 150 items, so short-circuit the check however we can.

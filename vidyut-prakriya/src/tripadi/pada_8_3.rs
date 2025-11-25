@@ -89,10 +89,16 @@ fn try_ra_lopa(p: &mut Prakriya) -> Option<()> {
             let mut j = i;
             let mut c = p.get(j)?;
             while j > 0 && c.is_empty() {
-                // This gets executed for the "ऋ" (03.0017) abhyasa which becomes "a + r + r + ati"
-                // due to "ruk~" Agama where the "r" is by itself. 8.3.14 makes it "a + [] + r"
-                // So whatever non-empty term is prior to it (the actual abhyasa "a") needs to have
-                // the 6.3.111 rule applied to it.
+                // Needed for the "ऋ" (03.0017) abhyasa which becomes "a + r + r + ati"
+                // due to "ruk~" Agama where the "r" is by itself (yanLuk)
+                // 8.3.14 makes it "a + [] + r"
+                // Ideally this would have been
+                //      [ a + r ] + r + ati
+                //      ar + r + ati
+                //      A + r + ati
+                // This implementation hack ignores the empty term (ra lopa) and applies
+                // 6.3.111 rule to the abhyasa ("a") to effectively treat it like "ar"
+                // instead of "a" + "r"
                 j -= 1;
                 c = p.get(j)?;
             }

@@ -878,20 +878,20 @@ impl Term {
         }
     }
 
-    pub fn set_last_vowel(&mut self, sub: char) {
+    pub fn mutate_last_vowel(&mut self, func: impl Fn(char) -> char) {
         let result = self
             .text
             .bytes()
             .enumerate()
             .rev()
             .find(|(_, c)| sounds::is_ac(*c as char));
-        if let Some((i, _)) = result {
+        if let Some((i, c)) = result {
             let mut buf: [u8; 4] = [0; 4];
+            let sub = func(c as char);
             let sub_str: &str = sub.encode_utf8(&mut buf);
             self.set_at(i, sub_str);
         }
     }
-
     /// Replaces the character at index `i` with the given value.
     pub fn set_at(&mut self, i: usize, s: &str) {
         debug_assert!(i < self.text.len());

@@ -42,7 +42,10 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
 
 Handler = MyHandler
 
-with socketserver.TCPServer(("", args.port), Handler) as httpd:
+with socketserver.TCPServer(("", args.port), Handler, bind_and_activate=False) as httpd:
+    httpd.allow_reuse_address = True
+    httpd.server_bind()
+    httpd.server_activate()
     print(f"Serving on http://localhost:{args.port}")
     if ROUTES:
         print("Mappings:")

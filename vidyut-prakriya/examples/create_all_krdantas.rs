@@ -10,13 +10,15 @@
 //!
 //!     cargo run --release --example create_all_krdantas -- --output-scheme Devanagari
 use clap::Parser;
-use itertools::Itertools;
 use serde::Serialize;
 use std::error::Error;
 use std::io;
 use vidyut_lipi::{Lipika, Scheme};
 use vidyut_prakriya::args::{BaseKrt, Krdanta, Lakara, Prayoga, Sanadi};
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
+
+mod src_utils;
+use src_utils::find_src_root;
 
 /// Command line arguments.
 #[derive(Parser)]
@@ -49,8 +51,8 @@ fn create_output_string(
     mut items: Vec<String>,
     output_scheme: Scheme,
 ) -> String {
-    items = items.into_iter().unique().collect();
     items.sort();
+    items.dedup();
     if output_scheme != Scheme::Slp1 {
         for s in items.iter_mut() {
             *s = lipika.transliterate(&s, Scheme::Slp1, output_scheme);
@@ -135,15 +137,17 @@ fn run(dhatupatha: Dhatupatha, args: Args) -> Result<(), Box<dyn Error>> {
 fn main() {
     let args = Args::parse();
 
-    let dhatus = Dhatupatha::from_path("data/dhatupatha.tsv").unwrap_or_else(|_err| {
-        match Dhatupatha::from_path("vidyut-prakriya/data/dhatupatha.tsv") {
-            Ok(res) => res,
-            Err(err) => {
-                println!("{}", err);
-                std::process::exit(1);
-            }
+    let source_root = find_src_root(); // Find the toplevel .git directory
+    assert!(source_root.is_some(), "Could not find toplevel .git directory");
+    let dhatupatha_path = source_root.unwrap().as_path().join("vidyut-prakriya/data/dhatupatha.tsv");
+
+    let dhatus = match Dhatupatha::from_path(dhatupatha_path.as_path()) {
+        Ok(res) => res,
+        Err(err) => {
+            println!("{}", err);
+            std::process::exit(1);
         }
-    });
+    };
 
     match run(dhatus, args) {
         Ok(()) => (),

@@ -479,7 +479,7 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         }
     }
 
-    if p.find_first_with_tag(Tag::Dhatu) != None {
+    if p.find_first_with_tag(Tag::Dhatu).is_some() {
         p.debug("==== Vikaranas ====");
         ardhadhatuka::run_before_vikarana(p, dhatu_args, is_ardhadhatuka, is_lun, lakara);
         vikarana::run(p);

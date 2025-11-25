@@ -6,7 +6,7 @@ use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::Taddhita as T;
 use vidyut_prakriya::args::*;
-pub use vidyut_prakriya::{Decision, Rule, RuleChoice, Vyakarana};
+use vidyut_prakriya::{Decision, Rule, RuleChoice, Vyakarana};
 
 #[test]
 fn sutra_8_4_1() {
@@ -100,7 +100,7 @@ fn sutra_8_4_8() {
     t.assert_has_upapada_krdanta("dAkzi", &[], &vah, Krt::lyuw, &["dAkzivAhana"]);
 
     // As in dAkzi's vAhana .. (sasthi tatpurusha intent so Decline the rule)
-    t.assert_has_sasthi_tatpurusha("dAkzi", "vAhana", &["dAkzivAhana"]);
+    assert_t_has_sasthi_tatpurusha(t,"dAkzi", "vAhana", &["dAkzivAhana"]);
 }
 
 #[test]
@@ -321,7 +321,7 @@ fn sutra_8_4_25() {
         decision: Decision::Accept,
     }]);
     // antaH (antarasmin?) ayanam
-    t.assert_has_saptami_tatpurusha("antar", "ayana", &["antarayaRa"]);
+    assert_t_has_saptami_tatpurusha(t, "antar", "ayana", &["antarayaRa"]);
 
     // 8.4.25: Decline ("Desh" case)
     t = Tester::with_rule_choices(vec![RuleChoice {
@@ -405,48 +405,54 @@ fn sutra_8_4_33() {
 
 #[test]
 fn sutra_8_4_34() {
-    assert_has_krdanta(&["pra"], &d("BA\\", Adadi), Krt::lyuw, &["praBAna"]);
-    assert_has_krdanta(&["pari"], &d("BA\\", Adadi), Krt::lyuw, &["pariBAna"]);
-    assert_has_krdanta(&["pra"], &nic(&d("BA\\", Adadi)), Krt::lyuw, &["praBApana"]);
+    let bhaa = d("BA\\", Adadi);
+    assert_has_krdanta(&["pra"], &bhaa, Krt::lyuw, &["praBAna"]);
+    assert_has_krdanta(&["pari"], &bhaa, Krt::lyuw, &["pariBAna"]);
+    assert_has_krdanta(&["pra"], &nic(&bhaa), Krt::lyuw, &["praBApana"]);
     assert_has_krdanta(
         &["pari"],
-        &nic(&d("BA\\", Adadi)),
+        &nic(&bhaa),
         Krt::lyuw,
         &["pariBApana"],
     );
-    assert_has_krdanta(&["pra"], &d("BU", Bhvadi), Krt::lyuw, &["praBavana"]);
-    assert_has_krdanta(&["pari"], &d("BU", Bhvadi), Krt::lyuw, &["pariBavana"]);
-    assert_has_krdanta(&["pra"], &d("pUY", Kryadi), Krt::lyuw, &["prapavana"]);
-    assert_has_krdanta(&["pari"], &d("pUY", Kryadi), Krt::lyuw, &["paripavana"]);
+    let bu = d("BU", Bhvadi);
+    assert_has_krdanta(&["pra"], &bu, Krt::lyuw, &["praBavana"]);
+    assert_has_krdanta(&["pari"], &bu, Krt::lyuw, &["pariBavana"]);
+    let pu = d("pUY", Kryadi);
+    assert_has_krdanta(&["pra"], &pu, Krt::lyuw, &["prapavana"]);
+    assert_has_krdanta(&["pari"], &pu, Krt::lyuw, &["paripavana"]);
     assert_has_krdanta(&["pari"], &d("ga\\mx~", Bhvadi), Krt::lyuw, &["parigamana"]);
+    let kamu = d("kamu~\\", Bhvadi);
     assert_has_krdanta(
         &["pari"],
-        &d("kamu~\\", Bhvadi),
+        &kamu,
         Krt::lyuw,
         &["parikamana", "parikAmana"],
     );
     assert_has_krdanta(
         &["pra"],
-        &d("kamu~\\", Bhvadi),
+        &kamu,
         Krt::lyuw,
         &["prakamana", "prakAmana"],
     );
-    assert_has_krdanta(&["pra"], &d("wuvepf~\\", Bhvadi), Krt::lyuw, &["pravepana"]);
+    let vep = d("wuvepf~\\", Bhvadi);
+    assert_has_krdanta(&["pra"], &vep, Krt::lyuw, &["pravepana"]);
     assert_has_krdanta(
         &["pari"],
-        &d("wuvepf~\\", Bhvadi),
+        &vep,
         Krt::lyuw,
         &["parivepana"],
     );
+    let pya = d("o~pyAyI~\\", Bhvadi);
     assert_has_krdanta(
         &["pra"],
-        &d("o~pyAyI~\\", Bhvadi),
+        &pya,
         Krt::lyuw,
         &["prapyAyana"],
     );
     assert_has_krdanta(
         &["pari"],
-        &d("o~pyAyI~\\", Bhvadi),
+        &pya,
         Krt::lyuw,
         &["paripyAyana"],
     );

@@ -35,7 +35,7 @@ build_all:
 # ~~~~~~~~~~
 
 # Runs all unit tests in the crate.
-unit_tests: build_all
+unit_tests:
 	cargo nextest run --no-fail-fast --status-level=fail
 
 # Generates a simple coverage report and writes it to disk as an HTML file.

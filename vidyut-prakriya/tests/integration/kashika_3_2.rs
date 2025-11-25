@@ -1441,15 +1441,27 @@ fn sutra_3_2_177() {
     assert_has_krdanta(&[], &d("DurvI~", Bhvadi), Krt::kvip, &["Dur"]);
     assert_has_krdanta(&["vi"], &d("dyuta~\\", Bhvadi), Krt::kvip, &["vidyut"]);
     assert_has_krdanta(&[], &d("urja~", Adadi), Krt::kvip, &["Urj"]);
-    // Todo: Debug the following
-    //     The following "pU" and "jU" are strilinga. In the manner krt/basic.rs executes
-    //     try_add_krt succeeds (kvip?) and try_add_strilinga pratyayas never gets executed.
-    //     Commenting the following tests to argue out the right logic.
-    // assert_has_krdanta(&[], &d("pF", Kryadi), Krt::kvip, &["pU"]);
-    // assert_has_krdanta(&[], &d("ju", Bhvadi), Krt::kvip, &["jU"]);
-    assert_has_krdanta(&["grAva"], &d("zwu\\Y", Adadi), Krt::kvip, &["grAvastut"]);
+    assert_has_krdanta(&[], &d("pF", Kryadi), Krt::kvip, &["pur"]);
+    assert_has_krdanta(&[], &d("ju", Bhvadi), Krt::kvip, &["jU"]);
+    assert_has_upapada_krdanta("grAva", &[], &d("zwu\\Y", Adadi), Krt::kvip, &["grAvastut"]);
 }
 
+#[test]
+fn sutra_3_2_178() {
+    assert_has_krdanta(&[], &d( "va\\ca~", Bhvadi), Krt::kvip, &["vAc"]);
+    assert_has_krdanta(&[], &d("SriY", Bhvadi), Krt::kvip, &["SrI"]);
+    assert_has_krdanta(&[], &d("ju", Bhvadi), Krt::kvip, &["jU"]);
+    assert_has_krdanta(&[], &d("pra\\Ca~", Bhvadi), Krt::kvip, &["prAS"]);
+    assert_has_upapada_krdanta("kawa", &[], &d("pru\\N", Bhvadi), Krt::kvip, &["kawaprU"]);
+    assert_has_upapada_krdanta("Ayata", &[], &d("zwu\\Y", Bhvadi), Krt::kvip, &["AyatastU"]);
+    // dvitva
+    assert_has_krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::kvip, &["jagat"]);
+    assert_has_krdanta(&[], &d("dyuta~\\", Bhvadi), Krt::kvip, &["didyut"]);
+    assert_has_krdanta(&[], &d("hu\\", Bhvadi), Krt::kvip, &["juhU"]);
+    assert_has_krdanta(&[], &d("dF", Bhvadi), Krt::kvip, &["dadft"]);
+    // samprasarana
+    assert_has_krdanta(&[], &d("DyE\\", Bhvadi), Krt::kvip, &["DI"]);
+}
 #[test]
 fn sutra_3_2_180() {
     let bhu = d("BU", Bhvadi);

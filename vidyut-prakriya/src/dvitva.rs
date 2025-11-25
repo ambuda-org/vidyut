@@ -283,6 +283,12 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     let dhatu = p.get_mut(i)?;
     debug_assert!(dhatu.is_dhatu());
 
+    // This Dvittva is needed for 3.2.178.2 vartika
+    if dhatu.has_tag(T::FlagForceDvittva) {
+        dhatu.remove_tag(T::FlagForceDvittva);
+        try_dvitva("3.2.178", p, i);
+        return Some(());
+    }
     let jaksh_adi = &[
         "jakza~", "jAgf", "daridrA", "cakAsf~", "SAsu~", "dIDIN", "vevIN",
     ];
@@ -342,8 +348,9 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
         // Exclude it_agama so that we can derive `aririzati` etc.
         let n = p.get(i_n)?;
         if (n.has_adi(AC) && !n.is_it_agama()) || n.has_text("Ji") {
+            #[cfg(debug_assertions)]
             p.debug(format!(
-                "try_dvirvacane_aci--@[{}:{}] loop(*)={}, dhatu={}",
+                "try_dvirvacane_aci_run@[{}:{}] loop(*)={}, dhatu={}",
                 file!(),
                 line!(),
                 num_loops,
@@ -353,9 +360,10 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
                 run_at_index(p, i);
             } else {
                 // Impl. HACK: Don't try for regular "BU" on the first loop as it results
-                //             "dvitva" before 6.4.88 is applied.
+                //             in "dvitva" before 6.4.88 is applied.
+                #[cfg(debug_assertions)]
                 p.debug(format!(
-                    "try_dvirvacane_aci--@[{}:{}] Skipped (until after 6.4.88 is applied)",
+                    "try_dvirvacane_aci_skip@[{}:{}] Skipped (until after 6.4.88 is applied)",
                     file!(),
                     line!(),
                 ));
@@ -373,7 +381,7 @@ pub fn try_dvirvacane_aci(p: &mut Prakriya) -> Option<()> {
 
 pub fn run(p: &mut Prakriya) -> Option<()> {
     // Select !pratyaya to avoid sanAdi, which are also labeled as Dhatu.
-    let filter = |t: &Term| t.is_dhatu() && !t.has_tag_in(&[T::Dvitva, T::Pratyaya]);
+    let filter = |t: &Term| t.is_dhatu() && (!t.has_tag_in(&[T::Dvitva, T::Pratyaya]) || t.has_tag(T::FlagForceDvittva));
 
     // Loop for cases like jihriyAmbaBUva, where dvitva occurs twice.
     let mut num_loops = 0;

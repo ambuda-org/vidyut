@@ -917,7 +917,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Trtiya), expected);
     }
 
-    pub fn assert_has_caturthi_tatpurusha(
+    fn assert_has_caturthi_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -926,7 +926,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Caturthi), expected);
     }
 
-    pub fn assert_has_panchami_tatpurusha(
+    fn assert_has_panchami_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -935,7 +935,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Panchami), expected);
     }
 
-    pub fn assert_has_sasthi_tatpurusha(
+    fn assert_has_sasthi_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -944,7 +944,7 @@ impl Tester {
         self.assert_has_samasas(&tatpurusha(a, b, Vibhakti::Sasthi), expected);
     }
 
-    pub fn assert_has_saptami_tatpurusha(
+    fn assert_has_saptami_tatpurusha(
         &self,
         a: impl Into<SafePratipadika>,
         b: impl Into<SafePratipadika>,
@@ -967,6 +967,19 @@ macro_rules! assert_samasa {
     };
 }
 
+macro_rules! assert_samasa_with_tester {
+        ($fn_name:ident, $wrapper_name:ident) => {
+        pub fn $wrapper_name(
+            t: Tester,
+            purva: impl Into<SafePratipadika>,
+            uttara: impl Into<SafePratipadika>,
+            expected: &[&str],
+        ) {
+            t.$fn_name(purva, uttara, expected);
+        }
+    };
+}
+
 assert_samasa!(assert_has_bahuvrihi);
 assert_samasa!(assert_has_avyayibhava);
 assert_samasa!(assert_has_karmadharaya);
@@ -976,6 +989,9 @@ assert_samasa!(assert_has_caturthi_tatpurusha);
 assert_samasa!(assert_has_panchami_tatpurusha);
 assert_samasa!(assert_has_sasthi_tatpurusha);
 assert_samasa!(assert_has_saptami_tatpurusha);
+
+assert_samasa_with_tester!(assert_has_sasthi_tatpurusha, assert_t_has_sasthi_tatpurusha);
+assert_samasa_with_tester!(assert_has_saptami_tatpurusha, assert_t_has_saptami_tatpurusha);
 
 pub fn assert_has_avyaya_tatpurusha(
     first: impl Into<SafePratipadika>,

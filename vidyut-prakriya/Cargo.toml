@@ -19,7 +19,6 @@ wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 vidyut-akshara = { path = "../vidyut-akshara" }
 serde-wasm-bindgen = "0.4"
 console_error_panic_hook = "0.1.7"
-itertools = "0.10.5"
 
 [dev-dependencies]
 clap = { version = "4.0.12", features = ["derive"] }

@@ -448,17 +448,13 @@ const App = () => ({
         switch (rule.source) {
             case "ashtadhyayi":
             case "varttika":
-                linkurl = linkurl + "sutraani/" + rule.code;
-                break;
+                return `${linkurl}sutraani/${rule.code}`;
             case "kaumudi":
-                linkurl = linkurl + "sutraani/sk" + rule.code;
-                break;
+                return `${linkurl}sutraani/sk${rule.code}`;
             case "dhatupatha":
-                linkurl = linkurl + "dhatu/" + rule.code;
-                break;
+                return `${linkurl}dhatu/${rule.code}`;
             case "linganushasanam":
-                linkurl = linkurl + "linganushasanam/linganushasanam-" + rule.code;
-                break;
+                return `${linkurl}linganushasanam/linganushasanam-${rule.code}`;
         }
         return linkurl;
     },

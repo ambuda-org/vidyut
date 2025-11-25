@@ -365,6 +365,10 @@ fn abhut_no_vuk() {
 #[test]
 fn ratva_8_4_14() {
     // These are for testing णत्व with Dvitvam with Upsarga
+    // The tests are for validating whether the "abhyasa" gets
+    // णत्व'd in the presence of an upasarga. There are no such examples
+    // from the usual ashtadhyayi commentaries.
+    // Ref: https://github.com/ambuda-org/vidyut/pull/200#issuecomment-2756768540
     let ni = d("RI\\Y", Bhvadi);
     let nam = d("Rama~", Bhvadi);
     assert_has_tip(&["pra"], &ni, Lit, &["praRinAya"]);
@@ -374,7 +378,7 @@ fn ratva_8_4_14() {
     assert_has_ta(&["pra"], &yan(&ni), Lat, &["praRenIyate"]);
     assert_has_tip(&["pra"], &yan_luk(&ni), Lat, &["praRenayIti", "praReneti"]);
     assert_has_mip(&["pra"], &nam, Lit, &["praRanAma", "praRanama"]);
-    // -ive test: Two upasarga with ni to validate not being Ratva-fied
+    // -ive test: Two upasarga with ni to validate not being णत्व'd
     assert_has_tip(&["dus", "ni"], &ni, Lit, &["durRininAya", "durnininAya"]);
 }
 
@@ -382,26 +386,43 @@ fn ratva_8_4_14() {
 #[allow(non_snake_case)]
 fn zta_with_upsarga() {
     let zWA = d("zWA\\", Bhvadi);
-    // No upsarga actually has both atmane and parasmai padi forms
+    // Without upsarga  "ष्ठा" has both atmanepadi and parasmaipadi forms
     assert_has_krdanta(&[], &san(&zWA), Krt::Satf, &["tizWAsat"]);
     assert_has_krdanta(&[], &san(&zWA), Krt::SAnac, &["tizWAsamAna"]);
-    // "pari" upasarga is always parasmaipadi
-    assert_has_krdanta(&["pari"], &san(&zWA), Krt::Satf, &["paritizWAsat"]);
-    assert_has_krdanta(&["pari"], &san(&zWA), Krt::SAnac, &[]);
     // "pra" upasarga is always atmanepadi
     assert_has_krdanta(&["pra"], &san(&zWA), Krt::SAnac, &["pratizWAsamAna"]);
-    assert_has_krdanta(&["pra"], &san(&zWA), Krt::Satf, &[]);
+    // The following upasargas only have Atmanepadi forms. i.e. don't have parasmaipadi forms
+    // as per 1.3.22
+    for upasarga in &["pra", "sam", "ava", "vi" ] {
+        assert_has_krdanta(&[upasarga], &san(&zWA), Krt::Satf, &[]);
+    }
+    // Prior to this fix, the "paramaipadi"-only upasargas would also produce
+    // atmanepadi forms.  "pari" + "ष्ठा" is only parasmaipadi
+    assert_has_krdanta(&["pari"], &san(&zWA), Krt::Satf, &["paritizWAsat"]);
+    // The following upasargas don't have atmanepadi
+    for upasarga in &["pari", "para", "prati", "api", "ni", "apa", "nis" ] {
+        assert_has_krdanta(&[upasarga], &san(&zWA), Krt::SAnac, &[]);
+    }
 }
 
 #[test]
 #[allow(non_snake_case)]
 fn bru_with_yanluk() {
+    // Assert that both forms are produced (previously only "bobravIti")
     assert_has_lat(&[], &yan_luk(&d("brUY", Adadi)), &["bobravIti", "bobroti"]);
 }
 
 #[test]
 #[allow(non_snake_case)]
 fn bru_with_upsarga_lit() {
+    // This validates the ordering of prioritizing of "upasarga + dhatu + pratyaya" forms.
+    // Essentially evaluate (dhatu + pratyaya) first and then "upasarga + (dhatu + pratyaya)"
+    // as illustrated below.
+    // BEFORE                                    AFTER
+    // pra + u  + uc + ire                       pra + (u + uc + ire)
+    // (pr + o) + uc + ire (Adgunah)             pra + (U + c + ire)    (savarRe dirGaH)
+    // pr  + av + uc + ire  (ecoyavAyAvaH)       (pr  + o) + c + ire    (Adgunah)
+    // pravuchire ❌                             procire ✅
     assert_has_tinantas(
         &["pra", "ava"],
         &d("brUY", Adadi),
@@ -414,9 +435,8 @@ fn bru_with_upsarga_lit() {
 
 #[test]
 #[allow(non_snake_case)]
-fn ratva_8_4_29_1() {
-    // Some examples from Kos#[test]
-    // #[allow(non_snake_case)]ha
+fn natva_8_4_29_1() {
+    // Similar words from sanskritkosha.com for "*nirviRRa" varttika
     assert_has_krdanta(
         &["a", "nir"],
         &d("vi\\da~\\", Divadi),
