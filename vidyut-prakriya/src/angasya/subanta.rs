@@ -15,7 +15,7 @@ use crate::args::Stri as S;
 use crate::args::Sup;
 use crate::args::Taddhita as D;
 use crate::args::Vikarana as V;
-use crate::core::operators as op;
+use crate::core::{operators as op, Tag};
 use crate::core::Rule::Varttika;
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Tag as T, Term};
 use crate::it_samjna;
@@ -333,7 +333,7 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
             // kvip has empty text after 6.1.67 application
             // So the actual "anga" ends with the prior term. Use that for testing
             let actual_anga = p.get(i_anga - 1)?;
-            if actual_anga.has_antya(JHAL) || actual_anga.has_antya(AC) {
+            if !actual_anga.has_tag(Tag::FlagAtLopa) && (actual_anga.has_antya(JHAL) || actual_anga.has_antya(AC)) {
                 p.run_at("7.1.72", i_anga - 1, add_num);
             }
         }
