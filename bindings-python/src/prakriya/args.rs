@@ -1945,9 +1945,7 @@ impl PyPratipadika {
             PyKrtOrUnadi::Krt(k) => RustKrt::Base(k.into()),
             PyKrtOrUnadi::Unadi(unadi) => RustKrt::Unadi(unadi.into()),
         };
-        let mut builder = Krdanta::builder()
-            .dhatu(dhatu.into())
-            .krt(BaseKrt::from(krt));
+        let mut builder = Krdanta::builder().dhatu(dhatu.into()).krt(krt);
         if let Some(prayoga) = prayoga {
             builder = builder.prayoga(prayoga.into());
         }

@@ -12,9 +12,9 @@ use crate::core::operators as op;
 use crate::core::Prakriya;
 use crate::core::Stage::DhatuPrep;
 use crate::core::{PrakriyaTag as PT, Tag as T};
-use crate::it_samjna;
 use crate::sounds as al;
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
+use crate::{angasya, it_samjna};
 
 const AA: Set = s(&["a"]);
 const IC: Set = s(&["ic"]);
@@ -374,6 +374,16 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.len() {
         if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
             p.run_at("6.1.67", i, op::lopa);
+            if p.len() > i + 1 {
+                // Need to repeat anga-karyam if there is a pratyaya after kvip
+                // Eg.
+                //    Di + kvip + tA
+                //    DI + [] + A
+                //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
+                //    "DI" based on "A". In this case since it has dhatu-samjna
+                //    6.4.77 will become applicable.
+                angasya::run_after_dvitva(p);
+            }
         }
 
         apply_ac_sandhi_at_term_boundary(p, i);

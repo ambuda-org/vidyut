@@ -761,8 +761,7 @@ const App = () => ({
 
         const mula = this.activeDhatu;
         const prefixes = this.upasarga ? splitIfComma(this.upasarga) : [];
-        const sanadi = this.sanadi ? [Sanadi[this.sanadi]] : [];
-        // const sanadi = this.sanadi ? splitIfComma(this.sanadi) : [];
+        const sanadi = this.sanadi ? splitIfComma(this.sanadi).map(sanadi => Sanadi[sanadi]) : [];
         const dhatu = {
             aupadeshika: mula.aupadeshika,
             gana: mula.gana,
@@ -829,8 +828,8 @@ const App = () => ({
         const tinPadas = Object.values(DhatuPada).filter(Number.isInteger);
         const prayoga = this.prayoga !== null ? this.prayoga : Prayoga.Kartari;
         const prefixes = this.upasarga ? splitIfComma(this.upasarga) : [];
-        const sanadi = this.sanadi ? [Sanadi[this.sanadi]] : [];
-        // const sanadi = this.sanadi ? splitIfComma(this.sanadi)
+        console.log(`sanadi = ${this.sanadi}`);
+        const sanadi = this.sanadi ? splitIfComma(this.sanadi).map(sanadi => Sanadi[sanadi]) : [];
         const dhatu = {
             aupadeshika: mula.aupadeshika,
             gana: mula.gana,

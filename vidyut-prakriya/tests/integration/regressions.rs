@@ -427,8 +427,8 @@ fn bru_with_upsarga_lit() {
         &["pra", "ava"],
         &d("brUY", Adadi),
         Lit,
-        Prathama,
-        Bahu,
+        Purusha::Prathama,
+        Vacana::Bahu,
         &["prAvocire", "prAvocuH"],
     );
 }
@@ -449,4 +449,31 @@ fn natva_8_4_29_1() {
         Krt::kta,
         &["sunirviRRa"],
     );
+}
+#[test]
+#[allow(non_snake_case)]
+fn kvip_sup_tests() {
+    // This validates that after applying kvip pratyaya on
+    // 3.2.178 varttika cases that the "sup" forms are as expected
+    // 3.2.178 - DI (not nadI-samjna)
+    let DyE = krdanta(&[], &d("DyE\\", Divadi), Krt::kvip);
+    assert_has_sup_1p(DyE.clone(), Stri, &["DiyaH"]);
+    assert_has_sup_1d(DyE.clone(), Stri, &["DiyO"]);
+    assert_has_sup_2p(DyE.clone(), Stri, &["DiyaH"]);
+    assert_has_sup_6p(DyE.clone(), Stri, &["DiyAm"]);
+    assert_has_sup_7s(DyE.clone(), Stri, &["Diyi"]);
+
+    // 3.2.178 - jagat
+    let gam = krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::kvip);
+    assert_has_sup_1d(gam.clone(), Napumsaka, &["jagatI"]);
+    assert_has_sup_1p(gam.clone(), Napumsaka, &["jaganti"]);
+    assert_has_sup_6p(gam.clone(), Napumsaka, &["jagatAm"]);
+    assert_has_sup_7s(gam.clone(), Napumsaka, &["jagati"]);
+
+    // Forms for sena+nI+kvip (upapada_krdanta)
+    let ni = d("nI\\", Bhvadi);
+    let senani = upapada_krdanta("senA", &[], &ni, Krt::kvip);
+    assert_has_sup_1d(senani.clone(), Pum, &["senAnyO"]);
+    assert_has_sup_6p(senani.clone(), Pum, &["senAnyAm"]);
+    assert_has_sup_7s(senani.clone(), Pum, &["senAnyAm"]);
 }
