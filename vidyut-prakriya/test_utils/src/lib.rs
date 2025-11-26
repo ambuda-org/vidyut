@@ -968,7 +968,7 @@ macro_rules! assert_samasa {
 }
 
 macro_rules! assert_samasa_with_tester {
-        ($fn_name:ident, $wrapper_name:ident) => {
+    ($fn_name:ident, $wrapper_name:ident) => {
         pub fn $wrapper_name(
             t: Tester,
             purva: impl Into<SafePratipadika>,
@@ -991,7 +991,10 @@ assert_samasa!(assert_has_sasthi_tatpurusha);
 assert_samasa!(assert_has_saptami_tatpurusha);
 
 assert_samasa_with_tester!(assert_has_sasthi_tatpurusha, assert_t_has_sasthi_tatpurusha);
-assert_samasa_with_tester!(assert_has_saptami_tatpurusha, assert_t_has_saptami_tatpurusha);
+assert_samasa_with_tester!(
+    assert_has_saptami_tatpurusha,
+    assert_t_has_saptami_tatpurusha
+);
 
 pub fn assert_has_avyaya_tatpurusha(
     first: impl Into<SafePratipadika>,
