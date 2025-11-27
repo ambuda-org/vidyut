@@ -328,7 +328,7 @@
             <template x-for="step in supPrakriya.history">
               <tr class="hover:bg-sky-50" :class="stepClasses(step)">
                 <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
-                <td class="py-2 px-4 text-lg" x-text="renderStepRule(step.rule)"></td>
+                <td class="py-2 px-4 text-lg" x-html="renderStepRule(step.rule)"></td>
                 <td class="text-sm text-right">
                   <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
                       x-text="renderStepRuleLinkText(step.rule)"
