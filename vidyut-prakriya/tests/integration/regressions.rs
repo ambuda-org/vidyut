@@ -460,8 +460,11 @@ fn kvip_sup_tests() {
     assert_has_sup_1p(DyE.clone(), Stri, &["DiyaH"]);
     assert_has_sup_1d(DyE.clone(), Stri, &["DiyO"]);
     assert_has_sup_2p(DyE.clone(), Stri, &["DiyaH"]);
-    assert_has_sup_6p(DyE.clone(), Stri, &["DiyAm"]);
-    assert_has_sup_7s(DyE.clone(), Stri, &["Diyi"]);
+    assert_has_sup_4s(DyE.clone(), Stri, &["DiyE", "Diye"]);
+    assert_has_sup_5s(DyE.clone(), Stri, &["DiyAH", "DiyaH"]);
+    assert_has_sup_6s(DyE.clone(), Stri, &["DiyAH", "DiyaH"]);
+    assert_has_sup_6p(DyE.clone(), Stri, &["DInAm", "DiyAm"]);
+    assert_has_sup_7s(DyE.clone(), Stri, &["DiyAm", "Diyi"]);
 
     // 3.2.178 - jagat
     let gam = krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::kvip);

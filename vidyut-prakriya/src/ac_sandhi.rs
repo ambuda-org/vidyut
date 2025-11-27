@@ -12,9 +12,9 @@ use crate::core::operators as op;
 use crate::core::Prakriya;
 use crate::core::Stage::DhatuPrep;
 use crate::core::{PrakriyaTag as PT, Tag as T};
-use crate::sounds as al;
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
 use crate::{angasya, it_samjna};
+use crate::{samjna, sounds as al};
 
 const AA: Set = s(&["a"]);
 const IC: Set = s(&["ic"]);
@@ -382,6 +382,8 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
                 //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
                 //    "DI" based on "A". In this case since it has dhatu-samjna
                 //    6.4.77 will become applicable.
+                samjna::run(p);
+                angasya::run_before_stritva(p);
                 angasya::run_after_dvitva(p);
             }
         }

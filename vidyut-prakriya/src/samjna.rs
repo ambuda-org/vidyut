@@ -201,7 +201,7 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
             }
         } else if ii_uu && !decided {
             if iyan_uvan_astri {
-                if sup.is(Sup::Am) {
+                if sup.is(Sup::Am) && stri_linga {
                     p.optional_add_tag_at("1.4.5", i_sup - 1, T::Nadi);
                 } else {
                     // "he SrIH", "he BrUH", but "he stri"

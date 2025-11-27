@@ -228,7 +228,7 @@ const App = () => ({
         const sanadi = params.get(Params.Sanadi);
         const activePada = params.get(Params.ActivePada);
 
-        console.log(`realUrlState, prayoga=${prayoga}, upasarga=${upasarga}, sanadi=${sanadi}`);
+        console.log(`realUrlState, prayoga=${prayoga}, upasarga=${upasarga}, sanadi=${sanadi},  dhatuCode=${dhatuCode}`);
         if (tab) {
             this.setTab(tab);
         }
@@ -275,6 +275,7 @@ const App = () => ({
     // Set the active dhatu (and show its forms)
     setActiveDhatu(s) {
         this.activeDhatu = this.dhatus.find(d => d.code === s);
+        console.log("activeDhatu:", this.activeDhatu);
         // Scroll position might be off if the user has scrolled far down the dhatu list.
         window.scrollTo({ top: 0 });
     },
@@ -640,7 +641,14 @@ const App = () => ({
             { text: "kim", linga: Linga.Stri },
             { text: "idam", linga: Linga.Stri },
             { text: "adas", linga: Linga.Stri },
-            { text: "DI", linga: Linga.Stri },
+            {
+                text: "DI",
+                linga: Linga.Stri,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "01.1056"),
+                    krt: Krt.kvip
+                }
+            },
             { text: "lakzmI", linga: Linga.Stri },
             { text: "svasf", linga: Linga.Stri },
             { text: "mAtf", linga: Linga.Stri },
@@ -715,14 +723,19 @@ const App = () => ({
         vibhaktis.forEach((vibhakti) => {
             let row = [];
             vacanas.forEach((vacana) => {
+                let pratipadika = {
+                    basic: this.supActivePratipadika.text,
+                }
+                if (this.supActivePratipadika.krdanta) {
+                    pratipadika = { krdanta: this.supActivePratipadika.krdanta }
+                }
                 const args = {
-                    pratipadika: {
-                        basic: this.supActivePratipadika.text,
-                    },
+                    pratipadika: pratipadika,
                     linga: this.supActivePratipadika.linga,
                     vibhakti: vibhakti,
                     vacana: vacana,
                 };
+
                 const prakriyas = this.vidyut.deriveSubantas(args);
 
                 let vvPadas = [];
