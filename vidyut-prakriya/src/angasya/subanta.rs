@@ -704,9 +704,10 @@ fn try_ni_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
             op::adesha("7.3.116", p, i, "Am");
         }
         // Add the "nI" dhatu case
-        if p.find_first_where(|t| t.is_dhatu() && t.has_u("nI\\"))
-            .is_some()
-        {
+        let i_ni_dhatu = p.find_first_where(|t| t.is_dhatu() && t.has_u("RI\\Y"))?;
+        // Ensure that there Sup::Ni is "visibly" next to RIY (empty terms in between are okay for
+        // the kvip lopa case)
+        if p.find_next_where(i_ni_dhatu, |t| t.is_pratyaya() && !t.is_empty()) == Some(i) {
             op::adesha("7.3.116", p, i, "Am");
         }
     }

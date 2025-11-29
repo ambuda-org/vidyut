@@ -287,8 +287,8 @@ const App = () => ({
             this.supPrakriya = this.createPrakriya();
         } else {
             this.dhatuPrakriya = this.createPrakriya();
+            window.scrollTo({ top: 0 });
         }
-        window.scrollTo({ top: 0 });
     },
 
     // Create the active pada (and show all forms for the dhatu)
@@ -633,6 +633,14 @@ const App = () => ({
             { text: "kim", linga: Linga.Pum },
             { text: "idam", linga: Linga.Pum },
             { text: "adas", linga: Linga.Pum },
+            {
+                text: "senAnI",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.1049"), {prefixes: ["senA"]}),
+                    krt: Krt.kvip
+                }
+            },
 
             { text: "u", linga: Linga.Stri },
             { text: "tad", linga: Linga.Stri },
@@ -642,11 +650,27 @@ const App = () => ({
             { text: "idam", linga: Linga.Stri },
             { text: "adas", linga: Linga.Stri },
             {
-                text: "DI",
+                text: "kAmaDuh",
                 linga: Linga.Stri,
                 krdanta: {
-                    dhatu: this.dhatus.find( d => d.code === "01.1056"),
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "02.0004"), {prefixes: ["kAma"]}),
                     krt: Krt.kvip
+                }
+            },
+            {
+                text: "suDI",
+                linga: Linga.Stri,
+                krdanta: {
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.1056"), {prefixes: ["su"]}),
+                    krt: Krt.kvip
+                }
+            },
+            {
+                text: "pipAsA",
+                linga: Linga.Stri,
+                krdanta: {
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.1074"), {sanadi: [Sanadi.san]}),
+                    krt: Krt.a
                 }
             },
             { text: "lakzmI", linga: Linga.Stri },
@@ -702,6 +726,7 @@ const App = () => ({
     clearSupPratipadika() {
         this.supParadigm = null;
         this.supActivePratipadika = null;
+        this.supPrakriya = null;
     },
 
     createSubantaParadigm() {

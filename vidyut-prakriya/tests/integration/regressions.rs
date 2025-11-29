@@ -474,7 +474,7 @@ fn kvip_sup_tests() {
     assert_has_sup_7s(gam.clone(), Napumsaka, &["jagati"]);
 
     // Forms for sena+nI+kvip (upapada_krdanta)
-    let ni = d("nI\\", Bhvadi);
+    let ni = d("RI\\Y", Bhvadi);
     let senani = upapada_krdanta("senA", &[], &ni, Krt::kvip);
     assert_has_sup_1d(senani.clone(), Pum, &["senAnyO"]);
     assert_has_sup_6p(senani.clone(), Pum, &["senAnyAm"]);
