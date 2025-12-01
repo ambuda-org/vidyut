@@ -642,11 +642,19 @@ const App = () => ({
                 }
             },
             {
-                text: "vidvas",
+                text: "vidvas vidat",
                 linga: Linga.Pum,
                 krdanta: {
                     dhatu: this.dhatus.find( d => d.code === "02.0059"),
                     krt: Krt.Satf
+                }
+            },
+            {
+                text: "sedivas",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "01.0990"),
+                    krt: Krt.kvasu
                 }
             },
 
