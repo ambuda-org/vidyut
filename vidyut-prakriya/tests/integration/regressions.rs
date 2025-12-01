@@ -457,26 +457,26 @@ fn kvip_sup_tests() {
     // 3.2.178 varttika cases that the "sup" forms are as expected
     // 3.2.178 - DI (not nadI-samjna)
     let DyE = krdanta(&[], &d("DyE\\", Divadi), Krt::kvip);
-    assert_has_sup_1p(DyE.clone(), Stri, &["DiyaH"]);
-    assert_has_sup_1d(DyE.clone(), Stri, &["DiyO"]);
-    assert_has_sup_2p(DyE.clone(), Stri, &["DiyaH"]);
-    assert_has_sup_4s(DyE.clone(), Stri, &["DiyE", "Diye"]);
-    assert_has_sup_5s(DyE.clone(), Stri, &["DiyAH", "DiyaH"]);
-    assert_has_sup_6s(DyE.clone(), Stri, &["DiyAH", "DiyaH"]);
-    assert_has_sup_6p(DyE.clone(), Stri, &["DInAm", "DiyAm"]);
-    assert_has_sup_7s(DyE.clone(), Stri, &["DiyAm", "Diyi"]);
+    assert_has_sup_1p(&DyE, Stri, &["DiyaH"]);
+    assert_has_sup_1d(&DyE, Stri, &["DiyO"]);
+    assert_has_sup_2p(&DyE, Stri, &["DiyaH"]);
+    assert_has_sup_4s(&DyE, Stri, &["DiyE", "Diye"]);
+    assert_has_sup_5s(&DyE, Stri, &["DiyAH", "DiyaH"]);
+    assert_has_sup_6s(&DyE, Stri, &["DiyAH", "DiyaH"]);
+    assert_has_sup_6p(&DyE, Stri, &["DInAm", "DiyAm"]);
+    assert_has_sup_7s(&DyE, Stri, &["DiyAm", "Diyi"]);
 
     // 3.2.178 - jagat
     let gam = krdanta(&[], &d("ga\\mx~", Bhvadi), Krt::kvip);
-    assert_has_sup_1d(gam.clone(), Napumsaka, &["jagatI"]);
-    assert_has_sup_1p(gam.clone(), Napumsaka, &["jaganti"]);
-    assert_has_sup_6p(gam.clone(), Napumsaka, &["jagatAm"]);
-    assert_has_sup_7s(gam.clone(), Napumsaka, &["jagati"]);
+    assert_has_sup_1d(&gam, Napumsaka, &["jagatI"]);
+    assert_has_sup_1p(&gam, Napumsaka, &["jaganti"]);
+    assert_has_sup_6p(&gam, Napumsaka, &["jagatAm"]);
+    assert_has_sup_7s(&gam, Napumsaka, &["jagati"]);
 
     // Forms for sena+nI+kvip (upapada_krdanta)
     let ni = d("RI\\Y", Bhvadi);
     let senani = upapada_krdanta("senA", &[], &ni, Krt::kvip);
-    assert_has_sup_1d(senani.clone(), Pum, &["senAnyO"]);
-    assert_has_sup_6p(senani.clone(), Pum, &["senAnyAm"]);
-    assert_has_sup_7s(senani.clone(), Pum, &["senAnyAm"]);
+    assert_has_sup_1d(&senani, Pum, &["senAnyO"]);
+    assert_has_sup_6p(&senani, Pum, &["senAnyAm"]);
+    assert_has_sup_7s(&senani, Pum, &["senAnyAm"]);
 }

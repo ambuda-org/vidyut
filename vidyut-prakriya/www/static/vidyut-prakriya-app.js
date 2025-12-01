@@ -641,6 +641,14 @@ const App = () => ({
                     krt: Krt.kvip
                 }
             },
+            {
+                text: "vidvas",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "02.0059"),
+                    krt: Krt.Satf
+                }
+            },
 
             { text: "u", linga: Linga.Stri },
             { text: "tad", linga: Linga.Stri },
