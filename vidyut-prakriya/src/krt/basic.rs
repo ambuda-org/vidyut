@@ -1421,7 +1421,6 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                     } else {
                         "3.2.106"
                     };
-                    kp.p.dump();
                     kp.try_replace_lakara(rule, i_la, krt);
                 }
             }
