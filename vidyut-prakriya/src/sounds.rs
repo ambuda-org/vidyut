@@ -592,6 +592,7 @@ mod tests {
     fn test_s2() {
         let tests = vec![
             ("ac", "aAiIuUfFxXeEoO"),
+            ("ec", "eEoO"),
             ("iR", "iIuU"),
             ("iR2", "iIuUfFxXeEoOyrlvh"),
             ("yaR", "yrlv"),

@@ -77,7 +77,10 @@ fn find_samprasarana_match(p: &Prakriya, i: usize) -> Option<&'static str> {
     debug_assert!(BEFORE.len() == AFTER.len());
 
     let dhatu = &p.get(i)?;
-    if let Some(j) = BEFORE.iter().position(|x| dhatu.has_u(x)) {
+    if let Some(j) = BEFORE
+        .iter()
+        .position(|x| dhatu.has_u(x) && !dhatu.has_tag(T::FlagNoSamprasarana))
+    {
         if dhatu.text == "zup" {
             // Special case for suzuzupatuH.
             Some("zuap")
@@ -239,6 +242,9 @@ pub fn run_for_dhatu_after_atidesha(p: &mut Prakriya, is_sani_or_cani: bool) -> 
         } else {
             p.step("6.1.43");
         }
+    } else if dhatu.has_tag(T::FlagForceSamprasarana) {
+        // 3.2.178.4 for DyE to DI
+        set_text("3.2.178", p, "DI");
     } else {
         // General rules
         if is_vaci_svapi(dhatu) && n.has_tag(T::kit) {

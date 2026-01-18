@@ -123,7 +123,8 @@ fn sk_2651() {
     assert_has_sip(&[], &han, Lot, &["jaNGahi", "jaNGatAt"]);
     assert_has_tip(&[], &han, Lan, &["ajaNGanIt", "ajaNGan"]);
     assert_has_tip(&[], &han, VidhiLin, &["jaNGanyAt"]);
-    // TODO: not sure why vaDyAt is the form here.
+    // To see why vaDyAt is the form here
+    // Refer: https://tinyurl.com/57r3hksc (Balamanorama uttardham - २६५१ । यङो वा ।(७-३-९४))
     assert_has_tip(&[], &han, AshirLin, &["vaDyAt"]);
     assert_has_tip(&[], &han, Lun, &["avaDIt"]);
     assert_has_tas(&[], &han, Lun, &["avaDizwAm"]);
@@ -335,6 +336,18 @@ fn sk_2653() {
     assert_has_jhi(&[], &x, Lat, &["tAtirati"]);
     assert_has_sip(&[], &x, Lot, &["tAtIrhi", "tAtIrtAt"]);
     assert_has_mip(&[], &x, Lot, &["tAtarARi"]);
+
+    let f = yan_luk(&d("f\\", Juhotyadi));
+    assert_has_tip(
+        &[],
+        &f,
+        Lat,
+        &["ararIti", "ararti", "ariyarIti", "ariyarti"],
+    );
+    assert_has_tas(&[], &f, Lat, &["arftaH", "ariyftaH"]);
+    assert_has_jhi(&[], &f, Lat, &["Arati", "ariyrati"]);
+    assert_has_tip(&[], &f, AshirLin, &["AriyAt", "ariyriyAt"]);
+    assert_has_tip(&[], &f, Lun, &["ArArIt", "AriyArIt"]);
 }
 
 #[test]

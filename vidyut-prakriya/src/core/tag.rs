@@ -241,6 +241,12 @@ pub enum Tag {
     FlagShanta,
     /// Indicates the application of samprasarana.
     FlagSamprasarana,
+    /// Blocks rule that causes samprasarana (3.2.178.1 vartika)
+    FlagNoSamprasarana,
+    /// Force Samprasarana (see 3.2.178.4)
+    FlagForceSamprasarana,
+    /// Force a dvittva (see 3.2.178.2)
+    FlagForceDvittva,
     // Indicates that ittva was applied.
     FlagIttva,
     /// Blocks a rule that causes dirgha.

@@ -31,7 +31,7 @@
 </header>
 
 <!-- Script select -->
-<div class="max-w-3xl mx-auto text-right p-2">
+<div class="max-w-4xl mx-auto text-right p-2">
   <select x-model="script" class="p-2 my-2">
     <option value="devanagari">Devanagari</option>
     <option value="iast">IAST</option>
@@ -42,7 +42,7 @@
   </select>
 </div>
 
-<div class="max-w-3xl mx-auto my-8 p-2">
+<div class="max-w-4xl mx-auto my-8 p-2">
   <!-- Tab select -->
   <ul class="flex my-4">
     <li><a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="setTab('about')">About</a></li>
@@ -67,7 +67,7 @@
           <li class="my-1">
             <a href="#" @click.prevent="setActiveDhatu(d.code)" class="block hover:bg-slate-50 p-1 text-lg">
               <span class="bg-slate-100 text-slate-700 rounded p-1" x-text="deva(d.code).replaceAll('।', '.')"></span>
-              <span class="text-red-700" x-text="devaNoSvara(d.aupadeshika)"></span>
+              <span class="text-red-700" x-text="deva(d.aupadeshika)"></span>
               <span class="text-slate-600" x-text="deva(d.artha)"></span>
             </a>
           </li>
@@ -78,7 +78,7 @@
       <template x-if="activeDhatu">
       <div>
         <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActiveDhatu">
-          &times; <span x-text="devaNoSvara(activeDhatu.aupadeshika)"></span>
+          &times; <span x-text="deva(activeDhatu.aupadeshika)"></span>
         </button>
         <template x-if="activePada">
           <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
@@ -86,7 +86,7 @@
           </button>
         </template>
         <header class="text-center">
-          <h1 class="font-bold text-3xl" x-text="devaNoSvara(activeDhatu.aupadeshika)"></h1>
+          <h1 class="font-bold text-3xl" x-text="deva(activeDhatu.aupadeshika)"></h1>
           <p x-text="deva(activeDhatu.artha)"></p>
         </header>
 
@@ -109,7 +109,7 @@
                       <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
                           x-text="renderStepRuleLinkText(step.rule)"
                           target="_blank"
-                          :href="renderStepRuleLink(step.rule)"></a>
+                          :href="renderStepRuleLink(step)"></a>
                     </td>
                   </tr>
                 </template>
@@ -165,6 +165,12 @@
               <option value="Ric" x-text="deva('Rijante')"></option>
               <option value="yaN" x-text="deva('yaNante')"></option>
               <option value="yaNluk" x-text="deva('yaNlugante')"></option>
+              <option value="Ric,san" x-text="deva('Ric + sannante')"></option>
+              <option value="san,Ric" x-text="deva('san + Rijante')"></option>
+              <option value="yaN,san" x-text="deva('yaN + sannante')"></option>
+              <option value="yaNluk,san" x-text="deva('yaNluk + sannante')"></option>
+              <option value="yaN,Ric" x-text="deva('yaN + Rijante')"></option>
+              <option value="yaNluk,Ric" x-text="deva('yaNluk + Ricjante')"></option>
             </select>
           </div>
 
@@ -322,12 +328,12 @@
             <template x-for="step in supPrakriya.history">
               <tr class="hover:bg-sky-50" :class="stepClasses(step)">
                 <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
-                <td class="py-2 px-4 text-lg" x-text="renderStepRule(step.rule)"></td>
+                <td class="py-2 px-4 text-lg" x-html="renderStepRule(step.rule)"></td>
                 <td class="text-sm text-right">
                   <a class="text-blue-500 hover:text-blue-900 underline py-2 pr-4 block"
                       x-text="renderStepRuleLinkText(step.rule)"
                       target="_blank"
-                      :href="renderStepRuleLink(step.rule)"></a>
+                      :href="renderStepRuleLink(step)"></a>
                 </td>
               </tr>
             </template>

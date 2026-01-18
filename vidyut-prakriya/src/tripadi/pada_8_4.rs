@@ -1,14 +1,15 @@
 use std::sync::OnceLock;
 
-use crate::args::Aupadeshika as Au;
+use crate::args::BaseKrt::lyuw;
 use crate::args::Gana;
 use crate::args::Lakara::*;
 use crate::args::Sup;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
+use crate::args::{Aupadeshika as Au, Aupadeshika};
 use crate::core::char_view::{CharIndex, IndexPrakriya};
-use crate::core::operators as op;
 use crate::core::Rule::Varttika;
+use crate::core::{operators as op, Tag};
 use crate::core::{Prakriya, Rule, Tag as T, Term};
 use crate::sounds as al;
 use crate::sounds::{map, s, Map, Set, AC, HAL, JHAL};
@@ -27,6 +28,7 @@ const JASH_CAR: Set = s(&["jaS", "car"]);
 const YAY: Set = s(&["yay"]);
 const JHAY: Set = s(&["Jay"]);
 const AT: Set = s(&["aw"]);
+const IC: Set = s(&["ic"]);
 
 static JHAL_TO_CAR: OnceLock<Map> = OnceLock::new();
 static JHAL_TO_JASH: OnceLock<Map> = OnceLock::new();
@@ -46,6 +48,7 @@ fn try_natva_for_span(
     let i_x = i_rs.i_term;
     let i_y = i_n.i_term;
 
+    // ip.p.debug("Ratva rules attempt Context"); ip.p.dump();
     // Exceptions to Ratva.
     if let Some(i) = ip.p.find_first_with_tag(T::Dhatu) {
         let dhatu = ip.p.get(i)?;
@@ -74,9 +77,42 @@ fn try_natva_for_span(
     }
     */
 
-    if i_x != i_y && ip.p.is_pada(i_x) && x.has_antya('z') {
+    if (i_y > 0 && ip.p.get(i_y - 1)?.has_dhatu_u_in(&["va\\ha~^"]) && x.is_pada())
+        || (x.is_pratipadika() && y.has_u("vAhana"))
+    {
+        // Some shortcircuit rules for 8.4.8  vAhanam
+        // Two cases here
+        // 1. (Chandasi Yyuw)        3.2.65
+        // 2. (nipAtana vriddhi)     8.4.8 in case of vAhana
+        //     Ratva applicability ONLY in Ahita artha
+        // NOTE: implementation interprets as being applicable ONLY if Ratva is
+        //       applicable i.e. it will produce "goDUmavahana" as Ratva is inapplicable
+        //       for pada goDUma
+
+        if x.has_text("purIza") && ip.p.is_chandasi() {
+            ip.run_for_char("8.4.8", i_n, "R"); // Special case for 3.2.65 ...
+        } else if (ip.p.get(i_y - 1)?.has_text("vah")) && y.is_any_krt(&[lyuw]) {
+            // nipAtana vridDi always happens
+            ip.p.run_at("8.4.8", i_y - 1, |t| t.set_text("vAh"));
+            // Ratva happens if applicable
+            ip.p.optional_run("8.4.8.1", |p| {
+                p.set(i_y, |t| t.set_text("aRa"));
+            });
+        } else if y.has_u("vAhana") {
+            ip.p.optional_run("8.4.8.1", |p| {
+                p.set(i_y, |t| t.set_text("vAhaRa"));
+            });
+        }
+    } else if i_x != i_y && ip.p.is_pada(i_x) && x.has_antya('z') {
         // nizpAna, ...
         ip.p.step("8.4.35");
+    } else if i_x != i_y && x.has_u("antar") && y.has_u("ayana") {
+        // antarayaRam on "adesha" i.e not desha
+        ip.p.optional_run("8.4.25", |p| {
+            p.set(i_y, |t| t.set_text("ayaRa"));
+        });
+    } else if i_x != i_y && y.has_tag(T::Samasa) && y.has_u("nas") {
+        ip.p.run("8.4.28", |p| p.set(i_y, |t| t.set_adi("R")));
     } else if y.has_u("Ra\\Sa~") && (y.has_antya('z') || y.has_antya('k')) {
         // pranazwa, ...
         ip.p.step("8.4.36");
@@ -119,7 +155,15 @@ fn try_natva_for_span(
         let is_mina = || (dhatu.has_text("mI") && y.is(V::SnA));
 
         if y.has_adi('n') && y.has_tag(T::FlagNaAdeshadi) {
-            ip.run_for_char("8.4.14", i_n, "R");
+            let has_krt =
+                ip.p.find_next_where(i_dhatu, |t| t.is_krt() && !t.is_empty())
+                    .is_some();
+            if (has_krt) && dhatu.has_u_in(&["Risi~\\", "Rikza~", "Ridi~"]) {
+                // Note: ONLY for krt pratyaya (and not for Tin pratyaya)
+                ip.optional_run_for_char("8.4.33", i_n, "R");
+            } else {
+                ip.run_for_char("8.4.14", i_n, "R");
+            }
         } else if is_hinu() || is_mina() {
             // prahiRoti
             ip.run_for_char("8.4.15", i_n, "R");
@@ -153,18 +197,58 @@ fn try_natva_for_span(
             let i_z = ip.p.find_next_where(i_y, |t| !t.is_empty())?;
             if ip.p.has(i_z, |t| t.has_adi('v') || t.has_adi('m')) {
                 ip.p.optional_run("8.4.23", |p| p.set(i_y, |t| t.set_antya("R")));
+            } else if x.has_u("antar") {
+                // Apply Ratva only in "adesh" context (when not referring to a place/country).
+                ip.p.optional_run("8.4.24", |p| p.set(i_y, |t| t.set_antya("R")));
             } else {
                 ip.p.run_at("8.4.22", i_dhatu, |t| t.set_antya("R"));
             }
         } else if y.is_krt() {
+            // SC Vasu: the change takes place, even where the कृत् affix does not follow directly after the affix णि
+            // So check if there is a णिच् after the dhatu in some position. This takes care of पुक् Agama also
+            let dhatu_pratayaya_is_nic = !ip.p.find_next_where(i_dhatu, |t| t.is_nic()).is_none();
             let prev_is_ac = if let Some(i) = ip.prev(i_n) {
                 AC.contains(ip.char_at(&i))
             } else {
                 false
             };
-            if prev_is_ac {
-                ip.p.run_at("8.4.22", i_y, |t| t.find_and_replace_text("n", "R"));
+
+            if dhatu.has_u_in(&[
+                "BU",
+                "BA\\",
+                "pUY",
+                Aupadeshika::opyAyI.as_str(),
+                "ga\\mx~",
+                "kamu~\\",
+                "wuvepf~\\",
+            ]) {
+                ip.p.step("8.4.34");
+            } else if dhatu.has_antya(HAL) && dhatu.has_tag(T::idit) {
+                if dhatu.has_u_adi(IC) {
+                    ip.p.run_at("8.4.32", i_y, |t| t.find_and_replace_text("n", "R"));
+                } else {
+                    // This is the case for परिमङ्गनम् and प्राङ्गनम्
+                    ip.p.step("8.4.32");
+                }
+            } else if prev_is_ac {
+                if dhatu.has_adi(HAL) && dhatu.has_upadha(IC) {
+                    // Optional for ijupaDa for halAdi dhatu
+                    ip.p.optional_run_at("8.4.31", i_y, |t| t.find_and_replace_text("n", "R"));
+                } else if dhatu_pratayaya_is_nic {
+                    // Optional for Ric prataya
+                    ip.p.optional_run_at("8.4.30", i_y, |t| t.find_and_replace_text("n", "R"));
+                } else {
+                    // This should fall under कृत्यच:
+                    ip.p.run_at("8.4.29", i_y, |t| t.find_and_replace_text("n", "R"));
+                }
             }
+        } else if x.is_any_upasarga(&[U::nir, U::nis]) && y.has_dhatu_u_in(&["vi\\da~\\"]) {
+            // 8.4.29.1  nirviRRasyopasaNKyAnam
+            //           parasya Ratvam -> hence next term
+            let i_next = ip.p.find_next_where(i_y, |t| t.is_krt())?;
+            ip.p.run_at(Varttika("8.4.29.1"), i_next, |t| {
+                t.find_and_replace_text("na", "Ra")
+            });
         }
     } else {
         // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.
@@ -180,7 +264,7 @@ fn try_natva_for_span(
             || t.starts_with("srOGn") // special exception for srOGna from sruGna
         });
         if is_samana_pada && !is_within_basic_phit {
-            // TODO: track loctaion of rzfF for better rule logging.
+            // TODO: track location of rzfF for better rule logging.
 
             if ip.next(i_rs) == Some(i_n.clone()) {
                 // When R immediately follows r/z
@@ -580,7 +664,18 @@ pub fn run(p: &mut Prakriya) {
 
     let p = ip.into_p();
 
+    // This is an indicator of a 1.4.14 Pada samjna
+    let last_term = p.terms().last().unwrap();
+    if last_term.has_all_tags(&[Tag::Pada, Tag::Tin])
+        || last_term.has_all_tags(&[Tag::Pada, Tag::Sup])
+    {
+        p.step("1.4.14");
+    } else if last_term.is_krt() || last_term.is_taddhita() || last_term.is_samasa() {
+        // Pratipadika samjna
+        p.step("1.2.46");
+    }
     // a a iti
+    // Note: devO,devAH,devAn,devEH etc. do not trigger the following rule
     if p.terms().iter().any(|t| t.text.contains('a')) {
         p.step("8.4.68");
     }

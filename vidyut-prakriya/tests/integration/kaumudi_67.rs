@@ -943,7 +943,7 @@ fn unadi_2_56() {
 }
 
 #[test]
-fn unadi_2_58() {
+fn unadi_2_59() {
     assert_has_krdanta(&[], &d("A\\px~", Svadi), kvip, &["ap"]);
 }
 

@@ -31,7 +31,7 @@ use crate::args::Taddhita as D;
 use crate::args::Upasarga as U;
 use crate::args::Vikarana as V;
 use crate::core::char_view::IndexPrakriya;
-use crate::core::operators as op;
+use crate::core::{operators as op, Stage};
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Rule::Varttika, Tag as T, Term};
 use crate::dhatu_gana as gana;
 use crate::it_agama;
@@ -167,7 +167,9 @@ fn try_pratyaya_adesha_at_index(p: &mut Prakriya, i_anga: usize) -> Option<()> {
 
         if anga.is_u(Au::vida_2) && anga.has_gana(Adadi) && n.has_u("Satf~") {
             op::optional_adesha("7.1.36", p, i_n, "vasu~");
-        } else if n.is(K::ktvA) && p.terms().first()?.is_pratipadika() {
+        } else if n.is(K::ktvA)
+            && (p.terms().first()?.is_pratipadika() || p.terms().first()?.is_upasarga())
+        {
             op::adesha("7.1.37", p, i_n, "lyap");
         }
     }
@@ -458,6 +460,9 @@ fn try_dhatu_rt_adesha(p: &mut Prakriya, i: usize) -> Option<()> {
 ///
 /// (7.3.101 - 7.3.111)
 fn try_ato_dirgha(p: &mut Prakriya, i: usize) -> Option<()> {
+    if p.stage == Stage::DhatuPrep {
+        return None;
+    }
     // HACK: work around lack of support for "ekah pUrvaparayoH" by skipping empty wAp-pratyaya.
     let i_next = p.next_not_empty(i)?;
     let n = p.pratyaya(i_next)?;
@@ -583,9 +588,17 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
             let piti = last.has_tag(T::pit) && !last.has_tag(T::Nit);
 
             if is_dhatu && anga.has_text("brU") && piti {
-                op::insert_before("7.3.93", p, i_n, A::Iw);
+                if p.has(i_anga + 1, |t| t.is_yan()) {
+                    // HACK: use `i_anga + 1` to point to yaN, which is empty due to luk.
+                    p.optionally("7.3.94", |rule, p| {
+                        op::insert_before(rule, p, i_n, A::Iw);
+                    });
+                } else {
+                    op::insert_before("7.3.93", p, i_n, A::Iw);
+                }
             } else if is_dhatu && p.has(i_anga + 1, |t| t.is_yan()) && piti {
                 // HACK: use `i_anga + 1` to point to yaN, which is empty due to luk.
+                // The "brU" case does not land here. So it has to be copied above
                 p.optionally("7.3.94", |rule, p| {
                     op::insert_before(rule, p, i_n, A::Iw);
                 });
@@ -758,7 +771,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
                 p.run_at("7.2.83", i, op::adi("I"));
             } else if anga.has_antya('a') && sarva.has_text("Ana") {
                 // pacamAna, ...
-                op::insert_after("7.2.80", p, i_anga, A::muk);
+                op::insert_after("7.2.82", p, i_anga, A::muk);
             } else if anga.has_antya('a') && sarva.has_adi('A') && sarva.has_tag(T::Nit) {
                 // pacayAt --> pacet
                 p.run_at("7.2.81", i, op::adi("iy"));
@@ -980,7 +993,9 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
         // Dhatu may be multi-part, so insert before abhyasa.
         // But abhyasa may follow main dhatu (e.g. undidizati) --
         // So, use the first match we find that's not a prefix.
-        let i_start = p.find_first_where(|t| !t.is_upasarga() && !t.is_lupta())?;
+        let i_start = p.find_first_where(|t| {
+            !t.is_upasarga() && !t.is_lupta() && !t.is_gati() && !t.is_empty()
+        })?;
 
         // Agama already added in a previous iteration, so return.
         // (To prevent infinite loops)
@@ -1289,6 +1304,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
     // (7.4.21 - 7.4.31)
     option_block_iter(p, |p, i| {
         let anga = p.get_if(i, |t| t.is_anga())?;
+        let luk = p.get(i + 1)?; // May be an empty yanLuk
         let i_n = p.next_not_empty(i)?;
         let n = p.pratyaya(i_n)?;
 
@@ -1326,7 +1342,10 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
             //     `ṛ gatiprāpaṇayoḥ` (dhātupāṭhaḥ-936), `ṛ sṛ gatau`
             //     (dhātupāṭhaḥ-1098,1099) - ityetayor bhauvādika-
             //     jauhotyādikayor grahaṇam
-            if anga.is_samyogadi() || anga.has_text("f") {
+            if (anga.is_samyogadi() || anga.has_text("f")) && !luk.is_yan_luk() {
+                // "श्तिपा" applies here as sutra uses "अर्ति" instead of "ऋ"  ^^^
+                // As per https://ashtadhyayi.com/paribhashendushekhar/131 this should
+                //   not apply for yanLuk
                 if n.is_yan() {
                     // arAryate
                     p.run_at("7.4.30", i, op::antya("ar"));
@@ -1335,7 +1354,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
                     p.run_at("7.4.29", i, op::antya("ar"));
                 }
             } else if is_sha_yak_lin {
-                // kriyate, kriyAt, ...
+                // kriyate, kriyAt, ... and yanLuk also
                 p.run_at("7.4.28", i, op::antya("ri"));
             } else if akrt_sarva() && (yi || n.is(D::cvi)) {
                 // mantrIyati
@@ -1585,11 +1604,12 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    subanta::run(p);
-
+    if p.stage != Stage::DhatuPrep {
+        subanta::run(p);
+    }
     for index in 0..p.len() {
-        try_ato_dirgha(p, index);
         asiddhavat::run_final(p, index);
+        try_ato_dirgha(p, index);
         try_dhatu_rt_adesha(p, index);
     }
 

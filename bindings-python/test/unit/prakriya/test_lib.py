@@ -84,7 +84,7 @@ def test_prakriya():
     a = Source.Ashtadhyayi
     assert filtered_steps == [
         Step(source=a, code="1.3.1", result=[c("BU")]),
-        Step(source=a, code="3.2.123", result=[c("BU"), o("la~w")]),
+        Step(source=a, code="3.2.123", result=[o("BU"), c("la~w")]),
         Step(source=a, code="1.3.2", result=[o("BU"), c("la~w")]),
         Step(source=a, code="1.3.3", result=[o("BU"), c("la~w")]),
         Step(source=a, code="1.3.9", result=[o("BU"), c("l")]),
@@ -92,16 +92,16 @@ def test_prakriya():
         Step(source=a, code="3.4.78", result=[o("BU"), c("tip")]),
         Step(source=a, code="1.3.3", result=[o("BU"), c("tip")]),
         Step(source=a, code="1.3.9", result=[o("BU"), c("ti")]),
-        Step(source=a, code="3.4.113", result=[o("BU"), c("ti")]),
-        Step(source=a, code="3.1.68", result=[c("BU"), o("Sap"), o("ti")]),
+        Step(source=a, code="3.1.68", result=[o("BU"), c("Sap"), o("ti")]),
         Step(source=a, code="1.3.3", result=[o("BU"), c("Sap"), o("ti")]),
         Step(source=a, code="1.3.8", result=[o("BU"), c("Sap"), o("ti")]),
         Step(source=a, code="1.3.9", result=[o("BU"), c("a"), o("ti")]),
         Step(source=a, code="3.4.113", result=[o("BU"), c("a"), o("ti")]),
-        Step(source=a, code="1.4.13", result=[c("BU"), o("a"), o("ti")]),
+        Step(source=a, code="3.4.113", result=[o("BU"), o("a"), c("ti")]),
+        Step(source=a, code="1.4.13", result=[c("BU"), c("a"), c("ti")]),
         Step(source=a, code="7.3.84", result=[c("Bo"), o("a"), o("ti")]),
-        Step(source=a, code="1.4.14", result=[c("Bo"), o("a"), o("ti")]),
-        Step(source=a, code="6.1.78", result=[c("Bav"), o("a"), o("ti")]),
+        Step(source=a, code="6.1.78", result=[c("Bav"), o("a"), c("ti")]),
+        Step(source=a, code="1.4.14", result=[o("Bav"), o("a"), o("ti")]),
         Step(source=a, code="8.4.68", result=[o("Bav"), o("a"), o("ti")]),
     ]
 

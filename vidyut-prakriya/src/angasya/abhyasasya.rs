@@ -484,6 +484,21 @@ fn try_rules_for_yan(p: &mut Prakriya, i_abhyasa: usize) -> Option<()> {
             _ = optional_add_agama("7.4.92:ruk", p, i_dhatu, A::ruk)
                 || optional_add_agama("7.4.92:rik", p, i_dhatu, A::rik)
                 || add_agama("7.4.92:rIk", p, i_dhatu, A::rIk);
+            // The rik agamas are considered part of the abhyasa. Apply the
+            // abhyasa samjna and mark them as "complete" for processing
+            // Todo(tbdasap)": Explore an "op" to sandhi-fy the two "abhyasa" terms into one
+            // The observed cases are due to the only अजादि ऋकारान्त dhatu -> "f//" in the
+            // entire dhatupAtha that trigger some corner cases
+            // 1. "f//" + yanLuk + Lat + Ji  evaluates as
+            //    "ar" + "r" evaluates to "Ar" (8.3.14, 6.3.111)  --> "Arati" ✅
+            //    "a" + "r" + "r" evaluates to "ar" (only 8.3.14) --> "arati" ❌
+            // 2. "f//" + yanLuk + Lat + Tip   (अरियरीति अरियर्ति)
+            //    6.4.78 processing is currently triggered by adding the tags below
+            // 3. For "कृ" etc. one gets च + री + कृ and since it is हलादि
+            //    इयङ् from 6.4.78 does not apply but there seems to be no side-effect
+            //    to marking ri/rI as an additional "abhyasa" term in the prakriya so far.
+            p.get_mut(i_abhyasa + 1)?
+                .add_tags(&[T::Abhyasa, T::Complete]);
         } else {
             let mut added = false;
             // narnarti, narinarti

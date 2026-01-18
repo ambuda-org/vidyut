@@ -10,12 +10,13 @@ favor of more generic modules like `angasya.rs`.
 use crate::angasya::asiddhavat;
 use crate::args::Agama as A;
 use crate::args::BaseKrt as K;
+use crate::args::BaseKrt::kvip;
 use crate::args::Stri as S;
 use crate::args::Sup;
 use crate::args::Taddhita as D;
 use crate::args::Vikarana as V;
-use crate::core::operators as op;
 use crate::core::Rule::Varttika;
+use crate::core::{operators as op, Tag};
 use crate::core::{Morph, Prakriya, PrakriyaTag as PT, Rule, Tag as T, Term};
 use crate::it_samjna;
 use crate::samjna;
@@ -325,10 +326,20 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         {
             // yuN, yuYjO, yuYjaH
             p.run_at("7.1.71", i_anga - 1, add_num);
-        } else if napum && sup.is_sarvanamasthana() && (anga.has_antya(JHAL) || anga.has_antya(AC))
-        {
+        } else if napum && (anga.has_antya(JHAL) || anga.has_antya(AC)) {
             // udaSvinti, Sakfnti, yaSAMsi, ...
             p.run_at("7.1.72", i_anga, add_num);
+        } else if napum && anga.has_text("") && anga.is_any_krt(&[kvip]) {
+            // kvip has empty text after 6.1.67 application
+            // So the actual "anga" ends with the prior term. Use that for testing
+            let actual_anga = p.get(i_anga - 1)?;
+            // https://ashtadhyayi.com/sutraani/sk446 for AtLopa nisheda w.r.t
+            // JHAL-anta and AC-anta lakshana  and hence no numAgama
+            if !actual_anga.has_tag(Tag::FlagAtLopa)
+                && (actual_anga.has_antya(JHAL) || actual_anga.has_antya(AC))
+            {
+                p.run_at("7.1.72", i_anga - 1, add_num);
+            }
         }
     } else if napum && anga.has_antya(IK) && sup.has_adi(AC) && sup.is_vibhakti() {
         p.run_at("7.1.73", i_anga, add_num);
@@ -690,6 +701,13 @@ fn try_ni_adesha(p: &mut Prakriya, i_anga: usize, i: usize) -> Option<()> {
                 op::adesha("7.3.118", p, i, "O");
             }
         } else if nadi_nyap {
+            op::adesha("7.3.116", p, i, "Am");
+        }
+        // Add the "nI" dhatu case
+        let i_ni_dhatu = p.find_first_where(|t| t.is_dhatu() && t.has_u("RI\\Y"))?;
+        // Ensure that there Sup::Ni is "visibly" next to RIY (empty terms in between are okay for
+        // the kvip lopa case)
+        if p.find_next_where(i_ni_dhatu, |t| t.is_pratyaya() && !t.is_empty()) == Some(i) {
             op::adesha("7.3.116", p, i, "Am");
         }
     }

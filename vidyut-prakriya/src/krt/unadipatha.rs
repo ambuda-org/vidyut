@@ -1158,9 +1158,11 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             }
         }
         U::kvip => {
-            if dhatu.has_u("A\\px~") {
+            if dhatu.has_u_in(&["ju"]) {
+                up.add_with(UP("2.58"), set_text("jU"));
+            } else if dhatu.has_u("A\\px~") {
                 // ap
-                up.add_with(UP("2.58"), set_text("ap"));
+                up.add_with(UP("2.59"), set_text("ap"));
             } else if dhatu.has_u("hu\\") {
                 // juhU
                 up.add_with(UP("2.61"), set_text("juhU"));

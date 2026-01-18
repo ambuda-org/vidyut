@@ -3,6 +3,9 @@ use std::error::Error;
 use vidyut_prakriya::args::{BaseKrt as Krt, *};
 use vidyut_prakriya::{Dhatupatha, Vyakarana};
 
+mod src_utils;
+use src_utils::find_src_root;
+
 /// Creates a collection of (linga, vibhakti, vacana) combinations.
 fn linga_vibhakti_vacana_options() -> Vec<(Linga, Vibhakti, Vacana)> {
     let mut ret = Vec::new();
@@ -78,7 +81,17 @@ fn run(dhatupatha: Dhatupatha) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let dhatus = match Dhatupatha::from_path("data/dhatupatha.tsv") {
+    let source_root = find_src_root(); // Find the toplevel .git directory
+    assert!(
+        source_root.is_some(),
+        "Could not find toplevel .git directory"
+    );
+    let dhatupatha_path = source_root
+        .unwrap()
+        .as_path()
+        .join("vidyut-prakriya/data/dhatupatha.tsv");
+
+    let dhatus = match Dhatupatha::from_path(dhatupatha_path.as_path()) {
         Ok(res) => res,
         Err(err) => {
             println!("{}", err);

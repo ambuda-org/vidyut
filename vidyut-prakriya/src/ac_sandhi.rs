@@ -4,17 +4,17 @@
 
 use crate::args::Agama as A;
 use crate::args::Aupadeshika as Au;
-use crate::args::Sanadi as S;
 use crate::args::Sup;
 use crate::args::Unadi;
 use crate::args::Upasarga as U;
 use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::Prakriya;
+use crate::core::Stage::DhatuPrep;
 use crate::core::{PrakriyaTag as PT, Tag as T};
-use crate::it_samjna;
-use crate::sounds as al;
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
+use crate::{angasya, it_samjna};
+use crate::{samjna, sounds as al};
 
 const AA: Set = s(&["a"]);
 const IC: Set = s(&["ic"]);
@@ -48,8 +48,6 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
         if let Some(i_y) = ip.next(i_x) {
             let y = ip.char_at(&i_y);
             if VAL.contains(y) {
-                // Per Neelesh Bodas, remove `Abhyasta` so that we can derive `mAmAva`.
-                ip.p.set(i_x.i_term, |t| t.remove_tag(T::Abhyasta));
                 ip.run_for_char("6.1.66", i_x, "");
             }
         }
@@ -99,12 +97,6 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya, i_start: usize, i_end: usize) {
         let is_uth = || t_y.has_adi('U') && t_y.has_tag(T::FlagUth);
 
         if AK.contains(x) && al::is_savarna(x, y) {
-            // HACK: ignore sandhi between upasarga and dhatu so that we can correctly derive prARinat,
-            // etc.
-            if t_x.is_upasarga() && ip.p.terms().last()?.is_dhatu() {
-                return Some(i_y);
-            }
-
             let sub = al::to_dirgha(x)?;
             ip.run("6.1.101", |ip| {
                 ip.swap_char_at(i_x, sub);
@@ -169,11 +161,7 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya, i_start: usize, i_end: usize) {
         } else {
             debug_assert!(AA.contains(x));
 
-            if t_x.is_upasarga() && ip.p.terms().last()?.is_dhatu() {
-                // HACK: ignore sandhi between upasarga and dhatu so that we can correctly derive
-                // prARinat, etc.
-                return Some(i_y);
-            } else if t_x.is(Unadi::qau) {
+            if t_x.is(Unadi::qau) {
                 // Skip qau, or else stating this as `qau` would be vyartha.
                 return Some(i_y);
             }
@@ -359,24 +347,6 @@ pub fn try_sut_kat_purva(p: &mut Prakriya) -> Option<()> {
     Some(())
 }
 
-fn hacky_apply_ni_asiddhavat_rules(p: &mut Prakriya) -> Option<()> {
-    for i in 0..p.terms().len() {
-        let x = p.get(i)?;
-        let y = p.get(i + 1)?;
-
-        // HACK: duplicate 6.4.92 from the asiddhavat section for ci -> cAy, cap
-        if x.has_tag(T::mit) && x.has_text_in(&["cAy", "cA"]) && (y.is(S::Ric) || y.is(A::puk)) {
-            if x.has_text("cA") {
-                p.run_at("6.4.92", i, op::antya("a"));
-            } else {
-                p.run_at("6.4.92", i, op::upadha("a"));
-            }
-        }
-    }
-
-    Some(())
-}
-
 /// Runs antaranga ac-sandhi rules.
 ///
 /// (Example: div -> dyU + sa -> dudyUzati)
@@ -401,9 +371,21 @@ pub fn run_antaranga(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_common(p: &mut Prakriya) -> Option<()> {
-    for i in 0..p.terms().len() {
+    for i in 0..p.len() {
         if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
             p.run_at("6.1.67", i, op::lopa);
+            if p.len() > i + 1 {
+                // Need to repeat anga-karyam if there is a pratyaya after kvip
+                // Eg.
+                //    Di + kvip + tA
+                //    DI + [] + A
+                //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
+                //    "DI" based on "A". In this case since it has dhatu-samjna
+                //    6.4.77 will become applicable.
+                samjna::run(p);
+                angasya::run_before_stritva(p);
+                angasya::run_after_dvitva(p);
+            }
         }
 
         apply_ac_sandhi_at_term_boundary(p, i);
@@ -413,8 +395,32 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
         }
     }
 
-    apply_general_ac_sandhi(p, 0, p.len() - 1);
-    hacky_apply_ni_asiddhavat_rules(p);
+    let mut index = 0;
+    if p.stage == DhatuPrep {
+        // Compute from which index ac_sandhi rules must be done for dhatu-prepare stage
+        // Typically we want to apply rules pertaining to dhatu + pratyaya
+        // Upasarga sandhi rules to be deferred to tinnsiddhi time
+        index = p
+            .find_first_where(|t| t.is_abhyasta() || t.is_dhatu())
+            .unwrap();
+        if index == p.len() - 1 {
+            // No dhatu or abhyasa in "dhatu prep" ?
+            index = 0; // Probably namadhatu..so fallback.
+        }
+        apply_general_ac_sandhi(p, index, p.len() - 1);
+        return Some(());
+    }
 
+    // Check if there is an upsarga followed by abhyasa/dhatu
+    let index_upasarga = p.find_last_where(|t| t.is_upasarga());
+    let index_abhyasa = p.find_first_where(|t| (t.is_abhyasa() || t.is_dhatu()));
+    if index_upasarga.is_some() && index_abhyasa.is_some() {
+        // First do the ac_sandhi from abhyas onwards
+        apply_general_ac_sandhi(p, index_abhyasa?, p.len() - 1);
+        // And then apply until the abhyasa
+        apply_general_ac_sandhi(p, 0, index_abhyasa?);
+    } else {
+        apply_general_ac_sandhi(p, index, p.len() - 1);
+    }
     Some(())
 }

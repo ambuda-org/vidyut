@@ -17,6 +17,11 @@ CURRENT_KRDANTA_OUTPUT:=krdantas_$(GIT_BRANCH).txt
 PRIOR_TINANTA_OUTPUT:=tinantas_main.txt
 PRIOR_KRDANTA_OUTPUT:=krdantas_main.txt
 
+## OUTPUT_SCHEME (defaulted to Deva ... can be also Slp1)
+## Used by "regression_test" target for finding diff with "main".
+## Ensure that you use the same OUTPUT_SCHEME on both branches to avoid useless massive diffs
+## Eg. make regression_test OUTPUT_SCHEME=Slp1
+OUTPUT_SCHEME ?= Devanagari
 
 ### Build section
 # -----
@@ -59,7 +64,7 @@ test_tinantas:
 	cargo run --release --example snapshot_tests validate \
 		--test-type tinantas \
 		-f test-files/tinantas-basic.msgpack \
-		-h "5e4c09fb92097bd0ce11de29f41f3ae8de6733154a564b7c8bef31569ed6ab65" \
+		-h "63e31ea70a59f051cd80773ebe3187ebda8df8dec0632695af6d00ad0e731f71" \
 		-f test-files/tinantas-nic.msgpack \
 		-h "a8b186ff62fe20a08e147537614bbb3220fbfd8d2fce356514e5e595d1e579fb" \
 		-f test-files/tinantas-san.msgpack \
@@ -137,7 +142,7 @@ wasm_release:
 # This is a dev build. Creating it will be faster, but size and performance
 # will not be optimized.
 wasm_dev:
-	wasm-pack build --target web -- --features serde
+	wasm-pack build --target web --debug -- --features serde
 
 # Builds a simple web debugger.
 debugger:
@@ -156,13 +161,16 @@ $(CREATE_ALL_TINANTAS) $(CREATE_ALL_KRDANTAS): build_all
 
 ## M3 MacbookPro: 7-8 minutes
 $(CURRENT_TINANTA_OUTPUT): $(CREATE_ALL_TINANTAS)
-	time $^ > $@
+	time $^ --output-scheme=$(OUTPUT_SCHEME) > $@
 
 ## M3 MacbookPro : 1-2 minutes
 $(CURRENT_KRDANTA_OUTPUT): $(CREATE_ALL_KRDANTAS)
-	time $^ > $@
+	time $^ --output-scheme=$(OUTPUT_SCHEME) > $@
 
 current_regression_data: $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
+
+clean_regression_data:
+	@-/bin/rm -f $(CURRENT_TINANTA_OUTPUT) $(CURRENT_KRDANTA_OUTPUT)
 
 PHONY: prior_regression_data
 
@@ -189,11 +197,14 @@ endif
 
 ## Depends on volume of change but usually quick
 regression_test: all-krt-tin-anta-diff.txt
-	@echo ; echo "Diff output: \"$^\""; echo
+	@if [[ -d .venv ]]; then \
+		echo "Running " ; uv run --verbose reformat.py $^ > diffs.md ;\
+		count=$$(( $$(wc -l  diffs.md | xargs echo | cut -d ' ' -f 1) - 6 )) ; echo ; echo " ✅  Diffs at: \"diffs.md\" ($$count differences)";\
+	else echo; echo "⚠️  👉🏽  Please create a python venv: 'uv venv -p path_to_python'"; fi
 
 all-krt-tin-anta-diff.txt: current_regression_data prior_regression_data
-	@(diff --suppress-common-lines -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
-    echo "-----------------------------------------------------  krdantas below    ----------------------------------------------------------"; \
-	diff --suppress-common-lines -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
+	@(echo "Tinantas"; diff --suppress-common-lines -W 1000 -y $(CURRENT_TINANTA_OUTPUT) $(PRIOR_TINANTA_OUTPUT) || true; \
+    echo "Krdantas"; \
+	diff --suppress-common-lines -W 1000 -y $(CURRENT_KRDANTA_OUTPUT) $(PRIOR_KRDANTA_OUTPUT) || true) > $@
 
 endif   ## END OSFlavor=Darwin
