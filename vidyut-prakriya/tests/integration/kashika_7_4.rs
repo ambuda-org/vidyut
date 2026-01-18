@@ -694,7 +694,22 @@ fn sutra_7_4_66() {
     assert_has_lit(&[], &d("vftu~\\", Bhvadi), &["vavfte"]);
     assert_has_lit(&[], &d("vfDu~\\", Bhvadi), &["vavfDe"]);
     assert_has_lit(&[], &d("SfDu~\\", Bhvadi), &["SaSfDe"]);
-    // TODO: yaNluk examples.
+
+    assert_has_lat(
+        &[],
+        &yan_luk(&d("nftI~", Divadi)),
+        &[
+            "narInarti",
+            "narInartti",
+            "narInftIti",
+            "narinarti",
+            "narinartti",
+            "narinftIti",
+            "narnarti",
+            "narnartti",
+            "narnftIti",
+        ],
+    );
 }
 
 #[test]

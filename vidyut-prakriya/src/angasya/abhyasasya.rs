@@ -249,23 +249,59 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
         p.run_at("7.4.68", i, op::text("viT"));
     }
 
-    let abhyasa = p.get(i)?;
-    if abhyasa.has_adi(SHAR) && abhyasa.has_at(1, KHAY) {
-        let abhyasa = &mut p.get_mut(i)?;
-        let res = try_shar_purva(&abhyasa.text);
-        if res != abhyasa.text {
-            abhyasa.text = res;
-            p.step("7.4.61");
+    let mut abhyasa_has_changed = true;
+    let mut current_abhyasa_text;
+
+    // The transformations prescribed in abhyasa angakarya
+    // seem to be designed to converge on repetition. This may be the
+    // vivakshA
+    while abhyasa_has_changed {
+        let abhyasa = p.get(i)?;
+        current_abhyasa_text = abhyasa.text.clone();
+
+        if abhyasa.has_adi(SHAR) && abhyasa.has_at(1, KHAY) {
+            let abhyasa = p.get_mut(i)?;
+            let res = try_shar_purva(&abhyasa.text);
+            if res != abhyasa.text {
+                abhyasa.text = res;
+                p.step("7.4.61");
+            }
+        } else {
+            let abhyasa = p.get_mut(i)?;
+            let res = try_haladi(&abhyasa.text);
+            if res != abhyasa.text {
+                abhyasa.text = res;
+                p.step("7.4.60");
+            }
         }
-    } else {
-        let abhyasa = &mut p.get_mut(i)?;
-        let res = try_haladi(&abhyasa.text);
-        if res != abhyasa.text {
-            abhyasa.text = res;
-            p.step("7.4.60");
+
+        if p.has(i, |t| t.has_antya('f') || t.has_antya('F')) {
+            p.run_at("7.4.66", i, op::antya("a"));
+            p.run_at("1.1.51", i, op::antya("ar"));
+        }
+
+        // no-hrasva is for pA --> apIpyat.
+        let abhyasa = p.get(i)?;
+        if al::is_dirgha(abhyasa.antya()?) && !abhyasa.has_tag(T::FlagNoHrasva) {
+            let val = al::to_hrasva(abhyasa.antya()?)?;
+            p.run_at("7.4.59", i, op::antya_char(&val));
+        }
+
+        let dhatu = p.get(i_dhatu)?;
+        let last = p.terms().last()?;
+        if dhatu.has_u("i\\R") && last.has_tag(T::kit) && last.has_lakara(Lit) {
+            // IyatuH, IyuH
+            p.run_at("7.4.69", i, op::adi("I"));
+        }
+
+        let abhyasa = p.get_mut(i)?;
+        if abhyasa.text == current_abhyasa_text {
+            abhyasa_has_changed = false;
         }
     }
 
+    // Keeping this outside the loop as this needs to be done only once
+    // after abhyasa has converged.
     let abhyasa = p.get(i)?;
     let dhatu = p.get(i_dhatu)?;
     if let Some(val) = KUH_CU
@@ -279,25 +315,6 @@ fn try_general_rules(p: &mut Prakriya, i: usize) -> Option<()> {
             p.run_at("7.4.62", i, |t| t.set_adi_char(val));
         }
     }
-
-    // no-hrasva is for pA --> apIpyat.
-    let abhyasa = p.get(i)?;
-    if al::is_dirgha(abhyasa.antya()?) && !abhyasa.has_tag(T::FlagNoHrasva) {
-        let val = al::to_hrasva(abhyasa.antya()?)?;
-        p.run_at("7.4.59", i, op::antya_char(&val));
-    }
-
-    if p.has(i, |t| t.has_antya('f')) {
-        p.run_at("7.4.66", i, op::antya("a"));
-    }
-
-    let dhatu = p.get(i_dhatu)?;
-    let last = p.terms().last()?;
-    if dhatu.has_u("i\\R") && last.has_tag(T::kit) && last.has_lakara(Lit) {
-        // IyatuH, IyuH
-        p.run_at("7.4.69", i, op::adi("I"));
-    }
-
     Some(())
 }
 
