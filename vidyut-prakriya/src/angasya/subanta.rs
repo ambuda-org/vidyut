@@ -68,7 +68,7 @@ fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
         if anga.has_antya('n') {
             if anga.ends_with("in") || anga.has_text("pUzan") {
                 let sub = al::to_dirgha(anga.upadha()?)?;
-                if sup.is(Sup::jas) && sup.has_text("i") {
+                if (sup.is(Sup::jas) || sup.is(Sup::Sas)) && sup.has_text("i") {
                     // yogIni
                     p.run_at("6.4.12", i_anga, |t| t.set_upadha_char(sub));
                 } else if sau {

@@ -489,4 +489,6 @@ fn eka_dvi_as_sarvanama() {
     assert_has_sup_1d("dvi", Pum, &["dvO"]);
     assert_has_sup_1d("dvi", Stri, &["dve"]);
     assert_has_sup_1d("dvi", Napumsaka, &["dve"]);
+    assert_has_sup_2p("tri", Napumsaka, &["trIRi"]);
+    assert_has_sup_1p("tri", Napumsaka, &["trIRi"]);
 }
