@@ -37,6 +37,14 @@ pub struct PyDhatuEntry {
     /// - `vidi~` --> `vind`
     pub(crate) clean_text: String,
 
+    /// The Dhatupatha code for this dhatu.
+    ///
+    /// Examples:
+    ///
+    /// - `BU` --> `01.0001`
+    /// - `eD` --> `01.0002`
+    pub(crate) code: Option<String>,
+
     /// The meaning of this dhatu's *mūla* as an SLP1 string.
     ///
     /// We have meaning strings only for the ~2000 *mūla* dhatus from the Dhatupatha. Any roots
@@ -59,11 +67,12 @@ pub struct PyDhatuEntry {
 impl PyDhatuEntry {
     /// Create a new `DhatuEntry`.
     #[new]
-    #[pyo3(signature = (dhatu, clean_text, *, artha_sa = None, artha_en = None, artha_hi = None,
+    #[pyo3(signature = (dhatu, clean_text, *, code = None, artha_sa = None, artha_en = None, artha_hi = None,
         karmatva = None, ittva = None, pada = None))]
     fn new(
         dhatu: PyDhatu,
         clean_text: String,
+        code: Option<String>,
         artha_sa: Option<String>,
         artha_en: Option<String>,
         artha_hi: Option<String>,
@@ -74,6 +83,7 @@ impl PyDhatuEntry {
         Self {
             dhatu,
             clean_text,
+            code,
             artha_sa,
             artha_en,
             artha_hi,
@@ -85,9 +95,10 @@ impl PyDhatuEntry {
 
     fn __repr__(&self) -> String {
         format!(
-            "DhatuEntry(dhatu={}, clean_text={}, artha_sa={})",
+            "DhatuEntry(dhatu={}, clean_text={}, code={}, artha_sa={})",
             self.dhatu.__repr__(),
             py_repr_string(&self.clean_text),
+            py_repr_option_string(&self.code),
             py_repr_option_string(&self.artha_sa),
         )
     }
@@ -103,6 +114,7 @@ impl<'a> From<&DhatuEntry<'a>> for PyDhatuEntry {
         Self {
             dhatu: val.dhatu().into(),
             clean_text: val.clean_text().to_string(),
+            code: val.code().map(|x| x.to_string()),
             artha_sa: val.artha_sa().map(|x| x.to_string()),
             artha_en: val.artha_en().map(|x| x.to_string()),
             artha_hi: val.artha_hi().map(|x| x.to_string()),
