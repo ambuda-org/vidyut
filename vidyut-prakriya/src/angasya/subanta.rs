@@ -66,7 +66,7 @@ fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
         let sup = p.get(i_sup)?;
         let sau = sup.is(Sup::su);
         if anga.has_antya('n') {
-            if anga.ends_with("in") || anga.has_text("pUzan") {
+            if anga.ends_with("in") || anga.has_text_in(&["pUzan", "aryaman"]) {
                 let sub = al::to_dirgha(anga.upadha()?)?;
                 if (sup.is(Sup::jas) || sup.is(Sup::Sas)) && sup.has_text("i") {
                     // yogIni
