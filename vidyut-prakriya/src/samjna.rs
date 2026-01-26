@@ -154,6 +154,10 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
         let prati = p.get(i)?;
         if prati.has_antya('z') || prati.has_antya('n') || is_dati(prati) {
             p.add_tag_at("1.1.24", i, T::zaw);
+        } else if prati.is_any_phit(gana::SARVADI) {
+            // "eka" and "dvi" are Sarvanama also
+            // NOTE: Overgenerates for vacana. Filtering may be done on the output.
+            p.add_tag_at("1.1.23", i, T::Sarvanama);
         }
     } else if prati.is_any_phit(PRATHAMA_ADI) && jasi {
         // praTamAH, praTame, ...

@@ -480,3 +480,15 @@ fn kvip_sup_tests() {
     assert_has_sup_6p(&senani, Pum, &["senAnyAm"]);
     assert_has_sup_7s(&senani, Pum, &["senAnyAm"]);
 }
+
+#[test]
+fn eka_dvi_as_sarvanama() {
+    assert_has_sup_4s("eka", Pum, &["ekasmE"]);
+    assert_has_sup_4s("eka", Stri, &["ekasyE"]);
+    assert_has_sup_4d("dvi", Pum, &["dvAByAm"]);
+    assert_has_sup_1d("dvi", Pum, &["dvO"]);
+    assert_has_sup_1d("dvi", Stri, &["dve"]);
+    assert_has_sup_1d("dvi", Napumsaka, &["dve"]);
+    assert_has_sup_2p("tri", Napumsaka, &["trIRi"]);
+    assert_has_sup_1p("tri", Napumsaka, &["trIRi"]);
+}

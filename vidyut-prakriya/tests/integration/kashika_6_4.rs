@@ -136,9 +136,19 @@ fn sutra_6_4_11() {
 fn sutra_6_4_12() {
     let bahudandin = create_bahuvrihi("bahudaRqin", "bahu", "daRqin");
     assert_has_sup_1p(&bahudandin, Napumsaka, &["bahudaRqIni"]);
+    assert_has_sup_2p(&bahudandin, Napumsaka, &["bahudaRqIni"]);
 
     let bahucchatrin = create_bahuvrihi("bahucCatrin", "bahu", "Catrin");
     assert_has_sup_1p(&bahucchatrin, Napumsaka, &["bahucCatrIRi"]);
+    assert_has_sup_2p(&bahucchatrin, Napumsaka, &["bahucCatrIRi"]);
+
+    let bahupuzan = create_bahuvrihi("bahupUzan", "bahu", "pUzan");
+    assert_has_sup_1p(&bahupuzan, Napumsaka, &["bahupUzARi"]);
+    assert_has_sup_2p(&bahupuzan, Napumsaka, &["bahupUzARi"]);
+
+    let bahvaryaman = create_bahuvrihi("bahvaryaman", "bahu", "aryaman");
+    assert_has_sup_1p(&bahvaryaman, Napumsaka, &["bahvaryamARi"]);
+    assert_has_sup_2p(&bahvaryaman, Napumsaka, &["bahvaryamARi"]);
 }
 
 #[test]
