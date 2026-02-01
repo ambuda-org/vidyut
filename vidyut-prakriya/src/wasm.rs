@@ -154,6 +154,13 @@ struct PratipadikaArgs {
     basic: Option<String>,
     nyap: Option<String>,
     krdanta: Option<KrdantaArgs>,
+    taddhitanta: Option<TaddhitantaArgsInner>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TaddhitantaArgsInner {
+    stem: String,
+    taddhita: Taddhita,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -221,17 +228,29 @@ impl SubantaArgs {
                 basic: Some(basic),
                 nyap: None,
                 krdanta: None,
+                taddhitanta: None,
             } => Pratipadika::basic(Slp1String::from(basic).expect("ok")),
             PratipadikaArgs {
                 basic: None,
                 nyap: Some(nyap),
                 krdanta: None,
+                taddhitanta: None,
             } => Pratipadika::nyap(Slp1String::from(nyap).expect("ok")),
             PratipadikaArgs {
                 basic: None,
                 nyap: None,
                 krdanta: Some(krt),
+                taddhitanta: None,
             } => Pratipadika::Krdanta(Box::new(krt.into_rust()?)),
+            PratipadikaArgs {
+                basic: None,
+                nyap: None,
+                krdanta: None,
+                taddhitanta: Some(tad),
+            } => {
+                let base = Pratipadika::basic(Slp1String::from(tad.stem).expect("ok"));
+                Pratipadika::Taddhitanta(Box::new(Taddhitanta::new(base, tad.taddhita)))
+            }
             // TODO: improve error handling, remove placeholder
             _ => Pratipadika::basic(Slp1String::from("doza").expect("ok")),
         };
@@ -266,16 +285,19 @@ impl TaddhitantaArgs {
                 basic: Some(basic),
                 nyap: None,
                 krdanta: None,
+                taddhitanta: None,
             } => Pratipadika::basic(Slp1String::from(basic).expect("ok")),
             PratipadikaArgs {
                 basic: None,
                 nyap: Some(nyap),
                 krdanta: None,
+                taddhitanta: None,
             } => Pratipadika::nyap(Slp1String::from(nyap).expect("ok")),
             PratipadikaArgs {
                 basic: None,
                 nyap: None,
                 krdanta: Some(krt),
+                taddhitanta: None,
             } => Pratipadika::Krdanta(Box::new(krt.into_rust()?)),
             _ => Pratipadika::basic(Slp1String::from("doza").expect("ok")),
         };
