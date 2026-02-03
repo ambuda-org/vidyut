@@ -3,7 +3,7 @@ use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
-use vidyut_prakriya::args::{BaseKrt as Krt, Gana};
+use vidyut_prakriya::args::{BaseKrt as Krt, Gana, Sanadi};
 
 #[test]
 fn sk_324() {
@@ -245,6 +245,13 @@ fn skip_sk_360() {}
 fn kvip_han_stem() {
     let han = create_krdanta("han", &[], &d("ha\\na~", Adadi), Krt::kvip);
     assert_has_sup_ss(&han, Pum, &["han"]);
+}
+
+#[test]
+fn satf_yanluk_mat_voc() {
+    let ma = d("mA\\", Adadi).with_sanadi(&[Sanadi::yaNluk]);
+    let mamat = krdanta(&[], &ma, Krt::Satf);
+    assert_has_sup_ss(&mamat, Pum, &["mAman"]);
 }
 
 #[ignore]
