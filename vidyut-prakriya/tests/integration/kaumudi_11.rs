@@ -241,6 +241,12 @@ fn skip_sk_358() {}
 #[test]
 fn skip_sk_360() {}
 
+#[test]
+fn kvip_han_stem() {
+    let han = create_krdanta("han", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    assert_has_sup_ss(&han, Pum, &["han"]);
+}
+
 #[ignore]
 #[test]
 fn sk_361() {

@@ -1053,7 +1053,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
             }
         } else if n.first().is_san() && anga.has_u("tanu~^") {
             p.optional_run_at("6.4.17", i_anga, |t| t.set_upadha("A"));
-        } else if anga.has_antya(ANUNASIKA) && (n.first().is(K::kvip) || jhal_knit()) {
+        } else if anga.has_antya(ANUNASIKA) && !n.first().is(K::kvip) && jhal_knit() {
             if (anga.has_text("kzam") && n.last().has_lakara(Lit) && n.last().is_atmanepada())
                 || (anga.has_u("Dana~") && n.last().is_tin())
             {
