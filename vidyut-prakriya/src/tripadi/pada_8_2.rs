@@ -315,14 +315,16 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
     iter_terms(p, |p, i| {
         if p.is_pada(i) && p.has(i, |t| !t.is_empty()) {
             loop {
-                let ends_with_mat = p.view(0, i)?.text().ends_with("mat");
+                let text = p.view(0, i)?.text().to_string();
+                let ends_with_mat = text.ends_with("mat");
+                let ends_with_hat = text.ends_with("hat");
                 if p.has_tag(PT::Sambodhana) && p.has_tag(PT::Ekavacana) {
-                    if ends_with_mat {
-                        // mAmat -> mAman (vocative singular)
+                    if ends_with_mat || ends_with_hat {
+                        // mAmat -> mAman, mAmahat -> mAmahan (vocative singular)
                         p.run_at("8.2.23", i, |t| {
                             if t.has_text("at") {
                                 t.set_text("an");
-                            } else {
+                            } else if ends_with_mat {
                                 t.find_and_replace_text("mat", "man");
                             }
                         });

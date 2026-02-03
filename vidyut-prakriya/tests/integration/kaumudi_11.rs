@@ -254,6 +254,13 @@ fn satf_yanluk_mat_voc() {
     assert_has_sup_ss(&mamat, Pum, &["mAman"]);
 }
 
+#[test]
+fn satf_yanluk_hat_voc() {
+    let mah = d("ma\\ha~", Bhvadi).with_sanadi(&[Sanadi::yaNluk]);
+    let mamahat = krdanta(&[], &mah, Krt::Satf);
+    assert_has_sup_ss(&mamahat, Pum, &["mAmahan"]);
+}
+
 #[ignore]
 #[test]
 fn sk_361() {
