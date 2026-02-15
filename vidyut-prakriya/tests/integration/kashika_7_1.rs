@@ -296,14 +296,14 @@ fn sutra_7_1_25() {
 
 #[test]
 fn sutra_7_1_27() {
-    assert_has_sup_6s("asmad", Pum, &["mama"]);
-    assert_has_sup_6s("yuzmad", Pum, &["tava"]);
+    assert_has_sup_6s("asmad", Pum, &["mama", "me"]);
+    assert_has_sup_6s("yuzmad", Pum, &["tava", "te"]);
 }
 
 #[test]
 fn sutra_7_1_28() {
-    assert_has_sup_4s("asmad", Pum, &["mahyam"]);
-    assert_has_sup_4s("yuzmad", Pum, &["tuByam"]);
+    assert_has_sup_4s("asmad", Pum, &["mahyam", "me"]);
+    assert_has_sup_4s("yuzmad", Pum, &["tuByam", "te"]);
 
     assert_has_sup_1s("yuzmad", Pum, &["tvam"]);
     assert_has_sup_1s("asmad", Pum, &["aham"]);
@@ -325,8 +325,8 @@ fn sutra_7_1_29() {
 
 #[test]
 fn sutra_7_1_30() {
-    assert_has_sup_4p("asmad", Pum, &["asmaByam"]);
-    assert_has_sup_4p("yuzmad", Pum, &["yuzmaByam"]);
+    assert_has_sup_4p("asmad", Pum, &["asmaByam", "naH"]);
+    assert_has_sup_4p("yuzmad", Pum, &["yuzmaByam", "vaH"]);
 }
 
 #[test]
@@ -343,8 +343,27 @@ fn sutra_7_1_32() {
 
 #[test]
 fn sutra_7_1_33() {
-    assert_has_sup_6p("asmad", Pum, &["asmAkam"]);
-    assert_has_sup_6p("yuzmad", Pum, &["yuzmAkam"]);
+    assert_has_sup_6p("asmad", Pum, &["asmAkam", "naH"]);
+    assert_has_sup_6p("yuzmad", Pum, &["yuzmAkam", "vaH"]);
+}
+
+#[test]
+fn pronoun_enclitics() {
+    // Enclitic variants for asmad/yuzmad in dative+genitive slots.
+    assert_has_sup_4s("asmad", Pum, &["mahyam", "me"]);
+    assert_has_sup_4s("yuzmad", Pum, &["tuByam", "te"]);
+    assert_has_sup_6s("asmad", Pum, &["mama", "me"]);
+    assert_has_sup_6s("yuzmad", Pum, &["tava", "te"]);
+
+    assert_has_sup_4d("asmad", Pum, &["AvAByAm", "nO"]);
+    assert_has_sup_4d("yuzmad", Pum, &["yuvAByAm", "vAm"]);
+    assert_has_sup_6d("asmad", Pum, &["AvayoH", "nO"]);
+    assert_has_sup_6d("yuzmad", Pum, &["yuvayoH", "vAm"]);
+
+    assert_has_sup_4p("asmad", Pum, &["asmaByam", "naH"]);
+    assert_has_sup_4p("yuzmad", Pum, &["yuzmaByam", "vaH"]);
+    assert_has_sup_6p("asmad", Pum, &["asmAkam", "naH"]);
+    assert_has_sup_6p("yuzmad", Pum, &["yuzmAkam", "vaH"]);
 }
 
 #[test]

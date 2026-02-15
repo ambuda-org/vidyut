@@ -1291,15 +1291,15 @@ fn sutra_6_1_199() {
 #[test]
 fn sutra_6_1_211() {
     let s = get_tester();
-    s.assert_has_sup_6s("yuzmad", Pum, &["ta/va"]);
-    s.assert_has_sup_6s("asmad", Pum, &["ma/ma"]);
+    s.assert_has_sup_6s("yuzmad", Pum, &["ta/va", "te/"]);
+    s.assert_has_sup_6s("asmad", Pum, &["ma/ma", "me/"]);
 }
 
 #[test]
 fn sutra_6_1_212() {
     let s = get_tester();
-    s.assert_has_sup_4s("yuzmad", Pum, &["tu/Byam"]);
-    s.assert_has_sup_4s("asmad", Pum, &["ma/hyam"]);
+    s.assert_has_sup_4s("yuzmad", Pum, &["tu/Byam", "te/"]);
+    s.assert_has_sup_4s("asmad", Pum, &["ma/hyam", "me/"]);
 }
 
 #[test]

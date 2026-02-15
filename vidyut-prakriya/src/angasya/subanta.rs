@@ -558,6 +558,8 @@ fn try_anga_adesha_after_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
     }
 
     if anga.has_text_in(&["yuzmad", "asmad"]) {
+        let is_asmad = anga.has_text("asmad");
+        let is_yuzmad = anga.has_text("yuzmad");
         let anadesha = !sup.last().has_tag(T::Adesha);
 
         if sup.has_adi(AC) && anadesha {
@@ -611,6 +613,68 @@ fn try_anga_adesha_after_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
                 t.find_and_replace_text("yuzm", "tva");
                 t.find_and_replace_text("asm", "ma");
             });
+        }
+
+        // Enclitic variants for dative/genitive pronouns.
+        let (i_sup_start, i_sup_end, is_v4, is_v6, is_ekavacana, is_dvivacana, is_bahuvacana) = {
+            let sup_view = p.pratyaya(i_sup)?;
+            let sup = sup_view.last();
+            (
+                sup_view.start(),
+                sup_view.end(),
+                sup.has_tag(T::V4),
+                sup.has_tag(T::V6),
+                sup.has_tag(T::Ekavacana),
+                sup.has_tag(T::Dvivacana),
+                sup.has_tag(T::Bahuvacana),
+            )
+        };
+        let is_dative_or_genitive = is_v4 || is_v6;
+
+        let set_sup_text = |p: &mut Prakriya, text: &str| {
+            if text.is_empty() {
+                p.set(i_sup_start, op::luk);
+            } else {
+                p.set(i_sup_start, |t| t.set_text(text));
+            }
+            for j in (i_sup_start + 1)..=i_sup_end {
+                p.set(j, op::luk);
+            }
+        };
+
+        if is_dative_or_genitive {
+            if is_ekavacana {
+                p.optional_run(Varttika("7.2.95.1"), |p| {
+                    if is_asmad {
+                        p.set(i, op::text("me"));
+                    } else if is_yuzmad {
+                        p.set(i, op::text("te"));
+                    }
+                    if is_v6 {
+                        set_sup_text(p, "s");
+                    } else {
+                        set_sup_text(p, "");
+                    }
+                });
+            } else if is_dvivacana {
+                p.optional_run(Varttika("7.2.95.2"), |p| {
+                    if is_asmad {
+                        p.set(i, op::text("nO"));
+                    } else if is_yuzmad {
+                        p.set(i, op::text("vAm"));
+                    }
+                    set_sup_text(p, "");
+                });
+            } else if is_bahuvacana {
+                p.optional_run(Varttika("7.2.95.3"), |p| {
+                    if is_asmad {
+                        p.set(i, op::text("naH"));
+                    } else if is_yuzmad {
+                        p.set(i, op::text("vaH"));
+                    }
+                    set_sup_text(p, "");
+                });
+            }
         }
     } else if anga.has_u("idam") && anga.has_antya('a') {
         if sup.last().has_tag_in(&[T::V1, T::V2]) {
