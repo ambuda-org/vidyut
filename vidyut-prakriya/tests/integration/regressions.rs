@@ -492,3 +492,14 @@ fn eka_dvi_as_sarvanama() {
     assert_has_sup_2p("tri", Napumsaka, &["trIRi"]);
     assert_has_sup_1p("tri", Napumsaka, &["trIRi"]);
 }
+
+// AN + han + kvip
+//
+// 6.4.15 would normally lengthen the upadha of an anunasika-final dhatu.
+// But per varttika (modeled as 6.4.15.1 in the implementation), `han` is
+// exempt here, so we expect Ahan (not AhAn).
+#[test]
+fn aa_han_kvip_dirgha() {
+    let han = d("ha\\na~", Adadi);
+    assert_has_krdanta(&["AN"], &han, Krt::kvip, &["Ahan"]);
+}

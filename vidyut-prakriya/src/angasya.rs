@@ -1053,11 +1053,13 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
             }
         } else if n.first().is_san() && anga.has_u("tanu~^") {
             p.optional_run_at("6.4.17", i_anga, |t| t.set_upadha("A"));
-        } else if anga.has_antya(ANUNASIKA)
-            && (n.first().is(K::kvip) || jhal_knit())
-            && !anga.has_text("han")
-        {
-            if (anga.has_text("kzam") && n.last().has_lakara(Lit) && n.last().is_atmanepada())
+        } else if anga.has_antya(ANUNASIKA) && (n.first().is(K::kvip) || jhal_knit()) {
+            if anga.has_text("han") {
+                // Varttika: block 6.4.15 dirgha for `han` (e.g. AN + han + kvip -> Ahan).
+                p.step(Varttika("6.4.15.1"));
+            } else if (anga.has_text("kzam")
+                && n.last().has_lakara(Lit)
+                && n.last().is_atmanepada())
                 || (anga.has_u("Dana~") && n.last().is_tin())
             {
                 // TODO: log samjna-purvaka-vidhir anityaH
