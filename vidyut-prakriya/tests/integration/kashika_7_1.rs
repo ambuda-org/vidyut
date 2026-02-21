@@ -759,11 +759,13 @@ fn sutra_7_1_78() {
     assert_has_sup_1s(&dadat, Pum, &["dadat"]);
     assert_has_sup_1d(&dadat, Pum, &["dadatO"]);
     assert_has_sup_1p(&dadat, Pum, &["dadataH"]);
+    assert_has_sup_1s(&dadat, Stri, &["dadatI"]);
 
     let dadhat = create_krdanta("daDat", &[], &d("quDA\\Y", Juhotyadi), Krt::Satf);
     assert_has_sup_1s(&dadhat, Pum, &["daDat"]);
     assert_has_sup_1d(&dadhat, Pum, &["daDatO"]);
     assert_has_sup_1p(&dadhat, Pum, &["daDataH"]);
+    assert_has_sup_1s(&dadhat, Stri, &["daDatI"]);
 
     let jakshat = create_krdanta("jakzat", &[], &d("jakza~", Adadi), Krt::Satf);
     assert_has_sup_1s(&jakshat, Pum, &["jakzat"]);
@@ -774,6 +776,14 @@ fn sutra_7_1_78() {
     assert_has_sup_1s(&jagrat, Pum, &["jAgrat"]);
     assert_has_sup_1d(&jagrat, Pum, &["jAgratO"]);
     assert_has_sup_1p(&jagrat, Pum, &["jAgrataH"]);
+
+    let juhvat = create_krdanta("juhvat", &[], &d("hu\\", Juhotyadi), Krt::Satf);
+    assert_has_sup_1s(&juhvat, Pum, &["juhvat"]);
+    assert_has_sup_1d(&juhvat, Pum, &["juhvatO"]);
+    assert_has_sup_1p(&juhvat, Pum, &["juhvataH"]);
+
+    let tizwasat = krdanta(&[], &san(&d("zWA\\", Bhvadi)), Krt::Satf);
+    assert_has_sup_1s(&tizwasat, Stri, &["tizWAsatI"]);
 }
 
 #[test]

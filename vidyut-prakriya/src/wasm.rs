@@ -143,6 +143,15 @@ struct KrdantaArgs {
     krt: BaseKrt,
     lakara: Option<Lakara>,
     prayoga: Option<Prayoga>,
+    upapada: Option<UpapadadArgs>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct UpapadadArgs {
+    stem: String,
+    linga: Linga,
+    vibhakti: Vibhakti,
+    vacana: Vacana,
 }
 
 // rust-wasm does not support enums, so fake enum-like behavior through a struct with optional
@@ -216,6 +225,11 @@ impl KrdantaArgs {
         if let Some(prayoga) = self.prayoga {
             builder = builder.prayoga(prayoga);
         }
+        if let Some(upapada) = self.upapada {
+            let pratipadika = Pratipadika::basic(Slp1String::from(upapada.stem)?);
+            let subanta = Subanta::new(pratipadika, upapada.linga, upapada.vibhakti, upapada.vacana);
+            builder = builder.upapada(subanta);
+        }
 
         builder.build()
     }
@@ -229,7 +243,7 @@ impl SubantaArgs {
                 nyap: None,
                 krdanta: None,
                 taddhitanta: None,
-            } => Pratipadika::basic(Slp1String::from(basic).expect("ok")),
+            } => Pratipadika::basic(Slp1String::from(basic)?),
             PratipadikaArgs {
                 basic: None,
                 nyap: Some(nyap),
@@ -286,7 +300,7 @@ impl TaddhitantaArgs {
                 nyap: None,
                 krdanta: None,
                 taddhitanta: None,
-            } => Pratipadika::basic(Slp1String::from(basic).expect("ok")),
+            } => Pratipadika::basic(Slp1String::from(basic)?),
             PratipadikaArgs {
                 basic: None,
                 nyap: Some(nyap),
@@ -421,5 +435,54 @@ impl Vidyut {
                 serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm")
             }
         }
+    }
+
+    /// Wrapper for `Vyakarana::derive_stryantas`.
+    #[allow(non_snake_case)]
+    pub fn deriveStryantas(&self, val: JsValue) -> JsValue {
+        let v = Vyakarana::new();
+        let js_args: PratipadikaArgs = match serde_wasm_bindgen::from_value(val) {
+            Ok(args) => args,
+            Err(e) => {
+                error(&format!("[vidyut] deriveStryantas parse error: {:?}", e));
+                return serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm");
+            }
+        };
+
+        debug(&format!("[vidyut] deriveStryantas js_args: basic={:?}, nyap={:?}, krdanta={:?}",
+            js_args.basic, js_args.nyap, js_args.krdanta.is_some()));
+
+        let pratipadika = match js_args {
+            PratipadikaArgs {
+                basic: Some(basic),
+                nyap: None,
+                krdanta: None,
+                taddhitanta: None,
+            } => Pratipadika::basic(Slp1String::from(basic).expect("ok")),
+            PratipadikaArgs {
+                basic: None,
+                nyap: None,
+                krdanta: Some(krt),
+                taddhitanta: None,
+            } => match krt.into_rust() {
+                Ok(k) => {
+                    debug(&format!("[vidyut] deriveStryantas krdanta conversion successful"));
+                    Pratipadika::Krdanta(Box::new(k))
+                },
+                Err(e) => {
+                    error(&format!("[vidyut] Krdanta conversion error: {:?}", e));
+                    return serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm");
+                }
+            },
+            _ => {
+                error("[vidyut] Invalid pratipadika args for stryantas");
+                return serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm");
+            }
+        };
+
+        let prakriyas = v.derive_stryantas(&pratipadika);
+        debug(&format!("[vidyut] deriveStryantas produced {} results", prakriyas.len()));
+        let web_prakriyas = to_web_prakriyas(&prakriyas);
+        serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
     }
 }
