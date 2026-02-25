@@ -318,7 +318,13 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
                 let text = p.view(0, i)?.text().to_string();
                 let ends_with_mat = text.ends_with("mat");
                 let ends_with_hat = text.ends_with("hat");
-                if p.has_tag(PT::Sambodhana) && p.has_tag(PT::Ekavacana) {
+                let has_yan_or_yan_luk = p.terms()[..=i]
+                    .iter()
+                    .any(|t| t.is(S::yaN) || t.is_yan_luk());
+                if p.has_tag(PT::Sambodhana)
+                    && p.has_tag(PT::Ekavacana)
+                    && !has_yan_or_yan_luk
+                {
                     if ends_with_mat || ends_with_hat {
                         // mAmat -> mAman, mAmahat -> mAmahan (vocative singular)
                         p.run_at("8.2.23", i, |t| {

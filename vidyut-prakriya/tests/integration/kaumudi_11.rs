@@ -251,14 +251,14 @@ fn kvip_han_stem() {
 fn satf_yanluk_mat_voc() {
     let ma = d("mA\\", Adadi).with_sanadi(&[Sanadi::yaNluk]);
     let mamat = krdanta(&[], &ma, Krt::Satf);
-    assert_has_sup_ss(&mamat, Pum, &["mAman"]);
+    assert_has_sup_ss(&mamat, Pum, &["mAmat"]);
 }
 
 #[test]
 fn satf_yanluk_hat_voc() {
     let mah = d("ma\\ha~", Bhvadi).with_sanadi(&[Sanadi::yaNluk]);
     let mamahat = krdanta(&[], &mah, Krt::Satf);
-    assert_has_sup_ss(&mamahat, Pum, &["mAmahan"]);
+    assert_has_sup_ss(&mamahat, Pum, &["mAmahat"]);
 }
 
 #[ignore]

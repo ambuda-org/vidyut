@@ -289,7 +289,7 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         let is_abhyasta = p.terms()[..i_anga]
             .iter()
             .rev()
-            .any(|t| !t.is_empty() && (t.is_abhyasta() || t.is_abhyasa()));
+            .any(|t| !t.is_empty() && (t.is_abhyasta() || t.is_abhyasa() || t.is_yan_luk()));
 
         if shatr && (p.has(i_anga + 1, |t| t.has_u("SI") || t.has_tag(T::Nadi))) && i_anga > 0 {
             if is_abhyasta {
