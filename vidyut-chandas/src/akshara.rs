@@ -140,6 +140,7 @@ pub fn scan_lines<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<Vec<Akshara>>
         // If the first sound of the next line is heavy and in contact with this line, make the
         // last akshara of `scan` heavy.
         if let Some(next) = clean_lines.get(i + 1) {
+            let line = line.trim_end_matches('-');
             let touches_next = line.ends_with(is_sanskrit) && next.starts_with(is_sanskrit);
             if touches_next
                 && (sounds::is_samyogadi(next)
@@ -256,6 +257,11 @@ mod tests {
 
         // Last syllable of `ASramezu` becomes guru due to following samyoga.
         let scan = scan_lines("ASramezu\nsnigDa".lines());
+        assert_eq!(weights(&scan[0]), vec![G, L, G, G]);
+
+        // Trailing hyphen (line-continuation marker) is ignored:
+        // last syllable becomes guru.
+        let scan = scan_lines("ASramezu-\nsnigDa".lines());
         assert_eq!(weights(&scan[0]), vec![G, L, G, G]);
 
         // Last syllable of `ASramezu` stays laghu.
