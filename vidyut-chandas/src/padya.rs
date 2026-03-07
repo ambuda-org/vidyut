@@ -202,11 +202,12 @@ impl Vrtta {
         }
 
         debug_assert_eq!(full.len(), 4);
-        if let Some(last) = full[1].last_mut() {
-            *last = Any;
-        }
-        if let Some(last) = full[3].last_mut() {
-            *last = Any;
+
+        // लघोः पदान्ते वर्तमानस्य गुरुसंज्ञाऽतिदिश्यते ( गन्ते | पि.सूत्र १.१० ) ॥
+        for pada in full.iter_mut() {
+            if let Some(last) = pada.last_mut() {
+                *last = Any;
+            }
         }
 
         let pattern_flat: Vec<VrttaWeight> = full.iter().flat_map(|x| x.to_owned()).collect();
