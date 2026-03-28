@@ -189,6 +189,7 @@ pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> 
         && n.has_adi(AC)
         && !p.has(i + 1, |t| t.is(S::Ric))
         && !n.last().is(V::aN)
+        && !n.last().is_sup()
     {
         // jagmatuH, jaGnatuH, jajJe, ...
         p.run_at("6.4.98", i, op::upadha_lopa);
@@ -1090,7 +1091,9 @@ fn try_bhasya_for_index(p: &mut Prakriya, i: usize) -> Option<()> {
         }
 
         let bha = p.get(i)?;
-        let next = p.get(i + 1)?;
+        // Skip empty krt pratyayas (e.g. kvip) to find the actual sup.
+        let i_next = p.next_not_empty(i).unwrap_or(i + 1);
+        let next = p.get(i_next)?;
         if bha.ends_with("an") && !block_lopa {
             let n = bha.len();
             if n >= 4
