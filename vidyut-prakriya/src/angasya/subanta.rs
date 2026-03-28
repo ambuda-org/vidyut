@@ -9,6 +9,7 @@ favor of more generic modules like `angasya.rs`.
 */
 use crate::angasya::asiddhavat;
 use crate::args::Agama as A;
+use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::BaseKrt::kvip;
 use crate::args::Stri as S;
@@ -943,6 +944,14 @@ pub fn run(p: &mut Prakriya) {
     // - change of of "-an" to "-n" (6.4.134)
     samjna::try_run_for_pada_or_bha(p);
     asiddhavat::bhasya(p);
+
+    // 7.3.54 (ho hanteḥ): h -> G before n, after bhasya may have reduced `han` to `hn`.
+    for i in 0..p.terms().len() {
+        let t = p.get_if(i, |t| t.is_u(Au::hana) && t.has_text("hn"));
+        if t.is_some() {
+            p.run_at("7.3.54", i, op::adi("G"));
+        }
+    }
 
     run_after_bhasya(p);
     try_anga_adesha_after_vibhakti_changes(p);

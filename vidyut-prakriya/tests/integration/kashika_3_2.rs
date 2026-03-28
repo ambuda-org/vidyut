@@ -901,13 +901,49 @@ fn sutra_3_2_86() {
     // TODO: kutsita-grahanam
 }
 
-#[ignore]
 #[test]
 fn sutra_3_2_87() {
     let han = d("ha\\na~", Adadi);
     assert_has_upapada_krdanta("brahman", &[], &han, Krt::kvip, &["brahmahan"]);
     assert_has_upapada_krdanta("BrUna", &[], &han, Krt::kvip, &["BrUnahan"]);
     assert_has_upapada_krdanta("vftra", &[], &han, Krt::kvip, &["vftrahan"]);
+}
+
+#[test]
+fn han_kvip_test() {
+    let vftrahan = upapada_krdanta("vftra", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    // prathamA
+    assert_has_sup_1s(&vftrahan, Pum, &["vftrahA"]);
+    assert_has_sup_1d(&vftrahan, Pum, &["vftrahaRO"]);
+    assert_has_sup_1p(&vftrahan, Pum, &["vftrahaRaH"]);
+    // dvitIyA
+    assert_has_sup_2s(&vftrahan, Pum, &["vftrahaRam"]);
+    assert_has_sup_2d(&vftrahan, Pum, &["vftrahaRO"]);
+    assert_has_sup_2p(&vftrahan, Pum, &["vftraGnaH"]);
+    // tftIyA
+    assert_has_sup_3s(&vftrahan, Pum, &["vftraGnA"]);
+    assert_has_sup_3d(&vftrahan, Pum, &["vftrahaByAm"]);
+    assert_has_sup_3p(&vftrahan, Pum, &["vftrahaBiH"]);
+    // caturTI
+    assert_has_sup_4s(&vftrahan, Pum, &["vftraGne"]);
+    assert_has_sup_4d(&vftrahan, Pum, &["vftrahaByAm"]);
+    assert_has_sup_4p(&vftrahan, Pum, &["vftrahaByaH"]);
+    // paYcamI
+    assert_has_sup_5s(&vftrahan, Pum, &["vftraGnaH"]);
+    assert_has_sup_5d(&vftrahan, Pum, &["vftrahaByAm"]);
+    assert_has_sup_5p(&vftrahan, Pum, &["vftrahaByaH"]);
+    // zazWI
+    assert_has_sup_6s(&vftrahan, Pum, &["vftraGnaH"]);
+    assert_has_sup_6d(&vftrahan, Pum, &["vftraGnoH"]);
+    assert_has_sup_6p(&vftrahan, Pum, &["vftraGnAm"]);
+    // saptamI
+    assert_has_sup_7s(&vftrahan, Pum, &["vftraGni", "vftrahaRi"]);
+    assert_has_sup_7d(&vftrahan, Pum, &["vftraGnoH"]);
+    assert_has_sup_7p(&vftrahan, Pum, &["vftrahasu"]);
+    // samboDana
+    assert_has_sup_ss(&vftrahan, Pum, &["vftrahan"]);
+    assert_has_sup_sd(&vftrahan, Pum, &["vftrahaRO"]);
+    assert_has_sup_sp(&vftrahan, Pum, &["vftrahaRaH"]);
 }
 
 // 3.2.88 is chAndasa.
@@ -1004,7 +1040,8 @@ fn sutra_3_2_99() {
 fn sutra_3_2_100() {
     let jan = d("janI~\\", Divadi);
     assert_has_upapada_krdanta("pums", &["anu"], &jan, Krt::qa, &["pumanuja"]);
-    assert_has_upapada_krdanta("strI", &["anu"], &jan, Krt::qa, &["stryanuja"]);
+    // 8.4.2: r in stry triggers natva of n in anu (intervening y, a are in aw).
+    assert_has_upapada_krdanta("strI", &["anu"], &jan, Krt::qa, &["stryaRuja"]);
 }
 
 // 3.2.101 is miscellaneous

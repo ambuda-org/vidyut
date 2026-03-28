@@ -241,7 +241,7 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
         prepare_pratipadika(p, upapada.pratipadika())?;
 
         let mut su = Term::make_text("");
-        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup, Tag::Pada]);
+        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup, Tag::FlagUpapadaSup]);
         p.push(su);
         samjna::run(p);
     }

@@ -51,7 +51,9 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
         let prati = p.get(i_prati)?;
         let is_pada = || p.is_pada(i_prati);
 
-        if prati.is_pratipadika() && prati.has_antya('n') && is_pada() {
+        let is_kvip_prati = prati.is_dhatu()
+            && p.has(i_prati + 1, |t| t.is_krt() && t.is_empty());
+        if (prati.is_pratipadika() || is_kvip_prati) && prati.has_antya('n') && is_pada() {
             if prati.has_u("ahan") {
                 // Special exception for ahan
                 if p.has(i_prati + 1, |t| t.is_empty()) {
@@ -63,7 +65,9 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
             }
 
             let mut blocked = false;
-            let sup = p.pratyaya(i_prati + 1)?;
+            // Skip empty pratyayas (e.g. kvip) to find the sup.
+            let i_sup_start = if is_kvip_prati { i_prati + 2 } else { i_prati + 1 };
+            let sup = p.pratyaya(i_sup_start)?;
             let is_ni = sup.last().is(Sup::Ni);
             if sup.last().is_sambuddhi() || is_ni {
                 if p.has_tag(PT::Napumsaka) {
