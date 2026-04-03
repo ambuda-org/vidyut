@@ -591,3 +591,4 @@ fn satf_yanluk_hat_voc() {
     let mamahat = krdanta(&[], &mah, Krt::Satf);
     assert_has_sup_ss(&mamahat, Pum, &["mAmahat"]);
 }
+
