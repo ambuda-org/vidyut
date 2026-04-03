@@ -255,7 +255,7 @@ fn try_natva_for_span(
         // Exclude the upapada's sup (FlagUpapadaSup), which is internal to the krdanta
         // compound and does not create a pada boundary for natva.
         let is_samana_pada = !ip.p.terms()[i_x..i_y].iter().any(|t| {
-            if t.has_tag(T::FlagUpapadaSup) {
+            if t.has_tag(T::FlagUpapadaSup) && !y.is_upasarga() {
                 return false;
             }
             t.has_tag_in(&[T::Sup, T::Tin])

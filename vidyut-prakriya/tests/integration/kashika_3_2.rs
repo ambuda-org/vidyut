@@ -1040,8 +1040,7 @@ fn sutra_3_2_99() {
 fn sutra_3_2_100() {
     let jan = d("janI~\\", Divadi);
     assert_has_upapada_krdanta("pums", &["anu"], &jan, Krt::qa, &["pumanuja"]);
-    // 8.4.2: r in stry triggers natva of n in anu (intervening y, a are in aw).
-    assert_has_upapada_krdanta("strI", &["anu"], &jan, Krt::qa, &["stryaRuja"]);
+    assert_has_upapada_krdanta("strI", &["anu"], &jan, Krt::qa, &["stryanuja"]);
 }
 
 // 3.2.101 is miscellaneous
