@@ -503,3 +503,60 @@ fn aa_han_kvip_dirgha() {
     let han = d("ha\\na~", Adadi);
     assert_has_krdanta(&["AN"], &han, Krt::kvip, &["Ahan"]);
 }
+
+#[test]
+fn han_kvip_test() {
+    let vftrahan = upapada_krdanta("vftra", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    // prathamA
+    assert_has_sup_1s(&vftrahan, Pum, &["vftrahA"]);
+    assert_has_sup_1d(&vftrahan, Pum, &["vftrahaRO"]);
+    assert_has_sup_1p(&vftrahan, Pum, &["vftrahaRaH"]);
+    // dvitIyA
+    assert_has_sup_2s(&vftrahan, Pum, &["vftrahaRam"]);
+    assert_has_sup_2d(&vftrahan, Pum, &["vftrahaRO"]);
+    assert_has_sup_2p(&vftrahan, Pum, &["vftraGnaH"]);
+    // tftIyA
+    assert_has_sup_3s(&vftrahan, Pum, &["vftraGnA"]);
+    assert_has_sup_3d(&vftrahan, Pum, &["vftrahaByAm"]);
+    assert_has_sup_3p(&vftrahan, Pum, &["vftrahaBiH"]);
+    // caturTI
+    assert_has_sup_4s(&vftrahan, Pum, &["vftraGne"]);
+    assert_has_sup_4d(&vftrahan, Pum, &["vftrahaByAm"]);
+    assert_has_sup_4p(&vftrahan, Pum, &["vftrahaByaH"]);
+    // paYcamI
+    assert_has_sup_5s(&vftrahan, Pum, &["vftraGnaH"]);
+    assert_has_sup_5d(&vftrahan, Pum, &["vftrahaByAm"]);
+    assert_has_sup_5p(&vftrahan, Pum, &["vftrahaByaH"]);
+    // zazWI
+    assert_has_sup_6s(&vftrahan, Pum, &["vftraGnaH"]);
+    assert_has_sup_6d(&vftrahan, Pum, &["vftraGnoH"]);
+    assert_has_sup_6p(&vftrahan, Pum, &["vftraGnAm"]);
+    // saptamI
+    assert_has_sup_7s(&vftrahan, Pum, &["vftraGni", "vftrahaRi"]);
+    assert_has_sup_7d(&vftrahan, Pum, &["vftraGnoH"]);
+    assert_has_sup_7p(&vftrahan, Pum, &["vftrahasu"]);
+    // samboDana
+    assert_has_sup_ss(&vftrahan, Pum, &["vftrahan"]);
+    assert_has_sup_sd(&vftrahan, Pum, &["vftrahaRO"]);
+    assert_has_sup_sp(&vftrahan, Pum, &["vftrahaRaH"]);
+}
+
+#[test]
+fn kvip_han_stem() {
+    let han = create_krdanta("han", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    assert_has_sup_ss(&han, Pum, &["han"]);
+}
+
+#[test]
+fn satf_yanluk_mat_voc() {
+    let ma = d("mA\\", Adadi).with_sanadi(&[Sanadi::yaNluk]);
+    let mamat = krdanta(&[], &ma, Krt::Satf);
+    assert_has_sup_ss(&mamat, Pum, &["mAmat"]);
+}
+
+#[test]
+fn satf_yanluk_hat_voc() {
+    let mah = d("ma\\ha~", Bhvadi).with_sanadi(&[Sanadi::yaNluk]);
+    let mamahat = krdanta(&[], &mah, Krt::Satf);
+    assert_has_sup_ss(&mamahat, Pum, &["mAmahat"]);
+}
