@@ -651,6 +651,22 @@ const App = () => ({
                 }
             },
             {
+                text: "praSAn (kvip pu)",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "04.0098"), {prefixes : ["pra"]} ),
+                    krt: Krt.kvip
+                }
+            },
+            {
+                text: "praSAn (kvip napum)",
+                linga: Linga.Napumsaka,
+                krdanta: {
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "04.0098"), {prefixes : ["pra"]} ),
+                    krt: Krt.kvip
+                }
+            },
+            {
                 text: "sedivas",
                 linga: Linga.Pum,
                 krdanta: {

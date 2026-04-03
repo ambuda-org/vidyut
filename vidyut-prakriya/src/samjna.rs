@@ -174,8 +174,8 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
             p.add_tag_at("1.1.27", i, T::Sarvanama);
         }
     } else if i_u || ii_uu {
-        let i_sup = p.find_next_where(i, |t| t.is_sup())?;
-        let sup = p.get_if(i_sup, |t| !t.is_lupta())?;
+        let i_sup = p.find_next_where(i, |t| t.is_sup() && !t.is_lupta())?;
+        let sup = p.get(i_sup)?;
 
         // iyan-uvan are defined in 6.4.77 (Snu-dhAtu-bhruvAm) -- only dhAtu and bhrU apply here.
         let iyan_uvan_astri =
@@ -213,7 +213,16 @@ fn try_run_for_pratipadika_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
                 }
             } else {
                 // Base case
-                p.add_tag_at("1.4.3", i_sup - 1, T::Nadi);
+                if p.has_tag(PT::Stri) {
+                    // Nitya Strilinga vachinah
+                    p.add_tag_at("1.4.3", i_sup - 1, T::Nadi);
+                } else if p.has_tag(PT::Bahuvrihi) {
+                    // Prathamalinga grahanam .. for eg. bahushreyasI
+                    p.run_at(Varttika("1.4.3.1"), i_sup - 1, add_tag(T::Nadi));
+                } else if prati.has_tag(T::Stri) {
+                    // Prathamalinga grahanam .. for eg. kumarI + kyac + kvip
+                    p.run_at(Varttika("1.4.3.1"), i, add_tag(T::Nadi));
+                }
             }
         }
     }

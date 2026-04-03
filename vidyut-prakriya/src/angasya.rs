@@ -1389,9 +1389,12 @@ fn try_anga_changes_for_sarva_krt(p: &mut Prakriya) {
 
 /// Runs rules that change the anga when an aN-pratyaya (luN-vikarana) follows. (7.4.16 - 7.4.20)
 ///
+/// (7.4.16 - 7.4.20)
 /// Constraints:
 /// - Must precede ft-AdeSa (f -> ir)
 fn try_an_pratyaya_rules(p: &mut Prakriya) {
+    ac_sandhi::try_vera_apruktasya(p);
+
     option_block(p, |p| {
         let i = p.find_last_with_tag(T::Dhatu)?;
 
