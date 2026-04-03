@@ -142,7 +142,7 @@ pub fn run(p: &mut Prakriya) -> Option<()> {
     } else if last.is_pratyaya() && last.is(K::ktin) {
         // kfti, ...
         lp.mark_stri(L("9"));
-    } else if last.is_pratyaya() && last.has_antya('I') {
+    } else if last.is_pratyaya() && last.has_antya('I') && !lp.p.has_tag(PT::Pum) {
         // lakzmIH ...
         lp.mark_stri(L("10"));
     } else if last.is_pratyaya() && (last.has_antya('U') || last.has_u("NAp")) {

@@ -929,10 +929,18 @@ fn try_add_upapada_krt(kp: &mut KrtPrakriya) -> Option<bool> {
             } else if upapada.has_text("kawa") && dhatu.has_u("pru\\N")
                 || upapada.has_text("Ayata") && dhatu.has_u("zwu\\Y")
             {
+                // Note: स्तुत् is used for अग्निष्टुत् ग्रावस्तुत् etc. but आयतस्तू
                 kp.p.run_at(Varttika("3.2.178.1"), i_dhatu, |t| {
                     t.mutate_last_vowel(|c| sounds::to_dirgha(c).unwrap())
                 });
-            } else if dhatu.has_u_in(&["va\\ca~", "pra\\Ca~", "SriY"]) {
+            } else if dhatu.has_u_in(&["va\\ca~", "pra\\Ca~", "SriY", "brUY"]) {
+                if dhatu.has_u("brUY") {
+                    // This is a special case as the vartikka actions are applied
+                    // before the ardhadhatuka substitution happens. Hence duplicated.
+                    //
+                    // anudAtta to prevent iT
+                    op::adesha("2.4.53", kp.p, i_dhatu, "va\\ci~");
+                }
                 kp.p.run_at(Varttika("3.2.178.1"), i_dhatu, |t| {
                     let _result = t.mutate_last_vowel(|c| sounds::to_dirgha(c).unwrap());
                     t.add_tag(T::FlagNoSamprasarana)
