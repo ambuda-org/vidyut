@@ -492,3 +492,35 @@ fn eka_dvi_as_sarvanama() {
     assert_has_sup_2p("tri", Napumsaka, &["trIRi"]);
     assert_has_sup_1p("tri", Napumsaka, &["trIRi"]);
 }
+
+#[test]
+fn kvip_bru() {
+    let br_u = create_krdanta("vAc", &[], &d("brUY", Adadi), Krt::kvip);
+    assert_has_sup_1s(&br_u, Stri, &["vAk"]);
+}
+
+#[test]
+fn kvip_stha() {
+    let br_u = create_krdanta("sTA", &[], &d("zWA\\", Bhvadi), Krt::kvip);
+    assert_has_sup_1s(&br_u, Stri, &["sTAH"]);
+}
+#[test]
+fn vadha_adesha_ashirlin_only_2_4_42() {
+    let han = d("ha\\na~", Adadi);
+    assert_has_ta_k(&["vi"], &han, VidhiLin, &["vihanyeta"]); // No replacement
+    assert_has_ta_k(&["vi"], &han, AshirLin, &["vivaDizIzwa"]); // vadha-adesha
+}
+#[test]
+fn gam_pra_sam_in_sani() {
+    let sani_pra_gam = create_krdanta("prajigamizu", &["pra"], &san(&d("ga\\mx~", Bhvadi)), Krt::u);
+    let sani_sam_gam = krdanta(&["sam"], &san(&d("ga\\mx~", Bhvadi)), Krt::u);
+    assert_has_sup_1s(&sani_pra_gam, Pum, &["prajigamizuH"]);
+    assert_has_sup_1s(&sani_sam_gam, Pum, &["saYjigaMsuH", "saYjigamizuH"]);
+}
+#[test]
+fn gupa_yanluk_satf_sanac() {
+    let gupa_satf = krdanta(&[], &yan_luk(&d("gupa~\\", Bhvadi)), Krt::Satf);
+    assert_has_sup_1s(&gupa_satf, Pum, &["jugupsan"]);
+    let gupa_sanach = krdanta(&[], &yan_luk(&d("gupa~\\", Bhvadi)), Krt::SAnac);
+    assert_has_sup_1s(&gupa_sanach, Pum, &[]);
+}

@@ -10,6 +10,7 @@ use crate::args::Upasarga as U;
 use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::Prakriya;
+use crate::core::PrakriyaTag::Stri;
 use crate::core::Stage::DhatuPrep;
 use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
@@ -54,6 +55,28 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
 
         ip.next(i_x)
     });
+}
+
+pub fn try_vera_apruktasya(p: &mut Prakriya) {
+    for i in 0..p.len() {
+        if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
+            p.run_at("6.1.67", i, op::lopa);
+            if p.len() > i + 1 {
+                // Need to repeat anga-karyam if there is a pratyaya after kvip
+                // Eg.
+                //    DyE + kvip + tA
+                //    DI + [] + A
+                //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
+                //    "DI" based on "A". In this case since it has dhatu-samjna
+                //    6.4.77 will become applicable.
+                samjna::run(p);
+                if p.has_tag(Stri) {
+                    angasya::run_before_stritva(p);
+                }
+                // angasya::run_after_dvitva(p);
+            }
+        }
+    }
 }
 
 /// Runs various general rules of vowel sandhi.
@@ -372,22 +395,6 @@ pub fn run_antaranga(p: &mut Prakriya) -> Option<()> {
 
 pub fn run_common(p: &mut Prakriya) -> Option<()> {
     for i in 0..p.len() {
-        if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
-            p.run_at("6.1.67", i, op::lopa);
-            if p.len() > i + 1 {
-                // Need to repeat anga-karyam if there is a pratyaya after kvip
-                // Eg.
-                //    Di + kvip + tA
-                //    DI + [] + A
-                //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
-                //    "DI" based on "A". In this case since it has dhatu-samjna
-                //    6.4.77 will become applicable.
-                samjna::run(p);
-                angasya::run_before_stritva(p);
-                angasya::run_after_dvitva(p);
-            }
-        }
-
         apply_ac_sandhi_at_term_boundary(p, i);
 
         if p.has(i, |t| t.has_text("div")) && p.is_pada(i) {

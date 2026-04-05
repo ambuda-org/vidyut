@@ -36,8 +36,8 @@ use crate::args::Sanadi as S;
 use crate::args::Unadi;
 use crate::args::Upasarga as Up;
 use crate::args::{Agama, Upasarga};
-use crate::core::operators as op;
 use crate::core::Term;
+use crate::core::{operators as op, Morph};
 use crate::core::{Decision, Prakriya, Rule};
 use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::it_samjna;
@@ -177,6 +177,7 @@ fn try_misc_rules(up: &mut UnadiPrakriya) -> Option<bool> {
 pub(crate) struct UnadiPrakriya<'a> {
     p: &'a mut Prakriya,
     i_upapada: Option<usize>,
+    i_upasarga: Option<usize>,
     i_dhatu: usize,
     unadi: Unadi,
     /// Whether a pratyaya was added.
@@ -186,11 +187,17 @@ pub(crate) struct UnadiPrakriya<'a> {
 impl<'a> UnadiPrakriya<'a> {
     fn new(p: &'a mut Prakriya, unadi: Unadi) -> Self {
         let i_dhatu = p.find_first_where(|t| t.is_dhatu()).unwrap_or(0);
-        let i_upapada = p.find_prev_where(i_dhatu, |t| !t.is_empty());
+        let i_upapada = p.find_prev_where(i_dhatu, |t| {
+            !t.is_empty() && t.morph.eq(&Morph::BasicPratipadika)
+        });
+        let i_upasarga = p.find_prev_where(i_dhatu, |t| {
+            !t.is_empty() && t.morph.ne(&Morph::BasicPratipadika)
+        });
 
         Self {
             p,
             i_upapada,
+            i_upasarga,
             i_dhatu,
             unadi,
             added: false,
@@ -198,7 +205,7 @@ impl<'a> UnadiPrakriya<'a> {
     }
 
     fn has_upasarga(&self, u: Upasarga) -> bool {
-        match self.i_upapada {
+        match self.i_upasarga {
             Some(i) => {
                 let t = &self.p.terms()[i];
                 t.is(u)
@@ -1299,9 +1306,9 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             {
                 let sub = find_sub(dhatu, &[("ci", "Sc"), ("tfz", "tfz"), ("han", "h")]);
                 if let Some(sub) = sub {
-                    let i_upa = up.i_upapada;
+                    let i_upa = up.i_upasarga;
                     // saMScat, tfzat, vehat
-                    up.add_with(UP("2.84"), |p| {
+                    up.add_with(UP("2.85"), |p| {
                         p.set(i_dhatu, |t| {
                             t.set_text(sub);
                             t.add_tag(T::FlagGunaApavada)
@@ -2033,6 +2040,13 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_u("lakza~") {
                 // lakzmI
                 up.add_with_agama(UP("3.160"), A::muw);
+            } else if up.has_upapada("vAta") && up.has_upasarga(Up::pra) && dhatu.has_u("mA\\N") {
+                // vAtapramI
+                let i_dhatu = up.i_dhatu;
+                up.add_with(UP("4.1"), |p| {
+                    p.set(i_dhatu, |t| t.set_text("m"));
+                    p.set(i_dhatu + 1, |t| t.add_tag(T::kit));
+                });
             }
         }
         U::katnic

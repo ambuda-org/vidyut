@@ -36,7 +36,7 @@ fn add_num(t: &mut Term) {
 /// 6.4.2 - 6.4.19
 fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
     let i_sup = p.find_last_with_tag(T::Sup)?;
-    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama())?;
+    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama() && !t.is_empty())?;
 
     let anga = p.get(i_anga)?;
     let sup = p.get(i_sup)?;
@@ -858,6 +858,7 @@ fn run_after_bhasya(p: &mut Prakriya) -> Option<()> {
 
     // TODO: replace uses of `i_anga` above if this works.
     let i_anga = p.find_last_where(|t| t.is_pratipadika_or_nyapu())?;
+    p.dump();
     try_add_nit_agamas(p, i_anga);
 
     Some(())

@@ -1394,6 +1394,7 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
         Some(())
     });
 
+    ac_sandhi::try_vera_apruktasya(p);
     // Runs rules that change the anga when an aN-pratyaya (luN-vikarana) follows.
     //
     // (7.4.16 - 7.4.20)
