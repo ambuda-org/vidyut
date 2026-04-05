@@ -124,7 +124,7 @@ We recommend using our pre-built linguistic data, which is available as a ZIP fi
 [here][zip].
 
 [pypi]: https://pypi.org/project/vidyut/
-[zip]: https://github.com/ambuda-org/vidyut-py/releases/download/0.4.0/data-0.4.0.zip
+[zip]: https://github.com/ambuda-org/vidyut/releases/download/py-0.4.0/data-0.4.0.zip
 
 For more information, see our [Python documentation][rtd].
 
