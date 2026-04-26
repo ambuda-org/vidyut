@@ -10,3 +10,4 @@ mod errors;
 mod generator;
 mod sounds;
 mod splitter;
+mod wasm;

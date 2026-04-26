@@ -227,7 +227,8 @@ impl KrdantaArgs {
         }
         if let Some(upapada) = self.upapada {
             let pratipadika = Pratipadika::basic(Slp1String::from(upapada.stem)?);
-            let subanta = Subanta::new(pratipadika, upapada.linga, upapada.vibhakti, upapada.vacana);
+            let subanta =
+                Subanta::new(pratipadika, upapada.linga, upapada.vibhakti, upapada.vacana);
             builder = builder.upapada(subanta);
         }
 
@@ -449,8 +450,12 @@ impl Vidyut {
             }
         };
 
-        debug(&format!("[vidyut] deriveStryantas js_args: basic={:?}, nyap={:?}, krdanta={:?}",
-            js_args.basic, js_args.nyap, js_args.krdanta.is_some()));
+        debug(&format!(
+            "[vidyut] deriveStryantas js_args: basic={:?}, nyap={:?}, krdanta={:?}",
+            js_args.basic,
+            js_args.nyap,
+            js_args.krdanta.is_some()
+        ));
 
         let pratipadika = match js_args {
             PratipadikaArgs {
@@ -466,9 +471,11 @@ impl Vidyut {
                 taddhitanta: None,
             } => match krt.into_rust() {
                 Ok(k) => {
-                    debug(&format!("[vidyut] deriveStryantas krdanta conversion successful"));
+                    debug(&format!(
+                        "[vidyut] deriveStryantas krdanta conversion successful"
+                    ));
                     Pratipadika::Krdanta(Box::new(k))
-                },
+                }
                 Err(e) => {
                     error(&format!("[vidyut] Krdanta conversion error: {:?}", e));
                     return serde_wasm_bindgen::to_value(&Vec::<WebPrakriya>::new()).expect("wasm");
@@ -481,7 +488,10 @@ impl Vidyut {
         };
 
         let prakriyas = v.derive_stryantas(&pratipadika);
-        debug(&format!("[vidyut] deriveStryantas produced {} results", prakriyas.len()));
+        debug(&format!(
+            "[vidyut] deriveStryantas produced {} results",
+            prakriyas.len()
+        ));
         let web_prakriyas = to_web_prakriyas(&prakriyas);
         serde_wasm_bindgen::to_value(&web_prakriyas).expect("wasm")
     }

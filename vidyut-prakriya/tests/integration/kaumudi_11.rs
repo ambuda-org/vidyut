@@ -394,8 +394,16 @@ fn sk_394() {
     assert_has_sup_4s("yuzmad", Pum, &["tuByam", "te"]);
     assert_has_sup_4s("asmad", Pum, &["mahyam", "me"]);
 
-    assert_has_sup_4s(karmadharaya("parama", "yuzmad"), Pum, &["paramatuByam", "paramate"]);
-    assert_has_sup_4s(karmadharaya("parama", "asmad"), Pum, &["paramamahyam", "paramame"]);
+    assert_has_sup_4s(
+        karmadharaya("parama", "yuzmad"),
+        Pum,
+        &["paramatuByam", "paramate"],
+    );
+    assert_has_sup_4s(
+        karmadharaya("parama", "asmad"),
+        Pum,
+        &["paramamahyam", "paramame"],
+    );
     assert_has_sup_4s(karmadharaya("ati", "yuzmad"), Pum, &["atituByam", "atite"]);
     assert_has_sup_4s(karmadharaya("ati", "asmad"), Pum, &["atimahyam", "atime"]);
 

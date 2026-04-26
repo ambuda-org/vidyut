@@ -51,8 +51,7 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
         let prati = p.get(i_prati)?;
         let is_pada = || p.is_pada(i_prati);
 
-        let is_kvip_prati = prati.is_dhatu()
-            && p.has(i_prati + 1, |t| t.is_krt() && t.is_empty());
+        let is_kvip_prati = prati.is_dhatu() && p.has(i_prati + 1, |t| t.is_krt() && t.is_empty());
         if (prati.is_pratipadika() || is_kvip_prati) && prati.has_antya('n') && is_pada() {
             if prati.has_u("ahan") {
                 // Special exception for ahan
@@ -66,7 +65,11 @@ fn try_na_lopa(p: &mut Prakriya) -> Option<()> {
 
             let mut blocked = false;
             // Skip empty pratyayas (e.g. kvip) to find the sup.
-            let i_sup_start = if is_kvip_prati { i_prati + 2 } else { i_prati + 1 };
+            let i_sup_start = if is_kvip_prati {
+                i_prati + 2
+            } else {
+                i_prati + 1
+            };
             let sup = p.pratyaya(i_sup_start)?;
             let is_ni = sup.last().is(Sup::Ni);
             if sup.last().is_sambuddhi() || is_ni {
@@ -325,10 +328,7 @@ fn try_lopa_of_samyoganta_and_s(p: &mut Prakriya) {
                 let has_yan_or_yan_luk = p.terms()[..=i]
                     .iter()
                     .any(|t| t.is(S::yaN) || t.is_yan_luk());
-                if p.has_tag(PT::Sambodhana)
-                    && p.has_tag(PT::Ekavacana)
-                    && !has_yan_or_yan_luk
-                {
+                if p.has_tag(PT::Sambodhana) && p.has_tag(PT::Ekavacana) && !has_yan_or_yan_luk {
                     if ends_with_mat || ends_with_hat {
                         // mAmat -> mAman, mAmahat -> mAmahan (vocative singular)
                         p.run_at("8.2.23", i, |t| {
