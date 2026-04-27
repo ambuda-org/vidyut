@@ -391,22 +391,30 @@ fn sk_393() {
 
 #[test]
 fn sk_394() {
-    assert_has_sup_4s("yuzmad", Pum, &["tuByam"]);
-    assert_has_sup_4s("asmad", Pum, &["mahyam"]);
+    assert_has_sup_4s("yuzmad", Pum, &["tuByam", "te"]);
+    assert_has_sup_4s("asmad", Pum, &["mahyam", "me"]);
 
-    assert_has_sup_4s(karmadharaya("parama", "yuzmad"), Pum, &["paramatuByam"]);
-    assert_has_sup_4s(karmadharaya("parama", "asmad"), Pum, &["paramamahyam"]);
-    assert_has_sup_4s(karmadharaya("ati", "yuzmad"), Pum, &["atituByam"]);
-    assert_has_sup_4s(karmadharaya("ati", "asmad"), Pum, &["atimahyam"]);
+    assert_has_sup_4s(
+        karmadharaya("parama", "yuzmad"),
+        Pum,
+        &["paramatuByam", "paramate"],
+    );
+    assert_has_sup_4s(
+        karmadharaya("parama", "asmad"),
+        Pum,
+        &["paramamahyam", "paramame"],
+    );
+    assert_has_sup_4s(karmadharaya("ati", "yuzmad"), Pum, &["atituByam", "atite"]);
+    assert_has_sup_4s(karmadharaya("ati", "asmad"), Pum, &["atimahyam", "atime"]);
 
-    assert_has_sup_4d("yuzmad", Pum, &["yuvAByAm"]);
-    assert_has_sup_4d("asmad", Pum, &["AvAByAm"]);
+    assert_has_sup_4d("yuzmad", Pum, &["yuvAByAm", "vAm"]);
+    assert_has_sup_4d("asmad", Pum, &["AvAByAm", "nO"]);
 }
 
 #[test]
 fn sk_395() {
-    assert_has_sup_4p("yuzmad", Pum, &["yuzmaByam"]);
-    assert_has_sup_4p("asmad", Pum, &["asmaByam"]);
+    assert_has_sup_4p("yuzmad", Pum, &["yuzmaByam", "vaH"]);
+    assert_has_sup_4p("asmad", Pum, &["asmaByam", "naH"]);
 }
 
 #[test]
@@ -428,10 +436,10 @@ fn skip_sk_398() {}
 
 #[test]
 fn sk_399() {
-    assert_has_sup_6s("yuzmad", Pum, &["tava"]);
-    assert_has_sup_6s("asmad", Pum, &["mama"]);
-    assert_has_sup_6d("yuzmad", Pum, &["yuvayoH"]);
-    assert_has_sup_6d("asmad", Pum, &["AvayoH"]);
+    assert_has_sup_6s("yuzmad", Pum, &["tava", "te"]);
+    assert_has_sup_6s("asmad", Pum, &["mama", "me"]);
+    assert_has_sup_6d("yuzmad", Pum, &["yuvayoH", "vAm"]);
+    assert_has_sup_6d("asmad", Pum, &["AvayoH", "nO"]);
 }
 
 #[test]

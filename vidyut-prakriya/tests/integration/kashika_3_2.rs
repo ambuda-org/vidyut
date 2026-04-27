@@ -901,7 +901,6 @@ fn sutra_3_2_86() {
     // TODO: kutsita-grahanam
 }
 
-#[ignore]
 #[test]
 fn sutra_3_2_87() {
     let han = d("ha\\na~", Adadi);

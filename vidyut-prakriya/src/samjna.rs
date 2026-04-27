@@ -251,7 +251,19 @@ pub fn try_run_for_pada_or_bha(p: &mut Prakriya) -> Option<()> {
                 p.get_mut(i).unwrap().add_tag(T::Pada);
             }
         } else {
-            let next = match p.pratyaya(i + 1) {
+            // For `han`-ending dhatus followed by an empty krt pratyaya (e.g. kvip),
+            // skip past the empty pratyaya to find the actual sup for Bha/Pada
+            // assignment. This is needed so that bhasya rules like 6.4.134 (upadha-
+            // lopa for `an`-ending stems) can apply.
+            // (e.g. vftrahan: han + kvip(empty) + TA -> han needs Bha from TA)
+            let i_next =
+                if t.is_dhatu() && t.has_antya('n') && p.has(i + 1, |t| t.is_krt() && t.is_empty())
+                {
+                    i + 2
+                } else {
+                    i + 1
+                };
+            let next = match p.pratyaya(i_next) {
                 Some(v) => v,
                 None => continue,
             };
