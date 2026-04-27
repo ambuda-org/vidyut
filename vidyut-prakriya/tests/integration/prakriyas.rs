@@ -235,3 +235,64 @@ fn edha() {
     let p = ps.iter().find(|p| p.text() == "eDA").unwrap();
     assert_matches_prakriya(p, &[(A("6.1.101"), vec!["eD", "A", "", ""])]);
 }
+
+// Fixes https://github.com/ambuda-org/vidyut/issues/205
+//
+// Tests validate that the prakriya has 7.4.66 immediately followed by 1.1.51 as "nitya"
+// and that the resultant outputs are as expected for ऋकारान्त dhatus i.e. 'f' and 'F'
+#[test]
+#[allow(non_snake_case)]
+fn cakAra_etc() {
+    use Rule::Ashtadhyayi as A;
+
+    let args = tip_args(d("qukf\\Y", Tanadi), Lit);
+    let t = Tester::default();
+    let ps = t.derive_tinantas(&args);
+    let p = ps.iter().find(|p| p.text() == "cakAra").unwrap();
+
+    assert_matches_prakriya(
+        p,
+        &[
+            (A("7.2.115"), vec!["kf", "kAr", "a"]),
+            (A("7.4.66"), vec!["ka", "kAr", "a"]),
+            (A("1.1.51"), vec!["kar", "kAr", "a"]),
+            (A("7.4.60"), vec!["ka", "kAr", "a"]),
+            (A("7.4.62"), vec!["ca", "kAr", "a"]),
+        ],
+    );
+
+    // "f" is not in the end
+    let args = tip_args(d("kfpa~\\", Bhvadi), Lit);
+    let ps = t.derive_tinantas(&args);
+    let p = ps.iter().find(|p| p.text() == "cakxpe").unwrap();
+
+    assert_matches_prakriya(
+        p,
+        &[
+            (A("1.1.5"), vec!["kfp", "kfp", "e"]),
+            (A("7.4.60"), vec!["kf", "kfp", "e"]),
+            (A("7.4.66"), vec!["ka", "kfp", "e"]),
+            (A("1.1.51"), vec!["kar", "kfp", "e"]),
+            (A("7.4.60"), vec!["ka", "kfp", "e"]),
+            (A("7.4.62"), vec!["ca", "kfp", "e"]),
+            (A("8.2.18"), vec!["ca", "kxp", "e"]),
+        ],
+    );
+
+    // Try with dhatu having "F"
+    let args = tip_args(d("stFY", Kryadi), Lit);
+    let ps = t.derive_tinantas(&args);
+    let p = ps.iter().find(|p| p.text() == "tastare").unwrap();
+    assert_matches_prakriya(
+        p,
+        &[
+            (A("1.1.5"), vec!["stF", "stF", "e"]),
+            (A("7.4.11"), vec!["stF", "star", "e"]),
+            (A("7.4.61"), vec!["tF", "star", "e"]),
+            (A("7.4.66"), vec!["ta", "star", "e"]),
+            (A("1.1.51"), vec!["tar", "star", "e"]),
+            (A("7.4.60"), vec!["ta", "star", "e"]),
+            (A("6.4.126"), vec!["ta", "star", "e"]),
+        ],
+    );
+}
