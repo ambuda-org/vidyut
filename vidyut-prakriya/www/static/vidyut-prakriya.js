@@ -33,7 +33,7 @@
 //
 // Rust generally expects strings, but enums are good for ergonomics and documentation.
 // So, do some goofy enum juggling so that clients have a clean API and Rust gets what it needs.
-import init, { BaseKrt, Vidyut as VidyutWasm, Lakara, Prayoga, Purusha, Vacana, DhatuPada, Sanadi,
+import init, { BaseKrt, Unadi, Vidyut as VidyutWasm, Lakara, Prayoga, Purusha, Vacana, DhatuPada, Sanadi,
     Linga, Vibhakti, Gana, Antargana } from "./wasm/vidyut_prakriya.js";
 
 export {
@@ -49,6 +49,7 @@ export {
     Gana,
     Antargana,
     BaseKrt as Krt,
+    Unadi
 };
 
 function isMissing(x) {
@@ -65,12 +66,14 @@ function createWasmDhatu({aupadeshika, gana, antargana, sanadi, prefixes}) {
     };
 }
 
-function createWasmKrdanta({ dhatu, krt, lakara = null, prayoga = null }) {
+function createWasmKrdanta({ dhatu, krt, lakara = null, prayoga = null , unadi = null, upapada = null }) {
     return {
         dhatu: createWasmDhatu(dhatu),
         krt: BaseKrt[krt],
+        unadi: Unadi[unadi],
         lakara: isMissing(lakara) ? null : Lakara[lakara],
         prayoga: isMissing(prayoga) ? null : Prayoga[prayoga],
+        upapada:  upapada
     }
 }
 

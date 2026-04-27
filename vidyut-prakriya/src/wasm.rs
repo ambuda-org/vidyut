@@ -140,9 +140,11 @@ struct DhatuArgs {
 #[derive(Serialize, Deserialize)]
 struct KrdantaArgs {
     dhatu: DhatuArgs,
-    krt: BaseKrt,
+    krt: Option<BaseKrt>,
+    unadi: Option<Unadi>,
     lakara: Option<Lakara>,
     prayoga: Option<Prayoga>,
+    // upapada: Option<String>,
     upapada: Option<UpapadadArgs>,
 }
 
@@ -218,7 +220,13 @@ impl DhatuArgs {
 impl KrdantaArgs {
     fn into_rust(self) -> Result<Krdanta> {
         let dhatu: Dhatu = self.dhatu.into_rust()?;
-        let mut builder = Krdanta::builder().dhatu(dhatu).krt(self.krt);
+        let mut builder = Krdanta::builder().dhatu(dhatu);
+
+        if let Some(unadi) = self.unadi {
+            builder = builder.krt(unadi);
+        } else if let Some(krt) = self.krt {
+            builder = builder.krt(krt);
+        }
         if let Some(la) = self.lakara {
             builder = builder.lakara(la);
         }

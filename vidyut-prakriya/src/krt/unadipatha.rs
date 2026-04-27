@@ -2046,6 +2046,7 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
                 up.add_with(UP("4.1"), |p| {
                     p.set(i_dhatu, |t| t.set_text("m"));
                     p.set(i_dhatu + 1, |t| t.add_tag(T::kit));
+                    p.add_tag(PT::Pum); // Pum as per kosha
                 });
             }
         }

@@ -592,3 +592,15 @@ fn satf_yanluk_hat_voc() {
     assert_has_sup_ss(&mamahat, Pum, &["mAmahat"]);
 }
 
+
+#[test]
+fn likhitva() {
+    // let x = krdanta(&[], &d("liKa~\\", Tudadi), Krt::ktvA);
+    assert_has_krdanta(
+        &[],
+        &d("liKa~\\", Tudadi),
+        Krt::ktvA,
+        &["leKitva", "liKitvA"],
+    );
+    // assert_has_sup_1s(&x, Pum, &["liKa"]);
+}

@@ -931,7 +931,6 @@ fn run_after_bhasya(p: &mut Prakriya) -> Option<()> {
 
     // TODO: replace uses of `i_anga` above if this works.
     let i_anga = p.find_last_where(|t| t.is_pratipadika_or_nyapu())?;
-    p.dump();
     try_add_nit_agamas(p, i_anga);
 
     Some(())

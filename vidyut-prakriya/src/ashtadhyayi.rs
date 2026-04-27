@@ -615,6 +615,8 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
     // 2. "i\\N" adesha : "i\\N + san" --> "aDi + ji + gAm + sa" [2.4.48]
     ardhadhatuka::run_before_vikarana(p, dhatu_args, is_ardhadhatuka, is_lun, lakara);
 
+    // Try to assign whether parasmaipada or atmanepada if possible
+    // (for Krdantas this is needed)
     match dhatu_args {
         Some(Dhatu::Mula(d)) => match d.sanadi().last() {
             Some(&Sanadi::yaNluk) => {
@@ -625,6 +627,7 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
             Some(&Sanadi::yaN) => p.add_tag(PT::Atmanepada),
             Some(&Sanadi::Ric) => {}
             Some(_) => {
+                // This should set the "pada" tag even if lakara is absent
                 atmanepada::run(p);
             }
             None => {}
