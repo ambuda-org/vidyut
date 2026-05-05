@@ -376,15 +376,22 @@ fn sutra_3_1_33() {
 
 #[test]
 fn sutra_3_1_34() {
-    // No `\\` to force parasmaipada
-    // -ti forms are not attested but optional by 3.4.97.
+    // No `\\` to force parasmaipada.
+    // 3.4.97 mandatorily drops the final -i for these dhātus, so both pit
+    // and Nit branches converge to the same form.
     assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat"]);
     assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat"]);
     assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat"]);
 
-    // -t forms are not attested but optional by 3.4.97.
-    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti"]);
-    assert_has_tip(&[], &nic(&d("cyu\\N", Bhvadi)), Let, &["cyAvayAti"]);
+    // For non-3.4.97 dhātus, the pit/Nit fork (3.4.94/3.4.94.v1) produces
+    // both -ti (pit) and -t (Nit-branch via 3.4.100) forms.
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti", "patAt"]);
+    assert_has_tip(
+        &[],
+        &nic(&d("cyu\\N", Bhvadi)),
+        Let,
+        &["cyAvayAti", "cyAvayAt"],
+    );
 }
 
 #[test]
