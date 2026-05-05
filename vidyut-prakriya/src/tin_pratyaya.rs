@@ -171,10 +171,7 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         // karā, vocā, etc.). For bhū this gives bhavā alongside bhavāni
         // (pit) and bhavān (Nit + 3.4.100).
         let tin = p.get(i)?;
-        if p.has_tag(PT::Uttama)
-            && tin.has_tag(T::Ekavacana)
-            && tin.is_parasmaipada()
-        {
+        if p.has_tag(PT::Uttama) && tin.has_tag(T::Ekavacana) && tin.is_parasmaipada() {
             p.optional_run_at("3.4.98.v1", i, op::lopa);
         }
     } else if tin.has_lakara(Lot) {

@@ -282,18 +282,8 @@ fn sutra_3_4_95() {
     // Under the Nit-branch of the pit/Nit fork, 1.2.4 (sārvadhātukam apit)
     // ngit-tags the vikaraṇa, triggering 6.4.110 (kf → kur), so kurvEte /
     // kurvETe are also produced alongside karavEte / karavETe.
-    assert_has_aataam(
-        &[],
-        &d("qukf\\Y", Tanadi),
-        Let,
-        &["karavEte", "kurvEte"],
-    );
-    assert_has_aathaam(
-        &[],
-        &d("qukf\\Y", Tanadi),
-        Let,
-        &["karavETe", "kurvETe"],
-    );
+    assert_has_aataam(&[], &d("qukf\\Y", Tanadi), Let, &["karavEte", "kurvEte"]);
+    assert_has_aathaam(&[], &d("qukf\\Y", Tanadi), Let, &["karavETe", "kurvETe"]);
 }
 
 #[ignore]
