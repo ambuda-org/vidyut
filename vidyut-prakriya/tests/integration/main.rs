@@ -63,3 +63,5 @@ mod kaumudi_65;
 mod kaumudi_67;
 
 mod dhaturatnakara;
+
+mod macdonell;
