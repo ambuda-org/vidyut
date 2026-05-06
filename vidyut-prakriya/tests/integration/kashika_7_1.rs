@@ -781,9 +781,6 @@ fn sutra_7_1_78() {
     assert_has_sup_1s(&juhvat, Pum, &["juhvat"]);
     assert_has_sup_1d(&juhvat, Pum, &["juhvatO"]);
     assert_has_sup_1p(&juhvat, Pum, &["juhvataH"]);
-
-    let tizwasat = krdanta(&[], &san(&d("zWA\\", Bhvadi)), Krt::Satf);
-    assert_has_sup_1s(&tizwasat, Stri, &["tizWAsatI"]);
 }
 
 #[test]

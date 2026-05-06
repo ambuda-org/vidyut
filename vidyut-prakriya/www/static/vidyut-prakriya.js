@@ -67,13 +67,25 @@ function createWasmDhatu({aupadeshika, gana, antargana, sanadi, prefixes}) {
 }
 
 function createWasmKrdanta({ dhatu, krt, lakara = null, prayoga = null , unadi = null, upapada = null }) {
+    // console.log(`Calling WasmKrdanta ${ isMissing(upapada) ? "null": upapada["linga"]}`);
+    let upapada_tmp = {}
+    if (upapada !== null) {
+        if (isMissing(upapada["stem"])) {
+            upapada_tmp = null
+        } else {
+            upapada_tmp["stem"] = upapada["stem"];
+            upapada_tmp["vacana"] = isMissing(upapada["vacana"]) ? Vacana[Vacana.Eka] : Vacana[upapada["vacana"]];
+            upapada_tmp["linga"] = isMissing(upapada["linga"]) ? Linga[Linga.Pum] : Linga[upapada["linga"]];
+            upapada_tmp["vibhakti"] = isMissing(upapada["vibhakti"]) ? Vibhakti[Vibhakti.Prathama] : Vibhakti[upapada["vibhakti"]];
+        }
+    }
     return {
         dhatu: createWasmDhatu(dhatu),
         krt: BaseKrt[krt],
         unadi: Unadi[unadi],
         lakara: isMissing(lakara) ? null : Lakara[lakara],
         prayoga: isMissing(prayoga) ? null : Prayoga[prayoga],
-        upapada:  upapada
+        upapada:  upapada_tmp
     }
 }
 
@@ -151,12 +163,14 @@ export class Vidyut {
      * lakara?: (for Satf and SAnac only) the lakAra to use.
      * prayoga?: (for Satf and SAnac only) the prayoga to use.
      */
-    deriveKrdantas({ dhatu, krt, lakara = null, prayoga = null }) {
+    deriveKrdantas({ dhatu, krt, lakara = null, prayoga = null, unadi = null, upapada = null }) {
         return this.wasm.deriveKrdantas(createWasmKrdanta({
             dhatu,
             krt,
             lakara,
-            prayoga
+            prayoga,
+            unadi,
+            upapada
         }));
     }
 
@@ -190,13 +204,14 @@ export class Vidyut {
      * sanadi: a list of strings. Valid values are "san", "Ric", "yaN", and "yaNluk".
      * upasargas: a list of strings. For the upasarga "A", pass "AN".
      */
-    deriveTinantas({ dhatu, lakara, prayoga, purusha, vacana, pada = null }) {
+    deriveTinantas({ dhatu, lakara, prayoga, purusha, vacana, pada = null, skipAtAgama=true }) {
         return this.wasm.deriveTinantas({
             dhatu: createWasmDhatu(dhatu),
             lakara: Lakara[lakara],
             prayoga: Prayoga[prayoga],
             purusha: Purusha[purusha],
             vacana: Vacana[vacana],
+            skip_at_agama: skipAtAgama,
             pada: isMissing(pada) ? null : DhatuPada[pada],
         });
     }

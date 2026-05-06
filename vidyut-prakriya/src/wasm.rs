@@ -144,16 +144,16 @@ struct KrdantaArgs {
     unadi: Option<Unadi>,
     lakara: Option<Lakara>,
     prayoga: Option<Prayoga>,
-    // upapada: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     upapada: Option<UpapadadArgs>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct UpapadadArgs {
-    stem: String,
-    linga: Linga,
-    vibhakti: Vibhakti,
-    vacana: Vacana,
+    stem: Option<String>,
+    linga: Option<Linga>,
+    vibhakti: Option<Vibhakti>,
+    vacana: Option<Vacana>,
 }
 
 // rust-wasm does not support enums, so fake enum-like behavior through a struct with optional
@@ -189,6 +189,7 @@ struct TinantaArgs {
     prayoga: Prayoga,
     purusha: Purusha,
     vacana: Vacana,
+    skip_at_agama: bool,
     pada: Option<DhatuPada>,
 }
 
@@ -234,12 +235,15 @@ impl KrdantaArgs {
             builder = builder.prayoga(prayoga);
         }
         if let Some(upapada) = self.upapada {
-            let pratipadika = Pratipadika::basic(Slp1String::from(upapada.stem)?);
-            let subanta =
-                Subanta::new(pratipadika, upapada.linga, upapada.vibhakti, upapada.vacana);
-            builder = builder.upapada(subanta);
-        }
+            if let Some(stem_val) = upapada.stem {
+                debug(&format!("[vidyut debug] upapada:v={}, l={}", upapada.vibhakti.unwrap(), upapada.linga.unwrap()));
+                let pratipadika = Pratipadika::basic(Slp1String::from(stem_val)?);
 
+                let subanta =
+                    Subanta::new(pratipadika, upapada.linga.unwrap(), upapada.vibhakti.unwrap(), upapada.vacana.unwrap());
+                builder = builder.upapada(subanta);
+            }
+        }
         builder.build()
     }
 }
@@ -293,7 +297,8 @@ impl TinantaArgs {
             .lakara(self.lakara)
             .prayoga(self.prayoga)
             .purusha(self.purusha)
-            .vacana(self.vacana);
+            .vacana(self.vacana)
+            .skip_at_agama(self.skip_at_agama);
         if let Some(pada) = self.pada {
             args = args.pada(pada);
         }

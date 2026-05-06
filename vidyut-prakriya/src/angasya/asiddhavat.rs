@@ -468,7 +468,7 @@ pub fn run_before_guna(p: &mut Prakriya, i: usize) -> Option<()> {
             if anga.has_u("ancu~") && !p.has(i + 1, |t| t.is(K::kvin)) {
                 blocked = p.optional_run("6.4.30", |_| {});
             }
-            if !blocked {
+            if !blocked && !p.has(i + 1, |t| t.is_ni_pratyaya()){
                 p.run_at("6.4.24", i, op::upadha_lopa);
             }
         } else if anga.has_text("ranj") {
@@ -887,8 +887,11 @@ pub fn run_for_ni_at_index(p: &mut Prakriya, i_ni: usize) -> Option<()> {
             // being done (e.g. cayyAt)
             //
             // Exclude terms past `i_ni` to avoid problems for sup sandhi.
-            ac_sandhi::apply_general_ac_sandhi(p, 0, i_ni);
-            p.run_at("6.4.51", i_ni, op::lopa);
+            let start = p.find_first_where(|t| !t.is_empty() && !t.is_upasarga())?;
+            ac_sandhi::apply_general_ac_sandhi(p, start, i_ni);
+            if !p.get(i_ni)?.has_tag(T::Lup) {
+                p.run_at("6.4.51", i_ni, op::lup);
+            }
         }
     }
 

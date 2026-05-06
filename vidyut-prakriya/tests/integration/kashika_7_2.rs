@@ -1082,13 +1082,13 @@ fn sutra_7_2_60() {
     assert_has_tip(&[], &kfp, Lrn, &["akalpsyat"]);
     assert_has_tip(&[], &san(&kfp), Lat, &["cikxpsati"]);
     // parasmaipadezu
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &[],
         &kfp,
         Lut,
         Madhyama,
         Eka,
-        &["kalptAsi", "kalptAse", "kalpitAse"],
+        &["kalptAsi", "kalptAse", "kalpitAse"]
     );
     assert_has_ta(&[], &kfp, Lrt, &["kalpizyate", "kalpsyate"]);
     assert_has_ta(&[], &kfp, AshirLin, &["kalpizIzwa", "kxpsIzwa"]);
@@ -1362,28 +1362,28 @@ fn sutra_7_2_78() {
 #[test]
 fn sutra_7_2_79() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_tinantas(&[], &kf, VidhiLin, Prathama, Eka, &["kuryAt", "kurvIta"]);
-    assert_has_tinantas(
+    assert_has_tinantas!(&[], &kf, VidhiLin, Prathama, Eka, &["kuryAt", "kurvIta"]);
+    assert_has_tinantas!(
         &[],
         &kf,
         VidhiLin,
         Prathama,
         Dvi,
-        &["kuryAtAm", "kurvIyAtAm"],
+        &["kuryAtAm", "kurvIyAtAm"]
     );
-    assert_has_tinantas(&[], &kf, VidhiLin, Prathama, Bahu, &["kuryuH", "kurvIran"]);
+    assert_has_tinantas!(&[], &kf, VidhiLin, Prathama, Bahu, &["kuryuH", "kurvIran"]);
     // anantasya
     assert_has_sip(&[], &kf, VidhiLin, &["kuryAH"]);
     // sArvadhAtuke
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &[],
         &kf,
         AshirLin,
         Prathama,
         Dvi,
-        &["kriyAstAm", "kfzIyAstAm"],
+        &["kriyAstAm", "kfzIyAstAm"]
     );
-    assert_has_tinantas(&[], &kf, AshirLin, Prathama, Bahu, &["kriyAsuH", "kfzIran"]);
+    assert_has_tinantas!(&[], &kf, AshirLin, Prathama, Bahu, &["kriyAsuH", "kfzIran"]);
     assert_has_ta(&[], &kf, AshirLin, &["kfzIzwa"]);
 }
 

@@ -473,12 +473,13 @@ pub fn bahuvrihi(x: impl Into<SafePratipadika>, y: impl Into<SafePratipadika>) -
 
 /// Checks the given combination of `dhatu` and `prefixes` produces the `expected` results given
 /// this `lakara`/`purusha`/`vacana` combination.
-pub fn assert_has_tinantas(
+pub fn assert_has_tinantas_impl(
     prefixes: &[&str],
     dhatu: &Dhatu,
     lakara: Lakara,
     purusha: Purusha,
     vacana: Vacana,
+    skip_at_agama: bool,
     expected: &[&str],
 ) {
     let t = Tester::default();
@@ -488,9 +489,20 @@ pub fn assert_has_tinantas(
         .purusha(purusha)
         .vacana(vacana)
         .lakara(lakara)
+        .skip_at_agama(skip_at_agama)
         .build()
         .unwrap();
     t.assert_has_tinantas(&args, expected);
+}
+
+#[macro_export]
+macro_rules! assert_has_tinantas {
+    ($prefixes:expr, $dhatu:expr, $lakara:expr, $purusha:expr, $vacana:expr, $skip_at_agama:expr, $expected:expr) => {
+        assert_has_tinantas_impl($prefixes, $dhatu, $lakara, $purusha, $vacana, $skip_at_agama, $expected)
+    };
+    ($prefixes:expr, $dhatu:expr, $lakara:expr, $purusha:expr, $vacana:expr, $expected:expr) => {
+        assert_has_tinantas_impl($prefixes, $dhatu, $lakara, $purusha, $vacana, false, $expected)
+    }
 }
 
 /// Creates a function alias `fn_name` that points to the method of the same name on a default

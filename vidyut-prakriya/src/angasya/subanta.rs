@@ -67,7 +67,7 @@ fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
         let sup = p.get(i_sup)?;
         let sau = sup.is(Sup::su);
         if anga.has_antya('n') {
-            if anga.ends_with("in") || anga.has_text_in(&["pUzan", "aryaman"]) {
+            if anga.ends_with("in") || anga.has_text_in(&["pUzan", "aryaman", "han"]) {
                 let sub = al::to_dirgha(anga.upadha()?)?;
                 if (sup.is(Sup::jas) || sup.is(Sup::Sas)) && sup.has_text("i") {
                     // yogIni
@@ -287,34 +287,26 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         let shatr = anga.has_u("Satf~");
         // No `?` for i_prev here to avoid exiting early for e.g. "pums".
         let i_prev = p.find_prev_where(i_anga, |t| !t.is_empty());
-        let is_abhyasta = p.terms()[..i_anga]
-            .iter()
-            .rev()
-            .any(|t| !t.is_empty() && (t.is_abhyasta() || t.is_abhyasa() || t.is_yan_luk()));
 
         if shatr && (p.has(i_anga + 1, |t| t.has_u("SI") || t.has_tag(T::Nadi))) && i_anga > 0 {
-            if is_abhyasta {
-                p.step("7.1.78");
-            } else {
-                let aat = p.has(i_prev?, |t| t.has_antya('a') || t.has_antya('A'));
-                if aat
-                    || p.has(i_anga - 1, |t| {
-                        (t.is(V::Sap) || t.is(V::Syan) || t.is(V::Sa)) && !t.is_lupta()
-                    })
-                {
-                    if p.has(i_anga - 1, |t| {
-                        (t.is(V::Sap) || t.is(V::Syan)) && !t.is_lupta()
-                    }) {
-                        // pacantI, pacanti, ...
-                        p.run_at("7.1.81", i_anga, add_num);
-                    } else {
-                        // tudatI, tudantI, ...
-                        p.optional_run_at("7.1.80", i_anga, add_num);
-                    }
+            let aat = p.has(i_prev?, |t| t.has_antya('a') || t.has_antya('A'));
+            if aat
+                || p.has(i_anga - 1, |t| {
+                (t.is(V::Sap) || t.is(V::Syan) || t.is(V::Sa)) && !t.is_lupta()
+            })
+            {
+                if p.has(i_anga - 1, |t| {
+                    (t.is(V::Sap) || t.is(V::Syan)) && !t.is_lupta()
+                }) {
+                    // pacantI, pacanti, ...
+                    p.run_at("7.1.81", i_anga, add_num);
+                } else {
+                    // tudatI, tudantI, ...
+                    p.optional_run_at("7.1.80", i_anga, add_num);
                 }
             }
         } else if sup.is_sarvanamasthana() {
-            if shatr && is_abhyasta {
+            if shatr && p.has(i_prev?, |t| t.is_abhyasta()) {
                 if napum {
                     // dadati, dadanti, ...
                     p.optional_run_at("7.1.79", i_anga, add_num);

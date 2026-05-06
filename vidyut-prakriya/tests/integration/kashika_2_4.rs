@@ -225,15 +225,15 @@ fn sutra_2_4_54() {
 #[test]
 fn sutra_2_4_55() {
     let cakz = d("ca\\kzi~\\N", Adadi);
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &["AN"],
         &cakz,
         Lit,
         Prathama,
         Eka,
-        &["AcaKyO", "AcaKye", "AcakSO", "AcakSe", "Acacakze"],
+        &["AcaKyO", "AcaKye", "AcakSO", "AcakSe", "Acacakze"]
     );
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &["AN"],
         &cakz,
         Lit,
@@ -245,15 +245,15 @@ fn sutra_2_4_55() {
             "AcakSatuH",
             "AcakSAte",
             "AcacakzAte",
-        ],
+        ]
     );
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &["AN"],
         &cakz,
         Lit,
         Prathama,
         Bahu,
-        &["AcaKyuH", "AcaKyire", "AcakSuH", "AcakSire", "Acacakzire"],
+        &["AcaKyuH", "AcaKyire", "AcakSuH", "AcakSire", "Acacakzire"]
     );
 }
 
@@ -377,9 +377,9 @@ fn sutra_2_4_85() {
     assert_has_jhi(&[], &kf, Lut, &["kartAraH"]);
 
     let i = d("i\\N", Adadi);
-    assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Eka, &["aDyetA"]);
-    assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Dvi, &["aDyetArO"]);
-    assert_has_tinantas(&["aDi"], &i, Lut, Prathama, Bahu, &["aDyetAraH"]);
+    assert_has_tinantas!(&["aDi"], &i, Lut, Prathama, Eka, &["aDyetA"]);
+    assert_has_tinantas!(&["aDi"], &i, Lut, Prathama, Dvi, &["aDyetArO"]);
+    assert_has_tinantas!(&["aDi"], &i, Lut, Prathama, Bahu, &["aDyetAraH"]);
 
     // praTamasya
     assert_has_sip(&[], &kf, Lut, &["kartAsi"]);

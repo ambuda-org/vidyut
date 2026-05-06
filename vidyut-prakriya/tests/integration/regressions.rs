@@ -423,13 +423,13 @@ fn bru_with_upsarga_lit() {
     // (pr + o) + uc + ire (Adgunah)             pra + (U + c + ire)    (savarRe dirGaH)
     // pr  + av + uc + ire  (ecoyavAyAvaH)       (pr  + o) + c + ire    (Adgunah)
     // pravuchire ❌                             procire ✅
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &["pra", "ava"],
         &d("brUY", Adadi),
         Lit,
         Purusha::Prathama,
         Vacana::Bahu,
-        &["prAvocire", "prAvocuH"],
+        &["prAvocire", "prAvocuH"]
     );
 }
 
@@ -595,12 +595,23 @@ fn satf_yanluk_hat_voc() {
 
 #[test]
 fn likhitva() {
-    // let x = krdanta(&[], &d("liKa~\\", Tudadi), Krt::ktvA);
     assert_has_krdanta(
         &[],
         &d("liKa~\\", Tudadi),
         Krt::ktvA,
-        &["leKitva", "liKitvA"],
+        &["leKitvA", "liKitvA"],
     );
-    // assert_has_sup_1s(&x, Pum, &["liKa"]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_can_skip_at_agama_for_eDa() {
+    assert_has_tinantas!(
+        &[],
+        &nic(&d("eDa~\\", Bhvadi)),
+        Lun,
+        Purusha::Prathama,
+        Vacana::Eka,
+        true, // skip_at_agama = true for mAN
+        &["idiDat", "idiData"]);
 }

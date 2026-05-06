@@ -93,6 +93,7 @@ const Params = {
     Sanadi: "sanadi",
     ActivePada: "activePada",
     Upasarga: "upasarga",
+    SkipAtAgama: "skip_at_agama",
 }
 
 function setParam(url, key, value) {
@@ -167,6 +168,8 @@ const App = () => ({
     sanadi: null,
     // A filter to apply to the dhatu list.
     dhatuFilter: null,
+    // Skip AtAgama
+    skipAtAgama: false,
 
     // data
     sutras: {},
@@ -215,6 +218,9 @@ const App = () => ({
         this.$watch('activePada', (value) => {
             this.updateUrlState();
         });
+        this.$watch('skipAtAgama', (value) => {
+            this.updateUrlState();
+        });
 
         this.sutras = await sutras;
         this.varttikas = await varttikas;
@@ -235,6 +241,7 @@ const App = () => ({
         const upasarga = params.get(Params.Upasarga);
         const sanadi = params.get(Params.Sanadi);
         const activePada = params.get(Params.ActivePada);
+        const skipAtAgama = params.get(Params.skipAtAgama);
 
         console.log(`realUrlState, prayoga=${prayoga}, upasarga=${upasarga}, sanadi=${sanadi},  dhatuCode=${dhatuCode}`);
         if (tab) {
@@ -255,6 +262,9 @@ const App = () => ({
         if (activePada) {
             this.setActivePada(JSON.parse(activePada));
         }
+        if (skipAtAgama) {
+            this.skipAtAgama = skipAtAgama;
+        }
     },
 
     // Encode the current application state in the URL so that it can be
@@ -270,13 +280,14 @@ const App = () => ({
         setParam(url, Params.Prayoga, this.prayoga);
         setParam(url, Params.Sanadi, this.sanadi);
         setParam(url, Params.Upasarga, this.upasarga);
+        setParam(url, Params.SkipAtAgama, this.skipAtAgama);
         if (this.activePada) {
             setParam(url, Params.ActivePada, JSON.stringify(this.activePada));
         } else {
             setParam(url, Params.ActivePada, null);
         }
 
-        console.log("updateUrlState to: ", url.href);
+        console.log(`updateUrlState to: atagama = ${this.skipAtAgama} , href=`, url.href);
         history.replaceState(null, document.title, url.toString());
     },
 
@@ -312,6 +323,7 @@ const App = () => ({
         this.tinantas = null;
         this.sanadi = null;
         this.prayoga = null;
+        this.skipAtAgama = false;
         this.clearActivePada();
     },
 
@@ -364,14 +376,24 @@ const App = () => ({
         }
     },
 
+    display_dhatu_form(lakara) {
+        console.log("lakara =", lakara);
+        return (['luN', 'laN', 'lfN'].includes(this.to_slp1(lakara)) && this.skipAtAgama ? this.deva('mA') : "");
+    },
     createPrakriya() {
         if (!this.activePada) {
             return null;
         }
 
         const pada = this.activePada;
+        let target_text = pada.text;
         let allPrakriyas = [];
         if (pada.type === "tinanta") {
+            if (this.skipAtAgama) {
+                // Undo the mA before attempting the prakriya
+                target_text = pada.text.replace("mA ", "");
+                // pada.text = target_text;
+            }
             allPrakriyas = this.vidyut.deriveTinantas(pada.args);
         } else if (pada.type === "krdanta") {
             allPrakriyas = this.vidyut.deriveKrdantas(pada.args);
@@ -379,12 +401,16 @@ const App = () => ({
             allPrakriyas = this.vidyut.deriveSubantas(pada.args);
         }
 
-        return allPrakriyas.find((p) => p.text == pada.text);
+        return allPrakriyas.find((p) => p.text === target_text);
     },
 
     // Render the given SLP1 text in Devanagari.
     deva(s) {
         return Sanscript.t(fixSvaras(s), 'slp1_accented', this.script);
+    },
+
+    to_slp1(s) {
+        return Sanscript.t(removeSlpSvaras(s), this.script, 'slp1');
     },
 
     // Render the given SLP1 text in Devanagari without svara marks.
@@ -469,7 +495,7 @@ const App = () => ({
             case "dhatupatha":
                 return `${linkurl}dhatu/${rule.code}`;
             case "linganushasanam":
-                return `${linkurl}linganushasanam/linganushasanam-${rule.code}`;
+                return `${linkurl}linganushasanam?scroll=linganushasanam-${rule.code}`;
         }
         return linkurl;
     },
@@ -477,6 +503,10 @@ const App = () => ({
     entryString(entries) {
         let str = entries.map(x => x.text).join(', ');
         return this.devaNoSvara(str);
+    },
+
+    lakaraClass(title) {
+        this.to_slp1(title)
     },
 
     stepClasses(step) {
@@ -525,8 +555,9 @@ const App = () => ({
     createTinantaParadigm({dhatu, lakara, prayoga, pada}) {
         let purushas = Object.values(Purusha).filter(Number.isInteger);
         let vacanas = Object.values(Vacana).filter(Number.isInteger);
-
+        let skipAtAgama = this.skipAtAgama;
         let paradigm = [];
+        let lakaraAtAgama = [Lakara.Lun, Lakara.Lan, Lakara.Lrn].includes(+lakara);
         for (const purusha in purushas) {
             let row = [];
             for (const vacana in vacanas) {
@@ -536,6 +567,7 @@ const App = () => ({
                     prayoga,
                     purusha,
                     vacana,
+                    skipAtAgama,
                     pada,
                 };
                 let prakriyas = this.vidyut.deriveTinantas(args);
@@ -548,7 +580,7 @@ const App = () => ({
                     }
                     seen.add(p.text);
                     cell.push({
-                        text: p.text,
+                        text: lakaraAtAgama && skipAtAgama ? "mA " + p.text : p.text,
                         type: "tinanta",
                         args
                     });
@@ -662,7 +694,20 @@ const App = () => ({
                 krdanta: {
                     dhatu: Object.assign({},this.dhatus.find( d => d.code === "03.0007"), {prefixes : ["pra"]} ),
                     unadi: Unadi.I,
-                    upapada: "vAta",
+                    upapada: {
+                        stem: "vAta",
+                    },
+                }
+            },
+            {
+                text: "vftraGna",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "02.0002"),
+                    krt: Krt.kvip,
+                    upapada: {
+                        stem: "vftra",
+                    },
                 }
             },
             {
