@@ -4,7 +4,7 @@
 //! than individual Aṣṭādhyāyī sutras. They complement the per-sutra Kāśikā
 //! tests by exercising end-to-end derivations and locking in cross-cell
 //! expectations (e.g., that all 9 cells of a paradigm match the printed
-//! grammar).
+//! grammar.)
 //!
 //! References:
 //! - Macdonell, A. A. *A Vedic Grammar for Students*. Oxford, 1916.
