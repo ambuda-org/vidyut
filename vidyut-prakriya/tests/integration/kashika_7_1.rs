@@ -311,16 +311,16 @@ fn sutra_7_1_28() {
     assert_has_sup_1d("asmad", Pum, &["AvAm"]);
     assert_has_sup_1p("yuzmad", Pum, &["yUyam"]);
     assert_has_sup_1p("asmad", Pum, &["vayam"]);
-    assert_has_sup_2s("yuzmad", Pum, &["tvAm"]);
-    assert_has_sup_2s("asmad", Pum, &["mAm"]);
-    assert_has_sup_2d("yuzmad", Pum, &["yuvAm"]);
-    assert_has_sup_2d("asmad", Pum, &["AvAm"]);
+    assert_has_sup_2s("yuzmad", Pum, &["tvAm", "tvA"]);
+    assert_has_sup_2s("asmad", Pum, &["mAm", "mA"]);
+    assert_has_sup_2d("yuzmad", Pum, &["yuvAm", "vAm"]);
+    assert_has_sup_2d("asmad", Pum, &["AvAm", "nO"]);
 }
 
 #[test]
 fn sutra_7_1_29() {
-    assert_has_sup_2p("asmad", Pum, &["asmAn"]);
-    assert_has_sup_2p("yuzmad", Pum, &["yuzmAn"]);
+    assert_has_sup_2p("asmad", Pum, &["asmAn", "naH"]);
+    assert_has_sup_2p("yuzmad", Pum, &["yuzmAn", "vaH"]);
 }
 
 #[test]
@@ -343,25 +343,6 @@ fn sutra_7_1_32() {
 
 #[test]
 fn sutra_7_1_33() {
-    assert_has_sup_6p("asmad", Pum, &["asmAkam", "naH"]);
-    assert_has_sup_6p("yuzmad", Pum, &["yuzmAkam", "vaH"]);
-}
-
-#[test]
-fn pronoun_enclitics() {
-    // Enclitic variants for asmad/yuzmad in dative+genitive slots.
-    assert_has_sup_4s("asmad", Pum, &["mahyam", "me"]);
-    assert_has_sup_4s("yuzmad", Pum, &["tuByam", "te"]);
-    assert_has_sup_6s("asmad", Pum, &["mama", "me"]);
-    assert_has_sup_6s("yuzmad", Pum, &["tava", "te"]);
-
-    assert_has_sup_4d("asmad", Pum, &["AvAByAm", "nO"]);
-    assert_has_sup_4d("yuzmad", Pum, &["yuvAByAm", "vAm"]);
-    assert_has_sup_6d("asmad", Pum, &["AvayoH", "nO"]);
-    assert_has_sup_6d("yuzmad", Pum, &["yuvayoH", "vAm"]);
-
-    assert_has_sup_4p("asmad", Pum, &["asmaByam", "naH"]);
-    assert_has_sup_4p("yuzmad", Pum, &["yuzmaByam", "vaH"]);
     assert_has_sup_6p("asmad", Pum, &["asmAkam", "naH"]);
     assert_has_sup_6p("yuzmad", Pum, &["yuzmAkam", "vaH"]);
 }

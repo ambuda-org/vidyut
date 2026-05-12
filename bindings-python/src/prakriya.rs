@@ -41,6 +41,7 @@ pub enum PySource {
     Phit,
     Unadipatha,
     Varttika,
+    Anyatra,
 }
 py_only_enum!(
     PySource,
@@ -53,7 +54,8 @@ py_only_enum!(
         Linganushasana => "liNgAnuSAsanam",
         Phit => "PiwsUtrARi",
         Unadipatha => "uRAdipAWaH",
-        Varttika => "vArttikAH"
+        Varttika => "vArttikAH",
+        Anyatra => "anyatra"
     }
 );
 
@@ -182,6 +184,7 @@ fn to_py_history(history: &[Step]) -> Vec<PyStep> {
                 Rule::Phit(s) => (PySource::Phit, s),
                 Rule::Unadipatha(s) => (PySource::Unadipatha, s),
                 Rule::Varttika(s) => (PySource::Varttika, s),
+                Rule::Anyatra(s) => (PySource::Anyatra, s),
             };
 
             PyStep {

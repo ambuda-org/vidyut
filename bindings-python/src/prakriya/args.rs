@@ -1934,12 +1934,13 @@ impl PyPratipadika {
 
     /// Create a new pratipadika that is a krdanta.
     #[staticmethod]
-    #[pyo3(signature = (dhatu, krt, prayoga=PyPrayoga::Kartari, lakara=PyLakara::Lat))]
+    #[pyo3(signature = (dhatu, krt, prayoga=PyPrayoga::Kartari, lakara=PyLakara::Lat, upapada=None,))]
     pub fn krdanta(
         dhatu: PyDhatu,
         krt: PyKrtOrUnadi,
         prayoga: Option<PyPrayoga>,
         lakara: Option<PyLakara>,
+        upapada: Option<String>,
     ) -> Self {
         let krt = match krt {
             PyKrtOrUnadi::Krt(k) => RustKrt::Base(k.into()),
@@ -1951,6 +1952,17 @@ impl PyPratipadika {
         }
         if let Some(lakara) = lakara {
             builder = builder.lakara(lakara.into());
+        }
+        if let Some(upapada) = upapada {
+            if let Ok(s) = Slp1String::from(upapada) {
+                let sub = Subanta::new(
+                    Pratipadika::basic(s),
+                    Linga::Pum,
+                    Vibhakti::Prathama,
+                    Vacana::Eka,
+                );
+                builder = builder.upapada(sub);
+            }
         }
         let krdanta = builder.build().expect("Missing required field");
         Self {

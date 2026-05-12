@@ -149,12 +149,13 @@ fn try_dvitva(rule: Code, p: &mut Prakriya, i_dhatu: usize) -> Option<()> {
         // For zatva in 8.3.55 specifically only the following dhatus seem to trigger
         // it.
         // Bhvadi    -> "uN" 01.1102 san
-        // Juhotyadi -> "f\" 03.0017 yaNluk
         // Divadi    -> "IN" 04.0038 san
         // Kryadi    -> "F"  09.0032 san
         if abhyasa.has_adi('s') && !dhatu.text.contains('s') {
-            // Todo: This is a HACK.. Need to fix this by implementing 8.3.57,58
-            //       Add tests in regressions.rs
+            // Todo: This is a HACK. These are coming from the san pratyaya
+            // duplication but it is unclear how to tag it.
+            // Nevertheless this needs Satva (षत्व).
+            // It is abhyasa but what else ? which could trigger 8.3.56-59 rules
             abhyasa.add_tag(T::FlagSaAdeshadi);
         }
 
@@ -334,9 +335,9 @@ fn run_at_index(p: &mut Prakriya, i: usize) -> Option<()> {
     Some(())
 }
 
-fn apply_upadha_hrsva_for_can(p: &mut Prakriya) ->Option<bool> {
+fn apply_upadha_hrsva_for_can(p: &mut Prakriya) -> Option<bool> {
     let i = p.find_first_where(|t: &Term| t.is_ni_pratyaya() && !t.is_empty())?;
-    if p.len() >= i + 2 && p.get(i+1)?.is(V::caN) {
+    if p.len() >= i + 2 && p.get(i + 1)?.is(V::caN) {
         p.run_at("6.4.51", i, op::lup);
         try_cani_rules(p);
         return Some(true);

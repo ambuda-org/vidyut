@@ -972,6 +972,12 @@ pub fn add_unadi(p: &mut Prakriya, krt: Unadi) -> Option<bool> {
             } else if dhatu.has_u("o~hA\\k") {
                 // ahan
                 up.add(UP("1.156"));
+            } else if dhatu.has_u_in(&[
+                "wuo~Svi", "ukza~", "pUza~", "pliha~\\", "klidU~", "zRi\\ha~", "mA\\N",
+            ]) {
+                // ukzA pUza etc.
+                // Todo: Add mUrdhan onwards
+                up.add(UP("1.157"));
             }
         }
         // TODO: not in ashtadhyayi.com's Unadipatha, but mentioned in KV 1.1.60.

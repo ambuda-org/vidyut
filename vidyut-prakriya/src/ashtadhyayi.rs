@@ -23,7 +23,6 @@ logical function: defining lakaras, adding pratyayas, etc. This is not always po
 inherent complexities of the text. For that reason, we strongly recommend navigating the rules of
 the sutrapatha by grepping over our code.
 */
-use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
@@ -56,6 +55,7 @@ use crate::tin_pratyaya;
 use crate::tripadi;
 use crate::uttarapade;
 use crate::vikarana;
+use crate::{ac_sandhi, pada_8_1};
 use core::cell::RefCell;
 
 /// Enough to hold a term changed by up to 4 optional rules (2^4 = 16), plus an extra 2x seems to
@@ -241,7 +241,7 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
         prepare_pratipadika(p, upapada.pratipadika())?;
 
         let mut su = Term::make_text("");
-        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup, Tag::FlagUpapadaSup]);
+        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup]);
         p.push(su);
         samjna::run(p);
     }
@@ -596,6 +596,7 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         svara::run(p);
     }
 
+    pada_8_1::run(p);
     // Run tripadi rules separately.
 }
 

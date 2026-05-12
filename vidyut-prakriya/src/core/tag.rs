@@ -255,8 +255,6 @@ pub enum Tag {
     FlagNoHrasva,
     /// Indicates use of UW-adesha.
     FlagUth,
-    /// Marks the upapada's sup pratyaya, which should not block samAna-pada checks.
-    FlagUpapadaSup,
 
     Sankhya,
     Sat,

@@ -5,12 +5,12 @@
 extern crate test_utils;
 use test_utils::*;
 use vidyut_prakriya::args::Gana::*;
-use vidyut_prakriya::args::Krdanta;
 use vidyut_prakriya::args::Lakara::*;
 use vidyut_prakriya::args::Linga::*;
 use vidyut_prakriya::args::{
     BaseKrt as Krt, Dhatu, Lakara, Prayoga, Purusha, Sanadi, Taddhita, Tinanta, Vacana,
 };
+use vidyut_prakriya::args::{Krdanta, Unadi};
 use vidyut_prakriya::{Rule, Vyakarana};
 
 #[test]
@@ -592,7 +592,6 @@ fn satf_yanluk_hat_voc() {
     assert_has_sup_ss(&mamahat, Pum, &["mAmahat"]);
 }
 
-
 #[test]
 fn likhitva() {
     assert_has_krdanta(
@@ -613,5 +612,26 @@ fn test_can_skip_at_agama_for_eDa() {
         Purusha::Prathama,
         Vacana::Eka,
         true, // skip_at_agama = true for mAN
-        &["idiDat", "idiData"]);
+        &["idiDat", "idiData"]
+    );
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_asa_nic_lun() {
+    let i = d("asa~^", Bhvadi);
+    assert_has_tinantas!(
+        &[],
+        &nic(&i),
+        Lun,
+        Purusha::Prathama,
+        Vacana::Eka,
+        &["Asisat", "Asisata"]
+    );
+}
+
+#[test]
+fn dhan_usi() {
+    let dhanus = krdanta(&[], &d("Dana~", Juhotyadi), Unadi::usi);
+    assert_has_sup_1p(&dhanus, Napumsaka, &["DanUMzi"]);
 }

@@ -32,6 +32,8 @@
 
 <!-- Script select -->
 <div class="max-w-4xl mx-auto text-right p-1">
+  <label>Main Sutras</label>
+  <input type="checkbox"  x-model="skipCommonSutras"/>
   <select x-model="script" class="p-1 my-1">
     <option value="devanagari">Devanagari</option>
     <option value="iast">IAST</option>
@@ -102,7 +104,7 @@
               </thead>
               <tbody>
                 <template x-for="step in dhatuPrakriya.history">
-                  <tr class="hover:bg-sky-50" :class="stepClasses(step)">
+                  <tr :class="stepClasses(step)">
                     <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
                     <td class="py-2 px-4 text-lg" x-html="renderStepRule(step.rule)"></td>
                     <td class="text-sm text-right">
@@ -292,12 +294,19 @@
       </ol>
     </div>
 
-    <!-- Subanta paradigm table -->
-    <template x-if="supParadigm">
-      <div>
-        <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearSupPratipadika">
-          &times; <span x-text="deva(supActivePratipadika.text)"></span>
+    <div x-show="supActivePratipadika">
+      <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearSupPratipadika">
+        &times; <span x-text="deva(supActivePratipadika.text)"></span>
+      </button>
+      <template x-if="activePada">
+        <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
+          &times; <span x-text="deva(activePada.text)"></span>
         </button>
+      </template>
+    </div>
+    <!-- Subanta paradigm table -->
+    <template x-if="supParadigm && !activePada">
+      <div>
         <table class="w-full my-4 text-left table-fixed text-xl border">
           <tr class="bg-slate-100">
             <th>&nbsp;</th>

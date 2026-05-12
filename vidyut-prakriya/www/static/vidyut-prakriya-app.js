@@ -140,13 +140,14 @@ function parseStepText(input) {
 const App = () => ({
     activeTab: 'about',
 
+    // The selected pada for the selected dhatu/pratipadika.
+    activePada: null,
+
     // Dhatus
     // ------
     dhatus: [],
     // The selected dhatu.
     activeDhatu: null,
-    // The selected pada for the selected dhatu.
-    activePada: null,
     // The prakriya for the selected pada.
     dhatuPrakriya: null,
 
@@ -155,8 +156,7 @@ const App = () => ({
     supActivePratipadika: null,
     supParadigm: null,
     supPrakriya: null,
-    // A filter to apply to the sup list.
-    supFilter: null,
+
 
     // UI options
     // ----------
@@ -168,8 +168,12 @@ const App = () => ({
     sanadi: null,
     // A filter to apply to the dhatu list.
     dhatuFilter: null,
+    // A filter to apply to the sup list.
+    supFilter: null,
     // Skip AtAgama
     skipAtAgama: false,
+    // Skip Comman Sutras
+    skipCommonSutras: true,
 
     // data
     sutras: {},
@@ -314,6 +318,7 @@ const App = () => ({
     clearActivePada() {
         this.activePada = null;
         this.dhatuPrakriya = null;
+        this.supPrakriya = null;
     },
 
     // Clear the active dhatu (and show the full dhatu list).
@@ -446,6 +451,10 @@ const App = () => ({
                 text = this.devaNoSvara(this.unadipatha[rule.code] || "");
                 annotated_text = `<span class="text-orange-500">${text}</span>`;
                 break;
+            case "anyatra":
+                text = this.devaNoSvara(rule.code.split(",")[1] || "");
+                annotated_text = `<span class="text-orange-500">${text}</span>`;
+                break;
         }
         return annotated_text;
     },
@@ -466,9 +475,11 @@ const App = () => ({
             prefix = "DAtupAWa ";
         } else if (rule.source === "phit") {
             prefix = "Piw ";
+        } else if (rule.source === "anyatra") {
+            prefix = rule.code.split(",")[0];
         }
 
-        const text = prefix + rule.code;
+        const text = (rule.source === "anyatra") ? prefix : prefix + rule.code;
         return this.devaNoSvara(text).replaceAll('।', '.')
     },
 
@@ -496,6 +507,8 @@ const App = () => ({
                 return `${linkurl}dhatu/${rule.code}`;
             case "linganushasanam":
                 return `${linkurl}linganushasanam?scroll=linganushasanam-${rule.code}`;
+            case "anyatra":
+                return `${rule.code.split(",")[2]}`;
         }
         return linkurl;
     },
@@ -511,14 +524,25 @@ const App = () => ({
 
     stepClasses(step) {
         const code = step.rule.code;
-        let minor = new Set(["1.1.51", "1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.3.5", "1.3.6", "1.3.7", "1.3.8", "1.3.9", "1.2.45", "3.4.114", "1.1.43",
+        if (code.trim() === "" && this.skipCommonSutras) {
+            // Don't print debug messages
+            return ["hidden"];
+        }
+        let minor = new Set(["1.1.37","1.1.51", "1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.3.5", "1.3.6", "1.3.7", "1.3.8", "1.3.9", "1.2.45", "3.4.114", "1.1.43",
             "1.4.58", "1.4.59", "1.4.60", "1.4.80", "6.1.4", "6.1.5", "8.4.68", "3.4.113", "2.3.48", "1.4.17", "2.3.49", "1.4.7",
         ]);
         let samjna = new Set (["1.2.46", "1.4.14", "3.1.32"]);
+        let reversible = new Set(["7.2.67"])
         if (minor.has(code)) {
-            return ["opacity-40"];
+            if (this.skipCommonSutras) {
+                return ["hidden"];
+            } else {
+                return ["opacity-40"];
+            }
         } else if (samjna.has(code)) {
             return ["bg-lime-200"];
+        } else if (reversible.has(code)) {
+            return ["bg-orange-100"];
         } else {
             return [];
         }
@@ -538,7 +562,7 @@ const App = () => ({
             if (term.wasChanged) {
                 text = `<span class="text-red-700">${text}</span>`
             }
-            if (step.rule.code === "    ") {
+            if (step.rule.code.trim() === "") {
                 let x= parseStepText(term.text)
                 if (!x) {
                     text = `<span class="text-blue-500">${term.text}</span>`
@@ -681,7 +705,7 @@ const App = () => ({
             { text: "dvi", linga: Linga.Pum, vacana: Vacana.Dvi },
             { text: "tri", linga: Linga.Pum, vacana: Vacana.Bahu },
             {
-                text: "senAnI",
+                text: "senAnI (kvip)",
                 linga: Linga.Pum,
                 krdanta: {
                     dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.1049"), {prefixes: ["senA"]}),
@@ -700,7 +724,7 @@ const App = () => ({
                 }
             },
             {
-                text: "vftraGna",
+                text: "vftraGna (kvip)",
                 linga: Linga.Pum,
                 krdanta: {
                     dhatu: this.dhatus.find( d => d.code === "02.0002"),
@@ -708,6 +732,28 @@ const App = () => ({
                     upapada: {
                         stem: "vftra",
                     },
+                }
+            },
+            {
+                text: "brahmapUzan (uRAdi)",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "01.0769"),
+                    unadi: Unadi.kanin,
+                    upapada: {
+                        stem: "brahma",
+                    }
+                }
+            },
+            {
+                text: "aryaman (uRAdi)",
+                linga: Linga.Pum,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "03.0007"),
+                    unadi: Unadi.kanin,
+                    upapada: {
+                        stem: "arya",
+                    }
                 }
             },
             {
@@ -727,7 +773,7 @@ const App = () => ({
                 }
             },
             {
-                text: "sedivas",
+                text: "sedivas (kvasu)",
                 linga: Linga.Pum,
                 krdanta: {
                     dhatu: this.dhatus.find( d => d.code === "01.0990"),
@@ -746,7 +792,7 @@ const App = () => ({
             { text: "tri", linga: Linga.Stri, vacana: Vacana.Bahu },
             { text: "DI", linga: Linga.Stri },
             {
-                text: "kAmaDuh",
+                text: "kAmaDuh (kvip)",
                 linga: Linga.Stri,
                 krdanta: {
                     dhatu: Object.assign({},this.dhatus.find( d => d.code === "02.0004"), {prefixes: ["kAma"]}),
@@ -754,7 +800,15 @@ const App = () => ({
                 }
             },
             {
-                text: "suDI",
+                text: "prAvfz (kvip)",
+                linga: Linga.Stri,
+                krdanta: {
+                    dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.0803"), {prefixes: ["pra", "AN"]}),
+                    krt: Krt.kvip
+                }
+            },
+            {
+                text: "suDI (kvip)",
                 linga: Linga.Stri,
                 krdanta: {
                     dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.1056"), {prefixes: ["su"]}),
@@ -762,7 +816,15 @@ const App = () => ({
                 }
             },
             {
-                text: "pipAsA",
+                text: "tasTuzI (kvasu)",
+                linga: Linga.Stri,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "01.1077"),
+                    krt: Krt.kvasu
+                }
+            },
+            {
+                text: "pipAsA (a)",
                 linga: Linga.Stri,
                 krdanta: {
                     dhatu: Object.assign({},this.dhatus.find( d => d.code === "01.1074"), {sanadi: [Sanadi.san]}),
@@ -770,7 +832,7 @@ const App = () => ({
                 }
             },
             {
-                text: "kurvatI",
+                text: "kurvatI (Satf)",
                 linga: Linga.Stri,
                 krdanta: {
                     dhatu: this.dhatus.find( d => d.code === "08.0010"),
@@ -794,7 +856,14 @@ const App = () => ({
                 },
                 vacana: Vacana.Bahu
             },
-
+            {
+                text: "Danuz (uRAdi)",
+                linga: Linga.Napumsaka,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "03.0024"),
+                    unadi: Unadi.usi,
+                },
+            },
             { text: "Pala", linga: Linga.Napumsaka },
             { text: "puzpa", linga: Linga.Napumsaka },
             { text: "sarva", linga: Linga.Napumsaka },
@@ -831,11 +900,33 @@ const App = () => ({
             { text: "adas", linga: Linga.Napumsaka },
             { text: "guRin", linga: Linga.Napumsaka },
             {
-                text: "praSAn",
+                text: "praSAn (kvip)",
                 linga: Linga.Napumsaka,
                 krdanta: {
                     dhatu: Object.assign({},this.dhatus.find( d => d.code === "04.0098"), {prefixes : ["pra"]} ),
                     krt: Krt.kvip
+                }
+            },
+            {
+                text: "kzIrapa (ka)",
+                linga: Linga.Napumsaka,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "01.1074"),
+                    krt: Krt.ka,
+                    upapada: {
+                        stem: "kzIra",
+                    }
+                }
+            },
+            {
+                text: "mAzavAp (aR)",
+                linga: Linga.Napumsaka,
+                krdanta: {
+                    dhatu: this.dhatus.find( d => d.code === "01.1158"),
+                    krt: Krt.aR,
+                    upapada: {
+                        stem: "mAza",
+                    }
                 }
             },
         ];

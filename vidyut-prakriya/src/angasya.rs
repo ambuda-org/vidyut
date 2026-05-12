@@ -1042,21 +1042,9 @@ fn try_do_dirgha(p: &mut Prakriya) {
             p.optional_run_at("6.4.17", i_anga, |t| t.set_upadha("A"));
         } else if anga.has_antya(ANUNASIKA) && (n.first().is(K::kvip) || jhal_knit()) {
             if anga.has_text("han") {
-                // Varttika: block 6.4.15 dirgha for `han` (e.g. AN + han + kvip -> Ahan).
-                p.step(Varttika("6.4.15.1"));
-
-                // 6.4.8: upadha-dirgha for prathama ekavachana (su).
-                // Applied here because the subanta code can't see past the empty kvip to
-                // reach `han`. Only for `su` because n-lopa (8.2.7) applies there.
-                // (e.g. vftrahan + su -> vftrahA)
-                if let Some(i_sup) = p.find_last_with_tag(T::Sup) {
-                    let sup = p.get(i_sup)?;
-                    if sup.is(Sup::su) && !sup.is_sambuddhi() && !sup.is_lupta() {
-                        let anga = p.get(i_anga)?;
-                        let sub = al::to_dirgha(anga.upadha()?)?;
-                        p.run_at("6.4.8", i_anga, |t| t.set_upadha_char(sub));
-                    }
-                }
+                // Block Dirgha by 6.4.12.90 kashika-vritti for `han` (e.g. AN + han + kvip -> Ahan).
+                // This is a vrittikAra comment with significance enough to warrant attention.
+                p.step(Varttika("6.4.12.90"));
             } else if (anga.has_text("kzam")
                 && n.last().has_lakara(Lit)
                 && n.last().is_atmanepada())
@@ -1646,7 +1634,6 @@ pub fn run_after_it_agama_karya(p: &mut Prakriya, i: usize) -> Option<()> {
 /// - Rules that delete 'A' of dhatu if iw-Agama follows. (Should be done after dvitva.)
 pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> Option<()> {
     asiddhavat::run_after_it_agama_karya_and_dvitva_karya(p, i);
-    try_change_cu_to_ku(p, i);
     asiddhavat::run_for_kniti_ardhadhatuke_after_dvitva(p, i);
     Some(())
 }
@@ -1691,6 +1678,11 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
 
     if p.stage != Stage::DhatuPrep {
         subanta::run(p);
+    } else {
+        // Applying "cu to ku" rules !!
+        for i in 0..p.len() {
+            try_change_cu_to_ku(p, i);
+        }
     }
     for index in 0..p.len() {
         asiddhavat::run_final(p, index);

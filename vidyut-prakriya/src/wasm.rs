@@ -98,6 +98,7 @@ impl Rule {
             Kaumudi(_) => "kaumudi",
             Unadipatha(_) => "unadi",
             Phit(_) => "phit",
+            Anyatra(_) => "anyatra",
         }
     }
 }
@@ -236,11 +237,19 @@ impl KrdantaArgs {
         }
         if let Some(upapada) = self.upapada {
             if let Some(stem_val) = upapada.stem {
-                debug(&format!("[vidyut debug] upapada:v={}, l={}", upapada.vibhakti.unwrap(), upapada.linga.unwrap()));
+                debug(&format!(
+                    "[vidyut debug] upapada:v={}, l={}",
+                    upapada.vibhakti.unwrap(),
+                    upapada.linga.unwrap()
+                ));
                 let pratipadika = Pratipadika::basic(Slp1String::from(stem_val)?);
 
-                let subanta =
-                    Subanta::new(pratipadika, upapada.linga.unwrap(), upapada.vibhakti.unwrap(), upapada.vacana.unwrap());
+                let subanta = Subanta::new(
+                    pratipadika,
+                    upapada.linga.unwrap(),
+                    upapada.vibhakti.unwrap(),
+                    upapada.vacana.unwrap(),
+                );
                 builder = builder.upapada(subanta);
             }
         }

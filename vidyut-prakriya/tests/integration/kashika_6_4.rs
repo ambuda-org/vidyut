@@ -127,11 +127,12 @@ fn sutra_6_4_10() {
 #[test]
 fn sutra_6_4_11() {
     assert_has_sup_1p("ap", Stri, &["ApaH"]);
-    let bahvap = create_bahuvrihi("bahvap", "bahu", "ap");
+    let ap = krdanta(&[], &d("A\\px~", Svadi), Unadi::kvip);
+    // Todo: This requires fixing of 7.1.72... Anga needs to be a TermView and not just a Term
+    let bahvap = create_bahuvrihi("bahvap", "bahu", ap);
     assert_has_sup_1p(&bahvap, Napumsaka, &["bahvAmpi"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_6_4_12() {
     let bahudandin = create_bahuvrihi("bahudaRqin", "bahu", "daRqin");
@@ -149,14 +150,39 @@ fn sutra_6_4_12() {
     let bahvaryaman = create_bahuvrihi("bahvaryaman", "bahu", "aryaman");
     assert_has_sup_1p(&bahvaryaman, Napumsaka, &["bahvaryamARi"]);
     assert_has_sup_2p(&bahvaryaman, Napumsaka, &["bahvaryamARi"]);
+
+    let puzan = krdanta(&[], &d("pUza~", Bhvadi), Unadi::kanin);
+    assert_has_sup_1d(&puzan, Pum, &["pUzaRO"]);
+
+    let aryaman = upapada_krdanta("arya", &[], &d("mA\\N", Bhvadi), Unadi::kanin);
+    assert_has_sup_1d(&aryaman, Pum, &["aryamaRO"]);
+    assert_has_sup_1p(&aryaman, Pum, &["aryamaRaH"]);
+
+    let bahu_puzan = upapada_krdanta("bahu", &[], &d("pUza~", Bhvadi), Unadi::kanin);
+    // prathamA
+    assert_has_sup_1p(&bahu_puzan, Napumsaka, &["bahupUzARi"]);
+    assert_has_sup_7s(&bahu_puzan, Napumsaka, &["bahupUzaRi", "bahupUzRi"]);
+
+    let vftrahan = upapada_krdanta("vftra", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    let bahuvftrahan = create_bahuvrihi("bahuvftrahan", "bahu", &vftrahan);
+    assert_has_sup_1p(&bahuvftrahan, Napumsaka, &["bahuvftrahARi"]);
+
+    let bahvaryaman = create_bahuvrihi("bahvaryaman", "bahu", &aryaman);
+    assert_has_sup_1p(&bahvaryaman, Napumsaka, &["bahvaryamARi"]);
 }
 
 #[test]
 fn sutra_6_4_13() {
+    let puzan = krdanta(&[], &d("pUza~", Bhvadi), Unadi::kanin);
+    let aryaman = upapada_krdanta("arya", &[], &d("mA\\N", Bhvadi), Unadi::kanin);
+
+    assert_has_sup_1d(&puzan, Pum, &["pUzaRO"]);
     assert_has_sup_1s("daRqin", Pum, &["daRqI"]);
     assert_has_sup_1s("vftrahan", Pum, &["vftrahA"]);
     assert_has_sup_1s("pUzan", Pum, &["pUzA"]);
+    assert_has_sup_1s(puzan, Pum, &["pUzA"]);
     assert_has_sup_1s("aryaman", Pum, &["aryamA"]);
+    assert_has_sup_1s(&aryaman, Pum, &["aryamA"]);
 }
 
 #[test]

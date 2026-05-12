@@ -688,15 +688,19 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya) -> Option<()> {
             }
         }
     }
-
+    let mut is_num_visarjaniya_shar = false;
     let inku = match sp.p.prev_char_index(&sp.index) {
         Some(i_y) => {
             let y = sp.p.char_at_index(&i_y)?;
             if IN_KU.contains(y) {
-                true
+                if sp.index.i_term != i_y.i_term || adesha_pratyaya {
+                    true
+                } else {
+                    false
+                }
             } else {
                 let is_num = y == 'M' && sp.p.has(i_y.i_term, |t| t.has_tag(T::FlagNum));
-                let is_num_visarjaniya_shar = is_num || y == 'H' || SHAR.contains(y);
+                is_num_visarjaniya_shar = is_num || y == 'H' || SHAR.contains(y);
 
                 if is_num_visarjaniya_shar {
                     // Per commentaries, allow at most one num-visarjaniya-shar sound in-between.
@@ -738,7 +742,19 @@ fn run_shatva_rules_at_char_index(sp: &mut ShaPrakriya) -> Option<()> {
             // Do nothing.
         } else {
             // General case.
+            if is_num_visarjaniya_shar {
+                sp.p.step("8.3.58");
+            }
             sp.try_shatva("8.3.59");
+        }
+    } else if inku && !is_antya {
+        let i_y = sp.p.next_char_index(&sp.index)?;
+        let y_term = sp.p.get(i_y.i_term)?;
+        if y_term.is_pratyaya()
+            && AC.contains(sp.p.char_at_index(&i_y)?)
+            && !sp.p.get(i_term)?.is_dhatu()
+        {
+            sp.try_shatva("8.3.58");
         }
     }
 

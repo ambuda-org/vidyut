@@ -424,7 +424,8 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
 
     // Check if there is an upsarga followed by abhyasa/dhatu
     let index_upasarga = p.find_last_where(|t| t.is_upasarga());
-    let mut index_unupasarga_start = p.find_first_where(|t| t.is_abhyasa() || t.is_dhatu() || t.is(A::Aw));
+    let mut index_unupasarga_start =
+        p.find_first_where(|t| t.is_abhyasa() || t.is_dhatu() || t.is(A::Aw));
     if index_upasarga.is_some() && index_unupasarga_start.is_some() {
         // First do the ac_sandhi from abhyas onwards
         apply_general_ac_sandhi(p, index_unupasarga_start?, p.len() - 1);
