@@ -319,15 +319,54 @@ def test_derive_pratipadikas_with_krdanta_prayoga_lakara(
     actual = {x.text for x in prakriyas}
     assert expected == actual
 
-
-def test_derive_pratipadikas_with_krdanta_unadi():
-    dhatu = Dhatu.mula("bfhi~", Gana.Bhvadi)
-    anga = Pratipadika.krdanta(dhatu, Unadi.manin)
+@pytest.mark.parametrize(
+    "code,krt, prefixes, upapada, expected",
+    [
+        ("01.0837", Unadi.manin, ["para"], "", "parabrahman"),
+        ("04.0037", Unadi.I, ["pra"], "vAta", "vAtapramI"),
+    ],
+)
+def test_derive_pratipadikas_with_krdanta_unadi(
+        code, krt, prefixes, upapada, expected
+):
+    dhatu = d[code].with_prefixes(prefixes)
+    anga = Pratipadika.krdanta(dhatu, krt, upapada=upapada)
     prakriyas = v.derive(anga)
 
+    expected = set(expected.split("|"))
     actual = {x.text for x in prakriyas}
-    assert {"brahman"} == actual
+    assert expected == actual
 
+@pytest.mark.parametrize(
+    "code,krt, prefixes, upapada, linga, vibhakti, vacana, expected",
+    [
+        ("01.0837", Unadi.manin, [], "para", Linga.Napumsaka, Vibhakti.Prathama, Vacana.Eka, "parabrahma"),
+        ("04.0037", Unadi.I, ["pra"], "vAta", Linga.Pum, Vibhakti.Prathama, Vacana.Eka, "vAtapramIH"),
+        ("04.0037", Unadi.I, ["pra"], "vAta", Linga.Pum, Vibhakti.Saptami, Vacana.Eka, "vAtapramI"),
+        ("02.0002", Krt.kvip, [], "vftra", Linga.Pum, Vibhakti.Prathama, Vacana.Eka, "vftrahA"),
+        ("02.0002", Krt.kvip, [], "vftra", Linga.Pum, Vibhakti.Saptami, Vacana.Eka, "vftrahaRi|vftraGni"),
+        ("01.0769", Unadi.kanin, [], "brahma", Linga.Pum, Vibhakti.Prathama, Vacana.Eka, "brahmapUzA"),
+        ("01.0769", Unadi.kanin, [], "brahma", Linga.Pum, Vibhakti.Prathama, Vacana.Dvi, "brahmapUzaRO"),
+        ("01.0769", Unadi.kanin, [], "brahma", Linga.Pum, Vibhakti.Prathama, Vacana.Bahu, "brahmapUzaRaH"),
+
+    ],
+)
+def test_derive_padas_with_krdanta_unadi(
+        code, krt, prefixes, upapada, linga, vibhakti, vacana, expected
+):
+    dhatu = d[code].with_prefixes(prefixes)
+    anga = Pratipadika.krdanta(dhatu, krt, upapada=upapada)
+    prakriyas = v.derive(
+        Pada.Subanta(
+            pratipadika=anga,
+            linga=linga,
+            vibhakti=vibhakti,
+            vacana=vacana,
+        )
+    )
+    expected = set(expected.split("|"))
+    actual = {x.text for x in prakriyas}
+    assert expected == actual
 
 def test_derive_pratipadikas_with_taddhitanta():
     guru = Pratipadika.basic("guru")

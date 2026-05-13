@@ -1042,21 +1042,9 @@ fn try_do_dirgha(p: &mut Prakriya) {
             p.optional_run_at("6.4.17", i_anga, |t| t.set_upadha("A"));
         } else if anga.has_antya(ANUNASIKA) && (n.first().is(K::kvip) || jhal_knit()) {
             if anga.has_text("han") {
-                // Varttika: block 6.4.15 dirgha for `han` (e.g. AN + han + kvip -> Ahan).
-                p.step(Varttika("6.4.15.1"));
-
-                // 6.4.8: upadha-dirgha for prathama ekavachana (su).
-                // Applied here because the subanta code can't see past the empty kvip to
-                // reach `han`. Only for `su` because n-lopa (8.2.7) applies there.
-                // (e.g. vftrahan + su -> vftrahA)
-                if let Some(i_sup) = p.find_last_with_tag(T::Sup) {
-                    let sup = p.get(i_sup)?;
-                    if sup.is(Sup::su) && !sup.is_sambuddhi() && !sup.is_lupta() {
-                        let anga = p.get(i_anga)?;
-                        let sub = al::to_dirgha(anga.upadha()?)?;
-                        p.run_at("6.4.8", i_anga, |t| t.set_upadha_char(sub));
-                    }
-                }
+                // Block Dirgha by 6.4.12.90 kashika-vritti for `han` (e.g. AN + han + kvip -> Ahan).
+                // This is a vrittikAra comment with significance enough to warrant attention.
+                p.step(Varttika("6.4.12.90"));
             } else if (anga.has_text("kzam")
                 && n.last().has_lakara(Lit)
                 && n.last().is_atmanepada())
@@ -1389,9 +1377,12 @@ fn try_anga_changes_for_sarva_krt(p: &mut Prakriya) {
 
 /// Runs rules that change the anga when an aN-pratyaya (luN-vikarana) follows. (7.4.16 - 7.4.20)
 ///
+/// (7.4.16 - 7.4.20)
 /// Constraints:
 /// - Must precede ft-AdeSa (f -> ir)
 fn try_an_pratyaya_rules(p: &mut Prakriya) {
+    ac_sandhi::try_vera_apruktasya(p);
+
     option_block(p, |p| {
         let i = p.find_last_with_tag(T::Dhatu)?;
 
@@ -1450,13 +1441,14 @@ fn try_tuk_agama_for_pit_krt(p: &mut Prakriya) {
 ///
 /// Constraints:
 /// - Must run before dvitva.
-fn try_cani_rules(p: &mut Prakriya) {
+pub fn try_cani_rules(p: &mut Prakriya) {
     option_block(p, |p| {
         // Our dhatu search should also supported duplicated ac-Adi roots, e.g. uDras -> u + Da + Dras.
         // Hence, search for the last term called "dhatu" that isn't a pratyaya.
         let i = p.find_last_where(|t| t.is_dhatu() && !t.is_pratyaya())?;
         let i_ni = p.find_next_where(i, |t| t.is_ni_pratyaya())?;
         let _i_can = p.find_next_where(i_ni, |t| t.is(V::caN))?;
+        let i_first_abhyasta = p.find_first_with_tag(T::Abhyasta)?;
 
         let dhatu = p.get(i)?;
 
@@ -1517,6 +1509,20 @@ fn try_cani_rules(p: &mut Prakriya) {
             if !dhatu.has_antya(sub) {
                 p.run_at("7.4.1", i, op::antya_char(&sub));
             }
+        }
+
+        // HACK: for working with curent implementation. The first abhyasta
+        //       needs to follow some of the rules given below. In this implementation
+        //       dvitva creates 3 abhyasta terms and we apply the rules
+        //       applicable to the upadha!
+        //       Eg. undhi
+        let first_abhyasta = p.get(i_first_abhyasta)?;
+        if first_abhyasta.has_upadha(AC) {
+            let sub = al::to_hrasva(first_abhyasta.upadha()?)?;
+            p.run_at("7.4.1", i_first_abhyasta, op::upadha_char(&sub));
+        } else if first_abhyasta.len() == 1 && first_abhyasta.has_antya(AC) {
+            let sub = al::to_hrasva(first_abhyasta.antya()?)?;
+            p.run_at("7.4.1", i_first_abhyasta, op::antya_char(&sub));
         }
 
         Some(())
@@ -1607,7 +1613,6 @@ pub fn run_before_dvitva(p: &mut Prakriya, is_lun: bool, skip_at_agama: bool) ->
     }
 
     try_tuk_agama_for_pit_krt(p);
-    try_cani_rules(p);
 
     Some(())
 }
@@ -1629,7 +1634,6 @@ pub fn run_after_it_agama_karya(p: &mut Prakriya, i: usize) -> Option<()> {
 /// - Rules that delete 'A' of dhatu if iw-Agama follows. (Should be done after dvitva.)
 pub fn run_after_it_agama_karya_and_dvitva_karya(p: &mut Prakriya, i: usize) -> Option<()> {
     asiddhavat::run_after_it_agama_karya_and_dvitva_karya(p, i);
-    try_change_cu_to_ku(p, i);
     asiddhavat::run_for_kniti_ardhadhatuke_after_dvitva(p, i);
     Some(())
 }
@@ -1674,6 +1678,11 @@ pub fn run_after_dvitva(p: &mut Prakriya) -> Option<()> {
 
     if p.stage != Stage::DhatuPrep {
         subanta::run(p);
+    } else {
+        // Applying "cu to ku" rules !!
+        for i in 0..p.len() {
+            try_change_cu_to_ku(p, i);
+        }
     }
     for index in 0..p.len() {
         asiddhavat::run_final(p, index);

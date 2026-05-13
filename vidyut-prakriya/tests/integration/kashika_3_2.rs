@@ -803,6 +803,7 @@ fn sutra_3_2_70() {
 
 #[ignore]
 #[test]
+// Todo(@tbdasap): Requires 6.3.137 implemented
 fn sutra_3_2_76() {
     let srans = d("sransu~\\", Bhvadi);
     let dhvans = d("Dvansu~\\", Bhvadi);
@@ -812,7 +813,6 @@ fn sutra_3_2_76() {
     assert_has_upapada_krdanta("vAha", &[], &bhrans, Krt::kvip, &["vAhABraS"]);
 }
 
-#[ignore]
 #[test]
 fn sutra_3_2_77() {
     let stha = d("zWA\\", Bhvadi);

@@ -23,12 +23,11 @@ logical function: defining lakaras, adding pratyayas, etc. This is not always po
 inherent complexities of the text. For that reason, we strongly recommend navigating the rules of
 the sutrapatha by grepping over our code.
 */
-use crate::ac_sandhi;
 use crate::angasya;
 use crate::ardhadhatuka;
 use crate::args::{
     Artha, BasicPratipadika, Dhatu, Krdanta, Krt, Lakara, Pada, Pratipadika, Prayoga, Samasa,
-    Subanta, Sup, Taddhitanta, Tinanta, Upasarga,
+    Sanadi, Subanta, Sup, Taddhitanta, Tinanta, Upasarga,
 };
 use crate::atidesha;
 use crate::atmanepada;
@@ -56,6 +55,7 @@ use crate::tin_pratyaya;
 use crate::tripadi;
 use crate::uttarapade;
 use crate::vikarana;
+use crate::{ac_sandhi, pada_8_1};
 use core::cell::RefCell;
 
 /// Enough to hold a term changed by up to 4 optional rules (2^4 = 16), plus an extra 2x seems to
@@ -241,7 +241,7 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
         prepare_pratipadika(p, upapada.pratipadika())?;
 
         let mut su = Term::make_text("");
-        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup, Tag::FlagUpapadaSup]);
+        su.add_tags(&[Tag::Pratyaya, Tag::Vibhakti, Tag::Sup]);
         p.push(su);
         samjna::run(p);
     }
@@ -257,12 +257,12 @@ fn prepare_krdanta(p: &mut Prakriya, args: &Krdanta) -> Result<()> {
         //
         // 2. We run this check again in `add_lakara_and_decide_pada`.
         main_args.needs_dhatu_pada = false;
+        let prayoga = args.prayoga().unwrap_or(Prayoga::Kartari);
+        p.add_tag(prayoga.as_tag());
         prepare_dhatu(p, args.dhatu(), main_args)?;
     }
 
     if let Some(la) = args.lakara() {
-        let prayoga = args.prayoga().unwrap_or(Prayoga::Kartari);
-        p.add_tag(prayoga.as_tag());
         add_lakara_and_decide_pada(p, la);
     }
 
@@ -596,6 +596,7 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
         svara::run(p);
     }
 
+    pada_8_1::run(p);
     // Run tripadi rules separately.
 }
 
@@ -614,6 +615,27 @@ fn run_prepare_dhatu_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: M
     // 1. Lun-lakara : "a\\da~ + san" --> "Ji + Gat + sa" [2.4.37]
     // 2. "i\\N" adesha : "i\\N + san" --> "aDi + ji + gAm + sa" [2.4.48]
     ardhadhatuka::run_before_vikarana(p, dhatu_args, is_ardhadhatuka, is_lun, lakara);
+
+    // Try to assign whether parasmaipada or atmanepada if possible
+    // (for Krdantas this is needed)
+    match dhatu_args {
+        Some(Dhatu::Mula(d)) => match d.sanadi().last() {
+            Some(&Sanadi::yaNluk) => {
+                if p.has_tag(PT::Kartari) {
+                    p.add_tag(PT::Parasmaipada)
+                }
+            }
+            Some(&Sanadi::yaN) => p.add_tag(PT::Atmanepada),
+            Some(&Sanadi::Ric) => {}
+            Some(_) => {
+                // This should set the "pada" tag even if lakara is absent
+                atmanepada::run(p);
+            }
+            None => {}
+        },
+        Some(_) => {}
+        None => {}
+    };
 
     // Depends on jha_adesha since it conditions on the first sound.
     // Prior step may have "san" and that could necessitate "iw" agama [7.2.49]

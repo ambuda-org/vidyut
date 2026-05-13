@@ -41,6 +41,7 @@ mod it_samjna;
 mod krt;
 mod la_karya;
 mod misc;
+mod pada_8_1;
 mod pratipadika_karya;
 mod samasa;
 mod samjna;

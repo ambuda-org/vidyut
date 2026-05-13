@@ -10,6 +10,7 @@ use crate::args::Upasarga as U;
 use crate::core::char_view::IndexPrakriya;
 use crate::core::operators as op;
 use crate::core::Prakriya;
+use crate::core::PrakriyaTag::Stri;
 use crate::core::Stage::DhatuPrep;
 use crate::core::{PrakriyaTag as PT, Tag as T};
 use crate::sounds::{s, Set, AC, AK, HAL, IK, VAL};
@@ -36,11 +37,13 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
         //
         // But:
         // - Allow pratyayas (yAyA[y]vara -> yAyAvara).
+        //   other than "?v?" like kvip, RvI
         let x_is_pratyaya = t_x.is_pratyaya();
         let is_mula_dhatu = t_x.is_dhatu() && !x_is_pratyaya;
         if (is_mula_dhatu && i_x.i_char == 0)
             || (t_x.is_pratipadika() && !x_is_pratyaya)
             || t_x.is_abhyasa()
+            || (t_x.has_text("v") && x_is_pratyaya)
         {
             return ip.next(i_x);
         }
@@ -54,6 +57,28 @@ pub fn try_lopo_vyor_vali(p: &mut Prakriya) {
 
         ip.next(i_x)
     });
+}
+
+pub fn try_vera_apruktasya(p: &mut Prakriya) {
+    for i in 0..p.len() {
+        if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
+            p.run_at("6.1.67", i, op::lopa);
+            if p.len() > i + 1 {
+                // Need to repeat anga-karyam if there is a pratyaya after kvip
+                // Eg.
+                //    DyE + kvip + tA
+                //    DI + [] + A
+                //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
+                //    "DI" based on "A". In this case since it has dhatu-samjna
+                //    6.4.77 will become applicable.
+                samjna::run(p);
+                if p.has_tag(Stri) {
+                    angasya::run_before_stritva(p);
+                }
+                // angasya::run_after_dvitva(p);
+            }
+        }
+    }
 }
 
 /// Runs various general rules of vowel sandhi.
@@ -161,8 +186,9 @@ pub fn apply_general_ac_sandhi(p: &mut Prakriya, i_start: usize, i_end: usize) {
         } else {
             debug_assert!(AA.contains(x));
 
-            if t_x.is(Unadi::qau) {
+            if t_x.is(Unadi::qau) || t_x.is(A::Aw) {
                 // Skip qau, or else stating this as `qau` would be vyartha.
+                //    and Aw agama which is addressed separately (6.1.90)
                 return Some(i_y);
             }
 
@@ -371,23 +397,8 @@ pub fn run_antaranga(p: &mut Prakriya) -> Option<()> {
 }
 
 pub fn run_common(p: &mut Prakriya) -> Option<()> {
-    for i in 0..p.len() {
-        if p.has(i, |t| t.is_pratyaya() && t.has_text("v")) {
-            p.run_at("6.1.67", i, op::lopa);
-            if p.len() > i + 1 {
-                // Need to repeat anga-karyam if there is a pratyaya after kvip
-                // Eg.
-                //    Di + kvip + tA
-                //    DI + [] + A
-                //    Now "DI" has "A" pratyaya effectively. So anga-karyam needs to be done for
-                //    "DI" based on "A". In this case since it has dhatu-samjna
-                //    6.4.77 will become applicable.
-                samjna::run(p);
-                angasya::run_before_stritva(p);
-                angasya::run_after_dvitva(p);
-            }
-        }
-
+    let start = p.find_first_where(|t| !t.is_empty() && !t.is_upasarga())?;
+    for i in start..p.len() {
         apply_ac_sandhi_at_term_boundary(p, i);
 
         if p.has(i, |t| t.has_text("div")) && p.is_pada(i) {
@@ -413,14 +424,21 @@ pub fn run_common(p: &mut Prakriya) -> Option<()> {
 
     // Check if there is an upsarga followed by abhyasa/dhatu
     let index_upasarga = p.find_last_where(|t| t.is_upasarga());
-    let index_abhyasa = p.find_first_where(|t| (t.is_abhyasa() || t.is_dhatu()));
-    if index_upasarga.is_some() && index_abhyasa.is_some() {
+    let mut index_unupasarga_start =
+        p.find_first_where(|t| t.is_abhyasa() || t.is_dhatu() || t.is(A::Aw));
+    if index_upasarga.is_some() && index_unupasarga_start.is_some() {
         // First do the ac_sandhi from abhyas onwards
-        apply_general_ac_sandhi(p, index_abhyasa?, p.len() - 1);
-        // And then apply until the abhyasa
-        apply_general_ac_sandhi(p, 0, index_abhyasa?);
+        apply_general_ac_sandhi(p, index_unupasarga_start?, p.len() - 1);
+        // And then apply until the abhyasa or Aw as the case may be.
+        // Note that prior call could have mutated and hence the need to
+        //  reset the "unupasarga start" location.
+        index_unupasarga_start = p.find_last_where(|t| !t.is_upasarga() && !t.is_empty());
+        apply_general_ac_sandhi(p, 0, index_unupasarga_start?);
     } else {
         apply_general_ac_sandhi(p, index, p.len() - 1);
+    }
+    for i in start..p.len() {
+        apply_ac_sandhi_at_term_boundary(p, i);
     }
     Some(())
 }

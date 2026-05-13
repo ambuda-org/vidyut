@@ -21,8 +21,8 @@
 <article x-data="app" class="">
 
 <!-- Header -->
-<header class="py-12 bg-slate-100 text-center">
-  <h1 class="text-4xl font-bold mb-2" x-text="deva('vidyulleKA')"></h1>
+<header class="py-4 bg-slate-100 text-center">
+  <h1 class="text-2xl font-bold mb-2" x-text="deva('vidyulleKA')"></h1>
   <p class="text-slate-800">
   (A demo of <a class="underline" href="https://github.com/ambuda-org/vidyut/tree/main/vidyut-prakriya"
     target="_blank">vidyut-prakriya</a>.
@@ -31,8 +31,10 @@
 </header>
 
 <!-- Script select -->
-<div class="max-w-4xl mx-auto text-right p-2">
-  <select x-model="script" class="p-2 my-2">
+<div class="max-w-4xl mx-auto text-right p-1">
+  <label>Main Sutras</label>
+  <input type="checkbox"  x-model="skipCommonSutras"/>
+  <select x-model="script" class="p-1 my-1">
     <option value="devanagari">Devanagari</option>
     <option value="iast">IAST</option>
     <option value="slp1">SLP1</option>
@@ -42,7 +44,7 @@
   </select>
 </div>
 
-<div class="max-w-4xl mx-auto my-8 p-2">
+<div class="max-w-4xl mx-auto my-2 p-2">
   <!-- Tab select -->
   <ul class="flex my-4">
     <li><a class="py-2 mr-4" href="#" :class="tab('about')" @click.prevent="setTab('about')">About</a></li>
@@ -61,7 +63,7 @@
     <div x-show="!activeDhatu">
       <p class="my-4">Click on a dhatu to see its forms. Click on a form to see its prakriya.</p>
       <input type="text" x-model="dhatuFilter" class="w-full border p-1 my-2"
-        placeholder="Type query (भू, bhU, etc.)"/>
+        placeholder="Type query (भू, BU, etc.)"/>
       <ol>
         <template x-for="d in filteredDhatus()">
           <li class="my-1">
@@ -86,8 +88,8 @@
           </button>
         </template>
         <header class="text-center">
-          <h1 class="font-bold text-3xl" x-text="deva(activeDhatu.aupadeshika)"></h1>
-          <p x-text="deva(activeDhatu.artha)"></p>
+          <span class="font-bold text-2xl" x-text="deva(activeDhatu.aupadeshika)"></span>
+          <span class="font-bold text-1xl opacity-60" x-text="'(' + deva(activeDhatu.artha) + ')'"></span>
         </header>
 
         <template x-if="dhatuPrakriya">
@@ -102,7 +104,7 @@
               </thead>
               <tbody>
                 <template x-for="step in dhatuPrakriya.history">
-                  <tr class="hover:bg-sky-50" :class="stepClasses(step)">
+                  <tr :class="stepClasses(step)">
                     <td class="py-2 px-4 text-xl border-r" x-html="renderStepResult(step)"></td>
                     <td class="py-2 px-4 text-lg" x-html="renderStepRule(step.rule)"></td>
                     <td class="text-sm text-right">
@@ -158,8 +160,9 @@
               <option :value="Prayoga.Karmani" x-text="deva('karmaRi')"></option>
             </select>
 
+            <span class="p-2 bg-white rounded border">
             <label x-text="deva('sanAdi')"></label>
-            <select x-model="sanadi" class="p-2 bg-white rounded border">
+            <select  class="bg-blue-100 rounded text-blue-800"  x-model="sanadi">
               <option value="">(none)</option>
               <option value="san" x-text="deva('sannante')"></option>
               <option value="Ric" x-text="deva('Rijante')"></option>
@@ -172,16 +175,27 @@
               <option value="yaN,Ric" x-text="deva('yaN + Rijante')"></option>
               <option value="yaNluk,Ric" x-text="deva('yaNluk + Ricjante')"></option>
             </select>
+            </span>
+
+            <span class="p-2 bg-white rounded border">
+              <label x-text="deva('mANyoga')"></label>
+              <input type="checkbox"  x-model="skipAtAgama"/>
+              <span class="text-sm opacity-70" x-text="' Eg. '+deva('klEbyaM')"></span>
+              <span class="text-sm bg-orange-200" x-text="deva('mA')"></span>
+              <span class="text-sm opacity-70" x-text="deva(' sma ')"></span>
+              <span class="text-sm bg-orange-200" x-text="deva('gamaH')"></span>
+              <span class="text-sm opacity-70" x-text="deva(' pArTa')"></span>
+            </span>
           </div>
 
           <p class="text-slate-500">(Click on a <i>pada</i> to see its <i>prakriyā</i>.)</p>
 
           <template x-for="la in createAllTinantas()">
             <section>
-              <h1 class="text-2xl font-bold my-4" x-text="la.title"></h1>
+              <h1 :class="['luN', 'laN', 'lfN'].includes(to_slp1(la.title)) && skipAtAgama ? 'text-2xl font-bold bg-orange-100 my-4' : 'text-2xl font-bold my-4'" x-text="la.title"></h1>
 
               <template x-if="la.Parasmaipada">
-                <table class="w-full my-4 text-left table-fixed text-xl border">
+                <table :class="['luN', 'laN', 'lfN'].includes(to_slp1(la.title)) && skipAtAgama ? 'w-full my-4 text-left table-fixed text-xl border-4 border-orange-100': 'w-full my-4 text-left table-fixed text-xl border'" >
                   <template x-for="row in la.Parasmaipada">
                     <tr>
                       <template x-for="cell in row">
@@ -204,7 +218,7 @@
               </template>
 
               <template x-if="la.Atmanepada">
-                <table class="w-full my-4 text-left table-fixed text-xl border">
+                <table :class="['luN', 'laN', 'lfN'].includes(to_slp1(la.title)) && skipAtAgama ? 'w-full my-4 text-left table-fixed text-xl border-4 border-orange-100': 'w-full my-4 text-left table-fixed text-xl border'" >
                   <template x-for="row in la.Atmanepada">
                     <tr>
                       <template x-for="cell in row">
@@ -280,12 +294,19 @@
       </ol>
     </div>
 
-    <!-- Subanta paradigm table -->
-    <template x-if="supParadigm">
-      <div>
-        <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearSupPratipadika">
-          &times; <span x-text="deva(supActivePratipadika.text)"></span>
+    <div x-show="supActivePratipadika">
+      <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearSupPratipadika">
+        &times; <span x-text="deva(supActivePratipadika.text)"></span>
+      </button>
+      <template x-if="activePada">
+        <button class="bg-slate-600 text-white rounded p-2 hover:bg-slate-800" @click="clearActivePada">
+          &times; <span x-text="deva(activePada.text)"></span>
         </button>
+      </template>
+    </div>
+    <!-- Subanta paradigm table -->
+    <template x-if="supParadigm && !activePada">
+      <div>
         <table class="w-full my-4 text-left table-fixed text-xl border">
           <tr class="bg-slate-100">
             <th>&nbsp;</th>

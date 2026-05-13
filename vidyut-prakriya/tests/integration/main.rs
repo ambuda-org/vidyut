@@ -30,7 +30,7 @@ mod kashika_7_1;
 mod kashika_7_2;
 mod kashika_7_3;
 mod kashika_7_4;
-// mod kashika_8_1;
+mod kashika_8_1;
 mod kashika_8_2;
 mod kashika_8_3;
 mod kashika_8_4;

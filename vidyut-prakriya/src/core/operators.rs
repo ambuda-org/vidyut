@@ -233,7 +233,7 @@ pub fn slu(t: &mut Term) {
 
 /// Deletes all of the text in the given term through *lup*.
 #[allow(unused)]
-fn lup(t: &mut Term) {
+pub fn lup(t: &mut Term) {
     lopa(t);
     t.add_tag(T::Lup);
 }

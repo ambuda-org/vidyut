@@ -252,12 +252,8 @@ fn try_natva_for_span(
         }
     } else {
         // 8.4.1 states *samAna-pade*, which means that the span must not cross a pada.
-        // Exclude the upapada's sup (FlagUpapadaSup), which is internal to the krdanta
-        // compound and does not create a pada boundary for natva.
+        // 8.4.12 is for non-samAna-pade ekAc
         let is_samana_pada = !ip.p.terms()[i_x..i_y].iter().any(|t| {
-            if t.has_tag(T::FlagUpapadaSup) && !y.is_upasarga() {
-                return false;
-            }
             t.has_tag_in(&[T::Sup, T::Tin])
                 || (t.has_tag(T::Pada) && !t.is_pratipadika() && !t.is_nyap_pratyaya())
         });
@@ -268,11 +264,29 @@ fn try_natva_for_span(
                 && i_n.i_char + 1 < t.text.len() // n is within pratipadika and not final
             || t.starts_with("srOGn") // special exception for srOGna from sruGna
         });
-        // Bhashya: kuvyavaye hAdeshezu pratiSedho vaktavyaH -- when `h` of `han`
-        // has been replaced by `G` (ku-varga) via 7.3.54, that `G` blocks natva
-        // even though ku-varga normally doesn't.
-        let is_ha_adesha_blocked = y.is_u(Au::hana) && y.has_adi('G');
-        if is_samana_pada && !is_within_basic_phit && !is_ha_adesha_blocked {
+        // The non samAna-pada case
+        if !is_samana_pada && i_x != i_y && ip.p.is_pada(i_x) {
+            if x.has_text_in(&["grAma", "agra"]) && y.has_u("RI\\Y") {
+                // See Kashika on 3.2.61 and SK 2975.
+                ip.run_for_char(Rule::Kaumudi("2975"), i_n, "R");
+            } else {
+                let i_z = ip.p.find_prev_where(i_y, |t| !t.is_empty())?;
+                let z = ip.p.get(i_z)?;
+
+                if y.is_ekac() && i_z == i_x
+                    || (z.text.len() == 1
+                        && (y.is_vibhakti() || y.is_pratyaya() || y.has_tag(T::FlagNum))
+                        && i_z != i_x)
+                {
+                    ip.run_for_char("8.4.12", i_n, "R");
+                } else if z.text.len() > 2
+                    && (y.is_vibhakti() || y.is_pratyaya() || y.has_tag(T::FlagNum))
+                    && i_z != i_x
+                {
+                    ip.optional_run_for_char("8.4.11", i_n, "R");
+                }
+            }
+        } else if is_samana_pada && !is_within_basic_phit {
             if ip.next(i_rs) == Some(i_n.clone()) {
                 // When R immediately follows r/z
                 ip.run_for_char("8.4.1", i_n, "R");
@@ -280,9 +294,6 @@ fn try_natva_for_span(
                 // When r/z and R are intervened by at, ku, etc.
                 ip.run_for_char("8.4.2", i_n, "R");
             }
-        } else if x.has_text_in(&["grAma", "agra"]) && y.has_u("RI\\Y") {
-            // See Kashika on 3.2.61 and SK 2975.
-            ip.run_for_char(Rule::Kaumudi("2975"), i_n, "R");
         }
     }
 

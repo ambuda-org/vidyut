@@ -98,6 +98,7 @@ impl Rule {
             Kaumudi(_) => "kaumudi",
             Unadipatha(_) => "unadi",
             Phit(_) => "phit",
+            Anyatra(_) => "anyatra",
         }
     }
 }
@@ -140,18 +141,20 @@ struct DhatuArgs {
 #[derive(Serialize, Deserialize)]
 struct KrdantaArgs {
     dhatu: DhatuArgs,
-    krt: BaseKrt,
+    krt: Option<BaseKrt>,
+    unadi: Option<Unadi>,
     lakara: Option<Lakara>,
     prayoga: Option<Prayoga>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     upapada: Option<UpapadadArgs>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct UpapadadArgs {
-    stem: String,
-    linga: Linga,
-    vibhakti: Vibhakti,
-    vacana: Vacana,
+    stem: Option<String>,
+    linga: Option<Linga>,
+    vibhakti: Option<Vibhakti>,
+    vacana: Option<Vacana>,
 }
 
 // rust-wasm does not support enums, so fake enum-like behavior through a struct with optional
@@ -187,6 +190,7 @@ struct TinantaArgs {
     prayoga: Prayoga,
     purusha: Purusha,
     vacana: Vacana,
+    skip_at_agama: bool,
     pada: Option<DhatuPada>,
 }
 
@@ -218,7 +222,13 @@ impl DhatuArgs {
 impl KrdantaArgs {
     fn into_rust(self) -> Result<Krdanta> {
         let dhatu: Dhatu = self.dhatu.into_rust()?;
-        let mut builder = Krdanta::builder().dhatu(dhatu).krt(self.krt);
+        let mut builder = Krdanta::builder().dhatu(dhatu);
+
+        if let Some(unadi) = self.unadi {
+            builder = builder.krt(unadi);
+        } else if let Some(krt) = self.krt {
+            builder = builder.krt(krt);
+        }
         if let Some(la) = self.lakara {
             builder = builder.lakara(la);
         }
@@ -226,12 +236,23 @@ impl KrdantaArgs {
             builder = builder.prayoga(prayoga);
         }
         if let Some(upapada) = self.upapada {
-            let pratipadika = Pratipadika::basic(Slp1String::from(upapada.stem)?);
-            let subanta =
-                Subanta::new(pratipadika, upapada.linga, upapada.vibhakti, upapada.vacana);
-            builder = builder.upapada(subanta);
-        }
+            if let Some(stem_val) = upapada.stem {
+                debug(&format!(
+                    "[vidyut debug] upapada:v={}, l={}",
+                    upapada.vibhakti.unwrap(),
+                    upapada.linga.unwrap()
+                ));
+                let pratipadika = Pratipadika::basic(Slp1String::from(stem_val)?);
 
+                let subanta = Subanta::new(
+                    pratipadika,
+                    upapada.linga.unwrap(),
+                    upapada.vibhakti.unwrap(),
+                    upapada.vacana.unwrap(),
+                );
+                builder = builder.upapada(subanta);
+            }
+        }
         builder.build()
     }
 }
@@ -285,7 +306,8 @@ impl TinantaArgs {
             .lakara(self.lakara)
             .prayoga(self.prayoga)
             .purusha(self.purusha)
-            .vacana(self.vacana);
+            .vacana(self.vacana)
+            .skip_at_agama(self.skip_at_agama);
         if let Some(pada) = self.pada {
             args = args.pada(pada);
         }

@@ -308,7 +308,8 @@ pub fn run_before_vikarana(
     } else if dhatu.has_u("ve\\Y") && n.has_lakara(Lit) {
         op::optional_adesha("2.4.41", p, i, Au::vayi.as_str());
     } else if dhatu.has_text("han") {
-        if n.last().is_lin_lakara() {
+        if n.last().has_lakara_in(&[AshirLin]) {
+            // 3.4.116
             // vaDyAt
             do_vadha_adesha("2.4.42", p, i);
         } else if n.has_lakara(Lun) {

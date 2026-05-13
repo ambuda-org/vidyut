@@ -1082,13 +1082,13 @@ fn sutra_7_2_60() {
     assert_has_tip(&[], &kfp, Lrn, &["akalpsyat"]);
     assert_has_tip(&[], &san(&kfp), Lat, &["cikxpsati"]);
     // parasmaipadezu
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &[],
         &kfp,
         Lut,
         Madhyama,
         Eka,
-        &["kalptAsi", "kalptAse", "kalpitAse"],
+        &["kalptAsi", "kalptAse", "kalpitAse"]
     );
     assert_has_ta(&[], &kfp, Lrt, &["kalpizyate", "kalpsyate"]);
     assert_has_ta(&[], &kfp, AshirLin, &["kalpizIzwa", "kxpsIzwa"]);
@@ -1362,28 +1362,28 @@ fn sutra_7_2_78() {
 #[test]
 fn sutra_7_2_79() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_tinantas(&[], &kf, VidhiLin, Prathama, Eka, &["kuryAt", "kurvIta"]);
-    assert_has_tinantas(
+    assert_has_tinantas!(&[], &kf, VidhiLin, Prathama, Eka, &["kuryAt", "kurvIta"]);
+    assert_has_tinantas!(
         &[],
         &kf,
         VidhiLin,
         Prathama,
         Dvi,
-        &["kuryAtAm", "kurvIyAtAm"],
+        &["kuryAtAm", "kurvIyAtAm"]
     );
-    assert_has_tinantas(&[], &kf, VidhiLin, Prathama, Bahu, &["kuryuH", "kurvIran"]);
+    assert_has_tinantas!(&[], &kf, VidhiLin, Prathama, Bahu, &["kuryuH", "kurvIran"]);
     // anantasya
     assert_has_sip(&[], &kf, VidhiLin, &["kuryAH"]);
     // sArvadhAtuke
-    assert_has_tinantas(
+    assert_has_tinantas!(
         &[],
         &kf,
         AshirLin,
         Prathama,
         Dvi,
-        &["kriyAstAm", "kfzIyAstAm"],
+        &["kriyAstAm", "kfzIyAstAm"]
     );
-    assert_has_tinantas(&[], &kf, AshirLin, Prathama, Bahu, &["kriyAsuH", "kfzIran"]);
+    assert_has_tinantas!(&[], &kf, AshirLin, Prathama, Bahu, &["kriyAsuH", "kfzIran"]);
     assert_has_ta(&[], &kf, AshirLin, &["kfzIzwa"]);
 }
 
@@ -1473,10 +1473,10 @@ fn sutra_7_2_86() {
 
 #[test]
 fn sutra_7_2_87() {
-    assert_has_sup_2s("yuzmad", Pum, &["tvAm"]);
-    assert_has_sup_2s("asmad", Pum, &["mAm"]);
-    assert_has_sup_2d("yuzmad", Pum, &["yuvAm"]);
-    assert_has_sup_2d("asmad", Pum, &["AvAm"]);
+    assert_has_sup_2s("yuzmad", Pum, &["tvA", "tvAm"]);
+    assert_has_sup_2s("asmad", Pum, &["mA", "mAm"]);
+    assert_has_sup_2d("yuzmad", Pum, &["vAm", "yuvAm"]);
+    assert_has_sup_2d("asmad", Pum, &["nO", "AvAm"]);
 }
 
 #[test]
@@ -1569,8 +1569,8 @@ fn sutra_7_2_96() {
 
 #[test]
 fn sutra_7_2_97() {
-    assert_has_sup_2s("yuzmad", Pum, &["tvAm"]);
-    assert_has_sup_2s("asmad", Pum, &["mAm"]);
+    assert_has_sup_2s("yuzmad", Pum, &["tvA", "tvAm"]);
+    assert_has_sup_2s("asmad", Pum, &["mA", "mAm"]);
     assert_has_sup_3s("yuzmad", Pum, &["tvayA"]);
     assert_has_sup_3s("asmad", Pum, &["mayA"]);
     assert_has_sup_5s("yuzmad", Pum, &["tvat"]);

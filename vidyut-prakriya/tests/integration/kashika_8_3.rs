@@ -287,6 +287,10 @@ fn sutra_8_3_55() {
 }
 
 #[test]
+fn sutra_8_3_58() {
+    assert_has_sup_1p("Danus", Napumsaka, &["DanUMzi"]);
+}
+#[test]
 fn sutra_8_3_59() {
     assert_has_tip(&[], &d("zivu~", Divadi), Lit, &["sizeva"]);
     assert_has_tip(&[], &d("Yizva\\pa~", Adadi), Lit, &["suzvApa"]);

@@ -7,9 +7,8 @@ Various rules that create subantas. These rules come primarily from adhyayas 6 n
 If a subanta rule is deeply intertwined with other kinds of rules, we keep it out of this module in
 favor of more generic modules like `angasya.rs`.
 */
-use crate::angasya::asiddhavat;
+use crate::angasya::{asiddhavat, try_change_cu_to_ku};
 use crate::args::Agama as A;
-use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::BaseKrt::kvip;
 use crate::args::Stri as S;
@@ -37,7 +36,7 @@ fn add_num(t: &mut Term) {
 /// 6.4.2 - 6.4.19
 fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
     let i_sup = p.find_last_with_tag(T::Sup)?;
-    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama())?;
+    let i_anga = p.find_prev_where(i_sup, |t| !t.is_agama() && !t.is_empty())?;
 
     let anga = p.get(i_anga)?;
     let sup = p.get(i_sup)?;
@@ -66,15 +65,46 @@ fn try_dirgha_adesha_after_num_agama(p: &mut Prakriya) -> Option<()> {
         let anga = p.get(i_anga)?;
         let sup = p.get(i_sup)?;
         let sau = sup.is(Sup::su);
+        let mut is_puzan_aryaman_han = anga.has_text_in(&["pUzan", "aryaman", "han"]);
+        if anga.is_unadi() || anga.is_krt() {
+            // collect the text from dhatu onwards
+            if let Some(i_dhatu) = p.find_prev_where(i_anga, |t| t.is_dhatu()) {
+                let text: String = p.terms()[i_dhatu..=i_anga]
+                    .iter()
+                    .map(|t| t.text.clone())
+                    .collect();
+                let mut with_upapada_text = String::new();
+                if i_dhatu > 1 {
+                    with_upapada_text = p.terms()[i_dhatu - 2..=i_anga]
+                        .iter()
+                        .map(|t| t.text.clone())
+                        .collect();
+                }
+                if ["pUzan", "aryaman"].contains(&text.as_str())
+                    || ["pUzan", "aryaman"].contains(&with_upapada_text.as_str())
+                {
+                    is_puzan_aryaman_han = true;
+                }
+            }
+        }
+
         if anga.has_antya('n') {
-            if anga.ends_with("in") || anga.has_text_in(&["pUzan", "aryaman"]) {
+            if anga.ends_with("in") || is_puzan_aryaman_han {
                 let sub = al::to_dirgha(anga.upadha()?)?;
                 if (sup.is(Sup::jas) || sup.is(Sup::Sas)) && sup.has_text("i") {
                     // yogIni
                     p.run_at("6.4.12", i_anga, |t| t.set_upadha_char(sub));
                 } else if sau {
-                    // yogI
-                    p.run_at("6.4.13", i_anga, |t| t.set_upadha_char(sub));
+                    // 6.4.8: upadha-dirgha for prathama ekavachana (su).
+                    // Applied here because the subanta code can't see past the empty kvip to
+                    // reach `han`. Only for `su` because n-lopa (8.2.7) applies there.
+                    // (e.g. vftrahan + su -> vftrahA)
+                    if is_puzan_aryaman_han {
+                        p.run_at("6.4.8", i_anga, |t| t.set_upadha_char(sub));
+                    } else {
+                        // yogI
+                        p.run_at("6.4.13", i_anga, |t| t.set_upadha_char(sub));
+                    }
                 }
             } else if !sup.is_lupta() {
                 // PalAni
@@ -287,34 +317,26 @@ fn try_add_num_agama_to_anga(p: &mut Prakriya, i_anga: usize) -> Option<()> {
         let shatr = anga.has_u("Satf~");
         // No `?` for i_prev here to avoid exiting early for e.g. "pums".
         let i_prev = p.find_prev_where(i_anga, |t| !t.is_empty());
-        let is_abhyasta = p.terms()[..i_anga]
-            .iter()
-            .rev()
-            .any(|t| !t.is_empty() && (t.is_abhyasta() || t.is_abhyasa() || t.is_yan_luk()));
 
         if shatr && (p.has(i_anga + 1, |t| t.has_u("SI") || t.has_tag(T::Nadi))) && i_anga > 0 {
-            if is_abhyasta {
-                p.step("7.1.78");
-            } else {
-                let aat = p.has(i_prev?, |t| t.has_antya('a') || t.has_antya('A'));
-                if aat
-                    || p.has(i_anga - 1, |t| {
-                        (t.is(V::Sap) || t.is(V::Syan) || t.is(V::Sa)) && !t.is_lupta()
-                    })
-                {
-                    if p.has(i_anga - 1, |t| {
-                        (t.is(V::Sap) || t.is(V::Syan)) && !t.is_lupta()
-                    }) {
-                        // pacantI, pacanti, ...
-                        p.run_at("7.1.81", i_anga, add_num);
-                    } else {
-                        // tudatI, tudantI, ...
-                        p.optional_run_at("7.1.80", i_anga, add_num);
-                    }
+            let aat = p.has(i_prev?, |t| t.has_antya('a') || t.has_antya('A'));
+            if aat
+                || p.has(i_anga - 1, |t| {
+                    (t.is(V::Sap) || t.is(V::Syan) || t.is(V::Sa)) && !t.is_lupta()
+                })
+            {
+                if p.has(i_anga - 1, |t| {
+                    (t.is(V::Sap) || t.is(V::Syan)) && !t.is_lupta()
+                }) {
+                    // pacantI, pacanti, ...
+                    p.run_at("7.1.81", i_anga, add_num);
+                } else {
+                    // tudatI, tudantI, ...
+                    p.optional_run_at("7.1.80", i_anga, add_num);
                 }
             }
         } else if sup.is_sarvanamasthana() {
-            if shatr && is_abhyasta {
+            if shatr && p.has(i_prev?, |t| t.is_abhyasta()) {
                 if napum {
                     // dadati, dadanti, ...
                     p.optional_run_at("7.1.79", i_anga, add_num);
@@ -567,8 +589,6 @@ fn try_anga_adesha_after_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
     }
 
     if anga.has_text_in(&["yuzmad", "asmad"]) {
-        let is_asmad = anga.has_text("asmad");
-        let is_yuzmad = anga.has_text("yuzmad");
         let anadesha = !sup.last().has_tag(T::Adesha);
 
         if sup.has_adi(AC) && anadesha {
@@ -622,68 +642,6 @@ fn try_anga_adesha_after_vibhakti_changes(p: &mut Prakriya) -> Option<()> {
                 t.find_and_replace_text("yuzm", "tva");
                 t.find_and_replace_text("asm", "ma");
             });
-        }
-
-        // Enclitic variants for dative/genitive pronouns.
-        let (i_sup_start, i_sup_end, is_v4, is_v6, is_ekavacana, is_dvivacana, is_bahuvacana) = {
-            let sup_view = p.pratyaya(i_sup)?;
-            let sup = sup_view.last();
-            (
-                sup_view.start(),
-                sup_view.end(),
-                sup.has_tag(T::V4),
-                sup.has_tag(T::V6),
-                sup.has_tag(T::Ekavacana),
-                sup.has_tag(T::Dvivacana),
-                sup.has_tag(T::Bahuvacana),
-            )
-        };
-        let is_dative_or_genitive = is_v4 || is_v6;
-
-        let set_sup_text = |p: &mut Prakriya, text: &str| {
-            if text.is_empty() {
-                p.set(i_sup_start, op::luk);
-            } else {
-                p.set(i_sup_start, |t| t.set_text(text));
-            }
-            for j in (i_sup_start + 1)..=i_sup_end {
-                p.set(j, op::luk);
-            }
-        };
-
-        if is_dative_or_genitive {
-            if is_ekavacana {
-                p.optional_run(Varttika("7.2.95.1"), |p| {
-                    if is_asmad {
-                        p.set(i, op::text("me"));
-                    } else if is_yuzmad {
-                        p.set(i, op::text("te"));
-                    }
-                    if is_v6 {
-                        set_sup_text(p, "s");
-                    } else {
-                        set_sup_text(p, "");
-                    }
-                });
-            } else if is_dvivacana {
-                p.optional_run(Varttika("7.2.95.2"), |p| {
-                    if is_asmad {
-                        p.set(i, op::text("nO"));
-                    } else if is_yuzmad {
-                        p.set(i, op::text("vAm"));
-                    }
-                    set_sup_text(p, "");
-                });
-            } else if is_bahuvacana {
-                p.optional_run(Varttika("7.2.95.3"), |p| {
-                    if is_asmad {
-                        p.set(i, op::text("naH"));
-                    } else if is_yuzmad {
-                        p.set(i, op::text("vaH"));
-                    }
-                    set_sup_text(p, "");
-                });
-            }
         }
     } else if anga.has_u("idam") && anga.has_antya('a') {
         if sup.last().has_tag_in(&[T::V1, T::V2]) {
@@ -944,15 +902,10 @@ pub fn run(p: &mut Prakriya) {
     // - change of of "-an" to "-n" (6.4.134)
     samjna::try_run_for_pada_or_bha(p);
     asiddhavat::bhasya(p);
-
-    // 7.3.54 (ho hanteḥ): h -> G before n, after bhasya may have reduced `han` to `hn`.
-    for i in 0..p.terms().len() {
-        let t = p.get_if(i, |t| t.is_u(Au::hana) && t.has_text("hn"));
-        if t.is_some() {
-            p.run_at("7.3.54", i, op::adi("G"));
-        }
+    // Complete bhasya processing before applying "cu to ku" rules !!
+    for i in 0..p.len() {
+        try_change_cu_to_ku(p, i);
     }
-
     run_after_bhasya(p);
     try_anga_adesha_after_vibhakti_changes(p);
 }

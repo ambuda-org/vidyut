@@ -104,6 +104,28 @@ fn sutra_8_4_8() {
 }
 
 #[test]
+fn sutra_8_4_11() {
+    let vftrahan = upapada_krdanta("mAza", &[], &d("quva\\pa~^", Bhvadi), Krt::aR);
+    assert_has_sup_1p(&vftrahan, Napumsaka, &["mAzavApARi", "mAzavApAni"]);
+    assert_has_sup_2p(&vftrahan, Napumsaka, &["mAzavApARi", "mAzavApAni"]);
+    assert_has_sup_3s(&vftrahan, Napumsaka, &["mAzavApeRa", "mAzavApena"]);
+}
+#[test]
+fn sutra_8_4_12() {
+    let vftrahan = upapada_krdanta("vftra", &[], &d("ha\\na~", Adadi), Krt::kvip);
+    assert_has_sup_1d(&vftrahan, Pum, &["vftrahaRO"]); // ekac
+    assert_has_sup_1p(&vftrahan, Pum, &["vftrahaRaH"]); // ekac
+    assert_has_sup_2s(&vftrahan, Pum, &["vftrahaRam"]);
+
+    let kzirapa = upapada_krdanta("kzIra", &[], &d("pA\\", Bhvadi), Krt::ka);
+    assert_has_sup_1p(&kzirapa, Napumsaka, &["kzIrapARi"]); // "num"
+    assert_has_sup_3s(&kzirapa, Napumsaka, &["kzIrapeRa"]); // "vibhakti"
+
+    let harimaani = upapada_krdanta("hari", &[], &d("mAna~", Curadi), Krt::Rini);
+    assert_has_sup_1s(&harimaani, Pum, &["harimARI"]); // ekac
+}
+
+#[test]
 fn sutra_8_4_14() {
     let nam = d("Ra\\ma~", Bhvadi);
     assert_has_tip(&["pra"], &nam, Lat, &["praRamati"]);

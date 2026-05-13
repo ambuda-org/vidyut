@@ -59,6 +59,10 @@ pub enum Rule {
     ///
     /// Format: `<sutra>`
     Kaumudi(&'static str),
+    /// An escape link to other references,
+    ///
+    ///  Format: '<description _no_commas>, <link>'
+    Anyatra(&'static str),
 }
 
 impl Rule {
@@ -81,6 +85,7 @@ impl Rule {
             Self::Phit(x) => x,
             Self::Kashika(x) => x,
             Self::Kaumudi(x) => x,
+            Self::Anyatra(x) => x,
         }
     }
 
@@ -103,6 +108,7 @@ impl Rule {
             Self::Phit(_) => "PiwsUtrARi",
             Self::Unadipatha(_) => "uRAdipAWaH",
             Self::Varttika(_) => "vArttikAH",
+            Self::Anyatra(_) => "anyatra",
         }
     }
 }

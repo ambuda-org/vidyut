@@ -363,16 +363,16 @@ fn skip_sk_389() {}
 
 #[test]
 fn sk_390() {
-    assert_has_sup_2s("yuzmad", Pum, &["tvAm"]);
-    assert_has_sup_2s("asmad", Pum, &["mAm"]);
-    assert_has_sup_2d("yuzmad", Pum, &["yuvAm"]);
-    assert_has_sup_2d("asmad", Pum, &["AvAm"]);
+    assert_has_sup_2s("yuzmad", Pum, &["tvA", "tvAm"]);
+    assert_has_sup_2s("asmad", Pum, &["mA", "mAm"]);
+    assert_has_sup_2d("yuzmad", Pum, &["vAm", "yuvAm"]);
+    assert_has_sup_2d("asmad", Pum, &["nO", "AvAm"]);
 }
 
 #[test]
 fn sk_391() {
-    assert_has_sup_2p("yuzmad", Pum, &["yuzmAn"]);
-    assert_has_sup_2p("asmad", Pum, &["asmAn"]);
+    assert_has_sup_2p("yuzmad", Pum, &["yuzmAn", "vaH"]);
+    assert_has_sup_2p("asmad", Pum, &["asmAn", "naH"]);
 }
 
 #[test]
