@@ -170,6 +170,9 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         // (RV: 31 attested forms — kṛṇavā, bharā, bravā, stavā, arcā, ayā,
         // karā, vocā, etc.). For bhū this gives bhavā alongside bhavāni
         // (pit) and bhavān (Nit + 3.4.100).
+        // TODO Add vartika/grammar reference in varttikas.tsv
+        // See McDonnell's Vedic grammar for leṭ (from laṭ stem)
+        // https://archive.org/details/cu31924023050325/page/n325/mode/2up
         let tin = p.get(i)?;
         if p.has_tag(PT::Uttama) && tin.has_tag(T::Ekavacana) && tin.is_parasmaipada() {
             p.optional_run_at("3.4.98.v1", i, op::lopa);
