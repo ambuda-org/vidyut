@@ -232,11 +232,18 @@ impl Kosha {
                 }
             }
         }
-        node.is_final()
+
+        if node.is_final() {
+            let packed = to_packed_entry(out.cat(node.final_output()));
+            if !packed.is_prefix() {
+                return true;
+            }
+        }
+        false
     }
 
     fn contains_suffix(&self, suffix: &str, node: Node, out_base: Output) -> bool {
-        let prefix_entry = to_packed_entry(out_base);
+        let prefix_entry = to_packed_entry(out_base.cat(node.final_output()));
 
         if self.packer.contains_suffix(&prefix_entry, suffix) {
             return true;
