@@ -123,16 +123,30 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
             }
         }
     } else if tin.has_lakara(Let) {
+        // 3.4.89 also fires under leṬ — mip → ni in 1sg (parallel to its
+        // application under Loṭ below). Yields BavAni (pit) and BavAn (Nit).
+        if tin.ends_with("mi") {
+            op::adesha("3.4.89", p, i, "ni");
+        }
+
         let agama = if uses_sip_vikarana(p, i_dhatu) {
             A::aw
         } else {
             A::Aw
         };
-        p.run("3.4.94", |p| {
-            // Add pit to the pratyaya, not the Agama.
-            p.set(i, |t| t.add_tag(T::pit));
+        // 3.4.94 inserts the agama. The pratyaya is optionally Nit (giving the
+        // short forms BavAt, BavAn, BavAs after 3.4.100) or pit (default,
+        // giving BavAti, BavAnti, BavAsi).
+        let nit_branch = p.optional_run("3.4.94.v1", |p| {
+            p.set(i, |t| t.add_tag(T::Nit));
             p.insert(i, agama);
         });
+        if !nit_branch {
+            p.run("3.4.94", |p| {
+                p.set(i, |t| t.add_tag(T::pit));
+                p.insert(i, agama);
+            });
+        }
         it_samjna::run(p, i).ok()?;
 
         let i = i + 1;
@@ -149,6 +163,19 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
         } else if p.has_tag(PT::Uttama) && tin.has_antya('s') {
             // karavAva, karavAma; karavAvaH, karavAmaH
             p.optional_run_at("3.4.98", i, op::antya_lopa);
+        }
+
+        // Vedic vārttika to 3.4.98: under leṬ Uttama 1sg paras, the pratyaya
+        // optionally luk-elides entirely, yielding the bare-ā 1sg subjunctive
+        // (RV: 31 attested forms — kṛṇavā, bharā, bravā, stavā, arcā, ayā,
+        // karā, vocā, etc.). For bhū this gives bhavā alongside bhavāni
+        // (pit) and bhavān (Nit + 3.4.100).
+        // TODO Add vartika/grammar reference in varttikas.tsv
+        // See McDonnell's Vedic grammar for leṭ (from laṭ stem)
+        // https://archive.org/details/cu31924023050325/page/n325/mode/2up
+        let tin = p.get(i)?;
+        if p.has_tag(PT::Uttama) && tin.has_tag(T::Ekavacana) && tin.is_parasmaipada() {
+            p.optional_run_at("3.4.98.v1", i, op::lopa);
         }
     } else if tin.has_lakara(Lot) {
         // Applies tin-siddhi rules that apply to just loT.
@@ -249,6 +276,27 @@ fn siddhi(p: &mut Prakriya, la: Lakara) -> Option<()> {
                 p.run_at("3.4.100", i, op::antya(""));
             }
         }
+    }
+
+    // leṬ Nit-branch: drop final -i for parasmaipada (3.4.100). The leṬ
+    // pratyaya is optionally Nit-tagged in the leṬ block above (alternative to
+    // pit per 3.4.94). The s-lopa for Uttama is not duplicated here — it's
+    // already handled by the optional 3.4.98 in the leṬ block.
+    //
+    // Skip for 1sg Uttama: the lakāra-derived Nit-tva does not propagate to
+    // the `ni` substitute from 3.4.89 (Kashika on 3.4.103: lakArAzrayaGitvam
+    // AdezAnAM na bhavati). So 3.4.100's i-drop should not apply to the i of
+    // -ni. RV corpus confirms: 0 attestations of -an for 1sg paras subj
+    // across 1613 forms; only bhavāni (pit) and bhavā (3.4.98.v1 luk) appear.
+    if la == Lakara::Let
+        && p.has(i, |t| {
+            t.is_parasmaipada()
+                && t.has_tag(T::Nit)
+                && t.has_antya('i')
+                && !(t.has_tag(T::Uttama) && t.has_tag(T::Ekavacana))
+        })
+    {
+        p.run_at("3.4.100", i, op::antya(""));
     }
 
     // liN-only siddhi

@@ -257,22 +257,33 @@ fn sutra_3_4_93() {
 
 #[test]
 fn sutra_3_4_94() {
-    // No `\\` to force parasmaipada
-    // -ti forms are not attested but optional by 3.4.97.
+    // No `\\` to force parasmaipada.
+    // 3.4.97 mandatorily drops the final -i for these dhātus, so both pit
+    // and Nit branches converge to the same form.
     assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat"]);
     assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat"]);
     assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat"]);
 
-    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti"]);
-    assert_has_tip(&[], &nic(&d("cyu\\N", Bhvadi)), Let, &["cyAvayAti"]);
+    // For non-3.4.97 dhātus, the pit/Nit fork (3.4.94/3.4.94.v1) produces
+    // both the long pit form and the short Nit form (after 3.4.100).
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti", "patAt"]);
+    assert_has_tip(
+        &[],
+        &nic(&d("cyu\\N", Bhvadi)),
+        Let,
+        &["cyAvayAti", "cyAvayAt"],
+    );
 }
 
 #[test]
 fn sutra_3_4_95() {
     assert_has_aataam(&[], &d("matri~", Curadi), Let, &["mantrayEte"]);
     assert_has_aathaam(&[], &d("matri~", Curadi), Let, &["mantrayETe"]);
-    assert_has_aataam(&[], &d("qukf\\Y", Tanadi), Let, &["karavEte"]);
-    assert_has_aathaam(&[], &d("qukf\\Y", Tanadi), Let, &["karavETe"]);
+    // Under the Nit-branch of the pit/Nit fork, 1.2.4 (sārvadhātukam apit)
+    // ngit-tags the vikaraṇa, triggering 6.4.110 (kf → kur), so kurvEte /
+    // kurvETe are also produced alongside karavEte / karavETe.
+    assert_has_aataam(&[], &d("qukf\\Y", Tanadi), Let, &["karavEte", "kurvEte"]);
+    assert_has_aathaam(&[], &d("qukf\\Y", Tanadi), Let, &["karavETe", "kurvETe"]);
 }
 
 #[ignore]
@@ -293,20 +304,40 @@ fn sutra_3_4_96() {
 
 #[test]
 fn sutra_3_4_97() {
-    // No `\\` to force parasmaipada
+    // No `\\` to force parasmaipada.
+    // Same expectation as sutra_3_4_94 — see comments there.
     assert_has_tip(&[], &d("juzI~", Tudadi), Let, &["jozizat"]);
     assert_has_tip(&[], &d("tF", Bhvadi), Let, &["tArizat"]);
     assert_has_tip(&[], &d("madi~", Bhvadi), Let, &["mandizat"]);
 
-    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti"]);
-    assert_has_tip(&[], &nic(&d("cyu\\N", Bhvadi)), Let, &["cyAvayAti"]);
+    assert_has_tip(&[], &d("patx~", Bhvadi), Let, &["patAti", "patAt"]);
+    assert_has_tip(
+        &[],
+        &nic(&d("cyu\\N", Bhvadi)),
+        Let,
+        &["cyAvayAti", "cyAvayAt"],
+    );
 }
 
 #[test]
 fn sutra_3_4_98() {
     let kf = d("qukf\\Y", Tanadi);
-    assert_has_vas(&[], &kf, Let, &["karavAva", "karavAvaH"]);
-    assert_has_mas(&[], &kf, Let, &["karavAma", "karavAmaH"]);
+    // The vārttika *leṭsambandhin uttamapuruṣasya sakārasya vā lopo bhavati*
+    // makes the final -s of 1du -vas / 1pl -mas optionally elided under leṬ
+    // (already implemented as 3.4.98). Under the Nit-branch of the pit/Nit
+    // fork, 1.2.4 → 6.4.110 also produces kurv-stem variants.
+    assert_has_vas(
+        &[],
+        &kf,
+        Let,
+        &["karavAva", "karavAvaH", "kurvAva", "kurvAvaH"],
+    );
+    assert_has_mas(
+        &[],
+        &kf,
+        Let,
+        &["karavAma", "karavAmaH", "kurvAma", "kurvAmaH"],
+    );
 }
 
 #[test]
