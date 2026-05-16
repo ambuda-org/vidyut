@@ -1431,6 +1431,11 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                     };
                     kp.try_replace_lakara(rule, i_la, krt);
                 }
+                if krt == K::kvasu {
+                    kp.p.add_tag_at("1.4.99", i_la, T::Parasmaipada);
+                } else {
+                    kp.p.add_tag_at("1.4.100", i_la, T::Atmanepada);
+                }
             }
         }
 
@@ -1469,6 +1474,11 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 }
                 if kp.has_krt {
                     kp.p.add_tag_at("3.2.127", i_la, T::Sat);
+                    if krt == K::Satf {
+                        kp.p.add_tag_at("1.4.99", i_la, T::Parasmaipada);
+                    } else {
+                        kp.p.add_tag_at("1.4.100", i_la, T::Atmanepada);
+                    }
                 }
             }
         }
