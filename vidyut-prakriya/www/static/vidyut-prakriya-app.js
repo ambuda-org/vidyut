@@ -70,7 +70,7 @@ function parseDhatus(vidyut, tsvText) {
                         antargana = Antargana.Akusmiya
                     } else if (antarganaCode >= 338 && antarganaCode <= 388) {
                         antargana = Antargana.Adhrshiya
-                    } else if (antarganaCode >= 279 && antarganaCode <= 336) {
+                    } else if (antarganaCode >= 279 && antarganaCode <= 337) {
                         antargana = Antargana.Asvadiya
                     }
                 }
