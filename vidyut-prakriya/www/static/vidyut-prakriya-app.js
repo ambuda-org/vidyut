@@ -63,16 +63,13 @@ function parseDhatus(vidyut, tsvText) {
             const gana = ganaMap[ganaCode];
             let antargana = null;
             if (antarganaCode) {
-                if (ganaCode === "01" && antarganaCode >= 867  && antarganaCode <= 932) {
+                const codeNum = parseInt(antarganaCode);
+                if (ganaCode === "01" && codeNum >= 867 && codeNum <= 932) {
                     antargana = Antargana.Ghatadi
                 } else if (ganaCode === "10") {
-                    if (antarganaCode >= 192 && antarganaCode <= 236) {
-                        antargana = Antargana.Akusmiya
-                    } else if (antarganaCode >= 338 && antarganaCode <= 388) {
-                        antargana = Antargana.Adhrshiya
-                    } else if (antarganaCode >= 279 && antarganaCode <= 337) {
-                        antargana = Antargana.Asvadiya
-                    }
+                    if (codeNum >= 279 && codeNum <= 337) antargana = Antargana.Asvadiya;
+                    else if (codeNum >= 192 && codeNum <= 236) antargana = Antargana.Akusmiya;
+                    else if (codeNum >= 338 && codeNum <= 388) antargana = Antargana.Adhrshiya;
                 }
             }
             let normalDhatu = "";
