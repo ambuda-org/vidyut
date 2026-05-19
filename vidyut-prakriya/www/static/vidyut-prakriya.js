@@ -201,10 +201,11 @@ export class Vidyut {
      * purusha: a `Purusha`
      * vacana: a `Vacana`
      * pada: a `DhatuPada`
+     * skipAtAgama: whether to skip AtAgama or not (for "mAN")
      * sanadi: a list of strings. Valid values are "san", "Ric", "yaN", and "yaNluk".
      * upasargas: a list of strings. For the upasarga "A", pass "AN".
      */
-    deriveTinantas({ dhatu, lakara, prayoga, purusha, vacana, pada = null, skipAtAgama=true }) {
+    deriveTinantas({ dhatu, lakara, prayoga, purusha, vacana, pada = null, skipAtAgama = false }) {
         return this.wasm.deriveTinantas({
             dhatu: createWasmDhatu(dhatu),
             lakara: Lakara[lakara],

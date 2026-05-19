@@ -98,13 +98,14 @@ function parseDhatus(vidyut, tsvText) {
 // What to call these params in the URL.
 const Params = {
     Dhatu: "dhatu",
+    SupActivePratipadika: "supActivePratipadika",
     Tab: "tab",
     DhatuPada: "pada",
     Prayoga: "prayoga",
     Sanadi: "sanadi",
     ActivePada: "activePada",
     Upasarga: "upasarga",
-    SkipAtAgama: "skip_at_agama",
+    SkipAtAgama: "skipAtAgama",
 }
 
 function setParam(url, key, value) {
@@ -215,26 +216,9 @@ const App = () => ({
         this.readUrlState();
 
         // Save important properties to the URL when they change.
-        this.$watch('activeDhatu', (value) => {
-            this.updateUrlState();
-        });
-        this.$watch('tab', (value) => {
-            this.updateUrlState();
-        });
-        this.$watch('sanadi', (value) => {
-            this.updateUrlState();
-        });
-        this.$watch('prayoga', (value) => {
-            this.updateUrlState();
-        });
-        this.$watch('upasarga', (value) => {
-            this.updateUrlState();
-        });
-        this.$watch('activePada', (value) => {
-            this.updateUrlState();
-        });
-        this.$watch('skipAtAgama', (value) => {
-            this.updateUrlState();
+        const watched = ['activeDhatu', 'activeTab', 'sanadi', 'prayoga', 'upasarga', 'activePada', 'skipAtAgama', 'supActivePratipadika'];
+        watched.forEach(prop => {
+            this.$watch(prop, () => this.updateUrlState());
         });
 
         this.sutras = await sutras;
@@ -256,7 +240,8 @@ const App = () => ({
         const upasarga = params.get(Params.Upasarga);
         const sanadi = params.get(Params.Sanadi);
         const activePada = params.get(Params.ActivePada);
-        const skipAtAgama = params.get(Params.skipAtAgama);
+        const skipAtAgama = params.get(Params.SkipAtAgama);
+        const supActivePratipadika = params.get(Params.SupActivePratipadika)
 
         console.log(`realUrlState, prayoga=${prayoga}, upasarga=${upasarga}, sanadi=${sanadi},  dhatuCode=${dhatuCode}`);
         if (tab) {
@@ -268,17 +253,21 @@ const App = () => ({
         if (upasarga) {
             this.upasarga = upasarga;
         }
+        if (skipAtAgama === "true") {
+            this.skipAtAgama = true;
+        }
         if (sanadi) {
             this.sanadi = sanadi;
         }
         if (dhatuCode) {
             this.setActiveDhatu(dhatuCode);
         }
+        if (supActivePratipadika) {
+            this.supActivePratipadika = JSON.parse(supActivePratipadika);
+            this.supParadigm = this.createSubantaParadigm();
+        }
         if (activePada) {
             this.setActivePada(JSON.parse(activePada));
-        }
-        if (skipAtAgama) {
-            this.skipAtAgama = skipAtAgama;
         }
     },
 
@@ -296,6 +285,11 @@ const App = () => ({
         setParam(url, Params.Sanadi, this.sanadi);
         setParam(url, Params.Upasarga, this.upasarga);
         setParam(url, Params.SkipAtAgama, this.skipAtAgama);
+        if (this.supActivePratipadika) {
+            setParam(url, Params.SupActivePratipadika, JSON.stringify(this.supActivePratipadika));
+        } else {
+            setParam(url, Params.SupActivePratipadika, null);
+        }
         if (this.activePada) {
             setParam(url, Params.ActivePada, JSON.stringify(this.activePada));
         } else {
@@ -310,6 +304,7 @@ const App = () => ({
     setActiveDhatu(s) {
         this.activeDhatu = this.dhatus.find(d => d.code === s);
         console.log("activeDhatu:", this.activeDhatu);
+        this.createAllTinantas();
         // Scroll position might be off if the user has scrolled far down the dhatu list.
         window.scrollTo({ top: 0 });
     },

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:x-on="http://www.w3.org/1999/xhtml">
 
 <head>
   <meta charset="utf-8">
@@ -42,6 +42,17 @@
     <option value="telugu">Telugu</option>
     <option value="kannada">Kannada</option>
   </select>
+  <span x-data="{ copied: false }">
+    <button class="px-3 py-1 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+      x-on:click="
+        navigator.clipboard.writeText(window.location.href);
+        copied = true;
+        setTimeout(() => copied = false, 2000);
+    ">
+      <span x-show="!copied">Copy URL</span>
+      <span x-show="copied" x-cloak>Copied!</span>
+    </button>
+  </span>
 </div>
 
 <div class="max-w-4xl mx-auto my-2 p-2">
