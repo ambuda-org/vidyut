@@ -24,6 +24,7 @@ pub struct DhatuEntry<'a> {
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct DhatuMeta {
     pub(crate) clean_text: String,
+    pub(crate) code: Option<String>,
     pub(crate) artha_sa: Option<String>,
     pub(crate) artha_hi: Option<String>,
     pub(crate) artha_en: Option<String>,
@@ -36,6 +37,7 @@ pub struct DhatuMeta {
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct DhatuMetaBuilder {
     clean_text: Option<String>,
+    code: Option<String>,
     artha_sa: Option<String>,
     artha_hi: Option<String>,
     artha_en: Option<String>,
@@ -122,6 +124,18 @@ impl<'a> DhatuEntry<'a> {
         self.meta.map_or("", |x| &x.clean_text)
     }
 
+    /// Returns the Dhatupatha code for this dhatu.
+    ///
+    /// Examples:
+    ///
+    /// - `BU` --> `01.0001`
+    /// - `eD` --> `01.0002`
+    ///
+    /// Data is sourced from <https://ashtadhyayi.com>.
+    pub fn code(&self) -> Option<&str> {
+        self.meta.and_then(|x| x.code.as_deref())
+    }
+
     /// Returns the Sanskrit meaning of this dhatu's *mūla* as an SLP1 string. All of these
     /// meaning strings come directly from the Dhatupatha.
     ///
@@ -192,6 +206,12 @@ impl DhatuMetaBuilder {
         self
     }
 
+    /// (Optional) Sets `code`.
+    pub fn code(mut self, code: String) -> Self {
+        self.code = Some(code);
+        self
+    }
+
     /// (Optional) Sets `artha_sa`.
     pub fn artha_sa(mut self, artha: String) -> Self {
         self.artha_sa = Some(artha);
@@ -235,6 +255,7 @@ impl DhatuMetaBuilder {
                 Some(x) => x,
                 _ => return Err(Error::UnsupportedType),
             },
+            code: self.code,
             artha_sa: self.artha_sa,
             artha_en: self.artha_en,
             artha_hi: self.artha_hi,

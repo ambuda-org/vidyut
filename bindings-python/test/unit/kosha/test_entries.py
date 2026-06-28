@@ -31,6 +31,20 @@ def test_dhatu_entry():
     assert results == {"gam"}
 
 
+def test_dhatu_entry_with_code():
+    gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
+    entry = DhatuEntry(dhatu=gam, clean_text="gam", code="01.1065", artha_sa="gatO")
+
+    assert entry.dhatu == gam
+    assert entry.clean_text == "gam"
+    assert entry.code == "01.1065"
+    assert entry.artha_sa == "gatO"
+
+    # Test without code
+    entry_no_code = DhatuEntry(dhatu=gam, clean_text="gam", artha_sa="gatO")
+    assert entry_no_code.code is None
+
+
 def test_dhatu_entry__dunders():
     gam = Dhatu.mula("ga\\mx~", Gana.Bhvadi)
     entry_gam = DhatuEntry(dhatu=gam, clean_text="gam", artha_sa="gatO")
@@ -48,7 +62,7 @@ def test_dhatu_entry__dunders():
     # __repr__
     assert repr(entry_gam) == (
         "DhatuEntry(dhatu=Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), "
-        "clean_text='gam', artha_sa='gatO')"
+        "clean_text='gam', code=None, artha_sa='gatO')"
     )
 
 
@@ -101,7 +115,7 @@ def test_pratipadika_entry__dunders():
 
     assert repr(gata_entry) == (
         "PratipadikaEntry.Krdanta(dhatu_entry=DhatuEntry(dhatu="
-        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam', artha_sa=None), "
+        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam', code=None, artha_sa=None), "
         "krt=Krt.kta, prayoga=None, lakara=None)"
     )
 
@@ -204,7 +218,7 @@ def test_pada_entry__dunders():
 
     assert repr(gacchati_pada) == (
         "PadaEntry.Tinanta(dhatu_entry=DhatuEntry(dhatu="
-        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam', artha_sa=None), "
+        "Dhatu(aupadeshika='ga\\mx~', gana=Gana.Bhvadi), clean_text='gam', code=None, artha_sa=None), "
         "prayoga=Prayoga.Kartari, lakara=Lakara.Lat, purusha=Purusha.Prathama, vacana=Vacana.Eka)"
     )
 
