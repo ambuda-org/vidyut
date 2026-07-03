@@ -66,6 +66,8 @@ mod dhaturatnakara;
 
 mod macdonell;
 
+mod extra_dhatu_specs;
+
 mod rv_let_aorist_corpus;
 mod rv_let_corpus;
 mod rv_let_helpers;
