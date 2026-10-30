@@ -15,6 +15,7 @@ Generally, these pratyayas are of two types:
 */
 
 use crate::args::Agama;
+use crate::args::Aupadeshika as Au;
 use crate::args::BaseKrt as K;
 use crate::args::Stri;
 use crate::args::Taddhita as D;
@@ -136,7 +137,108 @@ impl<'a> StriPrakriya<'a> {
 }
 
 /// Runs strītva rules.
+/// Adds a strI-pratyaya, then applies 7.3.44 to the stem it leaves.
 pub fn run(p: &mut Prakriya) -> Option<()> {
+    let ret = run_stri_pratyaya(p);
+    try_ittva_before_aap(p);
+    ret
+}
+
+/// 7.3.44 *pratyayasthāt kāt pūrvasyāta id āpy asupaḥ*, with 7.3.45 *na yāsayoḥ*.
+///
+/// Before an Ap (wAp, qAp, cAp), the short `a` that precedes the `k` of a pratyaya becomes `i`:
+/// kAraka + wAp -> kArikA, hAraka -> hArikA (both the Kashika's own examples), pAcaka -> pAcikA.
+///
+/// Scope, kept conservative:
+/// - the stem must end in `ka`, and that `k` must lie inside a pratyaya term (so `SakA` from the
+///   root `Sak` is untouched -- the Kashika's *pratyayagrahaRaM kim? Saknotiti SakA*);
+/// - the `a` must be short (*ataH*: rAkA, DAkA are untouched) and immediately before the `k` --
+///   so not when it merges with a root's final `A` (DA + vun -> DAkA); a short stem-final `a`
+///   is no bar, since 6.4.48 deletes it (cikIrza + Rvul -> cikIrzikA);
+/// - stems on dIDI and vevI, with or without a sanAdi affix, are left alone (7.4.53 would interfere);
+/// - no sup -- not even an elided one, as inside a samAsa -- may come before the Ap (*asupaH*);
+/// - 7.3.45 blocks it for yad and tad (yakA, sakA);
+/// - an uNAdi affix is skipped: uNAdi stems are treated as underived prAtipadikas
+///   (*uNAdayo 'vyutpannAni prAtipadikAni*), so izwakA (uNAdi 3.148) stays izwakA;
+/// - of the vArttikas on 7.3.45, the two the engine can see are implemented: *tyakanaS ca
+///   nizeDaH* (upatyakA) and *ASizi vunaS ca na* (jIvakA: 3.1.150 flags its vun). The others
+///   depend on meaning (tArakA *jyotizi*), region, a samAsa, or a list (kzipakAdi) and are not.
+///
+/// The optional variants of 7.3.46 - 7.3.49 are not implemented. The rule is idempotent: once
+/// the `a` has become `i` it no longer matches, so calling it again later is harmless.
+pub(crate) fn try_ittva_before_aap(p: &mut Prakriya) -> Option<()> {
+    let i_ap = p.find_last_where(|t| t.is_aap_pratyaya())?;
+    if p.terms()[..i_ap].iter().any(|t| t.is_sup()) {
+        // asupaH
+        return None;
+    }
+    let i_k = p.find_prev_where(i_ap, |t| !t.is_empty())?;
+    let (is_ka_pratyaya, n, a_in_term) = {
+        let t = p.get(i_k)?;
+        let n = t.len();
+        (
+            t.is_pratyaya() && !t.is_unadi() && t.has_antya('a') && t.upadha() == Some('k'),
+            n,
+            n >= 3 && t.get(n - 3) == Some('a'),
+        )
+    };
+    if !is_ka_pratyaya {
+        return None;
+    }
+    if p.terms()[..i_k].iter().any(|t| t.has_u_in(&["yad", "tad"])) {
+        // 7.3.45 na yAsayoH
+        return None;
+    }
+    let blocked_by = if p.has(i_k, |t| t.is(D::tyakan)) {
+        // upatyakA, aDityakA
+        Some(Varttika("7.3.45.1"))
+    } else if p.has(i_k, |t| t.has_tag(T::FlagNoIttva)) {
+        // jIvakA, BavakA, nandakA (vun by 3.1.150)
+        Some(Varttika("7.3.45.3"))
+    } else {
+        None
+    };
+    if let Some(rule) = blocked_by {
+        // This function can run twice in one derivation; record the vArttika once.
+        if !p.history().iter().any(|s| s.rule() == rule) {
+            p.step(rule);
+        }
+        return None;
+    }
+    if p.terms()[..i_k]
+        .iter()
+        .any(|t| t.is_any_u(&[Au::dIDIN, Au::vevIN]))
+    {
+        // An `i` here would feed 7.4.53 and delete the root's `I` (dIDikA; with Ric, diyikA).
+        // Which comes first is not settled here, so any stem on dIDI or vevI -- plain or with a
+        // sanAdi affix in between -- is left as it was.
+        return None;
+    }
+    if a_in_term {
+        if n == 3 {
+            // The `a` opens the pratyaya, so it meets the end of the term before it.
+            let i_prev = p.find_prev_where(i_k, |t| !t.is_empty())?;
+            let prev = p.get(i_prev)?;
+            if prev.has_antya('A') {
+                // DA + aka -> DAka (6.1.101): the `a` merges into a long `A`, which is not *ataH*
+                // (Kashika: *ata iti kim? rAkA, DAkA*). With Rvul, yuk (7.3.33) comes between
+                // first, so dAyaka -> dAyikA is untouched by this check.
+                return None;
+            }
+        }
+        // kAr + aka -> kAr + ika
+        p.run_at("7.3.44", i_k, move |t| t.set_at(n - 3, "i"));
+    } else if n == 2 {
+        // A bare `ka` pratyaya: the `a` is the last sound of the term before it.
+        let i_prev = p.find_prev_where(i_k, |t| !t.is_empty())?;
+        if p.has(i_prev, |t| t.has_antya('a')) {
+            p.run_at("7.3.44", i_prev, |t| t.set_antya("i"));
+        }
+    }
+    Some(())
+}
+
+fn run_stri_pratyaya(p: &mut Prakriya) -> Option<()> {
     use Stri::*;
 
     if !p.has_tag(PT::Stri) {
