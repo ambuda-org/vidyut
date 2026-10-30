@@ -250,7 +250,8 @@ fn maybe_replace_cli_with_cin(p: &mut Prakriya, i: usize) -> Option<()> {
         {
             // adIpi, ajani, aboDi, ...
             p.optional_run("3.1.61", to_cin);
-        } else if p.has_tag(PT::Karmani) {
+        } else if p.has_tag_in(&[PT::Karmani, PT::Bhave]) {
+            // 3.1.66 ciR BAvakarmaRoH -- both bhAve and karmaRi (ahAsi, aSAyi).
             p.run("3.1.66", to_cin);
         }
     }
