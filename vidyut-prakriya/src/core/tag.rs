@@ -253,6 +253,8 @@ pub enum Tag {
     FlagNoDirgha,
     /// Blocks a rule that causes hrasva.
     FlagNoHrasva,
+    /// Blocks 7.3.44 (ittva before Ap), per a vArttika on 7.3.45.
+    FlagNoIttva,
     /// Indicates use of UW-adesha.
     FlagUth,
 

@@ -1298,8 +1298,12 @@ fn try_add_krt(kp: &mut KrtPrakriya) -> Option<bool> {
                 kp.try_add("3.1.149", K::vun);
             }
 
-            // Allowed for all dhatus in the sense of ASIH.
-            kp.try_add("3.1.150", K::vun);
+            // Allowed for all dhatus in the sense of ASIH. In the feminine, 7.3.44 is blocked by
+            // the vArttika *ASizi vunaS ca na* (jIvakA, not *jIvikA).
+            kp.try_add_with("3.1.150", K::vun, |p| {
+                let i_last = p.terms().len() - 1;
+                p.set(i_last, |t| t.add_tag(T::FlagNoIttva));
+            });
         }
 
         K::Takan => {

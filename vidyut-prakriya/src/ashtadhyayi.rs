@@ -576,6 +576,9 @@ fn run_main_rules(p: &mut Prakriya, dhatu_args: Option<&Dhatu>, args: MainArgs) 
 
     ac_sandhi::try_sup_sandhi_before_angasya(p);
     angasya::run_before_dvitva(p, is_lun, skip_at_agama);
+    // 7.3.44 again, in case the `ka` of the stem only took its final shape in the anga rules
+    // above (yuvoranAkau, 7.1.1). Idempotent.
+    stritva::try_ittva_before_aap(p);
 
     if p.find_first_with_tag(Tag::Dhatu) != None {
         p.debug("==== Dvitva (default) ====");

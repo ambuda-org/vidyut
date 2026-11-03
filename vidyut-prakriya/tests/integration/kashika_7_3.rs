@@ -234,6 +234,57 @@ fn sutra_7_3_43() {
 }
 
 #[test]
+fn sutra_7_3_44() {
+    let kr = d("qukf\\Y", Tanadi);
+    let karaka = create_krdanta("kAraka", &[], &kr, Krt::Rvul);
+    assert_has_sup_1s(&karaka, Stri, &["kArikA"]);
+    let haraka = create_krdanta("hAraka", &[], &d("hf\\Y", Bhvadi), Krt::Rvul);
+    assert_has_sup_1s(&haraka, Stri, &["hArikA"]);
+    let pacaka = create_krdanta("pAcaka", &[], &d("qupa\\ca~^z", Bhvadi), Krt::Rvul);
+    assert_has_sup_1s(&pacaka, Stri, &["pAcikA"]);
+    assert_has_sup_1s(&taddhitanta("jawila", T::kan), Stri, &["jawilikA"]);
+    assert_has_sup_1s(&taddhitanta("muRqa", T::kan), Stri, &["muRqikA"]);
+    // Kaumudi
+    assert_has_sup_1s(&taddhitanta("sarva", T::akac), Stri, &["sarvikA"]);
+
+    // Apy iti kim?
+    assert_has_sup_1s(&karaka, Pum, &["kArakaH"]);
+    // pratyayasTAt: the `k` of a plain stem is not in a pratyaya.
+    assert_has_sup_1s("cawaka", Stri, &["cawakA"]);
+    // ataH: the root's A and the `a` of the pratyaya merge into a long A (6.1.101).
+    let dhaka = create_krdanta("DAka", &[], &d("De\\w", Bhvadi), Krt::vun);
+    assert_has_sup_1s(&dhaka, Stri, &["DAkA"]);
+    // With Rvul, yuk (7.3.33) keeps the `a` short.
+    let dayaka = create_krdanta("dAyaka", &[], &d("qudA\\Y", Juhotyadi), Krt::Rvul);
+    assert_has_sup_1s(&dayaka, Stri, &["dAyikA"]);
+    // A stem-final `a` is deleted by 6.4.48, so it does not block the rule.
+    let cikirsaka = create_krdanta("cikIrzaka", &[], &san(&kr), Krt::Rvul);
+    assert_has_sup_1s(&cikirsaka, Stri, &["cikIrzikA"]);
+
+    // dIDI and vevI are left as they were, since an `i` here would feed 7.4.53.
+    let didhi = d("dIDIN", Adadi);
+    let didhyaka = create_krdanta("dIDyaka", &[], &didhi, Krt::Rvul);
+    assert_has_sup_1s(&didhyaka, Stri, &["dIDyakA"]);
+    let didhaka = create_krdanta("dIDaka", &[], &nic(&didhi), Krt::Rvul);
+    assert_has_sup_1s(&didhaka, Stri, &["dIDakA"]);
+}
+
+#[test]
+fn sutra_7_3_45() {
+    // vArttika: tyakanaS ca nizeDaH
+    assert_has_sup_1s(&taddhitanta("upa", T::tyakan), Stri, &["upatyakA"]);
+    assert_has_sup_1s(&taddhitanta("aDi", T::tyakan), Stri, &["aDityakA"]);
+
+    // vArttika: ASizi vunaS ca na
+    let jivaka = create_krdanta("jIvaka", &[], &d("jIva~", Bhvadi), Krt::vun);
+    assert_has_sup_1s(&jivaka, Stri, &["jIvakA"]);
+    let nandaka = create_krdanta("nandaka", &[], &d("wunadi~", Bhvadi), Krt::vun);
+    assert_has_sup_1s(&nandaka, Stri, &["nandakA"]);
+    let bhavaka = create_krdanta("Bavaka", &[], &d("BU", Bhvadi), Krt::vun);
+    assert_has_sup_1s(&bhavaka, Stri, &["BavakA"]);
+}
+
+#[test]
 fn sutra_7_3_50() {
     assert_has_taddhita("akza", T::Wak, &["Akzika"]);
     assert_has_taddhita("SalAkA", T::Wak, &["SAlAkika"]);

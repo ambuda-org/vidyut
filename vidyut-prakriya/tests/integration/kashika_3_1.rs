@@ -750,6 +750,23 @@ fn sutra_3_1_66() {
     assert_has_ta_k(&[], &d("SE\\", Bhvadi), Lun, &["aSAyi"]);
     assert_has_ta_k(&[], &d("qukf\\Y", Tanadi), Lun, &["akAri"]);
     assert_has_ta_k(&[], &d("hf\\Y", Bhvadi), Lun, &["ahAri"]);
+
+    // BAve as well as karmaRi.
+    let assert_has_ta_bhave = |dhatu: &Dhatu, la: Lakara, expected: &[&str]| {
+        let args = Tinanta::builder()
+            .dhatu(dhatu.clone())
+            .prayoga(Prayoga::Bhave)
+            .purusha(Purusha::Prathama)
+            .vacana(Vacana::Eka)
+            .lakara(la)
+            .build()
+            .unwrap();
+        Tester::default().assert_has_tinantas(&args, expected);
+    };
+    assert_has_ta_bhave(&d("SIN", Adadi), Lun, &["aSAyi"]);
+    assert_has_ta_bhave(&d("hase~", Bhvadi), Lun, &["ahAsi"]);
+    assert_has_ta_bhave(&d("zWA\\", Bhvadi), Lun, &["asTAyi"]);
+    assert_has_ta_bhave(&d("hase~", Bhvadi), Lat, &["hasyate"]);
 }
 
 #[test]
