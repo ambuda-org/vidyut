@@ -258,7 +258,7 @@ impl<'a> From<&PratipadikaEntry<'a>> for PyPratipadikaEntry {
 }
 
 /*
-*/
+ */
 
 /// An entry in the kosha.
 ///
