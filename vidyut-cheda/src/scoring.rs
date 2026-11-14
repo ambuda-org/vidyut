@@ -69,9 +69,9 @@ impl<'a> From<&Option<PadaEntry<'a>>> for State {
         match val {
             Some(PadaEntry::Subanta(s)) => {
                 if s.pratipadika_entry().is_avyaya() {
-                    State::Subanta(s.linga(), s.vibhakti(), s.vacana())
-                } else {
                     State::Avyaya
+                } else {
+                    State::Subanta(s.linga(), s.vibhakti(), s.vacana())
                 }
             }
             Some(PadaEntry::Tinanta(t)) => State::Tinanta(t.purusha(), t.vacana()),
@@ -339,6 +339,38 @@ impl ModelBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_state_from_pada_entry() {
+        use vidyut_kosha::entries::{BasicPratipadikaEntry, PratipadikaEntry, SubantaEntry};
+        use vidyut_prakriya::args::{Pratipadika, Slp1String};
+
+        let basic = |p: Pratipadika| match p {
+            Pratipadika::Basic(b) => b,
+            _ => unreachable!(),
+        };
+
+        // A nominal (vane) maps to a Subanta state ...
+        let vana = basic(Pratipadika::basic(Slp1String::from("vana").unwrap()));
+        let lingas = [Linga::Napumsaka];
+        let vana_entry = PratipadikaEntry::Basic(BasicPratipadikaEntry::new(&vana, &lingas));
+        let vane = Some(PadaEntry::Subanta(SubantaEntry::new(
+            vana_entry,
+            Linga::Napumsaka,
+            Vibhakti::Saptami,
+            Vacana::Eka,
+        )));
+        assert_eq!(
+            State::from(&vane),
+            State::Subanta(Linga::Napumsaka, Vibhakti::Saptami, Vacana::Eka)
+        );
+
+        // ... and an avyaya (ca) maps to Avyaya, matching `State::from_pada`.
+        let ca = basic(Pratipadika::avyaya(Slp1String::from("ca").unwrap()));
+        let ca_entry = PratipadikaEntry::Basic(BasicPratipadikaEntry::new(&ca, &[]));
+        let ca_pada = Some(PadaEntry::Subanta(SubantaEntry::avyaya(ca_entry)));
+        assert_eq!(State::from(&ca_pada), State::Avyaya);
+    }
 
     #[test]
     fn test_log_prob() {
