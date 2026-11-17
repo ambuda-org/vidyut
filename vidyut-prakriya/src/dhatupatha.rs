@@ -133,8 +133,21 @@ impl Dhatupatha {
     /// # Ok::<(), Error>(())
     /// ```
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
-        let content = std::fs::read_to_string(path)?;
-        Self::from_text(&content)
+        let path = path.as_ref();
+        let mut s = Self::from_text(&std::fs::read_to_string(path)?)?;
+        // Auto-discover and merge an optional `extra-dhatus.tsv` sibling
+        // file. Same 3-column TSV format (code, aupadeshika, artha) with a
+        // header row. Extras are expected to use codes that do not collide
+        // with the base file (e.g. high numeric suffixes within the same
+        // gana, like `01.2000+`) and that fall outside the antargana
+        // ranges in `maybe_find_antargana`.
+        let extras_path = path.with_file_name("extra-dhatus.tsv");
+        if extras_path.exists() {
+            let extras = Self::from_text(&std::fs::read_to_string(&extras_path)?)?;
+            s.0.extend(extras.0);
+            s.0.sort_by(|x, y| x.code.cmp(&y.code));
+        }
+        Ok(s)
     }
 
     /// Loads a dhatupatha from a TSV string.
@@ -178,8 +191,15 @@ impl Dhatupatha {
                 continue;
             }
 
-            let entry = Entry::parse(code, aupadeshika, artha)?;
-            dhatus.push(entry);
+            // Skip (with a warning) entries whose upadeśa contains characters
+            // outside vidyut's accepted SLP1 set (e.g. the Vedic retroflex
+            // flap `L`/`ḻ`). The rest of the file still loads.
+            match Entry::parse(code, aupadeshika, artha) {
+                Ok(entry) => dhatus.push(entry),
+                Err(e) => {
+                    eprintln!("dhatupatha: skipping entry {code} ({aupadeshika}): {e}");
+                }
+            }
         }
 
         dhatus.sort_by(|x, y| x.code.cmp(&y.code));
